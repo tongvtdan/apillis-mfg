@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { Link } from "react-router-dom";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -120,8 +121,10 @@ export function WorkflowKanban() {
           <h2 className="text-2xl font-bold">RFQ Workflow</h2>
           <p className="text-muted-foreground">Track and manage your manufacturing requests</p>
         </div>
-        <Button>
-          New RFQ
+        <Button asChild>
+          <Link to="/rfq/new">
+            New RFQ
+          </Link>
         </Button>
       </div>
 
