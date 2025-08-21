@@ -60,7 +60,7 @@ const Index = () => {
                 <span className="text-primary-foreground font-bold text-sm">A</span>
               </div>
               <span className="text-xl font-bold text-foreground">Apillis</span>
-              <Badge variant="secondary" className="ml-2">Manufacturing RFQ</Badge>
+              <Badge variant="secondary" className="ml-2">Manufacturing Portal</Badge>
             </div>
             <div className="flex items-center space-x-4">
               {user ? (
@@ -91,12 +91,12 @@ const Index = () => {
           <div className="max-w-3xl mx-auto">
             <h1 className="text-4xl md:text-6xl font-bold text-foreground mb-6">
               Transform Your
-              <span className="text-primary block">Manufacturing RFQ Process</span>
+              <span className="text-primary block">Manufacturing Operations</span>
             </h1>
             <p className="text-xl text-muted-foreground mb-8 leading-relaxed">
-              Streamline your Request for Quote workflow with intelligent automation, 
-              real-time collaboration, and data-driven insights. Reduce processing time 
-              and increase win rates with Apillis.
+              Comprehensive manufacturing portal with RFQ management, workflow automation, 
+              real-time collaboration, and data-driven insights. Streamline your entire 
+              manufacturing process with Apillis.
             </p>
             <div className="flex flex-col sm:flex-row gap-4 justify-center">
               {user ? (
@@ -139,11 +139,11 @@ const Index = () => {
         <div className="max-w-7xl mx-auto">
           <div className="text-center mb-16">
             <h2 className="text-3xl md:text-4xl font-bold text-foreground mb-4">
-              Complete RFQ Management Solution
+              Complete Manufacturing Operations Platform
             </h2>
             <p className="text-lg text-muted-foreground max-w-2xl mx-auto">
-              Everything you need to streamline your manufacturing quote process, 
-              from intake to delivery.
+              Everything you need to manage your manufacturing operations, from RFQ management 
+              to production workflows and team collaboration.
             </p>
           </div>
           
@@ -174,7 +174,7 @@ const Index = () => {
                 Proven Results for Manufacturing Excellence
               </h2>
               <p className="text-lg text-muted-foreground mb-8 leading-relaxed">
-                Join leading manufacturers who have transformed their RFQ process 
+                Join leading manufacturers who have transformed their operations 
                 with measurable improvements in efficiency and profitability.
               </p>
               <div className="space-y-4">
@@ -191,7 +191,7 @@ const Index = () => {
                 <CardHeader>
                   <CardTitle className="text-xl">Ready to Get Started?</CardTitle>
                   <CardDescription>
-                    Experience the power of streamlined RFQ management
+                    Experience the power of our comprehensive manufacturing platform
                   </CardDescription>
                 </CardHeader>
                 <CardContent className="space-y-4">
@@ -226,7 +226,7 @@ const Index = () => {
               <div className="w-6 h-6 rounded bg-primary flex items-center justify-center">
                 <span className="text-primary-foreground font-bold text-xs">A</span>
               </div>
-              <span className="font-semibold text-foreground">Apillis Manufacturing RFQ</span>
+              <span className="font-semibold text-foreground">Apillis Manufacturing Portal</span>
             </div>
             <div className="text-sm text-muted-foreground">
               © 2025 Apillis. All rights reserved.

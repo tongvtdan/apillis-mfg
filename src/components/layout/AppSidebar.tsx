@@ -54,7 +54,7 @@ export function AppSidebar() {
           </div>
           <div>
             <h2 className="font-semibold text-sidebar-foreground">Apillis</h2>
-            <p className="text-xs text-sidebar-foreground/70">Manufacturing RFQ</p>
+            <p className="text-xs text-sidebar-foreground/70">Manufacturing Portal</p>
           </div>
         </div>
       </SidebarHeader>

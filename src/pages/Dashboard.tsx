@@ -68,7 +68,7 @@ export default function Dashboard() {
         <div className="mb-6">
           <h1 className="text-2xl font-bold">Dashboard</h1>
           <p className="text-muted-foreground">
-            Monitor your manufacturing RFQ pipeline and performance
+            Monitor your manufacturing operations and performance metrics
           </p>
         </div>
         

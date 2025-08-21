@@ -85,8 +85,8 @@ export default function Auth() {
           <div className="flex justify-center mb-4">
             <Factory className="h-12 w-12 text-primary" />
           </div>
-          <h1 className="text-3xl font-bold tracking-tight">MFG RFQ Portal</h1>
-          <p className="text-muted-foreground">Manufacturing Request for Quote Management</p>
+          <h1 className="text-3xl font-bold tracking-tight">Apillis Manufacturing Portal</h1>
+          <p className="text-muted-foreground">Complete Manufacturing Operations Platform</p>
         </div>
 
         <Card>
