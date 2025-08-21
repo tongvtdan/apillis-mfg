@@ -14,16 +14,186 @@ export type Database = {
   }
   public: {
     Tables: {
-      [_ in never]: never
+      audit_logs: {
+        Row: {
+          actor_id: string | null
+          details: Json | null
+          event_type: Database["public"]["Enums"]["audit_event_type"]
+          id: string
+          ip_address: unknown | null
+          session_id: string | null
+          success: boolean
+          timestamp: string
+          user_agent: string | null
+          user_id: string | null
+        }
+        Insert: {
+          actor_id?: string | null
+          details?: Json | null
+          event_type: Database["public"]["Enums"]["audit_event_type"]
+          id?: string
+          ip_address?: unknown | null
+          session_id?: string | null
+          success?: boolean
+          timestamp?: string
+          user_agent?: string | null
+          user_id?: string | null
+        }
+        Update: {
+          actor_id?: string | null
+          details?: Json | null
+          event_type?: Database["public"]["Enums"]["audit_event_type"]
+          id?: string
+          ip_address?: unknown | null
+          session_id?: string | null
+          success?: boolean
+          timestamp?: string
+          user_agent?: string | null
+          user_id?: string | null
+        }
+        Relationships: []
+      }
+      profiles: {
+        Row: {
+          created_at: string
+          created_by: string | null
+          department: string | null
+          display_name: string
+          id: string
+          last_login: string | null
+          locked_until: string | null
+          login_attempts: number
+          password_last_changed: string | null
+          role: Database["public"]["Enums"]["user_role"]
+          status: Database["public"]["Enums"]["user_status"]
+          updated_at: string
+          updated_by: string | null
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          created_by?: string | null
+          department?: string | null
+          display_name: string
+          id?: string
+          last_login?: string | null
+          locked_until?: string | null
+          login_attempts?: number
+          password_last_changed?: string | null
+          role?: Database["public"]["Enums"]["user_role"]
+          status?: Database["public"]["Enums"]["user_status"]
+          updated_at?: string
+          updated_by?: string | null
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          created_by?: string | null
+          department?: string | null
+          display_name?: string
+          id?: string
+          last_login?: string | null
+          locked_until?: string | null
+          login_attempts?: number
+          password_last_changed?: string | null
+          role?: Database["public"]["Enums"]["user_role"]
+          status?: Database["public"]["Enums"]["user_status"]
+          updated_at?: string
+          updated_by?: string | null
+          user_id?: string
+        }
+        Relationships: []
+      }
+      user_roles: {
+        Row: {
+          assigned_at: string
+          assigned_by: string | null
+          id: string
+          role: Database["public"]["Enums"]["user_role"]
+          user_id: string
+        }
+        Insert: {
+          assigned_at?: string
+          assigned_by?: string | null
+          id?: string
+          role: Database["public"]["Enums"]["user_role"]
+          user_id: string
+        }
+        Update: {
+          assigned_at?: string
+          assigned_by?: string | null
+          id?: string
+          role?: Database["public"]["Enums"]["user_role"]
+          user_id?: string
+        }
+        Relationships: []
+      }
+      user_sessions: {
+        Row: {
+          created_at: string
+          device_info: string | null
+          id: string
+          ip_address: unknown | null
+          is_active: boolean
+          last_activity: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          device_info?: string | null
+          id?: string
+          ip_address?: unknown | null
+          is_active?: boolean
+          last_activity?: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          device_info?: string | null
+          id?: string
+          ip_address?: unknown | null
+          is_active?: boolean
+          last_activity?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
     }
     Views: {
       [_ in never]: never
     }
     Functions: {
-      [_ in never]: never
+      get_current_user_role: {
+        Args: Record<PropertyKey, never>
+        Returns: Database["public"]["Enums"]["user_role"]
+      }
+      has_role: {
+        Args: {
+          _role: Database["public"]["Enums"]["user_role"]
+          _user_id: string
+        }
+        Returns: boolean
+      }
     }
     Enums: {
-      [_ in never]: never
+      audit_event_type:
+        | "login_success"
+        | "login_failure"
+        | "logout"
+        | "role_change"
+        | "password_change"
+        | "account_locked"
+        | "account_unlocked"
+        | "profile_update"
+      user_role:
+        | "Customer"
+        | "Procurement Owner"
+        | "Engineering"
+        | "QA"
+        | "Production"
+        | "Supplier"
+        | "Management"
+      user_status: "Active" | "Inactive" | "Pending" | "Locked" | "Dormant"
     }
     CompositeTypes: {
       [_ in never]: never
@@ -150,6 +320,27 @@ export type CompositeTypes<
 
 export const Constants = {
   public: {
-    Enums: {},
+    Enums: {
+      audit_event_type: [
+        "login_success",
+        "login_failure",
+        "logout",
+        "role_change",
+        "password_change",
+        "account_locked",
+        "account_unlocked",
+        "profile_update",
+      ],
+      user_role: [
+        "Customer",
+        "Procurement Owner",
+        "Engineering",
+        "QA",
+        "Production",
+        "Supplier",
+        "Management",
+      ],
+      user_status: ["Active", "Inactive", "Pending", "Locked", "Dormant"],
+    },
   },
 } as const
