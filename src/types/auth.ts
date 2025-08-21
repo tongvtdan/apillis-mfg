@@ -1,4 +1,5 @@
-import { Timestamp } from 'firebase/firestore';
+// Database timestamp type (generic - can be adapted for any database)
+export type DatabaseTimestamp = string; // ISO 8601 timestamp string
 
 // User roles enum
 export enum UserRole {
@@ -40,20 +41,20 @@ export interface User {
     role: UserRole;
     status: UserStatus;
     department?: string;
-    lastLogin: Timestamp;
-    createdAt: Timestamp;
+    lastLogin: DatabaseTimestamp;
+    createdAt: DatabaseTimestamp;
     createdBy: string;
-    updatedAt: Timestamp;
+    updatedAt: DatabaseTimestamp;
     updatedBy: string;
-    passwordLastChanged: Timestamp;
+    passwordLastChanged: DatabaseTimestamp;
     loginAttempts: number;
-    lockedUntil?: Timestamp;
+    lockedUntil?: DatabaseTimestamp;
 }
 
 // Audit log interface
 export interface AuditLog {
     id: string;
-    timestamp: Timestamp;
+    timestamp: DatabaseTimestamp;
     eventType: AuditEventType;
     userId: string;
     actorId?: string;
@@ -89,8 +90,8 @@ export interface UserSession {
     userId: string;
     deviceInfo: string;
     ipAddress: string;
-    createdAt: Timestamp;
-    lastActivity: Timestamp;
+    createdAt: DatabaseTimestamp;
+    lastActivity: DatabaseTimestamp;
     isActive: boolean;
 }
 
@@ -237,6 +238,6 @@ export interface RoleAssignment {
     oldRole: UserRole;
     newRole: UserRole;
     assignedBy: string;
-    assignedAt: Timestamp;
+    assignedAt: DatabaseTimestamp;
     reason?: string;
 }
