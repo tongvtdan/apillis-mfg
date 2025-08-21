@@ -34,7 +34,7 @@ interface RFQCard {
 const mockRFQs: RFQCard[] = [
   {
     id: "1",
-    rfqNumber: "RFQ-2025-001",
+    rfqNumber: "RFQ-25082001",
     company: "Acme Manufacturing",
     projectName: "Automotive Component Series A",
     priority: "high",
@@ -46,36 +46,36 @@ const mockRFQs: RFQCard[] = [
   },
   {
     id: "2", 
-    rfqNumber: "RFQ-2025-002",
+    rfqNumber: "RFQ-25082002",
     company: "TechCorp Industries",
     projectName: "Precision Machined Parts",
     priority: "medium",
     assignee: "Jane Smith",
-    dueDate: "2025-01-20",
+    dueDate: "2026-01-20",
     estimatedValue: 75000,
     stage: "review",
     daysInStage: 5
   },
   {
     id: "3",
-    rfqNumber: "RFQ-2025-003", 
+    rfqNumber: "RFQ-25082003", 
     company: "Global Aerospace",
     projectName: "Titanium Brackets",
     priority: "urgent",
     assignee: "Mike Johnson",
-    dueDate: "2025-01-10",
+    dueDate: "2025-12-10",
     estimatedValue: 200000,
     stage: "quote",
     daysInStage: 3
   },
   {
     id: "4",
-    rfqNumber: "RFQ-2025-004",
+    rfqNumber: "RFQ-25082004",
     company: "Marine Systems Ltd",
     projectName: "Stainless Steel Fittings", 
     priority: "low",
     assignee: "Sarah Wilson",
-    dueDate: "2025-02-01",
+    dueDate: "2026-02-01",
     estimatedValue: 50000,
     stage: "production",
     daysInStage: 1
