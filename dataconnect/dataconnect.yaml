@@ -1,0 +1,12 @@
+specVersion: "v1"
+serviceId: "apillis-mfg"
+location: "asia-southeast1"
+schema:
+  source: "./schema"
+  datasource:
+    postgresql:
+      database: "fdcdb"
+      cloudSql:
+        instanceId: "apillis-mfg-fdc"
+      # schemaValidation: "COMPATIBLE"
+connectorDirs: ["./connector"]
