@@ -35,6 +35,20 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [loading, setLoading] = useState(true);
   const { toast } = useToast();
 
+  const handleFailedLogin = async (email: string) => {
+    try {
+      // Since we can't look up users by email directly, we'll handle this differently
+      // We'll track failed attempts in a separate way or use client-side tracking
+      toast({
+        variant: "destructive",
+        title: "Invalid Credentials",
+        description: "Invalid email or password. Please check your credentials and try again.",
+      });
+    } catch (error) {
+      console.error('Error handling failed login:', error);
+    }
+  };
+
   const fetchProfile = async (userId: string) => {
     try {
       const { data, error } = await supabase
@@ -131,12 +145,10 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       });
 
       if (error) {
+        // Handle failed login
+        await handleFailedLogin(email);
+        
         await logAuditEvent('login_failure', false, { error: error.message });
-        toast({
-          variant: "destructive",
-          title: "Sign In Failed",
-          description: error.message,
-        });
         throw error;
       }
 

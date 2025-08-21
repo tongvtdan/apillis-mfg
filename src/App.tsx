@@ -9,6 +9,7 @@ import { ProtectedRoute } from "@/components/auth/ProtectedRoute";
 import Index from "./pages/Index";
 import Dashboard from "./pages/Dashboard";
 import NewRFQ from "./pages/NewRFQ";
+import AdminUsers from "./pages/AdminUsers";
 import NotFound from "./pages/NotFound";
 import Auth from "./pages/Auth";
 
@@ -56,7 +57,7 @@ const App = () => (
             } />
             <Route path="/users" element={
               <ProtectedRoute requiredRoles={['Management']}>
-                <AppLayout><div className="p-6">User Management - Coming Soon</div></AppLayout>
+                <AppLayout><AdminUsers /></AppLayout>
               </ProtectedRoute>
             } />
             <Route path="/settings" element={

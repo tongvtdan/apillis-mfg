@@ -6,7 +6,9 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { Loader2, Factory } from 'lucide-react';
+import { Alert, AlertDescription } from '@/components/ui/alert';
+import { Loader2, Factory, AlertCircle, CheckCircle } from 'lucide-react';
+import { validateLoginForm, validateRegistrationForm } from '@/lib/auth-validation';
 
 export default function Auth() {
   const { signIn, signUp, resetPassword, user, loading } = useAuth();
@@ -22,6 +24,11 @@ export default function Auth() {
     displayName: '' 
   });
   const [resetEmail, setResetEmail] = useState('');
+  const [errors, setErrors] = useState<string[]>([]);
+  const [passwordStrength, setPasswordStrength] = useState<{
+    score: number;
+    feedback: string[];
+  }>({ score: 0, feedback: [] });
 
   const from = location.state?.from?.pathname || '/dashboard';
 
@@ -31,6 +38,15 @@ export default function Auth() {
 
   const handleSignIn = async (e: React.FormEvent) => {
     e.preventDefault();
+    setErrors([]);
+    
+    // Validate form
+    const validation = validateLoginForm(signInData);
+    if (!validation.isValid) {
+      setErrors(validation.errors);
+      return;
+    }
+
     setIsLoading(true);
     try {
       await signIn(signInData.email, signInData.password);
@@ -43,10 +59,15 @@ export default function Auth() {
 
   const handleSignUp = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (signUpData.password !== signUpData.confirmPassword) {
-      alert('Passwords do not match');
+    setErrors([]);
+    
+    // Validate form
+    const validation = validateRegistrationForm(signUpData);
+    if (!validation.isValid) {
+      setErrors(validation.errors);
       return;
     }
+
     setIsLoading(true);
     try {
       await signUp(signUpData.email, signUpData.password, signUpData.displayName);
@@ -97,6 +118,18 @@ export default function Auth() {
             </CardDescription>
           </CardHeader>
           <CardContent>
+            {errors.length > 0 && (
+              <Alert className="mb-4" variant="destructive">
+                <AlertCircle className="h-4 w-4" />
+                <AlertDescription>
+                  <ul className="list-disc pl-4 space-y-1">
+                    {errors.map((error, index) => (
+                      <li key={index}>{error}</li>
+                    ))}
+                  </ul>
+                </AlertDescription>
+              </Alert>
+            )}
             <Tabs defaultValue="signin" className="w-full">
               <TabsList className="grid w-full grid-cols-2">
                 <TabsTrigger value="signin">Sign In</TabsTrigger>
@@ -181,9 +214,69 @@ export default function Auth() {
                       type="password"
                       placeholder="Enter your password"
                       value={signUpData.password}
-                      onChange={(e) => setSignUpData(prev => ({ ...prev, password: e.target.value }))}
+                      onChange={(e) => {
+                        const password = e.target.value;
+                        setSignUpData(prev => ({ ...prev, password }));
+                        
+                        // Update password strength indicator
+                        let score = 0;
+                        const feedback: string[] = [];
+                        
+                        if (password.length >= 8) score += 1;
+                        else feedback.push('At least 8 characters');
+                        
+                        if (/[A-Z]/.test(password)) score += 1;
+                        else feedback.push('One uppercase letter');
+                        
+                        if (/[a-z]/.test(password)) score += 1;
+                        else feedback.push('One lowercase letter');
+                        
+                        if (/\d/.test(password)) score += 1;
+                        else feedback.push('One number');
+                        
+                        if (/[!@#$%^&*()_+\-=\[\]{};':"\\|,.<>\/?]/.test(password)) score += 1;
+                        else feedback.push('One special character');
+                        
+                        setPasswordStrength({ score, feedback });
+                      }}
                       required
                     />
+                    
+                    {/* Password Strength Indicator */}
+                    {signUpData.password && (
+                      <div className="mt-2 space-y-2">
+                        <div className="flex space-x-1">
+                          {[1, 2, 3, 4, 5].map((level) => (
+                            <div
+                              key={level}
+                              className={`h-1 flex-1 rounded ${
+                                level <= passwordStrength.score
+                                  ? passwordStrength.score <= 2
+                                    ? 'bg-red-500'
+                                    : passwordStrength.score <= 3
+                                    ? 'bg-yellow-500'
+                                    : 'bg-green-500'
+                                  : 'bg-gray-200'
+                              }`}
+                            />
+                          ))}
+                        </div>
+                        <div className="text-xs text-muted-foreground">
+                          <span className="font-medium">
+                            Password strength: {
+                              passwordStrength.score <= 2 ? 'Weak' :
+                              passwordStrength.score <= 3 ? 'Fair' :
+                              passwordStrength.score <= 4 ? 'Good' : 'Strong'
+                            }
+                          </span>
+                          {passwordStrength.feedback.length > 0 && (
+                            <div className="mt-1">
+                              Missing: {passwordStrength.feedback.join(', ')}
+                            </div>
+                          )}
+                        </div>
+                      </div>
+                    )}
                   </div>
                   <div className="space-y-2">
                     <Label htmlFor="signup-confirm">Confirm Password</Label>
