@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Upload, X, FileText, AlertCircle } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -20,7 +20,13 @@ interface FileUpload {
 export function RFQIntakeForm() {
   const [files, setFiles] = useState<FileUpload[]>([]);
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [tempRFQId, setTempRFQId] = useState<string>("");
   const { toast } = useToast();
+
+  // Generate temporary RFQ ID when component mounts
+  useEffect(() => {
+    setTempRFQId(generateRFQId());
+  }, []);
 
   const handleFileUpload = (event: React.ChangeEvent<HTMLInputElement>) => {
     const uploadedFiles = Array.from(event.target.files || []);
@@ -51,8 +57,8 @@ export function RFQIntakeForm() {
     e.preventDefault();
     setIsSubmitting(true);
 
-    // Generate unique RFQ ID
-    const rfqId = generateRFQId();
+    // Use the temporary RFQ ID that was generated when the form loaded
+    const rfqId = tempRFQId;
 
     // Simulate form submission
     setTimeout(() => {
@@ -83,6 +89,18 @@ export function RFQIntakeForm() {
             </CardDescription>
           </CardHeader>
           <CardContent className="space-y-4">
+            <div className="space-y-2">
+              <Label htmlFor="rfq-id">RFQ ID (Temporary)</Label>
+              <Input 
+                id="rfq-id" 
+                value={tempRFQId} 
+                disabled 
+                className="bg-muted font-mono"
+              />
+              <p className="text-xs text-muted-foreground">
+                This temporary ID will be assigned if you submit this form
+              </p>
+            </div>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div className="space-y-2">
                 <Label htmlFor="company">Company Name</Label>
