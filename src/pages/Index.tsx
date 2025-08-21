@@ -1,10 +1,12 @@
-import { ArrowRight, CheckCircle, FileText, BarChart3, Users, Zap } from "lucide-react";
+import { ArrowRight, CheckCircle, FileText, BarChart3, Users, Zap, LogIn } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Link } from "react-router-dom";
+import { useAuth } from "@/contexts/AuthContext";
 
 const Index = () => {
+  const { user } = useAuth();
   const features = [
     {
       icon: FileText,
@@ -61,12 +63,23 @@ const Index = () => {
               <Badge variant="secondary" className="ml-2">Manufacturing RFQ</Badge>
             </div>
             <div className="flex items-center space-x-4">
-              <Link to="/dashboard">
-                <Button variant="outline">Login</Button>
-              </Link>
-              <Link to="/dashboard">
-                <Button>Get Started</Button>
-              </Link>
+              {user ? (
+                <Link to="/dashboard">
+                  <Button>Go to Dashboard</Button>
+                </Link>
+              ) : (
+                <>
+                  <Link to="/auth">
+                    <Button variant="outline">
+                      <LogIn className="mr-2 h-4 w-4" />
+                      Login
+                    </Button>
+                  </Link>
+                  <Link to="/auth">
+                    <Button>Get Started</Button>
+                  </Link>
+                </>
+              )}
             </div>
           </div>
         </div>
@@ -86,17 +99,36 @@ const Index = () => {
               and increase win rates with Apillis.
             </p>
             <div className="flex flex-col sm:flex-row gap-4 justify-center">
-              <Link to="/dashboard">
-                <Button size="lg" className="gradient-primary text-lg px-8 py-6">
-                  Start Free Trial
-                  <ArrowRight className="ml-2 h-5 w-5" />
-                </Button>
-              </Link>
-              <Link to="/rfq/new">
-                <Button variant="outline" size="lg" className="text-lg px-8 py-6">
-                  View Demo
-                </Button>
-              </Link>
+              {user ? (
+                <>
+                  <Link to="/dashboard">
+                    <Button size="lg" className="gradient-primary text-lg px-8 py-6">
+                      Go to Dashboard
+                      <ArrowRight className="ml-2 h-5 w-5" />
+                    </Button>
+                  </Link>
+                  <Link to="/rfq/new">
+                    <Button variant="outline" size="lg" className="text-lg px-8 py-6">
+                      Create New RFQ
+                    </Button>
+                  </Link>
+                </>
+              ) : (
+                <>
+                  <Link to="/auth">
+                    <Button size="lg" className="gradient-primary text-lg px-8 py-6">
+                      Start Free Trial
+                      <ArrowRight className="ml-2 h-5 w-5" />
+                    </Button>
+                  </Link>
+                  <Link to="/auth">
+                    <Button variant="outline" size="lg" className="text-lg px-8 py-6">
+                      Sign In
+                      <LogIn className="ml-2 h-5 w-5" />
+                    </Button>
+                  </Link>
+                </>
+              )}
             </div>
           </div>
         </div>
@@ -173,9 +205,9 @@ const Index = () => {
                       <div className="text-sm text-muted-foreground">Response Rate</div>
                     </div>
                   </div>
-                  <Link to="/dashboard" className="block">
+                  <Link to={user ? "/dashboard" : "/auth"} className="block">
                     <Button className="w-full" size="lg">
-                      Start Your Free Trial
+                      {user ? "Go to Dashboard" : "Start Your Free Trial"}
                       <ArrowRight className="ml-2 h-4 w-4" />
                     </Button>
                   </Link>
