@@ -8,6 +8,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Badge } from "@/components/ui/badge";
 import { useToast } from "@/hooks/use-toast";
+import { generateRFQId } from "@/lib/utils";
 
 interface FileUpload {
   id: string;
@@ -50,12 +51,15 @@ export function RFQIntakeForm() {
     e.preventDefault();
     setIsSubmitting(true);
 
+    // Generate unique RFQ ID
+    const rfqId = generateRFQId();
+
     // Simulate form submission
     setTimeout(() => {
       setIsSubmitting(false);
       toast({
         title: "RFQ Submitted Successfully",
-        description: "Your RFQ has been submitted and assigned ID: RFQ-2025-001",
+        description: `Your RFQ has been submitted and assigned ID: ${rfqId}`,
       });
     }, 2000);
   };
