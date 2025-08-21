@@ -58,12 +58,12 @@ This document outlines the requirements for the User Authentication & Role Manag
 - Authentication process SHALL complete within 2 seconds under normal load.
 - The system SHALL comply with GDPR and CCPA for user data handling.
 - All authentication traffic SHALL be encrypted using TLS 1.2+.
-```
+
 
 ---
 
 ### `design-feature1.md`
-```markdown
+
 # Design Document: Feature 1 - User Authentication & Role Management
 
 ## Overview
@@ -110,12 +110,11 @@ users (collection)
 ## UI Mock Reference
 - Login form follows Material Design guidelines.
 - Admin user table includes search, filter by role, and bulk role assignment.
-```
 
 ---
 
 ### `tasks-feature1.md`
-```markdown
+
 # Implementation Plan: Feature 1 - User Authentication & Role Management
 
 ## Sprint 1 (from PRD)
@@ -165,4 +164,4 @@ users (collection)
   - [ ] Test login flow for all roles
   - [ ] Verify route guards block unauthorized access
   - [ ] Test role assignment and logging
-```
+
