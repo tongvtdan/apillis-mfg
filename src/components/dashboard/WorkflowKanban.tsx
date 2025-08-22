@@ -104,7 +104,9 @@ function RFQCard({ rfq, isDragging = false }: RFQCardProps) {
               </Button>
             </DropdownMenuTrigger>
             <DropdownMenuContent align="end">
-              <DropdownMenuItem>View Details</DropdownMenuItem>
+              <DropdownMenuItem onClick={() => window.location.href = `/rfq/${rfq.id}`}>
+                View Details
+              </DropdownMenuItem>
               <DropdownMenuItem>Edit</DropdownMenuItem>
               <DropdownMenuItem>Move to Next Stage</DropdownMenuItem>
               <DropdownMenuItem>Assign to...</DropdownMenuItem>

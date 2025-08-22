@@ -13,6 +13,7 @@ import NewRFQ from "./pages/NewRFQ";
 import AdminUsers from "./pages/AdminUsers";
 import NotFound from "./pages/NotFound";
 import Auth from "./pages/Auth";
+import { RFQDetail } from "./pages/RFQDetail";
 
 const queryClient = new QueryClient();
 
@@ -42,8 +43,13 @@ const App = () => (
               </ProtectedRoute>
             } />
             <Route path="/reviews" element={
-              <ProtectedRoute requiredRoles={['Engineering', 'QA', 'Management']}>
+              <ProtectedRoute requiredRoles={['Engineering', 'QA', 'Production', 'Management', 'Procurement']}>
                 <AppLayout><div className="p-6">Reviews - Coming Soon</div></AppLayout>
+              </ProtectedRoute>
+            } />
+            <Route path="/rfq/:id" element={
+              <ProtectedRoute>
+                <AppLayout><RFQDetail /></AppLayout>
               </ProtectedRoute>
             } />
             <Route path="/production" element={

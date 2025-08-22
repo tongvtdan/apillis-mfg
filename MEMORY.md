@@ -1,31 +1,22 @@
+# Project Memory
 
-### Date: 2023-08-22
-## What's Been Completed:
-1. Enhanced Kanban Dashboard
-   
-Real-time drag-and-drop between workflow stages
-Optimistic updates for instant visual feedback
-Toast notifications showing "From [old status] to [new status]"
-Beautiful animations and visual indicators
+This file contains important changes and updates made to the project.
 
-2. RFQ Intake Portal
-   
-Public submission form (/rfq/submit) - No login required
-Multi-file upload with drag-and-drop support
-Auto-generated RFQ numbers via database triggers
-Comprehensive form validation using Zod schema
-Professional success page with next steps
-File storage integration with 50MB limit per file
-Responsive design with progress indicators
+- Date: 2025-01-20
+- When we completed / changed:
+1. Implemented User Authentication & Role Management with Firebase
+2. Set up role-based access control (RBAC) system
+3. Created authentication pages (login, signup) 
+4. Implemented protected routes and navigation
+5. Added user profile management
+6. Set up audit logging for security events
 
-3. User Experience Enhancements
-   
-Updated homepage with prominent "Submit RFQ" call-to-action
-Navigation improvements for both public and authenticated users
-Toast notifications now appear at top-center for better visibility
-
-4. Database & Security
-   
-Complete RFQ schema with activity logging
-Secure file storage with proper RLS policies
-Real-time updates via Supabase channels
+- Date: 2025-08-22
+- When we completed / changed:
+1. Implemented Internal Review System with database schema for reviews, risks, and clarifications
+2. Created ReviewForm component for Engineering, QA, and Production departments
+3. Built ReviewStatusPanel for consolidated review status tracking
+4. Added ClarificationModal for customer clarification requests
+5. Created RFQDetail page with tabs for overview, reviews, documents, and activity
+6. Integrated review system with existing RFQ workflow and Kanban dashboard
+7. Set up proper RLS policies for secure access to review data

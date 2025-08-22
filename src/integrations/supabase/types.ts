@@ -186,6 +186,120 @@ export type Database = {
           },
         ]
       }
+      rfq_clarifications: {
+        Row: {
+          created_at: string
+          description: string
+          id: string
+          requested_by: string | null
+          resolution: string | null
+          resolved_at: string | null
+          resolved_by: string | null
+          rfq_id: string
+          status: string
+        }
+        Insert: {
+          created_at?: string
+          description: string
+          id?: string
+          requested_by?: string | null
+          resolution?: string | null
+          resolved_at?: string | null
+          resolved_by?: string | null
+          rfq_id: string
+          status?: string
+        }
+        Update: {
+          created_at?: string
+          description?: string
+          id?: string
+          requested_by?: string | null
+          resolution?: string | null
+          resolved_at?: string | null
+          resolved_by?: string | null
+          rfq_id?: string
+          status?: string
+        }
+        Relationships: []
+      }
+      rfq_internal_reviews: {
+        Row: {
+          created_at: string
+          department: Database["public"]["Enums"]["user_role"]
+          feedback: string | null
+          id: string
+          reviewer_id: string | null
+          rfq_id: string
+          status: Database["public"]["Enums"]["review_status"]
+          submitted_at: string | null
+          submitted_by: string | null
+          suggestions: string[] | null
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          department: Database["public"]["Enums"]["user_role"]
+          feedback?: string | null
+          id?: string
+          reviewer_id?: string | null
+          rfq_id: string
+          status?: Database["public"]["Enums"]["review_status"]
+          submitted_at?: string | null
+          submitted_by?: string | null
+          suggestions?: string[] | null
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          department?: Database["public"]["Enums"]["user_role"]
+          feedback?: string | null
+          id?: string
+          reviewer_id?: string | null
+          rfq_id?: string
+          status?: Database["public"]["Enums"]["review_status"]
+          submitted_at?: string | null
+          submitted_by?: string | null
+          suggestions?: string[] | null
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      rfq_risks: {
+        Row: {
+          category: Database["public"]["Enums"]["risk_category"]
+          created_at: string
+          created_by: string | null
+          description: string
+          id: string
+          mitigation_plan: string | null
+          review_id: string | null
+          rfq_id: string
+          severity: Database["public"]["Enums"]["risk_severity"]
+        }
+        Insert: {
+          category: Database["public"]["Enums"]["risk_category"]
+          created_at?: string
+          created_by?: string | null
+          description: string
+          id?: string
+          mitigation_plan?: string | null
+          review_id?: string | null
+          rfq_id: string
+          severity: Database["public"]["Enums"]["risk_severity"]
+        }
+        Update: {
+          category?: Database["public"]["Enums"]["risk_category"]
+          created_at?: string
+          created_by?: string | null
+          description?: string
+          id?: string
+          mitigation_plan?: string | null
+          review_id?: string | null
+          rfq_id?: string
+          severity?: Database["public"]["Enums"]["risk_severity"]
+        }
+        Relationships: []
+      }
       rfqs: {
         Row: {
           assignee_id: string | null
@@ -198,11 +312,15 @@ export type Database = {
           days_in_stage: number | null
           description: string | null
           due_date: string | null
+          engineering_reviewer_id: string | null
           estimated_value: number | null
           id: string
           notes: string | null
           priority: Database["public"]["Enums"]["rfq_priority"]
+          production_reviewer_id: string | null
           project_name: string
+          qa_reviewer_id: string | null
+          review_summary: Json | null
           rfq_number: string
           stage_entered_at: string | null
           status: Database["public"]["Enums"]["rfq_status"]
@@ -221,11 +339,15 @@ export type Database = {
           days_in_stage?: number | null
           description?: string | null
           due_date?: string | null
+          engineering_reviewer_id?: string | null
           estimated_value?: number | null
           id?: string
           notes?: string | null
           priority?: Database["public"]["Enums"]["rfq_priority"]
+          production_reviewer_id?: string | null
           project_name: string
+          qa_reviewer_id?: string | null
+          review_summary?: Json | null
           rfq_number: string
           stage_entered_at?: string | null
           status?: Database["public"]["Enums"]["rfq_status"]
@@ -244,11 +366,15 @@ export type Database = {
           days_in_stage?: number | null
           description?: string | null
           due_date?: string | null
+          engineering_reviewer_id?: string | null
           estimated_value?: number | null
           id?: string
           notes?: string | null
           priority?: Database["public"]["Enums"]["rfq_priority"]
+          production_reviewer_id?: string | null
           project_name?: string
+          qa_reviewer_id?: string | null
+          review_summary?: Json | null
           rfq_number?: string
           stage_entered_at?: string | null
           status?: Database["public"]["Enums"]["rfq_status"]
@@ -343,6 +469,7 @@ export type Database = {
         | "account_locked"
         | "account_unlocked"
         | "profile_update"
+      review_status: "pending" | "approved" | "rejected" | "revision_requested"
       rfq_priority: "low" | "medium" | "high" | "urgent"
       rfq_status:
         | "inquiry"
@@ -351,6 +478,8 @@ export type Database = {
         | "production"
         | "completed"
         | "cancelled"
+      risk_category: "technical" | "timeline" | "cost" | "quality"
+      risk_severity: "low" | "medium" | "high"
       user_role:
         | "Customer"
         | "Procurement Owner"
@@ -498,6 +627,7 @@ export const Constants = {
         "account_unlocked",
         "profile_update",
       ],
+      review_status: ["pending", "approved", "rejected", "revision_requested"],
       rfq_priority: ["low", "medium", "high", "urgent"],
       rfq_status: [
         "inquiry",
@@ -507,6 +637,8 @@ export const Constants = {
         "completed",
         "cancelled",
       ],
+      risk_category: ["technical", "timeline", "cost", "quality"],
+      risk_severity: ["low", "medium", "high"],
       user_role: [
         "Customer",
         "Procurement Owner",

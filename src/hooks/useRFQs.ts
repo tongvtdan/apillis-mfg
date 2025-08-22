@@ -217,12 +217,28 @@ export function useRFQs() {
     };
   }, [user]);
 
+  // Get RFQ by ID
+  const getRFQById = async (id: string): Promise<RFQ> => {
+    const { data, error } = await supabase
+      .from('rfqs')
+      .select('*')
+      .eq('id', id)
+      .single();
+
+    if (error) {
+      throw error;
+    }
+
+    return data;
+  };
+
   return {
     rfqs,
     loading,
     error,
     refetch: fetchRFQs,
     updateRFQStatus,
-    updateRFQStatusOptimistic
+    updateRFQStatusOptimistic,
+    getRFQById
   };
 }
