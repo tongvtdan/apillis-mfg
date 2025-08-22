@@ -64,3 +64,5 @@ This file contains important changes and updates made to the project.
 1. Added table view to projects page alongside existing kanban view
 2. Created ProjectTable component displaying projects in tabular format with columns for project details, customer, status, priority, assignee, lead time, value, and actions
 3. Implemented tabs switching between Kanban and Table views for better project visualization options
+4. Updated Kanban view to use proper WorkflowKanban component with columns for each process step and drag-and-drop functionality
+5. Removed progress step indicators from project cards in Kanban view - process steps now appear as separate droppable columns

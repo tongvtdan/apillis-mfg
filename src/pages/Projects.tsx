@@ -1,5 +1,4 @@
 import { WorkflowKanban } from "@/components/dashboard/WorkflowKanban";
-import { ProjectProgressCard } from "@/components/dashboard/ProjectProgressCard";
 import { ProjectTable } from "@/components/project/ProjectTable";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useProjects } from "@/hooks/useProjects";
@@ -40,12 +39,8 @@ export default function Projects() {
           <TabsTrigger value="table">Table View</TabsTrigger>
         </TabsList>
         
-        <TabsContent value="kanban">
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-            {activeProjects.map((project) => (
-              <ProjectProgressCard key={project.id} project={project} />
-            ))}
-          </div>
+        <TabsContent value="kanban" className="mt-0">
+          <WorkflowKanban />
         </TabsContent>
         
         <TabsContent value="table">
