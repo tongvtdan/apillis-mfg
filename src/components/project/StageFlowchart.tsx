@@ -24,7 +24,7 @@ export function StageFlowchart({ selectedStage, onStageSelect, stageCounts }: St
               }`}
               onClick={() => onStageSelect(stage.id)}
             >
-              <CardContent className="p-4 text-center min-w-[140px]">
+              <CardContent className="p-4 text-center w-[140px] h-[100px] flex flex-col justify-center">
                 <div className="space-y-2">
                   <Badge 
                     className={`${stage.color} text-xs font-medium`}
