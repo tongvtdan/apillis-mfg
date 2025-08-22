@@ -5,19 +5,18 @@ import { useDroppable } from '@dnd-kit/core';
 import { CSS } from '@dnd-kit/utilities';
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
-import { CalendarDays, Clock, DollarSign, MoreHorizontal, User } from "lucide-react";
-import { Project, ProjectType, PROJECT_TYPE_LABELS, PROJECT_TYPE_DESCRIPTIONS, PROJECT_TYPE_COLORS } from "@/types/project";
-import { format } from "date-fns";
+import { Calendar, Clock, AlertTriangle, Eye, Building2, User, MoreHorizontal } from "lucide-react";
+import { Project, ProjectType, PROJECT_TYPE_LABELS, PROJECT_TYPE_DESCRIPTIONS, PROJECT_TYPE_COLORS, PRIORITY_COLORS } from "@/types/project";
+import { Link } from "react-router-dom";
 
 interface ProjectTypeKanbanProps {
   projects: Project[];
   onUpdateProject?: (projectId: string, updates: Partial<Project>) => Promise<void>;
 }
 
-// ProjectCard component for dragging
+// ProjectCard component for dragging - using same design as WorkflowKanban
 interface ProjectCardProps {
   project: Project;
   onUpdateProject?: (projectId: string, updates: Partial<Project>) => Promise<void>;
@@ -39,88 +38,135 @@ function ProjectCard({ project, onUpdateProject }: ProjectCardProps) {
     opacity: isDragging ? 0.5 : 1,
   };
 
+  const getPriorityColor = (priority: string) => {
+    return PRIORITY_COLORS[priority as keyof typeof PRIORITY_COLORS] || 'bg-gray-100 text-gray-800 border-gray-200';
+  };
+
   const formatCurrency = (amount?: number) => {
     if (!amount) return 'N/A';
     return new Intl.NumberFormat('en-US', {
       style: 'currency',
       currency: 'USD',
-      notation: 'compact',
-      maximumFractionDigits: 1
+      minimumFractionDigits: 0,
+      maximumFractionDigits: 0,
     }).format(amount);
   };
 
   const formatDate = (dateString?: string) => {
     if (!dateString) return 'No due date';
-    return format(new Date(dateString), 'MMM dd');
+    return new Date(dateString).toLocaleDateString();
   };
 
-  const isOverdue = (dateString?: string) => {
-    if (!dateString) return false;
-    return new Date(dateString) < new Date();
-  };
+  const isOverdue = (daysInStage: number) => daysInStage > 7;
 
   return (
-    <Card
+    <div
       ref={setNodeRef}
       style={style}
       {...attributes}
       {...listeners}
-      className={`cursor-grab mb-3 hover:shadow-md transition-shadow ${isDragging ? 'shadow-lg' : ''}`}
+      className={isDragging ? 'opacity-50' : ''}
     >
-      <CardContent className="p-4">
-        <div className="space-y-3">
-          <div className="flex items-start justify-between">
-            <div className="space-y-1">
-              <div className="text-sm font-medium text-muted-foreground">
-                {project.project_id}
-              </div>
-              <h4 className="font-semibold leading-tight">{project.title}</h4>
-            </div>
+      <Card className={`card-elevated cursor-grab active:cursor-grabbing hover:shadow-md transition-all duration-200 ${isDragging ? 'rotate-3 shadow-lg scale-105' : 'hover:scale-[1.02]'} ${isDragging ? 'z-50' : ''}`}>
+        <CardHeader className="pb-2">
+          <div className="flex items-center justify-between">
+            <CardTitle className="text-sm font-medium">
+              {project.project_id}
+            </CardTitle>
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
-                <Button variant="ghost" size="sm" className="h-8 w-8 p-0">
-                  <MoreHorizontal className="h-4 w-4" />
+                <Button variant="ghost" size="sm" className="h-6 w-6 p-0">
+                  <MoreHorizontal className="h-3 w-3" />
                 </Button>
               </DropdownMenuTrigger>
               <DropdownMenuContent align="end">
-                <DropdownMenuItem>View Details</DropdownMenuItem>
-                <DropdownMenuItem>Edit Project</DropdownMenuItem>
-                <DropdownMenuItem>Add Notes</DropdownMenuItem>
+                <DropdownMenuItem asChild>
+                  <Link to={`/project/${project.id}`}>View Details</Link>
+                </DropdownMenuItem>
+                <DropdownMenuItem>Edit</DropdownMenuItem>
+                <DropdownMenuItem>Move to Next Stage</DropdownMenuItem>
+                <DropdownMenuItem>Assign to...</DropdownMenuItem>
               </DropdownMenuContent>
             </DropdownMenu>
           </div>
+          <div className="flex items-center space-x-2">
+            <Badge
+              variant="outline"
+              className={`text-xs ${getPriorityColor(project.priority)}`}
+            >
+              {project.priority.toUpperCase()}
+            </Badge>
+            {isOverdue(project.days_in_stage) && (
+              <AlertTriangle className="h-3 w-3 text-red-500" />
+            )}
+          </div>
+        </CardHeader>
 
-          {project.assignee_id && (
-            <div className="flex items-center gap-2 text-sm text-muted-foreground">
-              <User className="h-4 w-4" />
-              <Avatar className="h-6 w-6">
-                <AvatarFallback className="text-xs">
-                  {project.assignee_id.slice(0, 2).toUpperCase()}
-                </AvatarFallback>
-              </Avatar>
-            </div>
-          )}
-
-          <div className="flex items-center justify-between text-sm">
-            <div className="flex items-center gap-1 text-muted-foreground">
-              <DollarSign className="h-4 w-4" />
-              <span>{formatCurrency(project.estimated_value)}</span>
-            </div>
-            <div className={`flex items-center gap-1 ${isOverdue(project.due_date) ? 'text-red-600' : 'text-muted-foreground'}`}>
-              <CalendarDays className="h-4 w-4" />
-              <span>{formatDate(project.due_date)}</span>
+        <CardContent className="pt-0 space-y-3">
+          <div>
+            <p className="font-medium text-sm">{project.title}</p>
+            <div className="flex items-center space-x-1 text-xs text-muted-foreground mt-1">
+              <Building2 className="h-3 w-3" />
+              <span>{project.customer?.company || project.customer?.name || project.contact_name || 'Unknown'}</span>
             </div>
           </div>
 
-          {project.days_in_stage > 0 && (
-            <div className="flex items-center gap-1 text-sm text-muted-foreground">
-              <Clock className="h-4 w-4" />
-              <span>{project.days_in_stage} days in stage</span>
+          <div className="space-y-2 text-xs">
+            <div className="flex items-center justify-between">
+              <div className="flex items-center space-x-1 text-muted-foreground">
+                <User className="h-3 w-3" />
+                <span>{project.contact_name || project.assignee_id || 'Unassigned'}</span>
+              </div>
+              {project.estimated_value && (
+                <span className="font-medium">{formatCurrency(project.estimated_value)}</span>
+              )}
+            </div>
+
+            <div className="flex items-center justify-between">
+              {project.due_date && (
+                <div className="flex items-center space-x-1 text-muted-foreground">
+                  <Calendar className="h-3 w-3" />
+                  <span>{formatDate(project.due_date)}</span>
+                </div>
+              )}
+              <div className="flex items-center space-x-1 text-muted-foreground">
+                <Clock className="h-3 w-3" />
+                <span>{project.days_in_stage} days</span>
+              </div>
+            </div>
+          </div>
+
+          {project.tags && project.tags.length > 0 && (
+            <div className="flex flex-wrap gap-1">
+              {project.tags.slice(0, 2).map((tag, index) => (
+                <Badge key={index} variant="secondary" className="text-xs px-1 py-0">
+                  {tag}
+                </Badge>
+              ))}
+              {project.tags.length > 2 && (
+                <Badge variant="secondary" className="text-xs px-1 py-0">
+                  +{project.tags.length - 2}
+                </Badge>
+              )}
             </div>
           )}
-        </div>
-      </CardContent>
-    </Card>
+
+          <div className="pt-2 border-t">
+            <Button
+              variant="ghost"
+              size="sm"
+              className="w-full justify-start h-7 px-2"
+              asChild
+            >
+              <Link to={`/project/${project.id}`}>
+                <Eye className="mr-2 h-3 w-3" />
+                View Details
+              </Link>
+            </Button>
+          </div>
+        </CardContent>
+      </Card>
+    </div>
   );
 }
 
@@ -139,9 +185,8 @@ function DroppableTypeColumn({ type, projects, onUpdateProject }: DroppableTypeC
   return (
     <div
       ref={setNodeRef}
-      className={`flex-1 min-w-[320px] transition-colors ${
-        isOver ? 'bg-muted/50' : ''
-      }`}
+      className={`flex-1 min-w-[320px] transition-colors ${isOver ? 'bg-muted/50' : ''
+        }`}
     >
       <Card className="h-full">
         <CardHeader className="pb-3">

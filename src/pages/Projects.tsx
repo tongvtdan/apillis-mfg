@@ -22,7 +22,7 @@ export default function Projects() {
   }, []);
 
   const activeProjects = projects.filter(p => p.status !== 'shipped_closed');
-  
+
   // Calculate stage counts
   const stageCounts = React.useMemo(() => {
     const counts: Record<ProjectStatus, number> = {
@@ -35,11 +35,11 @@ export default function Projects() {
       in_production: 0,
       shipped_closed: 0
     };
-    
+
     projects.forEach(project => {
       counts[project.status] = (counts[project.status] || 0) + 1;
     });
-    
+
     return counts;
   }, [projects]);
 
@@ -73,28 +73,28 @@ export default function Projects() {
         <h1 className="text-2xl font-bold">Factory Pulse - Project Flow</h1>
         <p className="text-muted-foreground">Track and manage your manufacturing projects from idea to delivery</p>
       </div>
-      
+
       <Tabs defaultValue="flowchart" className="w-full">
-        <TabsList className="grid w-full grid-cols-4 mb-6">
-          <TabsTrigger value="flowchart">Flowchart View</TabsTrigger>
-          <TabsTrigger value="type-kanban">Type Kanban</TabsTrigger>
-          <TabsTrigger value="kanban">Full Kanban</TabsTrigger>
-          <TabsTrigger value="table">Table View</TabsTrigger>
+        <TabsList className="grid w-full grid-cols-3 mb-6">
+          <TabsTrigger value="flowchart">Flow</TabsTrigger>
+          <TabsTrigger value="kanban">Kanban</TabsTrigger>
+          <TabsTrigger value="table">Table</TabsTrigger>
         </TabsList>
-        
+
         <TabsContent value="flowchart" className="mt-0 space-y-6">
           <div className="bg-card rounded-lg p-6 border">
             <h3 className="text-lg font-semibold mb-4">Project Workflow Stages</h3>
-            <StageFlowchart 
+            <StageFlowchart
               selectedStage={selectedStage}
               onStageSelect={handleStageSelect}
               stageCounts={stageCounts}
             />
           </div>
-          
+
           {selectedStage && (
             <div className="bg-card rounded-lg p-6 border">
-              <ProjectTypeKanban 
+              {/* <h3 className="text-lg font-semibold mb-4">Projects in {selectedStage.replace(/_/g, ' ').replace(/\b\w/g, l => l.toUpperCase())} - Grouped by Type</h3> */}
+              <ProjectTypeKanban
                 projects={selectedStageProjects}
                 onUpdateProject={async (projectId, updates) => {
                   // Handle project updates if needed
@@ -103,37 +103,24 @@ export default function Projects() {
               />
             </div>
           )}
-          
+
           {!selectedStage && (
             <div className="text-center py-12">
               <p className="text-muted-foreground">
-                Click on a stage above to view projects grouped by type
+                Click on a stage above to view projects in that stage
               </p>
             </div>
           )}
         </TabsContent>
-        
-        <TabsContent value="type-kanban" className="mt-0">
-          <div className="bg-card rounded-lg p-6 border">
-            <h3 className="text-lg font-semibold mb-4">Projects Grouped by Type</h3>
-            <ProjectTypeKanban 
-              projects={activeProjects}
-              onUpdateProject={async (projectId, updates) => {
-                // Handle project updates if needed
-                console.log('Update project:', projectId, updates);
-              }}
-            />
-          </div>
-        </TabsContent>
-        
+
         <TabsContent value="kanban" className="mt-0">
           <WorkflowKanban />
         </TabsContent>
-        
+
         <TabsContent value="table">
           <ProjectTable projects={activeProjects} />
         </TabsContent>
-        
+
         {activeProjects.length === 0 && (
           <div className="text-center py-12">
             <p className="text-muted-foreground">No active projects found</p>
