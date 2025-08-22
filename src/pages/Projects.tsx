@@ -9,7 +9,17 @@ import { ProjectStatus } from "@/types/project";
 
 export default function Projects() {
   const { projects, loading } = useProjects();
-  const [selectedStage, setSelectedStage] = React.useState<ProjectStatus | null>(null);
+  const [selectedStage, setSelectedStage] = React.useState<ProjectStatus | null>(() => {
+    // Try to restore from localStorage, default to 'inquiry_received' if none found
+    const saved = localStorage.getItem('projects-selected-stage');
+    return saved ? (saved as ProjectStatus) : 'inquiry_received';
+  });
+
+  // Save selected stage to localStorage whenever it changes
+  const handleStageSelect = React.useCallback((stage: ProjectStatus) => {
+    setSelectedStage(stage);
+    localStorage.setItem('projects-selected-stage', stage);
+  }, []);
 
   const activeProjects = projects.filter(p => p.status !== 'shipped_closed');
   
@@ -76,7 +86,7 @@ export default function Projects() {
             <h3 className="text-lg font-semibold mb-4">Project Workflow Stages</h3>
             <StageFlowchart 
               selectedStage={selectedStage}
-              onStageSelect={setSelectedStage}
+              onStageSelect={handleStageSelect}
               stageCounts={stageCounts}
             />
           </div>
