@@ -59,6 +59,13 @@ This file contains important changes and updates made to the project.
 9. Moved Monthly Progress Overview section to the bottom of the dashboard
 10. Redesigned ProjectProgressCard to match reference design with only 3 progress steps (completed, current, next) visible for better card layout
 
+- Date: 2025-01-22
+- What we completed / changed:
+1. Created interactive flowchart UI for project workflow stages with StageFlowchart component
+2. Built PriorityKanban component that shows projects in selected stage grouped by priority (High, Medium, Low)
+3. Updated Projects page with new Flowchart View tab that combines stage selection with priority-based project display
+4. Maintained existing Full Kanban and Table views as additional tabs for different workflow preferences
+
 - Date: 2025-01-21
 - What we completed / changed:
 1. Simplified project workflow to 7-stage Kanban layout as requested: Inquiry Received → Technical Review → Quoted → Order Confirmed → Procurement & Planning → In Production → Shipped & Closed
