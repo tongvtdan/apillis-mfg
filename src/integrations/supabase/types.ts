@@ -289,6 +289,7 @@ export type Database = {
           priority_score: number | null
           production_reviewer_id: string | null
           project_id: string
+          project_type: Database["public"]["Enums"]["project_type"]
           qa_reviewer_id: string | null
           review_summary: Json | null
           stage_entered_at: string | null
@@ -317,6 +318,7 @@ export type Database = {
           priority_score?: number | null
           production_reviewer_id?: string | null
           project_id: string
+          project_type?: Database["public"]["Enums"]["project_type"]
           qa_reviewer_id?: string | null
           review_summary?: Json | null
           stage_entered_at?: string | null
@@ -345,6 +347,7 @@ export type Database = {
           priority_score?: number | null
           production_reviewer_id?: string | null
           project_id?: string
+          project_type?: Database["public"]["Enums"]["project_type"]
           qa_reviewer_id?: string | null
           review_summary?: Json | null
           stage_entered_at?: string | null
@@ -842,6 +845,7 @@ export type Database = {
         | "production"
         | "completed"
         | "cancelled"
+      project_type: "system_build" | "fabrication" | "manufacturing"
       review_status: "pending" | "approved" | "rejected" | "revision_requested"
       rfq_priority: "low" | "medium" | "high" | "urgent"
       rfq_status:
@@ -1011,6 +1015,7 @@ export const Constants = {
         "completed",
         "cancelled",
       ],
+      project_type: ["system_build", "fabrication", "manufacturing"],
       review_status: ["pending", "approved", "rejected", "revision_requested"],
       rfq_priority: ["low", "medium", "high", "urgent"],
       rfq_status: [

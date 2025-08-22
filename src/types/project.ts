@@ -1,5 +1,6 @@
 export type ProjectStatus = 'inquiry_received' | 'technical_review' | 'supplier_rfq_sent' | 'quoted' | 'order_confirmed' | 'procurement_planning' | 'in_production' | 'shipped_closed';
 export type ProjectPriority = 'low' | 'medium' | 'high' | 'urgent';
+export type ProjectType = 'system_build' | 'fabrication' | 'manufacturing';
 
 export interface Customer {
   id: string;
@@ -23,6 +24,7 @@ export interface Project {
   status: ProjectStatus;
   priority: ProjectPriority;
   priority_score?: number;
+  project_type: ProjectType;
   assignee_id?: string;
   estimated_value?: number;
   due_date?: string;
@@ -112,9 +114,28 @@ export const PRIORITY_COLORS: Record<ProjectPriority, string> = {
   low: 'bg-green-100 text-green-800 border-green-200'
 };
 
+export const PROJECT_TYPE_LABELS: Record<ProjectType, string> = {
+  system_build: 'System Build',
+  fabrication: 'Fabrication',
+  manufacturing: 'Manufacturing'
+};
+
+export const PROJECT_TYPE_DESCRIPTIONS: Record<ProjectType, string> = {
+  system_build: 'From requirements to design, fabrication, assemble, test and delivery',
+  fabrication: 'Parts fabrication like CNC machining, sheet metal, etc.',
+  manufacturing: 'Contract manufacturing, high volume production, etc.'
+};
+
+export const PROJECT_TYPE_COLORS: Record<ProjectType, string> = {
+  system_build: 'bg-blue-100 text-blue-800 border-blue-200',
+  fabrication: 'bg-green-100 text-green-800 border-green-200',
+  manufacturing: 'bg-purple-100 text-purple-800 border-purple-200'
+};
+
 // Legacy RFQ compatibility - gradually phase out
 export type RFQStatus = ProjectStatus;
 export type RFQPriority = ProjectPriority;
+export type RFQType = ProjectType;
 export type RFQ = Project;
 export type RFQAttachment = ProjectDocument;
 export type RFQActivity = ProjectActivity;

@@ -2,13 +2,13 @@ import React from "react";
 import { WorkflowKanban } from "@/components/dashboard/WorkflowKanban";
 import { ProjectTable } from "@/components/project/ProjectTable";
 import { StageFlowchart } from "@/components/project/StageFlowchart";
-import { PriorityKanban } from "@/components/project/PriorityKanban";
+import { ProjectTypeKanban } from "@/components/project/ProjectTypeKanban";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useProjects } from "@/hooks/useProjects";
 import { ProjectStatus } from "@/types/project";
 
 export default function Projects() {
-  const { projects, loading } = useProjects();
+  const { projects, loading, updateProjectStatus } = useProjects();
   const [selectedStage, setSelectedStage] = React.useState<ProjectStatus | null>(() => {
     // Try to restore from localStorage, default to 'inquiry_received' if none found
     const saved = localStorage.getItem('projects-selected-stage');
@@ -75,8 +75,9 @@ export default function Projects() {
       </div>
       
       <Tabs defaultValue="flowchart" className="w-full">
-        <TabsList className="grid w-full grid-cols-3 mb-6">
+        <TabsList className="grid w-full grid-cols-4 mb-6">
           <TabsTrigger value="flowchart">Flowchart View</TabsTrigger>
+          <TabsTrigger value="type-kanban">Type Kanban</TabsTrigger>
           <TabsTrigger value="kanban">Full Kanban</TabsTrigger>
           <TabsTrigger value="table">Table View</TabsTrigger>
         </TabsList>
@@ -93,9 +94,12 @@ export default function Projects() {
           
           {selectedStage && (
             <div className="bg-card rounded-lg p-6 border">
-              <PriorityKanban 
+              <ProjectTypeKanban 
                 projects={selectedStageProjects}
-                selectedStage={selectedStage}
+                onUpdateProject={async (projectId, updates) => {
+                  // Handle project updates if needed
+                  console.log('Update project:', projectId, updates);
+                }}
               />
             </div>
           )}
@@ -103,10 +107,23 @@ export default function Projects() {
           {!selectedStage && (
             <div className="text-center py-12">
               <p className="text-muted-foreground">
-                Click on a stage above to view projects by priority
+                Click on a stage above to view projects grouped by type
               </p>
             </div>
           )}
+        </TabsContent>
+        
+        <TabsContent value="type-kanban" className="mt-0">
+          <div className="bg-card rounded-lg p-6 border">
+            <h3 className="text-lg font-semibold mb-4">Projects Grouped by Type</h3>
+            <ProjectTypeKanban 
+              projects={activeProjects}
+              onUpdateProject={async (projectId, updates) => {
+                // Handle project updates if needed
+                console.log('Update project:', projectId, updates);
+              }}
+            />
+          </div>
         </TabsContent>
         
         <TabsContent value="kanban" className="mt-0">

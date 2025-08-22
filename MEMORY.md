@@ -77,8 +77,10 @@ This file contains important changes and updates made to the project.
 5. Enhanced project status display formatting throughout the application
 6. Fixed all component files to use new status values (MonthlyProgress, PendingTasks, ProjectProgressView, Dashboard, Projects)
 
-- Date: 2025-08-22
+- Date: 2025-01-22
 - What we completed / changed:
-1. StageFlowchart: Fixed uniform card width (160px) using w-[160px] and max-w, removed scale transforms to prevent visual size changes
-2. Ensured CardContent uses w-full and fixed height for consistency
-3. Added flex-none to prevent flex shrink in horizontal layout
+1. Added project_type column to projects database with enum values: system_build, fabrication, manufacturing
+2. Updated Project TypeScript interface to include project_type field  
+3. Created ProjectTypeKanban component to group projects by type instead of priority
+4. Added new "Type Kanban" tab to Projects page that displays projects grouped by System Build, Fabrication, and Manufacturing
+5. Updated flowchart view to show projects grouped by type when a stage is selected
