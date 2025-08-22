@@ -60,7 +60,7 @@ function RFQCard({ rfq, isDragging = false }: RFQCardProps) {
 
   const style = {
     transform: CSS.Transform.toString(transform),
-    transition,
+    transition: transition || 'transform 200ms ease',
     opacity: sortableIsDragging ? 0.5 : 1,
   };
 
@@ -91,7 +91,7 @@ function RFQCard({ rfq, isDragging = false }: RFQCardProps) {
       {...listeners}
       className={isDragging ? 'opacity-50' : ''}
     >
-      <Card className={`card-elevated cursor-pointer hover:shadow-md transition-all ${isDragging ? 'rotate-3 shadow-lg' : ''}`}>
+      <Card className={`card-elevated cursor-grab active:cursor-grabbing hover:shadow-md transition-all duration-200 ${isDragging ? 'rotate-3 shadow-lg scale-105' : 'hover:scale-[1.02]'} ${sortableIsDragging ? 'z-50' : ''}`}>
       <CardHeader className="pb-2">
         <div className="flex items-center justify-between">
           <CardTitle className="text-sm font-medium">
@@ -198,8 +198,8 @@ function DroppableStage({ stageId, stageName, stageCount, children }: DroppableS
   return (
     <div
       ref={setNodeRef}
-      className={`space-y-4 bg-muted/30 p-4 rounded-lg border-2 border-dashed transition-colors min-h-[500px] ${
-        isOver ? 'border-primary bg-primary/5' : 'border-muted hover:border-muted-foreground/50'
+      className={`space-y-4 bg-muted/30 p-4 rounded-lg border-2 border-dashed transition-all duration-300 min-h-[500px] ${
+        isOver ? 'border-primary bg-primary/10 scale-[1.02] shadow-md' : 'border-muted hover:border-muted-foreground/50'
       }`}
     >
       <div className="flex items-center justify-between">
@@ -216,7 +216,7 @@ function DroppableStage({ stageId, stageName, stageCount, children }: DroppableS
 }
 
 export function WorkflowKanban() {
-  const { rfqs, loading, error, updateRFQStatus } = useRFQs();
+  const { rfqs, loading, error, updateRFQStatusOptimistic } = useRFQs();
   const [activeRFQ, setActiveRFQ] = useState<RFQ | null>(null);
 
   const sensors = useSensors(
@@ -235,12 +235,12 @@ export function WorkflowKanban() {
 
   const handleDragEnd = useCallback(async (event: DragEndEvent) => {
     const { active, over } = event;
-    setActiveRFQ(null);
-
+    
     console.log('Drag end event:', { active: active.id, over: over?.id });
 
     if (!over) {
       console.log('No drop target found');
+      setActiveRFQ(null);
       return;
     }
 
@@ -256,6 +256,7 @@ export function WorkflowKanban() {
       const targetRFQ = rfqs.find(r => r.id === over.id);
       if (!targetRFQ) {
         console.log('Invalid drop target');
+        setActiveRFQ(null);
         return;
       }
       newStatus = targetRFQ.status;
@@ -264,12 +265,18 @@ export function WorkflowKanban() {
     const currentRFQ = rfqs.find(r => r.id === rfqId);
     if (!currentRFQ || currentRFQ.status === newStatus) {
       console.log('No change needed');
+      setActiveRFQ(null);
       return;
     }
 
     console.log('Updating RFQ status:', { rfqId, from: currentRFQ.status, to: newStatus });
-    await updateRFQStatus(rfqId, newStatus);
-  }, [updateRFQStatus, rfqs]);
+    
+    // Clear the drag overlay immediately
+    setActiveRFQ(null);
+    
+    // Make the optimistic API call (this will update UI immediately)
+    await updateRFQStatusOptimistic(rfqId, newStatus);
+  }, [updateRFQStatusOptimistic, rfqs]);
 
   const getStageRFQs = useCallback((stageId: RFQStatus) => {
     return rfqs.filter(rfq => rfq.status === stageId);
@@ -352,9 +359,11 @@ export function WorkflowKanban() {
                   items={stageRFQs.map(rfq => rfq.id)}
                   strategy={verticalListSortingStrategy}
                 >
-                  <div className="space-y-3" style={{ minHeight: '200px' }}>
+                  <div className="space-y-3 transition-all duration-200" style={{ minHeight: '200px' }}>
                     {stageRFQs.map((rfq) => (
-                      <RFQCard key={rfq.id} rfq={rfq} />
+                      <div key={rfq.id} className="animate-fade-in">
+                        <RFQCard rfq={rfq} />
+                      </div>
                     ))}
 
                     {stageRFQs.length === 0 && (

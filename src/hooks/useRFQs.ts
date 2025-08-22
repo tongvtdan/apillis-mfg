@@ -74,12 +74,74 @@ export function useRFQs() {
         return false;
       }
 
-      // Optimistically update local state
-      setRFQs(prev => prev.map(rfq => 
-        rfq.id === rfqId 
-          ? { ...rfq, status: newStatus, updated_at: new Date().toISOString() }
-          : rfq
-      ));
+      // Format status names for display
+      const formatStatusName = (status: RFQStatus) => {
+        const statusMap = {
+          inquiry: "New Inquiry",
+          review: "Under Review", 
+          quote: "Quotation",
+          production: "Production",
+          completed: "Completed",
+          cancelled: "Cancelled"
+        };
+        return statusMap[status] || status;
+      };
+
+      toast({
+        title: "Status Updated",
+        description: `From ${formatStatusName(oldStatus)} to ${formatStatusName(newStatus)}`,
+      });
+      
+      return true;
+    } catch (err) {
+      console.error('Error updating RFQ status:', err);
+      toast({
+        variant: "destructive",
+        title: "Error",
+        description: "Failed to update RFQ status",
+      });
+      return false;
+    }
+  };
+
+  // Optimistic update function for drag and drop
+  const updateRFQStatusOptimistic = async (rfqId: string, newStatus: RFQStatus) => {
+    const currentRFQ = rfqs.find(rfq => rfq.id === rfqId);
+    if (!currentRFQ) return false;
+
+    const oldStatus = currentRFQ.status;
+    
+    // Optimistically update local state immediately
+    setRFQs(prev => prev.map(rfq => 
+      rfq.id === rfqId 
+        ? { ...rfq, status: newStatus, updated_at: new Date().toISOString() }
+        : rfq
+    ));
+
+    try {
+      const { error } = await supabase
+        .from('rfqs')
+        .update({ 
+          status: newStatus,
+          updated_at: new Date().toISOString()
+        })
+        .eq('id', rfqId);
+
+      if (error) {
+        // Revert optimistic update on error
+        setRFQs(prev => prev.map(rfq => 
+          rfq.id === rfqId 
+            ? { ...rfq, status: oldStatus, updated_at: new Date().toISOString() }
+            : rfq
+        ));
+        
+        toast({
+          variant: "destructive",
+          title: "Error",
+          description: "Failed to update RFQ status",
+        });
+        return false;
+      }
 
       // Format status names for display
       const formatStatusName = (status: RFQStatus) => {
@@ -102,6 +164,14 @@ export function useRFQs() {
       return true;
     } catch (err) {
       console.error('Error updating RFQ status:', err);
+      
+      // Revert optimistic update on error
+      setRFQs(prev => prev.map(rfq => 
+        rfq.id === rfqId 
+          ? { ...rfq, status: oldStatus, updated_at: new Date().toISOString() }
+          : rfq
+      ));
+      
       toast({
         variant: "destructive",
         title: "Error",
@@ -152,6 +222,7 @@ export function useRFQs() {
     loading,
     error,
     refetch: fetchRFQs,
-    updateRFQStatus
+    updateRFQStatus,
+    updateRFQStatusOptimistic
   };
 }
