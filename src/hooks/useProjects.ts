@@ -20,6 +20,7 @@ const LEGACY_TO_NEW_STATUS: Record<string, ProjectStatus> = {
 const NEW_TO_LEGACY_STATUS: Record<ProjectStatus, string> = {
   'inquiry_received': 'inquiry',
   'technical_review': 'review',
+  'supplier_rfq_sent': 'review',
   'quoted': 'quoted',
   'order_confirmed': 'won',
   'procurement_planning': 'won',
@@ -121,6 +122,7 @@ export function useProjects() {
         const statusMap = {
           inquiry_received: "Inquiry Received",
           technical_review: "Technical Review",
+          supplier_rfq_sent: "Supplier RFQ Sent",
           quoted: "Quoted",
           order_confirmed: "Order Confirmed",
           procurement_planning: "Procurement & Planning",
@@ -191,6 +193,7 @@ export function useProjects() {
         const statusMap = {
           inquiry_received: "Inquiry Received",
           technical_review: "Technical Review",
+          supplier_rfq_sent: "Supplier RFQ Sent",
           quoted: "Quoted",
           order_confirmed: "Order Confirmed",
           procurement_planning: "Procurement & Planning",

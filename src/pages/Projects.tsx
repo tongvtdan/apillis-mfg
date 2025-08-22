@@ -18,6 +18,7 @@ export default function Projects() {
     const counts: Record<ProjectStatus, number> = {
       inquiry_received: 0,
       technical_review: 0,
+      supplier_rfq_sent: 0,
       quoted: 0,
       order_confirmed: 0,
       procurement_planning: 0,

@@ -316,7 +316,7 @@ export function WorkflowKanban() {
             <p className="text-muted-foreground">Loading your manufacturing projects...</p>
           </div>
         </div>
-        <div className="grid grid-cols-1 lg:grid-cols-7 gap-4 min-h-[600px]">
+        <div className="grid grid-cols-1 lg:grid-cols-8 gap-4 min-h-[600px]">
           {PROJECT_STAGES.map((stage) => (
             <div key={stage.id} className="space-y-4">
               <div className="animate-pulse bg-muted h-8 rounded"></div>
@@ -363,7 +363,7 @@ export function WorkflowKanban() {
         onDragStart={handleDragStart}
         onDragEnd={handleDragEnd}
       >
-        <div className="grid grid-cols-1 lg:grid-cols-7 gap-4 min-h-[600px]">
+        <div className="grid grid-cols-1 lg:grid-cols-8 gap-4 min-h-[600px]">
           {stages.map((stage) => {
             const stageProjects = getStageProjects(stage.id);
 

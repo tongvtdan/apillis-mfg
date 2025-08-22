@@ -61,10 +61,11 @@ This file contains important changes and updates made to the project.
 
 - Date: 2025-01-22
 - What we completed / changed:
-1. Created interactive flowchart UI for project workflow stages with StageFlowchart component
-2. Built PriorityKanban component that shows projects in selected stage grouped by priority (High, Medium, Low)
-3. Updated Projects page with new Flowchart View tab that combines stage selection with priority-based project display
-4. Maintained existing Full Kanban and Table views as additional tabs for different workflow preferences
+1. Created StageFlowchart.tsx for interactive workflow stages with selection
+2. Created PriorityKanban.tsx to display projects by priority (High, Medium, Low) within a selected stage  
+3. Updated Projects.tsx with new "Flowchart View" tab that combines stage selection with priority-based Kanban
+4. Updated project workflow to 8 stages: added "Supplier RFQ Sent" between Technical Review and Quoted
+5. Updated grid layouts from 7 to 8 columns in WorkflowKanban component
 
 - Date: 2025-01-21
 - What we completed / changed:

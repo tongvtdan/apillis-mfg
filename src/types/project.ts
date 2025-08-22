@@ -1,4 +1,4 @@
-export type ProjectStatus = 'inquiry_received' | 'technical_review' | 'quoted' | 'order_confirmed' | 'procurement_planning' | 'in_production' | 'shipped_closed';
+export type ProjectStatus = 'inquiry_received' | 'technical_review' | 'supplier_rfq_sent' | 'quoted' | 'order_confirmed' | 'procurement_planning' | 'in_production' | 'shipped_closed';
 export type ProjectPriority = 'low' | 'medium' | 'high' | 'urgent';
 
 export interface Customer {
@@ -97,6 +97,7 @@ export interface ProjectMetric {
 export const PROJECT_STAGES: ProjectStage[] = [
   { id: "inquiry_received", name: "Inquiry Received", color: "bg-blue-100 text-blue-800", count: 0 },
   { id: "technical_review", name: "Technical Review", color: "bg-orange-100 text-orange-800", count: 0 },
+  { id: "supplier_rfq_sent", name: "Supplier RFQ Sent", color: "bg-indigo-100 text-indigo-800", count: 0 },
   { id: "quoted", name: "Quoted", color: "bg-green-100 text-green-800", count: 0 },
   { id: "order_confirmed", name: "Order Confirmed", color: "bg-purple-100 text-purple-800", count: 0 },
   { id: "procurement_planning", name: "Procurement & Planning", color: "bg-yellow-100 text-yellow-800", count: 0 },
