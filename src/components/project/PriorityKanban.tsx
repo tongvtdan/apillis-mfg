@@ -3,6 +3,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { useNavigate } from "react-router-dom";
+import { useProjects } from "@/hooks/useProjects";
 import {
   MoreHorizontal,
   Calendar,
@@ -36,7 +37,6 @@ import {
 } from "@dnd-kit/sortable";
 import { CSS } from "@dnd-kit/utilities";
 import { Project, ProjectPriority, PRIORITY_COLORS } from "@/types/project";
-import { useProjects } from "@/hooks/useProjects";
 
 interface ProjectCardProps {
   project: Project;

@@ -1,6 +1,13 @@
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import {
   Table,
   TableBody,
   TableCell,
@@ -8,7 +15,8 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-import { Project } from "@/types/project";
+import { Project, ProjectStatus, PROJECT_STAGES } from "@/types/project";
+import { useProjects } from "@/hooks/useProjects";
 import { formatDistanceToNow } from "date-fns";
 import { ExternalLink, User } from "lucide-react";
 
@@ -17,11 +25,14 @@ interface ProjectTableProps {
 }
 
 const statusVariants = {
-  inquiry: "bg-blue-100 text-blue-800",
+  inquiry_received: "bg-blue-100 text-blue-800",
+  technical_review: "bg-orange-100 text-orange-800",
+  supplier_rfq_sent: "bg-purple-100 text-purple-800",
   quoted: "bg-yellow-100 text-yellow-800", 
-  won: "bg-green-100 text-green-800",
-  lost: "bg-red-100 text-red-800",
-  on_hold: "bg-gray-100 text-gray-800",
+  order_confirmed: "bg-green-100 text-green-800",
+  procurement_planning: "bg-teal-100 text-teal-800",
+  in_production: "bg-indigo-100 text-indigo-800",
+  shipped_closed: "bg-gray-100 text-gray-800",
 } as const;
 
 const priorityVariants = {
@@ -31,6 +42,11 @@ const priorityVariants = {
 } as const;
 
 export function ProjectTable({ projects }: ProjectTableProps) {
+  const { updateProjectStatusOptimistic } = useProjects();
+
+  const handleStatusChange = async (projectId: string, newStatus: ProjectStatus) => {
+    await updateProjectStatusOptimistic(projectId, newStatus);
+  };
   return (
     <div className="rounded-md border">
       <Table>
@@ -66,9 +82,29 @@ export function ProjectTable({ projects }: ProjectTableProps) {
                 </div>
               </TableCell>
               <TableCell>
-                <Badge className={statusVariants[project.status as keyof typeof statusVariants]}>
-                  {project.status?.replace('_', ' ').toUpperCase()}
-                </Badge>
+                <Select
+                  value={project.status}
+                  onValueChange={(value: ProjectStatus) => handleStatusChange(project.id, value)}
+                >
+                  <SelectTrigger className="w-[180px]">
+                    <SelectValue>
+                      <Badge className={statusVariants[project.status as keyof typeof statusVariants]}>
+                        {PROJECT_STAGES.find(s => s.id === project.status)?.name || project.status}
+                      </Badge>
+                    </SelectValue>
+                  </SelectTrigger>
+                  <SelectContent>
+                    {PROJECT_STAGES.map((stage) => (
+                      <SelectItem key={stage.id} value={stage.id}>
+                        <div className="flex items-center gap-2">
+                          <Badge className={statusVariants[stage.id as keyof typeof statusVariants]}>
+                            {stage.name}
+                          </Badge>
+                        </div>
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
               </TableCell>
               <TableCell>
                 <Badge className={priorityVariants[project.priority as keyof typeof priorityVariants]}>
