@@ -84,7 +84,12 @@ export function ProjectOverviewCard({ project }: ProjectOverviewCardProps) {
 
         {/* Footer */}
         <div className="mt-4 pt-3 border-t flex justify-between text-xs text-muted-foreground">
-          <span>Created {new Date(project.created_at).toLocaleDateString()}</span>
+          <span>
+            {project.due_date 
+              ? `Due ${new Date(project.due_date).toLocaleDateString()}`
+              : `Created ${new Date(project.created_at).toLocaleDateString()}`
+            }
+          </span>
           {project.estimated_value && (
             <span>${project.estimated_value.toLocaleString()}</span>
           )}

@@ -144,7 +144,10 @@ export function ProjectProgressCard({ project }: ProjectProgressCardProps) {
         {/* Dates */}
         <div className="flex justify-between text-sm text-muted-foreground pt-4 border-t">
           <div>
-            Created: {new Date(project.created_at).toLocaleDateString()}
+            {project.due_date 
+              ? `Lead Time: ${Math.ceil((new Date(project.due_date).getTime() - new Date(project.created_at).getTime()) / (1000 * 60 * 60 * 24))} days`
+              : `Created: ${new Date(project.created_at).toLocaleDateString()}`
+            }
           </div>
           {project.due_date && (
             <div className="flex items-center text-orange-600">
