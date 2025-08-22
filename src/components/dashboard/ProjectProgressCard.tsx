@@ -173,9 +173,14 @@ export function ProjectProgressCard({ project }: ProjectProgressCardProps) {
             </div>
           </div>
           <div>
-            <div className="text-sm text-muted-foreground">Created</div>
+            <div className="text-sm text-muted-foreground">
+              {project.due_date ? 'Lead Time' : 'Due Date'}
+            </div>
             <div className="text-lg font-semibold">
-              {new Date(project.created_at).toLocaleDateString()}
+              {project.due_date 
+                ? `${Math.ceil((new Date(project.due_date).getTime() - new Date(project.created_at).getTime()) / (1000 * 60 * 60 * 24))} days`
+                : 'TBD'
+              }
             </div>
           </div>
         </div>

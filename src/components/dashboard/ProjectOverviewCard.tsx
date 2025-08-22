@@ -86,8 +86,8 @@ export function ProjectOverviewCard({ project }: ProjectOverviewCardProps) {
         <div className="mt-4 pt-3 border-t flex justify-between text-xs text-muted-foreground">
           <span>
             {project.due_date 
-              ? `Due ${new Date(project.due_date).toLocaleDateString()}`
-              : `Created ${new Date(project.created_at).toLocaleDateString()}`
+              ? `Lead Time: ${Math.ceil((new Date(project.due_date).getTime() - new Date(project.created_at).getTime()) / (1000 * 60 * 60 * 24))} days`
+              : 'Due Date: TBD'
             }
           </span>
           {project.estimated_value && (
