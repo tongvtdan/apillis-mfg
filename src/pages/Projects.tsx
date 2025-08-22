@@ -1,5 +1,7 @@
 import { WorkflowKanban } from "@/components/dashboard/WorkflowKanban";
 import { ProjectProgressCard } from "@/components/dashboard/ProjectProgressCard";
+import { ProjectTable } from "@/components/project/ProjectTable";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useProjects } from "@/hooks/useProjects";
 
 export default function Projects() {
@@ -32,18 +34,30 @@ export default function Projects() {
         <p className="text-muted-foreground">Manage all your projects and their workflow stages</p>
       </div>
       
-      {/* Detailed Project Cards with full functionality */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-        {activeProjects.map((project) => (
-          <ProjectProgressCard key={project.id} project={project} />
-        ))}
-      </div>
-      
-      {activeProjects.length === 0 && (
-        <div className="text-center py-12">
-          <p className="text-muted-foreground">No active projects found</p>
-        </div>
-      )}
+      <Tabs defaultValue="kanban" className="w-full">
+        <TabsList className="grid w-full grid-cols-2 mb-6">
+          <TabsTrigger value="kanban">Kanban View</TabsTrigger>
+          <TabsTrigger value="table">Table View</TabsTrigger>
+        </TabsList>
+        
+        <TabsContent value="kanban">
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+            {activeProjects.map((project) => (
+              <ProjectProgressCard key={project.id} project={project} />
+            ))}
+          </div>
+        </TabsContent>
+        
+        <TabsContent value="table">
+          <ProjectTable projects={activeProjects} />
+        </TabsContent>
+        
+        {activeProjects.length === 0 && (
+          <div className="text-center py-12">
+            <p className="text-muted-foreground">No active projects found</p>
+          </div>
+        )}
+      </Tabs>
     </div>
   );
 }

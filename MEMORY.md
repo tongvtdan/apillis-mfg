@@ -58,3 +58,9 @@ This file contains important changes and updates made to the project.
 8. Modified project information display to prioritize due date and lead time over created date
 9. Moved Monthly Progress Overview section to the bottom of the dashboard
 10. Redesigned ProjectProgressCard to match reference design with only 3 progress steps (completed, current, next) visible for better card layout
+
+- Date: 2025-01-26
+- What we completed / changed:
+1. Added table view to projects page alongside existing kanban view
+2. Created ProjectTable component displaying projects in tabular format with columns for project details, customer, status, priority, assignee, lead time, value, and actions
+3. Implemented tabs switching between Kanban and Table views for better project visualization options
