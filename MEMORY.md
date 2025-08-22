@@ -53,3 +53,8 @@ This file contains important changes and updates made to the project.
 3. Implemented workflow steps: Intake → Internal Review → Quoted → Production → Delivered
 4. Added project metrics display (BOM Items, Documents, Vendors Matched, Quotes Received)
 5. Replaced Kanban workflow with progress-based card layout for better visual project tracking
+6. Simplified Dashboard to show project overview cards with vertical progress steps
+7. Updated Projects page to use detailed ProjectProgressCard for full functionality
+8. Modified project information display to prioritize due date and lead time over created date
+9. Moved Monthly Progress Overview section to the bottom of the dashboard
+10. Redesigned ProjectProgressCard to match reference design with only 3 progress steps (completed, current, next) visible for better card layout
