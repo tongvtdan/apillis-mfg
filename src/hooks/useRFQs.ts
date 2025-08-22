@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { RFQ, RFQStatus } from '@/types/rfq';
 import { useAuth } from '@/contexts/AuthContext';
-import { useToast } from '@/components/ui/use-toast';
+import { useToast } from '@/hooks/use-toast';
 
 export function useRFQs() {
   const [rfqs, setRFQs] = useState<RFQ[]>([]);
@@ -44,6 +44,19 @@ export function useRFQs() {
 
   const updateRFQStatus = async (rfqId: string, newStatus: RFQStatus) => {
     try {
+      // Find the current RFQ to get the old status
+      const currentRFQ = rfqs.find(rfq => rfq.id === rfqId);
+      if (!currentRFQ) {
+        toast({
+          variant: "destructive",
+          title: "Error",
+          description: "RFQ not found",
+        });
+        return false;
+      }
+
+      const oldStatus = currentRFQ.status;
+
       const { error } = await supabase
         .from('rfqs')
         .update({ 
@@ -68,9 +81,22 @@ export function useRFQs() {
           : rfq
       ));
 
+      // Format status names for display
+      const formatStatusName = (status: RFQStatus) => {
+        const statusMap = {
+          inquiry: "New Inquiry",
+          review: "Under Review", 
+          quote: "Quotation",
+          production: "Production",
+          completed: "Completed",
+          cancelled: "Cancelled"
+        };
+        return statusMap[status] || status;
+      };
+
       toast({
         title: "Status Updated",
-        description: "RFQ status has been successfully updated",
+        description: `From ${formatStatusName(oldStatus)} to ${formatStatusName(newStatus)}`,
       });
       
       return true;
