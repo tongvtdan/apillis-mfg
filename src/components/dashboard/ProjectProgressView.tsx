@@ -1,24 +1,24 @@
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { ProjectProgressCard } from "./ProjectProgressCard";
+import { ProjectOverviewCard } from "./ProjectOverviewCard";
 import { useProjects } from "@/hooks/useProjects";
 
 export function ProjectProgressView() {
   const { projects, loading } = useProjects();
 
-  // Show active projects (not lost)
+  // Show active projects (not lost) - limit to 6 for dashboard overview
   const activeProjects = projects.filter(p => p.status !== 'lost').slice(0, 6);
 
   if (loading) {
     return (
       <Card>
         <CardHeader>
-          <CardTitle>Project Workflow</CardTitle>
+          <CardTitle>Project Overview</CardTitle>
         </CardHeader>
         <CardContent>
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
             {[1, 2, 3, 4, 5, 6].map((i) => (
               <div key={i} className="animate-pulse">
-                <div className="bg-muted rounded-lg h-96"></div>
+                <div className="bg-muted rounded-lg h-48"></div>
               </div>
             ))}
           </div>
@@ -31,10 +31,10 @@ export function ProjectProgressView() {
     return (
       <Card>
         <CardHeader>
-          <CardTitle>Project Workflow</CardTitle>
+          <CardTitle>Project Overview</CardTitle>
         </CardHeader>
         <CardContent>
-          <div className="text-center py-12">
+          <div className="text-center py-8">
             <p className="text-muted-foreground">No active projects found</p>
           </div>
         </CardContent>
@@ -45,12 +45,12 @@ export function ProjectProgressView() {
   return (
     <Card>
       <CardHeader>
-        <CardTitle>Project Workflow</CardTitle>
+        <CardTitle>Project Overview</CardTitle>
       </CardHeader>
       <CardContent>
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
           {activeProjects.map((project) => (
-            <ProjectProgressCard key={project.id} project={project} />
+            <ProjectOverviewCard key={project.id} project={project} />
           ))}
         </div>
       </CardContent>
