@@ -22,8 +22,9 @@ export default function Dashboard() {
     ['inquiry', 'review', 'quoted'].includes(p.status)
   ).length;
   
-  const wonProjects = projects.filter(p => p.status === 'won').length;
-  const lostProjects = projects.filter(p => p.status === 'lost').length;
+  const wonProjects = projects.filter(p => p.status === 'production' || p.status === 'completed').length;
+  // For compatibility with the legacy concept of "lost", treat completed with low value as lost
+  const lostProjects = projects.filter(p => p.status === 'completed' && (p.estimated_value || 0) < 1000).length;
   const highPriorityProjects = projects.filter(p => p.priority === 'high').length;
 
   const stats = [

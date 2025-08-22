@@ -4,6 +4,43 @@ import { Project, ProjectStatus, Customer } from '@/types/project';
 import { useAuth } from '@/contexts/AuthContext';
 import { useToast } from '@/hooks/use-toast';
 
+// Legacy status to new status mapping
+const LEGACY_TO_NEW_STATUS: Record<string, ProjectStatus> = {
+  'inquiry': 'customer_inquiry',
+  'review': 'internal_review', 
+  'quoted': 'approved',
+  'won': 'production',
+  'lost': 'completed', // Map legacy 'lost' to completed for now
+  'production': 'production',
+  'completed': 'completed',
+  'cancelled': 'completed'
+};
+
+// New status to legacy status mapping for database operations
+const NEW_TO_LEGACY_STATUS: Record<ProjectStatus, string> = {
+  'customer_inquiry': 'inquiry',
+  'rfq_intake': 'inquiry',
+  'intake_portal': 'review',
+  'internal_review': 'review',
+  'approved': 'quoted',
+  'bom_generation': 'won',
+  'procurement': 'won',
+  'production': 'production',
+  'packaging_shipment': 'production',
+  'customer_acceptance': 'production',
+  'completed': 'completed'
+};
+
+// Helper function to map legacy status to new status
+const mapLegacyStatusToNew = (legacyStatus: string): ProjectStatus => {
+  return LEGACY_TO_NEW_STATUS[legacyStatus] || 'customer_inquiry';
+};
+
+// Helper function to map new status to legacy status for database
+const mapNewStatusToLegacy = (newStatus: ProjectStatus): string => {
+  return NEW_TO_LEGACY_STATUS[newStatus] || 'inquiry';
+};
+
 export function useProjects() {
   const [projects, setProjects] = useState<Project[]>([]);
   const [loading, setLoading] = useState(true);
@@ -36,7 +73,13 @@ export function useProjects() {
         return;
       }
 
-      setProjects(data || []);
+      // Map legacy status values to new status values
+      const mappedProjects = (data || []).map(project => ({
+        ...project,
+        status: mapLegacyStatusToNew(project.status)
+      }));
+
+      setProjects(mappedProjects);
     } catch (err) {
       console.error('Error in fetchProjects:', err);
       setError('Failed to fetch projects');
@@ -63,7 +106,7 @@ export function useProjects() {
       const { error } = await supabase
         .from('projects')
         .update({ 
-          status: newStatus,
+          status: mapNewStatusToLegacy(newStatus) as any,
           updated_at: new Date().toISOString()
         })
         .eq('id', projectId);
@@ -80,14 +123,17 @@ export function useProjects() {
       // Format status names for display
       const formatStatusName = (status: ProjectStatus) => {
         const statusMap = {
-          inquiry: "New Inquiry",
-          review: "Under Review", 
-          quoted: "Quoted",
-          won: "Won",
-          lost: "Lost",
+          customer_inquiry: "Customer Inquiry",
+          rfq_intake: "RFQ/PO Intake",
+          intake_portal: "Intake Portal",
+          internal_review: "Internal Review", 
+          approved: "Approved",
+          bom_generation: "BOM Generation",
+          procurement: "Procurement",
           production: "Production",
-          completed: "Completed",
-          cancelled: "Cancelled"
+          packaging_shipment: "Packaging & Shipment",
+          customer_acceptance: "Customer Acceptance",
+          completed: "Completed"
         };
         return statusMap[status] || status;
       };
@@ -127,7 +173,7 @@ export function useProjects() {
       const { error } = await supabase
         .from('projects')
         .update({ 
-          status: newStatus,
+          status: mapNewStatusToLegacy(newStatus) as any,
           updated_at: new Date().toISOString()
         })
         .eq('id', projectId);
@@ -151,14 +197,17 @@ export function useProjects() {
       // Format status names for display
       const formatStatusName = (status: ProjectStatus) => {
         const statusMap = {
-          inquiry: "New Inquiry",
-          review: "Under Review", 
-          quoted: "Quoted",
-          won: "Won",
-          lost: "Lost",
+          customer_inquiry: "Customer Inquiry",
+          rfq_intake: "RFQ/PO Intake",
+          intake_portal: "Intake Portal",
+          internal_review: "Internal Review", 
+          approved: "Approved",
+          bom_generation: "BOM Generation",
+          procurement: "Procurement",
           production: "Production",
-          completed: "Completed",
-          cancelled: "Cancelled"
+          packaging_shipment: "Packaging & Shipment",
+          customer_acceptance: "Customer Acceptance",
+          completed: "Completed"
         };
         return statusMap[status] || status;
       };
@@ -196,7 +245,7 @@ export function useProjects() {
         title: projectData.title!,
         description: projectData.description,
         customer_id: projectData.customer_id,
-        status: projectData.status || 'inquiry',
+        status: mapNewStatusToLegacy(projectData.status || 'customer_inquiry'),
         priority: projectData.priority || 'medium',
         priority_score: projectData.priority_score,
         assignee_id: projectData.assignee_id,
@@ -224,7 +273,7 @@ export function useProjects() {
         throw error;
       }
 
-      setProjects(prev => [data, ...prev]);
+      setProjects(prev => [{...data, status: mapLegacyStatusToNew(data.status)}, ...prev]);
       return data;
     } catch (err) {
       console.error('Error in createProject:', err);
@@ -292,11 +341,13 @@ export function useProjects() {
           console.log('Project change received:', payload);
           
           if (payload.eventType === 'INSERT') {
-            setProjects(prev => [payload.new as Project, ...prev]);
+            const newProject = {...payload.new as Project, status: mapLegacyStatusToNew((payload.new as any).status)};
+            setProjects(prev => [newProject, ...prev]);
           } else if (payload.eventType === 'UPDATE') {
+            const updatedProject = {...payload.new as Project, status: mapLegacyStatusToNew((payload.new as any).status)};
             setProjects(prev => prev.map(project => 
-              project.id === (payload.new as Project).id 
-                ? payload.new as Project 
+              project.id === updatedProject.id 
+                ? updatedProject 
                 : project
             ));
           } else if (payload.eventType === 'DELETE') {
@@ -326,7 +377,7 @@ export function useProjects() {
       throw error;
     }
 
-    return data;
+    return {...data, status: mapLegacyStatusToNew(data.status)};
   };
 
   return {

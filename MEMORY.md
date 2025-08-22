@@ -66,3 +66,4 @@ This file contains important changes and updates made to the project.
 3. Implemented tabs switching between Kanban and Table views for better project visualization options
 4. Updated Kanban view to use proper WorkflowKanban component with columns for each process step and drag-and-drop functionality
 5. Removed progress step indicators from project cards in Kanban view - process steps now appear as separate droppable columns
+6. Updated PROJECT_STAGES to match factory workflow: Customer Inquiry → RFQ/PO → Intake Portal → Internal Review → Approved → BOM Generation → Procurement → Production → Packaging & Shipment → Customer Acceptance → Completed

@@ -1,4 +1,4 @@
-export type ProjectStatus = 'inquiry' | 'review' | 'quoted' | 'won' | 'lost' | 'production' | 'completed' | 'cancelled';
+export type ProjectStatus = 'customer_inquiry' | 'rfq_intake' | 'intake_portal' | 'internal_review' | 'approved' | 'bom_generation' | 'procurement' | 'production' | 'packaging_shipment' | 'customer_acceptance' | 'completed';
 export type ProjectPriority = 'low' | 'medium' | 'high' | 'urgent';
 
 export interface Customer {
@@ -95,11 +95,16 @@ export interface ProjectMetric {
 }
 
 export const PROJECT_STAGES: ProjectStage[] = [
-  { id: "inquiry", name: "New Inquiry", color: "bg-blue-100 text-blue-800", count: 0 },
-  { id: "review", name: "Under Review", color: "bg-orange-100 text-orange-800", count: 0 },
-  { id: "quoted", name: "Quoted", color: "bg-purple-100 text-purple-800", count: 0 },
-  { id: "won", name: "Won", color: "bg-green-100 text-green-800", count: 0 },
-  { id: "production", name: "Production", color: "bg-teal-100 text-teal-800", count: 0 },
+  { id: "customer_inquiry", name: "Customer Inquiry", color: "bg-blue-100 text-blue-800", count: 0 },
+  { id: "rfq_intake", name: "RFQ / PO / Idea", color: "bg-indigo-100 text-indigo-800", count: 0 },
+  { id: "intake_portal", name: "Intake Portal", color: "bg-cyan-100 text-cyan-800", count: 0 },
+  { id: "internal_review", name: "Internal Review", color: "bg-orange-100 text-orange-800", count: 0 },
+  { id: "approved", name: "Approved", color: "bg-green-100 text-green-800", count: 0 },
+  { id: "bom_generation", name: "BOM + Work Orders", color: "bg-purple-100 text-purple-800", count: 0 },
+  { id: "procurement", name: "Procurement", color: "bg-yellow-100 text-yellow-800", count: 0 },
+  { id: "production", name: "Production Floor", color: "bg-teal-100 text-teal-800", count: 0 },
+  { id: "packaging_shipment", name: "Packaging & Shipment", color: "bg-rose-100 text-rose-800", count: 0 },
+  { id: "customer_acceptance", name: "Customer Acceptance", color: "bg-emerald-100 text-emerald-800", count: 0 },
   { id: "completed", name: "Completed", color: "bg-gray-100 text-gray-800", count: 0 }
 ];
 

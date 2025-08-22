@@ -15,7 +15,7 @@ export function PendingTasks() {
 
   // Generate pending tasks from projects data
   const pendingTasks = projects
-    .filter(p => ['inquiry', 'review'].includes(p.status))
+    .filter(p => ['customer_inquiry', 'internal_review'].includes(p.status))
     .sort((a, b) => {
       // Sort by priority first (high first), then by updated date
       const priorityOrder = { high: 3, medium: 2, low: 1 };
@@ -26,7 +26,7 @@ export function PendingTasks() {
     .slice(0, 4)
     .map(project => ({
       id: project.id,
-      title: project.status === 'inquiry' 
+      title: project.status === 'customer_inquiry' 
         ? `Review new inquiry: ${project.title}`
         : `Complete review for: ${project.title}`,
       priority: project.priority,
