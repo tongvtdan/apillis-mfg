@@ -22,7 +22,7 @@ import {
   SidebarHeader,
 } from "@/components/ui/sidebar";
 
-const menuItems = [
+const mainMenuItems = [
   { title: "Dashboard", url: "/dashboard", icon: Home },
   { title: "Vendors", url: "/vendors", icon: Users },
   { title: "Projects", url: "/projects", icon: FileText },
@@ -33,7 +33,7 @@ const menuItems = [
   { title: "Reports", url: "/reports", icon: BarChart3 },
 ];
 
-const systemNavItems = [
+const settingsItems = [
   { title: "Settings", url: "/settings", icon: Settings },
 ];
 
@@ -66,7 +66,7 @@ export function AppSidebar() {
           <SidebarGroupLabel>Main Menu</SidebarGroupLabel>
           <SidebarGroupContent>
             <SidebarMenu>
-              {menuItems.map((item) => (
+              {mainMenuItems.map((item) => (
                 <SidebarMenuItem key={item.title}>
                   <SidebarMenuButton asChild>
                     <NavLink to={item.url} className={getNavCls}>
@@ -84,7 +84,7 @@ export function AppSidebar() {
           <SidebarGroupLabel>System</SidebarGroupLabel>
           <SidebarGroupContent>
             <SidebarMenu>
-              {systemNavItems.map((item) => (
+              {settingsItems.map((item) => (
                 <SidebarMenuItem key={item.title}>
                   <SidebarMenuButton asChild>
                     <NavLink to={item.url} className={getNavCls}>
