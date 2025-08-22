@@ -76,3 +76,9 @@ This file contains important changes and updates made to the project.
 4. Updated status mapping functions in useProjects hook for proper database compatibility
 5. Enhanced project status display formatting throughout the application
 6. Fixed all component files to use new status values (MonthlyProgress, PendingTasks, ProjectProgressView, Dashboard, Projects)
+
+- Date: 2025-08-22
+- What we completed / changed:
+1. StageFlowchart: Fixed uniform card width (160px) using w-[160px] and max-w, removed scale transforms to prevent visual size changes
+2. Ensured CardContent uses w-full and fixed height for consistency
+3. Added flex-none to prevent flex shrink in horizontal layout
