@@ -2,9 +2,9 @@
 
 This file contains important changes and updates made to the project.
 
-- Date: 2025-01-20
-- When we completed / changed:
-1. Implemented User Authentication & Role Management with Firebase
+- Date: 2025-08-22
+- What we completed / changed:
+1. Implemented User Authentication & Role Management with Supabase
 2. Set up role-based access control (RBAC) system
 3. Created authentication pages (login, signup) 
 4. Implemented protected routes and navigation
