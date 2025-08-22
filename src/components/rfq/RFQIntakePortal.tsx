@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import * as z from 'zod';
@@ -14,6 +14,7 @@ import { useToast } from '@/hooks/use-toast';
 import { useFileUpload, UploadedFile } from '@/hooks/useFileUpload';
 import { supabase } from '@/integrations/supabase/client';
 import { RFQPriority } from '@/types/rfq';
+import { generateRFQId } from '@/lib/utils';
 import { 
   Upload, 
   FileText, 
@@ -52,6 +53,7 @@ export function RFQIntakePortal({ onSuccess }: RFQIntakePortalProps) {
   const [submitting, setSubmitting] = useState(false);
   const [submitted, setSubmitted] = useState(false);
   const [rfqNumber, setRfqNumber] = useState('');
+  const [tempRFQId, setTempRFQId] = useState<string>('');
   
   const { toast } = useToast();
   const { uploadFiles, deleteFile, uploading, uploadProgress } = useFileUpload();
@@ -63,6 +65,11 @@ export function RFQIntakePortal({ onSuccess }: RFQIntakePortalProps) {
       estimated_value: undefined,
     },
   });
+
+  // Generate temporary RFQ ID when component mounts
+  useEffect(() => {
+    setTempRFQId(generateRFQId());
+  }, []);
 
   const handleFileUpload = async (event: React.ChangeEvent<HTMLInputElement>) => {
     const files = event.target.files;
@@ -201,6 +208,26 @@ export function RFQIntakePortal({ onSuccess }: RFQIntakePortalProps) {
       </div>
 
       <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-8">
+        {/* RFQ ID Preview */}
+        <Card className="bg-primary/5 border-primary/20">
+          <CardContent className="pt-6">
+            <div className="flex items-center gap-3">
+              <div className="flex-shrink-0 w-10 h-10 bg-primary/10 rounded-lg flex items-center justify-center">
+                <FileText className="w-5 h-5 text-primary" />
+              </div>
+              <div className="flex-grow">
+                <Label className="text-sm font-medium text-muted-foreground">Your RFQ ID (Preview)</Label>
+                <div className="text-xl font-mono font-bold text-primary">
+                  {tempRFQId || 'Loading...'}
+                </div>
+                <p className="text-xs text-muted-foreground mt-1">
+                  This ID will be assigned when you submit the form
+                </p>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+
         {/* Company Information */}
         <Card>
           <CardHeader>
