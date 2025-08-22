@@ -7,7 +7,7 @@ export interface UserProfile {
   id: string;
   user_id: string;
   display_name: string;
-  role: 'Customer' | 'Procurement Owner' | 'Engineering' | 'QA' | 'Production' | 'Supplier' | 'Management';
+  role: 'Customer' | 'Procurement Owner' | 'Engineering' | 'QA' | 'Production' | 'Supplier' | 'Management' | 'Procurement';
   status: 'Active' | 'Inactive' | 'Pending' | 'Locked' | 'Dormant';
   department?: string;
   last_login?: string;

@@ -104,6 +104,160 @@ export type Database = {
         }
         Relationships: []
       }
+      rfq_activities: {
+        Row: {
+          activity_type: string
+          created_at: string
+          created_by: string | null
+          description: string
+          id: string
+          new_values: Json | null
+          old_values: Json | null
+          rfq_id: string
+        }
+        Insert: {
+          activity_type: string
+          created_at?: string
+          created_by?: string | null
+          description: string
+          id?: string
+          new_values?: Json | null
+          old_values?: Json | null
+          rfq_id: string
+        }
+        Update: {
+          activity_type?: string
+          created_at?: string
+          created_by?: string | null
+          description?: string
+          id?: string
+          new_values?: Json | null
+          old_values?: Json | null
+          rfq_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "rfq_activities_rfq_id_fkey"
+            columns: ["rfq_id"]
+            isOneToOne: false
+            referencedRelation: "rfqs"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      rfq_attachments: {
+        Row: {
+          file_size: number | null
+          file_type: string | null
+          filename: string
+          id: string
+          rfq_id: string
+          storage_path: string
+          uploaded_at: string
+          uploaded_by: string | null
+        }
+        Insert: {
+          file_size?: number | null
+          file_type?: string | null
+          filename: string
+          id?: string
+          rfq_id: string
+          storage_path: string
+          uploaded_at?: string
+          uploaded_by?: string | null
+        }
+        Update: {
+          file_size?: number | null
+          file_type?: string | null
+          filename?: string
+          id?: string
+          rfq_id?: string
+          storage_path?: string
+          uploaded_at?: string
+          uploaded_by?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "rfq_attachments_rfq_id_fkey"
+            columns: ["rfq_id"]
+            isOneToOne: false
+            referencedRelation: "rfqs"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      rfqs: {
+        Row: {
+          assignee_id: string | null
+          company_name: string
+          contact_email: string | null
+          contact_name: string | null
+          contact_phone: string | null
+          created_at: string
+          created_by: string | null
+          days_in_stage: number | null
+          description: string | null
+          due_date: string | null
+          estimated_value: number | null
+          id: string
+          notes: string | null
+          priority: Database["public"]["Enums"]["rfq_priority"]
+          project_name: string
+          rfq_number: string
+          stage_entered_at: string | null
+          status: Database["public"]["Enums"]["rfq_status"]
+          tags: string[] | null
+          updated_at: string
+          updated_by: string | null
+        }
+        Insert: {
+          assignee_id?: string | null
+          company_name: string
+          contact_email?: string | null
+          contact_name?: string | null
+          contact_phone?: string | null
+          created_at?: string
+          created_by?: string | null
+          days_in_stage?: number | null
+          description?: string | null
+          due_date?: string | null
+          estimated_value?: number | null
+          id?: string
+          notes?: string | null
+          priority?: Database["public"]["Enums"]["rfq_priority"]
+          project_name: string
+          rfq_number: string
+          stage_entered_at?: string | null
+          status?: Database["public"]["Enums"]["rfq_status"]
+          tags?: string[] | null
+          updated_at?: string
+          updated_by?: string | null
+        }
+        Update: {
+          assignee_id?: string | null
+          company_name?: string
+          contact_email?: string | null
+          contact_name?: string | null
+          contact_phone?: string | null
+          created_at?: string
+          created_by?: string | null
+          days_in_stage?: number | null
+          description?: string | null
+          due_date?: string | null
+          estimated_value?: number | null
+          id?: string
+          notes?: string | null
+          priority?: Database["public"]["Enums"]["rfq_priority"]
+          project_name?: string
+          rfq_number?: string
+          stage_entered_at?: string | null
+          status?: Database["public"]["Enums"]["rfq_status"]
+          tags?: string[] | null
+          updated_at?: string
+          updated_by?: string | null
+        }
+        Relationships: []
+      }
       user_roles: {
         Row: {
           assigned_at: string
@@ -163,6 +317,10 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      generate_rfq_number: {
+        Args: Record<PropertyKey, never>
+        Returns: string
+      }
       get_current_user_role: {
         Args: Record<PropertyKey, never>
         Returns: Database["public"]["Enums"]["user_role"]
@@ -185,6 +343,14 @@ export type Database = {
         | "account_locked"
         | "account_unlocked"
         | "profile_update"
+      rfq_priority: "low" | "medium" | "high" | "urgent"
+      rfq_status:
+        | "inquiry"
+        | "review"
+        | "quote"
+        | "production"
+        | "completed"
+        | "cancelled"
       user_role:
         | "Customer"
         | "Procurement Owner"
@@ -331,6 +497,15 @@ export const Constants = {
         "account_locked",
         "account_unlocked",
         "profile_update",
+      ],
+      rfq_priority: ["low", "medium", "high", "urgent"],
+      rfq_status: [
+        "inquiry",
+        "review",
+        "quote",
+        "production",
+        "completed",
+        "cancelled",
       ],
       user_role: [
         "Customer",

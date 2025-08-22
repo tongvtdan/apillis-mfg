@@ -113,6 +113,7 @@ export function isHigherRole(role1: UserRole, role2: UserRole): boolean {
     const roleHierarchy: Record<UserRole, number> = {
         [UserRole.MANAGEMENT]: 5,
         [UserRole.PROCUREMENT_OWNER]: 4,
+        [UserRole.PROCUREMENT]: 4,
         [UserRole.ENGINEERING]: 3,
         [UserRole.QA]: 3,
         [UserRole.PRODUCTION]: 3,

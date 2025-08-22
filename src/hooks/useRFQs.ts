@@ -1,0 +1,131 @@
+import { useState, useEffect } from 'react';
+import { supabase } from '@/integrations/supabase/client';
+import { RFQ, RFQStatus } from '@/types/rfq';
+import { useAuth } from '@/contexts/AuthContext';
+import { useToast } from '@/components/ui/use-toast';
+
+export function useRFQs() {
+  const [rfqs, setRFQs] = useState<RFQ[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+  const { user } = useAuth();
+  const { toast } = useToast();
+
+  const fetchRFQs = async () => {
+    if (!user) {
+      setRFQs([]);
+      setLoading(false);
+      return;
+    }
+
+    try {
+      setLoading(true);
+      setError(null);
+      
+      const { data, error: fetchError } = await supabase
+        .from('rfqs')
+        .select('*')
+        .order('created_at', { ascending: false });
+
+      if (fetchError) {
+        console.error('Error fetching RFQs:', fetchError);
+        setError(fetchError.message);
+        return;
+      }
+
+      setRFQs(data || []);
+    } catch (err) {
+      console.error('Error in fetchRFQs:', err);
+      setError('Failed to fetch RFQs');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const updateRFQStatus = async (rfqId: string, newStatus: RFQStatus) => {
+    try {
+      const { error } = await supabase
+        .from('rfqs')
+        .update({ 
+          status: newStatus,
+          updated_at: new Date().toISOString()
+        })
+        .eq('id', rfqId);
+
+      if (error) {
+        toast({
+          variant: "destructive",
+          title: "Error",
+          description: "Failed to update RFQ status",
+        });
+        return false;
+      }
+
+      // Optimistically update local state
+      setRFQs(prev => prev.map(rfq => 
+        rfq.id === rfqId 
+          ? { ...rfq, status: newStatus, updated_at: new Date().toISOString() }
+          : rfq
+      ));
+
+      toast({
+        title: "Status Updated",
+        description: "RFQ status has been successfully updated",
+      });
+      
+      return true;
+    } catch (err) {
+      console.error('Error updating RFQ status:', err);
+      toast({
+        variant: "destructive",
+        title: "Error",
+        description: "Failed to update RFQ status",
+      });
+      return false;
+    }
+  };
+
+  // Set up real-time subscription
+  useEffect(() => {
+    fetchRFQs();
+
+    const channel = supabase
+      .channel('rfqs-changes')
+      .on(
+        'postgres_changes',
+        {
+          event: '*',
+          schema: 'public',
+          table: 'rfqs'
+        },
+        (payload) => {
+          console.log('RFQ change received:', payload);
+          
+          if (payload.eventType === 'INSERT') {
+            setRFQs(prev => [payload.new as RFQ, ...prev]);
+          } else if (payload.eventType === 'UPDATE') {
+            setRFQs(prev => prev.map(rfq => 
+              rfq.id === (payload.new as RFQ).id 
+                ? payload.new as RFQ 
+                : rfq
+            ));
+          } else if (payload.eventType === 'DELETE') {
+            setRFQs(prev => prev.filter(rfq => rfq.id !== payload.old.id));
+          }
+        }
+      )
+      .subscribe();
+
+    return () => {
+      supabase.removeChannel(channel);
+    };
+  }, [user]);
+
+  return {
+    rfqs,
+    loading,
+    error,
+    refetch: fetchRFQs,
+    updateRFQStatus
+  };
+}

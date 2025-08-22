@@ -5,6 +5,7 @@ export type DatabaseTimestamp = string; // ISO 8601 timestamp string
 export enum UserRole {
     CUSTOMER = 'Customer',
     PROCUREMENT_OWNER = 'Procurement Owner',
+    PROCUREMENT = 'Procurement',
     ENGINEERING = 'Engineering',
     QA = 'QA',
     PRODUCTION = 'Production',
@@ -135,6 +136,14 @@ export const ROLE_PERMISSIONS: Record<UserRole, Permission[]> = {
         { resource: 'dashboard', actions: ['read_own'] }
     ],
     [UserRole.PROCUREMENT_OWNER]: [
+        { resource: 'rfq', actions: ['create', 'read', 'update', 'assign', 'delete'] },
+        { resource: 'supplier', actions: ['read', 'create', 'update'] },
+        { resource: 'dashboard', actions: ['read'] },
+        { resource: 'profile', actions: ['read_own', 'update_own'] },
+        { resource: 'workflow', actions: ['read', 'update'] },
+        { resource: 'notifications', actions: ['read', 'create'] }
+    ],
+    [UserRole.PROCUREMENT]: [
         { resource: 'rfq', actions: ['create', 'read', 'update', 'assign', 'delete'] },
         { resource: 'supplier', actions: ['read', 'create', 'update'] },
         { resource: 'dashboard', actions: ['read'] },
