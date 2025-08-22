@@ -33,7 +33,7 @@ const menuItems = [
   { title: "Reports", url: "/reports", icon: BarChart3 },
 ];
 
-const systemItems = [
+const systemNavItems = [
   { title: "Settings", url: "/settings", icon: Settings },
 ];
 
@@ -84,7 +84,7 @@ export function AppSidebar() {
           <SidebarGroupLabel>System</SidebarGroupLabel>
           <SidebarGroupContent>
             <SidebarMenu>
-              {systemItems.map((item) => (
+              {systemNavItems.map((item) => (
                 <SidebarMenuItem key={item.title}>
                   <SidebarMenuButton asChild>
                     <NavLink to={item.url} className={getNavCls}>
