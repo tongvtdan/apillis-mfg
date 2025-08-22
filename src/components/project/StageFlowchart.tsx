@@ -13,11 +13,11 @@ export function StageFlowchart({
   onStageSelect,
   stageCounts
 }: StageFlowchartProps) {
-  return <div className="w-full overflow-x-auto pb-4">
+  return <div className="w-full overflow-x-auto pb-4 pt-2">
       <div className="flex items-center gap-2 min-w-max">
         {PROJECT_STAGES.map((stage, index) => <React.Fragment key={stage.id}>
-            <Card className={`cursor-pointer transition-all duration-200 hover:shadow-md ${selectedStage === stage.id ? 'ring-2 ring-primary shadow-md scale-105' : 'hover:scale-102'}`} onClick={() => onStageSelect(stage.id)}>
-              <CardContent className="p-4 text-center min-w-[160px]">
+            <Card className={`cursor-pointer transition-all duration-200 hover:shadow-md w-[160px] max-w-[160px] flex-none ${selectedStage === stage.id ? 'ring-2 ring-primary shadow-md' : ''}`} onClick={() => onStageSelect(stage.id)}>
+              <CardContent className="p-4 text-center w-full">
                 <div className="space-y-2">
                   <Badge className={`${stage.color} text-xs font-medium`} variant="outline">
                     {stageCounts[stage.id] || 0}
