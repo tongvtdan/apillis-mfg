@@ -59,11 +59,11 @@ This file contains important changes and updates made to the project.
 9. Moved Monthly Progress Overview section to the bottom of the dashboard
 10. Redesigned ProjectProgressCard to match reference design with only 3 progress steps (completed, current, next) visible for better card layout
 
-- Date: 2025-01-26
+- Date: 2025-01-21
 - What we completed / changed:
-1. Added table view to projects page alongside existing kanban view
-2. Created ProjectTable component displaying projects in tabular format with columns for project details, customer, status, priority, assignee, lead time, value, and actions
-3. Implemented tabs switching between Kanban and Table views for better project visualization options
-4. Updated Kanban view to use proper WorkflowKanban component with columns for each process step and drag-and-drop functionality
-5. Removed progress step indicators from project cards in Kanban view - process steps now appear as separate droppable columns
-6. Updated PROJECT_STAGES to match factory workflow: Customer Inquiry → RFQ/PO → Intake Portal → Internal Review → Approved → BOM Generation → Procurement → Production → Packaging & Shipment → Customer Acceptance → Completed
+1. Simplified project workflow to 7-stage Kanban layout as requested: Inquiry Received → Technical Review → Quoted → Order Confirmed → Procurement & Planning → In Production → Shipped & Closed
+2. Updated PROJECT_STAGES constant and ProjectStatus type to match the ASCII diagram layout
+3. Modified WorkflowKanban component grid to show 7 columns instead of 11
+4. Updated status mapping functions in useProjects hook for proper database compatibility
+5. Enhanced project status display formatting throughout the application
+6. Fixed all component files to use new status values (MonthlyProgress, PendingTasks, ProjectProgressView, Dashboard, Projects)

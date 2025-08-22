@@ -1,4 +1,4 @@
-export type ProjectStatus = 'customer_inquiry' | 'rfq_intake' | 'intake_portal' | 'internal_review' | 'approved' | 'bom_generation' | 'procurement' | 'production' | 'packaging_shipment' | 'customer_acceptance' | 'completed';
+export type ProjectStatus = 'inquiry_received' | 'technical_review' | 'quoted' | 'order_confirmed' | 'procurement_planning' | 'in_production' | 'shipped_closed';
 export type ProjectPriority = 'low' | 'medium' | 'high' | 'urgent';
 
 export interface Customer {
@@ -95,17 +95,13 @@ export interface ProjectMetric {
 }
 
 export const PROJECT_STAGES: ProjectStage[] = [
-  { id: "customer_inquiry", name: "Customer Inquiry", color: "bg-blue-100 text-blue-800", count: 0 },
-  { id: "rfq_intake", name: "RFQ / PO / Idea", color: "bg-indigo-100 text-indigo-800", count: 0 },
-  { id: "intake_portal", name: "Intake Portal", color: "bg-cyan-100 text-cyan-800", count: 0 },
-  { id: "internal_review", name: "Internal Review", color: "bg-orange-100 text-orange-800", count: 0 },
-  { id: "approved", name: "Approved", color: "bg-green-100 text-green-800", count: 0 },
-  { id: "bom_generation", name: "BOM + Work Orders", color: "bg-purple-100 text-purple-800", count: 0 },
-  { id: "procurement", name: "Procurement", color: "bg-yellow-100 text-yellow-800", count: 0 },
-  { id: "production", name: "Production Floor", color: "bg-teal-100 text-teal-800", count: 0 },
-  { id: "packaging_shipment", name: "Packaging & Shipment", color: "bg-rose-100 text-rose-800", count: 0 },
-  { id: "customer_acceptance", name: "Customer Acceptance", color: "bg-emerald-100 text-emerald-800", count: 0 },
-  { id: "completed", name: "Completed", color: "bg-gray-100 text-gray-800", count: 0 }
+  { id: "inquiry_received", name: "Inquiry Received", color: "bg-blue-100 text-blue-800", count: 0 },
+  { id: "technical_review", name: "Technical Review", color: "bg-orange-100 text-orange-800", count: 0 },
+  { id: "quoted", name: "Quoted", color: "bg-green-100 text-green-800", count: 0 },
+  { id: "order_confirmed", name: "Order Confirmed", color: "bg-purple-100 text-purple-800", count: 0 },
+  { id: "procurement_planning", name: "Procurement & Planning", color: "bg-yellow-100 text-yellow-800", count: 0 },
+  { id: "in_production", name: "In Production", color: "bg-teal-100 text-teal-800", count: 0 },
+  { id: "shipped_closed", name: "Shipped & Closed", color: "bg-gray-100 text-gray-800", count: 0 }
 ];
 
 export const PRIORITY_COLORS: Record<ProjectPriority, string> = {

@@ -6,34 +6,30 @@ import { useToast } from '@/hooks/use-toast';
 
 // Legacy status to new status mapping
 const LEGACY_TO_NEW_STATUS: Record<string, ProjectStatus> = {
-  'inquiry': 'customer_inquiry',
-  'review': 'internal_review', 
-  'quoted': 'approved',
-  'won': 'production',
-  'lost': 'completed', // Map legacy 'lost' to completed for now
-  'production': 'production',
-  'completed': 'completed',
-  'cancelled': 'completed'
+  'inquiry': 'inquiry_received',
+  'review': 'technical_review', 
+  'quoted': 'quoted',
+  'won': 'order_confirmed',
+  'lost': 'shipped_closed', // Map legacy 'lost' to completed for now
+  'production': 'in_production',
+  'completed': 'shipped_closed',
+  'cancelled': 'shipped_closed'
 };
 
 // New status to legacy status mapping for database operations
 const NEW_TO_LEGACY_STATUS: Record<ProjectStatus, string> = {
-  'customer_inquiry': 'inquiry',
-  'rfq_intake': 'inquiry',
-  'intake_portal': 'review',
-  'internal_review': 'review',
-  'approved': 'quoted',
-  'bom_generation': 'won',
-  'procurement': 'won',
-  'production': 'production',
-  'packaging_shipment': 'production',
-  'customer_acceptance': 'production',
-  'completed': 'completed'
+  'inquiry_received': 'inquiry',
+  'technical_review': 'review',
+  'quoted': 'quoted',
+  'order_confirmed': 'won',
+  'procurement_planning': 'won',
+  'in_production': 'production',
+  'shipped_closed': 'completed'
 };
 
 // Helper function to map legacy status to new status
 const mapLegacyStatusToNew = (legacyStatus: string): ProjectStatus => {
-  return LEGACY_TO_NEW_STATUS[legacyStatus] || 'customer_inquiry';
+  return LEGACY_TO_NEW_STATUS[legacyStatus] || 'inquiry_received';
 };
 
 // Helper function to map new status to legacy status for database
@@ -123,17 +119,13 @@ export function useProjects() {
       // Format status names for display
       const formatStatusName = (status: ProjectStatus) => {
         const statusMap = {
-          customer_inquiry: "Customer Inquiry",
-          rfq_intake: "RFQ/PO Intake",
-          intake_portal: "Intake Portal",
-          internal_review: "Internal Review", 
-          approved: "Approved",
-          bom_generation: "BOM Generation",
-          procurement: "Procurement",
-          production: "Production",
-          packaging_shipment: "Packaging & Shipment",
-          customer_acceptance: "Customer Acceptance",
-          completed: "Completed"
+          inquiry_received: "Inquiry Received",
+          technical_review: "Technical Review",
+          quoted: "Quoted",
+          order_confirmed: "Order Confirmed",
+          procurement_planning: "Procurement & Planning",
+          in_production: "In Production",
+          shipped_closed: "Shipped & Closed"
         };
         return statusMap[status] || status;
       };
@@ -197,17 +189,13 @@ export function useProjects() {
       // Format status names for display
       const formatStatusName = (status: ProjectStatus) => {
         const statusMap = {
-          customer_inquiry: "Customer Inquiry",
-          rfq_intake: "RFQ/PO Intake",
-          intake_portal: "Intake Portal",
-          internal_review: "Internal Review", 
-          approved: "Approved",
-          bom_generation: "BOM Generation",
-          procurement: "Procurement",
-          production: "Production",
-          packaging_shipment: "Packaging & Shipment",
-          customer_acceptance: "Customer Acceptance",
-          completed: "Completed"
+          inquiry_received: "Inquiry Received",
+          technical_review: "Technical Review",
+          quoted: "Quoted",
+          order_confirmed: "Order Confirmed",
+          procurement_planning: "Procurement & Planning",
+          in_production: "In Production",
+          shipped_closed: "Shipped & Closed"
         };
         return statusMap[status] || status;
       };
@@ -245,7 +233,7 @@ export function useProjects() {
         title: projectData.title!,
         description: projectData.description,
         customer_id: projectData.customer_id,
-        status: mapNewStatusToLegacy(projectData.status || 'customer_inquiry'),
+        status: mapNewStatusToLegacy(projectData.status || 'inquiry_received'),
         priority: projectData.priority || 'medium',
         priority_score: projectData.priority_score,
         assignee_id: projectData.assignee_id,

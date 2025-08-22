@@ -19,12 +19,12 @@ export default function Dashboard() {
 
   // Calculate real stats from projects data
   const activeProjects = projects.filter(p => 
-    ['inquiry', 'review', 'quoted'].includes(p.status)
+    ['inquiry_received', 'technical_review', 'quoted'].includes(p.status)
   ).length;
   
-  const wonProjects = projects.filter(p => p.status === 'production' || p.status === 'completed').length;
+  const wonProjects = projects.filter(p => p.status === 'in_production' || p.status === 'shipped_closed').length;
   // For compatibility with the legacy concept of "lost", treat completed with low value as lost
-  const lostProjects = projects.filter(p => p.status === 'completed' && (p.estimated_value || 0) < 1000).length;
+  const lostProjects = projects.filter(p => p.status === 'shipped_closed' && (p.estimated_value || 0) < 1000).length;
   const highPriorityProjects = projects.filter(p => p.priority === 'high').length;
 
   const stats = [

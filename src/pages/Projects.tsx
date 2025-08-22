@@ -6,7 +6,7 @@ import { useProjects } from "@/hooks/useProjects";
 export default function Projects() {
   const { projects, loading } = useProjects();
 
-  const activeProjects = projects.filter(p => p.status !== 'completed');
+  const activeProjects = projects.filter(p => p.status !== 'shipped_closed');
 
   if (loading) {
     return (
