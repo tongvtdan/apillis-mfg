@@ -2,11 +2,12 @@ import {
   BarChart3, 
   FileText, 
   Home, 
-  PlusCircle, 
+  ShoppingCart,
   Settings,
   Users,
-  ClipboardCheck,
-  Package
+  Package,
+  Factory,
+  UserCheck
 } from "lucide-react";
 import { NavLink, useLocation } from "react-router-dom";
 import {
@@ -23,15 +24,16 @@ import {
 
 const menuItems = [
   { title: "Dashboard", url: "/dashboard", icon: Home },
-  { title: "New RFQ", url: "/rfq/new", icon: PlusCircle },
-  { title: "All RFQs", url: "/rfqs", icon: FileText },
-  { title: "Reviews", url: "/reviews", icon: ClipboardCheck },
-  { title: "Production", url: "/production", icon: Package },
-  { title: "Analytics", url: "/analytics", icon: BarChart3 },
+  { title: "Vendors", url: "/vendors", icon: Users },
+  { title: "Projects", url: "/projects", icon: FileText },
+  { title: "Purchase Orders", url: "/purchase-orders", icon: ShoppingCart },
+  { title: "Inventory", url: "/inventory", icon: Package },
+  { title: "Production", url: "/production", icon: Factory },
+  { title: "Customers", url: "/customers", icon: UserCheck },
+  { title: "Reports", url: "/reports", icon: BarChart3 },
 ];
 
 const systemItems = [
-  { title: "Users", url: "/users", icon: Users },
   { title: "Settings", url: "/settings", icon: Settings },
 ];
 
@@ -50,11 +52,11 @@ export function AppSidebar() {
       <SidebarHeader className="border-b border-sidebar-border p-4">
         <div className="flex items-center space-x-2">
           <div className="w-8 h-8 rounded-lg bg-primary flex items-center justify-center">
-            <span className="text-primary-foreground font-bold text-sm">A</span>
+            <span className="text-primary-foreground font-bold text-sm">FP</span>
           </div>
           <div>
-            <h2 className="font-semibold text-sidebar-foreground">Apillis</h2>
-            <p className="text-xs text-sidebar-foreground/70">Manufacturing Portal</p>
+            <h2 className="font-semibold text-sidebar-foreground">Factory Pulse</h2>
+            <p className="text-xs text-sidebar-foreground/70">MES Platform</p>
           </div>
         </div>
       </SidebarHeader>

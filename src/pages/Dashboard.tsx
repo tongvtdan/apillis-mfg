@@ -1,4 +1,7 @@
 import { WorkflowKanban } from "@/components/dashboard/WorkflowKanban";
+import { RecentActivities } from "@/components/dashboard/RecentActivities";
+import { PendingTasks } from "@/components/dashboard/PendingTasks";
+import { MonthlyProgress } from "@/components/dashboard/MonthlyProgress";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { 
   FileText, 
@@ -12,91 +15,103 @@ import {
 export default function Dashboard() {
   const stats = [
     {
-      title: "Active RFQs",
+      title: "Active Projects",
       value: "24",
       change: "+12%",
       changeType: "positive",
       icon: FileText,
-      description: "Currently in pipeline"
+      description: "from last month"
     },
     {
-      title: "Avg. Processing Time",
-      value: "8.2 days",
-      change: "-15%",
+      title: "Total Vendors",
+      value: "156",
+      change: "+8%",
       changeType: "positive", 
-      icon: Clock,
-      description: "Down from last month"
+      icon: Users,
+      description: "from last month"
     },
     {
-      title: "Completed This Month",
+      title: "Open Purchase Orders",
       value: "18",
-      change: "+25%",
-      changeType: "positive",
+      change: "-5%",
+      changeType: "negative",
       icon: CheckCircle,
-      description: "Successfully delivered"
+      description: "from last month"
     },
     {
-      title: "Win Rate",
-      value: "42%",
-      change: "+5%",
-      changeType: "positive",
-      icon: TrendingUp,
-      description: "Quote conversion rate"
-    },
-    {
-      title: "Overdue Items",
-      value: "3",
-      change: "+2",
+      title: "Low Stock Items",
+      value: "7",
+      change: "+15%",
       changeType: "negative",
       icon: AlertTriangle,
-      description: "Require immediate attention"
-    },
-    {
-      title: "Team Utilization",
-      value: "78%",
-      change: "+8%",
-      changeType: "positive",
-      icon: Users,
-      description: "Current capacity usage"
+      description: "from last month"
     }
   ];
 
   return (
-    <div className="space-y-6">
-      {/* Stats Overview */}
-      <div className="p-6 border-b">
-        <div className="mb-6">
-          <h1 className="text-2xl font-bold">Dashboard</h1>
-          <p className="text-muted-foreground">
-            Monitor your manufacturing operations and performance metrics
-          </p>
+    <div className="space-y-6 p-6">
+      {/* Header */}
+      <div className="mb-6">
+        <h1 className="text-3xl font-bold text-foreground">Dashboard</h1>
+        <p className="text-muted-foreground mt-1">
+          Welcome back! Here's what's happening with your procurement operations.
+        </p>
+      </div>
+      
+      {/* Stats Cards */}
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+        {stats.map((stat) => (
+          <Card key={stat.title}>
+            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+              <CardTitle className="text-sm font-medium text-muted-foreground">
+                {stat.title}
+              </CardTitle>
+              <stat.icon className="h-5 w-5 text-muted-foreground" />
+            </CardHeader>
+            <CardContent>
+              <div className="text-2xl font-bold">{stat.value}</div>
+              <div className="flex items-center text-xs text-muted-foreground mt-1">
+                <span className={stat.changeType === 'positive' ? 'text-green-600' : 'text-red-600'}>
+                  {stat.change}
+                </span>
+                <span className="ml-1">{stat.description}</span>
+              </div>
+            </CardContent>
+          </Card>
+        ))}
+      </div>
+
+      {/* Main Content Grid */}
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+        {/* Recent Activities - Full width on mobile, 2/3 on desktop */}
+        <div className="lg:col-span-2">
+          <RecentActivities />
         </div>
         
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-6 gap-4">
-          {stats.map((stat) => (
-            <Card key={stat.title} className="card-elevated">
-              <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                <CardTitle className="text-sm font-medium text-muted-foreground">
-                  {stat.title}
-                </CardTitle>
-                <stat.icon className="h-4 w-4 text-muted-foreground" />
-              </CardHeader>
-              <CardContent>
-                <div className="text-2xl font-bold">{stat.value}</div>
-                <p className="text-xs text-muted-foreground mt-1">
-                  <span className={stat.changeType === 'positive' ? 'text-green-600' : 'text-red-600'}>
-                    {stat.change}
-                  </span>{' '}
-                  {stat.description}
-                </p>
-              </CardContent>
-            </Card>
-          ))}
+        {/* Pending Tasks - Full width on mobile, 1/3 on desktop */}
+        <div className="lg:col-span-1">
+          <PendingTasks />
         </div>
       </div>
 
-      {/* Workflow Kanban */}
-      <WorkflowKanban />
+      {/* Monthly Progress and Workflow */}
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+        <div className="lg:col-span-1">
+          <MonthlyProgress />
+        </div>
+        
+        <div className="lg:col-span-2">
+          <Card>
+            <CardHeader>
+              <CardTitle>Project Workflow</CardTitle>
+              <CardDescription>Drag and drop projects between stages</CardDescription>
+            </CardHeader>
+            <CardContent>
+              <WorkflowKanban />
+            </CardContent>
+          </Card>
+        </div>
+      </div>
     </div>
   );
 }

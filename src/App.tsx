@@ -13,6 +13,12 @@ import NewRFQ from "./pages/NewRFQ";
 import AdminUsers from "./pages/AdminUsers";
 import NotFound from "./pages/NotFound";
 import Auth from "./pages/Auth";
+import Vendors from "./pages/Vendors";
+import Projects from "./pages/Projects";
+import PurchaseOrders from "./pages/PurchaseOrders";
+import Inventory from "./pages/Inventory";
+import Customers from "./pages/Customers";
+import Reports from "./pages/Reports";
 import { RFQDetail } from "./pages/RFQDetail";
 
 const queryClient = new QueryClient();
@@ -32,6 +38,36 @@ const App = () => (
                 <AppLayout><Dashboard /></AppLayout>
               </ProtectedRoute>
             } />
+            <Route path="/vendors" element={
+              <ProtectedRoute>
+                <AppLayout><Vendors /></AppLayout>
+              </ProtectedRoute>
+            } />
+            <Route path="/projects" element={
+              <ProtectedRoute>
+                <AppLayout><Projects /></AppLayout>
+              </ProtectedRoute>
+            } />
+            <Route path="/purchase-orders" element={
+              <ProtectedRoute>
+                <AppLayout><PurchaseOrders /></AppLayout>
+              </ProtectedRoute>
+            } />
+            <Route path="/inventory" element={
+              <ProtectedRoute>
+                <AppLayout><Inventory /></AppLayout>
+              </ProtectedRoute>
+            } />
+            <Route path="/customers" element={
+              <ProtectedRoute>
+                <AppLayout><Customers /></AppLayout>
+              </ProtectedRoute>
+            } />
+            <Route path="/reports" element={
+              <ProtectedRoute>
+                <AppLayout><Reports /></AppLayout>
+              </ProtectedRoute>
+            } />
             <Route path="/rfq/new" element={
               <ProtectedRoute>
                 <AppLayout><NewRFQ /></AppLayout>
@@ -39,7 +75,7 @@ const App = () => (
             } />
             <Route path="/rfqs" element={
               <ProtectedRoute>
-                <AppLayout><div className="p-6">RFQs List - Coming Soon</div></AppLayout>
+                <AppLayout><Projects /></AppLayout>
               </ProtectedRoute>
             } />
             <Route path="/reviews" element={
