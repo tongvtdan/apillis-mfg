@@ -57,7 +57,7 @@ export function AppSidebar() {
           <div>
             <h2 className="font-semibold text-sidebar-foreground">Apillis 
 Factory Pulse</h2>
-            <p className="text-xs text-sidebar-foreground/70">MES Platform</p>
+            <p className="text-xs text-sidebar-foreground/70">The Heartbeat of Modern Manufacturing</p>
           </div>
         </div>
       </SidebarHeader>
