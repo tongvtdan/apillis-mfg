@@ -1,0 +1,135 @@
+-- Insert mock customers first
+INSERT INTO public.customers (id, name, company, email, phone, address, country) VALUES
+  (gen_random_uuid(), 'John Smith', 'Acme Manufacturing Corp', 'john.smith@acme.com', '+1-555-0101', '123 Industrial Ave, Detroit, MI 48201', 'United States'),
+  (gen_random_uuid(), 'Maria Rodriguez', 'TechParts Industries', 'maria.rodriguez@techparts.com', '+1-555-0202', '456 Factory Blvd, Houston, TX 77001', 'United States'),  
+  (gen_random_uuid(), 'Chen Wei', 'Global Components Ltd', 'chen.wei@globalcomp.com', '+86-138-0013-8000', '789 Manufacturing District, Shenzhen, China', 'China'),
+  (gen_random_uuid(), 'Hans Mueller', 'Precision Engineering GmbH', 'h.mueller@precision.de', '+49-30-12345678', 'Industriestr. 15, 10115 Berlin, Germany', 'Germany'),
+  (gen_random_uuid(), 'Sarah Johnson', 'Aerospace Solutions Inc', 'sarah.johnson@aerosol.com', '+1-555-0505', '321 Aviation Way, Seattle, WA 98101', 'United States');
+
+-- Insert mock projects with realistic manufacturing scenarios
+INSERT INTO public.projects (
+  title, 
+  description, 
+  customer_id, 
+  status, 
+  priority, 
+  priority_score,
+  contact_name,
+  contact_email,
+  contact_phone,
+  estimated_value,
+  notes,
+  tags,
+  assignee_id,
+  created_at,
+  updated_at
+) VALUES
+  (
+    'Custom CNC Machined Aluminum Brackets',
+    'Precision machining of 500 aluminum brackets for automotive assembly line. Material: 6061-T6 aluminum, tolerance ±0.005", surface finish Ra 32.',
+    (SELECT id FROM public.customers WHERE company = 'Acme Manufacturing Corp' LIMIT 1),
+    'review'::project_status,
+    'high'::project_priority,
+    85,
+    'John Smith',
+    'john.smith@acme.com',
+    '+1-555-0101',
+    25000.00,
+    'Customer requires expedited delivery. Quality certification needed.',
+    ARRAY['CNC', 'Aluminum', 'Automotive', 'Precision'],
+    NULL,
+    NOW() - INTERVAL '3 days',
+    NOW() - INTERVAL '1 day'
+  ),
+  (
+    'Injection Molded Electronic Enclosures',
+    'Design and manufacture 1000 plastic enclosures for IoT devices. Material: ABS plastic, IP65 rating required.',
+    (SELECT id FROM public.customers WHERE company = 'TechParts Industries' LIMIT 1),
+    'quoted'::project_status,
+    'medium'::project_priority,
+    65,
+    'Maria Rodriguez',
+    'maria.rodriguez@techparts.com',
+    '+1-555-0202',
+    18500.00,
+    'Prototype approved. Waiting for customer confirmation on production run.',
+    ARRAY['Injection Molding', 'Plastic', 'Electronics', 'IP65'],
+    NULL,
+    NOW() - INTERVAL '5 days',
+    NOW() - INTERVAL '2 hours'
+  ),
+  (
+    'Sheet Metal Fabrication - Server Chassis',
+    'Fabricate 200 server chassis units. Material: 16-gauge steel, powder coating required. Custom cable management features.',
+    (SELECT id FROM public.customers WHERE company = 'Global Components Ltd' LIMIT 1),
+    'inquiry'::project_status,
+    'medium'::project_priority,
+    55,
+    'Chen Wei',
+    'chen.wei@globalcomp.com',
+    '+86-138-0013-8000',
+    32000.00,
+    'Initial inquiry. Customer provided CAD files for review.',
+    ARRAY['Sheet Metal', 'Steel', 'Server Hardware', 'Powder Coating'],
+    NULL,
+    NOW() - INTERVAL '1 day',
+    NOW() - INTERVAL '6 hours'
+  ),
+  (
+    'Precision Turned Titanium Components',
+    'Manufacturing 50 high-precision titanium components for aerospace application. Grade 5 titanium, tight tolerances ±0.001".',
+    (SELECT id FROM public.customers WHERE company = 'Precision Engineering GmbH' LIMIT 1),
+    'won'::project_status,
+    'high'::project_priority,
+    95,
+    'Hans Mueller',
+    'h.mueller@precision.de',
+    '+49-30-12345678',
+    45000.00,
+    'Project approved and in production. First article inspection completed.',
+    ARRAY['Titanium', 'Aerospace', 'Precision Turning', 'High Tolerance'],
+    NULL,
+    NOW() - INTERVAL '10 days',
+    NOW() - INTERVAL '1 hour'
+  ),
+  (
+    'Composite Carbon Fiber Parts',
+    'Prototype development of carbon fiber reinforced plastic parts for drone frames. Lightweight design, high strength requirements.',
+    (SELECT id FROM public.customers WHERE company = 'Aerospace Solutions Inc' LIMIT 1),
+    'lost'::project_status,
+    'low'::project_priority,
+    25,
+    'Sarah Johnson',
+    'sarah.johnson@aerosol.com',
+    '+1-555-0505',
+    15000.00,
+    'Project lost due to pricing. Customer went with different supplier.',
+    ARRAY['Carbon Fiber', 'Composite', 'Prototype', 'Drone'],
+    NULL,
+    NOW() - INTERVAL '7 days',
+    NOW() - INTERVAL '3 days'
+  );
+
+-- Insert some project activities to make it more realistic
+INSERT INTO public.project_activities (project_id, activity_type, description, created_by, created_at) VALUES
+  (
+    (SELECT id FROM public.projects WHERE title = 'Custom CNC Machined Aluminum Brackets' LIMIT 1),
+    'status_change',
+    'Status changed from inquiry to review',
+    NULL,
+    NOW() - INTERVAL '2 days'
+  ),
+  (
+    (SELECT id FROM public.projects WHERE title = 'Injection Molded Electronic Enclosures' LIMIT 1),
+    'status_change', 
+    'Status changed from review to quoted',
+    NULL,
+    NOW() - INTERVAL '1 day'
+  ),
+  (
+    (SELECT id FROM public.projects WHERE title = 'Precision Turned Titanium Components' LIMIT 1),
+    'status_change',
+    'Status changed from quoted to won',
+    NULL,
+    NOW() - INTERVAL '5 days'
+  );
