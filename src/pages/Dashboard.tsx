@@ -3,6 +3,7 @@ import { RecentActivities } from "@/components/dashboard/RecentActivities";
 import { PendingTasks } from "@/components/dashboard/PendingTasks";
 import { MonthlyProgress } from "@/components/dashboard/MonthlyProgress";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { useProjects } from "@/hooks/useProjects";
 import { 
   FileText, 
   Clock, 
@@ -13,38 +14,49 @@ import {
 } from "lucide-react";
 
 export default function Dashboard() {
+  const { projects, loading } = useProjects();
+
+  // Calculate real stats from projects data
+  const activeProjects = projects.filter(p => 
+    ['inquiry', 'review', 'quoted'].includes(p.status)
+  ).length;
+  
+  const wonProjects = projects.filter(p => p.status === 'won').length;
+  const lostProjects = projects.filter(p => p.status === 'lost').length;
+  const highPriorityProjects = projects.filter(p => p.priority === 'high').length;
+
   const stats = [
     {
       title: "Active Projects",
-      value: "24",
+      value: loading ? "..." : activeProjects.toString(),
       change: "+12%",
-      changeType: "positive",
+      changeType: "positive" as const,
       icon: FileText,
-      description: "from last month"
+      description: "currently in pipeline"
     },
     {
-      title: "Total Vendors",
-      value: "156",
+      title: "Won Projects",
+      value: loading ? "..." : wonProjects.toString(),
       change: "+8%",
-      changeType: "positive", 
-      icon: Users,
-      description: "from last month"
-    },
-    {
-      title: "Open Purchase Orders",
-      value: "18",
-      change: "-5%",
-      changeType: "negative",
+      changeType: "positive" as const, 
       icon: CheckCircle,
-      description: "from last month"
+      description: "successfully closed"
     },
     {
-      title: "Low Stock Items",
-      value: "7",
-      change: "+15%",
-      changeType: "negative",
+      title: "High Priority",
+      value: loading ? "..." : highPriorityProjects.toString(),
+      change: "-5%",
+      changeType: "negative" as const,
       icon: AlertTriangle,
-      description: "from last month"
+      description: "requiring attention"
+    },
+    {
+      title: "Total Projects",
+      value: loading ? "..." : projects.length.toString(),
+      change: "+15%",
+      changeType: "positive" as const,
+      icon: TrendingUp,
+      description: "all time"
     }
   ];
 
