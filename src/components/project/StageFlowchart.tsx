@@ -13,7 +13,7 @@ interface StageFlowchartProps {
 export function StageFlowchart({ selectedStage, onStageSelect, stageCounts }: StageFlowchartProps) {
   return (
     <div className="w-full overflow-x-auto pb-4">
-      <div className="flex items-center gap-2 min-w-max">
+      <div className="flex items-center gap-2 min-w-max pt-4">
         {PROJECT_STAGES.map((stage, index) => (
           <React.Fragment key={stage.id}>
             <Card 
