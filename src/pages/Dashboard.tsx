@@ -2,6 +2,7 @@ import { WorkflowKanban } from "@/components/dashboard/WorkflowKanban";
 import { RecentActivities } from "@/components/dashboard/RecentActivities";
 import { PendingTasks } from "@/components/dashboard/PendingTasks";
 import { MonthlyProgress } from "@/components/dashboard/MonthlyProgress";
+import { ProjectProgressView } from "@/components/dashboard/ProjectProgressView";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { useProjects } from "@/hooks/useProjects";
 import { 
@@ -113,15 +114,7 @@ export default function Dashboard() {
         </div>
         
         <div className="lg:col-span-2">
-          <Card>
-            <CardHeader>
-              <CardTitle>Project Workflow</CardTitle>
-              <CardDescription>Drag and drop projects between stages</CardDescription>
-            </CardHeader>
-            <CardContent>
-              <WorkflowKanban />
-            </CardContent>
-          </Card>
+          <ProjectProgressView />
         </div>
       </div>
     </div>

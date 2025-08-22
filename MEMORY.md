@@ -45,3 +45,11 @@ This file contains important changes and updates made to the project.
 3. Updated RecentActivities component to show recent project updates with real timestamps
 4. Modified PendingTasks to generate tasks from projects in 'inquiry' and 'review' status
 5. Updated MonthlyProgress to calculate percentages based on actual project status distribution
+
+- Date: 2025-01-22
+- What we completed / changed:
+1. Created new progress-based project workflow UI with step indicators following reference design
+2. Built ProjectProgressCard component showing projects as cards with visual progress steps
+3. Implemented workflow steps: Intake → Internal Review → Quoted → Production → Delivered
+4. Added project metrics display (BOM Items, Documents, Vendors Matched, Quotes Received)
+5. Replaced Kanban workflow with progress-based card layout for better visual project tracking
