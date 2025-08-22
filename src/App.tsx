@@ -8,6 +8,7 @@ import { AuthProvider } from "@/contexts/AuthContext";
 import { ProtectedRoute } from "@/components/auth/ProtectedRoute";
 import Index from "./pages/Index";
 import Dashboard from "./pages/Dashboard";
+import PublicRFQ from "./pages/PublicRFQ";
 import NewRFQ from "./pages/NewRFQ";
 import AdminUsers from "./pages/AdminUsers";
 import NotFound from "./pages/NotFound";

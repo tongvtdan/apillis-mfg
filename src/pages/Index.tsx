@@ -69,14 +69,16 @@ const Index = () => {
                 </Link>
               ) : (
                 <>
+                  <Link to="/rfq/submit">
+                    <Button className="bg-primary text-primary-foreground hover:bg-primary/90">
+                      Submit RFQ
+                    </Button>
+                  </Link>
                   <Link to="/auth">
                     <Button variant="outline">
                       <LogIn className="mr-2 h-4 w-4" />
                       Login
                     </Button>
-                  </Link>
-                  <Link to="/auth">
-                    <Button>Get Started</Button>
                   </Link>
                 </>
               )}
@@ -115,9 +117,9 @@ const Index = () => {
                 </>
               ) : (
                 <>
-                  <Link to="/auth">
+                  <Link to="/rfq/submit">
                     <Button size="lg" className="gradient-primary text-lg px-8 py-6">
-                      Start Free Trial
+                      Submit RFQ Request
                       <ArrowRight className="ml-2 h-5 w-5" />
                     </Button>
                   </Link>
@@ -133,6 +135,58 @@ const Index = () => {
           </div>
         </div>
       </section>
+
+      {/* RFQ CTA Section */}
+      {!user && (
+        <section className="px-4 py-16 sm:px-6 lg:px-8 bg-primary/5 border-y border-primary/20">
+          <div className="max-w-4xl mx-auto text-center">
+            <h2 className="text-3xl md:text-4xl font-bold text-foreground mb-4">
+              Need a Manufacturing Quote?
+            </h2>
+            <p className="text-lg text-muted-foreground mb-8 max-w-2xl mx-auto">
+              Submit your requirements through our streamlined RFQ portal and get a competitive quote 
+              within 24 hours. No account required to get started.
+            </p>
+            
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
+              <div className="flex flex-col items-center text-center">
+                <div className="w-12 h-12 rounded-full bg-primary/10 flex items-center justify-center mb-3">
+                  <FileText className="h-6 w-6 text-primary" />
+                </div>
+                <h3 className="font-semibold mb-1">Submit Requirements</h3>
+                <p className="text-sm text-muted-foreground">Upload specs, drawings, and project details</p>
+              </div>
+              
+              <div className="flex flex-col items-center text-center">
+                <div className="w-12 h-12 rounded-full bg-primary/10 flex items-center justify-center mb-3">
+                  <CheckCircle className="h-6 w-6 text-primary" />
+                </div>
+                <h3 className="font-semibold mb-1">Expert Review</h3>
+                <p className="text-sm text-muted-foreground">Our team analyzes feasibility and requirements</p>
+              </div>
+              
+              <div className="flex flex-col items-center text-center">
+                <div className="w-12 h-12 rounded-full bg-primary/10 flex items-center justify-center mb-3">
+                  <BarChart3 className="h-6 w-6 text-primary" />
+                </div>
+                <h3 className="font-semibold mb-1">Receive Quote</h3>
+                <p className="text-sm text-muted-foreground">Get detailed pricing and delivery timeline</p>
+              </div>
+            </div>
+            
+            <Link to="/rfq/submit">
+              <Button size="lg" className="text-lg px-8 py-4">
+                Submit Your RFQ Request
+                <ArrowRight className="ml-2 h-5 w-5" />
+              </Button>
+            </Link>
+            
+            <p className="text-sm text-muted-foreground mt-4">
+              Free submission • 24-hour response • No obligation
+            </p>
+          </div>
+        </section>
+      )}
 
       {/* Features Grid */}
       <section className="px-4 py-20 sm:px-6 lg:px-8 bg-muted/30">

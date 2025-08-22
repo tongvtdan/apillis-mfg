@@ -1,5 +1,5 @@
-import { RFQIntakeForm } from "@/components/rfq/RFQIntakeForm";
+import { RFQIntakePortal } from "@/components/rfq/RFQIntakePortal";
 
 export default function NewRFQ() {
-  return <RFQIntakeForm />;
+  return <RFQIntakePortal />;
 }
