@@ -26,6 +26,7 @@ import {
   useSensor,
   useSensors,
   closestCorners,
+  useDroppable,
 } from "@dnd-kit/core";
 import {
   SortableContext,
@@ -49,7 +50,13 @@ function RFQCard({ rfq, isDragging = false }: RFQCardProps) {
     transform,
     transition,
     isDragging: sortableIsDragging,
-  } = useSortable({ id: rfq.id });
+  } = useSortable({ 
+    id: rfq.id,
+    data: {
+      type: 'rfq',
+      rfq: rfq
+    }
+  });
 
   const style = {
     transform: CSS.Transform.toString(transform),
@@ -77,13 +84,14 @@ function RFQCard({ rfq, isDragging = false }: RFQCardProps) {
   const isOverdue = (daysInStage: number) => daysInStage > 7;
 
   return (
-    <Card 
+    <div
       ref={setNodeRef}
       style={style}
       {...attributes}
       {...listeners}
-      className={`card-elevated cursor-pointer hover:shadow-md transition-all ${isDragging ? 'rotate-3 shadow-lg' : ''}`}
+      className={isDragging ? 'opacity-50' : ''}
     >
+      <Card className={`card-elevated cursor-pointer hover:shadow-md transition-all ${isDragging ? 'rotate-3 shadow-lg' : ''}`}>
       <CardHeader className="pb-2">
         <div className="flex items-center justify-between">
           <CardTitle className="text-sm font-medium">
@@ -166,6 +174,44 @@ function RFQCard({ rfq, isDragging = false }: RFQCardProps) {
         )}
       </CardContent>
     </Card>
+    </div>
+  );
+}
+
+// DroppableStage component for each stage column
+interface DroppableStageProps {
+  stageId: RFQStatus;
+  stageName: string;
+  stageCount: number;
+  children: React.ReactNode;
+}
+
+function DroppableStage({ stageId, stageName, stageCount, children }: DroppableStageProps) {
+  const { isOver, setNodeRef } = useDroppable({
+    id: stageId,
+    data: {
+      type: 'stage',
+      stageId: stageId
+    }
+  });
+
+  return (
+    <div
+      ref={setNodeRef}
+      className={`space-y-4 bg-muted/30 p-4 rounded-lg border-2 border-dashed transition-colors min-h-[500px] ${
+        isOver ? 'border-primary bg-primary/5' : 'border-muted hover:border-muted-foreground/50'
+      }`}
+    >
+      <div className="flex items-center justify-between">
+        <div className="flex items-center space-x-2">
+          <h3 className="font-semibold">{stageName}</h3>
+          <Badge variant="secondary" className="text-xs">
+            {stageCount}
+          </Badge>
+        </div>
+      </div>
+      {children}
+    </div>
   );
 }
 
@@ -191,16 +237,39 @@ export function WorkflowKanban() {
     const { active, over } = event;
     setActiveRFQ(null);
 
-    if (!over || active.id === over.id) return;
+    console.log('Drag end event:', { active: active.id, over: over?.id });
+
+    if (!over) {
+      console.log('No drop target found');
+      return;
+    }
 
     const rfqId = active.id as string;
-    const newStatus = over.id as RFQStatus;
+    const overData = over.data.current;
+    
+    // If dropped over a stage, use the stage ID
+    let newStatus: RFQStatus;
+    if (overData?.type === 'stage') {
+      newStatus = overData.stageId;
+    } else {
+      // If dropped over another RFQ, get the stage from that RFQ
+      const targetRFQ = rfqs.find(r => r.id === over.id);
+      if (!targetRFQ) {
+        console.log('Invalid drop target');
+        return;
+      }
+      newStatus = targetRFQ.status;
+    }
 
-    // Check if it's a valid status
-    if (!RFQ_STAGES.find(stage => stage.id === newStatus)) return;
+    const currentRFQ = rfqs.find(r => r.id === rfqId);
+    if (!currentRFQ || currentRFQ.status === newStatus) {
+      console.log('No change needed');
+      return;
+    }
 
+    console.log('Updating RFQ status:', { rfqId, from: currentRFQ.status, to: newStatus });
     await updateRFQStatus(rfqId, newStatus);
-  }, [updateRFQStatus]);
+  }, [updateRFQStatus, rfqs]);
 
   const getStageRFQs = useCallback((stageId: RFQStatus) => {
     return rfqs.filter(rfq => rfq.status === stageId);
@@ -273,19 +342,12 @@ export function WorkflowKanban() {
             const stageRFQs = getStageRFQs(stage.id);
 
             return (
-              <div
+              <DroppableStage
                 key={stage.id}
-                className="space-y-4 bg-muted/30 p-4 rounded-lg border-2 border-dashed border-muted transition-colors hover:border-muted-foreground/50"
+                stageId={stage.id}
+                stageName={stage.name}
+                stageCount={stage.count}
               >
-                <div className="flex items-center justify-between">
-                  <div className="flex items-center space-x-2">
-                    <h3 className="font-semibold">{stage.name}</h3>
-                    <Badge variant="secondary" className="text-xs">
-                      {stage.count}
-                    </Badge>
-                  </div>
-                </div>
-
                 <SortableContext
                   items={stageRFQs.map(rfq => rfq.id)}
                   strategy={verticalListSortingStrategy}
@@ -303,7 +365,7 @@ export function WorkflowKanban() {
                     )}
                   </div>
                 </SortableContext>
-              </div>
+              </DroppableStage>
             );
           })}
         </div>
