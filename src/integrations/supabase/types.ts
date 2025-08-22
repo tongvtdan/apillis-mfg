@@ -193,6 +193,7 @@ export type Database = {
         | "Production"
         | "Supplier"
         | "Management"
+        | "Procurement"
       user_status: "Active" | "Inactive" | "Pending" | "Locked" | "Dormant"
     }
     CompositeTypes: {
@@ -339,6 +340,7 @@ export const Constants = {
         "Production",
         "Supplier",
         "Management",
+        "Procurement",
       ],
       user_status: ["Active", "Inactive", "Pending", "Locked", "Dormant"],
     },
