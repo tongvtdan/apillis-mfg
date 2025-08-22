@@ -107,15 +107,14 @@ export default function Dashboard() {
         </div>
       </div>
 
-      {/* Monthly Progress and Workflow */}
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-        <div className="lg:col-span-1">
-          <MonthlyProgress />
-        </div>
-        
-        <div className="lg:col-span-2">
-          <ProjectProgressView />
-        </div>
+      {/* Project Workflow */}
+      <div className="mb-6">
+        <ProjectProgressView />
+      </div>
+
+      {/* Monthly Progress Overview - Bottom */}
+      <div className="mb-6">
+        <MonthlyProgress />
       </div>
     </div>
   );
