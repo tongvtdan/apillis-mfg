@@ -17,14 +17,14 @@ export function StageFlowchart({ selectedStage, onStageSelect, stageCounts }: St
         {PROJECT_STAGES.map((stage, index) => (
           <React.Fragment key={stage.id}>
             <Card 
-              className={`cursor-pointer transition-all duration-200 hover:shadow-md ${
+              className={`cursor-pointer transition-all duration-200 hover:shadow-md w-[140px] ${
                 selectedStage === stage.id 
                   ? 'ring-2 ring-primary shadow-md scale-105' 
                   : 'hover:scale-102'
               }`}
               onClick={() => onStageSelect(stage.id)}
             >
-              <CardContent className="p-4 text-center w-[140px] h-[100px] flex flex-col justify-center">
+              <CardContent className="p-4 text-center h-[100px] flex flex-col justify-center">
                 <div className="space-y-2">
                   <Badge 
                     className={`${stage.color} text-xs font-medium`}
