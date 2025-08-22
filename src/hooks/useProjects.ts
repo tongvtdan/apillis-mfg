@@ -212,7 +212,7 @@ export function useProjects() {
 
       const { data, error } = await supabase
         .from('projects')
-        .insert(cleanData)
+        .insert([cleanData as any])
         .select(`
           *,
           customer:customers(*)
