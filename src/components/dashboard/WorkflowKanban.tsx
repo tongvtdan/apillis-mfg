@@ -1,5 +1,5 @@
 import { useState, useCallback } from "react";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -9,7 +9,8 @@ import {
   User,
   Building2,
   Clock,
-  AlertTriangle
+  AlertTriangle,
+  Eye
 } from "lucide-react";
 import {
   DropdownMenu,
@@ -34,15 +35,16 @@ import {
   useSortable,
 } from "@dnd-kit/sortable";
 import { CSS } from "@dnd-kit/utilities";
-import { useRFQs } from "@/hooks/useRFQs";
-import { RFQ, RFQ_STAGES, PRIORITY_COLORS, RFQStatus } from "@/types/rfq";
+import { useProjects } from "@/hooks/useProjects";
+import { Project, PROJECT_STAGES, PRIORITY_COLORS, ProjectStatus } from "@/types/project";
 
-interface RFQCardProps {
-  rfq: RFQ;
+interface ProjectCardProps {
+  project: Project;
   isDragging?: boolean;
 }
 
-function RFQCard({ rfq, isDragging = false }: RFQCardProps) {
+function ProjectCard({ project, isDragging = false }: ProjectCardProps) {
+  const navigate = useNavigate();
   const {
     attributes,
     listeners,
@@ -51,10 +53,10 @@ function RFQCard({ rfq, isDragging = false }: RFQCardProps) {
     transition,
     isDragging: sortableIsDragging,
   } = useSortable({ 
-    id: rfq.id,
+    id: project.id,
     data: {
-      type: 'rfq',
-      rfq: rfq
+      type: 'project',
+      project: project
     }
   });
 
@@ -95,7 +97,7 @@ function RFQCard({ rfq, isDragging = false }: RFQCardProps) {
       <CardHeader className="pb-2">
         <div className="flex items-center justify-between">
           <CardTitle className="text-sm font-medium">
-            {rfq.rfq_number}
+            {project.project_id}
           </CardTitle>
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
@@ -104,7 +106,7 @@ function RFQCard({ rfq, isDragging = false }: RFQCardProps) {
               </Button>
             </DropdownMenuTrigger>
             <DropdownMenuContent align="end">
-              <DropdownMenuItem onClick={() => window.location.href = `/rfq/${rfq.id}`}>
+              <DropdownMenuItem onClick={() => navigate(`/project/${project.id}`)}>
                 View Details
               </DropdownMenuItem>
               <DropdownMenuItem>Edit</DropdownMenuItem>
@@ -116,11 +118,11 @@ function RFQCard({ rfq, isDragging = false }: RFQCardProps) {
         <div className="flex items-center space-x-2">
           <Badge
             variant="outline"
-            className={`text-xs ${getPriorityColor(rfq.priority)}`}
+            className={`text-xs ${getPriorityColor(project.priority)}`}
           >
-            {rfq.priority.toUpperCase()}
+            {project.priority.toUpperCase()}
           </Badge>
-          {isOverdue(rfq.days_in_stage) && (
+          {isOverdue(project.days_in_stage) && (
             <AlertTriangle className="h-3 w-3 text-red-500" />
           )}
         </div>
@@ -128,10 +130,10 @@ function RFQCard({ rfq, isDragging = false }: RFQCardProps) {
 
       <CardContent className="pt-0 space-y-3">
         <div>
-          <p className="font-medium text-sm">{rfq.project_name}</p>
+          <p className="font-medium text-sm">{project.title}</p>
           <div className="flex items-center space-x-1 text-xs text-muted-foreground mt-1">
             <Building2 className="h-3 w-3" />
-            <span>{rfq.company_name}</span>
+            <span>{project.customer?.company || project.customer?.name || project.contact_name || 'Unknown'}</span>
           </div>
         </div>
 
@@ -139,41 +141,56 @@ function RFQCard({ rfq, isDragging = false }: RFQCardProps) {
           <div className="flex items-center justify-between">
             <div className="flex items-center space-x-1 text-muted-foreground">
               <User className="h-3 w-3" />
-              <span>{rfq.contact_name || 'Unassigned'}</span>
+              <span>{project.contact_name || project.assignee_id || 'Unassigned'}</span>
             </div>
-            {rfq.estimated_value && (
-              <span className="font-medium">{formatCurrency(rfq.estimated_value)}</span>
+            {project.estimated_value && (
+              <span className="font-medium">{formatCurrency(project.estimated_value)}</span>
             )}
           </div>
 
           <div className="flex items-center justify-between">
-            {rfq.due_date && (
+            {project.due_date && (
               <div className="flex items-center space-x-1 text-muted-foreground">
                 <Calendar className="h-3 w-3" />
-                <span>{formatDate(rfq.due_date)}</span>
+                <span>{formatDate(project.due_date)}</span>
               </div>
             )}
             <div className="flex items-center space-x-1 text-muted-foreground">
               <Clock className="h-3 w-3" />
-              <span>{rfq.days_in_stage} days</span>
+              <span>{project.days_in_stage} days</span>
             </div>
           </div>
         </div>
 
-        {rfq.tags && rfq.tags.length > 0 && (
+        {project.tags && project.tags.length > 0 && (
           <div className="flex flex-wrap gap-1">
-            {rfq.tags.slice(0, 2).map((tag, index) => (
+            {project.tags.slice(0, 2).map((tag, index) => (
               <Badge key={index} variant="secondary" className="text-xs px-1 py-0">
                 {tag}
               </Badge>
             ))}
-            {rfq.tags.length > 2 && (
+            {project.tags.length > 2 && (
               <Badge variant="secondary" className="text-xs px-1 py-0">
-                +{rfq.tags.length - 2}
+                +{project.tags.length - 2}
               </Badge>
             )}
           </div>
         )}
+
+        <div className="pt-2 border-t">
+          <Button 
+            variant="ghost" 
+            size="sm" 
+            className="w-full justify-start h-7 px-2"
+            onClick={(e) => {
+              e.stopPropagation();
+              navigate(`/project/${project.id}`);
+            }}
+          >
+            <Eye className="mr-2 h-3 w-3" />
+            View Details
+          </Button>
+        </div>
       </CardContent>
     </Card>
     </div>
@@ -182,7 +199,7 @@ function RFQCard({ rfq, isDragging = false }: RFQCardProps) {
 
 // DroppableStage component for each stage column
 interface DroppableStageProps {
-  stageId: RFQStatus;
+  stageId: ProjectStatus;
   stageName: string;
   stageCount: number;
   children: React.ReactNode;
@@ -218,8 +235,8 @@ function DroppableStage({ stageId, stageName, stageCount, children }: DroppableS
 }
 
 export function WorkflowKanban() {
-  const { rfqs, loading, error, updateRFQStatusOptimistic } = useRFQs();
-  const [activeRFQ, setActiveRFQ] = useState<RFQ | null>(null);
+  const { projects, loading, error, updateProjectStatusOptimistic } = useProjects();
+  const [activeProject, setActiveProject] = useState<Project | null>(null);
 
   const sensors = useSensors(
     useSensor(PointerSensor, {
@@ -231,9 +248,9 @@ export function WorkflowKanban() {
 
   const handleDragStart = useCallback((event: DragStartEvent) => {
     const { active } = event;
-    const rfq = rfqs.find(r => r.id === active.id);
-    setActiveRFQ(rfq || null);
-  }, [rfqs]);
+    const project = projects.find(p => p.id === active.id);
+    setActiveProject(project || null);
+  }, [projects]);
 
   const handleDragEnd = useCallback(async (event: DragEndEvent) => {
     const { active, over } = event;
@@ -242,52 +259,52 @@ export function WorkflowKanban() {
 
     if (!over) {
       console.log('No drop target found');
-      setActiveRFQ(null);
+      setActiveProject(null);
       return;
     }
 
-    const rfqId = active.id as string;
+    const projectId = active.id as string;
     const overData = over.data.current;
     
     // If dropped over a stage, use the stage ID
-    let newStatus: RFQStatus;
+    let newStatus: ProjectStatus;
     if (overData?.type === 'stage') {
       newStatus = overData.stageId;
     } else {
-      // If dropped over another RFQ, get the stage from that RFQ
-      const targetRFQ = rfqs.find(r => r.id === over.id);
-      if (!targetRFQ) {
+      // If dropped over another project, get the stage from that project
+      const targetProject = projects.find(p => p.id === over.id);
+      if (!targetProject) {
         console.log('Invalid drop target');
-        setActiveRFQ(null);
+        setActiveProject(null);
         return;
       }
-      newStatus = targetRFQ.status;
+      newStatus = targetProject.status;
     }
 
-    const currentRFQ = rfqs.find(r => r.id === rfqId);
-    if (!currentRFQ || currentRFQ.status === newStatus) {
+    const currentProject = projects.find(p => p.id === projectId);
+    if (!currentProject || currentProject.status === newStatus) {
       console.log('No change needed');
-      setActiveRFQ(null);
+      setActiveProject(null);
       return;
     }
 
-    console.log('Updating RFQ status:', { rfqId, from: currentRFQ.status, to: newStatus });
+    console.log('Updating project status:', { projectId, from: currentProject.status, to: newStatus });
     
     // Clear the drag overlay immediately
-    setActiveRFQ(null);
+    setActiveProject(null);
     
     // Make the optimistic API call (this will update UI immediately)
-    await updateRFQStatusOptimistic(rfqId, newStatus);
-  }, [updateRFQStatusOptimistic, rfqs]);
+    await updateProjectStatusOptimistic(projectId, newStatus);
+  }, [updateProjectStatusOptimistic, projects]);
 
-  const getStageRFQs = useCallback((stageId: RFQStatus) => {
-    return rfqs.filter(rfq => rfq.status === stageId);
-  }, [rfqs]);
+  const getStageProjects = useCallback((stageId: ProjectStatus) => {
+    return projects.filter(project => project.status === stageId);
+  }, [projects]);
 
   // Update stage counts
-  const stages = RFQ_STAGES.map(stage => ({
+  const stages = PROJECT_STAGES.map(stage => ({
     ...stage,
-    count: getStageRFQs(stage.id).length
+    count: getStageProjects(stage.id).length
   }));
 
   if (loading) {
@@ -295,12 +312,12 @@ export function WorkflowKanban() {
       <div className="p-6 space-y-6">
         <div className="flex items-center justify-between">
           <div>
-            <h2 className="text-2xl font-bold">RFQ Workflow</h2>
-            <p className="text-muted-foreground">Loading your manufacturing requests...</p>
+            <h2 className="text-2xl font-bold">Project Workflow</h2>
+            <p className="text-muted-foreground">Loading your manufacturing projects...</p>
           </div>
         </div>
-        <div className="grid grid-cols-1 lg:grid-cols-5 gap-6 min-h-[600px]">
-          {RFQ_STAGES.map((stage) => (
+        <div className="grid grid-cols-1 lg:grid-cols-6 gap-6 min-h-[600px]">
+          {PROJECT_STAGES.map((stage) => (
             <div key={stage.id} className="space-y-4">
               <div className="animate-pulse bg-muted h-8 rounded"></div>
               <div className="space-y-3">
@@ -319,7 +336,7 @@ export function WorkflowKanban() {
     return (
       <div className="p-6 space-y-6">
         <div className="text-center py-8">
-          <p className="text-destructive font-medium">Error loading RFQs</p>
+          <p className="text-destructive font-medium">Error loading projects</p>
           <p className="text-muted-foreground text-sm mt-1">{error}</p>
         </div>
       </div>
@@ -330,12 +347,12 @@ export function WorkflowKanban() {
     <div className="p-6 space-y-6">
       <div className="flex items-center justify-between">
         <div>
-          <h2 className="text-2xl font-bold">RFQ Workflow</h2>
-          <p className="text-muted-foreground">Track and manage your manufacturing requests</p>
+          <h2 className="text-2xl font-bold">Factory Pulse - Project Flow</h2>
+          <p className="text-muted-foreground">Track and manage your manufacturing projects from idea to delivery</p>
         </div>
         <Button asChild>
           <Link to="/rfq/new">
-            New RFQ
+            New Project
           </Link>
         </Button>
       </div>
@@ -346,9 +363,9 @@ export function WorkflowKanban() {
         onDragStart={handleDragStart}
         onDragEnd={handleDragEnd}
       >
-        <div className="grid grid-cols-1 lg:grid-cols-5 gap-6 min-h-[600px]">
+        <div className="grid grid-cols-1 lg:grid-cols-6 gap-6 min-h-[600px]">
           {stages.map((stage) => {
-            const stageRFQs = getStageRFQs(stage.id);
+            const stageProjects = getStageProjects(stage.id);
 
             return (
               <DroppableStage
@@ -358,20 +375,20 @@ export function WorkflowKanban() {
                 stageCount={stage.count}
               >
                 <SortableContext
-                  items={stageRFQs.map(rfq => rfq.id)}
+                  items={stageProjects.map(project => project.id)}
                   strategy={verticalListSortingStrategy}
                 >
                   <div className="space-y-3 transition-all duration-200" style={{ minHeight: '200px' }}>
-                    {stageRFQs.map((rfq) => (
-                      <div key={rfq.id} className="animate-fade-in">
-                        <RFQCard rfq={rfq} />
+                    {stageProjects.map((project) => (
+                      <div key={project.id} className="animate-fade-in">
+                        <ProjectCard project={project} />
                       </div>
                     ))}
 
-                    {stageRFQs.length === 0 && (
+                    {stageProjects.length === 0 && (
                       <div className="text-center py-8 text-muted-foreground">
-                        <p className="text-sm">No RFQs in this stage</p>
-                        <p className="text-xs mt-1">Drag RFQs here to move them</p>
+                        <p className="text-sm">No projects in this stage</p>
+                        <p className="text-xs mt-1">Drag projects here to move them</p>
                       </div>
                     )}
                   </div>
@@ -382,8 +399,8 @@ export function WorkflowKanban() {
         </div>
 
         <DragOverlay>
-          {activeRFQ ? (
-            <RFQCard rfq={activeRFQ} isDragging />
+          {activeProject ? (
+            <ProjectCard project={activeProject} isDragging />
           ) : null}
         </DragOverlay>
       </DndContext>

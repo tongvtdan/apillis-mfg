@@ -53,6 +53,42 @@ export type Database = {
         }
         Relationships: []
       }
+      customers: {
+        Row: {
+          address: string | null
+          company: string | null
+          country: string | null
+          created_at: string
+          email: string | null
+          id: string
+          name: string
+          phone: string | null
+          updated_at: string
+        }
+        Insert: {
+          address?: string | null
+          company?: string | null
+          country?: string | null
+          created_at?: string
+          email?: string | null
+          id?: string
+          name: string
+          phone?: string | null
+          updated_at?: string
+        }
+        Update: {
+          address?: string | null
+          company?: string | null
+          country?: string | null
+          created_at?: string
+          email?: string | null
+          id?: string
+          name?: string
+          phone?: string | null
+          updated_at?: string
+        }
+        Relationships: []
+      }
       profiles: {
         Row: {
           created_at: string
@@ -103,6 +139,230 @@ export type Database = {
           user_id?: string
         }
         Relationships: []
+      }
+      project_activities: {
+        Row: {
+          activity_type: string
+          created_at: string
+          created_by: string | null
+          description: string
+          id: string
+          new_values: Json | null
+          old_values: Json | null
+          project_id: string
+        }
+        Insert: {
+          activity_type: string
+          created_at?: string
+          created_by?: string | null
+          description: string
+          id?: string
+          new_values?: Json | null
+          old_values?: Json | null
+          project_id: string
+        }
+        Update: {
+          activity_type?: string
+          created_at?: string
+          created_by?: string | null
+          description?: string
+          id?: string
+          new_values?: Json | null
+          old_values?: Json | null
+          project_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "project_activities_project_id_fkey"
+            columns: ["project_id"]
+            isOneToOne: false
+            referencedRelation: "projects"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      project_documents: {
+        Row: {
+          file_size: number | null
+          file_type: string | null
+          file_url: string | null
+          filename: string
+          id: string
+          is_latest: boolean | null
+          project_id: string
+          storage_path: string
+          uploaded_at: string
+          uploaded_by: string | null
+          version: number | null
+        }
+        Insert: {
+          file_size?: number | null
+          file_type?: string | null
+          file_url?: string | null
+          filename: string
+          id?: string
+          is_latest?: boolean | null
+          project_id: string
+          storage_path: string
+          uploaded_at?: string
+          uploaded_by?: string | null
+          version?: number | null
+        }
+        Update: {
+          file_size?: number | null
+          file_type?: string | null
+          file_url?: string | null
+          filename?: string
+          id?: string
+          is_latest?: boolean | null
+          project_id?: string
+          storage_path?: string
+          uploaded_at?: string
+          uploaded_by?: string | null
+          version?: number | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "project_documents_project_id_fkey"
+            columns: ["project_id"]
+            isOneToOne: false
+            referencedRelation: "projects"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      project_metrics: {
+        Row: {
+          created_at: string
+          id: string
+          phase_end: string | null
+          phase_name: string
+          phase_start: string
+          project_id: string
+          time_spent: unknown | null
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          phase_end?: string | null
+          phase_name: string
+          phase_start: string
+          project_id: string
+          time_spent?: unknown | null
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          phase_end?: string | null
+          phase_name?: string
+          phase_start?: string
+          project_id?: string
+          time_spent?: unknown | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "project_metrics_project_id_fkey"
+            columns: ["project_id"]
+            isOneToOne: false
+            referencedRelation: "projects"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      projects: {
+        Row: {
+          assignee_id: string | null
+          contact_email: string | null
+          contact_name: string | null
+          contact_phone: string | null
+          created_at: string
+          created_by: string | null
+          customer_id: string | null
+          days_in_stage: number | null
+          description: string | null
+          due_date: string | null
+          engineering_reviewer_id: string | null
+          estimated_value: number | null
+          id: string
+          notes: string | null
+          priority: Database["public"]["Enums"]["project_priority"]
+          priority_score: number | null
+          production_reviewer_id: string | null
+          project_id: string
+          qa_reviewer_id: string | null
+          review_summary: Json | null
+          stage_entered_at: string | null
+          status: Database["public"]["Enums"]["project_status"]
+          tags: string[] | null
+          title: string
+          updated_at: string
+          updated_by: string | null
+        }
+        Insert: {
+          assignee_id?: string | null
+          contact_email?: string | null
+          contact_name?: string | null
+          contact_phone?: string | null
+          created_at?: string
+          created_by?: string | null
+          customer_id?: string | null
+          days_in_stage?: number | null
+          description?: string | null
+          due_date?: string | null
+          engineering_reviewer_id?: string | null
+          estimated_value?: number | null
+          id?: string
+          notes?: string | null
+          priority?: Database["public"]["Enums"]["project_priority"]
+          priority_score?: number | null
+          production_reviewer_id?: string | null
+          project_id: string
+          qa_reviewer_id?: string | null
+          review_summary?: Json | null
+          stage_entered_at?: string | null
+          status?: Database["public"]["Enums"]["project_status"]
+          tags?: string[] | null
+          title: string
+          updated_at?: string
+          updated_by?: string | null
+        }
+        Update: {
+          assignee_id?: string | null
+          contact_email?: string | null
+          contact_name?: string | null
+          contact_phone?: string | null
+          created_at?: string
+          created_by?: string | null
+          customer_id?: string | null
+          days_in_stage?: number | null
+          description?: string | null
+          due_date?: string | null
+          engineering_reviewer_id?: string | null
+          estimated_value?: number | null
+          id?: string
+          notes?: string | null
+          priority?: Database["public"]["Enums"]["project_priority"]
+          priority_score?: number | null
+          production_reviewer_id?: string | null
+          project_id?: string
+          qa_reviewer_id?: string | null
+          review_summary?: Json | null
+          stage_entered_at?: string | null
+          status?: Database["public"]["Enums"]["project_status"]
+          tags?: string[] | null
+          title?: string
+          updated_at?: string
+          updated_by?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "projects_customer_id_fkey"
+            columns: ["customer_id"]
+            isOneToOne: false
+            referencedRelation: "customers"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       rfq_activities: {
         Row: {
@@ -191,6 +451,7 @@ export type Database = {
           created_at: string
           description: string
           id: string
+          project_id: string | null
           requested_by: string | null
           resolution: string | null
           resolved_at: string | null
@@ -202,6 +463,7 @@ export type Database = {
           created_at?: string
           description: string
           id?: string
+          project_id?: string | null
           requested_by?: string | null
           resolution?: string | null
           resolved_at?: string | null
@@ -213,6 +475,7 @@ export type Database = {
           created_at?: string
           description?: string
           id?: string
+          project_id?: string | null
           requested_by?: string | null
           resolution?: string | null
           resolved_at?: string | null
@@ -220,7 +483,15 @@ export type Database = {
           rfq_id?: string
           status?: string
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "rfq_clarifications_project_id_fkey"
+            columns: ["project_id"]
+            isOneToOne: false
+            referencedRelation: "projects"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       rfq_internal_reviews: {
         Row: {
@@ -228,6 +499,7 @@ export type Database = {
           department: Database["public"]["Enums"]["user_role"]
           feedback: string | null
           id: string
+          project_id: string | null
           reviewer_id: string | null
           rfq_id: string
           status: Database["public"]["Enums"]["review_status"]
@@ -241,6 +513,7 @@ export type Database = {
           department: Database["public"]["Enums"]["user_role"]
           feedback?: string | null
           id?: string
+          project_id?: string | null
           reviewer_id?: string | null
           rfq_id: string
           status?: Database["public"]["Enums"]["review_status"]
@@ -254,6 +527,7 @@ export type Database = {
           department?: Database["public"]["Enums"]["user_role"]
           feedback?: string | null
           id?: string
+          project_id?: string | null
           reviewer_id?: string | null
           rfq_id?: string
           status?: Database["public"]["Enums"]["review_status"]
@@ -262,7 +536,15 @@ export type Database = {
           suggestions?: string[] | null
           updated_at?: string
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "rfq_internal_reviews_project_id_fkey"
+            columns: ["project_id"]
+            isOneToOne: false
+            referencedRelation: "projects"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       rfq_risks: {
         Row: {
@@ -272,6 +554,7 @@ export type Database = {
           description: string
           id: string
           mitigation_plan: string | null
+          project_id: string | null
           review_id: string | null
           rfq_id: string
           severity: Database["public"]["Enums"]["risk_severity"]
@@ -283,6 +566,7 @@ export type Database = {
           description: string
           id?: string
           mitigation_plan?: string | null
+          project_id?: string | null
           review_id?: string | null
           rfq_id: string
           severity: Database["public"]["Enums"]["risk_severity"]
@@ -294,11 +578,20 @@ export type Database = {
           description?: string
           id?: string
           mitigation_plan?: string | null
+          project_id?: string | null
           review_id?: string | null
           rfq_id?: string
           severity?: Database["public"]["Enums"]["risk_severity"]
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "rfq_risks_project_id_fkey"
+            columns: ["project_id"]
+            isOneToOne: false
+            referencedRelation: "projects"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       rfqs: {
         Row: {
@@ -438,11 +731,81 @@ export type Database = {
         }
         Relationships: []
       }
+      workflow_stages: {
+        Row: {
+          color: string
+          created_at: string
+          id: string
+          is_active: boolean | null
+          name: string
+          stage_order: number
+        }
+        Insert: {
+          color: string
+          created_at?: string
+          id?: string
+          is_active?: boolean | null
+          name: string
+          stage_order: number
+        }
+        Update: {
+          color?: string
+          created_at?: string
+          id?: string
+          is_active?: boolean | null
+          name?: string
+          stage_order?: number
+        }
+        Relationships: []
+      }
+      workflow_transitions: {
+        Row: {
+          allowed_roles: Database["public"]["Enums"]["user_role"][] | null
+          created_at: string
+          from_stage_id: string | null
+          id: string
+          to_stage_id: string | null
+        }
+        Insert: {
+          allowed_roles?: Database["public"]["Enums"]["user_role"][] | null
+          created_at?: string
+          from_stage_id?: string | null
+          id?: string
+          to_stage_id?: string | null
+        }
+        Update: {
+          allowed_roles?: Database["public"]["Enums"]["user_role"][] | null
+          created_at?: string
+          from_stage_id?: string | null
+          id?: string
+          to_stage_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "workflow_transitions_from_stage_id_fkey"
+            columns: ["from_stage_id"]
+            isOneToOne: false
+            referencedRelation: "workflow_stages"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "workflow_transitions_to_stage_id_fkey"
+            columns: ["to_stage_id"]
+            isOneToOne: false
+            referencedRelation: "workflow_stages"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
     }
     Views: {
       [_ in never]: never
     }
     Functions: {
+      generate_project_id: {
+        Args: Record<PropertyKey, never>
+        Returns: string
+      }
       generate_rfq_number: {
         Args: Record<PropertyKey, never>
         Returns: string
@@ -469,6 +832,16 @@ export type Database = {
         | "account_locked"
         | "account_unlocked"
         | "profile_update"
+      project_priority: "low" | "medium" | "high" | "urgent"
+      project_status:
+        | "inquiry"
+        | "review"
+        | "quoted"
+        | "won"
+        | "lost"
+        | "production"
+        | "completed"
+        | "cancelled"
       review_status: "pending" | "approved" | "rejected" | "revision_requested"
       rfq_priority: "low" | "medium" | "high" | "urgent"
       rfq_status:
@@ -626,6 +999,17 @@ export const Constants = {
         "account_locked",
         "account_unlocked",
         "profile_update",
+      ],
+      project_priority: ["low", "medium", "high", "urgent"],
+      project_status: [
+        "inquiry",
+        "review",
+        "quoted",
+        "won",
+        "lost",
+        "production",
+        "completed",
+        "cancelled",
       ],
       review_status: ["pending", "approved", "rejected", "revision_requested"],
       rfq_priority: ["low", "medium", "high", "urgent"],

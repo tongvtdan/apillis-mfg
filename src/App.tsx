@@ -47,6 +47,11 @@ const App = () => (
                 <AppLayout><div className="p-6">Reviews - Coming Soon</div></AppLayout>
               </ProtectedRoute>
             } />
+            <Route path="/project/:id" element={
+              <ProtectedRoute>
+                <AppLayout><RFQDetail /></AppLayout>
+              </ProtectedRoute>
+            } />
             <Route path="/rfq/:id" element={
               <ProtectedRoute>
                 <AppLayout><RFQDetail /></AppLayout>

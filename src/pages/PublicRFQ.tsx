@@ -1,4 +1,4 @@
-import { RFQIntakePortal } from "@/components/rfq/RFQIntakePortal";
+import { ProjectIntakePortal } from "@/components/project/ProjectIntakePortal";
 
 export default function PublicRFQ() {
   return (
@@ -41,9 +41,9 @@ export default function PublicRFQ() {
           </div>
         </div>
 
-        {/* RFQ Form */}
-        <RFQIntakePortal onSuccess={(rfqNumber) => {
-          console.log('RFQ submitted:', rfqNumber);
+        {/* Project Form */}
+        <ProjectIntakePortal onSuccess={(projectId) => {
+          console.log('Project submitted:', projectId);
         }} />
 
         {/* Footer */}
