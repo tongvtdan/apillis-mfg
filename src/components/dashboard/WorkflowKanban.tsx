@@ -1,8 +1,9 @@
-import { useState, useCallback, useMemo } from "react";
+import { useState, useCallback, useMemo, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
+import { Progress } from "@/components/ui/progress";
 import {
   MoreHorizontal,
   Calendar,
@@ -13,7 +14,13 @@ import {
   Eye,
   TrendingUp,
   TrendingDown,
-  Timer
+  Timer,
+  Target,
+  CheckCircle2,
+  AlertCircle,
+  FileX,
+  Send,
+  Users
 } from "lucide-react";
 import {
   DropdownMenu,
@@ -21,6 +28,12 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
+} from "@/components/ui/tooltip";
 import {
   DndContext,
   DragEndEvent,
@@ -42,18 +55,24 @@ import {
 import { CSS } from "@dnd-kit/utilities";
 
 import { useProjects } from "@/hooks/useProjects";
-import { Project, PROJECT_STAGES, PRIORITY_COLORS, ProjectStatus } from "@/types/project";
+import { useSupplierQuotes } from "@/hooks/useSupplierQuotes";
+import { Project, PROJECT_STAGES, PRIORITY_COLORS, ProjectStatus, ProjectType } from "@/types/project";
+import { QuoteReadinessIndicator, BottleneckAlert, QUOTE_READINESS_COLORS } from "@/types/supplier";
 import { WorkflowMetrics } from "./WorkflowMetrics";
 import { StageMetrics } from "./StageMetrics";
+import { SupplierQuoteModal } from "../supplier/SupplierQuoteModal";
 
 // Enhanced ProjectCard with better visual feedback and performance
 interface ProjectCardProps {
   project: Project;
   isDragging?: boolean;
   index?: number;
+  quoteReadiness?: QuoteReadinessIndicator;
+  isBottleneck?: boolean;
+  onSendRFQ?: (project: Project) => void;
 }
 
-function ProjectCard({ project, isDragging = false, index }: ProjectCardProps) {
+function ProjectCard({ project, isDragging = false, index, quoteReadiness, isBottleneck = false, onSendRFQ }: ProjectCardProps) {
   const navigate = useNavigate();
   const {
     attributes,
@@ -111,6 +130,31 @@ function ProjectCard({ project, isDragging = false, index }: ProjectCardProps) {
 
   const timeIndicator = getTimeIndicator(project.days_in_stage);
 
+  // Quote readiness indicator
+  const getQuoteReadinessIndicator = () => {
+    if (!quoteReadiness || quoteReadiness.totalSuppliers === 0) {
+      return null;
+    }
+
+    const { totalSuppliers, receivedQuotes, pendingQuotes, overdueQuotes, colorCode, statusText } = quoteReadiness;
+    const percentage = (receivedQuotes / totalSuppliers) * 100;
+
+    return {
+      percentage,
+      colorCode,
+      statusText,
+      hasOverdue: overdueQuotes > 0,
+      isPending: pendingQuotes > 0,
+      isComplete: receivedQuotes === totalSuppliers
+    };
+  };
+
+  const quoteIndicator = getQuoteReadinessIndicator();
+
+  // Enhanced bottleneck detection
+  const showBottleneckWarning = isBottleneck || project.days_in_stage > 14;
+  const showRFQAction = project.status === 'technical_review' && project.days_in_stage > 2;
+
   return (
     <div
       ref={setNodeRef}
@@ -120,41 +164,91 @@ function ProjectCard({ project, isDragging = false, index }: ProjectCardProps) {
       className={`${isDragging ? 'opacity-50' : ''} ${index !== undefined ? 'animate-fade-in' : ''}`}
     >
       <Card className={`card-elevated cursor-grab active:cursor-grabbing hover:shadow-md transition-all duration-200 ${isDragging ? 'rotate-3 shadow-lg scale-105' : 'hover:scale-[1.02]'
-        } ${sortableIsDragging ? 'z-50' : ''} ${isBottleneck(project.days_in_stage) ? 'ring-2 ring-red-200 bg-red-50/50' : ''
+        } ${sortableIsDragging ? 'z-50' : ''} ${
+          showBottleneckWarning ? 'ring-2 ring-red-200 bg-red-50/50' : 
+          project.status === 'supplier_rfq_sent' && quoteIndicator?.hasOverdue ? 'ring-2 ring-orange-200 bg-orange-50/50' :
+          quoteIndicator?.isComplete ? 'ring-2 ring-green-200 bg-green-50/50' : ''
         }`}>
         <CardHeader className="pb-2">
           <div className="flex items-center justify-between">
             <CardTitle className="text-sm font-medium">
               {project.project_id}
             </CardTitle>
-            <DropdownMenu>
-              <DropdownMenuTrigger asChild>
-                <Button variant="ghost" size="sm" className="h-6 w-6 p-0">
-                  <MoreHorizontal className="h-3 w-3" />
-                </Button>
-              </DropdownMenuTrigger>
-              <DropdownMenuContent align="end">
-                <DropdownMenuItem onClick={() => navigate(`/project/${project.id}`)}>
-                  View Details
-                </DropdownMenuItem>
-                <DropdownMenuItem>Edit</DropdownMenuItem>
-                <DropdownMenuItem>Move to Next Stage</DropdownMenuItem>
-                <DropdownMenuItem>Assign to...</DropdownMenuItem>
-              </DropdownMenuContent>
-            </DropdownMenu>
-          </div>
-          <div className="flex items-center space-x-2">
-            <Badge
-              variant="outline"
-              className={`text-xs ${getPriorityColor(project.priority)}`}
-            >
-              {project.priority.toUpperCase()}
-            </Badge>
-            <div className={`flex items-center space-x-1 px-2 py-1 rounded-full text-xs ${timeIndicator.bg}`}>
-              <timeIndicator.icon className={`h-3 w-3 ${timeIndicator.color}`} />
-              <span className={timeIndicator.color}>{project.days_in_stage}d</span>
+            <div className="flex items-center space-x-1">
+              {showBottleneckWarning && (
+                <TooltipProvider>
+                  <Tooltip>
+                    <TooltipTrigger>
+                      <AlertTriangle className="h-4 w-4 text-red-500" />
+                    </TooltipTrigger>
+                    <TooltipContent>
+                      <p>Project bottleneck detected - {project.days_in_stage} days in stage</p>
+                    </TooltipContent>
+                  </Tooltip>
+                </TooltipProvider>
+              )}
+              <DropdownMenu>
+                <DropdownMenuTrigger asChild>
+                  <Button variant="ghost" size="sm" className="h-6 w-6 p-0">
+                    <MoreHorizontal className="h-3 w-3" />
+                  </Button>
+                </DropdownMenuTrigger>
+                <DropdownMenuContent align="end">
+                  <DropdownMenuItem onClick={() => navigate(`/project/${project.id}`)}>
+                    View Details
+                  </DropdownMenuItem>
+                  {showRFQAction && (
+                    <DropdownMenuItem onClick={() => onSendRFQ?.(project)}>
+                      <Send className="w-4 h-4 mr-2" />
+                      Send RFQ
+                    </DropdownMenuItem>
+                  )}
+                  <DropdownMenuItem>Edit</DropdownMenuItem>
+                  <DropdownMenuItem>Move to Next Stage</DropdownMenuItem>
+                  <DropdownMenuItem>Assign to...</DropdownMenuItem>
+                </DropdownMenuContent>
+              </DropdownMenu>
             </div>
           </div>
+          <div className="flex items-center justify-between">
+            <div className="flex items-center space-x-2">
+              <Badge
+                variant="outline"
+                className={`text-xs ${getPriorityColor(project.priority)}`}
+              >
+                {project.priority.toUpperCase()}
+              </Badge>
+              <div className={`flex items-center space-x-1 px-2 py-1 rounded-full text-xs ${timeIndicator.bg}`}>
+                <timeIndicator.icon className={`h-3 w-3 ${timeIndicator.color}`} />
+                <span className={timeIndicator.color}>{project.days_in_stage}d</span>
+              </div>
+            </div>
+            
+            {/* Quote Readiness Indicator */}
+            {quoteIndicator && (
+              <TooltipProvider>
+                <Tooltip>
+                  <TooltipTrigger>
+                    <div className={`flex items-center space-x-1 px-2 py-1 rounded-full text-xs ${QUOTE_READINESS_COLORS[quoteIndicator.colorCode]}`}>
+                      <Target className="h-3 w-3" />
+                      <span>{Math.round(quoteIndicator.percentage)}%</span>
+                    </div>
+                  </TooltipTrigger>
+                  <TooltipContent>
+                    <p>{quoteIndicator.statusText}</p>
+                  </TooltipContent>
+                </Tooltip>
+              </TooltipProvider>
+            )}
+          </div>
+          
+          {/* Quote Progress Bar */}
+          {quoteIndicator && (
+            <div className="mt-2">
+              <Progress value={quoteIndicator.percentage} className="h-1" />
+              <p className="text-xs text-muted-foreground mt-1">{quoteIndicator.statusText}</p>
+            </div>
+          )}
         </CardHeader>
 
         <CardContent className="pt-0 space-y-3">
@@ -275,9 +369,12 @@ function DroppableStage({ stageId, stageName, stageCount, children, projects }: 
 interface VirtualizedProjectListProps {
   projects: Project[];
   stageId: ProjectStatus;
+  quoteReadiness: Record<string, QuoteReadinessIndicator>;
+  bottlenecks: BottleneckAlert[];
+  onSendRFQ: (project: Project) => void;
 }
 
-function VirtualizedProjectList({ projects, stageId }: VirtualizedProjectListProps) {
+function VirtualizedProjectList({ projects, stageId, quoteReadiness, bottlenecks, onSendRFQ }: VirtualizedProjectListProps) {
   if (projects.length === 0) {
     return (
       <div className="text-center py-8 text-muted-foreground">
@@ -289,11 +386,22 @@ function VirtualizedProjectList({ projects, stageId }: VirtualizedProjectListPro
 
   return (
     <div className="space-y-3">
-      {projects.map((project, index) => (
-        <div key={project.id} className="animate-fade-in" style={{ animationDelay: `${index * 50}ms` }}>
-          <ProjectCard project={project} index={index} />
-        </div>
-      ))}
+      {projects.map((project, index) => {
+        const isBottleneck = bottlenecks.some(b => b.project_id === project.id);
+        const projectQuoteReadiness = quoteReadiness[project.id];
+        
+        return (
+          <div key={project.id} className="animate-fade-in" style={{ animationDelay: `${index * 50}ms` }}>
+            <ProjectCard 
+              project={project} 
+              index={index}
+              quoteReadiness={projectQuoteReadiness}
+              isBottleneck={isBottleneck}
+              onSendRFQ={onSendRFQ}
+            />
+          </div>
+        );
+      })}
     </div>
   );
 }
@@ -303,9 +411,14 @@ interface WorkflowKanbanProps {
 }
 
 export function WorkflowKanban({ projectTypeFilter = 'all' }: WorkflowKanbanProps) {
-  const { projects, loading, error, updateProjectStatusOptimistic } = useProjects();
+  const { projects, loading, error, updateProjectStatusOptimistic, detectBottlenecks, getQuoteReadinessScore } = useProjects();
+  const { } = useSupplierQuotes();
   const [activeProject, setActiveProject] = useState<Project | null>(null);
   const [isDragging, setIsDragging] = useState(false);
+  const [bottlenecks, setBottlenecks] = useState<BottleneckAlert[]>([]);
+  const [quoteReadiness, setQuoteReadiness] = useState<Record<string, QuoteReadinessIndicator>>({});
+  const [showSupplierModal, setShowSupplierModal] = useState(false);
+  const [selectedProject, setSelectedProject] = useState<Project | null>(null);
 
   const sensors = useSensors(
     useSensor(PointerSensor, {
@@ -314,6 +427,68 @@ export function WorkflowKanban({ projectTypeFilter = 'all' }: WorkflowKanbanProp
       },
     })
   );
+
+  // Load bottleneck detection data
+  useEffect(() => {
+    const loadBottlenecks = async () => {
+      try {
+        const bottleneckData = await detectBottlenecks();
+        setBottlenecks(bottleneckData);
+      } catch (error) {
+        console.error('Error loading bottlenecks:', error);
+      }
+    };
+
+    if (projects.length > 0) {
+      loadBottlenecks();
+    }
+  }, [projects.length, detectBottlenecks]);
+
+  // Load quote readiness data for relevant projects
+  useEffect(() => {
+    const loadQuoteReadiness = async () => {
+      const relevantProjects = projects.filter(
+        p => p.status === 'supplier_rfq_sent' || p.status === 'quoted'
+      );
+
+      const readinessPromises = relevantProjects.map(async (project) => {
+        try {
+          const readiness = await getQuoteReadinessScore(project.id);
+          return { projectId: project.id, readiness };
+        } catch (error) {
+          console.error(`Error loading quote readiness for project ${project.id}:`, error);
+          return { projectId: project.id, readiness: null };
+        }
+      });
+
+      const results = await Promise.all(readinessPromises);
+      const readinessMap: Record<string, QuoteReadinessIndicator> = {};
+      
+      results.forEach(({ projectId, readiness }) => {
+        if (readiness) {
+          readinessMap[projectId] = readiness;
+        }
+      });
+
+      setQuoteReadiness(readinessMap);
+    };
+
+    if (projects.length > 0) {
+      loadQuoteReadiness();
+    }
+  }, [projects, getQuoteReadinessScore]);
+
+  // Handle RFQ sending
+  const handleSendRFQ = useCallback((project: Project) => {
+    setSelectedProject(project);
+    setShowSupplierModal(true);
+  }, []);
+
+  const handleRFQSuccess = useCallback(() => {
+    setShowSupplierModal(false);
+    setSelectedProject(null);
+    // Optionally refresh data
+  }, []);
 
   const handleDragStart = useCallback((event: DragStartEvent) => {
     const { active } = event;
@@ -463,6 +638,36 @@ export function WorkflowKanban({ projectTypeFilter = 'all' }: WorkflowKanbanProp
           }
         />
 
+        {/* Bottleneck Alerts */}
+        {bottlenecks.length > 0 && (
+          <Card className="border-red-200 bg-red-50/50">
+            <CardHeader>
+              <CardTitle className="text-sm flex items-center text-red-800">
+                <AlertTriangle className="w-4 h-4 mr-2" />
+                {bottlenecks.length} Bottleneck{bottlenecks.length !== 1 ? 's' : ''} Detected
+              </CardTitle>
+            </CardHeader>
+            <CardContent>
+              <div className="space-y-2">
+                {bottlenecks.slice(0, 3).map((bottleneck, index) => (
+                  <div key={index} className="flex items-center justify-between text-sm">
+                    <div>
+                      <span className="font-medium">{bottleneck.project_title}</span>
+                      <span className="text-red-600 ml-2">- {bottleneck.current_stage} stage</span>
+                    </div>
+                    <Badge variant="destructive" className="text-xs">
+                      {Math.round(bottleneck.hours_in_stage / 24)}d overdue
+                    </Badge>
+                  </div>
+                ))}
+                {bottlenecks.length > 3 && (
+                  <p className="text-xs text-red-600">+{bottlenecks.length - 3} more bottlenecks</p>
+                )}
+              </div>
+            </CardContent>
+          </Card>
+        )}
+
         {/* Scroll instruction */}
         <div className="text-center py-2">
           <p className="text-xs text-muted-foreground">
@@ -501,6 +706,9 @@ export function WorkflowKanban({ projectTypeFilter = 'all' }: WorkflowKanbanProp
                     <VirtualizedProjectList
                       projects={stage.projects}
                       stageId={stage.id}
+                      quoteReadiness={quoteReadiness}
+                      bottlenecks={bottlenecks}
+                      onSendRFQ={handleSendRFQ}
                     />
                   </SortableContext>
                 </DroppableStage>
@@ -514,10 +722,26 @@ export function WorkflowKanban({ projectTypeFilter = 'all' }: WorkflowKanbanProp
 
         <DragOverlay>
           {activeProject ? (
-            <ProjectCard project={activeProject} isDragging />
+            <ProjectCard 
+              project={activeProject} 
+              isDragging 
+              quoteReadiness={quoteReadiness[activeProject.id]}
+              isBottleneck={bottlenecks.some(b => b.project_id === activeProject.id)}
+              onSendRFQ={handleSendRFQ}
+            />
           ) : null}
         </DragOverlay>
       </DndContext>
+
+      {/* Supplier Quote Modal */}
+      {selectedProject && (
+        <SupplierQuoteModal
+          project={selectedProject}
+          isOpen={showSupplierModal}
+          onClose={() => setShowSupplierModal(false)}
+          onSuccess={handleRFQSuccess}
+        />
+      )}
     </div>
   );
 }
