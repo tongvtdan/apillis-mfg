@@ -4,8 +4,9 @@ import { ProjectTable } from "@/components/project/ProjectTable";
 import { StageFlowchart } from "@/components/project/StageFlowchart";
 import { ProjectTypeKanban } from "@/components/project/ProjectTypeKanban";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { useProjects } from "@/hooks/useProjects";
-import { ProjectStatus } from "@/types/project";
+import { ProjectStatus, ProjectType, PROJECT_TYPE_LABELS } from "@/types/project";
 
 export default function Projects() {
   const { projects, loading, updateProjectStatus } = useProjects();
@@ -14,6 +15,8 @@ export default function Projects() {
     const saved = localStorage.getItem('projects-selected-stage');
     return saved ? (saved as ProjectStatus) : 'inquiry_received';
   });
+
+  const [selectedProjectType, setSelectedProjectType] = React.useState<ProjectType | 'all'>('all');
 
   // Save selected stage to localStorage whenever it changes
   const handleStageSelect = React.useCallback((stage: ProjectStatus) => {
@@ -43,11 +46,18 @@ export default function Projects() {
     return counts;
   }, [projects]);
 
-  // Get projects for selected stage
+  // Get projects for selected stage with type filtering
   const selectedStageProjects = React.useMemo(() => {
     if (!selectedStage) return [];
-    return projects.filter(p => p.status === selectedStage);
-  }, [projects, selectedStage]);
+    let filtered = projects.filter(p => p.status === selectedStage);
+
+    // Apply project type filter
+    if (selectedProjectType !== 'all') {
+      filtered = filtered.filter(p => p.project_type === selectedProjectType);
+    }
+
+    return filtered;
+  }, [projects, selectedStage, selectedProjectType]);
 
   if (loading) {
     return (
@@ -93,14 +103,63 @@ export default function Projects() {
 
           {selectedStage && (
             <div className="bg-card rounded-lg p-6 border">
-              {/* <h3 className="text-lg font-semibold mb-4">Projects in {selectedStage.replace(/_/g, ' ').replace(/\b\w/g, l => l.toUpperCase())} - Grouped by Type</h3> */}
-              <ProjectTypeKanban
-                projects={selectedStageProjects}
-                onUpdateProject={async (projectId, updates) => {
-                  // Handle project updates if needed
-                  console.log('Update project:', projectId, updates);
-                }}
-              />
+              <div className="flex items-center justify-between mb-4">
+                <div>
+                  <h3 className="text-lg font-semibold">
+                    Projects in {selectedStage.replace(/_/g, ' ').replace(/\b\w/g, l => l.toUpperCase())}
+                  </h3>
+                  <p className="text-sm text-muted-foreground mt-1">
+                    {selectedProjectType === 'all'
+                      ? `Showing ${selectedStageProjects.length} projects`
+                      : `Showing ${selectedStageProjects.length} ${PROJECT_TYPE_LABELS[selectedProjectType]} projects`
+                    }
+                  </p>
+                </div>
+
+                {/* Project Type Filter */}
+                <div className="flex items-center space-x-3">
+                  <span className="text-sm text-muted-foreground">Filter by type:</span>
+                  <Select value={selectedProjectType} onValueChange={(value) => setSelectedProjectType(value as ProjectType | 'all')}>
+                    <SelectTrigger className="w-[180px]">
+                      <SelectValue placeholder="All project types" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="all">All Types ({projects.filter(p => p.status === selectedStage).length})</SelectItem>
+                      <SelectItem value="system_build">
+                        {PROJECT_TYPE_LABELS.system_build} ({projects.filter(p => p.status === selectedStage && p.project_type === 'system_build').length})
+                      </SelectItem>
+                      <SelectItem value="fabrication">
+                        {PROJECT_TYPE_LABELS.fabrication} ({projects.filter(p => p.status === selectedStage && p.project_type === 'fabrication').length})
+                      </SelectItem>
+                      <SelectItem value="manufacturing">
+                        {PROJECT_TYPE_LABELS.manufacturing} ({projects.filter(p => p.status === selectedStage && p.project_type === 'manufacturing').length})
+                      </SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+              </div>
+
+              {selectedStageProjects.length > 0 ? (
+                <ProjectTypeKanban
+                  projects={selectedStageProjects}
+                  onUpdateProject={async (projectId, updates) => {
+                    // Handle project updates if needed
+                    console.log('Update project:', projectId, updates);
+                  }}
+                />
+              ) : (
+                <div className="text-center py-12">
+                  <p className="text-muted-foreground">
+                    {selectedProjectType === 'all'
+                      ? 'No projects found in this stage'
+                      : `No ${PROJECT_TYPE_LABELS[selectedProjectType]} projects found in this stage`
+                    }
+                  </p>
+                  <p className="text-sm text-muted-foreground mt-2">
+                    Try selecting a different project type or stage
+                  </p>
+                </div>
+              )}
             </div>
           )}
 

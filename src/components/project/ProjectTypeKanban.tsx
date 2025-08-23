@@ -67,7 +67,7 @@ function ProjectCard({ project, onUpdateProject }: ProjectCardProps) {
       {...listeners}
       className={isDragging ? 'opacity-50' : ''}
     >
-      <Card className={`card-elevated cursor-grab active:cursor-grabbing hover:shadow-md transition-all duration-200 ${isDragging ? 'rotate-3 shadow-lg scale-105' : 'hover:scale-[1.02]'} ${isDragging ? 'z-50' : ''}`}>
+      <Card className={`card-elevated cursor-grab active:cursor-grabbing hover:shadow-md transition-all duration-200 w-full max-w-[320px] ${isDragging ? 'rotate-3 shadow-lg scale-105' : 'hover:scale-[1.02]'} ${isDragging ? 'z-50' : ''}`}>
         <CardHeader className="pb-2">
           <div className="flex items-center justify-between">
             <CardTitle className="text-sm font-medium">
@@ -170,57 +170,25 @@ function ProjectCard({ project, onUpdateProject }: ProjectCardProps) {
   );
 }
 
-// DroppableTypeColumn component
-interface DroppableTypeColumnProps {
+// Project Type Section Header
+interface ProjectTypeSectionProps {
   type: ProjectType;
-  projects: Project[];
-  onUpdateProject?: (projectId: string, updates: Partial<Project>) => Promise<void>;
+  projectCount: number;
 }
 
-function DroppableTypeColumn({ type, projects, onUpdateProject }: DroppableTypeColumnProps) {
-  const { setNodeRef, isOver } = useDroppable({
-    id: type,
-  });
-
+function ProjectTypeSection({ type, projectCount }: ProjectTypeSectionProps) {
   return (
-    <div
-      ref={setNodeRef}
-      className={`flex-1 min-w-[320px] transition-colors ${isOver ? 'bg-muted/50' : ''
-        }`}
-    >
-      <Card className="h-full">
-        <CardHeader className="pb-3">
-          <div className="flex items-center justify-between">
-            <CardTitle className="text-lg font-semibold">
-              {PROJECT_TYPE_LABELS[type]}
-            </CardTitle>
-            <Badge variant="secondary" className="font-normal">
-              {projects.length}
-            </Badge>
-          </div>
-          <p className="text-sm text-muted-foreground">
-            {PROJECT_TYPE_DESCRIPTIONS[type]}
-          </p>
-        </CardHeader>
-        <CardContent className="pt-0">
-          <div className="space-y-2">
-            <SortableContext items={projects.map(p => p.id)} strategy={verticalListSortingStrategy}>
-              {projects.map((project) => (
-                <ProjectCard
-                  key={project.id}
-                  project={project}
-                  onUpdateProject={onUpdateProject}
-                />
-              ))}
-            </SortableContext>
-            {projects.length === 0 && (
-              <div className="text-center py-8 text-muted-foreground">
-                <p>No projects in this type</p>
-              </div>
-            )}
-          </div>
-        </CardContent>
-      </Card>
+    <div className="mb-6">
+      <div className="flex items-center space-x-3 mb-4">
+        <div className={`w-3 h-3 rounded-full ${PROJECT_TYPE_COLORS[type].replace('bg-', 'bg-').replace(' border-', '')}`}></div>
+        <h3 className="text-lg font-semibold">{PROJECT_TYPE_LABELS[type]}</h3>
+        <Badge variant="secondary" className="font-normal">
+          {projectCount}
+        </Badge>
+      </div>
+      <p className="text-sm text-muted-foreground mb-4">
+        {PROJECT_TYPE_DESCRIPTIONS[type]}
+      </p>
     </div>
   );
 }
@@ -276,7 +244,7 @@ export function ProjectTypeKanban({ projects, onUpdateProject }: ProjectTypeKanb
   if (projects.length === 0) {
     return (
       <div className="text-center py-12">
-        <p className="text-muted-foreground">No active projects found.</p>
+        <p className="text-muted-foreground">No projects found for the selected criteria.</p>
       </div>
     );
   }
@@ -287,15 +255,32 @@ export function ProjectTypeKanban({ projects, onUpdateProject }: ProjectTypeKanb
       onDragStart={handleDragStart}
       onDragEnd={handleDragEnd}
     >
-      <div className="flex gap-6 overflow-x-auto pb-6">
-        {Object.entries(projectsByType).map(([type, typeProjects]) => (
-          <DroppableTypeColumn
-            key={type}
-            type={type as ProjectType}
-            projects={typeProjects}
-            onUpdateProject={onUpdateProject}
-          />
-        ))}
+      <div className="space-y-8">
+        {Object.entries(projectsByType).map(([type, typeProjects]) => {
+          if (typeProjects.length === 0) return null;
+
+          return (
+            <div key={type} className="space-y-4">
+              <ProjectTypeSection
+                type={type as ProjectType}
+                projectCount={typeProjects.length}
+              />
+
+              {/* Responsive Grid Layout */}
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 2xl:grid-cols-5 gap-4">
+                <SortableContext items={typeProjects.map(p => p.id)} strategy={verticalListSortingStrategy}>
+                  {typeProjects.map((project) => (
+                    <ProjectCard
+                      key={project.id}
+                      project={project}
+                      onUpdateProject={onUpdateProject}
+                    />
+                  ))}
+                </SortableContext>
+              </div>
+            </div>
+          );
+        })}
       </div>
 
       <DragOverlay>

@@ -84,3 +84,29 @@ This file contains important changes and updates made to the project.
 3. Created ProjectTypeKanban component to group projects by type instead of priority
 4. Added new "Type Kanban" tab to Projects page that displays projects grouped by System Build, Fabrication, and Manufacturing
 5. Updated flowchart view to show projects grouped by type when a stage is selected
+
+- Date: 2025-01-22
+- What we completed / changed:
+1. **Enhanced WorkflowKanban with Advanced Features**: Implemented virtual scrolling for performance optimization using @tanstack/react-virtual
+2. **Improved Drag & Drop**: Enhanced drag & drop functionality with better visual feedback, measuring strategy, and performance optimizations
+3. **Time-in-Stage Tracking**: Added comprehensive time tracking with visual indicators (green for on-time, yellow for approaching deadline, orange for overdue, red for bottlenecks)
+4. **Bottleneck Detection**: Implemented automatic bottleneck detection for projects spending >14 days in a stage with visual alerts and metrics
+5. **Performance Metrics**: Created WorkflowMetrics widget component showing total projects, average cycle time, overdue count, and bottleneck percentages
+6. **Stage Performance Tracking**: Built StageMetrics widget component for individual stage performance with average time and issue counts
+7. **Modular Architecture**: Separated metrics into reusable widget components following user rule #10b for better maintainability
+8. **Enhanced Visual Feedback**: Added smooth animations, better hover effects, and performance indicators throughout the kanban interface
+9. **Performance Optimization**: Implemented virtual scrolling for large project lists, reducing DOM nodes and improving rendering performance
+10. **Code Quality**: Maintained clean, functional code with <300 LOC per file and proper TypeScript interfaces
+
+- Date: 2025-01-22
+- What we completed / changed:
+1. **Enhanced Flowchart View with Project Type Filtering**: Added dropdown filter to select specific project types (System Build, Fabrication, Manufacturing) or view all types
+2. **Responsive Grid Layout**: Converted ProjectTypeKanban from column layout to responsive grid with fixed-width project cards (320px max width)
+3. **Improved Project Display**: Projects now arranged in responsive grid: 1 column on mobile, 2 on small screens, 3 on large screens, 4 on xl, 5 on 2xl
+4. **Enhanced User Experience**: Added project count summaries, better empty state messages, and visual project type indicators with color-coded dots
+5. **Smart Filtering**: Project type filter shows accurate counts for each type within the selected stage, with real-time updates
+6. **Better Visual Hierarchy**: Added section headers for each project type with descriptions and project counts
+7. **Improved Navigation**: Clear indication of filtered results with helpful messaging when no projects match criteria
+8. **Responsive Design**: Grid automatically adjusts columns based on screen size while maintaining consistent card dimensions
+9. **Performance Optimization**: Maintained drag & drop functionality while improving layout performance for large project lists
+10. **Code Quality**: Modular components with clean separation of concerns, following established patterns
