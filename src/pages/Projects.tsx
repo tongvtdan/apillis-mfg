@@ -84,14 +84,39 @@ export default function Projects() {
         <p className="text-muted-foreground">Track and manage your manufacturing projects from idea to delivery</p>
       </div>
 
-      <Tabs defaultValue="flowchart" className="w-full">
-        <div className="flex justify-center mb-6">
-          <TabsList className="grid w-[300px] grid-cols-3">
-            <TabsTrigger value="flowchart">Flow</TabsTrigger>
-            <TabsTrigger value="kanban">Kanban</TabsTrigger>
-            <TabsTrigger value="table">Table</TabsTrigger>
-          </TabsList>
+      <Tabs defaultValue="flowchart" className="w-full relative">
+        <div className="fixed top-16 left-1/2 transform -translate-x-1/2 z-30 bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/90 border rounded-lg shadow-lg p-4">
+          <div className="flex flex-col items-center space-y-3">
+            <TabsList className="grid w-[300px] grid-cols-3">
+              <TabsTrigger value="flowchart">Flow</TabsTrigger>
+              <TabsTrigger value="kanban">Kanban</TabsTrigger>
+              <TabsTrigger value="table">Table</TabsTrigger>
+            </TabsList>
+
+            {/* Project Type Filter - Always Visible */}
+            <div className="flex items-center space-x-3">
+              <span className="text-sm text-muted-foreground">Filter by type:</span>
+              <Select value={selectedProjectType} onValueChange={(value) => setSelectedProjectType(value as ProjectType | 'all')}>
+                <SelectTrigger className="w-[180px]">
+                  <SelectValue placeholder="All project types" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="all">All Types ({activeProjects.length})</SelectItem>
+                  <SelectItem value="system_build">
+                    {PROJECT_TYPE_LABELS.system_build} ({activeProjects.filter(p => p.project_type === 'system_build').length})
+                  </SelectItem>
+                  <SelectItem value="fabrication">
+                    {PROJECT_TYPE_LABELS.fabrication} ({activeProjects.filter(p => p.project_type === 'fabrication').length})
+                  </SelectItem>
+                  <SelectItem value="manufacturing">
+                    {PROJECT_TYPE_LABELS.manufacturing} ({activeProjects.filter(p => p.project_type === 'manufacturing').length})
+                  </SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+          </div>
         </div>
+        <div className="mb-24"></div>
 
         <TabsContent value="flowchart" className="mt-0 space-y-6">
           <div className="bg-card rounded-lg p-6 border">
@@ -176,38 +201,14 @@ export default function Projects() {
 
         <TabsContent value="kanban" className="mt-0 space-y-6">
           <div className="bg-card rounded-lg p-6 border">
-            <div className="flex items-center justify-between mb-4">
-              <div>
-                <h3 className="text-lg font-semibold">Project Workflow Kanban</h3>
-                <p className="text-sm text-muted-foreground mt-1">
-                  {selectedProjectType === 'all'
-                    ? `Showing ${activeProjects.length} projects`
-                    : `Showing ${activeProjects.filter(p => p.project_type === selectedProjectType).length} ${PROJECT_TYPE_LABELS[selectedProjectType]} projects`
-                  }
-                </p>
-              </div>
-
-              {/* Project Type Filter */}
-              <div className="flex items-center space-x-3">
-                <span className="text-sm text-muted-foreground">Filter by type:</span>
-                <Select value={selectedProjectType} onValueChange={(value) => setSelectedProjectType(value as ProjectType | 'all')}>
-                  <SelectTrigger className="w-[180px]">
-                    <SelectValue placeholder="All project types" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="all">All Types ({activeProjects.length})</SelectItem>
-                    <SelectItem value="system_build">
-                      {PROJECT_TYPE_LABELS.system_build} ({activeProjects.filter(p => p.project_type === 'system_build').length})
-                    </SelectItem>
-                    <SelectItem value="fabrication">
-                      {PROJECT_TYPE_LABELS.fabrication} ({activeProjects.filter(p => p.project_type === 'fabrication').length})
-                    </SelectItem>
-                    <SelectItem value="manufacturing">
-                      {PROJECT_TYPE_LABELS.manufacturing} ({activeProjects.filter(p => p.project_type === 'manufacturing').length})
-                    </SelectItem>
-                  </SelectContent>
-                </Select>
-              </div>
+            <div className="mb-4">
+              <h3 className="text-lg font-semibold">Project Workflow Kanban</h3>
+              <p className="text-sm text-muted-foreground mt-1">
+                {selectedProjectType === 'all'
+                  ? `Showing ${activeProjects.length} projects`
+                  : `Showing ${activeProjects.filter(p => p.project_type === selectedProjectType).length} ${PROJECT_TYPE_LABELS[selectedProjectType]} projects`
+                }
+              </p>
             </div>
           </div>
 
@@ -216,38 +217,14 @@ export default function Projects() {
 
         <TabsContent value="table" className="mt-0 space-y-6">
           <div className="bg-card rounded-lg p-6 border">
-            <div className="flex items-center justify-between mb-4">
-              <div>
-                <h3 className="text-lg font-semibold">Project Table View</h3>
-                <p className="text-sm text-muted-foreground mt-1">
-                  {selectedProjectType === 'all'
-                    ? `Showing ${activeProjects.length} projects`
-                    : `Showing ${activeProjects.filter(p => p.project_type === selectedProjectType).length} ${PROJECT_TYPE_LABELS[selectedProjectType]} projects`
-                  }
-                </p>
-              </div>
-
-              {/* Project Type Filter */}
-              <div className="flex items-center space-x-3">
-                <span className="text-sm text-muted-foreground">Filter by type:</span>
-                <Select value={selectedProjectType} onValueChange={(value) => setSelectedProjectType(value as ProjectType | 'all')}>
-                  <SelectTrigger className="w-[180px]">
-                    <SelectValue placeholder="All project types" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="all">All Types ({activeProjects.length})</SelectItem>
-                    <SelectItem value="system_build">
-                      {PROJECT_TYPE_LABELS.system_build} ({activeProjects.filter(p => p.project_type === 'system_build').length})
-                    </SelectItem>
-                    <SelectItem value="fabrication">
-                      {PROJECT_TYPE_LABELS.fabrication} ({activeProjects.filter(p => p.project_type === 'fabrication').length})
-                    </SelectItem>
-                    <SelectItem value="manufacturing">
-                      {PROJECT_TYPE_LABELS.manufacturing} ({projects.filter(p => p.project_type === 'manufacturing').length})
-                    </SelectItem>
-                  </SelectContent>
-                </Select>
-              </div>
+            <div className="mb-4">
+              <h3 className="text-lg font-semibold">Project Table View</h3>
+              <p className="text-sm text-muted-foreground mt-1">
+                {selectedProjectType === 'all'
+                  ? `Showing ${activeProjects.length} projects`
+                  : `Showing ${activeProjects.filter(p => p.project_type === selectedProjectType).length} ${PROJECT_TYPE_LABELS[selectedProjectType]} projects`
+                }
+              </p>
             </div>
           </div>
 

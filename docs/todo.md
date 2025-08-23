@@ -33,6 +33,7 @@
 - [ ] Create SystemSettings.tsx - Global configuration options
 
 ## Recently Completed
+- [done] 2025-01-22: Enhanced floating header with project type filter for complete always-visible navigation and filtering
 - [done] 2025-01-22: Enhanced Project Views with fixed-width centered tabbar and consistent project type filtering across all views (Flow, Kanban, Table)
 - [done] 2025-01-22: Fixed Kanban rendering issues - resolved missing imports and duplicate style attributes that prevented proper display
 - [done] 2025-01-22: Fixed header with always-visible search, notifications, user profile, and New Project button for better navigation
