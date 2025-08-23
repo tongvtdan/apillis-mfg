@@ -3,12 +3,13 @@ import { RecentActivities } from "@/components/dashboard/RecentActivities";
 import { PendingTasks } from "@/components/dashboard/PendingTasks";
 import { MonthlyProgress } from "@/components/dashboard/MonthlyProgress";
 import { ProjectProgressView } from "@/components/dashboard/ProjectProgressView";
+import { DatabaseSeeder } from "@/components/dev/DatabaseSeeder";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { useProjects } from "@/hooks/useProjects";
-import { 
-  FileText, 
-  Clock, 
-  CheckCircle, 
+import {
+  FileText,
+  Clock,
+  CheckCircle,
   TrendingUp,
   AlertTriangle,
   Users
@@ -18,10 +19,10 @@ export default function Dashboard() {
   const { projects, loading } = useProjects();
 
   // Calculate real stats from projects data
-  const activeProjects = projects.filter(p => 
+  const activeProjects = projects.filter(p =>
     ['inquiry_received', 'technical_review', 'quoted'].includes(p.status)
   ).length;
-  
+
   const wonProjects = projects.filter(p => p.status === 'in_production' || p.status === 'shipped_closed').length;
   // For compatibility with the legacy concept of "lost", treat completed with low value as lost
   const lostProjects = projects.filter(p => p.status === 'shipped_closed' && (p.estimated_value || 0) < 1000).length;
@@ -40,7 +41,7 @@ export default function Dashboard() {
       title: "Won Projects",
       value: loading ? "..." : wonProjects.toString(),
       change: "+8%",
-      changeType: "positive" as const, 
+      changeType: "positive" as const,
       icon: CheckCircle,
       description: "successfully closed"
     },
@@ -71,7 +72,7 @@ export default function Dashboard() {
           Welcome back! Here's what's happening with your procurement operations.
         </p>
       </div>
-      
+
       {/* Stats Cards */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
         {stats.map((stat) => (
@@ -101,7 +102,7 @@ export default function Dashboard() {
         <div className="lg:col-span-2">
           <RecentActivities />
         </div>
-        
+
         {/* Pending Tasks - Full width on mobile, 1/3 on desktop */}
         <div className="lg:col-span-1">
           <PendingTasks />
@@ -112,6 +113,13 @@ export default function Dashboard() {
       <div className="mb-6">
         <ProjectProgressView />
       </div>
+
+      {/* Development Tools - Only show in development */}
+      {import.meta.env.DEV && (
+        <div className="mb-6">
+          <DatabaseSeeder />
+        </div>
+      )}
 
       {/* Monthly Progress Overview - Bottom */}
       <div className="mb-6">
