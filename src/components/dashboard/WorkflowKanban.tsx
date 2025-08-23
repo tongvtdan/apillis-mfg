@@ -2,6 +2,7 @@ import { useState, useCallback, useMemo } from "react";
 import { useNavigate } from "react-router-dom";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
 import {
   MoreHorizontal,
   Calendar,
@@ -117,7 +118,6 @@ function ProjectCard({ project, isDragging = false, index }: ProjectCardProps) {
       {...attributes}
       {...listeners}
       className={`${isDragging ? 'opacity-50' : ''} ${index !== undefined ? 'animate-fade-in' : ''}`}
-      style={{ animationDelay: index !== undefined ? `${index * 50}ms` : '0ms' }}
     >
       <Card className={`card-elevated cursor-grab active:cursor-grabbing hover:shadow-md transition-all duration-200 ${isDragging ? 'rotate-3 shadow-lg scale-105' : 'hover:scale-[1.02]'
         } ${sortableIsDragging ? 'z-50' : ''} ${isBottleneck(project.days_in_stage) ? 'ring-2 ring-red-200 bg-red-50/50' : ''
@@ -298,7 +298,11 @@ function VirtualizedProjectList({ projects, stageId }: VirtualizedProjectListPro
   );
 }
 
-export function WorkflowKanban() {
+interface WorkflowKanbanProps {
+  projectTypeFilter?: ProjectType | 'all';
+}
+
+export function WorkflowKanban({ projectTypeFilter = 'all' }: WorkflowKanbanProps) {
   const { projects, loading, error, updateProjectStatusOptimistic } = useProjects();
   const [activeProject, setActiveProject] = useState<Project | null>(null);
   const [isDragging, setIsDragging] = useState(false);
@@ -376,8 +380,15 @@ export function WorkflowKanban() {
   }, [updateProjectStatusOptimistic, projects]);
 
   const getStageProjects = useCallback((stageId: ProjectStatus) => {
-    return projects.filter(project => project.status === stageId);
-  }, [projects]);
+    let filtered = projects.filter(project => project.status === stageId);
+
+    // Apply project type filter if specified
+    if (projectTypeFilter !== 'all') {
+      filtered = filtered.filter(project => project.project_type === projectTypeFilter);
+    }
+
+    return filtered;
+  }, [projects, projectTypeFilter]);
 
   // Enhanced stage data with metrics
   const stages = useMemo(() => {
@@ -444,7 +455,13 @@ export function WorkflowKanban() {
         </div>
 
         {/* Workflow Performance Overview */}
-        <WorkflowMetrics projects={projects} />
+        <WorkflowMetrics
+          projects={
+            projectTypeFilter === 'all'
+              ? projects
+              : projects.filter(p => p.project_type === projectTypeFilter)
+          }
+        />
 
         {/* Scroll instruction */}
         <div className="text-center py-2">
