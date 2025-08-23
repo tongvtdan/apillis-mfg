@@ -20,6 +20,7 @@ import Inventory from "./pages/Inventory";
 import Customers from "./pages/Customers";
 import Reports from "./pages/Reports";
 import { RFQDetail } from "./pages/RFQDetail";
+import Settings from "./pages/Settings";
 
 const queryClient = new QueryClient();
 
@@ -110,7 +111,7 @@ const App = () => (
             } />
             <Route path="/settings" element={
               <ProtectedRoute>
-                <AppLayout><div className="p-6">Settings - Coming Soon</div></AppLayout>
+                <AppLayout><Settings /></AppLayout>
               </ProtectedRoute>
             } />
             {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}

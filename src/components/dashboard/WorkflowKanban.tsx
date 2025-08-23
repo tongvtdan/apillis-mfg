@@ -1,6 +1,6 @@
 import { useState, useCallback, useMemo, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Progress } from "@/components/ui/progress";
@@ -407,10 +407,14 @@ function VirtualizedProjectList({ projects, stageId, quoteReadiness, bottlenecks
 
 interface WorkflowKanbanProps {
   projectTypeFilter?: ProjectType | 'all';
+  filteredProjects?: Project[];
 }
 
-export function WorkflowKanban({ projectTypeFilter = 'all' }: WorkflowKanbanProps) {
-  const { projects, loading, error, updateProjectStatusOptimistic, detectBottlenecks, getQuoteReadinessScore } = useProjects();
+export function WorkflowKanban({ projectTypeFilter = 'all', filteredProjects }: WorkflowKanbanProps) {
+  const { projects: allProjects, loading, error, updateProjectStatusOptimistic, detectBottlenecks, getQuoteReadinessScore } = useProjects();
+
+  // Use filtered projects if provided, otherwise use all projects
+  const projects = filteredProjects || allProjects;
   const { } = useSupplierQuotes();
   const [activeProject, setActiveProject] = useState<Project | null>(null);
   const [isDragging, setIsDragging] = useState(false);
@@ -619,118 +623,104 @@ export function WorkflowKanban({ projectTypeFilter = 'all' }: WorkflowKanbanProp
   }
 
   return (
-    <div className="p-6 space-y-6">
-      <div className="space-y-4">
-        <div className="flex items-center justify-between">
-          <div>
-            <h2 className="text-2xl font-bold">Factory Pulse - Project Flow</h2>
-            <p className="text-muted-foreground">Track and manage your manufacturing projects from idea to delivery</p>
-          </div>
-        </div>
-
-        {/* Workflow Performance Overview */}
-        <WorkflowMetrics
-          projects={
-            projectTypeFilter === 'all'
-              ? projects
-              : projects.filter(p => p.project_type === projectTypeFilter)
-          }
-        />
-
-        {/* Bottleneck Alerts */}
-        {bottlenecks.length > 0 && (
-          <Card className="border-red-200 bg-red-50/50">
-            <CardHeader>
-              <CardTitle className="text-sm flex items-center text-red-800">
-                <AlertTriangle className="w-4 h-4 mr-2" />
-                {bottlenecks.length} Bottleneck{bottlenecks.length !== 1 ? 's' : ''} Detected
-              </CardTitle>
-            </CardHeader>
-            <CardContent>
-              <div className="space-y-2">
-                {bottlenecks.slice(0, 3).map((bottleneck, index) => (
-                  <div key={index} className="flex items-center justify-between text-sm">
-                    <div>
-                      <span className="font-medium">{bottleneck.project_title}</span>
-                      <span className="text-red-600 ml-2">- {bottleneck.current_stage} stage</span>
+    <Card>
+      <CardHeader className="pb-3">
+        <CardTitle className="text-lg">Project Workflow</CardTitle>
+        <CardDescription>
+          Track and manage your manufacturing projects from idea to delivery
+        </CardDescription>
+      </CardHeader>
+      <CardContent>
+        <div className="space-y-4">
+          {/* Bottleneck Alerts */}
+          {bottlenecks.length > 0 && (
+            <Card className="border-red-200 bg-red-50/50">
+              <CardHeader className="pb-2">
+                <CardTitle className="text-sm flex items-center text-red-800">
+                  <AlertTriangle className="w-4 h-4 mr-2" />
+                  {bottlenecks.length} Bottleneck{bottlenecks.length !== 1 ? 's' : ''} Detected
+                </CardTitle>
+              </CardHeader>
+              <CardContent className="pt-0">
+                <div className="space-y-2">
+                  {bottlenecks.slice(0, 3).map((bottleneck, index) => (
+                    <div key={index} className="flex items-center justify-between text-sm">
+                      <div>
+                        <span className="font-medium">{bottleneck.project_title}</span>
+                        <span className="text-red-600 ml-2">- {bottleneck.current_stage} stage</span>
+                      </div>
+                      <Badge variant="destructive" className="text-xs">
+                        {Math.round(bottleneck.hours_in_stage / 24)}d overdue
+                      </Badge>
                     </div>
-                    <Badge variant="destructive" className="text-xs">
-                      {Math.round(bottleneck.hours_in_stage / 24)}d overdue
-                    </Badge>
-                  </div>
-                ))}
-                {bottlenecks.length > 3 && (
-                  <p className="text-xs text-red-600">+{bottlenecks.length - 3} more bottlenecks</p>
-                )}
-              </div>
-            </CardContent>
-          </Card>
-        )}
+                  ))}
+                  {bottlenecks.length > 3 && (
+                    <p className="text-xs text-red-600">+{bottlenecks.length - 3} more bottlenecks</p>
+                  )}
+                </div>
+              </CardContent>
+            </Card>
+          )}
 
-        {/* Scroll instruction */}
-        <div className="text-center py-2">
-          <p className="text-xs text-muted-foreground">
-            💡 Scroll horizontally to view all stages • Scroll vertically to see all columns
-          </p>
-        </div>
-      </div>
-
-      <DndContext
-        sensors={sensors}
-        collisionDetection={closestCorners}
-        measuring={{
-          droppable: {
-            strategy: MeasuringStrategy.Always
-          }
-        }}
-        onDragStart={handleDragStart}
-        onDragOver={handleDragOver}
-        onDragEnd={handleDragEnd}
-      >
-        <div className="relative">
-          <div className="overflow-auto pb-4 scrollbar-thin scrollbar-thumb-muted-foreground/20 scrollbar-track-transparent max-h-[80vh]">
-            <div className="flex gap-4 min-w-max px-2">
-              {stages.map((stage) => (
-                <DroppableStage
-                  key={stage.id}
-                  stageId={stage.id}
-                  stageName={stage.name}
-                  stageCount={stage.count}
-                  projects={stage.projects}
-                >
-                  <SortableContext
-                    items={stage.projects.map(project => project.id)}
-                    strategy={verticalListSortingStrategy}
-                  >
-                    <VirtualizedProjectList
-                      projects={stage.projects}
+          {/* Kanban Board */}
+          <DndContext
+            sensors={sensors}
+            collisionDetection={closestCorners}
+            measuring={{
+              droppable: {
+                strategy: MeasuringStrategy.Always
+              }
+            }}
+            onDragStart={handleDragStart}
+            onDragOver={handleDragOver}
+            onDragEnd={handleDragEnd}
+          >
+            <div className="relative">
+              <div className="overflow-auto pb-4 scrollbar-thin scrollbar-thumb-muted-foreground/20 scrollbar-track-transparent max-h-[70vh]">
+                <div className="flex gap-4 min-w-max px-2">
+                  {stages.map((stage) => (
+                    <DroppableStage
+                      key={stage.id}
                       stageId={stage.id}
-                      quoteReadiness={quoteReadiness}
-                      bottlenecks={bottlenecks}
-                      onSendRFQ={handleSendRFQ}
-                    />
-                  </SortableContext>
-                </DroppableStage>
-              ))}
+                      stageName={stage.name}
+                      stageCount={stage.count}
+                      projects={stage.projects}
+                    >
+                      <SortableContext
+                        items={stage.projects.map(project => project.id)}
+                        strategy={verticalListSortingStrategy}
+                      >
+                        <VirtualizedProjectList
+                          projects={stage.projects}
+                          stageId={stage.id}
+                          quoteReadiness={quoteReadiness}
+                          bottlenecks={bottlenecks}
+                          onSendRFQ={handleSendRFQ}
+                        />
+                      </SortableContext>
+                    </DroppableStage>
+                  ))}
+                </div>
+              </div>
+
+              {/* Scroll indicator */}
+              <div className="absolute top-0 right-0 bottom-0 w-8 bg-gradient-to-l from-background to-transparent pointer-events-none"></div>
             </div>
-          </div>
 
-          {/* Scroll indicator */}
-          <div className="absolute top-0 right-0 bottom-0 w-8 bg-gradient-to-l from-background to-transparent pointer-events-none"></div>
+            <DragOverlay>
+              {activeProject ? (
+                <ProjectCard
+                  project={activeProject}
+                  isDragging
+                  quoteReadiness={quoteReadiness[activeProject.id]}
+                  isBottleneck={bottlenecks.some(b => b.project_id === activeProject.id)}
+                  onSendRFQ={handleSendRFQ}
+                />
+              ) : null}
+            </DragOverlay>
+          </DndContext>
         </div>
-
-        <DragOverlay>
-          {activeProject ? (
-            <ProjectCard
-              project={activeProject}
-              isDragging
-              quoteReadiness={quoteReadiness[activeProject.id]}
-              isBottleneck={bottlenecks.some(b => b.project_id === activeProject.id)}
-              onSendRFQ={handleSendRFQ}
-            />
-          ) : null}
-        </DragOverlay>
-      </DndContext>
+      </CardContent>
 
       {/* Supplier Quote Modal */}
       {selectedProject && (
@@ -741,6 +731,6 @@ export function WorkflowKanban({ projectTypeFilter = 'all' }: WorkflowKanbanProp
           onSuccess={handleRFQSuccess}
         />
       )}
-    </div>
+    </Card>
   );
 }
