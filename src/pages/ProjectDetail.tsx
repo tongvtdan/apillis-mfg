@@ -6,25 +6,37 @@ import { Badge } from "@/components/ui/badge";
 import { Progress } from "@/components/ui/progress";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Separator } from "@/components/ui/separator";
-import { 
-  ArrowLeft, 
-  Building2, 
-  Calendar, 
-  Clock, 
-  DollarSign, 
-  FileText, 
-  Mail, 
-  Phone, 
-  Target, 
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { Textarea } from "@/components/ui/textarea";
+import {
+  ArrowLeft,
+  Building2,
+  Calendar,
+  Clock,
+  DollarSign,
+  FileText,
+  Mail,
+  Phone,
+  Target,
   TrendingUp,
   AlertTriangle,
   CheckCircle2,
   Send,
   Users,
   BarChart3,
-  Timeline,
   Settings,
-  Eye
+  Eye,
+  Download,
+  Upload,
+  MessageSquare,
+  Plus,
+  Edit,
+  Paperclip,
+  UserCheck,
+  X,
+  AlertCircle,
+  RefreshCw
 } from "lucide-react";
 import { format, formatDistanceToNow } from "date-fns";
 import { cn } from "@/lib/utils";
@@ -32,13 +44,14 @@ import { useToast } from "@/hooks/use-toast";
 import { useProjects } from "@/hooks/useProjects";
 import { useSupplierQuotes } from "@/hooks/useSupplierQuotes";
 import { useSuppliers } from "@/hooks/useSuppliers";
-import { 
-  Project, 
-  PRIORITY_COLORS, 
+import {
+  Project,
+  PRIORITY_COLORS,
   PROJECT_TYPE_LABELS,
-  ProjectStatus 
+  ProjectStatus,
+  PROJECT_STAGES
 } from "@/types/project";
-import { 
+import {
   SupplierQuote,
   QuoteReadinessIndicator,
   QUOTE_READINESS_COLORS,
@@ -47,6 +60,37 @@ import {
 } from "@/types/supplier";
 import { SupplierQuoteModal } from "@/components/supplier/SupplierQuoteModal";
 import { SupplierQuoteTable } from "@/components/supplier/SupplierQuoteTable";
+
+// Document interface for mock data
+interface ProjectDocument {
+  id: string;
+  name: string;
+  version: string;
+  uploadedAt: string;
+  uploadedBy: string;
+  type: string;
+  size: number;
+  access: 'public' | 'internal' | 'restricted';
+}
+
+// Review interface for internal reviews
+interface DepartmentReview {
+  department: 'Engineering' | 'QA' | 'Production';
+  status: 'pending' | 'approved' | 'rejected' | 'in_review';
+  reviewer: string;
+  reviewedAt?: string;
+  comments: string[];
+}
+
+// Activity interface for timeline
+interface ProjectActivity {
+  id: string;
+  timestamp: string;
+  user: string;
+  action: string;
+  details?: string;
+  type: 'status_change' | 'comment' | 'document' | 'review' | 'rfq';
+}
 
 interface ProjectOverviewProps {
   project: Project;
@@ -73,172 +117,480 @@ function ProjectOverview({ project, quoteReadiness }: ProjectOverviewProps) {
   };
 
   return (
-    <div className="space-y-6">
-      {/* Project Header */}
+    <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+      {/* Project Basic Info */}
       <Card>
         <CardHeader>
-          <div className="flex items-center justify-between">
-            <div>
-              <CardTitle className="text-2xl">{project.title}</CardTitle>
-              <CardDescription className="text-base mt-2">
-                Project ID: {project.project_id}
-              </CardDescription>
-            </div>
-            <div className="flex items-center space-x-2">
-              <Badge variant="outline" className={getPriorityColor(project.priority)}>
-                {project.priority.toUpperCase()} PRIORITY
-              </Badge>
-              <Badge variant="outline" className={getStatusColor(project.status)}>
-                {project.status.replace(/_/g, ' ').toUpperCase()}
+          <CardTitle>Project Information</CardTitle>
+        </CardHeader>
+        <CardContent className="space-y-4">
+          <div>
+            <label className="text-sm font-medium text-muted-foreground">Project ID</label>
+            <p className="font-medium">{project.project_id}</p>
+          </div>
+
+          <div>
+            <label className="text-sm font-medium text-muted-foreground">Customer</label>
+            <p className="font-medium">{project.customer?.company || project.contact_name}</p>
+            {project.contact_email && (
+              <p className="text-sm text-muted-foreground">{project.contact_email}</p>
+            )}
+          </div>
+
+          <div>
+            <label className="text-sm font-medium text-muted-foreground">Status</label>
+            <div className="mt-1">
+              <Badge className={getStatusColor(project.status)}>
+                {PROJECT_STAGES.find(s => s.id === project.status)?.name || project.status}
               </Badge>
             </div>
           </div>
-        </CardHeader>
-        <CardContent className="space-y-4">
-          {project.description && (
+
+          <div>
+            <label className="text-sm font-medium text-muted-foreground">Priority</label>
+            <div className="mt-1">
+              <Badge className={getPriorityColor(project.priority)}>
+                {project.priority.toUpperCase()}
+              </Badge>
+            </div>
+          </div>
+
+          {project.estimated_value && (
             <div>
-              <h4 className="font-medium mb-2">Description</h4>
-              <p className="text-muted-foreground">{project.description}</p>
+              <label className="text-sm font-medium text-muted-foreground">Estimated Value</label>
+              <p className="font-medium">${project.estimated_value.toLocaleString()}</p>
             </div>
           )}
 
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-            <div className="space-y-1">
-              <p className="text-sm text-muted-foreground">Project Type</p>
-              <p className="font-medium">{PROJECT_TYPE_LABELS[project.project_type]}</p>
-            </div>
-            
-            {project.estimated_value && (
-              <div className="space-y-1">
-                <p className="text-sm text-muted-foreground">Estimated Value</p>
-                <p className="font-medium flex items-center">
-                  <DollarSign className="w-4 h-4 mr-1" />
-                  {project.estimated_value.toLocaleString()}
-                </p>
-              </div>
-            )}
-            
-            <div className="space-y-1">
-              <p className="text-sm text-muted-foreground">Time in Current Stage</p>
-              <p className="font-medium flex items-center">
-                <Clock className="w-4 h-4 mr-1" />
-                {project.days_in_stage} days
-              </p>
-            </div>
-            
-            {project.due_date && (
-              <div className="space-y-1">
-                <p className="text-sm text-muted-foreground">Due Date</p>
-                <p className="font-medium flex items-center">
-                  <Calendar className="w-4 h-4 mr-1" />
-                  {format(new Date(project.due_date), 'MMM dd, yyyy')}
-                </p>
-              </div>
-            )}
+          <div>
+            <label className="text-sm font-medium text-muted-foreground">Days in Current Stage</label>
+            <p className="font-medium">{project.days_in_stage} days</p>
           </div>
         </CardContent>
       </Card>
 
-      {/* Customer Information */}
+      {/* Project Description & Requirements */}
       <Card>
         <CardHeader>
-          <CardTitle className="text-lg">Customer Information</CardTitle>
+          <CardTitle>Description & Requirements</CardTitle>
         </CardHeader>
         <CardContent>
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <div className="space-y-3">
-              <div className="flex items-center space-x-2">
-                <Building2 className="w-4 h-4 text-muted-foreground" />
-                <div>
-                  <p className="font-medium">{project.customer?.company || project.customer?.name}</p>
-                  {project.customer?.company && project.customer?.name && (
-                    <p className="text-sm text-muted-foreground">{project.customer.name}</p>
-                  )}
-                </div>
-              </div>
-              
-              {project.contact_email && (
-                <div className="flex items-center space-x-2">
-                  <Mail className="w-4 h-4 text-muted-foreground" />
-                  <a href={`mailto:${project.contact_email}`} className="text-blue-600 hover:underline">
-                    {project.contact_email}
-                  </a>
-                </div>
-              )}
-              
-              {project.contact_phone && (
-                <div className="flex items-center space-x-2">
-                  <Phone className="w-4 h-4 text-muted-foreground" />
-                  <a href={`tel:${project.contact_phone}`} className="text-blue-600 hover:underline">
-                    {project.contact_phone}
-                  </a>
-                </div>
-              )}
+          <div className="space-y-4">
+            <div>
+              <label className="text-sm font-medium text-muted-foreground">Description</label>
+              <p className="text-sm mt-1">{project.description || 'No description provided'}</p>
             </div>
 
-            <div className="space-y-3">
-              {project.customer?.address && (
-                <div>
-                  <p className="text-sm text-muted-foreground">Address</p>
-                  <p className="font-medium">{project.customer.address}</p>
-                </div>
-              )}
-              
-              {project.customer?.country && (
-                <div>
-                  <p className="text-sm text-muted-foreground">Country</p>
-                  <p className="font-medium">{project.customer.country}</p>
-                </div>
-              )}
+            <div>
+              <label className="text-sm font-medium text-muted-foreground">Project Type</label>
+              <p className="text-sm mt-1">{PROJECT_TYPE_LABELS[project.project_type] || project.project_type}</p>
             </div>
+
+            {project.tags && project.tags.length > 0 && (
+              <div>
+                <label className="text-sm font-medium text-muted-foreground">Tags</label>
+                <div className="flex flex-wrap gap-1 mt-1">
+                  {project.tags.map((tag, index) => (
+                    <Badge key={index} variant="secondary" className="text-xs">
+                      {tag}
+                    </Badge>
+                  ))}
+                </div>
+              </div>
+            )}
+
+            {project.due_date && (
+              <div>
+                <label className="text-sm font-medium text-muted-foreground">Due Date</label>
+                <p className="text-sm mt-1">{format(new Date(project.due_date), 'MMM dd, yyyy')}</p>
+              </div>
+            )}
           </div>
         </CardContent>
       </Card>
 
-      {/* Quote Readiness Section */}
-      {quoteReadiness && (
-        <Card>
-          <CardHeader>
-            <CardTitle className="text-lg flex items-center">
-              <Target className="w-5 h-5 mr-2" />
-              Quote Readiness
-            </CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="space-y-4">
-              <div className="flex items-center justify-between">
-                <div>
-                  <p className="font-medium text-lg">{quoteReadiness.statusText}</p>
-                  <p className="text-sm text-muted-foreground">
-                    {quoteReadiness.receivedQuotes} of {quoteReadiness.totalSuppliers} suppliers have responded
-                  </p>
-                </div>
-                <Badge className={QUOTE_READINESS_COLORS[quoteReadiness.colorCode]}>
-                  {Math.round(quoteReadiness.readinessPercentage)}% Complete
-                </Badge>
+      {/* Quote Readiness & Progress */}
+      <Card>
+        <CardHeader>
+          <CardTitle>Progress & Metrics</CardTitle>
+        </CardHeader>
+        <CardContent>
+          <div className="space-y-4">
+            <div>
+              <label className="text-sm font-medium text-muted-foreground">Created</label>
+              <p className="text-sm mt-1">{format(new Date(project.created_at), 'MMM dd, yyyy')}</p>
+            </div>
+
+            {project.updated_at && (
+              <div>
+                <label className="text-sm font-medium text-muted-foreground">Last Updated</label>
+                <p className="text-sm mt-1">{format(new Date(project.updated_at), 'MMM dd, yyyy')}</p>
               </div>
-              
-              <Progress value={quoteReadiness.readinessPercentage} className="h-2" />
-              
-              <div className="grid grid-cols-3 gap-4 text-center">
+            )}
+
+            {quoteReadiness && (
+              <div className="space-y-3">
                 <div>
-                  <p className="text-2xl font-bold text-green-600">{quoteReadiness.receivedQuotes}</p>
-                  <p className="text-xs text-muted-foreground">Received</p>
+                  <label className="text-sm font-medium text-muted-foreground">Quote Progress</label>
+                  <div className="mt-2">
+                    <Progress value={(quoteReadiness.receivedQuotes / quoteReadiness.totalSuppliers) * 100} className="h-2" />
+                    <p className="text-xs text-muted-foreground mt-1">
+                      {quoteReadiness.receivedQuotes} of {quoteReadiness.totalSuppliers} quotes received
+                    </p>
+                  </div>
+                </div>
+
+                {quoteReadiness.overdueQuotes > 0 && (
+                  <div className="p-3 bg-orange-50 border border-orange-200 rounded-md">
+                    <div className="flex items-center space-x-2">
+                      <AlertTriangle className="w-4 h-4 text-orange-600" />
+                      <span className="text-sm font-medium text-orange-800">
+                        {quoteReadiness.overdueQuotes} overdue quotes
+                      </span>
+                    </div>
+                  </div>
+                )}
+              </div>
+            )}
+
+            <div>
+              <label className="text-sm font-medium text-muted-foreground">Assignee</label>
+              <p className="text-sm mt-1">{project.assignee_id || 'Unassigned'}</p>
+            </div>
+          </div>
+        </CardContent>
+      </Card>
+    </div>
+  );
+}
+
+function DocumentsSection({ project }: { project: Project }) {
+  // Mock documents data - in real app this would come from a documents service
+  const [documents] = useState<ProjectDocument[]>([
+    {
+      id: '1',
+      name: 'Sensor_Mount_Drawing_REV2.pdf',
+      version: 'v2',
+      uploadedAt: '2025-08-20T14:30:00Z',
+      uploadedBy: 'Sarah Lee',
+      type: 'pdf',
+      size: 2.1,
+      access: 'internal'
+    },
+    {
+      id: '2',
+      name: 'BOM_SensorMount.xlsx',
+      version: 'v1',
+      uploadedAt: '2025-08-20T15:15:00Z',
+      uploadedBy: 'Anna Tran',
+      type: 'xlsx',
+      size: 0.8,
+      access: 'public'
+    },
+    {
+      id: '3',
+      name: 'Material_Spec_Al6061.pdf',
+      version: 'v1',
+      uploadedAt: '2025-08-20T16:00:00Z',
+      uploadedBy: 'Engineering',
+      type: 'pdf',
+      size: 1.5,
+      access: 'public'
+    }
+  ]);
+
+  const getAccessBadgeColor = (access: string) => {
+    switch (access) {
+      case 'internal': return 'bg-orange-100 text-orange-800';
+      case 'restricted': return 'bg-red-100 text-red-800';
+      default: return 'bg-green-100 text-green-800';
+    }
+  };
+
+  const formatFileSize = (sizeMB: number) => {
+    return `${sizeMB.toFixed(1)} MB`;
+  };
+
+  return (
+    <Card>
+      <CardHeader>
+        <div className="flex items-center justify-between">
+          <div>
+            <CardTitle>Documents</CardTitle>
+            <CardDescription>
+              Project drawings, specifications, and supporting files
+            </CardDescription>
+          </div>
+          <Button>
+            <Upload className="w-4 h-4 mr-2" />
+            Upload File
+          </Button>
+        </div>
+      </CardHeader>
+      <CardContent>
+        <div className="space-y-4">
+          {documents.map((doc) => (
+            <div key={doc.id} className="flex items-center justify-between p-4 border rounded-lg hover:bg-muted/50">
+              <div className="flex items-center space-x-4">
+                <div className="p-2 bg-muted rounded">
+                  <FileText className="w-5 h-5" />
                 </div>
                 <div>
-                  <p className="text-2xl font-bold text-yellow-600">{quoteReadiness.pendingQuotes}</p>
-                  <p className="text-xs text-muted-foreground">Pending</p>
+                  <div className="flex items-center space-x-2">
+                    <h4 className="font-medium">{doc.name}</h4>
+                    <Badge variant="outline" className="text-xs">
+                      {doc.version}
+                    </Badge>
+                    <Badge className={`text-xs ${getAccessBadgeColor(doc.access)}`}>
+                      {doc.access === 'internal' ? '🔒 Internal Only' : doc.access === 'restricted' ? '🔐 Restricted' : '🌐 Public'}
+                    </Badge>
+                  </div>
+                  <div className="flex items-center space-x-4 text-sm text-muted-foreground mt-1">
+                    <span>📅 {format(new Date(doc.uploadedAt), 'MMM dd')}</span>
+                    <span>👤 {doc.uploadedBy}</span>
+                    <span>📁 {formatFileSize(doc.size)}</span>
+                  </div>
                 </div>
-                <div>
-                  <p className="text-2xl font-bold text-red-600">{quoteReadiness.overdueQuotes}</p>
-                  <p className="text-xs text-muted-foreground">Overdue</p>
-                </div>
+              </div>
+              <div className="flex items-center space-x-2">
+                <Button variant="ghost" size="sm">
+                  <Download className="w-4 h-4" />
+                </Button>
+                <Button variant="ghost" size="sm">
+                  <Edit className="w-4 h-4" />
+                </Button>
               </div>
             </div>
-          </CardContent>
-        </Card>
-      )}
-    </div>
+          ))}
+        </div>
+      </CardContent>
+    </Card>
+  );
+}
+
+function InternalReviewsSection({ project }: { project: Project }) {
+  // Mock review data - in real app this would come from reviews service
+  const [reviews] = useState<DepartmentReview[]>([
+    {
+      department: 'Engineering',
+      status: 'approved',
+      reviewer: 'Minh Nguyen',
+      reviewedAt: '2025-08-21T14:30:00Z',
+      comments: [
+        'Design feasible, no major risks',
+        'Suggest anodizing for corrosion resistance'
+      ]
+    },
+    {
+      department: 'QA',
+      status: 'approved',
+      reviewer: 'Linh Tran',
+      reviewedAt: '2025-08-21T15:45:00Z',
+      comments: [
+        'CMM inspection required for critical dimensions'
+      ]
+    },
+    {
+      department: 'Production',
+      status: 'in_review',
+      reviewer: 'Hung Le',
+      reviewedAt: '2025-08-21T16:00:00Z',
+      comments: [
+        'Tooling required: custom jig ($1,200)',
+        'Cycle time: ~4.5 min/unit → may impact lead time'
+      ]
+    }
+  ]);
+
+  const getStatusIcon = (status: string) => {
+    switch (status) {
+      case 'approved': return <CheckCircle2 className="w-5 h-5 text-green-600" />;
+      case 'rejected': return <X className="w-5 h-5 text-red-600" />;
+      case 'in_review': return <AlertCircle className="w-5 h-5 text-yellow-600" />;
+      default: return <Clock className="w-5 h-5 text-gray-400" />;
+    }
+  };
+
+  const getStatusColor = (status: string) => {
+    switch (status) {
+      case 'approved': return 'text-green-600';
+      case 'rejected': return 'text-red-600';
+      case 'in_review': return 'text-yellow-600';
+      default: return 'text-gray-400';
+    }
+  };
+
+  return (
+    <Card>
+      <CardHeader>
+        <CardTitle>Internal Reviews</CardTitle>
+        <CardDescription>
+          Track department reviews and approvals
+        </CardDescription>
+      </CardHeader>
+      <CardContent>
+        <div className="space-y-6">
+          {reviews.map((review) => (
+            <div key={review.department} className="border rounded-lg p-4">
+              <div className="flex items-center justify-between mb-3">
+                <div className="flex items-center space-x-3">
+                  {getStatusIcon(review.status)}
+                  <div>
+                    <h4 className="font-medium">{review.department}</h4>
+                    <p className="text-sm text-muted-foreground">
+                      {review.reviewedAt ? `👤 ${review.reviewer} · 📅 ${format(new Date(review.reviewedAt), 'MMM dd, HH:mm')}` : 'Pending review'}
+                    </p>
+                  </div>
+                </div>
+                <Badge className={`${getStatusColor(review.status)} bg-transparent border`}>
+                  {review.status.replace('_', ' ').toUpperCase()}
+                </Badge>
+              </div>
+
+              {review.comments.length > 0 && (
+                <div className="ml-8 space-y-2">
+                  {review.comments.map((comment, index) => (
+                    <div key={index} className="text-sm text-muted-foreground flex items-start space-x-2">
+                      <span className="text-muted-foreground">•</span>
+                      <span>{comment}</span>
+                    </div>
+                  ))}
+                </div>
+              )}
+            </div>
+          ))}
+        </div>
+      </CardContent>
+    </Card>
+  );
+}
+
+function ActivityTimelineSection({ project }: { project: Project }) {
+  // Mock activity data - in real app this would come from activity/audit service
+  const [activities] = useState<ProjectActivity[]>([
+    {
+      id: '1',
+      timestamp: '2025-08-25T10:15:00Z',
+      user: 'Sarah Chen (Sales)',
+      action: 'Updated target price to $8.20 based on supplier quotes',
+      type: 'comment'
+    },
+    {
+      id: '2',
+      timestamp: '2025-08-21T16:20:00Z',
+      user: 'Anna Tran (Procurement)',
+      action: 'Sent RFQ to 3 suppliers – deadline Aug 25',
+      type: 'rfq'
+    },
+    {
+      id: '3',
+      timestamp: '2025-08-21T15:45:00Z',
+      user: 'Linh Tran (QA)',
+      action: 'Approved QA review',
+      details: 'CMM inspection required for critical dimensions',
+      type: 'review'
+    },
+    {
+      id: '4',
+      timestamp: '2025-08-21T14:30:00Z',
+      user: 'Minh Nguyen (Engineering)',
+      action: 'Approved Engineering review',
+      details: 'Design feasible, no major risks. Suggest anodizing for corrosion resistance.',
+      type: 'review'
+    },
+    {
+      id: '5',
+      timestamp: '2025-08-20T16:30:00Z',
+      user: 'Sarah Lee (Sales)',
+      action: 'Project moved to Technical Review',
+      type: 'status_change'
+    }
+  ]);
+
+  const [newComment, setNewComment] = useState('');
+
+  const getActivityIcon = (type: string) => {
+    switch (type) {
+      case 'status_change': return <TrendingUp className="w-4 h-4 text-blue-600" />;
+      case 'comment': return <MessageSquare className="w-4 h-4 text-green-600" />;
+      case 'document': return <FileText className="w-4 h-4 text-purple-600" />;
+      case 'review': return <UserCheck className="w-4 h-4 text-orange-600" />;
+      case 'rfq': return <Send className="w-4 h-4 text-indigo-600" />;
+      default: return <Clock className="w-4 h-4 text-gray-400" />;
+    }
+  };
+
+  const handleAddComment = () => {
+    if (newComment.trim()) {
+      // In real app, this would make an API call
+      console.log('Adding comment:', newComment);
+      setNewComment('');
+    }
+  };
+
+  return (
+    <Card>
+      <CardHeader>
+        <CardTitle>Activity & Comments</CardTitle>
+        <CardDescription>
+          Project timeline and team communications
+        </CardDescription>
+      </CardHeader>
+      <CardContent>
+        <div className="space-y-6">
+          {/* Add Comment Section */}
+          <div className="border rounded-lg p-4 bg-muted/30">
+            <div className="space-y-3">
+              <Label htmlFor="comment">Add Comment</Label>
+              <Textarea
+                id="comment"
+                placeholder="Share updates, ask questions, or provide feedback..."
+                value={newComment}
+                onChange={(e) => setNewComment(e.target.value)}
+                className="min-h-[80px]"
+              />
+              <div className="flex justify-end">
+                <Button onClick={handleAddComment} disabled={!newComment.trim()}>
+                  <MessageSquare className="w-4 h-4 mr-2" />
+                  Add Comment
+                </Button>
+              </div>
+            </div>
+          </div>
+
+          {/* Activity Timeline */}
+          <div className="relative">
+            <div className="absolute left-4 top-0 bottom-0 w-px bg-border"></div>
+            <div className="space-y-6">
+              {activities.map((activity, index) => (
+                <div key={activity.id} className="relative flex items-start space-x-4">
+                  <div className="relative z-10 flex items-center justify-center w-8 h-8 rounded-full bg-background border-2 border-border">
+                    {getActivityIcon(activity.type)}
+                  </div>
+                  <div className="flex-1 min-w-0 pb-4">
+                    <div className="flex items-center justify-between">
+                      <p className="text-sm font-medium text-foreground">
+                        📅 {format(new Date(activity.timestamp), 'MMM dd, HH:mm')} – {activity.user}
+                      </p>
+                    </div>
+                    <p className="text-sm text-muted-foreground mt-1">
+                      {activity.action}
+                    </p>
+                    {activity.details && (
+                      <div className="mt-2 p-3 bg-muted/50 rounded border-l-2 border-muted-foreground/20">
+                        <p className="text-sm text-muted-foreground italic">
+                          {activity.details}
+                        </p>
+                      </div>
+                    )}
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+        </div>
+      </CardContent>
+    </Card>
   );
 }
 
@@ -289,7 +641,7 @@ export default function ProjectDetail() {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
   const { toast } = useToast();
-  
+
   const [project, setProject] = useState<Project | null>(null);
   const [loading, setLoading] = useState(true);
   const [activeTab, setActiveTab] = useState("overview");
@@ -301,29 +653,43 @@ export default function ProjectDetail() {
 
   useEffect(() => {
     const loadProject = async () => {
+      console.log('Loading project with ID:', id);
+      
       if (!id) {
+        console.log('No project ID provided, navigating to projects page');
         navigate('/projects');
         return;
       }
 
       try {
         setLoading(true);
+        // Log the project ID format for debugging
+        console.log('Project ID format:', id, 'Length:', id.length);
+        
         const projectData = await getProjectById(id);
+        console.log('Project data loaded successfully:', projectData);
         setProject(projectData);
 
         // Load quote readiness for relevant stages
         if (projectData.status === 'supplier_rfq_sent' || projectData.status === 'quoted') {
-          const readiness = await getQuoteReadinessScore(id);
-          setQuoteReadiness(readiness);
+          try {
+            const readiness = await getQuoteReadinessScore(id);
+            setQuoteReadiness(readiness);
+          } catch (readinessError) {
+            console.error('Error loading quote readiness score:', readinessError);
+          }
         }
       } catch (error) {
         console.error('Error loading project:', error);
         toast({
           variant: "destructive",
           title: "Error",
-          description: "Failed to load project details",
+          description: `Failed to load project details: ${error instanceof Error ? error.message : 'Unknown error'}`,
         });
-        navigate('/projects');
+        
+        // Stay on the page but show error state instead of navigating away
+        setLoading(false);
+        setProject(null);
       } finally {
         setLoading(false);
       }
@@ -334,7 +700,7 @@ export default function ProjectDetail() {
 
   const handleQuoteUpdate = async () => {
     await refetchQuotes();
-    
+
     // Refresh quote readiness if applicable
     if (project && (project.status === 'supplier_rfq_sent' || project.status === 'quoted')) {
       try {
@@ -362,7 +728,7 @@ export default function ProjectDetail() {
           <div className="animate-pulse bg-muted h-10 w-32 rounded"></div>
           <div className="animate-pulse bg-muted h-8 w-64 rounded"></div>
         </div>
-        
+
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
           {[1, 2, 3].map((i) => (
             <div key={i} className="animate-pulse bg-muted h-64 rounded-lg"></div>
@@ -375,11 +741,38 @@ export default function ProjectDetail() {
   if (!project) {
     return (
       <div className="p-6">
-        <div className="text-center py-12">
-          <p className="text-muted-foreground">Project not found</p>
-          <Button variant="outline" onClick={() => navigate('/projects')} className="mt-4">
-            Back to Projects
-          </Button>
+        <div className="text-center py-12 space-y-4">
+          <div className="text-5xl mb-4">😕</div>
+          <h2 className="text-xl font-semibold">Project Not Found</h2>
+          <p className="text-muted-foreground max-w-md mx-auto">
+            We couldn't find the project you're looking for. This might be due to:
+          </p>
+          <ul className="text-muted-foreground list-disc list-inside max-w-md mx-auto text-left">
+            <li>The project has been deleted or archived</li>
+            <li>The project ID in the URL is incorrect</li>
+            <li>You don't have permission to view this project</li>
+            <li>There might be a database connection issue</li>
+          </ul>
+          <div className="flex gap-4 justify-center mt-6">
+            <Button variant="default" onClick={() => navigate('/projects')}>
+              <ArrowLeft className="w-4 h-4 mr-2" />
+              Back to Projects
+            </Button>
+            <Button variant="outline" onClick={() => window.location.reload()}>
+              <RefreshCw className="w-4 h-4 mr-2" />
+              Try Again
+            </Button>
+          </div>
+          {id && (
+            <div className="mt-4 text-xs text-muted-foreground">
+              Project ID: {id}
+              <div className="mt-2">
+                <Button variant="link" size="sm" onClick={() => navigate('/project/11111111-1111-1111-1111-111111111001')}>
+                  Try Sample Project
+                </Button>
+              </div>
+            </div>
+          )}
         </div>
       </div>
     );
@@ -420,7 +813,7 @@ export default function ProjectDetail() {
             Suppliers
           </TabsTrigger>
           <TabsTrigger value="timeline" className="flex items-center">
-            <Timeline className="w-4 h-4 mr-2" />
+            <Clock className="w-4 h-4 mr-2" />
             Timeline
           </TabsTrigger>
           <TabsTrigger value="analytics" className="flex items-center">
@@ -434,37 +827,11 @@ export default function ProjectDetail() {
         </TabsContent>
 
         <TabsContent value="documents" className="mt-6">
-          <Card>
-            <CardHeader>
-              <CardTitle>Project Documents</CardTitle>
-              <CardDescription>
-                Manage drawings, specifications, and other project files
-              </CardDescription>
-            </CardHeader>
-            <CardContent>
-              <div className="text-center py-12 text-muted-foreground">
-                <FileText className="w-12 h-12 mx-auto mb-4 opacity-50" />
-                <p>Document management coming soon</p>
-              </div>
-            </CardContent>
-          </Card>
+          <DocumentsSection project={project} />
         </TabsContent>
 
         <TabsContent value="reviews" className="mt-6">
-          <Card>
-            <CardHeader>
-              <CardTitle>Internal Reviews</CardTitle>
-              <CardDescription>
-                Track engineering, QA, and production reviews
-              </CardDescription>
-            </CardHeader>
-            <CardContent>
-              <div className="text-center py-12 text-muted-foreground">
-                <CheckCircle2 className="w-12 h-12 mx-auto mb-4 opacity-50" />
-                <p>Review management coming soon</p>
-              </div>
-            </CardContent>
-          </Card>
+          <InternalReviewsSection project={project} />
         </TabsContent>
 
         <TabsContent value="supplier" className="mt-6">
@@ -477,20 +844,7 @@ export default function ProjectDetail() {
         </TabsContent>
 
         <TabsContent value="timeline" className="mt-6">
-          <Card>
-            <CardHeader>
-              <CardTitle>Project Timeline</CardTitle>
-              <CardDescription>
-                View project history and stage transitions
-              </CardDescription>
-            </CardHeader>
-            <CardContent>
-              <div className="text-center py-12 text-muted-foreground">
-                <Timeline className="w-12 h-12 mx-auto mb-4 opacity-50" />
-                <p>Timeline view coming soon</p>
-              </div>
-            </CardContent>
-          </Card>
+          <ActivityTimelineSection project={project} />
         </TabsContent>
 
         <TabsContent value="analytics" className="mt-6">

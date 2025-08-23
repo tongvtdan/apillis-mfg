@@ -1,12 +1,12 @@
 import { useState, useEffect } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { Project, ProjectStatus, Customer } from '@/types/project';
-import { 
-  SupplierQuote, 
-  QuoteReadinessIndicator, 
-  BottleneckAlert, 
-  AnalyticsMetrics, 
-  ProjectWorkflowAnalytics 
+import {
+  SupplierQuote,
+  QuoteReadinessIndicator,
+  BottleneckAlert,
+  AnalyticsMetrics,
+  ProjectWorkflowAnalytics
 } from '@/types/supplier';
 import { useAuth } from '@/contexts/AuthContext';
 import { useToast } from '@/hooks/use-toast';
@@ -14,7 +14,7 @@ import { useToast } from '@/hooks/use-toast';
 // Legacy status to new status mapping
 const LEGACY_TO_NEW_STATUS: Record<string, ProjectStatus> = {
   'inquiry': 'inquiry_received',
-  'review': 'technical_review', 
+  'review': 'technical_review',
   'quoted': 'quoted',
   'won': 'order_confirmed',
   'lost': 'shipped_closed', // Map legacy 'lost' to completed for now
@@ -62,7 +62,7 @@ export function useProjects() {
     try {
       setLoading(true);
       setError(null);
-      
+
       const { data, error: fetchError } = await supabase
         .from('projects')
         .select(`
@@ -109,7 +109,7 @@ export function useProjects() {
 
       const { error } = await supabase
         .from('projects')
-        .update({ 
+        .update({
           status: mapNewStatusToLegacy(newStatus) as any,
           updated_at: new Date().toISOString()
         })
@@ -143,7 +143,7 @@ export function useProjects() {
         title: "Status Updated",
         description: `From ${formatStatusName(oldStatus)} to ${formatStatusName(newStatus)}`,
       });
-      
+
       return true;
     } catch (err) {
       console.error('Error updating project status:', err);
@@ -162,10 +162,10 @@ export function useProjects() {
     if (!currentProject) return false;
 
     const oldStatus = currentProject.status;
-    
+
     // Optimistically update local state immediately
-    setProjects(prev => prev.map(project => 
-      project.id === projectId 
+    setProjects(prev => prev.map(project =>
+      project.id === projectId
         ? { ...project, status: newStatus, updated_at: new Date().toISOString() }
         : project
     ));
@@ -173,7 +173,7 @@ export function useProjects() {
     try {
       const { error } = await supabase
         .from('projects')
-        .update({ 
+        .update({
           status: mapNewStatusToLegacy(newStatus) as any,
           updated_at: new Date().toISOString()
         })
@@ -181,12 +181,12 @@ export function useProjects() {
 
       if (error) {
         // Revert optimistic update on error
-        setProjects(prev => prev.map(project => 
-          project.id === projectId 
+        setProjects(prev => prev.map(project =>
+          project.id === projectId
             ? { ...project, status: oldStatus, updated_at: new Date().toISOString() }
             : project
         ));
-        
+
         toast({
           variant: "destructive",
           title: "Error",
@@ -214,18 +214,18 @@ export function useProjects() {
         title: "Status Updated",
         description: `From ${formatStatusName(oldStatus)} to ${formatStatusName(newStatus)}`,
       });
-      
+
       return true;
     } catch (err) {
       console.error('Error updating project status:', err);
-      
+
       // Revert optimistic update on error
-      setProjects(prev => prev.map(project => 
-        project.id === projectId 
+      setProjects(prev => prev.map(project =>
+        project.id === projectId
           ? { ...project, status: oldStatus, updated_at: new Date().toISOString() }
           : project
       ));
-      
+
       toast({
         variant: "destructive",
         title: "Error",
@@ -271,7 +271,7 @@ export function useProjects() {
         throw error;
       }
 
-      setProjects(prev => [{...data, status: mapLegacyStatusToNew(data.status)}, ...prev]);
+      setProjects(prev => [{ ...data, status: mapLegacyStatusToNew(data.status) }, ...prev]);
       return data;
     } catch (err) {
       console.error('Error in createProject:', err);
@@ -337,15 +337,15 @@ export function useProjects() {
         },
         (payload) => {
           console.log('Project change received:', payload);
-          
+
           if (payload.eventType === 'INSERT') {
-            const newProject = {...payload.new as Project, status: mapLegacyStatusToNew((payload.new as any).status)};
+            const newProject = { ...payload.new as Project, status: mapLegacyStatusToNew((payload.new as any).status) };
             setProjects(prev => [newProject, ...prev]);
           } else if (payload.eventType === 'UPDATE') {
-            const updatedProject = {...payload.new as Project, status: mapLegacyStatusToNew((payload.new as any).status)};
-            setProjects(prev => prev.map(project => 
-              project.id === updatedProject.id 
-                ? updatedProject 
+            const updatedProject = { ...payload.new as Project, status: mapLegacyStatusToNew((payload.new as any).status) };
+            setProjects(prev => prev.map(project =>
+              project.id === updatedProject.id
+                ? updatedProject
                 : project
             ));
           } else if (payload.eventType === 'DELETE') {
@@ -362,20 +362,56 @@ export function useProjects() {
 
   // Get project by ID
   const getProjectById = async (id: string): Promise<Project> => {
-    const { data, error } = await supabase
-      .from('projects')
-      .select(`
-        *,
-        customer:customers(*)
-      `)
-      .eq('id', id)
-      .single();
+    console.log('Fetching project with ID:', id);
+    
+    try {
+      // Try to fetch with exact ID first
+      let { data, error } = await supabase
+        .from('projects')
+        .select(`
+          *,
+          customer:customers(*)
+        `)
+        .eq('id', id)
+        .single();
 
-    if (error) {
-      throw error;
+      // If not found, try with alternative UUID formats
+      if (error || !data) {
+        console.log('Project not found with exact ID, trying with normalized ID format');
+        
+        // The ID might be formatted differently in the database vs the URL
+        // Try fetching all projects and find by ID case-insensitive
+        const { data: allProjects, error: allProjectsError } = await supabase
+          .from('projects')
+          .select(`
+            *,
+            customer:customers(*)
+          `);
+
+        if (allProjectsError) {
+          console.error('Error fetching all projects:', allProjectsError);
+          throw new Error(`Failed to fetch projects: ${allProjectsError.message}`);
+        }
+
+        // Find project by ID case-insensitive
+        data = allProjects?.find(p => {
+          const normalizedId = p.id.toLowerCase().replace(/-/g, '');
+          const normalizedSearchId = id.toLowerCase().replace(/-/g, '');
+          return normalizedId === normalizedSearchId;
+        });
+      }
+
+      if (!data) {
+        console.error('No project found with ID:', id);
+        throw new Error('Project not found');
+      }
+
+      console.log('Project data fetched:', data);
+      return {...data, status: mapLegacyStatusToNew(data.status)};
+    } catch (err) {
+      console.error('Error in getProjectById:', err);
+      throw err;
     }
-
-    return {...data, status: mapLegacyStatusToNew(data.status)};
   };
 
   // Enhanced functions for supplier quote integration
@@ -470,7 +506,7 @@ export function useProjects() {
   const getCriticalPath = async (projectId: string): Promise<string[]> => {
     try {
       const analytics = await getProjectAnalytics(projectId);
-      
+
       // Identify stages that took longer than SLA
       const criticalStages = analytics
         .filter(stage => stage.sla_exceeded || stage.is_bottleneck)
@@ -512,7 +548,7 @@ export function useProjects() {
 
       // Get additional metrics
       const bottlenecks = await detectBottlenecks();
-      
+
       const analytics: AnalyticsMetrics = {
         supplier_response_rate: data.supplierResponseRate || 0,
         average_cycle_time: data.averageCycleTimeDays || 0,
@@ -568,17 +604,17 @@ export function useProjects() {
     createProject,
     createOrGetCustomer,
     getProjectById,
-    
+
     // New supplier quote integration
     getProjectQuotes,
     getQuoteReadinessScore,
-    
+
     // Enhanced analytics
     getProjectAnalytics,
     detectBottlenecks,
     getAnalyticsSummary,
     refreshAnalytics,
-    
+
     // Workflow optimization
     getProjectTimeline,
     getCriticalPath,

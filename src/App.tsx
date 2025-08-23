@@ -20,6 +20,7 @@ import Inventory from "./pages/Inventory";
 import Customers from "./pages/Customers";
 import Reports from "./pages/Reports";
 import { RFQDetail } from "./pages/RFQDetail";
+import ProjectDetail from "./pages/ProjectDetail";
 import Settings from "./pages/Settings";
 
 const queryClient = new QueryClient();
@@ -86,7 +87,7 @@ const App = () => (
             } />
             <Route path="/project/:id" element={
               <ProtectedRoute>
-                <AppLayout><RFQDetail /></AppLayout>
+                <AppLayout><ProjectDetail /></AppLayout>
               </ProtectedRoute>
             } />
             <Route path="/rfq/:id" element={

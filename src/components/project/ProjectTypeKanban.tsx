@@ -81,7 +81,12 @@ function ProjectCard({ project, onUpdateProject }: ProjectCardProps) {
               </DropdownMenuTrigger>
               <DropdownMenuContent align="end">
                 <DropdownMenuItem asChild>
-                  <Link to={`/project/${project.id}`}>View Details</Link>
+                  <Link to={`/project/${project.id}`} onClick={(e) => {
+                    e.stopPropagation(); // Prevent drag from starting
+                    console.log('Navigating to project detail:', project.id);
+                  }}>
+                    View Details
+                  </Link>
                 </DropdownMenuItem>
                 <DropdownMenuItem>Edit</DropdownMenuItem>
                 <DropdownMenuItem>Move to Next Stage</DropdownMenuItem>
@@ -158,7 +163,13 @@ function ProjectCard({ project, onUpdateProject }: ProjectCardProps) {
               className="w-full justify-start h-7 px-2"
               asChild
             >
-              <Link to={`/project/${project.id}`}>
+              <Link 
+                to={`/project/${project.id}`} 
+                onClick={(e) => {
+                  e.stopPropagation(); // Prevent drag from starting
+                  console.log('Navigating to project detail from button:', project.id);
+                }}
+              >
                 <Eye className="mr-2 h-3 w-3" />
                 View Details
               </Link>

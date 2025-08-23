@@ -19,6 +19,7 @@ import { Project, ProjectStatus, PROJECT_STAGES } from "@/types/project";
 import { useProjects } from "@/hooks/useProjects";
 import { formatDistanceToNow } from "date-fns";
 import { ExternalLink, User } from "lucide-react";
+import { useNavigate } from "react-router-dom";
 
 interface ProjectTableProps {
   projects: Project[];
@@ -28,7 +29,7 @@ const statusVariants = {
   inquiry_received: "bg-blue-100 text-blue-800",
   technical_review: "bg-orange-100 text-orange-800",
   supplier_rfq_sent: "bg-purple-100 text-purple-800",
-  quoted: "bg-yellow-100 text-yellow-800", 
+  quoted: "bg-yellow-100 text-yellow-800",
   order_confirmed: "bg-green-100 text-green-800",
   procurement_planning: "bg-teal-100 text-teal-800",
   in_production: "bg-indigo-100 text-indigo-800",
@@ -43,9 +44,14 @@ const priorityVariants = {
 
 export function ProjectTable({ projects }: ProjectTableProps) {
   const { updateProjectStatusOptimistic } = useProjects();
+  const navigate = useNavigate();
 
   const handleStatusChange = async (projectId: string, newStatus: ProjectStatus) => {
     await updateProjectStatusOptimistic(projectId, newStatus);
+  };
+
+  const handleViewProject = (projectId: string) => {
+    navigate(`/project/${projectId}`);
   };
   return (
     <div className="rounded-md border">
@@ -66,7 +72,7 @@ export function ProjectTable({ projects }: ProjectTableProps) {
           {projects.map((project) => (
             <TableRow key={project.id}>
               <TableCell className="font-medium">
-                <div>
+                <div className="cursor-pointer hover:text-primary" onClick={() => handleViewProject(project.id)}>
                   <div className="font-semibold">{project.title}</div>
                   <div className="text-sm text-muted-foreground">
                     {project.project_id}
@@ -121,7 +127,7 @@ export function ProjectTable({ projects }: ProjectTableProps) {
               </TableCell>
               <TableCell>
                 <div className="text-sm">
-                  {project.due_date 
+                  {project.due_date
                     ? `${Math.ceil((new Date(project.due_date).getTime() - new Date(project.created_at).getTime()) / (1000 * 60 * 60 * 24))} days`
                     : 'TBD'
                   }
@@ -135,7 +141,7 @@ export function ProjectTable({ projects }: ProjectTableProps) {
                 )}
               </TableCell>
               <TableCell className="text-right">
-                <Button variant="ghost" size="sm">
+                <Button variant="ghost" size="sm" onClick={() => handleViewProject(project.id)}>
                   <ExternalLink className="h-4 w-4" />
                 </Button>
               </TableCell>

@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { supabase } from '@/integrations/supabase/client';
-import { 
+import {
   SupplierQuote,
   SupplierQuoteStatus,
   QuoteComparison,
@@ -22,6 +22,14 @@ export function useSupplierQuotes(projectId?: string) {
   const { toast } = useToast();
 
   const fetchQuotes = async (targetProjectId?: string) => {
+    // If no project ID is provided, don't fetch quotes
+    const effectiveProjectId = targetProjectId || projectId;
+    if (!effectiveProjectId) {
+      setQuotes([]);
+      setLoading(false);
+      return;
+    }
+
     if (!user) {
       setQuotes([]);
       setLoading(false);
@@ -31,7 +39,7 @@ export function useSupplierQuotes(projectId?: string) {
     try {
       setLoading(true);
       setError(null);
-      
+
       let query = supabase
         .from('supplier_quotes')
         .select(`
@@ -41,8 +49,8 @@ export function useSupplierQuotes(projectId?: string) {
         `);
 
       // Filter by project if specified
-      if (targetProjectId || projectId) {
-        query = query.eq('project_id', targetProjectId || projectId);
+      if (effectiveProjectId) {
+        query = query.eq('project_id', effectiveProjectId);
       }
 
       const { data, error: fetchError } = await query.order('created_at', { ascending: false });
@@ -140,7 +148,7 @@ export function useSupplierQuotes(projectId?: string) {
       }
 
       // Update local state
-      setQuotes(prev => prev.map(quote => 
+      setQuotes(prev => prev.map(quote =>
         quote.id === quoteId ? data : quote
       ));
 
@@ -232,7 +240,7 @@ export function useSupplierQuotes(projectId?: string) {
       // Update quote status to accepted
       const { error: updateError } = await supabase
         .from('supplier_quotes')
-        .update({ 
+        .update({
           status: 'accepted',
           internal_notes: request.internal_notes,
           updated_at: new Date().toISOString(),
@@ -409,8 +417,8 @@ export function useSupplierQuotes(projectId?: string) {
       }
 
       // Update local state
-      setQuotes(prev => prev.map(quote => 
-        quote.id === quoteId 
+      setQuotes(prev => prev.map(quote =>
+        quote.id === quoteId
           ? { ...quote, ...updates }
           : quote
       ));
@@ -458,9 +466,9 @@ export function useSupplierQuotes(projectId?: string) {
   // Get overdue quotes
   const getOverdueQuotes = (): SupplierQuote[] => {
     const now = new Date();
-    return quotes.filter(quote => 
-      quote.status === 'sent' && 
-      quote.quote_deadline && 
+    return quotes.filter(quote =>
+      quote.status === 'sent' &&
+      quote.quote_deadline &&
       new Date(quote.quote_deadline) < now
     );
   };
@@ -480,7 +488,7 @@ export function useSupplierQuotes(projectId?: string) {
         },
         (payload) => {
           console.log('Supplier quote change received:', payload);
-          
+
           if (payload.eventType === 'INSERT') {
             // Fetch full quote data with relations
             supabase
@@ -510,7 +518,7 @@ export function useSupplierQuotes(projectId?: string) {
               .single()
               .then(({ data }) => {
                 if (data) {
-                  setQuotes(prev => prev.map(quote => 
+                  setQuotes(prev => prev.map(quote =>
                     quote.id === data.id ? data : quote
                   ));
                 }
@@ -563,26 +571,26 @@ export function useSupplierQuotes(projectId?: string) {
     loading,
     error,
     refetch: fetchQuotes,
-    
+
     // CRUD operations
     createQuote,
     updateQuote,
     deleteQuote,
     updateQuoteStatus,
-    
+
     // Quote management
     sendRFQToSuppliers,
     acceptQuote,
     compareQuotes,
     getQuoteReadinessScore,
     getQuoteStatusHistory,
-    
+
     // Filtering and utilities
     getQuotesByStatus,
     getProjectQuotes,
     getOverdueQuotes,
     expireOverdueQuotes,
-    
+
     // Real-time subscriptions
     subscribeToQuoteUpdates
   };
