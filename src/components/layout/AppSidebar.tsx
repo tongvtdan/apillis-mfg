@@ -1,4 +1,4 @@
-import { BarChart3, FileText, Home, ShoppingCart, Settings, Users, Package, Factory, UserCheck } from "lucide-react";
+import { BarChart3, FileText, Home, ShoppingCart, Settings, Users, Package, Factory, UserCheck, Truck } from "lucide-react";
 import { NavLink, useLocation } from "react-router-dom";
 import { Sidebar, SidebarContent, SidebarGroup, SidebarGroupContent, SidebarGroupLabel, SidebarMenu, SidebarMenuButton, SidebarMenuItem, SidebarHeader } from "@/components/ui/sidebar";
 const mainMenuItems = [{
@@ -6,13 +6,17 @@ const mainMenuItems = [{
   url: "/dashboard",
   icon: Home
 }, {
-  title: "Vendors",
-  url: "/vendors",
-  icon: Users
-}, {
   title: "Projects",
   url: "/projects",
   icon: FileText
+}, {
+  title: "Customers",
+  url: "/customers",
+  icon: UserCheck
+}, {
+  title: "Suppliers",
+  url: "/suppliers",
+  icon: Truck
 }, {
   title: "Purchase Orders",
   url: "/purchase-orders",
@@ -25,10 +29,6 @@ const mainMenuItems = [{
   title: "Production",
   url: "/production",
   icon: Factory
-}, {
-  title: "Customers",
-  url: "/customers",
-  icon: UserCheck
 }, {
   title: "Reports",
   url: "/reports",
@@ -49,51 +49,51 @@ export function AppSidebar() {
     isActive: boolean;
   }) => isActive ? "bg-sidebar-accent text-sidebar-primary font-medium" : "text-sidebar-foreground hover:bg-sidebar-accent/50 hover:text-sidebar-accent-foreground";
   return <Sidebar>
-      <SidebarHeader className="border-b border-sidebar-border p-4">
-        <div className="flex items-center space-x-2">
-          <div className="w-8 h-8 rounded-lg bg-primary flex items-center justify-center">
-            <span className="text-primary-foreground font-bold text-sm">FP</span>
-          </div>
-          <div>
-            <h2 className="font-semibold text-sidebar-foreground">Apillis 
-Factory Pulse</h2>
-            <p className="text-xs text-sidebar-foreground/70">The Heartbeat of Modern Manufacturing</p>
-          </div>
+    <SidebarHeader className="border-b border-sidebar-border p-4">
+      <div className="flex items-center space-x-2">
+        <div className="w-8 h-8 rounded-lg bg-primary flex items-center justify-center">
+          <span className="text-primary-foreground font-bold text-sm">FP</span>
         </div>
-      </SidebarHeader>
+        <div>
+          <h2 className="font-semibold text-sidebar-foreground">Apillis
+            Factory Pulse</h2>
+          <p className="text-xs text-sidebar-foreground/70">The Heartbeat of Modern Manufacturing</p>
+        </div>
+      </div>
+    </SidebarHeader>
 
-      <SidebarContent>
-        <SidebarGroup>
-          <SidebarGroupLabel>Main Menu</SidebarGroupLabel>
-          <SidebarGroupContent>
-            <SidebarMenu>
-              {mainMenuItems.map(item => <SidebarMenuItem key={item.title}>
-                  <SidebarMenuButton asChild>
-                    <NavLink to={item.url} className={getNavCls}>
-                      <item.icon className="h-4 w-4" />
-                      <span>{item.title}</span>
-                    </NavLink>
-                  </SidebarMenuButton>
-                </SidebarMenuItem>)}
-            </SidebarMenu>
-          </SidebarGroupContent>
-        </SidebarGroup>
+    <SidebarContent>
+      <SidebarGroup>
+        <SidebarGroupLabel>Main Menu</SidebarGroupLabel>
+        <SidebarGroupContent>
+          <SidebarMenu>
+            {mainMenuItems.map(item => <SidebarMenuItem key={item.title}>
+              <SidebarMenuButton asChild>
+                <NavLink to={item.url} className={getNavCls}>
+                  <item.icon className="h-4 w-4" />
+                  <span>{item.title}</span>
+                </NavLink>
+              </SidebarMenuButton>
+            </SidebarMenuItem>)}
+          </SidebarMenu>
+        </SidebarGroupContent>
+      </SidebarGroup>
 
-        <SidebarGroup>
-          <SidebarGroupLabel>System</SidebarGroupLabel>
-          <SidebarGroupContent>
-            <SidebarMenu>
-              {settingsItems.map(item => <SidebarMenuItem key={item.title}>
-                  <SidebarMenuButton asChild>
-                    <NavLink to={item.url} className={getNavCls}>
-                      <item.icon className="h-4 w-4" />
-                      <span>{item.title}</span>
-                    </NavLink>
-                  </SidebarMenuButton>
-                </SidebarMenuItem>)}
-            </SidebarMenu>
-          </SidebarGroupContent>
-        </SidebarGroup>
-      </SidebarContent>
-    </Sidebar>;
+      <SidebarGroup>
+        <SidebarGroupLabel>System</SidebarGroupLabel>
+        <SidebarGroupContent>
+          <SidebarMenu>
+            {settingsItems.map(item => <SidebarMenuItem key={item.title}>
+              <SidebarMenuButton asChild>
+                <NavLink to={item.url} className={getNavCls}>
+                  <item.icon className="h-4 w-4" />
+                  <span>{item.title}</span>
+                </NavLink>
+              </SidebarMenuButton>
+            </SidebarMenuItem>)}
+          </SidebarMenu>
+        </SidebarGroupContent>
+      </SidebarGroup>
+    </SidebarContent>
+  </Sidebar>;
 }

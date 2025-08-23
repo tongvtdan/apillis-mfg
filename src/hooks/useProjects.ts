@@ -362,7 +362,7 @@ export function useProjects() {
 
   // Get project by ID
   const getProjectById = async (id: string): Promise<Project> => {
-    console.log('Fetching project with ID:', id);
+    console.log('🔍 Fetching project with ID:', id);
 
     try {
       // First, log all projects to see what's available
@@ -374,12 +374,14 @@ export function useProjects() {
         `);
 
       if (allProjectsError) {
-        console.error('Error fetching all projects:', allProjectsError);
-        throw new Error(`Failed to fetch projects: ${allProjectsError.message}`);
+        console.error('❌ Error fetching all projects:', allProjectsError);
+        throw new Error(`Database error: ${allProjectsError.message} (Code: ${allProjectsError.code})`);
       }
 
-      console.log('Available projects in database:', allProjects.length);
-      console.log('Project IDs:', allProjects.map(p => p.id));
+      console.log('📊 Database status:');
+      console.log(`  - Total projects found: ${allProjects?.length || 0}`);
+      console.log(`  - Available project IDs:`, allProjects?.map(p => p.id) || []);
+      console.log(`  - Sample project IDs:`, allProjects?.map(p => p.project_id) || []);
 
       // Try to fetch with exact ID first
       let { data, error } = await supabase
@@ -391,34 +393,59 @@ export function useProjects() {
         .eq('id', id)
         .single();
 
+      if (error) {
+        console.log(`⚠️ Direct ID lookup failed: ${error.message} (Code: ${error.code})`);
+      }
+
       // If not found, try to find by matching ID regardless of format
       if (error || !data) {
-        console.log('Project not found with exact ID, trying with normalized ID format');
+        console.log('🔄 Trying alternative matching methods...');
 
         // Find project by ID case-insensitive
         data = allProjects?.find(p => {
           const normalizedId = (p.id || '').toLowerCase().replace(/-/g, '');
           const normalizedSearchId = (id || '').toLowerCase().replace(/-/g, '');
-          return normalizedId === normalizedSearchId;
+          const matches = normalizedId === normalizedSearchId;
+          if (matches) {
+            console.log(`✅ Found match: ${p.id} matches ${id}`);
+          }
+          return matches;
         });
 
         if (!data) {
-          console.log('Project not found with normalized ID format, trying direct sample project');
+          console.log('🎯 Trying to find sample project P-25082301...');
           // Check if we have sample projects defined
           data = allProjects?.find(p => p.project_id === 'P-25082301');
+          if (data) {
+            console.log(`✅ Using sample project: ${data.id} (${data.project_id})`);
+          }
         }
       }
 
       if (!data) {
-        console.error('No project found with ID:', id);
-        console.error('No sample projects found in database. Please ensure the sample data migration has been run.');
-        throw new Error('Project not found. Please check if sample data has been loaded into the database.');
+        console.error('❌ Project resolution failed:');
+        console.error(`  - Requested ID: ${id}`);
+        console.error(`  - Available projects: ${allProjects?.length || 0}`);
+        console.error(`  - Database appears to be: ${allProjects?.length === 0 ? 'EMPTY' : 'POPULATED'}`);
+
+        if (allProjects?.length === 0) {
+          throw new Error('Database is empty. Please run the sample data migration or seed the database.');
+        } else {
+          throw new Error(`Project with ID "${id}" not found. Available projects: ${allProjects?.map(p => p.project_id).join(', ')}`);
+        }
       }
 
-      console.log('Project data fetched:', data);
+      console.log('✅ Project successfully fetched:', {
+        id: data.id,
+        project_id: data.project_id,
+        title: data.title,
+        status: data.status,
+        customer: data.customer?.name || 'No customer'
+      });
+
       return { ...data, status: mapLegacyStatusToNew(data.status) };
     } catch (err) {
-      console.error('Error in getProjectById:', err);
+      console.error('💥 Critical error in getProjectById:', err);
       throw err;
     }
   };

@@ -61,6 +61,7 @@ import {
 } from "@/types/supplier";
 import { SupplierQuoteModal } from "@/components/supplier/SupplierQuoteModal";
 import { SupplierQuoteTable } from "@/components/supplier/SupplierQuoteTable";
+import { DatabaseDiagnostic } from "@/components/debug/DatabaseDiagnostic";
 
 // Document interface for mock data
 interface ProjectDocument {
@@ -132,10 +133,24 @@ function ProjectOverview({ project, quoteReadiness }: ProjectOverviewProps) {
 
           <div>
             <label className="text-sm font-medium text-muted-foreground">Customer</label>
-            <p className="font-medium">{project.customer?.company || project.contact_name}</p>
-            {project.contact_email && (
-              <p className="text-sm text-muted-foreground">{project.contact_email}</p>
-            )}
+            <div className="mt-1">
+              <p className="font-medium">{project.customer?.company || project.contact_name}</p>
+              {project.customer?.name && project.customer.name !== project.customer.company && (
+                <p className="text-sm text-muted-foreground">Contact: {project.customer.name}</p>
+              )}
+              {project.contact_email && (
+                <p className="text-sm text-muted-foreground">
+                  <Mail className="w-3 h-3 inline mr-1" />
+                  {project.contact_email}
+                </p>
+              )}
+              {project.contact_phone && (
+                <p className="text-sm text-muted-foreground">
+                  <Phone className="w-3 h-3 inline mr-1" />
+                  {project.contact_phone}
+                </p>
+              )}
+            </div>
           </div>
 
           <div>
@@ -668,7 +683,7 @@ export default function ProjectDetail() {
       try {
         setLoading(true);
         setLoadingTimeout(false);
-        
+
         // Set a timeout to detect long loading times
         timeoutId = setTimeout(() => {
           console.log('Loading timeout reached, likely database connection issue');
@@ -680,10 +695,10 @@ export default function ProjectDetail() {
 
         const projectData = await getProjectById(id);
         console.log('Project data loaded successfully:', projectData);
-        
+
         // Clear timeout since data loaded successfully
         clearTimeout(timeoutId);
-        
+
         setProject(projectData);
 
         // Load quote readiness for relevant stages
@@ -698,7 +713,7 @@ export default function ProjectDetail() {
       } catch (error) {
         // Clear timeout on error
         clearTimeout(timeoutId);
-        
+
         console.error('Error loading project:', error);
         toast({
           variant: "destructive",
@@ -803,45 +818,36 @@ export default function ProjectDetail() {
 
   if (!project) {
     return (
-      <div className="p-6">
-        <div className="text-center py-12 space-y-4">
+      <div className="p-6 space-y-6">
+        <div className="text-center py-8 space-y-4">
           <div className="text-5xl mb-4">😕</div>
-          <h2 className="text-xl font-semibold">Database Connection Issue</h2>
+          <h2 className="text-xl font-semibold">Project Not Found</h2>
           <p className="text-muted-foreground max-w-md mx-auto">
-            We couldn't find the project you're looking for. This is likely because the database is not properly initialized.
+            We couldn't find the project you're looking for. This could be a database issue or the project may not exist.
           </p>
-          <div className="bg-amber-50 border border-amber-200 rounded-lg p-4 max-w-md mx-auto text-left">
-            <h3 className="font-medium text-amber-800 mb-2">Troubleshooting Steps:</h3>
-            <ol className="text-amber-700 list-decimal list-inside space-y-2 text-sm">
-              <li>Go to <strong>Settings → Development → Emergency Database Seeder</strong></li>
-              <li>Click "Seed Sample Data" to populate the database</li>
-              <li>Return to this page and try again</li>
-            </ol>
-          </div>
-          <div className="flex gap-4 justify-center mt-6">
-            <Button variant="default" onClick={() => navigate('/projects')}>
-              <ArrowLeft className="w-4 h-4 mr-2" />
-              Back to Projects
-            </Button>
-            <Button variant="outline" onClick={() => window.location.reload()}>
-              <RefreshCw className="w-4 h-4 mr-2" />
-              Try Again
-            </Button>
-            <Button variant="destructive" onClick={() => navigate('/settings')}>
-              <Database className="w-4 h-4 mr-2" />
-              Fix Database
-            </Button>
-          </div>
           {id && (
             <div className="mt-4 text-xs text-muted-foreground">
-              Project ID: {id}
-              <div className="mt-2">
-                <Button variant="link" size="sm" onClick={() => navigate('/project/11111111-1111-1111-1111-111111111001')}>
-                  Try Sample Project
-                </Button>
-              </div>
+              Requested Project ID: {id}
             </div>
           )}
+        </div>
+
+        {/* Database Diagnostic */}
+        <DatabaseDiagnostic />
+
+        <div className="flex gap-4 justify-center">
+          <Button variant="default" onClick={() => navigate('/projects')}>
+            <ArrowLeft className="w-4 h-4 mr-2" />
+            Back to Projects
+          </Button>
+          <Button variant="outline" onClick={() => window.location.reload()}>
+            <RefreshCw className="w-4 h-4 mr-2" />
+            Try Again
+          </Button>
+          <Button variant="destructive" onClick={() => navigate('/settings')}>
+            <Database className="w-4 h-4 mr-2" />
+            Fix Database
+          </Button>
         </div>
       </div>
     );

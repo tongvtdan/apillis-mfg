@@ -18,6 +18,7 @@ import Projects from "./pages/Projects";
 import PurchaseOrders from "./pages/PurchaseOrders";
 import Inventory from "./pages/Inventory";
 import Customers from "./pages/Customers";
+import Suppliers from "./pages/Suppliers";
 import Reports from "./pages/Reports";
 import { RFQDetail } from "./pages/RFQDetail";
 import ProjectDetail from "./pages/ProjectDetail";
@@ -63,6 +64,11 @@ const App = () => (
             <Route path="/customers" element={
               <ProtectedRoute>
                 <AppLayout><Customers /></AppLayout>
+              </ProtectedRoute>
+            } />
+            <Route path="/suppliers" element={
+              <ProtectedRoute>
+                <AppLayout><Suppliers /></AppLayout>
               </ProtectedRoute>
             } />
             <Route path="/reports" element={
