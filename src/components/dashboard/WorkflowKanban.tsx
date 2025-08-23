@@ -1,8 +1,7 @@
 import { useState, useCallback, useMemo } from "react";
-import { Link, useNavigate } from "react-router-dom";
+import { useNavigate } from "react-router-dom";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { Button } from "@/components/ui/button";
 import {
   MoreHorizontal,
   Calendar,
@@ -442,11 +441,6 @@ export function WorkflowKanban() {
             <h2 className="text-2xl font-bold">Factory Pulse - Project Flow</h2>
             <p className="text-muted-foreground">Track and manage your manufacturing projects from idea to delivery</p>
           </div>
-          <Button asChild>
-            <Link to="/rfq/new">
-              New Project
-            </Link>
-          </Button>
         </div>
 
         {/* Workflow Performance Overview */}
