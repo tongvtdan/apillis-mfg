@@ -36,7 +36,8 @@ import {
   UserCheck,
   X,
   AlertCircle,
-  RefreshCw
+  RefreshCw,
+  Database
 } from "lucide-react";
 import { format, formatDistanceToNow } from "date-fns";
 import { cn } from "@/lib/utils";
@@ -644,6 +645,7 @@ export default function ProjectDetail() {
 
   const [project, setProject] = useState<Project | null>(null);
   const [loading, setLoading] = useState(true);
+  const [loadingTimeout, setLoadingTimeout] = useState(false);
   const [activeTab, setActiveTab] = useState("overview");
   const [showSupplierModal, setShowSupplierModal] = useState(false);
   const [quoteReadiness, setQuoteReadiness] = useState<QuoteReadinessIndicator | null>(null);
@@ -654,20 +656,34 @@ export default function ProjectDetail() {
   useEffect(() => {
     const loadProject = async () => {
       console.log('Loading project with ID:', id);
-      
+
       if (!id) {
         console.log('No project ID provided, navigating to projects page');
         navigate('/projects');
         return;
       }
 
+      let timeoutId: NodeJS.Timeout;
+
       try {
         setLoading(true);
+        setLoadingTimeout(false);
+        
+        // Set a timeout to detect long loading times
+        timeoutId = setTimeout(() => {
+          console.log('Loading timeout reached, likely database connection issue');
+          setLoadingTimeout(true);
+        }, 5000); // 5 seconds timeout
+
         // Log the project ID format for debugging
         console.log('Project ID format:', id, 'Length:', id.length);
-        
+
         const projectData = await getProjectById(id);
         console.log('Project data loaded successfully:', projectData);
+        
+        // Clear timeout since data loaded successfully
+        clearTimeout(timeoutId);
+        
         setProject(projectData);
 
         // Load quote readiness for relevant stages
@@ -680,13 +696,16 @@ export default function ProjectDetail() {
           }
         }
       } catch (error) {
+        // Clear timeout on error
+        clearTimeout(timeoutId);
+        
         console.error('Error loading project:', error);
         toast({
           variant: "destructive",
           title: "Error",
           description: `Failed to load project details: ${error instanceof Error ? error.message : 'Unknown error'}`,
         });
-        
+
         // Stay on the page but show error state instead of navigating away
         setLoading(false);
         setProject(null);
@@ -722,6 +741,47 @@ export default function ProjectDetail() {
   };
 
   if (loading) {
+    if (loadingTimeout) {
+      return (
+        <div className="p-6 space-y-6">
+          <div className="flex items-center space-x-4">
+            <div className="animate-pulse bg-muted h-10 w-32 rounded"></div>
+            <div className="animate-pulse bg-muted h-8 w-64 rounded"></div>
+          </div>
+
+          <div className="border rounded-lg p-8 text-center">
+            <AlertTriangle className="h-12 w-12 mx-auto text-amber-500 mb-4" />
+            <h3 className="text-lg font-medium mb-2">Loading Timeout</h3>
+            <p className="text-sm text-muted-foreground mb-4">
+              The project details are taking longer than expected to load. This might be due to a database connection issue.
+            </p>
+            <div className="bg-amber-50 border border-amber-200 rounded-lg p-4 max-w-md mx-auto text-left">
+              <h3 className="font-medium text-amber-800 mb-2">Troubleshooting Steps:</h3>
+              <ol className="text-amber-700 list-decimal list-inside space-y-2 text-sm">
+                <li>Go to <strong>Settings → Development → Emergency Database Seeder</strong></li>
+                <li>Click "Seed Sample Data" to populate the database</li>
+                <li>Return to this page and try again</li>
+              </ol>
+            </div>
+            <div className="flex gap-4 justify-center mt-6">
+              <Button variant="default" onClick={() => navigate('/projects')}>
+                <ArrowLeft className="w-4 h-4 mr-2" />
+                Back to Projects
+              </Button>
+              <Button variant="outline" onClick={() => window.location.reload()}>
+                <RefreshCw className="w-4 h-4 mr-2" />
+                Try Again
+              </Button>
+              <Button variant="destructive" onClick={() => navigate('/settings')}>
+                <Database className="w-4 h-4 mr-2" />
+                Fix Database
+              </Button>
+            </div>
+          </div>
+        </div>
+      );
+    }
+
     return (
       <div className="p-6 space-y-6">
         <div className="flex items-center space-x-4">
@@ -729,10 +789,13 @@ export default function ProjectDetail() {
           <div className="animate-pulse bg-muted h-8 w-64 rounded"></div>
         </div>
 
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-          {[1, 2, 3].map((i) => (
-            <div key={i} className="animate-pulse bg-muted h-64 rounded-lg"></div>
-          ))}
+        <div className="border rounded-lg p-8 text-center">
+          <Clock className="h-12 w-12 animate-pulse mx-auto text-muted-foreground opacity-50 mb-4" />
+          <h3 className="text-lg font-medium mb-2">Loading Project Details...</h3>
+          <p className="text-sm text-muted-foreground mb-4">This might take a moment if this is your first time accessing this project.</p>
+          <div className="w-64 h-2 bg-muted/50 rounded-full overflow-hidden mx-auto">
+            <div className="h-full bg-primary rounded-full animate-progress"></div>
+          </div>
         </div>
       </div>
     );
@@ -743,16 +806,18 @@ export default function ProjectDetail() {
       <div className="p-6">
         <div className="text-center py-12 space-y-4">
           <div className="text-5xl mb-4">😕</div>
-          <h2 className="text-xl font-semibold">Project Not Found</h2>
+          <h2 className="text-xl font-semibold">Database Connection Issue</h2>
           <p className="text-muted-foreground max-w-md mx-auto">
-            We couldn't find the project you're looking for. This might be due to:
+            We couldn't find the project you're looking for. This is likely because the database is not properly initialized.
           </p>
-          <ul className="text-muted-foreground list-disc list-inside max-w-md mx-auto text-left">
-            <li>The project has been deleted or archived</li>
-            <li>The project ID in the URL is incorrect</li>
-            <li>You don't have permission to view this project</li>
-            <li>There might be a database connection issue</li>
-          </ul>
+          <div className="bg-amber-50 border border-amber-200 rounded-lg p-4 max-w-md mx-auto text-left">
+            <h3 className="font-medium text-amber-800 mb-2">Troubleshooting Steps:</h3>
+            <ol className="text-amber-700 list-decimal list-inside space-y-2 text-sm">
+              <li>Go to <strong>Settings → Development → Emergency Database Seeder</strong></li>
+              <li>Click "Seed Sample Data" to populate the database</li>
+              <li>Return to this page and try again</li>
+            </ol>
+          </div>
           <div className="flex gap-4 justify-center mt-6">
             <Button variant="default" onClick={() => navigate('/projects')}>
               <ArrowLeft className="w-4 h-4 mr-2" />
@@ -761,6 +826,10 @@ export default function ProjectDetail() {
             <Button variant="outline" onClick={() => window.location.reload()}>
               <RefreshCw className="w-4 h-4 mr-2" />
               Try Again
+            </Button>
+            <Button variant="destructive" onClick={() => navigate('/settings')}>
+              <Database className="w-4 h-4 mr-2" />
+              Fix Database
             </Button>
           </div>
           {id && (

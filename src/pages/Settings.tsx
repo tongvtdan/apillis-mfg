@@ -4,6 +4,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Badge } from "@/components/ui/badge";
 import { DatabaseSeeder } from "@/components/dev/DatabaseSeeder";
+import EmergencyDatabaseSeeder from "@/components/dev/EmergencyDatabaseSeeder";
 import { ThemeToggle } from "@/components/theme/ThemeToggle";
 import {
     Settings as SettingsIcon,
@@ -236,7 +237,15 @@ export default function Settings() {
                                         </p>
                                     </div>
 
-                                    <DatabaseSeeder />
+                                    <div className="space-y-6">
+                                        <h3 className="text-lg font-medium mb-4">Emergency Database Tools</h3>
+                                        <EmergencyDatabaseSeeder />
+                                    </div>
+
+                                    <div className="mt-8 pt-6 border-t">
+                                        <h3 className="text-lg font-medium mb-4">Sample Data Generation</h3>
+                                        <DatabaseSeeder />
+                                    </div>
                                 </div>
                             </CardContent>
                         </Card>

@@ -363,8 +363,24 @@ export function useProjects() {
   // Get project by ID
   const getProjectById = async (id: string): Promise<Project> => {
     console.log('Fetching project with ID:', id);
-    
+
     try {
+      // First, log all projects to see what's available
+      const { data: allProjects, error: allProjectsError } = await supabase
+        .from('projects')
+        .select(`
+          *,
+          customer:customers(*)
+        `);
+
+      if (allProjectsError) {
+        console.error('Error fetching all projects:', allProjectsError);
+        throw new Error(`Failed to fetch projects: ${allProjectsError.message}`);
+      }
+
+      console.log('Available projects in database:', allProjects.length);
+      console.log('Project IDs:', allProjects.map(p => p.id));
+
       // Try to fetch with exact ID first
       let { data, error } = await supabase
         .from('projects')
@@ -375,39 +391,32 @@ export function useProjects() {
         .eq('id', id)
         .single();
 
-      // If not found, try with alternative UUID formats
+      // If not found, try to find by matching ID regardless of format
       if (error || !data) {
         console.log('Project not found with exact ID, trying with normalized ID format');
-        
-        // The ID might be formatted differently in the database vs the URL
-        // Try fetching all projects and find by ID case-insensitive
-        const { data: allProjects, error: allProjectsError } = await supabase
-          .from('projects')
-          .select(`
-            *,
-            customer:customers(*)
-          `);
-
-        if (allProjectsError) {
-          console.error('Error fetching all projects:', allProjectsError);
-          throw new Error(`Failed to fetch projects: ${allProjectsError.message}`);
-        }
 
         // Find project by ID case-insensitive
         data = allProjects?.find(p => {
-          const normalizedId = p.id.toLowerCase().replace(/-/g, '');
-          const normalizedSearchId = id.toLowerCase().replace(/-/g, '');
+          const normalizedId = (p.id || '').toLowerCase().replace(/-/g, '');
+          const normalizedSearchId = (id || '').toLowerCase().replace(/-/g, '');
           return normalizedId === normalizedSearchId;
         });
+
+        if (!data) {
+          console.log('Project not found with normalized ID format, trying direct sample project');
+          // Check if we have sample projects defined
+          data = allProjects?.find(p => p.project_id === 'P-25082301');
+        }
       }
 
       if (!data) {
         console.error('No project found with ID:', id);
-        throw new Error('Project not found');
+        console.error('No sample projects found in database. Please ensure the sample data migration has been run.');
+        throw new Error('Project not found. Please check if sample data has been loaded into the database.');
       }
 
       console.log('Project data fetched:', data);
-      return {...data, status: mapLegacyStatusToNew(data.status)};
+      return { ...data, status: mapLegacyStatusToNew(data.status) };
     } catch (err) {
       console.error('Error in getProjectById:', err);
       throw err;

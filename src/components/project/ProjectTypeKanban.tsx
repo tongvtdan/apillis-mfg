@@ -163,8 +163,8 @@ function ProjectCard({ project, onUpdateProject }: ProjectCardProps) {
               className="w-full justify-start h-7 px-2"
               asChild
             >
-              <Link 
-                to={`/project/${project.id}`} 
+              <Link
+                to={`/project/${project.id}`}
                 onClick={(e) => {
                   e.stopPropagation(); // Prevent drag from starting
                   console.log('Navigating to project detail from button:', project.id);
