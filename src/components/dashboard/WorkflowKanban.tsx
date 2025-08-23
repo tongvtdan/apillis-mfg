@@ -113,11 +113,11 @@ function ProjectCard({ project, isDragging = false, index, quoteReadiness, isBot
   };
 
   const isOverdue = (daysInStage: number) => daysInStage > 7;
-  const isBottleneck = (daysInStage: number) => daysInStage > 14;
+  const isStageBottleneck = (daysInStage: number) => daysInStage > 14;
 
   // Enhanced time tracking with visual indicators
   const getTimeIndicator = (daysInStage: number) => {
-    if (isBottleneck(daysInStage)) {
+    if (isStageBottleneck(daysInStage)) {
       return { icon: TrendingDown, color: 'text-red-500', bg: 'bg-red-50' };
     } else if (isOverdue(daysInStage)) {
       return { icon: AlertTriangle, color: 'text-orange-500', bg: 'bg-orange-50' };
@@ -164,10 +164,9 @@ function ProjectCard({ project, isDragging = false, index, quoteReadiness, isBot
       className={`${isDragging ? 'opacity-50' : ''} ${index !== undefined ? 'animate-fade-in' : ''}`}
     >
       <Card className={`card-elevated cursor-grab active:cursor-grabbing hover:shadow-md transition-all duration-200 ${isDragging ? 'rotate-3 shadow-lg scale-105' : 'hover:scale-[1.02]'
-        } ${sortableIsDragging ? 'z-50' : ''} ${
-          showBottleneckWarning ? 'ring-2 ring-red-200 bg-red-50/50' : 
+        } ${sortableIsDragging ? 'z-50' : ''} ${showBottleneckWarning ? 'ring-2 ring-red-200 bg-red-50/50' :
           project.status === 'supplier_rfq_sent' && quoteIndicator?.hasOverdue ? 'ring-2 ring-orange-200 bg-orange-50/50' :
-          quoteIndicator?.isComplete ? 'ring-2 ring-green-200 bg-green-50/50' : ''
+            quoteIndicator?.isComplete ? 'ring-2 ring-green-200 bg-green-50/50' : ''
         }`}>
         <CardHeader className="pb-2">
           <div className="flex items-center justify-between">
@@ -223,7 +222,7 @@ function ProjectCard({ project, isDragging = false, index, quoteReadiness, isBot
                 <span className={timeIndicator.color}>{project.days_in_stage}d</span>
               </div>
             </div>
-            
+
             {/* Quote Readiness Indicator */}
             {quoteIndicator && (
               <TooltipProvider>
@@ -241,7 +240,7 @@ function ProjectCard({ project, isDragging = false, index, quoteReadiness, isBot
               </TooltipProvider>
             )}
           </div>
-          
+
           {/* Quote Progress Bar */}
           {quoteIndicator && (
             <div className="mt-2">
@@ -389,11 +388,11 @@ function VirtualizedProjectList({ projects, stageId, quoteReadiness, bottlenecks
       {projects.map((project, index) => {
         const isBottleneck = bottlenecks.some(b => b.project_id === project.id);
         const projectQuoteReadiness = quoteReadiness[project.id];
-        
+
         return (
           <div key={project.id} className="animate-fade-in" style={{ animationDelay: `${index * 50}ms` }}>
-            <ProjectCard 
-              project={project} 
+            <ProjectCard
+              project={project}
               index={index}
               quoteReadiness={projectQuoteReadiness}
               isBottleneck={isBottleneck}
@@ -463,7 +462,7 @@ export function WorkflowKanban({ projectTypeFilter = 'all' }: WorkflowKanbanProp
 
       const results = await Promise.all(readinessPromises);
       const readinessMap: Record<string, QuoteReadinessIndicator> = {};
-      
+
       results.forEach(({ projectId, readiness }) => {
         if (readiness) {
           readinessMap[projectId] = readiness;
@@ -722,9 +721,9 @@ export function WorkflowKanban({ projectTypeFilter = 'all' }: WorkflowKanbanProp
 
         <DragOverlay>
           {activeProject ? (
-            <ProjectCard 
-              project={activeProject} 
-              isDragging 
+            <ProjectCard
+              project={activeProject}
+              isDragging
               quoteReadiness={quoteReadiness[activeProject.id]}
               isBottleneck={bottlenecks.some(b => b.project_id === activeProject.id)}
               onSendRFQ={handleSendRFQ}
