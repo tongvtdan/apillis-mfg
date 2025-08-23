@@ -1,4 +1,4 @@
-import { useState, useCallback, useMemo, useRef } from "react";
+import { useState, useCallback, useMemo } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -40,7 +40,7 @@ import {
   useSortable,
 } from "@dnd-kit/sortable";
 import { CSS } from "@dnd-kit/utilities";
-import { useVirtualizer } from "@tanstack/react-virtual";
+
 import { useProjects } from "@/hooks/useProjects";
 import { Project, PROJECT_STAGES, PRIORITY_COLORS, ProjectStatus } from "@/types/project";
 import { WorkflowMetrics } from "./WorkflowMetrics";
@@ -250,7 +250,7 @@ function DroppableStage({ stageId, stageName, stageCount, children, projects }: 
   return (
     <div
       ref={setNodeRef}
-      className={`space-y-4 bg-muted/30 p-4 rounded-lg border-2 border-dashed transition-all duration-300 min-h-[500px] ${isOver ? 'border-primary bg-primary/10 scale-[1.02] shadow-md' : 'border-muted hover:border-muted-foreground/50'
+      className={`w-[416px] flex-shrink-0 space-y-4 bg-muted/30 p-4 rounded-lg border-2 border-dashed transition-all duration-300 ${isOver ? 'border-primary bg-primary/10 scale-[1.02] shadow-md' : 'border-muted hover:border-muted-foreground/50'
         }`}
     >
       <div className="space-y-3">
@@ -279,15 +279,6 @@ interface VirtualizedProjectListProps {
 }
 
 function VirtualizedProjectList({ projects, stageId }: VirtualizedProjectListProps) {
-  const parentRef = useRef<HTMLDivElement>(null);
-
-  const rowVirtualizer = useVirtualizer({
-    count: projects.length,
-    getScrollElement: () => parentRef.current,
-    estimateSize: () => 200, // Estimated height of each project card
-    overscan: 5, // Number of items to render outside the viewport
-  });
-
   if (projects.length === 0) {
     return (
       <div className="text-center py-8 text-muted-foreground">
@@ -298,37 +289,12 @@ function VirtualizedProjectList({ projects, stageId }: VirtualizedProjectListPro
   }
 
   return (
-    <div
-      ref={parentRef}
-      className="space-y-3 transition-all duration-200"
-      style={{ height: `${Math.min(projects.length * 200, 600)}px`, overflow: 'auto' }}
-    >
-      <div
-        style={{
-          height: `${rowVirtualizer.getTotalSize()}px`,
-          width: '100%',
-          position: 'relative',
-        }}
-      >
-        {rowVirtualizer.getVirtualItems().map((virtualRow) => {
-          const project = projects[virtualRow.index];
-          return (
-            <div
-              key={project.id}
-              style={{
-                position: 'absolute',
-                top: 0,
-                left: 0,
-                width: '100%',
-                height: `${virtualRow.size}px`,
-                transform: `translateY(${virtualRow.start}px)`,
-              }}
-            >
-              <ProjectCard project={project} index={virtualRow.index} />
-            </div>
-          );
-        })}
-      </div>
+    <div className="space-y-3">
+      {projects.map((project, index) => (
+        <div key={project.id} className="animate-fade-in" style={{ animationDelay: `${index * 50}ms` }}>
+          <ProjectCard project={project} index={index} />
+        </div>
+      ))}
     </div>
   );
 }
@@ -434,17 +400,24 @@ export function WorkflowKanban() {
             <p className="text-muted-foreground">Loading your manufacturing projects...</p>
           </div>
         </div>
-        <div className="grid grid-cols-1 lg:grid-cols-8 gap-4 min-h-[600px]">
-          {PROJECT_STAGES.map((stage) => (
-            <div key={stage.id} className="space-y-4">
-              <div className="animate-pulse bg-muted h-8 rounded"></div>
-              <div className="space-y-3">
-                {[1, 2, 3].map((i) => (
-                  <div key={i} className="animate-pulse bg-muted h-32 rounded"></div>
-                ))}
-              </div>
+        <div className="relative">
+          <div className="overflow-auto pb-4 scrollbar-thin scrollbar-thumb-muted-foreground/20 scrollbar-track-transparent max-h-[80vh]">
+            <div className="flex gap-4 min-w-max px-2">
+              {PROJECT_STAGES.map((stage) => (
+                <div key={stage.id} className="w-[416px] flex-shrink-0 space-y-4">
+                  <div className="animate-pulse bg-muted h-8 rounded"></div>
+                  <div className="space-y-3">
+                    {[1, 2, 3].map((i) => (
+                      <div key={i} className="animate-pulse bg-muted h-32 rounded"></div>
+                    ))}
+                  </div>
+                </div>
+              ))}
             </div>
-          ))}
+          </div>
+
+          {/* Scroll indicator */}
+          <div className="absolute top-0 right-0 bottom-0 w-8 bg-gradient-to-l from-background to-transparent pointer-events-none"></div>
         </div>
       </div>
     );
@@ -478,6 +451,13 @@ export function WorkflowKanban() {
 
         {/* Workflow Performance Overview */}
         <WorkflowMetrics projects={projects} />
+
+        {/* Scroll instruction */}
+        <div className="text-center py-2">
+          <p className="text-xs text-muted-foreground">
+            💡 Scroll horizontally to view all stages • Scroll vertically to see all columns
+          </p>
+        </div>
       </div>
 
       <DndContext
@@ -492,26 +472,33 @@ export function WorkflowKanban() {
         onDragOver={handleDragOver}
         onDragEnd={handleDragEnd}
       >
-        <div className="grid grid-cols-1 lg:grid-cols-8 gap-4 min-h-[600px]">
-          {stages.map((stage) => (
-            <DroppableStage
-              key={stage.id}
-              stageId={stage.id}
-              stageName={stage.name}
-              stageCount={stage.count}
-              projects={stage.projects}
-            >
-              <SortableContext
-                items={stage.projects.map(project => project.id)}
-                strategy={verticalListSortingStrategy}
-              >
-                <VirtualizedProjectList
-                  projects={stage.projects}
+        <div className="relative">
+          <div className="overflow-auto pb-4 scrollbar-thin scrollbar-thumb-muted-foreground/20 scrollbar-track-transparent max-h-[80vh]">
+            <div className="flex gap-4 min-w-max px-2">
+              {stages.map((stage) => (
+                <DroppableStage
+                  key={stage.id}
                   stageId={stage.id}
-                />
-              </SortableContext>
-            </DroppableStage>
-          ))}
+                  stageName={stage.name}
+                  stageCount={stage.count}
+                  projects={stage.projects}
+                >
+                  <SortableContext
+                    items={stage.projects.map(project => project.id)}
+                    strategy={verticalListSortingStrategy}
+                  >
+                    <VirtualizedProjectList
+                      projects={stage.projects}
+                      stageId={stage.id}
+                    />
+                  </SortableContext>
+                </DroppableStage>
+              ))}
+            </div>
+          </div>
+
+          {/* Scroll indicator */}
+          <div className="absolute top-0 right-0 bottom-0 w-8 bg-gradient-to-l from-background to-transparent pointer-events-none"></div>
         </div>
 
         <DragOverlay>

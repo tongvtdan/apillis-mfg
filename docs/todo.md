@@ -33,6 +33,7 @@
 - [ ] Create SystemSettings.tsx - Global configuration options
 
 ## Recently Completed
+- [done] 2025-01-22: Improved Kanban view layout with horizontal scrolling, 30% wider columns, and flexible heights with full viewport scrolling
 - [done] 2025-01-22: Enhanced Flowchart view with project type filtering and responsive grid layout for better project visualization
 - [done] 2025-01-22: Enhanced WorkflowKanban with virtual scrolling, time tracking, bottleneck detection, and performance optimizations
 - [done] 2025-01-22: Created WorkflowMetrics and StageMetrics widget components for better modularity
