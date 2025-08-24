@@ -31,13 +31,13 @@ export function StageMetrics({ projects, stageId }: StageMetricsProps) {
                 <span className="font-medium">{metrics.avgDaysInStage.toFixed(1)}d</span>
             </div>
             {metrics.bottleneckCount > 0 && (
-                <div className="flex items-center space-x-1 text-red-600">
+                <div className="flex items-center space-x-1 text-destructive">
                     <AlertTriangle className="h-3 w-3" />
                     <span>{metrics.bottleneckCount} bottleneck(s)</span>
                 </div>
             )}
             {metrics.overdueCount > 0 && (
-                <div className="flex items-center space-x-1 text-orange-600">
+                <div className="flex items-center space-x-1 text-warning">
                     <Timer className="h-3 w-3" />
                     <span>{metrics.overdueCount} overdue</span>
                 </div>

@@ -119,9 +119,9 @@ export default function Dashboard() {
         : `${activeProjects} active projects`,
       icon: FolderOpen,
       route: "/projects",
-      color: highPriorityProjects > 0 ? "text-red-600" : "text-blue-600",
-      bgColor: highPriorityProjects > 0 ? "bg-red-50" : "bg-blue-50",
-      borderColor: highPriorityProjects > 0 ? "border-red-200" : "border-blue-200",
+      color: highPriorityProjects > 0 ? "text-destructive" : "text-primary",
+      bgColor: highPriorityProjects > 0 ? "bg-destructive/10" : "bg-primary/10",
+      borderColor: highPriorityProjects > 0 ? "border-destructive/20" : "border-primary/20",
       alert: overdueProjects > 0 ? `${overdueProjects} overdue` : null
     },
     {
@@ -131,9 +131,9 @@ export default function Dashboard() {
       description: `${customers?.length || 0} total customers`,
       icon: Users,
       route: "/customers",
-      color: "text-green-600",
-      bgColor: "bg-green-50",
-      borderColor: "border-green-200",
+      color: "text-success",
+      bgColor: "bg-success/10",
+      borderColor: "border-success/20",
       alert: null
     },
     {
@@ -143,9 +143,9 @@ export default function Dashboard() {
       description: `${suppliers?.filter(s => s.is_active).length || 0} active suppliers`,
       icon: Truck,
       route: "/suppliers",
-      color: "text-purple-600",
-      bgColor: "bg-purple-50",
-      borderColor: "border-purple-200",
+      color: "text-secondary",
+      bgColor: "bg-secondary/10",
+      borderColor: "border-secondary/20",
       alert: null
     },
     {
@@ -157,9 +157,9 @@ export default function Dashboard() {
         : `${pendingPOs} pending orders`,
       icon: ShoppingCart,
       route: "/purchase-orders",
-      color: urgentPOs > 0 ? "text-red-600" : "text-orange-600",
-      bgColor: urgentPOs > 0 ? "bg-red-50" : "bg-orange-50",
-      borderColor: urgentPOs > 0 ? "border-red-200" : "border-orange-200",
+      color: urgentPOs > 0 ? "text-destructive" : "text-warning",
+      bgColor: urgentPOs > 0 ? "bg-destructive/10" : "bg-warning/10",
+      borderColor: urgentPOs > 0 ? "border-destructive/20" : "border-warning/20",
       alert: overduePOs > 0 ? `${overduePOs} overdue` : null
     },
     {
@@ -173,9 +173,9 @@ export default function Dashboard() {
           : `${inventory.length} items tracked`,
       icon: Package,
       route: "/inventory",
-      color: criticalItems > 0 ? "text-red-600" : lowStockItems > 0 ? "text-orange-600" : "text-indigo-600",
-      bgColor: criticalItems > 0 ? "bg-red-50" : lowStockItems > 0 ? "bg-orange-50" : "bg-indigo-50",
-      borderColor: criticalItems > 0 ? "border-red-200" : lowStockItems > 0 ? "border-orange-200" : "border-indigo-200",
+      color: criticalItems > 0 ? "text-destructive" : lowStockItems > 0 ? "text-warning" : "text-info",
+      bgColor: criticalItems > 0 ? "bg-destructive/10" : lowStockItems > 0 ? "bg-warning/10" : "bg-info/10",
+      borderColor: criticalItems > 0 ? "border-destructive/20" : lowStockItems > 0 ? "border-warning/20" : "border-info/20",
       alert: outOfStockItems > 0 ? `${outOfStockItems} out of stock` : null
     },
     {
@@ -187,9 +187,9 @@ export default function Dashboard() {
         : `${activeProduction} in production`,
       icon: Factory,
       route: "/production",
-      color: urgentProduction > 0 ? "text-red-600" : "text-teal-600",
-      bgColor: urgentProduction > 0 ? "bg-red-50" : "bg-teal-50",
-      borderColor: urgentProduction > 0 ? "border-red-200" : "border-teal-200",
+      color: urgentProduction > 0 ? "text-destructive" : "text-accent",
+      bgColor: urgentProduction > 0 ? "bg-destructive/10" : "bg-accent/10",
+      borderColor: urgentProduction > 0 ? "border-destructive/20" : "border-accent/20",
       alert: onHoldProduction > 0 ? `${onHoldProduction} on hold` : null
     }
   ];
@@ -244,7 +244,7 @@ export default function Dashboard() {
         <div className="mt-8">
           <div className="mb-6">
             <h2 className="text-xl font-semibold text-foreground flex items-center gap-2">
-              <TrendingUp className="h-6 w-6 text-blue-500" />
+              <TrendingUp className="h-6 w-6 text-primary" />
               System Overview
             </h2>
             <p className="text-sm text-muted-foreground mt-1">

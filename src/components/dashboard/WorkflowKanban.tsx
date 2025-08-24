@@ -118,13 +118,13 @@ function ProjectCard({ project, isDragging = false, index, quoteReadiness, isBot
   // Enhanced time tracking with visual indicators
   const getTimeIndicator = (daysInStage: number) => {
     if (isStageBottleneck(daysInStage)) {
-      return { icon: TrendingDown, color: 'text-red-500', bg: 'bg-red-50' };
+      return { icon: TrendingDown, color: 'text-destructive', bg: 'bg-destructive/10' };
     } else if (isOverdue(daysInStage)) {
-      return { icon: AlertTriangle, color: 'text-orange-500', bg: 'bg-orange-50' };
+      return { icon: AlertTriangle, color: 'text-warning', bg: 'bg-warning/10' };
     } else if (daysInStage > 3) {
-      return { icon: Timer, color: 'text-yellow-500', bg: 'bg-yellow-50' };
+      return { icon: Timer, color: 'text-warning', bg: 'bg-warning/10' };
     } else {
-      return { icon: TrendingUp, color: 'text-green-500', bg: 'bg-green-50' };
+      return { icon: TrendingUp, color: 'text-success', bg: 'bg-success/10' };
     }
   };
 
@@ -178,7 +178,7 @@ function ProjectCard({ project, isDragging = false, index, quoteReadiness, isBot
                 <TooltipProvider>
                   <Tooltip>
                     <TooltipTrigger>
-                      <AlertTriangle className="h-4 w-4 text-red-500" />
+                      <AlertTriangle className="h-4 w-4 text-destructive" />
                     </TooltipTrigger>
                     <TooltipContent>
                       <p>Project bottleneck detected - {project.days_in_stage} days in stage</p>

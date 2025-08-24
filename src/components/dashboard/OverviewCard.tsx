@@ -35,7 +35,7 @@ export function OverviewCard({
     >
       {alert && (
         <div className="absolute -top-2 -right-2 z-10">
-          <div className="bg-red-500 text-white text-xs px-2 py-1 rounded-full flex items-center gap-1 animate-pulse">
+          <div className="bg-destructive text-destructive-foreground text-xs px-2 py-1 rounded-full flex items-center gap-1 animate-pulse">
             <AlertTriangle className="h-3 w-3" />
             {alert}
           </div>

@@ -69,10 +69,10 @@ interface KPICardProps {
 function KPICard({ title, value, change, target, icon, description, status = 'good', loading }: KPICardProps) {
   const getStatusColor = () => {
     switch (status) {
-      case 'excellent': return 'text-green-600 bg-green-50 border-green-200';
-      case 'good': return 'text-blue-600 bg-blue-50 border-blue-200';
-      case 'warning': return 'text-yellow-600 bg-yellow-50 border-yellow-200';
-      case 'critical': return 'text-red-600 bg-red-50 border-red-200';
+      case 'excellent': return 'text-success bg-success/10 border-success/20';
+      case 'good': return 'text-primary bg-primary/10 border-primary/20';
+      case 'warning': return 'text-warning bg-warning/10 border-warning/20';
+      case 'critical': return 'text-destructive bg-destructive/10 border-destructive/20';
       default: return 'text-gray-600 bg-gray-50 border-gray-200';
     }
   };
@@ -99,11 +99,11 @@ function KPICard({ title, value, change, target, icon, description, status = 'go
               {change && (
                 <div className="flex items-center space-x-2 text-xs">
                   {change.isPositive ? (
-                    <TrendingUp className="h-3 w-3 text-green-500" />
+                    <TrendingUp className="h-3 w-3 text-success" />
                   ) : (
-                    <TrendingDown className="h-3 w-3 text-red-500" />
+                    <TrendingDown className="h-3 w-3 text-destructive" />
                   )}
-                  <span className={change.isPositive ? 'text-green-600' : 'text-red-600'}>
+                  <span className={change.isPositive ? 'text-success' : 'text-destructive'}>
                     {Math.abs(change.value)}% vs {change.period}
                   </span>
                 </div>
@@ -147,7 +147,7 @@ function BottleneckAlertCard({ bottlenecks, onViewDetails }: BottleneckAlertCard
       <CardHeader>
         <div className="flex items-center justify-between">
           <div className="flex items-center space-x-2">
-            <AlertTriangle className="h-5 w-5 text-orange-500" />
+            <AlertTriangle className="h-5 w-5 text-warning" />
             <CardTitle>Bottleneck Alerts</CardTitle>
           </div>
           <Button variant="outline" size="sm">
@@ -162,7 +162,7 @@ function BottleneckAlertCard({ bottlenecks, onViewDetails }: BottleneckAlertCard
       <CardContent>
         {bottlenecks.length === 0 ? (
           <div className="text-center py-8 text-muted-foreground">
-            <CheckCircle className="h-12 w-12 mx-auto mb-4 text-green-500" />
+            <CheckCircle className="h-12 w-12 mx-auto mb-4 text-success" />
             <p className="text-lg font-medium">All Clear!</p>
             <p className="text-sm">No bottlenecks detected in the current workflow</p>
           </div>
@@ -190,7 +190,7 @@ function BottleneckAlertCard({ bottlenecks, onViewDetails }: BottleneckAlertCard
             {warningBottlenecks.length > 0 && (
               <div className="space-y-2">
                 <div className="flex items-center space-x-2">
-                  <Badge variant="secondary" className="text-xs bg-yellow-100 text-yellow-800">
+                  <Badge variant="secondary" className="text-xs bg-warning/10 text-warning">
                     {warningBottlenecks.length} Warning
                   </Badge>
                 </div>
@@ -398,7 +398,7 @@ function LeadTimeBreakdown({ leadTimeByPhase }: LeadTimeBreakdownProps) {
               <span className="capitalize">{phase.replace('_', ' ')}</span>
               <div className="flex items-center space-x-2">
                 <span className="font-medium">{time.toFixed(1)}d</span>
-                {isBottleneck && <AlertTriangle className="h-3 w-3 text-red-500" />}
+                {isBottleneck && <AlertTriangle className="h-3 w-3 text-destructive" />}
               </div>
             </div>
           );

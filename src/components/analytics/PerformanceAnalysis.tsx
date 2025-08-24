@@ -170,10 +170,10 @@ function SupplierRankingTable({ rankings }: { rankings: SupplierRanking[] }) {
                   </Badge>
                   <div className="flex items-center mt-1">
                     {ranking.change.direction === 'up' && (
-                      <ArrowUpRight className="h-3 w-3 text-green-500" />
+                      <ArrowUpRight className="h-3 w-3 text-success" />
                     )}
                     {ranking.change.direction === 'down' && (
-                      <ArrowDownRight className="h-3 w-3 text-red-500" />
+                      <ArrowDownRight className="h-3 w-3 text-destructive" />
                     )}
                     <span className="text-xs text-muted-foreground">
                       {ranking.change.positions > 0 && ranking.change.positions}
@@ -212,13 +212,13 @@ function SupplierRankingTable({ rankings }: { rankings: SupplierRanking[] }) {
                   
                   <div className="flex flex-wrap gap-2 mt-3">
                     {ranking.strengths.slice(0, 2).map((strength, index) => (
-                      <Badge key={index} variant="secondary" className="text-xs bg-green-100 text-green-800">
+                      <Badge key={index} variant="secondary" className="text-xs bg-success/10 text-success">
                         <CheckCircle className="h-3 w-3 mr-1" />
                         {strength}
                       </Badge>
                     ))}
                     {ranking.weaknesses.slice(0, 1).map((weakness, index) => (
-                      <Badge key={index} variant="secondary" className="text-xs bg-yellow-100 text-yellow-800">
+                      <Badge key={index} variant="secondary" className="text-xs bg-warning/10 text-warning">
                         <AlertCircle className="h-3 w-3 mr-1" />
                         {weakness}
                       </Badge>
@@ -276,10 +276,10 @@ function PhasePerformanceCards({ leadTimeData }: { leadTimeData: LeadTimePhase[]
               
               <div className="flex items-center space-x-2 text-xs">
                 <div className={`flex items-center space-x-1 px-2 py-1 rounded-full ${
-                  phase.bottleneckRisk >= 80 ? 'bg-red-100 text-red-800' :
-                  phase.bottleneckRisk >= 60 ? 'bg-yellow-100 text-yellow-800' :
-                  phase.bottleneckRisk >= 40 ? 'bg-blue-100 text-blue-800' :
-                  'bg-green-100 text-green-800'
+                  phase.bottleneckRisk >= 80 ? 'bg-destructive/10 text-destructive' :
+                  phase.bottleneckRisk >= 60 ? 'bg-warning/10 text-warning' :
+                  phase.bottleneckRisk >= 40 ? 'bg-primary/10 text-primary' :
+                  'bg-success/10 text-success'
                 }`}>
                   {phase.bottleneckRisk >= 80 ? <AlertCircle className="h-3 w-3" /> :
                    phase.bottleneckRisk >= 60 ? <Timer className="h-3 w-3" /> :
@@ -411,7 +411,7 @@ export function PerformanceAnalysis({ className, dateRange }: PerformanceAnalysi
               <p className="text-sm font-medium">Total Phases</p>
               <p className="text-2xl font-bold">{leadTimeData.length}</p>
             </div>
-            <Activity className="h-8 w-8 ml-auto text-blue-500" />
+            <Activity className="h-8 w-8 ml-auto text-primary" />
           </CardContent>
         </Card>
         
@@ -419,9 +419,9 @@ export function PerformanceAnalysis({ className, dateRange }: PerformanceAnalysi
           <CardContent className="flex items-center p-6">
             <div className="space-y-1">
               <p className="text-sm font-medium">Critical Issues</p>
-              <p className="text-2xl font-bold text-red-600">{criticalPhases}</p>
+              <p className="text-2xl font-bold text-destructive">{criticalPhases}</p>
             </div>
-            <AlertCircle className="h-8 w-8 ml-auto text-red-500" />
+            <AlertCircle className="h-8 w-8 ml-auto text-destructive" />
           </CardContent>
         </Card>
         
@@ -429,9 +429,9 @@ export function PerformanceAnalysis({ className, dateRange }: PerformanceAnalysi
           <CardContent className="flex items-center p-6">
             <div className="space-y-1">
               <p className="text-sm font-medium">Needs Attention</p>
-              <p className="text-2xl font-bold text-yellow-600">{warningPhases}</p>
+              <p className="text-2xl font-bold text-warning">{warningPhases}</p>
             </div>
-            <Timer className="h-8 w-8 ml-auto text-yellow-500" />
+            <Timer className="h-8 w-8 ml-auto text-warning" />
           </CardContent>
         </Card>
         
@@ -439,9 +439,9 @@ export function PerformanceAnalysis({ className, dateRange }: PerformanceAnalysi
           <CardContent className="flex items-center p-6">
             <div className="space-y-1">
               <p className="text-sm font-medium">Performing Well</p>
-              <p className="text-2xl font-bold text-green-600">{excellentPhases}</p>
+              <p className="text-2xl font-bold text-success">{excellentPhases}</p>
             </div>
-            <CheckCircle className="h-8 w-8 ml-auto text-green-500" />
+            <CheckCircle className="h-8 w-8 ml-auto text-success" />
           </CardContent>
         </Card>
       </div>

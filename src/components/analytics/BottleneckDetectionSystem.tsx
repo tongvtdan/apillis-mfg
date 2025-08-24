@@ -318,13 +318,13 @@ function BottleneckRecommendation({ bottleneck, actionPlan, onExecuteAction }: B
         {/* Issues Identified */}
         <div className="space-y-2">
           <h4 className="font-medium flex items-center space-x-2">
-            <AlertTriangle className="h-4 w-4 text-orange-500" />
+            <AlertTriangle className="h-4 w-4 text-warning" />
             <span>Issues Identified</span>
           </h4>
           <ul className="text-sm text-muted-foreground space-y-1 ml-6">
             {bottleneck.issues.map((issue, index) => (
               <li key={index} className="flex items-start space-x-2">
-                <span className="text-orange-500">•</span>
+                <span className="text-warning">•</span>
                 <span>{issue}</span>
               </li>
             ))}
@@ -334,12 +334,12 @@ function BottleneckRecommendation({ bottleneck, actionPlan, onExecuteAction }: B
         {/* Immediate Actions */}
         <div className="space-y-3">
           <h4 className="font-medium flex items-center space-x-2">
-            <Zap className="h-4 w-4 text-red-500" />
+            <Zap className="h-4 w-4 text-destructive" />
             <span>Immediate Actions (Today)</span>
           </h4>
           <div className="space-y-2">
             {actionPlan.immediate.map((action, index) => (
-              <div key={index} className="flex items-center justify-between p-3 bg-red-50 rounded-lg">
+              <div key={index} className="flex items-center justify-between p-3 bg-destructive/10 rounded-lg">
                 <span className="text-sm">{action}</span>
                 <Button 
                   size="sm" 
@@ -356,12 +356,12 @@ function BottleneckRecommendation({ bottleneck, actionPlan, onExecuteAction }: B
         {/* Short-term Actions */}
         <div className="space-y-3">
           <h4 className="font-medium flex items-center space-x-2">
-            <Timer className="h-4 w-4 text-yellow-500" />
+            <Timer className="h-4 w-4 text-warning" />
             <span>Short-term Actions (This Week)</span>
           </h4>
           <div className="space-y-2">
             {actionPlan.short_term.map((action, index) => (
-              <div key={index} className="flex items-center justify-between p-3 bg-yellow-50 rounded-lg">
+              <div key={index} className="flex items-center justify-between p-3 bg-warning/10 rounded-lg">
                 <span className="text-sm">{action}</span>
                 <Button 
                   size="sm" 
@@ -376,13 +376,13 @@ function BottleneckRecommendation({ bottleneck, actionPlan, onExecuteAction }: B
         </div>
         
         {/* Resolution Timeline */}
-        <div className="p-4 bg-blue-50 rounded-lg">
+        <div className="p-4 bg-primary/10 rounded-lg">
           <div className="flex items-center justify-between mb-2">
-            <span className="font-medium text-blue-800">Estimated Resolution</span>
-            <span className="text-blue-600">{actionPlan.estimated_resolution_days} days</span>
+            <span className="font-medium text-primary">Estimated Resolution</span>
+            <span className="text-primary">{actionPlan.estimated_resolution_days} days</span>
           </div>
           <Progress value={25} className="h-2" />
-          <div className="text-xs text-blue-600 mt-1">
+          <div className="text-xs text-primary mt-1">
             Required: {actionPlan.required_resources.join(', ')}
           </div>
         </div>
@@ -486,7 +486,7 @@ export function BottleneckDetectionSystem({ className, onProjectAction }: Bottle
               <p className="text-sm font-medium leading-none">Total Projects</p>
               <p className="text-2xl font-bold">{projects.length}</p>
             </div>
-            <Activity className="h-8 w-8 ml-auto text-blue-500" />
+            <Activity className="h-8 w-8 ml-auto text-primary" />
           </CardContent>
         </Card>
         
@@ -494,9 +494,9 @@ export function BottleneckDetectionSystem({ className, onProjectAction }: Bottle
           <CardContent className="flex items-center p-6">
             <div className="space-y-1">
               <p className="text-sm font-medium leading-none">Critical Alerts</p>
-              <p className="text-2xl font-bold text-red-600">{criticalBottlenecks.length}</p>
+              <p className="text-2xl font-bold text-destructive">{criticalBottlenecks.length}</p>
             </div>
-            <AlertTriangle className="h-8 w-8 ml-auto text-red-500" />
+            <AlertTriangle className="h-8 w-8 ml-auto text-destructive" />
           </CardContent>
         </Card>
         
@@ -504,9 +504,9 @@ export function BottleneckDetectionSystem({ className, onProjectAction }: Bottle
           <CardContent className="flex items-center p-6">
             <div className="space-y-1">
               <p className="text-sm font-medium leading-none">Warning Alerts</p>
-              <p className="text-2xl font-bold text-yellow-600">{warningBottlenecks.length}</p>
+              <p className="text-2xl font-bold text-warning">{warningBottlenecks.length}</p>
             </div>
-            <Clock className="h-8 w-8 ml-auto text-yellow-500" />
+            <Clock className="h-8 w-8 ml-auto text-warning" />
           </CardContent>
         </Card>
         
@@ -514,9 +514,9 @@ export function BottleneckDetectionSystem({ className, onProjectAction }: Bottle
           <CardContent className="flex items-center p-6">
             <div className="space-y-1">
               <p className="text-sm font-medium leading-none">On Track</p>
-              <p className="text-2xl font-bold text-green-600">{projects.length - bottlenecks.length}</p>
+              <p className="text-2xl font-bold text-success">{projects.length - bottlenecks.length}</p>
             </div>
-            <CheckCircle className="h-8 w-8 ml-auto text-green-500" />
+            <CheckCircle className="h-8 w-8 ml-auto text-success" />
           </CardContent>
         </Card>
       </div>
@@ -543,7 +543,7 @@ export function BottleneckDetectionSystem({ className, onProjectAction }: Bottle
           ) : bottlenecks.length === 0 ? (
             <Card>
               <CardContent className="text-center py-12">
-                <CheckCircle className="h-16 w-16 mx-auto mb-4 text-green-500" />
+                <CheckCircle className="h-16 w-16 mx-auto mb-4 text-success" />
                 <h3 className="text-lg font-medium mb-2">All Clear!</h3>
                 <p className="text-muted-foreground">
                   No bottlenecks detected. All projects are within SLA thresholds.
@@ -555,12 +555,12 @@ export function BottleneckDetectionSystem({ className, onProjectAction }: Bottle
               {/* Critical Alerts */}
               {criticalBottlenecks.length > 0 && (
                 <div className="space-y-4">
-                  <Alert className="border-red-200 bg-red-50">
+                  <Alert className="border-destructive/20 bg-destructive/10">
                     <AlertTriangle className="h-4 w-4" />
-                    <AlertTitle className="text-red-800">
+                    <AlertTitle className="text-destructive">
                       {criticalBottlenecks.length} Critical Bottleneck{criticalBottlenecks.length > 1 ? 's' : ''} Detected
                     </AlertTitle>
-                    <AlertDescription className="text-red-700">
+                    <AlertDescription className="text-destructive">
                       These projects require immediate attention to prevent further delays.
                     </AlertDescription>
                   </Alert>
@@ -587,12 +587,12 @@ export function BottleneckDetectionSystem({ className, onProjectAction }: Bottle
               {/* Warning Alerts */}
               {warningBottlenecks.length > 0 && (
                 <div className="space-y-4">
-                  <Alert className="border-yellow-200 bg-yellow-50">
+                  <Alert className="border-warning/20 bg-warning/10">
                     <Clock className="h-4 w-4" />
-                    <AlertTitle className="text-yellow-800">
+                    <AlertTitle className="text-warning">
                       {warningBottlenecks.length} Warning{warningBottlenecks.length > 1 ? 's' : ''} 
                     </AlertTitle>
-                    <AlertDescription className="text-yellow-700">
+                    <AlertDescription className="text-warning">
                       These projects are approaching SLA thresholds.
                     </AlertDescription>
                   </Alert>
@@ -649,7 +649,7 @@ export function BottleneckDetectionSystem({ className, onProjectAction }: Bottle
                         <ul className="space-y-1 text-sm">
                           {plan.long_term.map((item, index) => (
                             <li key={index} className="flex items-start space-x-2">
-                              <ArrowRight className="h-3 w-3 mt-1 text-blue-500 flex-shrink-0" />
+                              <ArrowRight className="h-3 w-3 mt-1 text-primary flex-shrink-0" />
                               <span>{item}</span>
                             </li>
                           ))}
