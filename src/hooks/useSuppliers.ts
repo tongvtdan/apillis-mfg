@@ -120,7 +120,7 @@ export function useSuppliers() {
         description: `${data.name} has been added to your supplier list`,
       });
 
-      return data;
+      return mapped;
     } catch (err) {
       console.error('Error in createSupplier:', err);
       toast({

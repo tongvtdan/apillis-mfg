@@ -30,9 +30,6 @@ import { cn } from "@/lib/utils";
 import { format } from "date-fns";
 import { Project } from "@/types/project";
 import { projectService } from "@/services/projectService";
-import { DatabaseDiagnostic } from "@/components/debug/DatabaseDiagnostic";
-import { QuickDatabaseSeeder } from "@/components/debug/QuickDatabaseSeeder";
-import { ProjectLoadTest } from "@/components/debug/ProjectLoadTest";
 // import { DataSourceIndicator } from "@/components/debug/DataSourceIndicator";
 // import { ProjectServiceTest } from "@/components/debug/ProjectServiceTest";
 
@@ -170,12 +167,12 @@ export default function ProjectDetail() {
               </CardContent>
             </Card>
 
-            {/* Debug components temporarily disabled */}
-            {/* <DataSourceIndicator showControls={true} />
-            <ProjectServiceTest /> */}
+            {/* Debug components temporarily disabled - components not found */}
+            {/*
             <DatabaseDiagnostic />
             <QuickDatabaseSeeder />
             <ProjectLoadTest />
+            */}
 
             <Card>
               <CardHeader>

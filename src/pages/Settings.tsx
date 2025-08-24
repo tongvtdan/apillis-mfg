@@ -3,8 +3,6 @@ import { useAuth } from "@/contexts/AuthContext";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Badge } from "@/components/ui/badge";
-import { DatabaseSeeder } from "@/components/dev/DatabaseSeeder";
-import EmergencyDatabaseSeeder from "@/components/dev/EmergencyDatabaseSeeder";
 import { ThemeToggle } from "@/components/theme/ThemeToggle";
 import {
     Settings as SettingsIcon,
@@ -238,13 +236,10 @@ export default function Settings() {
                                     </div>
 
                                     <div className="space-y-6">
-                                        <h3 className="text-lg font-medium mb-4">Emergency Database Tools</h3>
-                                        <EmergencyDatabaseSeeder />
-                                    </div>
-
-                                    <div className="mt-8 pt-6 border-t">
-                                        <h3 className="text-lg font-medium mb-4">Sample Data Generation</h3>
-                                        <DatabaseSeeder />
+                                        <h3 className="text-lg font-medium mb-4">Development Tools</h3>
+                                        <p className="text-sm text-muted-foreground">
+                                            Development tools will be available in a future update.
+                                        </p>
                                     </div>
                                 </div>
                             </CardContent>

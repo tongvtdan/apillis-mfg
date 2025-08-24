@@ -1,5 +1,5 @@
 import { Project } from '@/types/project';
-import { getMockProjectById, getAllMockProjects } from '@/data/mockProjects';
+// Mock project data removed - using database only
 
 // Environment flag to control data source
 const USE_MOCK_DATA = process.env.NODE_ENV === 'development' || process.env.REACT_APP_USE_MOCK_DATA === 'true';
@@ -57,7 +57,7 @@ class ProjectService {
 
         // If forced to use mock data or in mock mode
         if (forceMock || this.useMockData) {
-            return getAllMockProjects();
+            return [];
         }
 
         // Try Supabase first with timeout
@@ -66,8 +66,8 @@ class ProjectService {
             console.log(`✅ ProjectService: Successfully fetched ${supabaseProjects.length} projects from Supabase`);
             return supabaseProjects;
         } catch (error) {
-            console.warn('⚠️ ProjectService: Supabase failed, falling back to mock data:', error);
-            return getAllMockProjects();
+            console.warn('⚠️ ProjectService: Supabase failed, falling back to empty array:', error);
+            return [];
         }
     }
 
@@ -91,12 +91,7 @@ class ProjectService {
 
     // Private method to get mock project
     private getMockProject(id: string): Project {
-        const project = getMockProjectById(id);
-        if (!project) {
-            throw new Error(`Mock project with ID "${id}" not found. Available IDs: ${getAllMockProjects().map(p => p.id).join(', ')}`);
-        }
-        console.log(`✅ ProjectService: Found mock project ${project.project_id}`);
-        return project;
+        throw new Error(`Mock project with ID "${id}" not found - mock data not available`);
     }
 
     // Private method to get Supabase project with timeout

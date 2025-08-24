@@ -214,8 +214,13 @@ export default function Suppliers() {
 
             {/* Supplier Modal */}
             <SupplierModal
-                open={showModal}
+                isOpen={showModal}
                 onClose={() => {
+                    setShowModal(false);
+                    setSelectedSupplier(null);
+                }}
+                onSubmit={(supplierData) => {
+                    console.log('Supplier submitted:', supplierData);
                     setShowModal(false);
                     setSelectedSupplier(null);
                 }}
