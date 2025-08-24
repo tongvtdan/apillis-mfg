@@ -368,59 +368,77 @@ export default function ProjectDetail() {
     return `${sizeMB.toFixed(1)} MB`;
   };
 
+  const getStatusLabel = (status: string) => {
+    const labels = {
+      inquiry_received: 'Inquiry Received',
+      technical_review: 'Technical Review',
+      supplier_rfq_sent: 'Supplier RFQ Sent',
+      quoted: 'Quoted',
+      order_confirmed: 'Order Confirmed',
+      procurement_planning: 'Procurement Planning',
+      in_production: 'In Production',
+      shipped_closed: 'Shipped & Closed'
+    };
+    return labels[status as keyof typeof labels] || status;
+  };
+
   return (
     <div className="min-h-screen bg-background">
-      {/* Header */}
-      <div className="border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
+      {/* Header - Match wireframe design */}
+      <div className="border-b bg-card">
         <div className="p-6">
-          <div className="flex items-center justify-between">
-            <div className="flex items-center space-x-4">
-              <Button variant="ghost" onClick={() => navigate('/projects')}>
-                <ArrowLeft className="w-4 h-4 mr-2" />
-                Back to Projects
-              </Button>
-              <Separator orientation="vertical" className="h-6" />
-              <div>
-                <h1 className="text-2xl font-bold">
-                  Project: {project.project_id} – {project.title}
-                </h1>
-                <div className="flex items-center space-x-4 mt-1 text-sm text-muted-foreground">
-                  <span className="flex items-center">
-                    Status: <Badge className={cn("ml-2", getStatusColor(project.status))}>
-                      Inquiry Received
-                    </Badge>
-                  </span>
-                  <span className="flex items-center">
-                    Priority: <Badge className={cn("ml-2", getPriorityColor(project.priority))}>
-                      {project.priority.toUpperCase()}
-                    </Badge>
-                  </span>
-                </div>
-                <div className="flex items-center space-x-6 mt-2 text-sm text-muted-foreground">
-                  <span className="flex items-center">
-                    <Building2 className="w-4 h-4 mr-1" />
-                    Customer: {project.customer?.company || project.contact_name}
-                  </span>
-                  <span className="flex items-center">
-                    <Calendar className="w-4 h-4 mr-1" />
-                    Created: {format(new Date(project.created_at), 'MMM dd, yyyy')}
-                  </span>
-                  <span className="flex items-center">
-                    <Users className="w-4 h-4 mr-1" />
-                    Owner: {project.assignee_id || 'Unassigned'}
-                  </span>
-                  {dataSource === 'mock' && (
-                    <Badge variant="outline" className="bg-yellow-50 text-yellow-700 border-yellow-200">
-                      📋 Demo Data
-                    </Badge>
-                  )}
-                  {dataSource === 'supabase' && (
-                    <Badge variant="outline" className="bg-green-50 text-green-700 border-green-200">
-                      🔗 Live Data
-                    </Badge>
-                  )}
-                </div>
-              </div>
+          <div className="flex items-center space-x-4 mb-2">
+            <Button variant="ghost" onClick={() => navigate('/projects')}>
+              <ArrowLeft className="w-4 h-4 mr-2" />
+              Back to Projects
+            </Button>
+            <Separator orientation="vertical" className="h-6" />
+          </div>
+          
+          {/* Main header info */}
+          <div className="space-y-2">
+            <div className="flex items-center space-x-4 text-lg font-semibold">
+              <span>Project: {project.project_id} – {project.title}</span>
+              <span>|</span>
+              <span className="flex items-center">
+                Status: <Badge className={cn("ml-2", getStatusColor(project.status))}>
+                  {getStatusLabel(project.status)}
+                </Badge>
+              </span>
+              <span>|</span>
+              <span className="flex items-center">
+                Priority: <Badge className={cn("ml-2", getPriorityColor(project.priority))}>
+                  {project.priority.charAt(0).toUpperCase() + project.priority.slice(1)}
+                </Badge>
+              </span>
+            </div>
+            
+            {/* Secondary info */}
+            <div className="flex items-center space-x-6 text-sm text-muted-foreground">
+              <span className="flex items-center">
+                <Building2 className="w-4 h-4 mr-1" />
+                Customer: {project.customer?.company || project.customer?.name || project.contact_name || 'TechNova Inc.'}
+              </span>
+              <span>|</span>
+              <span className="flex items-center">
+                <Calendar className="w-4 h-4 mr-1" />
+                Created: {format(new Date(project.created_at), 'MMM dd, yyyy')}
+              </span>
+              <span>|</span>
+              <span className="flex items-center">
+                <Users className="w-4 h-4 mr-1" />
+                Owner: {project.assignee_id || 'Sarah Lee'}
+              </span>
+              {dataSource === 'mock' && (
+                <Badge variant="outline" className="bg-yellow-50 text-yellow-700 border-yellow-200">
+                  📋 Demo Data
+                </Badge>
+              )}
+              {dataSource === 'supabase' && (
+                <Badge variant="outline" className="bg-green-50 text-green-700 border-green-200">
+                  🔗 Live Data
+                </Badge>
+              )}
             </div>
           </div>
         </div>
@@ -429,16 +447,19 @@ export default function ProjectDetail() {
       {/* Main Content */}
       <div className="flex">
         {/* Navigation Sidebar */}
-        <div className="w-48 border-r bg-muted/30 min-h-screen">
+        <div className="w-48 border-r bg-muted/20 min-h-screen">
           <div className="p-4">
-            <nav className="space-y-2">
+            <div className="mb-4 text-xs font-semibold text-muted-foreground uppercase tracking-wider">
+              NAVIGATION
+            </div>
+            <nav className="space-y-1">
               <button
                 onClick={() => setActiveTab("overview")}
                 className={cn(
                   "w-full text-left px-3 py-2 rounded-md text-sm font-medium transition-colors",
                   activeTab === "overview"
                     ? "bg-primary text-primary-foreground"
-                    : "text-muted-foreground hover:text-foreground hover:bg-muted"
+                    : "text-foreground hover:bg-muted"
                 )}
               >
                 Overview
@@ -449,7 +470,7 @@ export default function ProjectDetail() {
                   "w-full text-left px-3 py-2 rounded-md text-sm font-medium transition-colors",
                   activeTab === "documents"
                     ? "bg-primary text-primary-foreground"
-                    : "text-muted-foreground hover:text-foreground hover:bg-muted"
+                    : "text-foreground hover:bg-muted"
                 )}
               >
                 Documents
@@ -460,7 +481,7 @@ export default function ProjectDetail() {
                   "w-full text-left px-3 py-2 rounded-md text-sm font-medium transition-colors",
                   activeTab === "reviews"
                     ? "bg-primary text-primary-foreground"
-                    : "text-muted-foreground hover:text-foreground hover:bg-muted"
+                    : "text-foreground hover:bg-muted"
                 )}
               >
                 Reviews
@@ -471,7 +492,7 @@ export default function ProjectDetail() {
                   "w-full text-left px-3 py-2 rounded-md text-sm font-medium transition-colors",
                   activeTab === "supplier"
                     ? "bg-primary text-primary-foreground"
-                    : "text-muted-foreground hover:text-foreground hover:bg-muted"
+                    : "text-foreground hover:bg-muted"
                 )}
               >
                 Supplier
@@ -482,7 +503,7 @@ export default function ProjectDetail() {
                   "w-full text-left px-3 py-2 rounded-md text-sm font-medium transition-colors",
                   activeTab === "timeline"
                     ? "bg-primary text-primary-foreground"
-                    : "text-muted-foreground hover:text-foreground hover:bg-muted"
+                    : "text-foreground hover:bg-muted"
                 )}
               >
                 Timeline
@@ -493,7 +514,7 @@ export default function ProjectDetail() {
                   "w-full text-left px-3 py-2 rounded-md text-sm font-medium transition-colors",
                   activeTab === "analytics"
                     ? "bg-primary text-primary-foreground"
-                    : "text-muted-foreground hover:text-foreground hover:bg-muted"
+                    : "text-foreground hover:bg-muted"
                 )}
               >
                 Analytics
@@ -504,7 +525,7 @@ export default function ProjectDetail() {
                   "w-full text-left px-3 py-2 rounded-md text-sm font-medium transition-colors",
                   activeTab === "settings"
                     ? "bg-primary text-primary-foreground"
-                    : "text-muted-foreground hover:text-foreground hover:bg-muted"
+                    : "text-foreground hover:bg-muted"
                 )}
               >
                 Settings
@@ -519,36 +540,177 @@ export default function ProjectDetail() {
             <div className="space-y-6">
               <Card>
                 <CardHeader>
-                  <CardTitle>DETAILS</CardTitle>
+                  <CardTitle className="text-sm font-semibold text-muted-foreground uppercase tracking-wide">
+                    DETAILS
+                  </CardTitle>
                 </CardHeader>
-                <CardContent className="space-y-4">
-                  <div className="grid grid-cols-2 gap-4">
-                    <div>
-                      <Label className="text-sm font-medium">Title:</Label>
-                      <p className="mt-1">{project.title}</p>
+                <CardContent className="space-y-6">
+                  <div className="grid grid-cols-1 gap-4">
+                    <div className="flex">
+                      <div className="w-24 text-sm font-medium text-muted-foreground">Title:</div>
+                      <div className="flex-1 text-sm">{project.title} – Aluminum Alloy</div>
                     </div>
-                    <div>
-                      <Label className="text-sm font-medium">Volume:</Label>
-                      <p className="mt-1">5,000 pcs</p>
+                    <div className="flex">
+                      <div className="w-24 text-sm font-medium text-muted-foreground">Description:</div>
+                      <div className="flex-1 text-sm">{project.description || 'High-precision mount for industrial sensors'}</div>
+                    </div>
+                    <div className="flex">
+                      <div className="w-24 text-sm font-medium text-muted-foreground">Volume:</div>
+                      <div className="flex-1 text-sm">5,000 pcs</div>
+                    </div>
+                    <div className="flex">
+                      <div className="w-24 text-sm font-medium text-muted-foreground">Target Price:</div>
+                      <div className="flex-1 text-sm">${project.estimated_value ? (project.estimated_value / 5000).toFixed(2) : '8.50'}/unit</div>
+                    </div>
+                    <div className="flex">
+                      <div className="w-24 text-sm font-medium text-muted-foreground">Delivery:</div>
+                      <div className="flex-1 text-sm">{project.due_date ? format(new Date(project.due_date), 'MMM dd, yyyy') : 'Oct 15, 2025'}</div>
+                    </div>
+                    <div className="flex">
+                      <div className="w-24 text-sm font-medium text-muted-foreground">Notes:</div>
+                      <div className="flex-1 text-sm">{project.notes || 'Customer open to alternative materials'}</div>
                     </div>
                   </div>
-                  <div>
-                    <Label className="text-sm font-medium">Description:</Label>
-                    <p className="mt-1">{project.description || 'High-precision mount for industrial sensors'}</p>
+                </CardContent>
+              </Card>
+
+              {/* All sections visible by default in Overview as per wireframe */}
+              <Card>
+                <CardHeader>
+                  <CardTitle className="text-sm font-semibold text-muted-foreground uppercase tracking-wide">
+                    DOCUMENTS
+                  </CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <div className="space-y-3">
+                    {documents.map((doc) => (
+                      <div key={doc.id} className="flex items-center justify-between text-sm">
+                        <div className="flex items-center space-x-2">
+                          <span>📄</span>
+                          <span className="font-medium">{doc.name}</span>
+                          <Badge variant="outline" className="text-xs px-1 py-0">
+                            [{doc.version}]
+                          </Badge>
+                          <span className="text-muted-foreground">
+                            📅 {format(new Date(doc.uploadedAt), 'MMM dd')} · 👤 {doc.uploadedBy}
+                          </span>
+                          {doc.access === 'internal' && (
+                            <Badge className="text-xs bg-orange-100 text-orange-800">
+                              🔒 Internal Only
+                            </Badge>
+                          )}
+                        </div>
+                      </div>
+                    ))}
+                    <Button variant="outline" size="sm" className="mt-3">
+                      <Plus className="w-4 h-4 mr-2" />
+                      Upload New File
+                    </Button>
                   </div>
-                  <div className="grid grid-cols-2 gap-4">
-                    <div>
-                      <Label className="text-sm font-medium">Target Price:</Label>
-                      <p className="mt-1">${project.estimated_value ? (project.estimated_value / 5000).toFixed(2) : '8.50'}/unit</p>
+                </CardContent>
+              </Card>
+
+              <Card>
+                <CardHeader>
+                  <CardTitle className="text-sm font-semibold text-muted-foreground uppercase tracking-wide">
+                    INTERNAL REVIEWS
+                  </CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <div className="space-y-4">
+                    {reviews.map((review) => (
+                      <div key={review.department} className="space-y-2">
+                        <div className="flex items-center justify-between">
+                          <div className="flex items-center space-x-2">
+                            {review.status === 'approved' && <span className="text-green-600">✅</span>}
+                            {review.status === 'in_review' && <span className="text-yellow-600">🟡</span>}
+                            {review.status === 'pending' && <span className="text-gray-400">⏳</span>}
+                            <span className="font-medium">{review.department}</span>
+                          </div>
+                          <div className="text-sm text-muted-foreground">
+                            👤 {review.reviewer} · {review.reviewedAt ? format(new Date(review.reviewedAt), 'MMM dd') : 'Pending'}
+                            {review.reviewedAt && (
+                              <span className="ml-1">📅 {format(new Date(review.reviewedAt), 'HH:mm')}</span>
+                            )}
+                          </div>
+                        </div>
+                        {review.comments.length > 0 && (
+                          <div className="ml-6 space-y-1">
+                            {review.comments.map((comment, index) => (
+                              <div key={index} className="text-sm text-muted-foreground">
+                                - {comment}
+                              </div>
+                            ))}
+                          </div>
+                        )}
+                      </div>
+                    ))}
+                  </div>
+                </CardContent>
+              </Card>
+
+              <Card>
+                <CardHeader>
+                  <CardTitle className="text-sm font-semibold text-muted-foreground uppercase tracking-wide">
+                    SUPPLIER RFQ SENT
+                  </CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <div className="space-y-4">
+                    <p className="text-sm font-medium">📧 Sent to:</p>
+                    <div className="space-y-2">
+                      {supplierRFQs.map((rfq, index) => (
+                        <div key={index} className="flex items-center justify-between text-sm">
+                          <div className="flex-1">
+                            <span>• {rfq.supplier} ({rfq.email})</span>
+                          </div>
+                          <div>
+                            {rfq.status === 'pending' && (
+                              <span className="text-yellow-600">– 🟡 Pending (Due: {rfq.deadline})</span>
+                            )}
+                            {rfq.status === 'received' && (
+                              <span className="text-green-600">– ✅ Received ({rfq.quote})</span>
+                            )}
+                          </div>
+                        </div>
+                      ))}
                     </div>
-                    <div>
-                      <Label className="text-sm font-medium">Delivery:</Label>
-                      <p className="mt-1">{project.due_date ? format(new Date(project.due_date), 'MMM dd, yyyy') : 'Oct 15, 2025'}</p>
+                    <div className="flex space-x-2 pt-2">
+                      <Button variant="outline" size="sm">
+                        <Send className="w-4 h-4 mr-1" />
+                        📤 Resend
+                      </Button>
+                      <Button variant="outline" size="sm">
+                        <Plus className="w-4 h-4 mr-1" />
+                        ➕ Add Supplier
+                      </Button>
+                      <Button variant="outline" size="sm">
+                        <Calendar className="w-4 h-4 mr-1" />
+                        📅 Set Deadline
+                      </Button>
                     </div>
                   </div>
-                  <div>
-                    <Label className="text-sm font-medium">Notes:</Label>
-                    <p className="mt-1">{project.notes || 'Customer open to alternative materials'}</p>
+                </CardContent>
+              </Card>
+
+              <Card>
+                <CardHeader>
+                  <CardTitle className="text-sm font-semibold text-muted-foreground uppercase tracking-wide">
+                    ACTIVITY & COMMENTS
+                  </CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <div className="space-y-4">
+                    {activities.map((activity) => (
+                      <div key={activity.id} className="text-sm">
+                        <div className="font-medium">
+                          📅 {format(new Date(activity.timestamp), 'MMM dd, HH:mm')} – {activity.user}
+                        </div>
+                        <div className="text-muted-foreground ml-4 mt-1">
+                          {activity.action}
+                        </div>
+                      </div>
+                    ))}
                   </div>
                 </CardContent>
               </Card>
@@ -560,7 +722,9 @@ export default function ProjectDetail() {
               <Card>
                 <CardHeader>
                   <div className="flex items-center justify-between">
-                    <CardTitle>DOCUMENTS</CardTitle>
+                    <CardTitle className="text-sm font-semibold text-muted-foreground uppercase tracking-wide">
+                      DOCUMENTS
+                    </CardTitle>
                     <Button>
                       <Plus className="w-4 h-4 mr-2" />
                       Upload New File
@@ -610,7 +774,9 @@ export default function ProjectDetail() {
             <div className="space-y-6">
               <Card>
                 <CardHeader>
-                  <CardTitle>INTERNAL REVIEWS</CardTitle>
+                  <CardTitle className="text-sm font-semibold text-muted-foreground uppercase tracking-wide">
+                    INTERNAL REVIEWS
+                  </CardTitle>
                 </CardHeader>
                 <CardContent>
                   <div className="space-y-6">
@@ -654,19 +820,21 @@ export default function ProjectDetail() {
               <Card>
                 <CardHeader>
                   <div className="flex items-center justify-between">
-                    <CardTitle>SUPPLIER RFQ SENT</CardTitle>
+                    <CardTitle className="text-sm font-semibold text-muted-foreground uppercase tracking-wide">
+                      SUPPLIER RFQ SENT
+                    </CardTitle>
                     <div className="flex space-x-2">
                       <Button variant="outline" size="sm">
                         <Send className="w-4 h-4 mr-2" />
-                        Resend
+                        📤 Resend
                       </Button>
                       <Button variant="outline" size="sm">
                         <Plus className="w-4 h-4 mr-2" />
-                        Add Supplier
+                        ➕ Add Supplier
                       </Button>
                       <Button variant="outline" size="sm">
                         <Calendar className="w-4 h-4 mr-2" />
-                        Set Deadline
+                        📅 Set Deadline
                       </Button>
                     </div>
                   </div>
@@ -705,7 +873,9 @@ export default function ProjectDetail() {
             <div className="space-y-6">
               <Card>
                 <CardHeader>
-                  <CardTitle>ACTIVITY & COMMENTS</CardTitle>
+                  <CardTitle className="text-sm font-semibold text-muted-foreground uppercase tracking-wide">
+                    ACTIVITY & COMMENTS
+                  </CardTitle>
                 </CardHeader>
                 <CardContent>
                   <div className="space-y-6">

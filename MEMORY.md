@@ -4,15 +4,16 @@ This file contains important changes and updates made to the project.
 
 - Date: 2025-08-24 (Latest)
 - What we completed / changed:
-1. **Fixed Project Detail Navigation**: Fixed "View Details" buttons in Project page views by adding proper activation constraints to drag-and-drop PointerSensor in ProjectTypeKanban component
-2. **Fixed Project Service**: Updated projectService.ts to use Supabase exclusively, removing broken mock data fallbacks that were causing "Mock project not found" errors
-3. **Fixed Project Detail Pages**: Project detail pages now properly load project data from Supabase database instead of failing on mock data
-4. **Improved Navigation**: Ensured all "View Details" buttons properly navigate to project detail pages using React Router without full page reloads
-5. **Fixed Drag-and-Drop Interference**: Added distance-based activation constraint (8px) to prevent drag-and-drop from interfering with button clicks
-6. **Fixed Build Errors**: Added missing chart.js dependencies and removed non-existent debug component imports
-7. **Cleaned Up Modal Props**: Fixed SupplierModal prop mismatches and updated all navigation to use consistent React Router patterns
-8. **Database Integration**: Forced projectService to use Supabase mode only, eliminating development/mock mode confusion
-9. **Error Handling**: Improved error messages when projects are not found, providing clearer feedback to users
+1. **Updated Project Detail Page Layout**: Redesigned ProjectDetail.tsx to match the wireframe design from docs/text-based-figma-wireframe-pack.md Screen 3
+2. **Improved Header Design**: Updated header to show project info, status, priority, customer, created date, and owner in wireframe format with proper styling
+3. **Enhanced Navigation Sidebar**: Improved left navigation with "NAVIGATION" label and better visual hierarchy
+4. **Restructured Overview Tab**: Changed overview to show all sections (Details, Documents, Reviews, Supplier RFQ, Activity) in wireframe layout format
+5. **Consistent Section Headers**: Added uppercase, tracked section headers matching wireframe design
+6. **Better Content Layout**: Improved spacing and layout of all content sections to match wireframe specifications
+7. **Enhanced Status Display**: Added proper status labels and improved badge styling for better visual hierarchy
+8. **Fixed Project Detail Navigation**: Fixed "View Details" buttons in Project page views by adding proper activation constraints to drag-and-drop PointerSensor in ProjectTypeKanban component
+9. **Fixed Project Service**: Updated projectService.ts to use Supabase exclusively, removing broken mock data fallbacks that were causing "Mock project not found" errors
+10. **Fixed Project Detail Pages**: Project detail pages now properly load project data from Supabase database instead of failing on mock data
 
 - Date: 2025-08-24
 - What we completed / changed:
