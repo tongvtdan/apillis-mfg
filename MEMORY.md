@@ -4,16 +4,16 @@ This file contains important changes and updates made to the project.
 
 - Date: 2025-08-24 (Latest)
 - What we completed / changed:
-1. **Updated Project Detail Page Layout**: Redesigned ProjectDetail.tsx to match the wireframe design from docs/text-based-figma-wireframe-pack.md Screen 3
-2. **Improved Header Design**: Updated header to show project info, status, priority, customer, created date, and owner in wireframe format with proper styling
-3. **Enhanced Navigation Sidebar**: Improved left navigation with "NAVIGATION" label and better visual hierarchy
-4. **Restructured Overview Tab**: Changed overview to show all sections (Details, Documents, Reviews, Supplier RFQ, Activity) in wireframe layout format
-5. **Consistent Section Headers**: Added uppercase, tracked section headers matching wireframe design
-6. **Better Content Layout**: Improved spacing and layout of all content sections to match wireframe specifications
-7. **Enhanced Status Display**: Added proper status labels and improved badge styling for better visual hierarchy
-8. **Fixed Project Detail Navigation**: Fixed "View Details" buttons in Project page views by adding proper activation constraints to drag-and-drop PointerSensor in ProjectTypeKanban component
-9. **Fixed Project Service**: Updated projectService.ts to use Supabase exclusively, removing broken mock data fallbacks that were causing "Mock project not found" errors
-10. **Fixed Project Detail Pages**: Project detail pages now properly load project data from Supabase database instead of failing on mock data
+1. **Fixed Project Detail Routing**: Updated App.tsx routing to use the updated ProjectDetail component instead of ProjectDetailSimple for /project/:id route
+2. **Cleaned Up Routing**: Removed duplicate /project-full/:id route since both were pointing to the same ProjectDetail component
+3. **Removed Unused Import**: Removed ProjectDetailSimple import from App.tsx since it's no longer used in routing
+4. **Updated Project Detail Page Layout**: Redesigned ProjectDetail.tsx to match the wireframe design from docs/text-based-figma-wireframe-pack.md Screen 3
+5. **Improved Header Design**: Updated header to show project info, status, priority, customer, created date, and owner in wireframe format with proper styling
+6. **Enhanced Navigation Sidebar**: Improved left navigation with "NAVIGATION" label and better visual hierarchy
+7. **Restructured Overview Tab**: Changed overview to show all sections (Details, Documents, Reviews, Supplier RFQ, Activity) in wireframe layout format
+8. **Consistent Section Headers**: Added uppercase, tracked section headers matching wireframe design
+9. **Better Content Layout**: Improved spacing and layout of all content sections to match wireframe specifications
+10. **Enhanced Status Display**: Added proper status labels and improved badge styling for better visual hierarchy
 
 - Date: 2025-08-24
 - What we completed / changed:
