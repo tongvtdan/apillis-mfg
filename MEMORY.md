@@ -4,14 +4,15 @@ This file contains important changes and updates made to the project.
 
 - Date: 2025-08-24 (Latest)
 - What we completed / changed:
-1. **Fixed Project Service**: Updated projectService.ts to use Supabase exclusively, removing broken mock data fallbacks that were causing "Mock project not found" errors
-2. **Fixed Project Detail Pages**: Project detail pages now properly load project data from Supabase database instead of failing on mock data
-3. **Improved Navigation**: Ensured all "View Details" buttons properly navigate to project detail pages using React Router
-4. **Fixed Build Errors**: Added missing chart.js dependencies and removed non-existent debug component imports
-5. **Cleaned Up Modal Props**: Fixed SupplierModal prop mismatches and updated all navigation to use consistent React Router patterns
-6. **Database Integration**: Forced projectService to use Supabase mode only, eliminating development/mock mode confusion
-7. **Error Handling**: Improved error messages when projects are not found, providing clearer feedback to users
-8. **Code Cleanup**: Removed references to deleted mock data files and ensured all TypeScript errors are resolved
+1. **Fixed Project Detail Navigation**: Fixed "View Details" buttons in Project page views by adding proper activation constraints to drag-and-drop PointerSensor in ProjectTypeKanban component
+2. **Fixed Project Service**: Updated projectService.ts to use Supabase exclusively, removing broken mock data fallbacks that were causing "Mock project not found" errors
+3. **Fixed Project Detail Pages**: Project detail pages now properly load project data from Supabase database instead of failing on mock data
+4. **Improved Navigation**: Ensured all "View Details" buttons properly navigate to project detail pages using React Router without full page reloads
+5. **Fixed Drag-and-Drop Interference**: Added distance-based activation constraint (8px) to prevent drag-and-drop from interfering with button clicks
+6. **Fixed Build Errors**: Added missing chart.js dependencies and removed non-existent debug component imports
+7. **Cleaned Up Modal Props**: Fixed SupplierModal prop mismatches and updated all navigation to use consistent React Router patterns
+8. **Database Integration**: Forced projectService to use Supabase mode only, eliminating development/mock mode confusion
+9. **Error Handling**: Improved error messages when projects are not found, providing clearer feedback to users
 
 - Date: 2025-08-24
 - What we completed / changed:

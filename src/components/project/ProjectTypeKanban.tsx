@@ -222,7 +222,11 @@ export function ProjectTypeKanban({ projects, onUpdateProject }: ProjectTypeKanb
   }, [projects]);
 
   const sensors = useSensors(
-    useSensor(PointerSensor),
+    useSensor(PointerSensor, {
+      activationConstraint: {
+        distance: 8, // Require 8px of movement before starting drag
+      },
+    }),
     useSensor(KeyboardSensor, {
       coordinateGetter: sortableKeyboardCoordinates,
     })
