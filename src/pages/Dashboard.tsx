@@ -1,12 +1,13 @@
 import { useState, useMemo } from "react";
 import { useNavigate } from "react-router-dom";
-import { WorkflowKanban } from "@/components/dashboard/WorkflowKanban";
 import { RecentActivities } from "@/components/dashboard/RecentActivities";
 import { PendingTasks } from "@/components/dashboard/PendingTasks";
 import { SearchFilterBar } from "@/components/dashboard/SearchFilterBar";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { useProjects } from "@/hooks/useProjects";
+import { useCustomers } from "@/hooks/useCustomers";
+import { useSuppliers } from "@/hooks/useSuppliers";
 import { useAuth } from "@/contexts/AuthContext";
 import {
   FileText,
@@ -18,13 +19,21 @@ import {
   Bell,
   Calendar,
   Building2,
-  Paperclip
+  Paperclip,
+  FolderOpen,
+  Truck,
+  ShoppingCart,
+  Package,
+  Factory
 } from "lucide-react";
 import { Project } from "@/types/project";
 
 export default function Dashboard() {
   const { projects, loading } = useProjects();
+  const { customers } = useCustomers();
+  const { suppliers } = useSuppliers();
   const { profile } = useAuth();
+  const navigate = useNavigate();
 
   // Search and filter states
   const [searchQuery, setSearchQuery] = useState("");
@@ -130,6 +139,76 @@ export default function Dashboard() {
     return urgentProjects;
   }, [filteredProjects]);
 
+  // Overview data calculations
+  const overviewData = [
+    {
+      title: "Projects",
+      count: projects.length,
+      activeCount: activeProjects,
+      description: `${activeProjects} active projects`,
+      icon: FolderOpen,
+      route: "/projects",
+      color: "text-blue-600",
+      bgColor: "bg-blue-50",
+      borderColor: "border-blue-200"
+    },
+    {
+      title: "Customers",
+      count: customers?.length || 0,
+      activeCount: customers?.filter(c => c.name).length || 0,
+      description: `${customers?.length || 0} total customers`,
+      icon: Users,
+      route: "/customers",
+      color: "text-green-600",
+      bgColor: "bg-green-50",
+      borderColor: "border-green-200"
+    },
+    {
+      title: "Suppliers",
+      count: suppliers?.length || 0,
+      activeCount: suppliers?.filter(s => s.is_active).length || 0,
+      description: `${suppliers?.filter(s => s.is_active).length || 0} active suppliers`,
+      icon: Truck,
+      route: "/suppliers",
+      color: "text-purple-600",
+      bgColor: "bg-purple-50",
+      borderColor: "border-purple-200"
+    },
+    {
+      title: "Purchase Orders",
+      count: 24, // Mock data - in real app would come from PO service
+      activeCount: 8,
+      description: "8 pending orders",
+      icon: ShoppingCart,
+      route: "/purchase-orders",
+      color: "text-orange-600",
+      bgColor: "bg-orange-50",
+      borderColor: "border-orange-200"
+    },
+    {
+      title: "Inventory",
+      count: 156, // Mock data - in real app would come from inventory service
+      activeCount: 12,
+      description: "12 low stock items",
+      icon: Package,
+      route: "/inventory",
+      color: "text-indigo-600",
+      bgColor: "bg-indigo-50",
+      borderColor: "border-indigo-200"
+    },
+    {
+      title: "Production",
+      count: 8, // Mock data - in real app would come from production service
+      activeCount: 3,
+      description: "3 in production",
+      icon: Factory,
+      route: "/production",
+      color: "text-teal-600",
+      bgColor: "bg-teal-50",
+      borderColor: "border-teal-200"
+    }
+  ];
+
   // Sample notification count - in real app this would come from a notifications service
   const notificationCount = 3;
 
@@ -201,49 +280,125 @@ export default function Dashboard() {
           </div>
         </div>
 
-        {/* Main Content Grid */}
-        <div className="mt-8 grid grid-cols-1 lg:grid-cols-4 gap-6">
-          {/* Kanban Board - Takes up 3 columns */}
-          <div className="lg:col-span-3">
-            <WorkflowKanban filteredProjects={filteredProjects} />
+        {/* Overview Cards */}
+        <div className="mt-8">
+          <div className="mb-6">
+            <h2 className="text-lg font-semibold text-foreground flex items-center gap-2">
+              <TrendingUp className="h-5 w-5 text-blue-500" />
+              Overview
+            </h2>
+            <p className="text-sm text-muted-foreground mt-1">
+              Quick overview of projects, customers, suppliers, and operations
+            </p>
           </div>
-
-          {/* Sidebar - Takes up 1 column */}
-          <div className="space-y-6">
-            {/* Quick Stats */}
-            <Card>
-              <CardHeader className="pb-3">
-                <CardTitle className="text-base">Quick Stats</CardTitle>
-              </CardHeader>
-              <CardContent className="space-y-3">
-                <div className="flex items-center justify-between">
-                  <span className="text-sm text-muted-foreground">Active Projects</span>
-                  <Badge variant="outline">{activeProjects}</Badge>
-                </div>
-                <div className="flex items-center justify-between">
-                  <span className="text-sm text-muted-foreground">High Priority</span>
-                  <Badge variant={highPriorityProjects > 0 ? "destructive" : "outline"}>
-                    {highPriorityProjects}
-                  </Badge>
-                </div>
-                <div className="flex items-center justify-between">
-                  <span className="text-sm text-muted-foreground">Overdue</span>
-                  <Badge variant={overdueProjects > 0 ? "destructive" : "outline"}>
-                    {overdueProjects}
-                  </Badge>
-                </div>
-              </CardContent>
-            </Card>
-
-            {/* Pending Tasks */}
-            <PendingTasks />
-
-            {/* Recent Activities */}
-            <RecentActivities />
+          
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mb-8">
+            {overviewData.map((item) => (
+              <OverviewCard
+                key={item.title}
+                title={item.title}
+                count={item.count}
+                activeCount={item.activeCount}
+                description={item.description}
+                icon={item.icon}
+                route={item.route}
+                color={item.color}
+                bgColor={item.bgColor}
+                borderColor={item.borderColor}
+                onClick={() => navigate(item.route)}
+              />
+            ))}
           </div>
+        </div>
+
+        {/* Stats & Activities Grid */}
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+          {/* Quick Stats */}
+          <Card>
+            <CardHeader className="pb-3">
+              <CardTitle className="text-base">Quick Stats</CardTitle>
+            </CardHeader>
+            <CardContent className="space-y-3">
+              <div className="flex items-center justify-between">
+                <span className="text-sm text-muted-foreground">Active Projects</span>
+                <Badge variant="outline">{activeProjects}</Badge>
+              </div>
+              <div className="flex items-center justify-between">
+                <span className="text-sm text-muted-foreground">High Priority</span>
+                <Badge variant={highPriorityProjects > 0 ? "destructive" : "outline"}>
+                  {highPriorityProjects}
+                </Badge>
+              </div>
+              <div className="flex items-center justify-between">
+                <span className="text-sm text-muted-foreground">Overdue</span>
+                <Badge variant={overdueProjects > 0 ? "destructive" : "outline"}>
+                  {overdueProjects}
+                </Badge>
+              </div>
+            </CardContent>
+          </Card>
+
+          {/* Pending Tasks */}
+          <PendingTasks />
+
+          {/* Recent Activities */}
+          <RecentActivities />
         </div>
       </div>
     </div>
+  );
+}
+
+// Overview Card Component
+interface OverviewCardProps {
+  title: string;
+  count: number;
+  activeCount: number;
+  description: string;
+  icon: React.ComponentType<any>;
+  route: string;
+  color: string;
+  bgColor: string;
+  borderColor: string;
+  onClick: () => void;
+}
+
+function OverviewCard({ 
+  title, 
+  count, 
+  activeCount, 
+  description, 
+  icon: Icon, 
+  color, 
+  bgColor, 
+  borderColor, 
+  onClick 
+}: OverviewCardProps) {
+  return (
+    <Card 
+      className={`cursor-pointer transition-all duration-200 hover:shadow-lg hover:scale-105 ${borderColor} ${bgColor}`}
+      onClick={onClick}
+    >
+      <CardContent className="p-6">
+        <div className="flex items-center justify-between">
+          <div>
+            <div className="flex items-center gap-2 mb-2">
+              <Icon className={`h-5 w-5 ${color}`} />
+              <h3 className="font-semibold text-foreground">{title}</h3>
+            </div>
+            <div className="space-y-1">
+              <p className="text-2xl font-bold text-foreground">{count}</p>
+              <p className="text-sm text-muted-foreground">{description}</p>
+            </div>
+          </div>
+          <div className={`text-right ${color}`}>
+            <Badge variant="outline" className={`${color} ${borderColor}`}>
+              {activeCount}
+            </Badge>
+          </div>
+        </div>
+      </CardContent>
+    </Card>
   );
 }
 
