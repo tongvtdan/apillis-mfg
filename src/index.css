@@ -2,7 +2,37 @@
 @tailwind components;
 @tailwind utilities;
 
-/* Factory Pulse Design System - Modern Clean Theme */
+/* Factory Pulse Design System - DaisyUI Integration */
+
+/* Custom styles for elevated cards and gradients - from HTML website */
+.card-elevated {
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.card-elevated:hover {
+  transform: translateY(-4px);
+  box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
+}
+
+.rfq-id {
+  font-family: 'Courier New', monospace;
+  font-weight: 700;
+}
+
+.priority-badge.high {
+  background: linear-gradient(135deg, #CF6679 0%, #B71C1C 100%);
+  color: white;
+}
+
+.priority-badge.medium {
+  background: linear-gradient(135deg, #FFD740 0%, #FF8F00 100%);
+  color: #1F2937;
+}
+
+.priority-badge.low {
+  background: linear-gradient(135deg, #69F0AE 0%, #00C853 100%);
+  color: white;
+}
 
 @layer base {
   :root {
@@ -104,14 +134,17 @@
     --transition-all: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
     --transition-colors: color 0.15s ease-in-out, background-color 0.15s ease-in-out, border-color 0.15s ease-in-out;
 
-    /* Sidebar - Clean modern */
+    /* Sidebar - Clean modern with better contrast */
     --sidebar-background: 210 20% 98%;
-    /* base-200 */
+    /* Light gray background */
     --sidebar-foreground: 220 13% 18%;
+    /* Dark text for good contrast */
     --sidebar-primary: 174 100% 44%;
-    --sidebar-primary-foreground: 0 0% 0%;
-    --sidebar-accent: 214 32% 91%;
-    --sidebar-accent-foreground: 220 13% 18%;
+    --sidebar-primary-foreground: 0 0% 100%;
+    --sidebar-accent: 174 100% 44%;
+    /* Use primary color for accent */
+    --sidebar-accent-foreground: 0 0% 100%;
+    /* White text on primary */
     --sidebar-border: 214 32% 91%;
     --sidebar-ring: 174 100% 44%;
   }
@@ -181,14 +214,17 @@
     /* dark input background */
     --ring: 174 100% 44%;
 
-    /* Dark sidebar */
-    --sidebar-background: 0 0% 5%;
-    /* darker background */
+    /* Dark sidebar - Better contrast */
+    --sidebar-background: 0 0% 7%;
+    /* Slightly lighter dark background */
     --sidebar-foreground: 0 0% 88%;
+    /* Light text */
     --sidebar-primary: 174 100% 44%;
     --sidebar-primary-foreground: 0 0% 0%;
-    --sidebar-accent: 0 0% 10%;
-    --sidebar-accent-foreground: 0 0% 88%;
+    --sidebar-accent: 174 100% 44%;
+    /* Use primary color for accent */
+    --sidebar-accent-foreground: 0 0% 0%;
+    /* Dark text on primary */
     --sidebar-border: 0 0% 15%;
     --sidebar-ring: 174 100% 44%;
   }
@@ -481,5 +517,28 @@
 
   .text-caption {
     @apply text-xs font-normal;
+  }
+
+  /* Enhanced Sidebar Styling */
+  .sidebar-nav-item {
+    @apply flex items-center gap-3 px-3 py-2 rounded-lg text-sm font-medium transition-all duration-200;
+  }
+
+  .sidebar-nav-item:not(.active) {
+    @apply text-sidebar-foreground hover:bg-sidebar-accent/10 hover:text-sidebar-accent-foreground;
+  }
+
+  .sidebar-nav-item.active {
+    @apply bg-sidebar-accent text-sidebar-accent-foreground shadow-sm;
+  }
+
+  /* Sidebar group labels with better contrast */
+  [data-sidebar="group-label"] {
+    @apply text-sidebar-foreground/60 font-semibold text-xs uppercase tracking-wider;
+  }
+
+  /* Better sidebar header styling */
+  [data-sidebar="header"] {
+    @apply bg-sidebar border-b border-sidebar-border/50;
   }
 }

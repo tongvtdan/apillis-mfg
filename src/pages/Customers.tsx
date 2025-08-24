@@ -54,12 +54,12 @@ export default function Customers() {
   }
 
   return (
-    <div className="p-6">
+    <div className="p-6 bg-base-100 text-base-content min-h-screen">
       <div className="mb-6">
         <div className="flex items-center justify-between">
           <div>
-            <h1 className="text-2xl font-bold">Customer Management</h1>
-            <p className="text-muted-foreground">Manage your customer database and relationships</p>
+            <h1 className="text-2xl font-bold text-base-content">Customer Management</h1>
+            <p className="text-base-content/70">Manage your customer database and relationships</p>
           </div>
           <Button onClick={() => setShowModal(true)}>
             <Plus className="w-4 h-4 mr-2" />
@@ -73,11 +73,11 @@ export default function Customers() {
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
             <CardTitle className="text-sm font-medium">Total Customers</CardTitle>
-            <Users className="h-4 w-4 text-muted-foreground" />
+            <Users className="h-4 w-4 text-base-content/70" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">{totalCustomers}</div>
-            <p className="text-xs text-muted-foreground">
+            <div className="text-2xl font-bold text-base-content">{totalCustomers}</div>
+            <p className="text-xs text-base-content/70">
               {totalCustomers > 0 ? '+' + Math.round((totalCustomers / 10) * 100) + '% from last month' : 'No customers yet'}
             </p>
           </CardContent>
@@ -86,11 +86,11 @@ export default function Customers() {
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
             <CardTitle className="text-sm font-medium">Active Customers</CardTitle>
-            <TrendingUp className="h-4 w-4 text-muted-foreground" />
+            <TrendingUp className="h-4 w-4 text-base-content/70" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">{activeCustomers}</div>
-            <p className="text-xs text-muted-foreground">
+            <div className="text-2xl font-bold text-base-content">{activeCustomers}</div>
+            <p className="text-xs text-base-content/70">
               {totalCustomers > 0 ? Math.round((activeCustomers / totalCustomers) * 100) + '% with contact info' : 'N/A'}
             </p>
           </CardContent>
@@ -99,11 +99,11 @@ export default function Customers() {
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
             <CardTitle className="text-sm font-medium">Companies</CardTitle>
-            <Building2 className="h-4 w-4 text-muted-foreground" />
+            <Building2 className="h-4 w-4 text-base-content/70" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">{companiesCount}</div>
-            <p className="text-xs text-muted-foreground">
+            <div className="text-2xl font-bold text-base-content">{companiesCount}</div>
+            <p className="text-xs text-base-content/70">
               {totalCustomers > 0 ? Math.round((companiesCount / totalCustomers) * 100) + '% business customers' : 'N/A'}
             </p>
           </CardContent>
@@ -112,11 +112,11 @@ export default function Customers() {
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
             <CardTitle className="text-sm font-medium">Countries</CardTitle>
-            <MapPin className="h-4 w-4 text-muted-foreground" />
+            <MapPin className="h-4 w-4 text-base-content/70" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">{countries}</div>
-            <p className="text-xs text-muted-foreground">
+            <div className="text-2xl font-bold text-base-content">{countries}</div>
+            <p className="text-xs text-base-content/70">
               Global customer base
             </p>
           </CardContent>
@@ -160,9 +160,9 @@ export default function Customers() {
             </CardHeader>
             <CardContent>
               <div className="text-center py-12">
-                <BarChart3 className="w-12 h-12 mx-auto text-muted-foreground mb-4" />
-                <h3 className="text-lg font-medium mb-2">Analytics Coming Soon</h3>
-                <p className="text-muted-foreground">
+                <BarChart3 className="w-12 h-12 mx-auto text-base-content/70 mb-4" />
+                <h3 className="text-lg font-medium mb-2 text-base-content">Analytics Coming Soon</h3>
+                <p className="text-base-content/70">
                   Customer analytics and insights will be available here
                 </p>
               </div>

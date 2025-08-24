@@ -3,6 +3,7 @@ import {
   ThemeConfig,
   ThemeMode,
   ColorScheme,
+  DaisyTheme,
   ThemeColors,
   DEFAULT_THEME_CONFIG,
   getThemeColors,
@@ -13,16 +14,18 @@ import {
   validateThemeConfig,
   generateCSSVariables,
   getAnimationConfig,
-  FONT_SIZE_CONFIGS
+  FONT_SIZE_CONFIGS,
+  getDaisyTheme,
+  applyDaisyTheme
 } from '@/lib/theme';
 
 interface ThemeContextType {
   // Current theme configuration
   config: ThemeConfig;
-  
+
   // Current theme colors
   colors: ThemeColors;
-  
+
   // Theme actions
   setMode: (mode: ThemeMode) => void;
   setColorScheme: (scheme: ColorScheme) => void;
@@ -30,7 +33,7 @@ interface ThemeContextType {
   setFontSize: (size: 'small' | 'medium' | 'large') => void;
   toggleMode: () => void;
   resetToDefaults: () => void;
-  
+
   // Computed values
   isDark: boolean;
   isSystem: boolean;
@@ -52,15 +55,15 @@ export function ThemeProvider({ children, defaultConfig }: ThemeProviderProps) {
     const systemPreferences = {
       reducedMotion: getReducedMotionPreference()
     };
-    
+
     if (saved) {
       return validateThemeConfig({ ...saved, ...systemPreferences });
     }
-    
-    return validateThemeConfig({ 
-      ...DEFAULT_THEME_CONFIG, 
+
+    return validateThemeConfig({
+      ...DEFAULT_THEME_CONFIG,
       ...defaultConfig,
-      ...systemPreferences 
+      ...systemPreferences
     });
   });
 
@@ -71,9 +74,12 @@ export function ThemeProvider({ children, defaultConfig }: ThemeProviderProps) {
   const isDark = effectiveMode === 'dark';
   const isSystem = config.mode === 'system';
 
+  // Get current DaisyUI theme
+  const daisyTheme = getDaisyTheme(config.mode, systemTheme);
+
   // Get current theme colors
   const colors = getThemeColors(effectiveMode, config.colorScheme);
-  
+
   // Get animation and font configurations
   const animationConfig = getAnimationConfig(config.reducedMotion);
   const fontConfig = FONT_SIZE_CONFIGS[config.fontSize];
@@ -81,7 +87,7 @@ export function ThemeProvider({ children, defaultConfig }: ThemeProviderProps) {
   // Listen for system theme changes
   useEffect(() => {
     const mediaQuery = window.matchMedia('(prefers-color-scheme: dark)');
-    
+
     const handleChange = (e: MediaQueryListEvent) => {
       setSystemTheme(e.matches ? 'dark' : 'light');
     };
@@ -93,7 +99,7 @@ export function ThemeProvider({ children, defaultConfig }: ThemeProviderProps) {
   // Listen for reduced motion preference changes
   useEffect(() => {
     const mediaQuery = window.matchMedia('(prefers-reduced-motion: reduce)');
-    
+
     const handleChange = (e: MediaQueryListEvent) => {
       setConfig(prev => ({ ...prev, reducedMotion: e.matches }));
     };
@@ -106,6 +112,9 @@ export function ThemeProvider({ children, defaultConfig }: ThemeProviderProps) {
   useEffect(() => {
     const root = document.documentElement;
     const cssVariables = generateCSSVariables(colors);
+
+    // Apply DaisyUI theme
+    applyDaisyTheme(daisyTheme);
 
     // Apply CSS custom properties
     Object.entries(cssVariables).forEach(([property, value]) => {
@@ -133,7 +142,7 @@ export function ThemeProvider({ children, defaultConfig }: ThemeProviderProps) {
     // Save configuration
     saveThemeConfig(config);
 
-  }, [colors, effectiveMode, config, fontConfig]);
+  }, [colors, effectiveMode, config, fontConfig, daisyTheme]);
 
   // Theme actions
   const setMode = (mode: ThemeMode) => {
@@ -200,7 +209,7 @@ export function useTheme() {
 // Custom hook for priority colors
 export function usePriorityColors() {
   const { isDark } = useTheme();
-  
+
   return (priority: 'urgent' | 'high' | 'medium' | 'low') => {
     const { getPriorityColors } = require('@/lib/theme');
     return getPriorityColors(priority, isDark ? 'dark' : 'light');

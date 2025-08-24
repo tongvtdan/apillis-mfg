@@ -167,5 +167,81 @@ export default {
 			}
 		}
 	},
-	plugins: [require("tailwindcss-animate")],
+	plugins: [
+		require("tailwindcss-animate"),
+		require("daisyui")
+	],
+	daisyui: {
+		themes: [
+			{
+				"factory-pulse-light": {
+					"primary": "#03DAC6",          // Teal/Cyan - main brand color
+					"primary-content": "#000000",  // primary-content: #000000
+					"secondary": "#BB86FC",        // Purple - secondary actions
+					"secondary-content": "#FFFFFF", // secondary-content: #FFFFFF
+					"accent": "#FFD740",           // Amber - warnings and highlights
+					"accent-content": "#1F2937",   // accent-content: #1F2937
+					"neutral": "#1F2937",          // Dark slate - base elements
+					"neutral-content": "#FFFFFF",  // neutral-content: #FFFFFF
+					"base-100": "#FFFFFF",         // White - light mode background
+					"base-200": "#F9FAFB",         // Light gray - secondary backgrounds
+					"base-300": "#E5E7EB",         // Medium gray - borders and dividers
+					"base-content": "#1F2937",     // Dark text
+					"info": "#2196F3",             // Blue - informational elements
+					"success": "#4CAF50",          // Green - success states
+					"warning": "#FB8C00",          // Orange - warnings
+					"error": "#CF6679",            // Pink-red - errors and critical items
+
+					// Additional custom properties
+					"--rounded-box": "1rem",       // border radius rounded-box utility class, used in card and other large boxes
+					"--rounded-btn": "0.5rem",     // border radius rounded-btn utility class, used in buttons and similar element
+					"--rounded-badge": "1.9rem",   // border radius rounded-badge utility class, used in badges and similar
+					"--animation-btn": "0.25s",    // duration of animation when you click on button
+					"--animation-input": "0.2s",   // duration of animation for inputs like checkbox, toggle, radio, etc
+					"--btn-focus-scale": "0.95",   // scale transform of button when you focus on it
+					"--border-btn": "1px",         // border width of buttons
+					"--tab-border": "1px",         // border width of tabs
+					"--tab-radius": "0.5rem",      // border radius of tabs
+				},
+			},
+			{
+				"factory-pulse-dark": {
+					"primary": "#03DAC6",          // Teal/Cyan - same in dark
+					"primary-content": "#000000",  // primary-content: #000000
+					"secondary": "#BB86FC",        // Purple - same in dark
+					"secondary-content": "#FFFFFF", // secondary-content: #FFFFFF
+					"accent": "#FFD740",           // Amber - same in dark
+					"accent-content": "#1F2937",   // accent-content: #1F2937
+					"neutral": "#1E1E1E",          // Dark neutral
+					"neutral-content": "#E0E0E0",  // Light neutral content
+					"base-100": "#121212",         // Dark base
+					"base-200": "#1E1E1E",         // Dark secondary
+					"base-300": "#2D2D2D",         // Dark tertiary
+					"base-content": "#E0E0E0",     // Light text
+					"info": "#2196F3",             // Blue - same in dark
+					"success": "#4CAF50",          // Green - same in dark
+					"warning": "#FB8C00",          // Orange - same in dark
+					"error": "#CF6679",            // Pink-red - same in dark
+
+					// Additional custom properties
+					"--rounded-box": "1rem",
+					"--rounded-btn": "0.5rem",
+					"--rounded-badge": "1.9rem",
+					"--animation-btn": "0.25s",
+					"--animation-input": "0.2s",
+					"--btn-focus-scale": "0.95",
+					"--border-btn": "1px",
+					"--tab-border": "1px",
+					"--tab-radius": "0.5rem",
+				},
+			},
+		],
+		darkTheme: "factory-pulse-dark",
+		base: true,
+		styled: true,
+		utils: true,
+		prefix: "",
+		logs: true,
+		themeRoot: ":root",
+	},
 } satisfies Config;

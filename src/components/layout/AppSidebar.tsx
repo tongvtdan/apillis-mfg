@@ -47,7 +47,7 @@ export function AppSidebar() {
     isActive
   }: {
     isActive: boolean;
-  }) => isActive ? "bg-sidebar-accent text-sidebar-primary font-medium" : "text-sidebar-foreground hover:bg-sidebar-accent/50 hover:text-sidebar-accent-foreground";
+  }) => isActive ? "bg-sidebar-accent text-sidebar-accent-foreground font-medium" : "text-sidebar-foreground hover:bg-sidebar-accent/50 hover:text-sidebar-accent-foreground";
   return <Sidebar>
     <SidebarHeader className="border-b border-sidebar-border p-4">
       <div className="flex items-center space-x-2">
@@ -69,7 +69,7 @@ export function AppSidebar() {
           <SidebarMenu>
             {mainMenuItems.map(item => <SidebarMenuItem key={item.title}>
               <SidebarMenuButton asChild>
-                <NavLink to={item.url} className={getNavCls}>
+                <NavLink to={item.url} className={getNavCls({ isActive: isActive(item.url) })}>
                   <item.icon className="h-4 w-4" />
                   <span>{item.title}</span>
                 </NavLink>
@@ -85,7 +85,7 @@ export function AppSidebar() {
           <SidebarMenu>
             {settingsItems.map(item => <SidebarMenuItem key={item.title}>
               <SidebarMenuButton asChild>
-                <NavLink to={item.url} className={getNavCls}>
+                <NavLink to={item.url} className={getNavCls({ isActive: isActive(item.url) })}>
                   <item.icon className="h-4 w-4" />
                   <span>{item.title}</span>
                 </NavLink>

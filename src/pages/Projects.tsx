@@ -78,14 +78,14 @@ export default function Projects() {
   }
 
   return (
-    <div className="p-6">
+    <div className="p-6 bg-base-100 text-base-content min-h-screen">
       <div className="mb-6">
-        <h1 className="text-2xl font-bold">Factory Pulse - Project Flow</h1>
-        <p className="text-muted-foreground">Track and manage your manufacturing projects from idea to delivery</p>
+        <h1 className="text-2xl font-bold text-base-content">Factory Pulse - Project Flow</h1>
+        <p className="text-base-content/70">Track and manage your manufacturing projects from idea to delivery</p>
       </div>
 
       <Tabs defaultValue="flowchart" className="w-full relative">
-        <div className="fixed top-16 left-1/2 transform -translate-x-1/2 z-30 bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/90 border rounded-lg shadow-lg p-4">
+        <div className="fixed top-16 left-1/2 transform -translate-x-1/2 z-30 bg-base-100/95 backdrop-blur supports-[backdrop-filter]:bg-base-100/90 border border-base-300 rounded-lg shadow-lg p-4">
           <div className="flex flex-col items-center space-y-3">
             <TabsList className="grid w-[300px] grid-cols-3">
               <TabsTrigger value="flowchart">Flow</TabsTrigger>
@@ -95,7 +95,7 @@ export default function Projects() {
 
             {/* Project Type Filter - Always Visible */}
             <div className="flex items-center space-x-3">
-              <span className="text-sm text-muted-foreground">Filter by type:</span>
+              <span className="text-sm text-base-content/70">Filter by type:</span>
               <Select value={selectedProjectType} onValueChange={(value) => setSelectedProjectType(value as ProjectType | 'all')}>
                 <SelectTrigger className="w-[180px]">
                   <SelectValue placeholder="All project types" />
@@ -119,8 +119,8 @@ export default function Projects() {
         <div className="mb-24"></div>
 
         <TabsContent value="flowchart" className="mt-0 space-y-6">
-          <div className="bg-card rounded-lg p-6 border">
-            <h3 className="text-lg font-semibold mb-4">Project Workflow Stages</h3>
+          <div className="bg-base-100 rounded-lg p-6 border border-base-300">
+            <h3 className="text-lg font-semibold mb-4 text-base-content">Project Workflow Stages</h3>
             <StageFlowchart
               selectedStage={selectedStage}
               onStageSelect={handleStageSelect}
@@ -129,13 +129,13 @@ export default function Projects() {
           </div>
 
           {selectedStage && (
-            <div className="bg-card rounded-lg p-6 border">
+            <div className="bg-base-100 rounded-lg p-6 border border-base-300">
               <div className="flex items-center justify-between mb-4">
                 <div>
-                  <h3 className="text-lg font-semibold">
+                  <h3 className="text-lg font-semibold text-base-content">
                     Projects in {selectedStage.replace(/_/g, ' ').replace(/\b\w/g, l => l.toUpperCase())}
                   </h3>
-                  <p className="text-sm text-muted-foreground mt-1">
+                  <p className="text-sm text-base-content/70 mt-1">
                     {selectedProjectType === 'all'
                       ? `Showing ${selectedStageProjects.length} projects`
                       : `Showing ${selectedStageProjects.length} ${PROJECT_TYPE_LABELS[selectedProjectType]} projects`
@@ -176,13 +176,13 @@ export default function Projects() {
                 />
               ) : (
                 <div className="text-center py-12">
-                  <p className="text-muted-foreground">
+                  <p className="text-base-content/70">
                     {selectedProjectType === 'all'
                       ? 'No projects found in this stage'
                       : `No ${PROJECT_TYPE_LABELS[selectedProjectType]} projects found in this stage`
                     }
                   </p>
-                  <p className="text-sm text-muted-foreground mt-2">
+                  <p className="text-sm text-base-content/70 mt-2">
                     Try selecting a different project type or stage
                   </p>
                 </div>
@@ -192,7 +192,7 @@ export default function Projects() {
 
           {!selectedStage && (
             <div className="text-center py-12">
-              <p className="text-muted-foreground">
+              <p className="text-base-content/70">
                 Click on a stage above to view projects in that stage
               </p>
             </div>
@@ -200,10 +200,10 @@ export default function Projects() {
         </TabsContent>
 
         <TabsContent value="kanban" className="mt-0 space-y-6">
-          <div className="bg-card rounded-lg p-6 border">
+          <div className="bg-base-100 rounded-lg p-6 border border-base-300">
             <div className="mb-4">
-              <h3 className="text-lg font-semibold">Project Workflow Kanban</h3>
-              <p className="text-sm text-muted-foreground mt-1">
+              <h3 className="text-lg font-semibold text-base-content">Project Workflow Kanban</h3>
+              <p className="text-sm text-base-content/70 mt-1">
                 {selectedProjectType === 'all'
                   ? `Showing ${activeProjects.length} projects`
                   : `Showing ${activeProjects.filter(p => p.project_type === selectedProjectType).length} ${PROJECT_TYPE_LABELS[selectedProjectType]} projects`
@@ -216,10 +216,10 @@ export default function Projects() {
         </TabsContent>
 
         <TabsContent value="table" className="mt-0 space-y-6">
-          <div className="bg-card rounded-lg p-6 border">
+          <div className="bg-base-100 rounded-lg p-6 border border-base-300">
             <div className="mb-4">
-              <h3 className="text-lg font-semibold">Project Table View</h3>
-              <p className="text-sm text-muted-foreground mt-1">
+              <h3 className="text-lg font-semibold text-base-content">Project Table View</h3>
+              <p className="text-sm text-base-content/70 mt-1">
                 {selectedProjectType === 'all'
                   ? `Showing ${activeProjects.length} projects`
                   : `Showing ${activeProjects.filter(p => p.project_type === selectedProjectType).length} ${PROJECT_TYPE_LABELS[selectedProjectType]} projects`
@@ -239,7 +239,7 @@ export default function Projects() {
 
         {activeProjects.length === 0 && (
           <div className="text-center py-12">
-            <p className="text-muted-foreground">No active projects found</p>
+            <p className="text-base-content/70">No active projects found</p>
           </div>
         )}
       </Tabs>

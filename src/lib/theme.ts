@@ -1,14 +1,16 @@
-// Enhanced Theme System for Factory Pulse
-// Industrial Tech Theme - Simple, clean, minimalism with modern manufacturing aesthetics
+// Factory Pulse Theme System with DaisyUI Integration
+// Modern, clean, minimalist design for manufacturing environments
 
 export type ThemeMode = 'light' | 'dark' | 'system';
 export type ColorScheme = 'default' | 'high-contrast' | 'color-blind-friendly';
+export type DaisyTheme = 'factory-pulse-light' | 'factory-pulse-dark';
 
 export interface ThemeConfig {
   mode: ThemeMode;
   colorScheme: ColorScheme;
   reducedMotion: boolean;
   fontSize: 'small' | 'medium' | 'large';
+  daisyTheme: DaisyTheme;
 }
 
 export interface ThemeColors {
@@ -382,7 +384,21 @@ export const DEFAULT_THEME_CONFIG: ThemeConfig = {
   mode: 'system',
   colorScheme: 'default',
   reducedMotion: false,
-  fontSize: 'medium'
+  fontSize: 'medium',
+  daisyTheme: 'factory-pulse-light'
+};
+
+// DaisyUI theme mapping
+export const getDaisyTheme = (mode: ThemeMode, systemTheme: 'light' | 'dark'): DaisyTheme => {
+  const effectiveMode = mode === 'system' ? systemTheme : mode;
+  return effectiveMode === 'dark' ? 'factory-pulse-dark' : 'factory-pulse-light';
+};
+
+// Apply DaisyUI theme to document
+export const applyDaisyTheme = (theme: DaisyTheme): void => {
+  if (typeof document !== 'undefined') {
+    document.documentElement.setAttribute('data-theme', theme);
+  }
 };
 
 // Font size configurations
@@ -414,7 +430,8 @@ export const validateThemeConfig = (config: Partial<ThemeConfig>): ThemeConfig =
     mode: ['light', 'dark', 'system'].includes(config.mode as string) ? config.mode as ThemeMode : 'system',
     colorScheme: ['default', 'high-contrast', 'color-blind-friendly'].includes(config.colorScheme as string) ? config.colorScheme as ColorScheme : 'default',
     reducedMotion: typeof config.reducedMotion === 'boolean' ? config.reducedMotion : false,
-    fontSize: ['small', 'medium', 'large'].includes(config.fontSize as string) ? config.fontSize as 'small' | 'medium' | 'large' : 'medium'
+    fontSize: ['small', 'medium', 'large'].includes(config.fontSize as string) ? config.fontSize as 'small' | 'medium' | 'large' : 'medium',
+    daisyTheme: ['factory-pulse-light', 'factory-pulse-dark'].includes(config.daisyTheme as string) ? config.daisyTheme as DaisyTheme : 'factory-pulse-light'
   };
 };
 

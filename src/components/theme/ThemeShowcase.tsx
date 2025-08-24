@@ -1,7 +1,9 @@
+import React from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { useTheme } from "@/contexts/ThemeContext";
+import { FactoryPulseLanding } from "@/components/FactoryPulseLanding";
 import {
     Factory,
     Cpu,
@@ -12,26 +14,58 @@ import {
     AlertTriangle,
     CheckCircle,
     Clock,
-    TrendingUp
+    TrendingUp,
+    Palette,
+    Monitor
 } from "lucide-react";
 
 export function ThemeShowcase() {
     const { isDark, toggleMode } = useTheme();
+    const [showLanding, setShowLanding] = React.useState(false);
+
+    if (showLanding) {
+        return (
+            <div>
+                <div className="fixed top-4 right-4 z-50 flex gap-2">
+                    <button
+                        onClick={() => setShowLanding(false)}
+                        className="btn btn-secondary btn-sm"
+                    >
+                        <Palette className="w-4 h-4 mr-1" />
+                        Theme Showcase
+                    </button>
+                    <button onClick={toggleMode} className="btn btn-primary btn-sm">
+                        Switch to {isDark ? 'Light' : 'Dark'} Mode
+                    </button>
+                </div>
+                <FactoryPulseLanding />
+            </div>
+        );
+    }
 
     return (
-        <div className="space-y-6 p-6">
+        <div className="space-y-6 p-6 bg-base-100 text-base-content min-h-screen">
             <div className="text-center space-y-2">
-                <h1 className="text-4xl font-bold text-foreground">Factory Pulse Design System</h1>
-                <p className="text-muted-foreground text-lg">
+                <h1 className="text-4xl font-bold text-base-content">Factory Pulse Design System</h1>
+                <p className="text-base-content/70 text-lg">
                     Modern • Clean • Minimalist • Professional • High Contrast • Role-Centric
                 </p>
-                <p className="text-sm text-muted-foreground max-w-2xl mx-auto">
-                    "The Heartbeat of Modern Manufacturing" - A design system focused on usability,
-                    readability on factory floor displays, and seamless responsive experience.
+                <p className="text-sm text-base-content/60 max-w-2xl mx-auto">
+                    "The Heartbeat of Modern Manufacturing" - A design system with DaisyUI integration
+                    focused on usability, readability on factory floor displays, and seamless responsive experience.
                 </p>
-                <Button onClick={toggleMode} className="btn-primary mt-6">
-                    Switch to {isDark ? 'Light' : 'Dark'} Mode
-                </Button>
+                <div className="flex gap-4 justify-center mt-6">
+                    <Button onClick={toggleMode} className="btn-primary">
+                        Switch to {isDark ? 'Light' : 'Dark'} Mode
+                    </Button>
+                    <button
+                        onClick={() => setShowLanding(true)}
+                        className="btn btn-outline"
+                    >
+                        <Monitor className="w-4 h-4 mr-2" />
+                        View Landing Page
+                    </button>
+                </div>
             </div>
 
             {/* Color Palette */}
@@ -223,10 +257,96 @@ export function ThemeShowcase() {
                 </CardContent>
             </Card>
 
-            {/* Button System */}
+            {/* DaisyUI Components */}
             <Card>
                 <CardHeader>
-                    <CardTitle>Button System</CardTitle>
+                    <CardTitle>DaisyUI Components</CardTitle>
+                </CardHeader>
+                <CardContent>
+                    <div className="space-y-6">
+                        {/* Buttons */}
+                        <div>
+                            <h4 className="font-semibold mb-3">Buttons</h4>
+                            <div className="flex flex-wrap gap-4">
+                                <button className="btn btn-primary">Primary</button>
+                                <button className="btn btn-secondary">Secondary</button>
+                                <button className="btn btn-accent">Accent</button>
+                                <button className="btn btn-outline">Outline</button>
+                                <button className="btn btn-ghost">Ghost</button>
+                                <button className="btn btn-error">Error</button>
+                            </div>
+                        </div>
+
+                        {/* Badges */}
+                        <div>
+                            <h4 className="font-semibold mb-3">Badges</h4>
+                            <div className="flex flex-wrap gap-2">
+                                <div className="badge badge-primary">Primary</div>
+                                <div className="badge badge-secondary">Secondary</div>
+                                <div className="badge badge-accent">Accent</div>
+                                <div className="badge badge-ghost">Ghost</div>
+                                <div className="badge badge-outline">Outline</div>
+                                <div className="badge badge-success">Success</div>
+                                <div className="badge badge-warning">Warning</div>
+                                <div className="badge badge-error">Error</div>
+                            </div>
+                        </div>
+
+                        {/* Cards */}
+                        <div>
+                            <h4 className="font-semibold mb-3">Cards</h4>
+                            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                <div className="card bg-base-100 shadow-xl">
+                                    <div className="card-body">
+                                        <h2 className="card-title">Card Title</h2>
+                                        <p>This is a DaisyUI card with Factory Pulse theming.</p>
+                                        <div className="card-actions justify-end">
+                                            <button className="btn btn-primary btn-sm">Action</button>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div className="card bg-primary text-primary-content shadow-xl">
+                                    <div className="card-body">
+                                        <h2 className="card-title">Primary Card</h2>
+                                        <p>Card with primary background color.</p>
+                                        <div className="card-actions justify-end">
+                                            <button className="btn btn-secondary btn-sm">Action</button>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        {/* Alerts */}
+                        <div>
+                            <h4 className="font-semibold mb-3">Alerts</h4>
+                            <div className="space-y-2">
+                                <div className="alert alert-info">
+                                    <CheckCircle className="w-4 h-4" />
+                                    <span>Info alert with Factory Pulse colors!</span>
+                                </div>
+                                <div className="alert alert-success">
+                                    <CheckCircle className="w-4 h-4" />
+                                    <span>Success alert - operation completed!</span>
+                                </div>
+                                <div className="alert alert-warning">
+                                    <AlertTriangle className="w-4 h-4" />
+                                    <span>Warning alert - attention required!</span>
+                                </div>
+                                <div className="alert alert-error">
+                                    <AlertTriangle className="w-4 h-4" />
+                                    <span>Error alert - something went wrong!</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </CardContent>
+            </Card>
+
+            {/* Custom Button System */}
+            <Card>
+                <CardHeader>
+                    <CardTitle>Custom Button System</CardTitle>
                 </CardHeader>
                 <CardContent>
                     <div className="flex flex-wrap gap-4">
@@ -245,7 +365,7 @@ export function ThemeShowcase() {
                     </div>
                     <div className="mt-4 p-4 bg-muted rounded-lg">
                         <p className="text-sm text-muted-foreground">
-                            Primary buttons use gradient backgrounds with hover animations.
+                            Custom buttons with gradient backgrounds and hover animations.
                             All buttons follow the 0.5rem border radius and cubic-bezier(0.4, 0, 0.2, 1) transitions.
                         </p>
                     </div>

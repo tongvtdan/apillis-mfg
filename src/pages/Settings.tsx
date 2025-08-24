@@ -23,14 +23,14 @@ export default function Settings() {
     const isDev = import.meta.env.DEV;
 
     return (
-        <div className="space-y-6 p-6">
+        <div className="space-y-6 p-6 bg-base-100 text-base-content min-h-screen">
             {/* Header */}
             <div className="mb-6">
-                <h1 className="text-3xl font-bold text-foreground flex items-center gap-2">
-                    <SettingsIcon className="h-8 w-8" />
+                <h1 className="text-3xl font-bold text-base-content flex items-center gap-2">
+                    <SettingsIcon className="h-8 w-8 text-base-content" />
                     Settings
                 </h1>
-                <p className="text-muted-foreground mt-1">
+                <p className="text-base-content/70 mt-1">
                     Manage your application preferences and system configuration.
                 </p>
             </div>
@@ -80,19 +80,19 @@ export default function Settings() {
                             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                                 <div>
                                     <label className="text-sm font-medium">Display Name</label>
-                                    <p className="text-sm text-muted-foreground mt-1">
+                                    <p className="text-sm text-base-content/70 mt-1">
                                         {profile?.display_name || "Not set"}
                                     </p>
                                 </div>
                                 <div>
-                                    <label className="text-sm font-medium">Role</label>
-                                    <p className="text-sm text-muted-foreground mt-1">
+                                    <label className="text-sm font-medium text-base-content">Role</label>
+                                    <p className="text-sm text-base-content/70 mt-1">
                                         {profile?.role || "Not assigned"}
                                     </p>
                                 </div>
                                 <div>
-                                    <label className="text-sm font-medium">Department</label>
-                                    <p className="text-sm text-muted-foreground mt-1">
+                                    <label className="text-sm font-medium text-base-content">Department</label>
+                                    <p className="text-sm text-base-content/70 mt-1">
                                         {profile?.department || "Not assigned"}
                                     </p>
                                 </div>
@@ -123,7 +123,7 @@ export default function Settings() {
                             <div className="flex items-center justify-between">
                                 <div>
                                     <label className="text-sm font-medium">Theme</label>
-                                    <p className="text-xs text-muted-foreground mt-1">
+                                    <p className="text-xs text-base-content/70 mt-1">
                                         Choose between light and dark mode
                                     </p>
                                 </div>
@@ -146,7 +146,7 @@ export default function Settings() {
                             </CardDescription>
                         </CardHeader>
                         <CardContent>
-                            <p className="text-sm text-muted-foreground">
+                            <p className="text-sm text-base-content/70">
                                 Notification settings will be available in a future update.
                             </p>
                         </CardContent>
@@ -176,7 +176,7 @@ export default function Settings() {
                                             </CardTitle>
                                         </CardHeader>
                                         <CardContent>
-                                            <p className="text-sm text-muted-foreground mb-3">
+                                            <p className="text-sm text-base-content/70 mb-3">
                                                 Manage user accounts, roles, and permissions.
                                             </p>
                                             <a
@@ -196,10 +196,10 @@ export default function Settings() {
                                             </CardTitle>
                                         </CardHeader>
                                         <CardContent>
-                                            <p className="text-sm text-muted-foreground mb-3">
+                                            <p className="text-sm text-base-content/70 mb-3">
                                                 Monitor system performance and activity logs.
                                             </p>
-                                            <span className="text-sm text-muted-foreground">
+                                            <span className="text-sm text-base-content/70">
                                                 Coming soon...
                                             </span>
                                         </CardContent>
@@ -237,7 +237,7 @@ export default function Settings() {
 
                                     <div className="space-y-6">
                                         <h3 className="text-lg font-medium mb-4">Development Tools</h3>
-                                        <p className="text-sm text-muted-foreground">
+                                        <p className="text-sm text-base-content/70">
                                             Development tools will be available in a future update.
                                         </p>
                                     </div>

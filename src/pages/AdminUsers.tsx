@@ -30,10 +30,10 @@ import {
 } from '@/components/ui/select';
 import { Badge } from '@/components/ui/badge';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { 
-  Users, 
-  Search, 
-  Filter, 
+import {
+  Users,
+  Search,
+  Filter,
   UserPlus,
   Edit,
   Lock,
@@ -69,11 +69,11 @@ export default function AdminUsers() {
   // Check if user has management permissions
   if (profile?.role !== 'Management') {
     return (
-      <div className="min-h-screen flex items-center justify-center">
+      <div className="min-h-screen flex items-center justify-center bg-base-100">
         <div className="text-center">
-          <Shield className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
-          <h1 className="text-2xl font-bold mb-2">Access Denied</h1>
-          <p className="text-muted-foreground">
+          <Shield className="h-12 w-12 text-base-content/70 mx-auto mb-4" />
+          <h1 className="text-2xl font-bold mb-2 text-base-content">Access Denied</h1>
+          <p className="text-base-content/70">
             You don't have permission to access user management.
           </p>
         </div>
@@ -134,7 +134,7 @@ export default function AdminUsers() {
     try {
       const { error } = await supabase
         .from('profiles')
-        .update({ 
+        .update({
           role: newRole as UserProfile['role'],
           updated_at: new Date().toISOString(),
           updated_by: profile?.user_id
@@ -151,9 +151,9 @@ export default function AdminUsers() {
         user_id: userId,
         actor_id: profile?.user_id,
         success: true,
-        details: { 
+        details: {
           old_role: users.find(u => u.user_id === userId)?.role,
-          new_role: newRole 
+          new_role: newRole
         }
       });
 
@@ -175,7 +175,7 @@ export default function AdminUsers() {
 
   const updateUserStatus = async (userId: string, newStatus: string) => {
     try {
-      const updateData: any = { 
+      const updateData: any = {
         status: newStatus,
         updated_at: new Date().toISOString(),
         updated_by: profile?.user_id
@@ -202,9 +202,9 @@ export default function AdminUsers() {
         user_id: userId,
         actor_id: profile?.user_id,
         success: true,
-        details: { 
+        details: {
           old_status: users.find(u => u.user_id === userId)?.status,
-          new_status: newStatus 
+          new_status: newStatus
         }
       });
 
@@ -276,19 +276,19 @@ export default function AdminUsers() {
   const statuses = ['Active', 'Inactive', 'Pending', 'Locked', 'Dormant'];
 
   return (
-    <div className="space-y-6 p-6">
+    <div className="space-y-6 p-6 bg-base-100 text-base-content min-h-screen">
       {/* Header */}
       <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
         <div>
-          <h1 className="text-3xl font-bold flex items-center gap-2">
-            <Users className="h-8 w-8" />
+          <h1 className="text-3xl font-bold flex items-center gap-2 text-base-content">
+            <Users className="h-8 w-8 text-base-content" />
             User Management
           </h1>
-          <p className="text-muted-foreground">
+          <p className="text-base-content/70">
             Manage user accounts, roles, and permissions
           </p>
         </div>
-        
+
         <Button>
           <UserPlus className="h-4 w-4 mr-2" />
           Invite User
@@ -301,19 +301,19 @@ export default function AdminUsers() {
           <CardContent className="p-4">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-sm font-medium text-muted-foreground">Total Users</p>
-                <p className="text-2xl font-bold">{users.length}</p>
+                <p className="text-sm font-medium text-base-content/70">Total Users</p>
+                <p className="text-2xl font-bold text-base-content">{users.length}</p>
               </div>
-              <Users className="h-8 w-8 text-muted-foreground" />
+              <Users className="h-8 w-8 text-base-content/70" />
             </div>
           </CardContent>
         </Card>
-        
+
         <Card>
           <CardContent className="p-4">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-sm font-medium text-muted-foreground">Active Users</p>
+                <p className="text-sm font-medium text-base-content/70">Active Users</p>
                 <p className="text-2xl font-bold text-green-600">
                   {users.filter(u => u.status === 'Active').length}
                 </p>
@@ -322,12 +322,12 @@ export default function AdminUsers() {
             </div>
           </CardContent>
         </Card>
-        
+
         <Card>
           <CardContent className="p-4">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-sm font-medium text-muted-foreground">Locked Accounts</p>
+                <p className="text-sm font-medium text-base-content/70">Locked Accounts</p>
                 <p className="text-2xl font-bold text-red-600">
                   {users.filter(u => isAccountLocked(u)).length}
                 </p>
@@ -336,12 +336,12 @@ export default function AdminUsers() {
             </div>
           </CardContent>
         </Card>
-        
+
         <Card>
           <CardContent className="p-4">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-sm font-medium text-muted-foreground">Pending Users</p>
+                <p className="text-sm font-medium text-base-content/70">Pending Users</p>
                 <p className="text-2xl font-bold text-yellow-600">
                   {users.filter(u => u.status === 'Pending').length}
                 </p>
@@ -360,7 +360,7 @@ export default function AdminUsers() {
         <CardContent>
           <div className="flex flex-col md:flex-row gap-4">
             <div className="flex-1 relative">
-              <Search className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
+              <Search className="absolute left-3 top-3 h-4 w-4 text-base-content/70" />
               <Input
                 placeholder="Search users by name, email, or department..."
                 value={searchQuery}
@@ -368,7 +368,7 @@ export default function AdminUsers() {
                 className="pl-10"
               />
             </div>
-            
+
             <Select value={roleFilter} onValueChange={setRoleFilter}>
               <SelectTrigger className="w-full md:w-48">
                 <SelectValue placeholder="Filter by role" />
@@ -380,7 +380,7 @@ export default function AdminUsers() {
                 ))}
               </SelectContent>
             </Select>
-            
+
             <Select value={statusFilter} onValueChange={setStatusFilter}>
               <SelectTrigger className="w-full md:w-48">
                 <SelectValue placeholder="Filter by status" />
@@ -434,7 +434,7 @@ export default function AdminUsers() {
                       <TableCell>
                         <div>
                           <div className="font-medium">{user.display_name}</div>
-                          <div className="text-sm text-muted-foreground">
+                          <div className="text-sm text-base-content/70">
                             {user.email || 'No email'}
                           </div>
                           {user.login_attempts > 0 && (
@@ -475,13 +475,13 @@ export default function AdminUsers() {
                                   Update user role and status
                                 </DialogDescription>
                               </DialogHeader>
-                              
+
                               <div className="space-y-4">
                                 <div>
                                   <Label htmlFor="role">Role</Label>
-                                  <Select 
-                                    value={selectedUser?.role} 
-                                    onValueChange={(value) => setSelectedUser(prev => prev ? {...prev, role: value as any} : null)}
+                                  <Select
+                                    value={selectedUser?.role}
+                                    onValueChange={(value) => setSelectedUser(prev => prev ? { ...prev, role: value as any } : null)}
                                   >
                                     <SelectTrigger>
                                       <SelectValue />
@@ -490,7 +490,7 @@ export default function AdminUsers() {
                                       {roles.map(role => (
                                         <SelectItem key={role} value={role}>
                                           {role}
-                                          <div className="text-xs text-muted-foreground ml-2">
+                                          <div className="text-xs text-base-content/70 ml-2">
                                             {ROLE_DESCRIPTIONS[role as keyof typeof ROLE_DESCRIPTIONS]}
                                           </div>
                                         </SelectItem>
@@ -498,12 +498,12 @@ export default function AdminUsers() {
                                     </SelectContent>
                                   </Select>
                                 </div>
-                                
+
                                 <div>
                                   <Label htmlFor="status">Status</Label>
-                                  <Select 
-                                    value={selectedUser?.status} 
-                                    onValueChange={(value) => setSelectedUser(prev => prev ? {...prev, status: value as any} : null)}
+                                  <Select
+                                    value={selectedUser?.status}
+                                    onValueChange={(value) => setSelectedUser(prev => prev ? { ...prev, status: value as any } : null)}
                                   >
                                     <SelectTrigger>
                                       <SelectValue />
@@ -516,7 +516,7 @@ export default function AdminUsers() {
                                   </Select>
                                 </div>
                               </div>
-                              
+
                               <DialogFooter>
                                 <Button variant="outline" onClick={() => setEditDialogOpen(false)}>
                                   Cancel
@@ -537,18 +537,18 @@ export default function AdminUsers() {
                               </DialogFooter>
                             </DialogContent>
                           </Dialog>
-                          
+
                           {isAccountLocked(user) ? (
-                            <Button 
-                              variant="ghost" 
+                            <Button
+                              variant="ghost"
                               size="sm"
                               onClick={() => updateUserStatus(user.user_id, 'Active')}
                             >
                               <Unlock className="h-4 w-4" />
                             </Button>
                           ) : (
-                            <Button 
-                              variant="ghost" 
+                            <Button
+                              variant="ghost"
                               size="sm"
                               onClick={() => updateUserStatus(user.user_id, 'Locked')}
                             >

@@ -45,10 +45,10 @@ export default function Suppliers() {
 
     if (loading) {
         return (
-            <div className="p-6">
+            <div className="p-6 bg-base-100 text-base-content min-h-screen">
                 <div className="mb-6">
-                    <h1 className="text-2xl font-bold">Supplier Management</h1>
-                    <p className="text-muted-foreground">Manage your supplier network and performance</p>
+                    <h1 className="text-2xl font-bold text-base-content">Supplier Management</h1>
+                    <p className="text-base-content/70">Manage your supplier network and performance</p>
                 </div>
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-6">
                     {[1, 2, 3, 4].map((i) => (
@@ -65,12 +65,12 @@ export default function Suppliers() {
     }
 
     return (
-        <div className="p-6">
+        <div className="p-6 bg-base-100 text-base-content min-h-screen">
             <div className="mb-6">
                 <div className="flex items-center justify-between">
                     <div>
-                        <h1 className="text-2xl font-bold">Supplier Management</h1>
-                        <p className="text-muted-foreground">Manage your supplier network and performance</p>
+                        <h1 className="text-2xl font-bold text-base-content">Supplier Management</h1>
+                        <p className="text-base-content/70">Manage your supplier network and performance</p>
                     </div>
                     <Button onClick={() => setShowModal(true)}>
                         <Plus className="w-4 h-4 mr-2" />
@@ -84,11 +84,11 @@ export default function Suppliers() {
                 <Card>
                     <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
                         <CardTitle className="text-sm font-medium">Total Suppliers</CardTitle>
-                        <Users className="h-4 w-4 text-muted-foreground" />
+                        <Users className="h-4 w-4 text-base-content/70" />
                     </CardHeader>
                     <CardContent>
-                        <div className="text-2xl font-bold">{totalSuppliers}</div>
-                        <p className="text-xs text-muted-foreground">
+                        <div className="text-2xl font-bold text-base-content">{totalSuppliers}</div>
+                        <p className="text-xs text-base-content/70">
                             {activeSuppliers} active suppliers
                         </p>
                     </CardContent>
@@ -97,11 +97,11 @@ export default function Suppliers() {
                 <Card>
                     <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
                         <CardTitle className="text-sm font-medium">Average Rating</CardTitle>
-                        <Star className="h-4 w-4 text-muted-foreground" />
+                        <Star className="h-4 w-4 text-base-content/70" />
                     </CardHeader>
                     <CardContent>
-                        <div className="text-2xl font-bold">{averageRating.toFixed(1)}</div>
-                        <p className="text-xs text-muted-foreground">
+                        <div className="text-2xl font-bold text-base-content">{averageRating.toFixed(1)}</div>
+                        <p className="text-xs text-base-content/70">
                             Out of 5.0 stars
                         </p>
                     </CardContent>
@@ -110,11 +110,11 @@ export default function Suppliers() {
                 <Card>
                     <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
                         <CardTitle className="text-sm font-medium">Response Rate</CardTitle>
-                        <CheckCircle className="h-4 w-4 text-muted-foreground" />
+                        <CheckCircle className="h-4 w-4 text-base-content/70" />
                     </CardHeader>
                     <CardContent>
-                        <div className="text-2xl font-bold">{averageResponseRate.toFixed(1)}%</div>
-                        <p className="text-xs text-muted-foreground">
+                        <div className="text-2xl font-bold text-base-content">{averageResponseRate.toFixed(1)}%</div>
+                        <p className="text-xs text-base-content/70">
                             Average response rate
                         </p>
                     </CardContent>
@@ -123,16 +123,16 @@ export default function Suppliers() {
                 <Card>
                     <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
                         <CardTitle className="text-sm font-medium">Avg Turnaround</CardTitle>
-                        <Clock className="h-4 w-4 text-muted-foreground" />
+                        <Clock className="h-4 w-4 text-base-content/70" />
                     </CardHeader>
                     <CardContent>
-                        <div className="text-2xl font-bold">
+                        <div className="text-2xl font-bold text-base-content">
                             {suppliers.length > 0
                                 ? (suppliers.reduce((sum, s) => sum + s.average_turnaround_days, 0) / suppliers.length).toFixed(1)
                                 : '0.0'
                             }d
                         </div>
-                        <p className="text-xs text-muted-foreground">
+                        <p className="text-xs text-base-content/70">
                             Average response time
                         </p>
                     </CardContent>
@@ -178,9 +178,9 @@ export default function Suppliers() {
                         </CardHeader>
                         <CardContent>
                             <div className="text-center py-12">
-                                <TrendingUp className="w-12 h-12 mx-auto text-muted-foreground mb-4" />
-                                <h3 className="text-lg font-medium mb-2">Performance Tracking Coming Soon</h3>
-                                <p className="text-muted-foreground">
+                                <TrendingUp className="w-12 h-12 mx-auto text-base-content/70 mb-4" />
+                                <h3 className="text-lg font-medium mb-2 text-base-content">Performance Tracking Coming Soon</h3>
+                                <p className="text-base-content/70">
                                     Detailed supplier performance metrics will be available here
                                 </p>
                             </div>
@@ -201,9 +201,9 @@ export default function Suppliers() {
                         </CardHeader>
                         <CardContent>
                             <div className="text-center py-12">
-                                <BarChart3 className="w-12 h-12 mx-auto text-muted-foreground mb-4" />
-                                <h3 className="text-lg font-medium mb-2">Analytics Coming Soon</h3>
-                                <p className="text-muted-foreground">
+                                <BarChart3 className="w-12 h-12 mx-auto text-base-content/70 mb-4" />
+                                <h3 className="text-lg font-medium mb-2 text-base-content">Analytics Coming Soon</h3>
+                                <p className="text-base-content/70">
                                     Supplier analytics and insights will be available here
                                 </p>
                             </div>
