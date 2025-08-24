@@ -1,6 +1,5 @@
 import { useState, useEffect } from 'react';
-import { supabase } from '@/integrations/supabase/client';
-import { SupplierQuote } from '@/types/supplier';
+import { SupplierQuote, SendRFQRequest, AcceptQuoteRequest, UpdateSupplierQuoteRequest } from '@/types/supplier';
 import { useAuth } from '@/contexts/AuthContext';
 import { useToast } from '@/hooks/use-toast';
 
@@ -12,14 +11,7 @@ interface QuoteFilters {
   date_to?: string;
 }
 
-interface SendRFQRequest {
-  project_id: string;
-  supplier_ids: string[];
-  quote_deadline: string;
-  rfq_message: string;
-}
-
-export function useSupplierQuotes() {
+export function useSupplierQuotes(projectId?: string) {
   const [quotes, setQuotes] = useState<SupplierQuote[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -38,7 +30,7 @@ export function useSupplierQuotes() {
       setLoading(true);
       setError(null);
 
-      // Return empty array for now - would integrate with actual supplier_quotes table
+      // Mock implementation for now - integrate with database later
       setQuotes([]);
     } catch (err) {
       console.error('Error in fetchQuotes:', err);
@@ -53,22 +45,21 @@ export function useSupplierQuotes() {
       setLoading(true);
       setError(null);
 
-      // Mock implementation for now - would integrate with actual database
+      // Mock implementation
       console.log('Would send RFQ to suppliers:', request);
 
       toast({
-        title: "RFQ Sent Successfully",
+        title: 'RFQ Sent Successfully',
         description: `RFQ sent to ${request.supplier_ids.length} suppliers`,
       });
-
       return true;
     } catch (err) {
       console.error('Error sending RFQ:', err);
       setError('Failed to send RFQ');
       toast({
-        variant: "destructive",
-        title: "Error",
-        description: "Failed to send RFQ to suppliers",
+        variant: 'destructive',
+        title: 'Error',
+        description: 'Failed to send RFQ to suppliers',
       });
       return false;
     } finally {
@@ -76,106 +67,61 @@ export function useSupplierQuotes() {
     }
   };
 
-  const updateQuoteStatus = async (quoteId: string, status: string): Promise<boolean> => {
+  const updateQuote = async (quoteId: string, updates: UpdateSupplierQuoteRequest): Promise<boolean> => {
     try {
-      // Mock implementation for now
-      console.log('Would update quote status:', { quoteId, status });
-
-      toast({
-        title: "Quote Updated",
-        description: "Quote status updated successfully",
-      });
-
+      setQuotes(prev => prev.map(q => q.id === quoteId ? { ...q, ...updates, updated_at: new Date().toISOString() } : q));
+      toast({ title: 'Quote Updated', description: 'Quote updated successfully' });
       return true;
     } catch (err) {
-      console.error('Error updating quote status:', err);
-      toast({
-        variant: "destructive",
-        title: "Error",
-        description: "Failed to update quote status",
-      });
+      console.error('Error updating quote:', err);
       return false;
     }
   };
 
-  const submitQuoteResponse = async (quoteId: string, quoteData: any): Promise<boolean> => {
+  const acceptQuote = async (request: AcceptQuoteRequest): Promise<boolean> => {
     try {
-      // Mock implementation for now
-      console.log('Would submit quote response:', { quoteId, quoteData });
-
-      toast({
-        title: "Quote Submitted",
-        description: "Quote response submitted successfully",
-      });
-
+      setQuotes(prev => prev.map(q => q.id === request.quote_id ? { ...q, status: 'accepted' } : q));
+      toast({ title: 'Quote Accepted', description: 'Quote accepted successfully' });
       return true;
     } catch (err) {
-      console.error('Error submitting quote response:', err);
-      toast({
-        variant: "destructive",
-        title: "Error",
-        description: "Failed to submit quote response",
-      });
+      console.error('Error accepting quote:', err);
+      return false;
+    }
+  };
+
+  const updateQuoteStatus = async (quoteId: string, status: string): Promise<boolean> => {
+    try {
+      setQuotes(prev => prev.map(q => q.id === quoteId ? { ...q, status } : q));
+      return true;
+    } catch (err) {
+      console.error('Error updating quote status:', err);
       return false;
     }
   };
 
   const deleteQuote = async (quoteId: string): Promise<boolean> => {
     try {
-      // Mock implementation for now
-      console.log('Would delete quote:', quoteId);
-
-      setQuotes(prev => prev.filter(quote => quote.id !== quoteId));
-
-      toast({
-        title: "Quote Deleted",
-        description: "Quote deleted successfully",
-      });
-
+      setQuotes(prev => prev.filter(q => q.id !== quoteId));
+      toast({ title: 'Quote Deleted', description: 'Quote deleted successfully' });
       return true;
     } catch (err) {
       console.error('Error deleting quote:', err);
-      toast({
-        variant: "destructive",
-        title: "Error",
-        description: "Failed to delete quote",
-      });
       return false;
     }
   };
 
-  const getQuotesByProject = (projectId: string): SupplierQuote[] => {
-    return quotes.filter(quote => quote.project_id === projectId);
-  };
-
-  const getQuotesBySupplier = (supplierId: string): SupplierQuote[] => {
-    return quotes.filter(quote => quote.supplier_id === supplierId);
-  };
-
-  const getPendingQuotes = (): SupplierQuote[] => {
-    return quotes.filter(quote => quote.status === 'sent');
-  };
-
+  const getQuotesByProject = (pid: string): SupplierQuote[] => quotes.filter(q => q.project_id === pid);
+  const getQuotesBySupplier = (sid: string): SupplierQuote[] => quotes.filter(q => q.supplier_id === sid);
+  const getPendingQuotes = (): SupplierQuote[] => quotes.filter(q => q.status === 'sent');
   const getExpiredQuotes = (): SupplierQuote[] => {
     const now = new Date();
-    return quotes.filter(quote => 
-      quote.quote_deadline && new Date(quote.quote_deadline) < now
-    );
+    return quotes.filter(q => q.quote_deadline && new Date(q.quote_deadline) < now);
   };
 
-  // Set up filters
-  const updateFilters = (newFilters: Partial<QuoteFilters>) => {
-    setFilters(prev => ({ ...prev, ...newFilters }));
-  };
+  const updateFilters = (newFilters: Partial<QuoteFilters>) => setFilters(prev => ({ ...prev, ...newFilters }));
+  const clearFilters = () => setFilters({});
 
-  const clearFilters = () => {
-    setFilters({});
-  };
-
-  // Initialize
-  useEffect(() => {
-    fetchQuotes();
-  }, [user, filters]);
+  useEffect(() => { fetchQuotes(); }, [user, filters, projectId]);
 
   return {
     quotes,
@@ -185,8 +131,9 @@ export function useSupplierQuotes() {
     
     // CRUD operations
     sendRFQToSuppliers,
+    updateQuote,
+    acceptQuote,
     updateQuoteStatus,
-    submitQuoteResponse,
     deleteQuote,
     refetch: fetchQuotes,
     
@@ -198,6 +145,6 @@ export function useSupplierQuotes() {
     
     // Filter management
     updateFilters,
-    clearFilters
+    clearFilters,
   };
 }

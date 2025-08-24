@@ -32,7 +32,7 @@ export function useSuppliers() {
       const { data, error: fetchError } = await supabase
         .from('suppliers')
         .select('*')
-        .order('rating', { ascending: false });
+        .order('updated_at', { ascending: false });
 
       if (fetchError) {
         console.error('Error fetching suppliers:', fetchError);
@@ -40,7 +40,23 @@ export function useSuppliers() {
         return;
       }
 
-      setSuppliers(data || []);
+      const mapped = (data || []).map((row: any) => ({
+        id: row.id,
+        name: row.name,
+        company: row.company,
+        email: row.email ?? undefined,
+        phone: row.phone ?? undefined,
+        address: row.address ?? undefined,
+        country: row.country ?? undefined,
+        specialties: (row.capabilities || []) as any,
+        rating: Number(((row.quality_rating ?? 4) + (row.delivery_rating ?? 4) + (row.cost_rating ?? 4)) / 3),
+        response_rate: 0,
+        is_active: (row.status ?? 'active') === 'active',
+        created_at: row.created_at,
+        updated_at: row.updated_at,
+      }));
+
+      setSuppliers(mapped);
     } catch (err) {
       console.error('Error in fetchSuppliers:', err);
       setError('Failed to fetch suppliers');
@@ -51,18 +67,16 @@ export function useSuppliers() {
 
   const createSupplier = async (supplierData: CreateSupplierRequest): Promise<Supplier> => {
     try {
-      const cleanData = {
+      const cleanData: any = {
         name: supplierData.name,
-        company: supplierData.company,
+        company: supplierData.company || supplierData.name,
         email: supplierData.email,
         phone: supplierData.phone,
         address: supplierData.address,
         country: supplierData.country,
-        specialties: supplierData.specialties,
-        notes: supplierData.notes,
-        tags: supplierData.tags || [],
-        created_by: user?.id
-      };
+        capabilities: supplierData.specialties as any,
+        status: 'active',
+      }; 
 
       const { data, error } = await supabase
         .from('suppliers')
@@ -75,8 +89,23 @@ export function useSuppliers() {
         throw error;
       }
 
-      // Add to local state optimistically
-      setSuppliers(prev => [data, ...prev]);
+      // Map to app type and add to local state
+      const mapped = {
+        id: data.id,
+        name: data.name,
+        company: data.company,
+        email: data.email ?? undefined,
+        phone: data.phone ?? undefined,
+        address: data.address ?? undefined,
+        country: data.country ?? undefined,
+        specialties: (data.capabilities || []) as any,
+        rating: Number(((data.quality_rating ?? 4) + (data.delivery_rating ?? 4) + (data.cost_rating ?? 4)) / 3),
+        response_rate: 0,
+        is_active: (data.status ?? 'active') === 'active',
+        created_at: data.created_at,
+        updated_at: data.updated_at,
+      } as Supplier;
+      setSuppliers(prev => [mapped, ...prev]);
 
       toast({
         title: "Supplier Created",
@@ -97,10 +126,11 @@ export function useSuppliers() {
 
   const updateSupplier = async (supplierId: string, updates: UpdateSupplierRequest): Promise<Supplier> => {
     try {
-      const cleanUpdates = {
+      const cleanUpdates: any = {
         ...updates,
+        capabilities: (updates as any).specialties ?? undefined,
+        specialties: undefined,
         updated_at: new Date().toISOString(),
-        updated_by: user?.id
       };
 
       const { data, error } = await supabase
@@ -116,8 +146,23 @@ export function useSuppliers() {
       }
 
       // Update local state
+      const mapped = {
+        id: data.id,
+        name: data.name,
+        company: data.company,
+        email: data.email ?? undefined,
+        phone: data.phone ?? undefined,
+        address: data.address ?? undefined,
+        country: data.country ?? undefined,
+        specialties: (data.capabilities || []) as any,
+        rating: Number(((data.quality_rating ?? 4) + (data.delivery_rating ?? 4) + (data.cost_rating ?? 4)) / 3),
+        response_rate: 0,
+        is_active: (data.status ?? 'active') === 'active',
+        created_at: data.created_at,
+        updated_at: data.updated_at,
+      } as Supplier;
       setSuppliers(prev => prev.map(supplier => 
-        supplier.id === supplierId ? data : supplier
+        supplier.id === supplierId ? mapped : supplier
       ));
 
       toast({
@@ -213,122 +258,73 @@ export function useSuppliers() {
     try {
       let query = supabase.from('suppliers').select('*');
 
-      // Apply search filters
       if (criteria.name) {
         query = query.or(`name.ilike.%${criteria.name}%,company.ilike.%${criteria.name}%`);
       }
 
       if (criteria.specialties && criteria.specialties.length > 0) {
-        query = query.overlaps('specialties', criteria.specialties);
+        query = query.overlaps('capabilities', criteria.specialties as any);
       }
 
       if (criteria.country) {
         query = query.eq('country', criteria.country);
       }
 
-      if (criteria.min_rating !== undefined) {
-        query = query.gte('rating', criteria.min_rating);
-      }
-
       if (criteria.is_active !== undefined) {
-        query = query.eq('is_active', criteria.is_active);
+        query = query.eq('status', criteria.is_active ? 'active' : 'inactive');
       }
 
       if (criteria.tags && criteria.tags.length > 0) {
-        query = query.overlaps('tags', criteria.tags);
+        // no tags column in DB - ignore
       }
 
-      const { data, error } = await query.order('rating', { ascending: false });
+      const { data, error } = await query.order('updated_at', { ascending: false });
+      if (error) throw error;
 
-      if (error) {
-        console.error('Error searching suppliers:', error);
-        throw error;
-      }
+      const mapped = (data || []).map((row: any) => ({
+        id: row.id,
+        name: row.name,
+        company: row.company,
+        email: row.email ?? undefined,
+        phone: row.phone ?? undefined,
+        address: row.address ?? undefined,
+        country: row.country ?? undefined,
+        specialties: (row.capabilities || []) as any,
+        rating: Number(((row.quality_rating ?? 4) + (row.delivery_rating ?? 4) + (row.cost_rating ?? 4)) / 3),
+        response_rate: 0,
+        is_active: (row.status ?? 'active') === 'active',
+        created_at: row.created_at,
+        updated_at: row.updated_at,
+      }));
 
-      return data || [];
+      // Apply min_rating client-side since DB doesn't have 'rating'
+      const filtered = criteria.min_rating !== undefined
+        ? mapped.filter(s => s.rating >= criteria.min_rating!)
+        : mapped;
+
+      return filtered;
     } catch (err) {
       console.error('Error in searchSuppliers:', err);
       throw err;
     }
   };
 
-  const getSupplierPerformance = async (supplierId: string): Promise<SupplierPerformanceMetrics[]> => {
-    try {
-      const { data, error } = await supabase
-        .from('supplier_performance_metrics')
-        .select('*')
-        .eq('supplier_id', supplierId)
-        .order('period_start', { ascending: false });
-
-      if (error) {
-        console.error('Error fetching supplier performance:', error);
-        throw error;
-      }
-
-      return data || [];
-    } catch (err) {
-      console.error('Error in getSupplierPerformance:', err);
-      throw err;
-    }
+  const getSupplierPerformance = async (_supplierId: string): Promise<SupplierPerformanceMetrics[]> => {
+    return [];
   };
 
   const getSupplierAnalytics = async (): Promise<SupplierAnalytics[]> => {
-    try {
-      const { data, error } = await supabase
-        .from('supplier_quote_analytics')
-        .select('*')
-        .order('response_rate_percent', { ascending: false });
-
-      if (error) {
-        console.error('Error fetching supplier analytics:', error);
-        throw error;
-      }
-
-      return data || [];
-    } catch (err) {
-      console.error('Error in getSupplierAnalytics:', err);
-      throw err;
-    }
+    return [];
   };
 
-  const updateSupplierPerformanceMetrics = async (supplierId: string): Promise<void> => {
-    try {
-      const { error } = await supabase.rpc('update_supplier_performance_metrics', {
-        supplier_uuid: supplierId
-      });
-
-      if (error) {
-        console.error('Error updating supplier performance metrics:', error);
-        throw error;
-      }
-
-      // Refresh supplier data to reflect updated metrics
-      const updatedSupplier = await getSupplierById(supplierId);
-      setSuppliers(prev => prev.map(supplier => 
-        supplier.id === supplierId ? updatedSupplier : supplier
-      ));
-    } catch (err) {
-      console.error('Error in updateSupplierPerformanceMetrics:', err);
-      // Don't throw - this is a background operation
-    }
+  const updateSupplierPerformanceMetrics = async (_supplierId: string): Promise<void> => {
+    // no-op for now
+    return;
   };
 
   const calculateSupplierRating = async (supplierId: string): Promise<number> => {
-    try {
-      const { data, error } = await supabase.rpc('calculate_supplier_rating', {
-        supplier_uuid: supplierId
-      });
-
-      if (error) {
-        console.error('Error calculating supplier rating:', error);
-        throw error;
-      }
-
-      return data || 0.0;
-    } catch (err) {
-      console.error('Error in calculateSupplierRating:', err);
-      return 0.0;
-    }
+    const s = suppliers.find(s => s.id === supplierId);
+    return s ? s.rating : 0.0;
   };
 
   const getSupplierById = async (id: string): Promise<Supplier> => {
@@ -346,7 +342,7 @@ export function useSuppliers() {
   };
 
   const getActiveSuppliers = (): Supplier[] => {
-    return suppliers.filter(supplier => supplier.is_active);
+    return suppliers.filter(supplier => (supplier.is_active));
   };
 
   const getSuppliersBySpecialty = (specialty: string): Supplier[] => {
@@ -362,72 +358,17 @@ export function useSuppliers() {
       .slice(0, limit);
   };
 
-  // Set up real-time subscription
   useEffect(() => {
     fetchSuppliers();
-
-    const channel = supabase
-      .channel('suppliers-changes')
-      .on(
-        'postgres_changes',
-        {
-          event: '*',
-          schema: 'public',
-          table: 'suppliers'
-        },
-        (payload) => {
-          console.log('Supplier change received:', payload);
-          
-          if (payload.eventType === 'INSERT') {
-            const newSupplier = payload.new as Supplier;
-            setSuppliers(prev => [newSupplier, ...prev]);
-          } else if (payload.eventType === 'UPDATE') {
-            const updatedSupplier = payload.new as Supplier;
-            setSuppliers(prev => prev.map(supplier => 
-              supplier.id === updatedSupplier.id 
-                ? updatedSupplier 
-                : supplier
-            ));
-          } else if (payload.eventType === 'DELETE') {
-            setSuppliers(prev => prev.filter(supplier => supplier.id !== payload.old.id));
-          }
-        }
-      )
-      .subscribe();
-
+    const channel = supabase.channel('suppliers-changes');
+    // Real-time not configured for this schema in demo - skip subscription
     return () => {
       supabase.removeChannel(channel);
     };
   }, [user]);
 
-  // Background performance metrics updates
   useEffect(() => {
-    if (suppliers.length > 0) {
-      // Update performance metrics for suppliers with recent activity
-      const updateMetrics = async () => {
-        const recentlyActiveSuppliers = suppliers.filter(supplier => {
-          const lastContact = supplier.last_contact_date;
-          if (!lastContact) return false;
-          
-          const daysSinceContact = (Date.now() - new Date(lastContact).getTime()) / (1000 * 60 * 60 * 24);
-          return daysSinceContact <= 7; // Active in last week
-        });
-
-        // Update metrics for recently active suppliers
-        for (const supplier of recentlyActiveSuppliers.slice(0, 5)) { // Limit to 5 at a time
-          try {
-            await updateSupplierPerformanceMetrics(supplier.id);
-          } catch (err) {
-            // Silently continue - background operation
-            console.log(`Background metric update failed for supplier ${supplier.id}`);
-          }
-        }
-      };
-
-      // Run background updates after component mounts
-      const timeoutId = setTimeout(updateMetrics, 2000);
-      return () => clearTimeout(timeoutId);
-    }
+    // No background updates in demo
   }, [suppliers.length]);
 
   return {
@@ -449,7 +390,7 @@ export function useSuppliers() {
     getSuppliersBySpecialty,
     getTopPerformingSuppliers,
     
-    // Performance tracking
+    // Performance tracking (stubs)
     getSupplierPerformance,
     getSupplierAnalytics,
     updateSupplierPerformanceMetrics,

@@ -399,14 +399,14 @@ export function BottleneckDetectionSystem({ className, onProjectAction }: Bottle
   const [autoRefresh, setAutoRefresh] = useState(true);
   const [recommendations, setRecommendations] = useState<Record<string, ActionPlan>>({});
   
-  const { projects, detectBottlenecks } = useProjects();
+  const { projects, getBottleneckAnalysis } = useProjects();
   const recommendationEngine = createRecommendationEngine();
 
   // Load bottleneck data
   const loadBottlenecks = useCallback(async () => {
     setLoading(true);
     try {
-      const bottleneckData = await detectBottlenecks();
+      const bottleneckData = await getBottleneckAnalysis();
       setBottlenecks(bottleneckData);
       
       // Generate recommendations for each bottleneck
@@ -421,7 +421,7 @@ export function BottleneckDetectionSystem({ className, onProjectAction }: Bottle
     } finally {
       setLoading(false);
     }
-  }, [detectBottlenecks, recommendationEngine]);
+  }, [getBottleneckAnalysis, recommendationEngine]);
 
   useEffect(() => {
     loadBottlenecks();

@@ -411,7 +411,7 @@ interface WorkflowKanbanProps {
 }
 
 export function WorkflowKanban({ projectTypeFilter = 'all', filteredProjects }: WorkflowKanbanProps) {
-  const { projects: allProjects, loading, error, updateProjectStatusOptimistic, detectBottlenecks, getQuoteReadinessScore } = useProjects();
+  const { projects: allProjects, loading, error, updateProjectStatusOptimistic, getBottleneckAnalysis, getQuoteReadinessScore } = useProjects();
 
   // Use filtered projects if provided, otherwise use all projects
   const projects = filteredProjects || allProjects;
@@ -435,7 +435,7 @@ export function WorkflowKanban({ projectTypeFilter = 'all', filteredProjects }: 
   useEffect(() => {
     const loadBottlenecks = async () => {
       try {
-        const bottleneckData = await detectBottlenecks();
+        const bottleneckData = await getBottleneckAnalysis();
         setBottlenecks(bottleneckData);
       } catch (error) {
         console.error('Error loading bottlenecks:', error);
@@ -445,7 +445,7 @@ export function WorkflowKanban({ projectTypeFilter = 'all', filteredProjects }: 
     if (projects.length > 0) {
       loadBottlenecks();
     }
-  }, [projects.length, detectBottlenecks]);
+  }, [projects.length, getBottleneckAnalysis]);
 
   // Load quote readiness data for relevant projects
   useEffect(() => {

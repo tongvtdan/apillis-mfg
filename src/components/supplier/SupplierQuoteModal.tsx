@@ -203,7 +203,7 @@ Best regards,
       const request: SendRFQRequest = {
         project_id: project.id,
         supplier_ids: selectedSupplierIds,
-        quote_deadline: quoteDeadline.toISOString(),
+        quote_deadline: quoteDeadline?.toISOString(),
         rfq_message: rfqMessage
       };
 

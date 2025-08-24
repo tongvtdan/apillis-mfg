@@ -415,7 +415,7 @@ export function AnalyticsDashboard({ className, dateRange }: AnalyticsDashboardP
   const [bottlenecks, setBottlenecks] = useState<BottleneckAlert[]>([]);
   const [supplierAnalytics, setSupplierAnalytics] = useState<SupplierAnalytics[]>([]);
   
-  const { detectBottlenecks } = useProjects();
+  const { getBottleneckAnalysis } = useProjects();
   const { getSupplierAnalytics } = useSuppliers();
 
   // Load analytics data
@@ -457,7 +457,7 @@ export function AnalyticsDashboard({ className, dateRange }: AnalyticsDashboardP
         setAnalyticsData(mockAnalyticsData);
 
         // Load bottlenecks
-        const bottleneckData = await detectBottlenecks();
+        const bottleneckData = await getBottleneckAnalysis();
         setBottlenecks(bottleneckData);
 
         // Load supplier analytics  
@@ -472,7 +472,7 @@ export function AnalyticsDashboard({ className, dateRange }: AnalyticsDashboardP
     };
 
     loadAnalyticsData();
-  }, [dateRange, detectBottlenecks, getSupplierAnalytics]);
+  }, [dateRange, getBottleneckAnalysis, getSupplierAnalytics]);
 
   const handleViewProjectDetails = (projectId: string) => {
     // Navigate to project detail page
