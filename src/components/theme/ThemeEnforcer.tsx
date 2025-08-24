@@ -245,20 +245,27 @@ export function ThemeEnforcer() {
 
         // Enhance styling for status alerts in System Overview cards
         document.querySelectorAll('.status-alert').forEach(el => {
+            // Base styling for all status alerts
+            (el as HTMLElement).style.fontWeight = '700';
+            (el as HTMLElement).style.letterSpacing = '0.02em';
+            
             if (!isDarkTheme) {
-                // Base styling for all status alerts
-                (el as HTMLElement).style.fontWeight = '700';
-                (el as HTMLElement).style.letterSpacing = '0.02em';
-
-                // Apply specific styling based on alert type
+                // Light mode styling
+                (el as HTMLElement).style.transform = 'translateY(-1px)';
+            } else {
+                // Dark mode styling - enhanced glow and visibility
+                (el as HTMLElement).style.transform = 'translateY(-1px) scale(1.05)';
+                (el as HTMLElement).style.textShadow = '0 1px 3px rgba(0, 0, 0, 0.5)';
+                
+                // Apply specific dark mode styling based on alert type
                 if (el.classList.contains('overdue-alert')) {
-                    (el as HTMLElement).style.transform = 'translateY(-1px)';
+                    (el as HTMLElement).style.boxShadow = '0 2px 12px rgba(255, 82, 82, 0.6)';
                 } else if (el.classList.contains('onhold-alert')) {
-                    (el as HTMLElement).style.transform = 'translateY(-1px)';
+                    (el as HTMLElement).style.boxShadow = '0 2px 12px rgba(185, 103, 255, 0.6)';
                 } else if (el.classList.contains('urgent-alert')) {
-                    (el as HTMLElement).style.transform = 'translateY(-1px)';
+                    (el as HTMLElement).style.boxShadow = '0 2px 12px rgba(255, 152, 0, 0.6)';
                 } else if (el.classList.contains('critical-alert')) {
-                    (el as HTMLElement).style.transform = 'translateY(-1px)';
+                    (el as HTMLElement).style.boxShadow = '0 2px 12px rgba(244, 67, 54, 0.6)';
                 }
             }
         });

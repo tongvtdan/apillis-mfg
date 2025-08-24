@@ -176,6 +176,29 @@ div {
     letter-spacing: 0.02em !important;
 }
 
+/* Status Alerts - Dark Mode */
+[data-theme="factory-pulse-dark"] .status-alert,
+.dark .status-alert {
+    font-weight: 700 !important;
+    border: 1px solid transparent !important;
+    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.25) !important;
+    letter-spacing: 0.02em !important;
+    text-shadow: 0 1px 3px rgba(0, 0, 0, 0.5) !important;
+    animation: dark-mode-pulse 2s infinite !important;
+}
+
+@keyframes dark-mode-pulse {
+    0% {
+        box-shadow: 0 2px 10px rgba(0, 0, 0, 0.25);
+    }
+    50% {
+        box-shadow: 0 2px 15px rgba(255, 255, 255, 0.2);
+    }
+    100% {
+        box-shadow: 0 2px 10px rgba(0, 0, 0, 0.25);
+    }
+}
+
 /* Overdue Alert */
 [data-theme="factory-pulse-light"] .overdue-alert,
 .light .overdue-alert {
@@ -183,6 +206,16 @@ div {
     color: white !important;
     border-color: #c0392b !important;
     box-shadow: 0 2px 8px rgba(231, 76, 60, 0.4) !important;
+    font-weight: 800 !important;
+}
+
+/* Overdue Alert - Dark Mode */
+[data-theme="factory-pulse-dark"] .overdue-alert,
+.dark .overdue-alert {
+    background-color: #ff5252 !important;
+    color: white !important;
+    border-color: #ff2d2d !important;
+    box-shadow: 0 2px 12px rgba(255, 82, 82, 0.6) !important;
     font-weight: 800 !important;
 }
 
@@ -195,6 +228,15 @@ div {
     box-shadow: 0 2px 8px rgba(155, 89, 182, 0.4) !important;
 }
 
+/* On Hold Alert - Dark Mode */
+[data-theme="factory-pulse-dark"] .onhold-alert,
+.dark .onhold-alert {
+    background-color: #b967ff !important;
+    color: white !important;
+    border-color: #a94dff !important;
+    box-shadow: 0 2px 12px rgba(185, 103, 255, 0.6) !important;
+}
+
 /* Urgent Alert */
 [data-theme="factory-pulse-light"] .urgent-alert,
 .light .urgent-alert {
@@ -204,6 +246,15 @@ div {
     box-shadow: 0 2px 8px rgba(230, 126, 34, 0.4) !important;
 }
 
+/* Urgent Alert - Dark Mode */
+[data-theme="factory-pulse-dark"] .urgent-alert,
+.dark .urgent-alert {
+    background-color: #ff9800 !important;
+    color: white !important;
+    border-color: #e68900 !important;
+    box-shadow: 0 2px 12px rgba(255, 152, 0, 0.6) !important;
+}
+
 /* Critical Items Alert */
 [data-theme="factory-pulse-light"] .critical-alert,
 .light .critical-alert {
@@ -211,6 +262,16 @@ div {
     color: white !important;
     border-color: #922b21 !important;
     box-shadow: 0 2px 8px rgba(192, 57, 43, 0.4) !important;
+    font-weight: 800 !important;
+}
+
+/* Critical Items Alert - Dark Mode */
+[data-theme="factory-pulse-dark"] .critical-alert,
+.dark .critical-alert {
+    background-color: #f44336 !important;
+    color: white !important;
+    border-color: #d32f2f !important;
+    box-shadow: 0 2px 12px rgba(244, 67, 54, 0.6) !important;
     font-weight: 800 !important;
 }
 
