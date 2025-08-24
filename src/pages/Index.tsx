@@ -65,13 +65,17 @@ const Index = () => {
             <div className="flex items-center space-x-4">
               {user ? (
                 <Link to="/dashboard">
-                  <Button className="shadow-sm">Go to Dashboard</Button>
+                  <Button size="lg" className="gradient-primary text-lg px-8 py-6 text-primary-foreground">
+                    Go to Dashboard
+                    <ArrowRight className="ml-2 h-5 w-5" />
+                  </Button>
                 </Link>
               ) : (
                 <>
                   <Link to="/rfq/submit">
-                    <Button className="bg-primary text-primary-foreground hover:bg-primary/90 shadow-sm">
+                    <Button size="lg" className="gradient-primary text-lg px-8 py-6 text-primary-foreground">
                       Submit RFQ
+                      <ArrowRight className="ml-2 h-5 w-5" />
                     </Button>
                   </Link>
                   <Link to="/auth">
@@ -175,7 +179,7 @@ const Index = () => {
             </div>
 
             <Link to="/rfq/submit">
-              <Button size="lg" className="text-lg px-8 py-4 bg-primary text-primary-foreground hover:bg-primary/90">
+              <Button size="lg" className="gradient-primary text-lg px-8 py-6 text-primary-foreground">
                 Submit Your RFQ Request
                 <ArrowRight className="ml-2 h-5 w-5" />
               </Button>
@@ -260,9 +264,9 @@ const Index = () => {
                     </div>
                   </div>
                   <Link to={user ? "/dashboard" : "/auth"} className="block">
-                    <Button className="w-full bg-primary text-primary-foreground hover:bg-primary/90" size="lg">
+                    <Button size="lg" className="gradient-primary text-lg px-8 py-6 text-primary-foreground w-full">
                       {user ? "Go to Dashboard" : "Start Your Free Trial"}
-                      <ArrowRight className="ml-2 h-4 w-4" />
+                      <ArrowRight className="ml-2 h-5 w-5" />
                     </Button>
                   </Link>
                 </CardContent>

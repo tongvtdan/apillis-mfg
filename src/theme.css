@@ -17,7 +17,7 @@
     --error-foreground: #FFFFFF;
     --info: #2196F3;
     --info-foreground: #FFFFFF;
-    
+
     /* Opacity variations for status colors */
     --primary-opacity: rgba(3, 218, 198, 0.2);
     --secondary-opacity: rgba(187, 134, 252, 0.2);
