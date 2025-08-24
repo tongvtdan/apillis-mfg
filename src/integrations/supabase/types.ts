@@ -294,6 +294,7 @@ export type Database = {
           review_summary: Json | null
           stage_entered_at: string | null
           status: Database["public"]["Enums"]["project_status"]
+          supplier_id: string | null
           tags: string[] | null
           title: string
           updated_at: string
@@ -323,6 +324,7 @@ export type Database = {
           review_summary?: Json | null
           stage_entered_at?: string | null
           status?: Database["public"]["Enums"]["project_status"]
+          supplier_id?: string | null
           tags?: string[] | null
           title: string
           updated_at?: string
@@ -352,6 +354,7 @@ export type Database = {
           review_summary?: Json | null
           stage_entered_at?: string | null
           status?: Database["public"]["Enums"]["project_status"]
+          supplier_id?: string | null
           tags?: string[] | null
           title?: string
           updated_at?: string
@@ -363,6 +366,13 @@ export type Database = {
             columns: ["customer_id"]
             isOneToOne: false
             referencedRelation: "customers"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "projects_supplier_id_fkey"
+            columns: ["supplier_id"]
+            isOneToOne: false
+            referencedRelation: "suppliers"
             referencedColumns: ["id"]
           },
         ]
@@ -677,6 +687,60 @@ export type Database = {
           tags?: string[] | null
           updated_at?: string
           updated_by?: string | null
+        }
+        Relationships: []
+      }
+      suppliers: {
+        Row: {
+          address: string | null
+          capabilities: string[] | null
+          company: string
+          cost_rating: number | null
+          country: string | null
+          created_at: string
+          delivery_rating: number | null
+          email: string | null
+          id: string
+          industry_type: string | null
+          name: string
+          phone: string | null
+          quality_rating: number | null
+          status: string | null
+          updated_at: string
+        }
+        Insert: {
+          address?: string | null
+          capabilities?: string[] | null
+          company: string
+          cost_rating?: number | null
+          country?: string | null
+          created_at?: string
+          delivery_rating?: number | null
+          email?: string | null
+          id?: string
+          industry_type?: string | null
+          name: string
+          phone?: string | null
+          quality_rating?: number | null
+          status?: string | null
+          updated_at?: string
+        }
+        Update: {
+          address?: string | null
+          capabilities?: string[] | null
+          company?: string
+          cost_rating?: number | null
+          country?: string | null
+          created_at?: string
+          delivery_rating?: number | null
+          email?: string | null
+          id?: string
+          industry_type?: string | null
+          name?: string
+          phone?: string | null
+          quality_rating?: number | null
+          status?: string | null
+          updated_at?: string
         }
         Relationships: []
       }

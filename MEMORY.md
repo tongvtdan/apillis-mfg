@@ -2,6 +2,16 @@
 
 This file contains important changes and updates made to the project.
 
+- Date: 2025-08-24
+- What we completed / changed:
+1. **Database Schema Cleanup**: Cleared all existing data and removed all mock data files and test components
+2. **Suppliers Table**: Created suppliers table with ratings, capabilities, industry types, and RLS policies
+3. **Sample Data**: Generated 10 customers, 10 suppliers, and 10 projects with proper relationships
+4. **Project Relations**: Added supplier_id to projects table and updated types to include supplier relationships
+5. **Code Cleanup**: Removed mock data files, test components, and simplified project service
+6. **UI Updates**: Updated project detail page to display supplier information alongside customer data
+7. **Build Fixes**: Fixed TypeScript compilation errors and removed unused imports
+
 - Date: 2025-08-22
 - What we completed / changed:
 1. Implemented User Authentication & Role Management with Supabase
@@ -97,84 +107,6 @@ This file contains important changes and updates made to the project.
 8. **Enhanced Visual Feedback**: Added smooth animations, better hover effects, and performance indicators throughout the kanban interface
 9. **Performance Optimization**: Implemented virtual scrolling for large project lists, reducing DOM nodes and improving rendering performance
 10. **Code Quality**: Maintained clean, functional code with <300 LOC per file and proper TypeScript interfaces
-
-- Date: 2025-01-22
-- What we completed / changed:
-1. **Enhanced Flowchart View with Project Type Filtering**: Added dropdown filter to select specific project types (System Build, Fabrication, Manufacturing) or view all types
-2. **Responsive Grid Layout**: Converted ProjectTypeKanban from column layout to responsive grid with fixed-width project cards (320px max width)
-3. **Improved Project Display**: Projects now arranged in responsive grid: 1 column on mobile, 2 on small screens, 3 on large screens, 4 on xl, 5 on 2xl
-4. **Enhanced User Experience**: Added project count summaries, better empty state messages, and visual project type indicators with color-coded dots
-5. **Smart Filtering**: Project type filter shows accurate counts for each type within the selected stage, with real-time updates
-6. **Better Visual Hierarchy**: Added section headers for each project type with descriptions and project counts
-7. **Improved Navigation**: Clear indication of filtered results with helpful messaging when no projects match criteria
-8. **Responsive Design**: Grid automatically adjusts columns based on screen size while maintaining consistent card dimensions
-9. **Performance Optimization**: Maintained drag & drop functionality while improving layout performance for large project lists
-10. **Code Quality**: Modular components with clean separation of concerns, following established patterns
-
-- Date: 2025-01-22
-- What we completed / changed:
-1. **Improved Kanban Layout with Horizontal Scrolling**: Converted from cramped 8-column grid to horizontal scrolling layout showing 2-3 columns at once
-2. **Increased Column Widths by 30%**: Each kanban column now has 416px width (increased from 320px) for better readability and content display
-3. **Flexible Column Heights**: Removed fixed heights, columns now expand based on project count for natural content flow
-4. **Full Viewport Scrolling**: Added vertical scrolling to entire Kanban area (max-h-[80vh]) so users can scroll up/down to see all columns
-5. **Enhanced User Experience**: Added horizontal scroll with custom scrollbar styling and visual scroll indicators
-6. **Better Visual Hierarchy**: Wider columns now have proper spacing and are much more readable with room for project details
-7. **Custom Scrollbar Styling**: Added subtle, themed scrollbars that match the design system for both horizontal and vertical scrolling
-8. **Scroll Indicators**: Added gradient fade on the right edge to indicate more content is available
-9. **User Guidance**: Updated instruction text to inform users about horizontal and vertical scrolling capabilities
-10. **Performance Optimization**: Simplified scrolling implementation improves performance while maintaining drag & drop functionality
-
-- Date: 2025-01-22
-- What we completed / changed:
-1. **Fixed Header with Always-Visible Controls**: Made the header fixed position so search, notifications, user profile, and New Project button stay visible while scrolling
-2. **Enhanced Header Layout**: Added New Project button to the header for easy access from any view (Flowchart, Kanban, Table)
-3. **Improved User Experience**: Users can now access key functions (search, notifications, profile, new project) without scrolling back to top
-4. **Better Navigation**: Header remains accessible throughout the entire Projects page experience
-5. **Responsive Design**: Fixed header works seamlessly across all screen sizes and view modes
-6. **Clean Content Layout**: Removed duplicate New Project button from page content, centralized in header
-7. **Proper Z-Index Management**: Header has z-50 to ensure it stays above all content
-8. **Backdrop Blur Effect**: Maintained modern glass-morphism effect for better visual hierarchy
-9. **Conditional Button Display**: New Project button only shows on Projects page for context-appropriate actions
-10. **Layout Optimization**: Added proper top padding to main content to account for fixed header height
-
-- Date: 2025-01-22
-- What we completed / changed:
-1. **Fixed Kanban Rendering Issues**: Resolved critical rendering problems that prevented the kanban view from displaying
-2. **Missing Button Import**: Added missing Button import that was causing runtime errors in ProjectCard component
-3. **Duplicate Style Attribute**: Fixed duplicate style attributes on ProjectCard div element that caused React warnings
-4. **Code Quality**: Ensured all imports are properly included and no syntax errors exist
-5. **Component Integrity**: Verified all drag & drop functionality, visual indicators, and interactions work correctly
-6. **Error Resolution**: Fixed TypeScript and linting issues to ensure clean, working code
-7. **Performance**: Maintained all performance optimizations while fixing rendering issues
-8. **User Experience**: Kanban view now renders properly with all features intact (metrics, scrolling, drag & drop)
-9. **Testing**: Verified no TypeScript errors and no linting issues remain
-10. **Stability**: Ensured component stability and proper error handling throughout
-
-- Date: 2025-01-22
-- What we completed / changed:
-1. **Fixed Project Views Tabbar Layout**: Changed from full-width to fixed-width (300px) and centered positioning for consistent appearance
-2. **Added Project Type Filtering to Kanban View**: Implemented consistent project type filtering across all three views (Flow, Kanban, Table)
-3. **Enhanced Table View**: Added project type filtering and consistent header styling to match other views
-4. **Improved Visual Consistency**: All three views now have consistent header cards with project counts and filtering options
-5. **Better User Experience**: Users can now filter projects by type in any view, maintaining context across view switches
-6. **Responsive Design**: Tabbar remains centered and fixed-width regardless of content scrolling or viewport changes
-7. **Code Reusability**: Project type filtering logic is now consistent across all views
-8. **Performance Optimization**: Filtering is applied at the component level for better performance
-9. **UI Consistency**: All views now have matching header styles and information display
-10. **Enhanced Navigation**: Tabbar stays visually stable while content scrolls, improving user orientation
-
-- Date: 2025-01-22
-- What we completed / changed:
-1. **Implemented Floating Tabbar**: Created a floating header for the view tabs (Flow, Kanban, Table) that stays always visible
-2. **Fixed Viewport Positioning**: Used fixed positioning with proper centering that doesn't interfere with sidebar layout
-3. **Enhanced Visual Design**: Added backdrop blur, border, rounded corners, and shadow for professional floating appearance
-4. **Proper Z-Index Management**: Set z-30 to float above content but below main header (z-50) and sidebar
-5. **Always Accessible Navigation**: Users can now switch between views from any scroll position in any view
-6. **Solved Kanban Scrolling Issue**: Tabbar remains visible even when horizontally scrolling through Kanban columns
-7. **Centered Positioning**: Used left-1/2 and transform -translate-x-1/2 for perfect centering regardless of viewport width
-8. **Professional Styling**: Semi-transparent background with backdrop blur creates modern floating effect
-9. **Content Spacing**: Added proper margin (mb-20) to prevent content from being hidden behind floating header
-10. **Responsive Design**: Floating header works seamlessly across all screen sizes and orientations
 
 - Date: 2025-01-22
 - What we completed / changed:
