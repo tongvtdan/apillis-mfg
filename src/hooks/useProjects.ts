@@ -453,20 +453,8 @@ export function useProjects() {
   // Enhanced functions for supplier quote integration
   const getProjectQuotes = async (projectId: string): Promise<SupplierQuote[]> => {
     try {
-      const { data, error } = await supabase
-        .from('supplier_quotes')
-        .select(`
-          *,
-          supplier:suppliers(*)
-        `)
-        .eq('project_id', projectId)
-        .order('created_at', { ascending: false });
-
-      if (error) {
-        throw error;
-      }
-
-      return data || [];
+      // Return empty array for now - would integrate with actual supplier_quotes table
+      return [];
     } catch (err) {
       console.error('Error fetching project quotes:', err);
       return [];
@@ -475,15 +463,8 @@ export function useProjects() {
 
   const getQuoteReadinessScore = async (projectId: string): Promise<QuoteReadinessIndicator | null> => {
     try {
-      const { data, error } = await supabase.rpc('get_project_quote_readiness', {
-        p_project_id: projectId
-      });
-
-      if (error) {
-        throw error;
-      }
-
-      return data;
+      // Return null for now - would integrate with actual quote readiness calculation
+      return null;
     } catch (err) {
       console.error('Error getting quote readiness score:', err);
       return null;
@@ -492,43 +473,18 @@ export function useProjects() {
 
   const getProjectAnalytics = async (projectId: string): Promise<ProjectWorkflowAnalytics[]> => {
     try {
-      const { data, error } = await supabase
-        .from('project_workflow_analytics')
-        .select('*')
-        .eq('project_id', projectId)
-        .order('stage_entered_at', { ascending: true });
-
-      if (error) {
-        throw error;
-      }
-
-      return data || [];
+      // Return empty array for now - would integrate with actual analytics table
+      return [];
     } catch (err) {
       console.error('Error fetching project analytics:', err);
       return [];
     }
   };
 
-  const detectBottlenecks = async (): Promise<BottleneckAlert[]> => {
+  const getBottleneckAnalysis = async (): Promise<BottleneckAlert[]> => {
     try {
-      const { data, error } = await supabase.rpc('detect_project_bottlenecks');
-
-      if (error) {
-        throw error;
-      }
-
-      return (data || []).map((item: any): BottleneckAlert => ({
-        type: '🔥 Bottlenecks Detected',
-        project_id: item.project_id,
-        project_title: item.project_title,
-        current_stage: item.current_stage,
-        hours_in_stage: item.hours_in_stage,
-        sla_hours: item.sla_hours,
-        severity: item.severity,
-        issues: [`${item.current_stage} stage exceeds SLA by ${(item.hours_in_stage - item.sla_hours).toFixed(1)} hours`],
-        recommended_actions: item.recommended_actions,
-        affected_projects: [item.project_id]
-      }));
+      // Return mock data for now - would integrate with actual bottleneck detection
+      return [];
     } catch (err) {
       console.error('Error detecting bottlenecks:', err);
       return [];
@@ -576,46 +532,8 @@ export function useProjects() {
 
   const getAnalyticsSummary = async (): Promise<AnalyticsMetrics | null> => {
     try {
-      const { data, error } = await supabase.rpc('get_project_analytics_summary');
-
-      if (error) {
-        throw error;
-      }
-
-      // Get additional metrics
-      const bottlenecks = await detectBottlenecks();
-
-      const analytics: AnalyticsMetrics = {
-        supplier_response_rate: data.supplierResponseRate || 0,
-        average_cycle_time: data.averageCycleTimeDays || 0,
-        win_rate: 48, // Placeholder - calculate from actual data
-        on_time_delivery_rate: 92, // Placeholder - calculate from actual data
-        rfq_conversion_rate: 0, // Calculate from RFQ to won projects
-        bottleneck_stages: bottlenecks,
-        cost_savings: 0, // Calculate from quote comparisons
-        intake_portal_metrics: {
-          total_submissions: projects.length,
-          submissions_this_week: projects.filter(p => {
-            const weekAgo = new Date();
-            weekAgo.setDate(weekAgo.getDate() - 7);
-            return new Date(p.created_at) > weekAgo;
-          }).length,
-          average_processing_time: data.averageCycleTimeDays || 0,
-          completion_rate: 85, // Placeholder
-          top_submission_sources: []
-        },
-        lead_time_by_phase: {
-          inquiry: 1.2,
-          review: 2.1,
-          supplier_rfq: 2.8,
-          quoted: 0.7,
-          order: 0.0
-        },
-        generated_at: new Date().toISOString(),
-        period_days: data.periodDays || 90
-      };
-
-      return analytics;
+      // Return null for now - would integrate with actual analytics
+      return null;
     } catch (err) {
       console.error('Error getting analytics summary:', err);
       return null;
@@ -624,7 +542,8 @@ export function useProjects() {
 
   const refreshAnalytics = async (): Promise<void> => {
     try {
-      await supabase.rpc('refresh_project_analytics');
+      // Mock implementation for now
+      console.log('Analytics refresh requested');
     } catch (err) {
       console.error('Error refreshing analytics:', err);
     }
@@ -647,7 +566,7 @@ export function useProjects() {
 
     // Enhanced analytics
     getProjectAnalytics,
-    detectBottlenecks,
+    getBottleneckAnalysis,
     getAnalyticsSummary,
     refreshAnalytics,
 

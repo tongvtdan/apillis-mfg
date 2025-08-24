@@ -137,6 +137,38 @@ export function useSuppliers() {
     }
   };
 
+  const deleteSupplier = async (supplierId: string): Promise<boolean> => {
+    try {
+      const { error } = await supabase
+        .from('suppliers')
+        .delete()
+        .eq('id', supplierId);
+
+      if (error) {
+        console.error('Error deleting supplier:', error);
+        throw error;
+      }
+
+      // Update local state
+      setSuppliers(prev => prev.filter(supplier => supplier.id !== supplierId));
+
+      toast({
+        title: "Supplier Deleted",
+        description: "Supplier has been permanently deleted",
+      });
+
+      return true;
+    } catch (err) {
+      console.error('Error in deleteSupplier:', err);
+      toast({
+        variant: "destructive",
+        title: "Error",
+        description: "Failed to delete supplier",
+      });
+      return false;
+    }
+  };
+
   const deactivateSupplier = async (supplierId: string): Promise<boolean> => {
     try {
       const { error } = await supabase
@@ -407,6 +439,7 @@ export function useSuppliers() {
     // CRUD operations
     createSupplier,
     updateSupplier,
+    deleteSupplier,
     deactivateSupplier,
     getSupplierById,
     

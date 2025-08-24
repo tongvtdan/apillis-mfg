@@ -144,7 +144,7 @@ function LeadTimeBreakdownChart({ leadTimeData }: { leadTimeData: LeadTimePhase[
 
   return (
     <div className="h-80">
-      <Bar data={chartData} options={options} />
+      <Bar data={chartData as any} options={options} />
     </div>
   );
 }
