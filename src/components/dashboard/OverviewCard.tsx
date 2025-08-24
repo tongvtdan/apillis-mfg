@@ -16,27 +16,32 @@ interface OverviewCardProps {
   onClick: () => void;
 }
 
-export function OverviewCard({ 
-  title, 
-  count, 
-  activeCount, 
-  description, 
-  icon: Icon, 
-  color, 
-  bgColor, 
+export function OverviewCard({
+  title,
+  count,
+  activeCount,
+  description,
+  icon: Icon,
+  color,
+  bgColor,
   borderColor,
   alert,
-  onClick 
+  onClick
 }: OverviewCardProps) {
   return (
-    <Card 
+    <Card
       className={`cursor-pointer transition-all duration-200 hover:shadow-lg hover:scale-105 ${borderColor} ${bgColor} relative`}
       onClick={onClick}
     >
       {alert && (
-        <div className="absolute -top-2 -right-2 z-10">
-          <div className="bg-destructive text-destructive-foreground text-xs px-2 py-1 rounded-full flex items-center gap-1 animate-pulse">
-            <AlertTriangle className="h-3 w-3" />
+        <div className="absolute -top-3 -right-2 z-10">
+          <div className={`status-alert text-xs px-3 py-1.5 rounded-full flex items-center gap-1.5 animate-pulse
+            ${alert.includes('overdue') ? 'overdue-alert' :
+              alert.includes('on hold') ? 'onhold-alert' :
+                alert.includes('urgent') ? 'urgent-alert' :
+                  alert.includes('critical') ? 'critical-alert' :
+                    'bg-destructive text-destructive-foreground'}`}>
+            <AlertTriangle className="h-4 w-4" />
             {alert}
           </div>
         </div>

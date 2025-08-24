@@ -167,6 +167,53 @@ div {
     transition: all 0.2s ease-in-out;
 }
 
+/* Enhanced Status Alert Styling for System Overview Cards */
+[data-theme="factory-pulse-light"] .status-alert,
+.light .status-alert {
+    font-weight: 700 !important;
+    border: 1px solid transparent !important;
+    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.15) !important;
+    letter-spacing: 0.02em !important;
+}
+
+/* Overdue Alert */
+[data-theme="factory-pulse-light"] .overdue-alert,
+.light .overdue-alert {
+    background-color: #e74c3c !important;
+    color: white !important;
+    border-color: #c0392b !important;
+    box-shadow: 0 2px 8px rgba(231, 76, 60, 0.4) !important;
+    font-weight: 800 !important;
+}
+
+/* On Hold Alert */
+[data-theme="factory-pulse-light"] .onhold-alert,
+.light .onhold-alert {
+    background-color: #9b59b6 !important;
+    color: white !important;
+    border-color: #8e44ad !important;
+    box-shadow: 0 2px 8px rgba(155, 89, 182, 0.4) !important;
+}
+
+/* Urgent Alert */
+[data-theme="factory-pulse-light"] .urgent-alert,
+.light .urgent-alert {
+    background-color: #e67e22 !important;
+    color: white !important;
+    border-color: #d35400 !important;
+    box-shadow: 0 2px 8px rgba(230, 126, 34, 0.4) !important;
+}
+
+/* Critical Items Alert */
+[data-theme="factory-pulse-light"] .critical-alert,
+.light .critical-alert {
+    background-color: #c0392b !important;
+    color: white !important;
+    border-color: #922b21 !important;
+    box-shadow: 0 2px 8px rgba(192, 57, 43, 0.4) !important;
+    font-weight: 800 !important;
+}
+
 [data-theme="factory-pulse-light"] .badge[data-variant="secondary"],
 .light .badge[data-variant="secondary"] {
     background-color: #9b59b6 !important;

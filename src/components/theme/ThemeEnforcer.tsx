@@ -243,6 +243,26 @@ export function ThemeEnforcer() {
             }
         });
 
+        // Enhance styling for status alerts in System Overview cards
+        document.querySelectorAll('.status-alert').forEach(el => {
+            if (!isDarkTheme) {
+                // Base styling for all status alerts
+                (el as HTMLElement).style.fontWeight = '700';
+                (el as HTMLElement).style.letterSpacing = '0.02em';
+
+                // Apply specific styling based on alert type
+                if (el.classList.contains('overdue-alert')) {
+                    (el as HTMLElement).style.transform = 'translateY(-1px)';
+                } else if (el.classList.contains('onhold-alert')) {
+                    (el as HTMLElement).style.transform = 'translateY(-1px)';
+                } else if (el.classList.contains('urgent-alert')) {
+                    (el as HTMLElement).style.transform = 'translateY(-1px)';
+                } else if (el.classList.contains('critical-alert')) {
+                    (el as HTMLElement).style.transform = 'translateY(-1px)';
+                }
+            }
+        });
+
         console.log(`Theme consistency enforced: ${isDarkTheme ? 'dark' : 'light'}`);
     };
 

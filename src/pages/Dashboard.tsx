@@ -95,11 +95,11 @@ export default function Dashboard() {
   }).length;
 
   // Inventory analysis
-  const lowStockItems = inventory.filter(item => 
+  const lowStockItems = inventory.filter(item =>
     item.current_stock <= (item.min_stock_level || 10)
   ).length;
   const outOfStockItems = inventory.filter(item => item.current_stock === 0).length;
-  const criticalItems = inventory.filter(item => 
+  const criticalItems = inventory.filter(item =>
     item.current_stock < (item.min_stock_level || 10) * 0.5
   ).length;
 
@@ -114,7 +114,7 @@ export default function Dashboard() {
       title: "Projects",
       count: projects.length,
       activeCount: activeProjects,
-      description: highPriorityProjects > 0 
+      description: highPriorityProjects > 0
         ? `⚠️ ${highPriorityProjects} high priority`
         : `${activeProjects} active projects`,
       icon: FolderOpen,
@@ -152,7 +152,7 @@ export default function Dashboard() {
       title: "Purchase Orders",
       count: purchaseOrders.length,
       activeCount: pendingPOs,
-      description: urgentPOs > 0 
+      description: urgentPOs > 0
         ? `🚨 ${urgentPOs} urgent orders`
         : `${pendingPOs} pending orders`,
       icon: ShoppingCart,
@@ -166,9 +166,9 @@ export default function Dashboard() {
       title: "Inventory",
       count: inventory.length,
       activeCount: lowStockItems,
-      description: criticalItems > 0 
+      description: criticalItems > 0
         ? `🔴 ${criticalItems} critical items`
-        : lowStockItems > 0 
+        : lowStockItems > 0
           ? `⚠️ ${lowStockItems} low stock`
           : `${inventory.length} items tracked`,
       icon: Package,
@@ -182,7 +182,7 @@ export default function Dashboard() {
       title: "Production",
       count: productionOrders.length,
       activeCount: activeProduction,
-      description: urgentProduction > 0 
+      description: urgentProduction > 0
         ? `🚨 ${urgentProduction} urgent jobs`
         : `${activeProduction} in production`,
       icon: Factory,
@@ -251,54 +251,54 @@ export default function Dashboard() {
               Quick overview of projects, customers, suppliers, and operations
             </p>
           </div>
-          
+
           <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-4 lg:gap-6 mb-8">
-          {loading ? (
-            // Loading skeleton for overview cards
-            Array.from({ length: 6 }).map((_, index) => (
-              <Card key={index} className="animate-pulse">
-                <CardContent className="p-6">
-                  <div className="flex items-center justify-between">
-                    <div>
-                      <div className="flex items-center gap-2 mb-2">
-                        <div className="w-5 h-5 bg-muted rounded"></div>
-                        <div className="w-20 h-4 bg-muted rounded"></div>
+            {loading ? (
+              // Loading skeleton for overview cards
+              Array.from({ length: 6 }).map((_, index) => (
+                <Card key={index} className="animate-pulse">
+                  <CardContent className="p-6">
+                    <div className="flex items-center justify-between">
+                      <div>
+                        <div className="flex items-center gap-2 mb-2">
+                          <div className="w-5 h-5 bg-muted rounded"></div>
+                          <div className="w-20 h-4 bg-muted rounded"></div>
+                        </div>
+                        <div className="space-y-1">
+                          <div className="w-12 h-8 bg-muted rounded"></div>
+                          <div className="w-32 h-3 bg-muted rounded"></div>
+                        </div>
                       </div>
-                      <div className="space-y-1">
-                        <div className="w-12 h-8 bg-muted rounded"></div>
-                        <div className="w-32 h-3 bg-muted rounded"></div>
-                      </div>
+                      <div className="w-8 h-6 bg-muted rounded"></div>
                     </div>
-                    <div className="w-8 h-6 bg-muted rounded"></div>
-                  </div>
-                </CardContent>
-              </Card>
-            ))
-          ) : (
-            overviewData.map((item) => (
-              <OverviewCard
-                key={item.title}
-                title={item.title}
-                count={item.count}
-                activeCount={item.activeCount}
-                description={item.description}
-                icon={item.icon}
-                route={item.route}
-                color={item.color}
-                bgColor={item.bgColor}
-                borderColor={item.borderColor}
-                alert={item.alert}
-                onClick={() => navigate(item.route)}
-              />
-            ))
-          )}
+                  </CardContent>
+                </Card>
+              ))
+            ) : (
+              overviewData.map((item) => (
+                <OverviewCard
+                  key={item.title}
+                  title={item.title}
+                  count={item.count}
+                  activeCount={item.activeCount}
+                  description={item.description}
+                  icon={item.icon}
+                  route={item.route}
+                  color={item.color}
+                  bgColor={item.bgColor}
+                  borderColor={item.borderColor}
+                  alert={item.alert}
+                  onClick={() => navigate(item.route)}
+                />
+              ))
+            )}
           </div>
         </div>
 
         {/* Stats & Activities Grid */}
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
           {/* Quick Stats */}
-          <QuickStats 
+          <QuickStats
             activeProjects={activeProjects}
             highPriorityProjects={highPriorityProjects}
             overdueProjects={overdueProjects}
