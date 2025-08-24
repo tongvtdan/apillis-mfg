@@ -42,7 +42,18 @@ const settingsItems = [{
 export function AppSidebar() {
   const location = useLocation();
   const currentPath = location.pathname;
-  const isActive = (path: string) => currentPath === path;
+  const isActive = (path: string) => {
+    // Exact match
+    if (currentPath === path) return true;
+
+    // Project detail pages should highlight Projects menu item
+    if (path === '/projects' && currentPath.startsWith('/project/')) return true;
+
+    // RFQ detail pages should highlight Projects menu item too
+    if (path === '/projects' && currentPath.startsWith('/rfq/')) return true;
+
+    return false;
+  };
   const getNavCls = ({
     isActive
   }: {

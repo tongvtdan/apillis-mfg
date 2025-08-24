@@ -69,7 +69,11 @@ export default function ProjectDetail() {
   const navigate = useNavigate();
 
 
-  const [activeTab, setActiveTab] = useState("overview");
+  const [activeTab, setActiveTab] = useState(() => {
+    // Try to restore the active tab from sessionStorage based on project ID
+    const savedTab = sessionStorage.getItem(`project-${id}-active-tab`);
+    return savedTab || "overview";
+  });
   const [showSupplierModal, setShowSupplierModal] = useState(false);
   const [project, setProject] = useState<Project | null>(null);
   const [loading, setLoading] = useState(true);
@@ -355,6 +359,13 @@ export default function ProjectDetail() {
     }
   };
 
+  // Helper function to handle tab changes
+  const handleTabChange = (tab: string) => {
+    setActiveTab(tab);
+    // Save the active tab to sessionStorage for this specific project
+    sessionStorage.setItem(`project-${id}-active-tab`, tab);
+  };
+
   const getReviewStatusColor = (status: string) => {
     switch (status) {
       case 'approved': return 'text-green-600';
@@ -447,85 +458,85 @@ export default function ProjectDetail() {
       {/* Main Content */}
       <div className="flex">
         {/* Navigation Sidebar */}
-        <div className="w-48 border-r bg-muted/20 min-h-screen">
+        <div className="w-48 border-r bg-card shadow-sm min-h-screen">
           <div className="p-4">
-            <div className="mb-4 text-xs font-semibold text-muted-foreground uppercase tracking-wider">
+            <div className="mb-4 text-xs font-bold text-primary uppercase tracking-wider py-2 border-b border-muted">
               NAVIGATION
             </div>
-            <nav className="space-y-1">
+            <nav className="space-y-2">
               <button
-                onClick={() => setActiveTab("overview")}
+                onClick={() => handleTabChange("overview")}
                 className={cn(
-                  "w-full text-left px-3 py-2 rounded-md text-sm font-medium transition-colors",
+                  "w-full text-left px-4 py-2.5 rounded-md text-sm font-medium transition-all duration-200",
                   activeTab === "overview"
-                    ? "bg-primary text-primary-foreground"
-                    : "text-foreground hover:bg-muted"
+                    ? "bg-primary text-primary-foreground font-bold shadow-sm border-l-4 border-primary"
+                    : "text-foreground hover:bg-muted hover:border-l-4 hover:border-muted-foreground/30"
                 )}
               >
                 Overview
               </button>
               <button
-                onClick={() => setActiveTab("documents")}
+                onClick={() => handleTabChange("documents")}
                 className={cn(
-                  "w-full text-left px-3 py-2 rounded-md text-sm font-medium transition-colors",
+                  "w-full text-left px-4 py-2.5 rounded-md text-sm font-medium transition-all duration-200",
                   activeTab === "documents"
-                    ? "bg-primary text-primary-foreground"
-                    : "text-foreground hover:bg-muted"
+                    ? "bg-primary text-primary-foreground font-bold shadow-sm border-l-4 border-primary"
+                    : "text-foreground hover:bg-muted hover:border-l-4 hover:border-muted-foreground/30"
                 )}
               >
                 Documents
               </button>
               <button
-                onClick={() => setActiveTab("reviews")}
+                onClick={() => handleTabChange("reviews")}
                 className={cn(
-                  "w-full text-left px-3 py-2 rounded-md text-sm font-medium transition-colors",
+                  "w-full text-left px-4 py-2.5 rounded-md text-sm font-medium transition-all duration-200",
                   activeTab === "reviews"
-                    ? "bg-primary text-primary-foreground"
-                    : "text-foreground hover:bg-muted"
+                    ? "bg-primary text-primary-foreground font-bold shadow-sm border-l-4 border-primary"
+                    : "text-foreground hover:bg-muted hover:border-l-4 hover:border-muted-foreground/30"
                 )}
               >
                 Reviews
               </button>
               <button
-                onClick={() => setActiveTab("supplier")}
+                onClick={() => handleTabChange("supplier")}
                 className={cn(
-                  "w-full text-left px-3 py-2 rounded-md text-sm font-medium transition-colors",
+                  "w-full text-left px-4 py-2.5 rounded-md text-sm font-medium transition-all duration-200",
                   activeTab === "supplier"
-                    ? "bg-primary text-primary-foreground"
-                    : "text-foreground hover:bg-muted"
+                    ? "bg-primary text-primary-foreground font-bold shadow-sm border-l-4 border-primary"
+                    : "text-foreground hover:bg-muted hover:border-l-4 hover:border-muted-foreground/30"
                 )}
               >
                 Supplier
               </button>
               <button
-                onClick={() => setActiveTab("timeline")}
+                onClick={() => handleTabChange("timeline")}
                 className={cn(
-                  "w-full text-left px-3 py-2 rounded-md text-sm font-medium transition-colors",
+                  "w-full text-left px-4 py-2.5 rounded-md text-sm font-medium transition-all duration-200",
                   activeTab === "timeline"
-                    ? "bg-primary text-primary-foreground"
-                    : "text-foreground hover:bg-muted"
+                    ? "bg-primary text-primary-foreground font-bold shadow-sm border-l-4 border-primary"
+                    : "text-foreground hover:bg-muted hover:border-l-4 hover:border-muted-foreground/30"
                 )}
               >
                 Timeline
               </button>
               <button
-                onClick={() => setActiveTab("analytics")}
+                onClick={() => handleTabChange("analytics")}
                 className={cn(
-                  "w-full text-left px-3 py-2 rounded-md text-sm font-medium transition-colors",
+                  "w-full text-left px-4 py-2.5 rounded-md text-sm font-medium transition-all duration-200",
                   activeTab === "analytics"
-                    ? "bg-primary text-primary-foreground"
-                    : "text-foreground hover:bg-muted"
+                    ? "bg-primary text-primary-foreground font-bold shadow-sm border-l-4 border-primary"
+                    : "text-foreground hover:bg-muted hover:border-l-4 hover:border-muted-foreground/30"
                 )}
               >
                 Analytics
               </button>
               <button
-                onClick={() => setActiveTab("settings")}
+                onClick={() => handleTabChange("settings")}
                 className={cn(
-                  "w-full text-left px-3 py-2 rounded-md text-sm font-medium transition-colors",
+                  "w-full text-left px-4 py-2.5 rounded-md text-sm font-medium transition-all duration-200",
                   activeTab === "settings"
-                    ? "bg-primary text-primary-foreground"
-                    : "text-foreground hover:bg-muted"
+                    ? "bg-primary text-primary-foreground font-bold shadow-sm border-l-4 border-primary"
+                    : "text-foreground hover:bg-muted hover:border-l-4 hover:border-muted-foreground/30"
                 )}
               >
                 Settings
