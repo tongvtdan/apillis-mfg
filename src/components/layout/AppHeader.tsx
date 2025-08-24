@@ -1,4 +1,4 @@
-import { Bell, Search, User, LogOut, Settings, HelpCircle, UserCircle, Plus } from "lucide-react";
+import { Bell, Search, LogOut, Settings, HelpCircle, UserCircle, Plus } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { DirectThemeToggle } from "@/components/theme/DirectThemeToggle";
@@ -10,7 +10,6 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import { SidebarTrigger } from "@/components/ui/sidebar";
 import { Badge } from "@/components/ui/badge";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { useAuth } from "@/contexts/AuthContext";
@@ -37,10 +36,13 @@ export function AppHeader() {
       .join('');
   };
   return (
-    <header className="fixed top-0 left-0 right-0 z-50 w-full border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
+    <header className="sticky top-0 z-50 w-full border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
       <div className="flex h-14 items-center justify-between px-4">
-        <div className="flex items-center space-x-4">
-          <SidebarTrigger />
+        <div className="flex items-center">
+          {/* SidebarTrigger removed to prevent overlap with sidebar */}
+        </div>
+
+        <div className="flex flex-1 justify-center px-4">
           <div className="relative w-64 md:w-96">
             <Search className="absolute left-2 top-2.5 h-4 w-4 text-muted-foreground" />
             <Input

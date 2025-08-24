@@ -39,9 +39,9 @@ export function AppLayout({ children }: AppLayoutProps) {
     <SidebarProvider>
       <div className="min-h-screen flex w-full bg-theme-background text-theme-foreground">
         <AppSidebar />
-        <div className="flex-1 flex flex-col bg-theme-background">
+        <div className="flex-1 flex flex-col bg-theme-background overflow-hidden">
           <AppHeader />
-          <main className="flex-1 overflow-auto pt-14 bg-theme-background">
+          <main className="flex-1 overflow-auto bg-theme-background">
             {children}
           </main>
         </div>
