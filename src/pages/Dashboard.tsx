@@ -215,12 +215,12 @@ export default function Dashboard() {
   return (
     <div className="space-y-6">
       {/* Header with user info and notifications */}
-      <div className="bg-background border-b px-6 py-4">
-        <div className="flex items-center justify-between">
+      <div className="bg-background border-b px-4 sm:px-6 py-4">
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
           <div>
             <h1 className="text-2xl font-bold text-foreground">Factory Pulse</h1>
           </div>
-          <div className="flex items-center gap-4">
+          <div className="flex flex-col sm:flex-row items-start sm:items-center gap-4">
             <div className="flex items-center gap-2 text-sm text-muted-foreground">
               <Bell className="h-4 w-4" />
               <span>{notificationCount} Notifications</span>
@@ -229,7 +229,7 @@ export default function Dashboard() {
               <Users className="h-4 w-4" />
               <span>{profile?.display_name} ({profile?.role})</span>
             </div>
-            <div className="flex items-center gap-4 text-sm text-muted-foreground">
+            <div className="hidden lg:flex items-center gap-4 text-sm text-muted-foreground">
               <span>🌐 Projects</span>
               <span>📂 Documents</span>
               <span>📊 Analytics</span>
@@ -238,7 +238,7 @@ export default function Dashboard() {
         </div>
       </div>
 
-      <div className="px-6">
+      <div className="px-4 sm:px-6">
         {/* Search and Filter Bar */}
         <SearchFilterBar
           searchQuery={searchQuery}
@@ -283,17 +283,39 @@ export default function Dashboard() {
         {/* Overview Cards */}
         <div className="mt-8">
           <div className="mb-6">
-            <h2 className="text-lg font-semibold text-foreground flex items-center gap-2">
-              <TrendingUp className="h-5 w-5 text-blue-500" />
-              Overview
+            <h2 className="text-xl font-semibold text-foreground flex items-center gap-2">
+              <TrendingUp className="h-6 w-6 text-blue-500" />
+              System Overview
             </h2>
             <p className="text-sm text-muted-foreground mt-1">
               Quick overview of projects, customers, suppliers, and operations
             </p>
           </div>
           
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mb-8">
-            {overviewData.map((item) => (
+          <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-4 lg:gap-6 mb-8">
+          {loading ? (
+            // Loading skeleton for overview cards
+            Array.from({ length: 6 }).map((_, index) => (
+              <Card key={index} className="animate-pulse">
+                <CardContent className="p-6">
+                  <div className="flex items-center justify-between">
+                    <div>
+                      <div className="flex items-center gap-2 mb-2">
+                        <div className="w-5 h-5 bg-muted rounded"></div>
+                        <div className="w-20 h-4 bg-muted rounded"></div>
+                      </div>
+                      <div className="space-y-1">
+                        <div className="w-12 h-8 bg-muted rounded"></div>
+                        <div className="w-32 h-3 bg-muted rounded"></div>
+                      </div>
+                    </div>
+                    <div className="w-8 h-6 bg-muted rounded"></div>
+                  </div>
+                </CardContent>
+              </Card>
+            ))
+          ) : (
+            overviewData.map((item) => (
               <OverviewCard
                 key={item.title}
                 title={item.title}
@@ -307,31 +329,44 @@ export default function Dashboard() {
                 borderColor={item.borderColor}
                 onClick={() => navigate(item.route)}
               />
-            ))}
+            ))
+          )}
           </div>
         </div>
 
         {/* Stats & Activities Grid */}
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
           {/* Quick Stats */}
-          <Card>
+          <Card className="lg:col-span-1">
             <CardHeader className="pb-3">
-              <CardTitle className="text-base">Quick Stats</CardTitle>
+              <CardTitle className="text-base flex items-center gap-2">
+                <FileText className="h-4 w-4" />
+                Quick Stats
+              </CardTitle>
             </CardHeader>
-            <CardContent className="space-y-3">
-              <div className="flex items-center justify-between">
-                <span className="text-sm text-muted-foreground">Active Projects</span>
-                <Badge variant="outline">{activeProjects}</Badge>
+            <CardContent className="space-y-4">
+              <div className="flex items-center justify-between p-3 bg-muted/30 rounded-lg">
+                <div className="flex items-center gap-2">
+                  <div className="w-2 h-2 bg-blue-500 rounded-full"></div>
+                  <span className="text-sm text-muted-foreground">Active Projects</span>
+                </div>
+                <Badge variant="outline" className="font-semibold">{activeProjects}</Badge>
               </div>
-              <div className="flex items-center justify-between">
-                <span className="text-sm text-muted-foreground">High Priority</span>
-                <Badge variant={highPriorityProjects > 0 ? "destructive" : "outline"}>
+              <div className="flex items-center justify-between p-3 bg-muted/30 rounded-lg">
+                <div className="flex items-center gap-2">
+                  <div className="w-2 h-2 bg-red-500 rounded-full"></div>
+                  <span className="text-sm text-muted-foreground">High Priority</span>
+                </div>
+                <Badge variant={highPriorityProjects > 0 ? "destructive" : "outline"} className="font-semibold">
                   {highPriorityProjects}
                 </Badge>
               </div>
-              <div className="flex items-center justify-between">
-                <span className="text-sm text-muted-foreground">Overdue</span>
-                <Badge variant={overdueProjects > 0 ? "destructive" : "outline"}>
+              <div className="flex items-center justify-between p-3 bg-muted/30 rounded-lg">
+                <div className="flex items-center gap-2">
+                  <div className="w-2 h-2 bg-orange-500 rounded-full"></div>
+                  <span className="text-sm text-muted-foreground">Overdue</span>
+                </div>
+                <Badge variant={overdueProjects > 0 ? "destructive" : "outline"} className="font-semibold">
                   {overdueProjects}
                 </Badge>
               </div>
@@ -339,10 +374,14 @@ export default function Dashboard() {
           </Card>
 
           {/* Pending Tasks */}
-          <PendingTasks />
+          <div className="lg:col-span-1">
+            <PendingTasks />
+          </div>
 
           {/* Recent Activities */}
-          <RecentActivities />
+          <div className="lg:col-span-1">
+            <RecentActivities />
+          </div>
         </div>
       </div>
     </div>
