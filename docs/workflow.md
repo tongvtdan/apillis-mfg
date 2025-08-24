@@ -17,7 +17,7 @@
 
 ---
 
-### 3. **Supplier RFQ Sent** ✅ (New Stage)
+### 3. **Supplier RFQ Sent** 
 - **Trigger**: Technical review complete
 - **Owner**: Procurement / Purchasing
 - **Actions**:
@@ -103,13 +103,13 @@
 
 ## 🧱 How This Fits Your Feature List
 
-| Your Feature | Maps To |
-|------------|--------|
-| **Supplier Management & RFQ Engine** | Powers the "Supplier RFQ Sent" stage |
-| **Notification System** | Alerts when supplier quote is overdue |
-| **Document Management** | Attach supplier quotes to project |
-| **Workflow Configuration** | Admin can rename "Supplier RFQ Sent" → "Outsourced Quoting" if needed |
-| **Metrics Dashboard** | Track: *Avg. supplier response time*, *Quote submission rate* |
+| Your Feature                         | Maps To                                                               |
+| ------------------------------------ | --------------------------------------------------------------------- |
+| **Supplier Management & RFQ Engine** | Powers the "Supplier RFQ Sent" stage                                  |
+| **Notification System**              | Alerts when supplier quote is overdue                                 |
+| **Document Management**              | Attach supplier quotes to project                                     |
+| **Workflow Configuration**           | Admin can rename "Supplier RFQ Sent" → "Outsourced Quoting" if needed |
+| **Metrics Dashboard**                | Track: *Avg. supplier response time*, *Quote submission rate*         |
 
 > ✅ This change **enhances traceability** and directly supports your success metric:  
 > **"Improve supplier response rate from 60% → 90%"**

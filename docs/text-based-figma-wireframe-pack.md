@@ -1,6 +1,3 @@
-Absolutely. Below is a **text-based Figma Wireframe Pack** for **Factory Pulse**, designed to reflect your **comprehensive PRD and feature list**, with a focus on clarity, usability, and scalability.
-
-This pack includes **key screens** of the application, described in structured text format so you or a designer can easily translate them into actual Figma designs, prototypes, or development components.
 
 ---
 
@@ -9,6 +6,50 @@ This pack includes **key screens** of the application, described in structured t
 **Text-Based Figma Wireframe Pack**
 
 > *Designed for manufacturing teams — from inquiry to delivery.*
+
+##  Module Map (Figma-Style)
+```
+┌─────────────────────────────────────────────────────────────┐
+│                     FACTORY PULSE (MVP)                     │
+└─────────────────────────────────────────────────────────────┘
+
+┌─────────────────────┐     ┌─────────────────────┐
+│   AUTH & PROFILE    │     │   PROJECT INTAKE    │
+│ - Login / MFA       │     │ - Public form       │
+│ - RBAC Engine       │     │ - Auto-ID: P-XXXXXX │
+│ - Audit Log         │     │ - File upload (CAD) │
+└─────────────────────┘     └─────────────────────┘
+              └───────────────────────┬───────────────────────┘
+                                      ▼
+                   ┌───────────────────────────────────────┐
+                   │           DASHBOARD (KANBAN)          │
+                   │ - Columns: Inquiry → Review → Quoted  │
+                   │ - Drag & drop, priority color coding  │
+                   │ - Filter: customer, date, assignee    │
+                   └───────────────────────────────────────┘
+                                      ▼
+           ┌─────────────────────────────────────────────────────────┐
+           │                 PROJECT DETAIL PAGE                     │
+           ├─────────────────────┬─────────────────────┬─────────────┤
+           │  INTERNAL REVIEW    │   DOCUMENTS         │   ACTIVITY  │
+           │ - Eng/QA/Prod forms │ - Versioned files   │ - Timeline  │
+           │ - Approve/Reject    │ - Search & tags     │ - Comments  │
+           │ - Risk logging      │ - Access control    │ - Alerts    │
+           └─────────────────────┴─────────────────────┴─────────────┘
+                                      ▼
+                    ┌──────────────────────────────────────┐
+                    │           NOTIFICATIONS              │
+                    │ - In-app badge + email               │
+                    │ - Assignment, deadline, status change│
+                    └──────────────────────────────────────┘
+                                      ▼
+                   ┌───────────────────────────────────────┐
+                   │         METRICS & ANALYTICS           │
+                   │ - Avg time per phase                  │
+                   │ - Bottleneck detection                │
+                   │ - Export to PDF/Excel                 │
+                   └───────────────────────────────────────┘
+```
 
 ---
 
