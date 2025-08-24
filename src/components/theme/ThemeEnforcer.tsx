@@ -77,6 +77,26 @@ export function ThemeEnforcer() {
             el.classList.add('bg-theme-card', 'text-theme-card-foreground', 'border-theme');
         });
 
+        // Apply specific styling to gradient buttons
+        document.querySelectorAll('.gradient-primary').forEach(el => {
+            if (!el.classList.contains('text-primary-foreground')) {
+                el.classList.add('text-primary-foreground');
+            }
+        });
+
+        // Apply specific landing page fixes
+        document.querySelectorAll('.priority-badge').forEach(el => {
+            // Get the text content to determine priority
+            const priority = el.textContent?.toLowerCase().trim();
+            if (priority === 'high') {
+                el.classList.add('high');
+            } else if (priority === 'medium') {
+                el.classList.add('medium');
+            } else if (priority === 'low') {
+                el.classList.add('low');
+            }
+        });
+
         // Fix any hardcoded backgrounds
         document.querySelectorAll('[class*="bg-base-"]').forEach(el => {
             if (el.classList.contains('bg-base-100')) {

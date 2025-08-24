@@ -20,9 +20,9 @@ export function FactoryPulseLanding() {
     const { isDark, toggleMode } = useTheme();
 
     return (
-        <div className="min-h-screen bg-gradient-to-br from-base-100 via-base-200 to-blue-50/30">
+        <div className="min-h-screen bg-gradient-to-br from-base-100 via-base-200 to-base-300/30">
             {/* Navigation Header */}
-            <nav className="sticky top-0 z-50 border-b bg-white/95 backdrop-blur supports-[backdrop-filter]:bg-white/60 shadow-sm">
+            <nav className="sticky top-0 z-50 border-b border-base-300 bg-base-100/95 backdrop-blur supports-[backdrop-filter]:bg-base-100/60 shadow-sm">
                 <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
                     <div className="flex justify-between items-center h-16">
                         <div className="flex items-center space-x-3">
@@ -56,7 +56,7 @@ export function FactoryPulseLanding() {
                                     Analytics
                                 </a>
                             </div>
-                            <a href="#demo" className="btn btn-primary text-white text-sm px-4 py-2">
+                            <a href="#demo" className="btn btn-primary text-primary-foreground text-sm px-4 py-2">
                                 <Play className="w-4 h-4 mr-2" />
                                 View Demo
                             </a>
@@ -79,7 +79,7 @@ export function FactoryPulseLanding() {
                             Factory Pulse connects your entire operation.
                         </p>
                         <div className="flex flex-col sm:flex-row gap-4 justify-center">
-                            <a href="#rfq" className="btn btn-primary text-lg px-8 py-4 shadow-lg hover:shadow-xl transition-all">
+                            <a href="#rfq" className="btn btn-primary text-primary-foreground text-lg px-8 py-4 shadow-lg hover:shadow-xl transition-all">
                                 <FileText className="w-5 h-5 mr-2" />
                                 Start New Project
                                 <TrendingUp className="w-5 h-5 ml-2" />
@@ -124,7 +124,7 @@ export function FactoryPulseLanding() {
 
                     <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
                         {/* Feature 1 */}
-                        <div className="card card-elevated bg-base-100 border border-base-200">
+                        <div className="card bg-base-100 border border-base-300 shadow-md">
                             <div className="card-body">
                                 <div className="w-14 h-14 rounded-xl bg-primary/10 flex items-center justify-center mb-5">
                                     <FileText className="w-7 h-7 text-primary" />
@@ -138,7 +138,7 @@ export function FactoryPulseLanding() {
                         </div>
 
                         {/* Feature 2 */}
-                        <div className="card card-elevated bg-base-100 border border-base-200">
+                        <div className="card bg-base-100 border border-base-300 shadow-md">
                             <div className="card-body">
                                 <div className="w-14 h-14 rounded-xl bg-primary/10 flex items-center justify-center mb-5">
                                     <Users className="w-7 h-7 text-primary" />
@@ -152,7 +152,7 @@ export function FactoryPulseLanding() {
                         </div>
 
                         {/* Feature 3 */}
-                        <div className="card card-elevated bg-base-100 border border-base-200">
+                        <div className="card bg-base-100 border border-base-300 shadow-md">
                             <div className="card-body">
                                 <div className="w-14 h-14 rounded-xl bg-primary/10 flex items-center justify-center mb-5">
                                     <BarChart3 className="w-7 h-7 text-primary" />
@@ -166,7 +166,7 @@ export function FactoryPulseLanding() {
                         </div>
 
                         {/* Feature 4 */}
-                        <div className="card card-elevated bg-base-100 border border-base-200">
+                        <div className="card bg-base-100 border border-base-300 shadow-md">
                             <div className="card-body">
                                 <div className="w-14 h-14 rounded-xl bg-primary/10 flex items-center justify-center mb-5">
                                     <CheckCircle className="w-7 h-7 text-primary" />
@@ -180,7 +180,7 @@ export function FactoryPulseLanding() {
                         </div>
 
                         {/* Feature 5 */}
-                        <div className="card card-elevated bg-base-100 border border-base-200">
+                        <div className="card bg-base-100 border border-base-300 shadow-md">
                             <div className="card-body">
                                 <div className="w-14 h-14 rounded-xl bg-primary/10 flex items-center justify-center mb-5">
                                     <Zap className="w-7 h-7 text-primary" />
@@ -194,7 +194,7 @@ export function FactoryPulseLanding() {
                         </div>
 
                         {/* Feature 6 */}
-                        <div className="card card-elevated bg-base-100 border border-base-200">
+                        <div className="card bg-base-100 border border-base-300 shadow-md">
                             <div className="card-body">
                                 <div className="w-14 h-14 rounded-xl bg-primary/10 flex items-center justify-center mb-5">
                                     <Factory className="w-7 h-7 text-primary" />
@@ -222,7 +222,7 @@ export function FactoryPulseLanding() {
                         </p>
                     </div>
 
-                    <div className="bg-base-100 rounded-2xl p-6 shadow-xl border border-base-200 overflow-x-auto">
+                    <div className="bg-base-100 rounded-2xl p-6 shadow-xl border border-base-300 overflow-x-auto">
                         <div className="flex space-x-4 min-w-max pb-4">
                             {/* Inquiry Received */}
                             <div className="flex-shrink-0 w-80">
@@ -235,7 +235,7 @@ export function FactoryPulseLanding() {
                                     <div className="bg-base-200 p-4 rounded-xl">
                                         <div className="flex justify-between items-start mb-2">
                                             <span className="rfq-id font-bold text-primary">P-25082203</span>
-                                            <span className="priority-badge low text-xs px-2 py-1 rounded-full">Low</span>
+                                            <span className="priority-badge badge badge-sm bg-base-200 text-base-content/80 rounded-full">Low</span>
                                         </div>
                                         <h4 className="font-medium text-base-content mb-1">New Enclosure Design</h4>
                                         <div className="text-sm text-base-content/60 flex items-center">
@@ -272,7 +272,7 @@ export function FactoryPulseLanding() {
                                     <div className="bg-base-200 p-4 rounded-xl">
                                         <div className="flex justify-between items-start mb-2">
                                             <span className="rfq-id font-bold text-error">P-25082101</span>
-                                            <span className="priority-badge high text-xs px-2 py-1 rounded-full">High</span>
+                                            <span className="priority-badge badge badge-sm bg-error/20 text-error rounded-full">High</span>
                                         </div>
                                         <h4 className="font-medium text-base-content mb-1">Motor Bracket</h4>
                                         <div className="text-sm text-base-content/60 flex items-center">
@@ -280,9 +280,9 @@ export function FactoryPulseLanding() {
                                             Engineering Review
                                         </div>
                                         <div className="mt-2 flex space-x-2">
-                                            <span className="badge badge-outline">Eng: 🟡</span>
-                                            <span className="badge badge-outline">QA: ✅</span>
-                                            <span className="badge badge-outline">Prod: ❌</span>
+                                            <span className="badge badge-outline border-base-300 text-base-content">Eng: 🟡</span>
+                                            <span className="badge badge-outline border-base-300 text-base-content">QA: ✅</span>
+                                            <span className="badge badge-outline border-base-300 text-base-content">Prod: ❌</span>
                                         </div>
                                     </div>
                                 </div>
@@ -299,7 +299,7 @@ export function FactoryPulseLanding() {
                                     <div className="bg-base-200 p-4 rounded-xl">
                                         <div className="flex justify-between items-start mb-2">
                                             <span className="rfq-id font-bold text-warning">P-25082001</span>
-                                            <span className="priority-badge medium text-xs px-2 py-1 rounded-full">Medium</span>
+                                            <span className="priority-badge badge badge-sm bg-warning/20 text-warning rounded-full">Medium</span>
                                         </div>
                                         <h4 className="font-medium text-base-content mb-1">Sensor Mount</h4>
                                         <div className="text-sm text-base-content/60 flex items-center">
@@ -350,7 +350,7 @@ export function FactoryPulseLanding() {
             </section>
 
             {/* Footer */}
-            <footer className="border-t border-base-200 bg-base-100/70">
+            <footer className="border-t border-base-300 bg-base-100/70">
                 <div className="max-w-7xl mx-auto px-4 py-12 sm:px-6 lg:px-8">
                     <div className="grid grid-cols-1 md:grid-cols-4 gap-8">
                         <div className="md:col-span-2">

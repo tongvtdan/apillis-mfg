@@ -52,6 +52,29 @@ div {
     color: var(--foreground);
 }
 
+/* Priority badges */
+.priority-badge {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.2s ease-in-out;
+}
+
+.priority-badge.high {
+    background-color: var(--error-opacity) !important;
+    color: var(--error) !important;
+}
+
+.priority-badge.medium {
+    background-color: var(--warning-opacity) !important;
+    color: var(--warning) !important;
+}
+
+.priority-badge.low {
+    background-color: var(--muted) !important;
+    color: var(--muted-foreground) !important;
+}
+
 /* Fix badges and priority indicators */
 .badge {
     background-color: var(--primary);
@@ -65,6 +88,12 @@ div {
 
 .badge-outline {
     color: var(--foreground);
+    border-color: var(--border) !important;
+}
+
+.badge-ghost {
+    background-color: var(--muted);
+    color: var(--muted-foreground);
 }
 
 /* Fix buttons */
@@ -80,6 +109,40 @@ button,
     background-color: var(--card);
     color: var(--card-foreground);
     border-color: var(--border);
+}
+
+/* Fix landing page cards and sections */
+.card-elevated {
+    background-color: var(--card) !important;
+    color: var(--card-foreground) !important;
+    border-color: var(--border) !important;
+    box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06) !important;
+}
+
+[data-theme="factory-pulse-dark"] .card-elevated,
+.dark .card-elevated {
+    box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.2), 0 2px 4px -1px rgba(0, 0, 0, 0.1) !important;
+}
+
+/* Ensure gradient backgrounds adapt to theme */
+.bg-gradient-to-br {
+    background-image: linear-gradient(to bottom right, var(--background), var(--muted), var(--border-opacity)) !important;
+}
+
+/* Apply proper styling to gradient-primary buttons */
+.gradient-primary {
+    background: linear-gradient(135deg, var(--primary), var(--info)) !important;
+    color: var(--primary-foreground) !important;
+}
+
+/* Add border opacity for gradient backgrounds */
+:root {
+    --border-opacity: rgba(209, 213, 219, 0.3);
+}
+
+[data-theme="factory-pulse-dark"],
+.dark {
+    --border-opacity: rgba(51, 51, 51, 0.3);
 }
 
 /* Fix DaisyUI specific classes */

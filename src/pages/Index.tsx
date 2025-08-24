@@ -50,9 +50,9 @@ const Index = () => {
   ];
 
   return (
-    <div className="min-h-screen bg-background">
+    <div className="min-h-screen bg-theme-background">
       {/* Navigation Header */}
-      <nav className="border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60 shadow-sm">
+      <nav className="border-b border-base-300 bg-theme-background/95 backdrop-blur supports-[backdrop-filter]:bg-theme-background/60 shadow-sm">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex justify-between items-center h-16">
             <div className="flex items-center space-x-2">
@@ -88,7 +88,7 @@ const Index = () => {
       </nav>
 
       {/* Hero Section */}
-      <section className="px-4 py-20 sm:px-6 lg:px-8">
+      <section className="px-4 py-20 sm:px-6 lg:px-8 bg-gradient-to-br from-theme-background via-theme-muted to-theme-background/80">
         <div className="max-w-7xl mx-auto text-center">
           <div className="max-w-3xl mx-auto">
             <h1 className="text-4xl md:text-6xl font-bold text-foreground mb-6">
@@ -104,7 +104,7 @@ const Index = () => {
               {user ? (
                 <>
                   <Link to="/dashboard">
-                    <Button size="lg" className="gradient-primary text-lg px-8 py-6">
+                    <Button size="lg" className="gradient-primary text-lg px-8 py-6 text-primary-foreground">
                       Go to Dashboard
                       <ArrowRight className="ml-2 h-5 w-5" />
                     </Button>
@@ -118,7 +118,7 @@ const Index = () => {
               ) : (
                 <>
                   <Link to="/rfq/submit">
-                    <Button size="lg" className="gradient-primary text-lg px-8 py-6">
+                    <Button size="lg" className="gradient-primary text-lg px-8 py-6 text-primary-foreground">
                       Submit RFQ Request
                       <ArrowRight className="ml-2 h-5 w-5" />
                     </Button>
@@ -175,7 +175,7 @@ const Index = () => {
             </div>
 
             <Link to="/rfq/submit">
-              <Button size="lg" className="text-lg px-8 py-4">
+              <Button size="lg" className="text-lg px-8 py-4 bg-primary text-primary-foreground hover:bg-primary/90">
                 Submit Your RFQ Request
                 <ArrowRight className="ml-2 h-5 w-5" />
               </Button>
@@ -203,7 +203,7 @@ const Index = () => {
 
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
             {features.map((feature, index) => (
-              <Card key={index} className="card-elevated hover:shadow-lg transition-all duration-300">
+              <Card key={index} className="card-elevated hover:shadow-lg transition-all duration-300 bg-theme-card text-theme-card-foreground border border-base-300">
                 <CardHeader>
                   <div className="w-12 h-12 rounded-lg bg-primary/10 flex items-center justify-center mb-4">
                     <feature.icon className="h-6 w-6 text-primary" />
@@ -241,7 +241,7 @@ const Index = () => {
               </div>
             </div>
             <div className="lg:pl-8">
-              <Card className="card-elevated">
+              <Card className="card-elevated bg-theme-card text-theme-card-foreground border border-base-300 shadow-md">
                 <CardHeader>
                   <CardTitle className="text-xl">Ready to Get Started?</CardTitle>
                   <CardDescription>
@@ -260,7 +260,7 @@ const Index = () => {
                     </div>
                   </div>
                   <Link to={user ? "/dashboard" : "/auth"} className="block">
-                    <Button className="w-full" size="lg">
+                    <Button className="w-full bg-primary text-primary-foreground hover:bg-primary/90" size="lg">
                       {user ? "Go to Dashboard" : "Start Your Free Trial"}
                       <ArrowRight className="ml-2 h-4 w-4" />
                     </Button>
@@ -273,7 +273,7 @@ const Index = () => {
       </section>
 
       {/* Footer */}
-      <footer className="border-t bg-muted/30">
+      <footer className="border-t border-base-300 bg-theme-muted/30">
         <div className="max-w-7xl mx-auto px-4 py-8 sm:px-6 lg:px-8">
           <div className="flex flex-col md:flex-row justify-between items-center">
             <div className="flex items-center space-x-2 mb-4 md:mb-0">

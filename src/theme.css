@@ -17,6 +17,14 @@
     --error-foreground: #FFFFFF;
     --info: #2196F3;
     --info-foreground: #FFFFFF;
+    
+    /* Opacity variations for status colors */
+    --primary-opacity: rgba(3, 218, 198, 0.2);
+    --secondary-opacity: rgba(187, 134, 252, 0.2);
+    --success-opacity: rgba(76, 175, 80, 0.2);
+    --warning-opacity: rgba(251, 140, 0, 0.2);
+    --error-opacity: rgba(207, 102, 121, 0.2);
+    --info-opacity: rgba(33, 150, 243, 0.2);
 }
 
 /* Light theme (default) */
