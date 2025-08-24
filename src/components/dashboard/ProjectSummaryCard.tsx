@@ -79,8 +79,8 @@ export function ProjectSummaryCard({ project, showUrgencyIndicators = false }: P
   const hasApprovals = project.status !== 'inquiry_received' && Math.random() > 0.3;
 
   const cardClassName = showUrgencyIndicators ? (
-    urgency.level === 'critical' ? 'border-destructive/20 bg-destructive/5 ring-1 ring-destructive/20' :
-      urgency.level === 'high' ? 'border-warning/20 bg-warning/5 ring-1 ring-warning/20' :
+    urgency.level === 'critical' ? 'border-destructive shadow-md shadow-destructive/10 bg-destructive/5 ring-1 ring-destructive/20' :
+      urgency.level === 'high' ? 'border-warning shadow-md shadow-warning/10 bg-warning/5 ring-1 ring-warning/20' :
         'border-primary/20 bg-primary/5'
   ) : '';
 
@@ -98,7 +98,7 @@ export function ProjectSummaryCard({ project, showUrgencyIndicators = false }: P
         <span className="font-medium">{project.title}</span>
         <Badge
           variant={project.priority === 'urgent' ? 'destructive' : project.priority === 'high' ? 'secondary' : 'outline'}
-          className="text-xs"
+          className={`text-xs font-bold ${project.priority === 'medium' ? 'bg-warning/10 text-warning' : project.priority === 'low' ? 'bg-success/10 text-success' : ''}`}
         >
           {project.priority} priority
         </Badge>
@@ -107,12 +107,12 @@ export function ProjectSummaryCard({ project, showUrgencyIndicators = false }: P
         {showUrgencyIndicators && urgency.reasons.length > 0 && (
           <div className="flex items-center gap-2">
             {urgency.level === 'critical' && (
-              <Badge variant="destructive" className="text-xs animate-pulse">
+              <Badge variant="destructive" className="text-xs font-bold animate-pulse">
                 URGENT
               </Badge>
             )}
             {urgency.level === 'high' && (
-              <Badge variant="secondary" className="text-xs bg-warning/10 text-warning">
+              <Badge variant="secondary" className="text-xs font-bold">
                 ACTION NEEDED
               </Badge>
             )}
@@ -136,7 +136,7 @@ export function ProjectSummaryCard({ project, showUrgencyIndicators = false }: P
 
         {/* Time in stage indicator */}
         {showUrgencyIndicators && (
-          <div className={`flex items-center gap-1 ${project.days_in_stage > 7 ? 'text-destructive' : project.days_in_stage > 3 ? 'text-warning' : 'text-muted-foreground'}`}>
+          <div className={`flex items-center gap-1 px-2 py-1 rounded-full text-xs ${project.days_in_stage > 7 ? 'bg-destructive/10 text-destructive font-bold' : project.days_in_stage > 3 ? 'bg-warning/10 text-warning font-bold' : 'bg-muted text-muted-foreground'}`}>
             <Clock className="h-3 w-3" />
             <span>{project.days_in_stage}d</span>
           </div>

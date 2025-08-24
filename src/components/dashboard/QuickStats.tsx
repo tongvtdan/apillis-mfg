@@ -39,7 +39,7 @@ export function QuickStats({ activeProjects, highPriorityProjects, overdueProjec
             <div className="w-2 h-2 bg-orange-500 rounded-full"></div>
             <span className="text-sm text-muted-foreground">Overdue</span>
           </div>
-          <Badge variant={overdueProjects > 0 ? "destructive" : "outline"} className="font-semibold">
+          <Badge variant={overdueProjects > 0 ? "destructive" : "outline"} className="font-semibold overdue-badge">
             {overdueProjects}
           </Badge>
         </div>

@@ -43,7 +43,7 @@ export function PendingTasks() {
         <CardContent>
           <div className="space-y-4">
             {[1, 2, 3, 4].map((i) => (
-              <div key={i} className="flex items-start justify-between">
+              <div key={i} className="flex items-start justify-between p-3 bg-muted/30 rounded-lg">
                 <div className="flex-1 min-w-0 space-y-2">
                   <div className="h-4 bg-muted animate-pulse rounded w-3/4"></div>
                   <div className="flex items-center space-x-2">
@@ -65,7 +65,7 @@ export function PendingTasks() {
       </CardHeader>
       <CardContent className="space-y-4">
         {pendingTasks.map((task) => (
-          <div key={task.id} className="flex items-start justify-between">
+          <div key={task.id} className="flex items-start justify-between p-3 bg-muted/30 rounded-lg">
             <div className="flex-1 min-w-0">
               <p className="text-sm font-medium text-foreground mb-1">
                 {task.title}

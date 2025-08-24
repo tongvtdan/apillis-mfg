@@ -59,7 +59,7 @@ export function RecentActivities() {
         <CardContent>
           <div className="space-y-4">
             {[1, 2, 3, 4, 5].map((i) => (
-              <div key={i} className="flex items-start space-x-3">
+              <div key={i} className="flex items-start space-x-3 p-3 bg-muted/30 rounded-lg">
                 <div className="p-2 rounded-full bg-muted animate-pulse">
                   <div className="h-4 w-4 bg-muted-foreground/20 rounded"></div>
                 </div>
@@ -85,7 +85,7 @@ export function RecentActivities() {
           const iconColor = getActivityColor(project.status);
 
           return (
-            <div key={project.id} className="flex items-start space-x-3">
+            <div key={project.id} className="flex items-start space-x-3 p-3 bg-muted/30 rounded-lg">
               <div className={`p-2 rounded-full bg-muted ${iconColor}`}>
                 <IconComponent className="h-4 w-4" />
               </div>

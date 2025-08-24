@@ -227,6 +227,22 @@ export function ThemeEnforcer() {
             }
         });
 
+        // Enhance styling for overdue badges in quick stats
+        document.querySelectorAll('.badge[data-variant="destructive"]').forEach(el => {
+            if (!isDarkTheme) {
+                (el as HTMLElement).style.fontWeight = '800';
+                (el as HTMLElement).style.boxShadow = '0 2px 4px rgba(192, 57, 43, 0.4)';
+            }
+        });
+
+        // Add special highlighting for overdue badges in quick stats
+        document.querySelectorAll('.overdue-badge').forEach(el => {
+            if (!isDarkTheme) {
+                (el as HTMLElement).style.transform = 'scale(1.05)';
+                (el as HTMLElement).style.transition = 'all 0.2s ease-in-out';
+            }
+        });
+
         console.log(`Theme consistency enforced: ${isDarkTheme ? 'dark' : 'light'}`);
     };
 

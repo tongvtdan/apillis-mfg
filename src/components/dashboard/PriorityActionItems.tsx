@@ -67,8 +67,11 @@ export function PriorityActionItems({ projects }: PriorityActionItemsProps) {
     <div className="mt-6">
       <div className="mb-4">
         <h2 className="text-lg font-semibold text-foreground flex items-center gap-2">
-          <AlertTriangle className="h-5 w-5 text-orange-500" />
-          Priority Action Items
+          <AlertTriangle className="h-5 w-5 text-destructive" />
+          <span className="relative">
+            Priority Action Items
+            <span className="absolute bottom-0 left-0 w-full h-0.5 bg-destructive/40 rounded"></span>
+          </span>
         </h2>
         <p className="text-sm text-muted-foreground mt-1">
           Projects requiring immediate attention based on priority, urgency, and time in stage
