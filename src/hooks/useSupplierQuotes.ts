@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { SupplierQuote, SendRFQRequest, AcceptQuoteRequest, UpdateSupplierQuoteRequest } from '@/types/supplier';
+import { SupplierQuote, SupplierQuoteStatus, SendRFQRequest, AcceptQuoteRequest, UpdateSupplierQuoteRequest } from '@/types/supplier';
 import { useAuth } from '@/contexts/AuthContext';
 import { useToast } from '@/hooks/use-toast';
 
@@ -80,7 +80,7 @@ export function useSupplierQuotes(projectId?: string) {
 
   const acceptQuote = async (request: AcceptQuoteRequest): Promise<boolean> => {
     try {
-      setQuotes(prev => prev.map(q => q.id === request.quote_id ? { ...q, status: 'accepted' } : q));
+      setQuotes(prev => prev.map(q => q.id === request.quote_id ? { ...q, status: 'accepted' as SupplierQuoteStatus } : q));
       toast({ title: 'Quote Accepted', description: 'Quote accepted successfully' });
       return true;
     } catch (err) {
@@ -89,7 +89,7 @@ export function useSupplierQuotes(projectId?: string) {
     }
   };
 
-  const updateQuoteStatus = async (quoteId: string, status: string): Promise<boolean> => {
+  const updateQuoteStatus = async (quoteId: string, status: SupplierQuoteStatus): Promise<boolean> => {
     try {
       setQuotes(prev => prev.map(q => q.id === quoteId ? { ...q, status } : q));
       return true;
@@ -128,7 +128,7 @@ export function useSupplierQuotes(projectId?: string) {
     loading,
     error,
     filters,
-    
+
     // CRUD operations
     sendRFQToSuppliers,
     updateQuote,
@@ -136,13 +136,13 @@ export function useSupplierQuotes(projectId?: string) {
     updateQuoteStatus,
     deleteQuote,
     refetch: fetchQuotes,
-    
+
     // Query helpers
     getQuotesByProject,
     getQuotesBySupplier,
     getPendingQuotes,
     getExpiredQuotes,
-    
+
     // Filter management
     updateFilters,
     clearFilters,

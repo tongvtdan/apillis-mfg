@@ -1,12 +1,12 @@
 import { useState, useEffect } from 'react';
 import { supabase } from '@/integrations/supabase/client';
-import { 
-  Supplier, 
-  SupplierPerformanceMetrics, 
+import {
+  Supplier,
+  SupplierPerformanceMetrics,
   SupplierAnalytics,
-  CreateSupplierRequest, 
+  CreateSupplierRequest,
   UpdateSupplierRequest,
-  SupplierSearchCriteria 
+  SupplierSearchCriteria
 } from '@/types/supplier';
 import { useAuth } from '@/contexts/AuthContext';
 import { useToast } from '@/hooks/use-toast';
@@ -28,7 +28,7 @@ export function useSuppliers() {
     try {
       setLoading(true);
       setError(null);
-      
+
       const { data, error: fetchError } = await supabase
         .from('suppliers')
         .select('*')
@@ -40,7 +40,7 @@ export function useSuppliers() {
         return;
       }
 
-      const mapped = (data || []).map((row: any) => ({
+      const mapped: Supplier[] = (data || []).map((row: any) => ({
         id: row.id,
         name: row.name,
         company: row.company,
@@ -54,6 +54,10 @@ export function useSuppliers() {
         is_active: (row.status ?? 'active') === 'active',
         created_at: row.created_at,
         updated_at: row.updated_at,
+        total_quotes_sent: 0,
+        total_quotes_received: 0,
+        average_turnaround_days: 0,
+        tags: [],
       }));
 
       setSuppliers(mapped);
@@ -76,7 +80,7 @@ export function useSuppliers() {
         country: supplierData.country,
         capabilities: supplierData.specialties as any,
         status: 'active',
-      }; 
+      };
 
       const { data, error } = await supabase
         .from('suppliers')
@@ -90,7 +94,7 @@ export function useSuppliers() {
       }
 
       // Map to app type and add to local state
-      const mapped = {
+      const mapped: Supplier = {
         id: data.id,
         name: data.name,
         company: data.company,
@@ -104,7 +108,11 @@ export function useSuppliers() {
         is_active: (data.status ?? 'active') === 'active',
         created_at: data.created_at,
         updated_at: data.updated_at,
-      } as Supplier;
+        total_quotes_sent: 0,
+        total_quotes_received: 0,
+        average_turnaround_days: 0,
+        tags: [],
+      };
       setSuppliers(prev => [mapped, ...prev]);
 
       toast({
@@ -146,7 +154,7 @@ export function useSuppliers() {
       }
 
       // Update local state
-      const mapped = {
+      const mapped: Supplier = {
         id: data.id,
         name: data.name,
         company: data.company,
@@ -160,8 +168,12 @@ export function useSuppliers() {
         is_active: (data.status ?? 'active') === 'active',
         created_at: data.created_at,
         updated_at: data.updated_at,
-      } as Supplier;
-      setSuppliers(prev => prev.map(supplier => 
+        total_quotes_sent: 0,
+        total_quotes_received: 0,
+        average_turnaround_days: 0,
+        tags: [],
+      };
+      setSuppliers(prev => prev.map(supplier =>
         supplier.id === supplierId ? mapped : supplier
       ));
 
@@ -170,7 +182,7 @@ export function useSuppliers() {
         description: `${data.name} has been updated successfully`,
       });
 
-      return data;
+      return mapped;
     } catch (err) {
       console.error('Error in updateSupplier:', err);
       toast({
@@ -218,7 +230,7 @@ export function useSuppliers() {
     try {
       const { error } = await supabase
         .from('suppliers')
-        .update({ 
+        .update({
           is_active: false,
           updated_at: new Date().toISOString(),
           updated_by: user?.id
@@ -231,8 +243,8 @@ export function useSuppliers() {
       }
 
       // Update local state
-      setSuppliers(prev => prev.map(supplier => 
-        supplier.id === supplierId 
+      setSuppliers(prev => prev.map(supplier =>
+        supplier.id === supplierId
           ? { ...supplier, is_active: false, updated_at: new Date().toISOString() }
           : supplier
       ));
@@ -281,7 +293,7 @@ export function useSuppliers() {
       const { data, error } = await query.order('updated_at', { ascending: false });
       if (error) throw error;
 
-      const mapped = (data || []).map((row: any) => ({
+      const mapped: Supplier[] = (data || []).map((row: any) => ({
         id: row.id,
         name: row.name,
         company: row.company,
@@ -295,6 +307,10 @@ export function useSuppliers() {
         is_active: (row.status ?? 'active') === 'active',
         created_at: row.created_at,
         updated_at: row.updated_at,
+        total_quotes_sent: 0,
+        total_quotes_received: 0,
+        average_turnaround_days: 0,
+        tags: [],
       }));
 
       // Apply min_rating client-side since DB doesn't have 'rating'
@@ -338,7 +354,25 @@ export function useSuppliers() {
       throw error;
     }
 
-    return data;
+    return {
+      id: data.id,
+      name: data.name,
+      company: data.company,
+      email: data.email ?? undefined,
+      phone: data.phone ?? undefined,
+      address: data.address ?? undefined,
+      country: data.country ?? undefined,
+      specialties: (data.capabilities || []) as any,
+      rating: Number(((data.quality_rating ?? 4) + (data.delivery_rating ?? 4) + (data.cost_rating ?? 4)) / 3),
+      response_rate: 0,
+      is_active: (data.status ?? 'active') === 'active',
+      created_at: data.created_at,
+      updated_at: data.updated_at,
+      total_quotes_sent: 0,
+      total_quotes_received: 0,
+      average_turnaround_days: 0,
+      tags: [],
+    };
   };
 
   const getActiveSuppliers = (): Supplier[] => {
@@ -346,7 +380,7 @@ export function useSuppliers() {
   };
 
   const getSuppliersBySpecialty = (specialty: string): Supplier[] => {
-    return suppliers.filter(supplier => 
+    return suppliers.filter(supplier =>
       supplier.is_active && supplier.specialties.includes(specialty as any)
     );
   };
@@ -376,20 +410,20 @@ export function useSuppliers() {
     loading,
     error,
     refetch: fetchSuppliers,
-    
+
     // CRUD operations
     createSupplier,
     updateSupplier,
     deleteSupplier,
     deactivateSupplier,
     getSupplierById,
-    
+
     // Search and filtering
     searchSuppliers,
     getActiveSuppliers,
     getSuppliersBySpecialty,
     getTopPerformingSuppliers,
-    
+
     // Performance tracking (stubs)
     getSupplierPerformance,
     getSupplierAnalytics,
