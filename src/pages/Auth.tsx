@@ -14,14 +14,14 @@ export default function Auth() {
   const { signIn, signUp, resetPassword, user, loading } = useAuth();
   const location = useLocation();
   const [isLoading, setIsLoading] = useState(false);
-  
+
   // Form states
   const [signInData, setSignInData] = useState({ email: '', password: '' });
-  const [signUpData, setSignUpData] = useState({ 
-    email: '', 
-    password: '', 
-    confirmPassword: '', 
-    displayName: '' 
+  const [signUpData, setSignUpData] = useState({
+    email: '',
+    password: '',
+    confirmPassword: '',
+    displayName: ''
   });
   const [resetEmail, setResetEmail] = useState('');
   const [errors, setErrors] = useState<string[]>([]);
@@ -39,7 +39,7 @@ export default function Auth() {
   const handleSignIn = async (e: React.FormEvent) => {
     e.preventDefault();
     setErrors([]);
-    
+
     // Validate form
     const validation = validateLoginForm(signInData);
     if (!validation.isValid) {
@@ -60,7 +60,7 @@ export default function Auth() {
   const handleSignUp = async (e: React.FormEvent) => {
     e.preventDefault();
     setErrors([]);
-    
+
     // Validate form
     const validation = validateRegistrationForm(signUpData);
     if (!validation.isValid) {
@@ -100,7 +100,7 @@ export default function Auth() {
   }
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-background to-muted p-4">
+    <div className="min-h-screen flex items-center justify-center bg-background p-4">
       <div className="w-full max-w-md space-y-8">
         <div className="text-center">
           <div className="flex justify-center mb-4">
@@ -173,7 +173,7 @@ export default function Auth() {
                       const email = prompt('Enter your email address:');
                       if (email) {
                         setResetEmail(email);
-                        handleResetPassword({ preventDefault: () => {} } as React.FormEvent);
+                        handleResetPassword({ preventDefault: () => { } } as React.FormEvent);
                       }
                     }}
                     className="text-sm"
@@ -217,31 +217,31 @@ export default function Auth() {
                       onChange={(e) => {
                         const password = e.target.value;
                         setSignUpData(prev => ({ ...prev, password }));
-                        
+
                         // Update password strength indicator
                         let score = 0;
                         const feedback: string[] = [];
-                        
+
                         if (password.length >= 8) score += 1;
                         else feedback.push('At least 8 characters');
-                        
+
                         if (/[A-Z]/.test(password)) score += 1;
                         else feedback.push('One uppercase letter');
-                        
+
                         if (/[a-z]/.test(password)) score += 1;
                         else feedback.push('One lowercase letter');
-                        
+
                         if (/\d/.test(password)) score += 1;
                         else feedback.push('One number');
-                        
+
                         if (/[!@#$%^&*()_+\-=\[\]{};':"\\|,.<>\/?]/.test(password)) score += 1;
                         else feedback.push('One special character');
-                        
+
                         setPasswordStrength({ score, feedback });
                       }}
                       required
                     />
-                    
+
                     {/* Password Strength Indicator */}
                     {signUpData.password && (
                       <div className="mt-2 space-y-2">
@@ -249,15 +249,14 @@ export default function Auth() {
                           {[1, 2, 3, 4, 5].map((level) => (
                             <div
                               key={level}
-                              className={`h-1 flex-1 rounded ${
-                                level <= passwordStrength.score
+                              className={`h-1 flex-1 rounded ${level <= passwordStrength.score
                                   ? passwordStrength.score <= 2
                                     ? 'bg-red-500'
                                     : passwordStrength.score <= 3
-                                    ? 'bg-yellow-500'
-                                    : 'bg-green-500'
+                                      ? 'bg-yellow-500'
+                                      : 'bg-green-500'
                                   : 'bg-gray-200'
-                              }`}
+                                }`}
                             />
                           ))}
                         </div>
@@ -265,8 +264,8 @@ export default function Auth() {
                           <span className="font-medium">
                             Password strength: {
                               passwordStrength.score <= 2 ? 'Weak' :
-                              passwordStrength.score <= 3 ? 'Fair' :
-                              passwordStrength.score <= 4 ? 'Good' : 'Strong'
+                                passwordStrength.score <= 3 ? 'Fair' :
+                                  passwordStrength.score <= 4 ? 'Good' : 'Strong'
                             }
                           </span>
                           {passwordStrength.feedback.length > 0 && (

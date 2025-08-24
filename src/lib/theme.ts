@@ -1,5 +1,5 @@
 // Enhanced Theme System for Factory Pulse
-// Supporting both light and dark modes with priority-based color schemes
+// Industrial Tech Theme - Simple, clean, minimalism with modern manufacturing aesthetics
 
 export type ThemeMode = 'light' | 'dark' | 'system';
 export type ColorScheme = 'default' | 'high-contrast' | 'color-blind-friendly';
@@ -19,7 +19,7 @@ export interface ThemeColors {
   cardForeground: string;
   popover: string;
   popoverForeground: string;
-  
+
   // Interactive elements
   primary: string;
   primaryForeground: string;
@@ -29,7 +29,7 @@ export interface ThemeColors {
   mutedForeground: string;
   accent: string;
   accentForeground: string;
-  
+
   // Status colors
   destructive: string;
   destructiveForeground: string;
@@ -39,12 +39,12 @@ export interface ThemeColors {
   warningForeground: string;
   info: string;
   infoForeground: string;
-  
+
   // Borders and inputs
   border: string;
   input: string;
   ring: string;
-  
+
   // Chart colors
   chart: {
     primary: string;
@@ -118,146 +118,146 @@ export interface EnhancedPriorityColors {
   };
 }
 
-// Default light theme colors
+// Factory Pulse Light Theme - Based on design specification
 export const LIGHT_THEME: ThemeColors = {
-  background: 'hsl(0 0% 100%)',
-  foreground: 'hsl(222.2 84% 4.9%)',
-  card: 'hsl(0 0% 100%)',
-  cardForeground: 'hsl(222.2 84% 4.9%)',
+  background: 'hsl(0 0% 100%)',      // base-100: #FFFFFF
+  foreground: 'hsl(220 13% 18%)',    // base-content: #1F2937
+  card: 'hsl(0 0% 100%)',            // base-100: #FFFFFF
+  cardForeground: 'hsl(220 13% 18%)',
   popover: 'hsl(0 0% 100%)',
-  popoverForeground: 'hsl(222.2 84% 4.9%)',
-  
-  primary: 'hsl(221.2 83.2% 53.3%)',
-  primaryForeground: 'hsl(210 40% 98%)',
-  secondary: 'hsl(210 40% 96%)',
-  secondaryForeground: 'hsl(222.2 84% 4.9%)',
-  muted: 'hsl(210 40% 96%)',
-  mutedForeground: 'hsl(215.4 16.3% 46.9%)',
-  accent: 'hsl(210 40% 96%)',
-  accentForeground: 'hsl(222.2 84% 4.9%)',
-  
-  destructive: 'hsl(0 84.2% 60.2%)',
-  destructiveForeground: 'hsl(210 40% 98%)',
-  success: 'hsl(142.1 76.2% 36.3%)',
-  successForeground: 'hsl(210 40% 98%)',
-  warning: 'hsl(38.3 92.1% 50%)',
-  warningForeground: 'hsl(222.2 84% 4.9%)',
-  info: 'hsl(221.2 83.2% 53.3%)',
-  infoForeground: 'hsl(210 40% 98%)',
-  
-  border: 'hsl(214.3 31.8% 91.4%)',
-  input: 'hsl(214.3 31.8% 91.4%)',
-  ring: 'hsl(221.2 83.2% 53.3%)',
-  
+  popoverForeground: 'hsl(220 13% 18%)',
+
+  primary: 'hsl(174 100% 44%)',      // primary: #03DAC6 (Teal/Cyan)
+  primaryForeground: 'hsl(0 0% 0%)', // primary-content: #000000
+  secondary: 'hsl(258 100% 76%)',    // secondary: #BB86FC (Purple)
+  secondaryForeground: 'hsl(0 0% 100%)', // secondary-content: #FFFFFF
+  muted: 'hsl(210 20% 98%)',         // base-200: #F9FAFB
+  mutedForeground: 'hsl(215 16% 47%)', // neutral content
+  accent: 'hsl(45 100% 63%)',        // accent: #FFD740 (Amber)
+  accentForeground: 'hsl(220 13% 18%)', // accent-content: #1F2937
+
+  destructive: 'hsl(351 83% 61%)',   // error: #CF6679 (Pink-red)
+  destructiveForeground: 'hsl(0 0% 100%)',
+  success: 'hsl(122 39% 49%)',       // success: #4CAF50 (Green)
+  successForeground: 'hsl(0 0% 100%)',
+  warning: 'hsl(36 100% 50%)',       // warning: #FB8C00 (Orange)
+  warningForeground: 'hsl(0 0% 100%)',
+  info: 'hsl(207 90% 54%)',          // info: #2196F3 (Blue)
+  infoForeground: 'hsl(0 0% 100%)',
+
+  border: 'hsl(214 32% 91%)',        // base-300: #E5E7EB
+  input: 'hsl(210 20% 98%)',         // base-200: #F9FAFB
+  ring: 'hsl(174 100% 44%)',         // primary ring
+
   chart: {
-    primary: 'hsl(221.2 83.2% 53.3%)',
-    secondary: 'hsl(142.1 76.2% 36.3%)',
-    tertiary: 'hsl(38.3 92.1% 50%)',
-    quaternary: 'hsl(0 84.2% 60.2%)',
-    quinary: 'hsl(261.4 83.3% 57.8%)'
+    primary: 'hsl(174 100% 44%)',    // Teal
+    secondary: 'hsl(258 100% 76%)',  // Purple
+    tertiary: 'hsl(45 100% 63%)',    // Amber
+    quaternary: 'hsl(122 39% 49%)',  // Green
+    quinary: 'hsl(351 83% 61%)'      // Pink-red
   }
 };
 
-// Dark theme colors
+// Factory Pulse Dark Theme - Based on design specification
 export const DARK_THEME: ThemeColors = {
-  background: 'hsl(222.2 84% 4.9%)',
-  foreground: 'hsl(210 40% 98%)',
-  card: 'hsl(222.2 84% 4.9%)',
-  cardForeground: 'hsl(210 40% 98%)',
-  popover: 'hsl(222.2 84% 4.9%)',
-  popoverForeground: 'hsl(210 40% 98%)',
-  
-  primary: 'hsl(217.2 91.2% 59.8%)',
-  primaryForeground: 'hsl(222.2 84% 4.9%)',
-  secondary: 'hsl(217.2 32.6% 17.5%)',
-  secondaryForeground: 'hsl(210 40% 98%)',
-  muted: 'hsl(217.2 32.6% 17.5%)',
-  mutedForeground: 'hsl(215 20.2% 65.1%)',
-  accent: 'hsl(217.2 32.6% 17.5%)',
-  accentForeground: 'hsl(210 40% 98%)',
-  
-  destructive: 'hsl(0 62.8% 30.6%)',
-  destructiveForeground: 'hsl(210 40% 98%)',
-  success: 'hsl(142.1 70.6% 45.3%)',
-  successForeground: 'hsl(210 40% 98%)',
-  warning: 'hsl(38.3 92.1% 50%)',
-  warningForeground: 'hsl(222.2 84% 4.9%)',
-  info: 'hsl(217.2 91.2% 59.8%)',
-  infoForeground: 'hsl(222.2 84% 4.9%)',
-  
-  border: 'hsl(217.2 32.6% 17.5%)',
-  input: 'hsl(217.2 32.6% 17.5%)',
-  ring: 'hsl(217.2 91.2% 59.8%)',
-  
+  background: 'hsl(0 0% 7%)',        // dark base-100: #121212
+  foreground: 'hsl(0 0% 88%)',       // dark base-content: #E0E0E0
+  card: 'hsl(0 0% 12%)',             // dark base-200: #1E1E1E
+  cardForeground: 'hsl(0 0% 88%)',
+  popover: 'hsl(0 0% 12%)',
+  popoverForeground: 'hsl(0 0% 88%)',
+
+  primary: 'hsl(174 100% 44%)',      // primary: #03DAC6 (same in dark)
+  primaryForeground: 'hsl(0 0% 0%)', // primary-content: #000000
+  secondary: 'hsl(258 100% 76%)',    // secondary: #BB86FC (same in dark)
+  secondaryForeground: 'hsl(0 0% 100%)',
+  muted: 'hsl(0 0% 18%)',            // dark neutral: #2D2D2D
+  mutedForeground: 'hsl(0 0% 63%)',  // muted content
+  accent: 'hsl(45 100% 63%)',        // accent: #FFD740 (same in dark)
+  accentForeground: 'hsl(220 13% 18%)',
+
+  destructive: 'hsl(351 83% 61%)',   // error: #CF6679 (same in dark)
+  destructiveForeground: 'hsl(0 0% 100%)',
+  success: 'hsl(122 39% 49%)',       // success: #4CAF50 (same in dark)
+  successForeground: 'hsl(0 0% 100%)',
+  warning: 'hsl(36 100% 50%)',       // warning: #FB8C00 (same in dark)
+  warningForeground: 'hsl(0 0% 100%)',
+  info: 'hsl(207 90% 54%)',          // info: #2196F3 (same in dark)
+  infoForeground: 'hsl(0 0% 100%)',
+
+  border: 'hsl(0 0% 18%)',           // dark borders
+  input: 'hsl(0 0% 12%)',            // dark input background
+  ring: 'hsl(174 100% 44%)',         // primary ring
+
   chart: {
-    primary: 'hsl(217.2 91.2% 59.8%)',
-    secondary: 'hsl(142.1 70.6% 45.3%)',
-    tertiary: 'hsl(38.3 92.1% 50%)',
-    quaternary: 'hsl(0 72.2% 50.6%)',
-    quinary: 'hsl(261.4 83.3% 57.8%)'
+    primary: 'hsl(174 100% 44%)',    // Teal
+    secondary: 'hsl(258 100% 76%)',  // Purple
+    tertiary: 'hsl(45 100% 63%)',    // Amber
+    quaternary: 'hsl(122 39% 49%)',  // Green
+    quinary: 'hsl(351 83% 61%)'      // Pink-red
   }
 };
 
-// Enhanced priority color schemes
+// Enhanced priority color schemes - Factory Pulse themed
 export const ENHANCED_PRIORITY_COLORS: EnhancedPriorityColors = {
   urgent: {
     light: {
-      bg: 'hsl(0 85.7% 97.3%)',
-      text: 'hsl(0 84.2% 20.2%)',
-      border: 'hsl(0 84.2% 60.2%)',
-      hover: 'hsl(0 85.7% 92.3%)',
-      glow: 'hsl(0 84.2% 60.2%)'
+      bg: 'hsl(351 83% 95%)',        // Light pink-red background
+      text: 'hsl(351 83% 25%)',      // Dark pink-red text
+      border: 'hsl(351 83% 61%)',    // Error color border
+      hover: 'hsl(351 83% 90%)',     // Hover state
+      glow: 'hsl(351 83% 61%)'       // Glow effect
     },
     dark: {
-      bg: 'hsl(0 62.8% 15.6%)',
-      text: 'hsl(0 85.7% 97.3%)',
-      border: 'hsl(0 62.8% 30.6%)',
-      hover: 'hsl(0 62.8% 20.6%)',
-      glow: 'hsl(0 62.8% 50.6%)'
+      bg: 'hsl(351 83% 10%)',        // Dark pink-red background
+      text: 'hsl(351 83% 85%)',      // Light pink-red text
+      border: 'hsl(351 83% 61%)',    // Error color border
+      hover: 'hsl(351 83% 15%)',     // Hover state
+      glow: 'hsl(351 83% 61%)'       // Glow effect
     }
   },
   high: {
     light: {
-      bg: 'hsl(38.3 100% 97%)',
-      text: 'hsl(38.3 92.1% 20%)',
-      border: 'hsl(38.3 92.1% 50%)',
-      hover: 'hsl(38.3 100% 92%)',
-      glow: 'hsl(38.3 92.1% 50%)'
+      bg: 'hsl(36 100% 95%)',        // Light orange background
+      text: 'hsl(36 100% 25%)',      // Dark orange text
+      border: 'hsl(36 100% 50%)',    // Warning color border
+      hover: 'hsl(36 100% 90%)',     // Hover state
+      glow: 'hsl(36 100% 50%)'       // Glow effect
     },
     dark: {
-      bg: 'hsl(38.3 92.1% 15%)',
-      text: 'hsl(38.3 100% 97%)',
-      border: 'hsl(38.3 92.1% 30%)',
-      hover: 'hsl(38.3 92.1% 20%)',
-      glow: 'hsl(38.3 92.1% 50%)'
+      bg: 'hsl(36 100% 10%)',        // Dark orange background
+      text: 'hsl(36 100% 85%)',      // Light orange text
+      border: 'hsl(36 100% 50%)',    // Warning color border
+      hover: 'hsl(36 100% 15%)',     // Hover state
+      glow: 'hsl(36 100% 50%)'       // Glow effect
     }
   },
   medium: {
     light: {
-      bg: 'hsl(221.2 83.2% 97.3%)',
-      text: 'hsl(221.2 83.2% 20.3%)',
-      border: 'hsl(221.2 83.2% 53.3%)',
-      hover: 'hsl(221.2 83.2% 92.3%)'
+      bg: 'hsl(45 100% 95%)',        // Light amber background
+      text: 'hsl(45 100% 25%)',      // Dark amber text
+      border: 'hsl(45 100% 63%)',    // Accent color border
+      hover: 'hsl(45 100% 90%)'      // Hover state
     },
     dark: {
-      bg: 'hsl(217.2 32.6% 17.5%)',
-      text: 'hsl(217.2 91.2% 79.8%)',
-      border: 'hsl(217.2 91.2% 59.8%)',
-      hover: 'hsl(217.2 32.6% 22.5%)'
+      bg: 'hsl(45 100% 10%)',        // Dark amber background
+      text: 'hsl(45 100% 85%)',      // Light amber text
+      border: 'hsl(45 100% 63%)',    // Accent color border
+      hover: 'hsl(45 100% 15%)'      // Hover state
     }
   },
   low: {
     light: {
-      bg: 'hsl(142.1 76.2% 97.3%)',
-      text: 'hsl(142.1 76.2% 16.3%)',
-      border: 'hsl(142.1 76.2% 36.3%)',
-      hover: 'hsl(142.1 76.2% 92.3%)'
+      bg: 'hsl(122 39% 95%)',        // Light green background
+      text: 'hsl(122 39% 25%)',      // Dark green text
+      border: 'hsl(122 39% 49%)',    // Success color border
+      hover: 'hsl(122 39% 90%)'      // Hover state
     },
     dark: {
-      bg: 'hsl(142.1 70.6% 15.3%)',
-      text: 'hsl(142.1 76.2% 97.3%)',
-      border: 'hsl(142.1 70.6% 45.3%)',
-      hover: 'hsl(142.1 70.6% 20.3%)'
+      bg: 'hsl(122 39% 10%)',        // Dark green background
+      text: 'hsl(122 39% 85%)',      // Light green text
+      border: 'hsl(122 39% 49%)',    // Success color border
+      hover: 'hsl(122 39% 15%)'      // Hover state
     }
   }
 };
@@ -270,7 +270,7 @@ export const HIGH_CONTRAST_COLORS: Partial<ThemeColors> = {
   primaryForeground: 'hsl(0 0% 100%)',
   secondary: 'hsl(0 0% 95%)',
   border: 'hsl(0 0% 0%)',
-  
+
   destructive: 'hsl(0 100% 25%)',
   success: 'hsl(120 100% 25%)',
   warning: 'hsl(45 100% 35%)',
@@ -280,18 +280,18 @@ export const HIGH_CONTRAST_COLORS: Partial<ThemeColors> = {
 // Color-blind friendly theme
 export const COLOR_BLIND_FRIENDLY_COLORS: Partial<ThemeColors> = {
   chart: {
-    primary: 'hsl(221.2 83.2% 53.3%)', // Blue
-    secondary: 'hsl(38.3 92.1% 50%)',  // Orange
-    tertiary: 'hsl(0 0% 45%)',         // Gray
-    quaternary: 'hsl(142.1 76.2% 36.3%)', // Green
-    quinary: 'hsl(261.4 83.3% 57.8%)'    // Purple
+    primary: 'hsl(210 100% 56%)', // Blue
+    secondary: 'hsl(25 100% 58%)',  // Orange
+    tertiary: 'hsl(0 0% 45%)',      // Gray
+    quaternary: 'hsl(142 69% 58%)', // Green
+    quinary: 'hsl(271 81% 56%)'     // Purple
   }
 };
 
 // Utility functions for theme management
 export const getThemeColors = (mode: ThemeMode, colorScheme: ColorScheme): ThemeColors => {
   const baseTheme = mode === 'dark' ? DARK_THEME : LIGHT_THEME;
-  
+
   switch (colorScheme) {
     case 'high-contrast':
       return { ...baseTheme, ...HIGH_CONTRAST_COLORS };

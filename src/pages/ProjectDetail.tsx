@@ -394,7 +394,7 @@ export default function ProjectDetail() {
             </Button>
             <Separator orientation="vertical" className="h-6" />
           </div>
-          
+
           {/* Main header info */}
           <div className="space-y-2">
             <div className="flex items-center space-x-4 text-lg font-semibold">
@@ -412,7 +412,7 @@ export default function ProjectDetail() {
                 </Badge>
               </span>
             </div>
-            
+
             {/* Secondary info */}
             <div className="flex items-center space-x-6 text-sm text-muted-foreground">
               <span className="flex items-center">
@@ -967,8 +967,8 @@ export default function ProjectDetail() {
       {/* Supplier Modal - Coming Soon */}
       {showSupplierModal && (
         <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
-          <div className="bg-white p-6 rounded-lg">
-            <h3 className="text-lg font-semibold mb-4">Supplier RFQ</h3>
+          <div className="bg-card p-6 rounded-lg border shadow-lg">
+            <h3 className="text-lg font-semibold mb-4 text-card-foreground">Supplier RFQ</h3>
             <p className="text-muted-foreground mb-4">Supplier RFQ functionality coming soon...</p>
             <Button onClick={() => setShowSupplierModal(false)}>Close</Button>
           </div>

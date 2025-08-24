@@ -15,18 +15,15 @@ export function MonthlyProgress() {
   const progressData = [
     {
       label: "Projects Won",
-      value: totalProjects > 0 ? Math.round((wonProjects / totalProjects) * 100) : 0,
-      color: "bg-green-500"
+      value: totalProjects > 0 ? Math.round((wonProjects / totalProjects) * 100) : 0
     },
     {
       label: "Projects in Review",
-      value: totalProjects > 0 ? Math.round((reviewProjects / totalProjects) * 100) : 0,
-      color: "bg-blue-500"
+      value: totalProjects > 0 ? Math.round((reviewProjects / totalProjects) * 100) : 0
     },
     {
       label: "Projects Quoted",
-      value: totalProjects > 0 ? Math.round((quotedProjects / totalProjects) * 100) : 0,
-      color: "bg-purple-500"
+      value: totalProjects > 0 ? Math.round((quotedProjects / totalProjects) * 100) : 0
     }
   ];
 

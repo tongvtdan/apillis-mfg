@@ -23,14 +23,15 @@ import Reports from "./pages/Reports";
 import { RFQDetail } from "./pages/RFQDetail";
 import ProjectDetail from "./pages/ProjectDetail";
 import Settings from "./pages/Settings";
-// Import our custom ThemeProvider instead of next-themes
+import { ThemeShowcase } from "./components/theme/ThemeShowcase";
+{/* Import our custom ThemeProvider instead of next-themes */ }
 import { ThemeProvider } from "@/contexts/ThemeContext";
 
 const queryClient = new QueryClient();
 
 const App = () => (
   <QueryClientProvider client={queryClient}>
-    // Use our custom ThemeProvider
+    {/* Use our custom ThemeProvider */}
     <ThemeProvider>
       <AuthProvider>
         <TooltipProvider>
@@ -123,6 +124,15 @@ const App = () => (
               <Route path="/settings" element={
                 <ProtectedRoute>
                   <AppLayout><Settings /></AppLayout>
+                </ProtectedRoute>
+              } />
+              <Route path="/theme-showcase" element={
+                <ProtectedRoute>
+                  <AppLayout>
+                    <div className="p-6">
+                      <ThemeShowcase />
+                    </div>
+                  </AppLayout>
                 </ProtectedRoute>
               } />
               {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}

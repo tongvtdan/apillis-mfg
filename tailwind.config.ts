@@ -22,6 +22,11 @@ export default {
 				'sans': ['Inter', '-apple-system', 'BlinkMacSystemFont', 'Segoe UI', 'sans-serif'],
 				'mono': ['Space Mono', 'monospace'],
 			},
+			spacing: {
+				'18': '4.5rem',   /* 72px */
+				'88': '22rem',    /* 352px */
+				'128': '32rem',   /* 512px */
+			},
 			colors: {
 				border: 'hsl(var(--border))',
 				input: 'hsl(var(--input))',
@@ -52,6 +57,10 @@ export default {
 					DEFAULT: 'hsl(var(--warning))',
 					foreground: 'hsl(var(--warning-foreground))',
 					light: 'hsl(var(--warning-light))'
+				},
+				info: {
+					DEFAULT: 'hsl(var(--info))',
+					foreground: 'hsl(var(--info-foreground))'
 				},
 				muted: {
 					DEFAULT: 'hsl(var(--muted))',
@@ -88,9 +97,9 @@ export default {
 				}
 			},
 			borderRadius: {
-				lg: 'var(--radius)',
-				md: 'calc(var(--radius) - 2px)',
-				sm: 'calc(var(--radius) - 4px)'
+				lg: '1rem',      /* 16px - for cards */
+				md: '0.5rem',    /* 8px - for buttons and inputs */
+				sm: '0.375rem'   /* 6px - for small elements */
 			},
 			keyframes: {
 				'accordion-down': {

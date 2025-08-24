@@ -4,13 +4,13 @@ import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Progress } from '@/components/ui/progress';
-import { 
-  TrendingUp, 
-  TrendingDown, 
-  Clock, 
-  Target, 
-  DollarSign, 
-  Users, 
+import {
+  TrendingUp,
+  TrendingDown,
+  Clock,
+  Target,
+  DollarSign,
+  Users,
   Activity,
   AlertTriangle,
   CheckCircle,
@@ -26,12 +26,12 @@ import {
   Truck,
   Award
 } from 'lucide-react';
-import { 
-  AnalyticsMetrics, 
-  BottleneckAlert, 
+import {
+  AnalyticsMetrics,
+  BottleneckAlert,
   SupplierAnalytics,
   BottleneckSeverity,
-  BOTTLENECK_SEVERITY_COLORS 
+  BOTTLENECK_SEVERITY_COLORS
 } from '@/types/supplier';
 import { useProjects } from '@/hooks/useProjects';
 import { useSuppliers } from '@/hooks/useSuppliers';
@@ -73,7 +73,7 @@ function KPICard({ title, value, change, target, icon, description, status = 'go
       case 'good': return 'text-primary bg-primary/10 border-primary/20';
       case 'warning': return 'text-warning bg-warning/10 border-warning/20';
       case 'critical': return 'text-destructive bg-destructive/10 border-destructive/20';
-      default: return 'text-gray-600 bg-gray-50 border-gray-200';
+      default: return 'text-muted-foreground bg-muted/10 border-muted/20';
     }
   };
 
@@ -95,7 +95,7 @@ function KPICard({ title, value, change, target, icon, description, status = 'go
           ) : (
             <>
               <div className="text-2xl font-bold">{value}</div>
-              
+
               {change && (
                 <div className="flex items-center space-x-2 text-xs">
                   {change.isPositive ? (
@@ -108,20 +108,20 @@ function KPICard({ title, value, change, target, icon, description, status = 'go
                   </span>
                 </div>
               )}
-              
+
               {target && (
                 <div className="space-y-1">
                   <div className="flex justify-between text-xs">
                     <span>Target: {target.value}%</span>
                     <span>{target.label}</span>
                   </div>
-                  <Progress 
-                    value={typeof value === 'number' ? (value / target.value) * 100 : 0} 
-                    className="h-1" 
+                  <Progress
+                    value={typeof value === 'number' ? (value / target.value) * 100 : 0}
+                    className="h-1"
                   />
                 </div>
               )}
-              
+
               {description && (
                 <p className="text-xs text-muted-foreground">{description}</p>
               )}
@@ -177,15 +177,15 @@ function BottleneckAlertCard({ bottlenecks, onViewDetails }: BottleneckAlertCard
                   </Badge>
                 </div>
                 {criticalBottlenecks.map((bottleneck) => (
-                  <BottleneckAlertItem 
-                    key={bottleneck.project_id} 
-                    bottleneck={bottleneck} 
+                  <BottleneckAlertItem
+                    key={bottleneck.project_id}
+                    bottleneck={bottleneck}
                     onViewDetails={onViewDetails}
                   />
                 ))}
               </div>
             )}
-            
+
             {/* Warning Alerts */}
             {warningBottlenecks.length > 0 && (
               <div className="space-y-2">
@@ -195,9 +195,9 @@ function BottleneckAlertCard({ bottlenecks, onViewDetails }: BottleneckAlertCard
                   </Badge>
                 </div>
                 {warningBottlenecks.map((bottleneck) => (
-                  <BottleneckAlertItem 
-                    key={bottleneck.project_id} 
-                    bottleneck={bottleneck} 
+                  <BottleneckAlertItem
+                    key={bottleneck.project_id}
+                    bottleneck={bottleneck}
                     onViewDetails={onViewDetails}
                   />
                 ))}
@@ -222,19 +222,19 @@ function BottleneckAlertItem({ bottleneck, onViewDetails }: BottleneckAlertItemP
         <div className="space-y-2 flex-1">
           <div className="flex items-center space-x-2">
             <h4 className="font-medium">{bottleneck.project_title}</h4>
-            <Badge 
-              variant="secondary" 
+            <Badge
+              variant="secondary"
               className={`text-xs ${BOTTLENECK_SEVERITY_COLORS[bottleneck.severity]}`}
             >
               {bottleneck.severity.toUpperCase()}
             </Badge>
           </div>
-          
+
           <p className="text-sm text-muted-foreground">
             Stuck in <strong>{bottleneck.current_stage}</strong> for{' '}
             <strong>{Math.round(bottleneck.hours_in_stage / 24)} days</strong>
           </p>
-          
+
           <div className="space-y-1">
             <div className="text-xs font-medium">Issues:</div>
             <ul className="text-xs text-muted-foreground space-y-1">
@@ -246,7 +246,7 @@ function BottleneckAlertItem({ bottleneck, onViewDetails }: BottleneckAlertItemP
               ))}
             </ul>
           </div>
-          
+
           <div className="space-y-1">
             <div className="text-xs font-medium">Recommended Actions:</div>
             <ul className="text-xs text-muted-foreground space-y-1">
@@ -259,9 +259,9 @@ function BottleneckAlertItem({ bottleneck, onViewDetails }: BottleneckAlertItemP
             </ul>
           </div>
         </div>
-        
-        <Button 
-          variant="outline" 
+
+        <Button
+          variant="outline"
           size="sm"
           onClick={() => onViewDetails?.(bottleneck.project_id)}
         >
@@ -280,7 +280,7 @@ interface SupplierPerformanceChartProps {
 function SupplierPerformanceChart({ supplierAnalytics, metric }: SupplierPerformanceChartProps) {
   const getMetricData = () => {
     const top10Suppliers = supplierAnalytics.slice(0, 10);
-    
+
     switch (metric) {
       case 'response_rate':
         return {
@@ -387,12 +387,12 @@ function LeadTimeBreakdown({ leadTimeByPhase }: LeadTimeBreakdownProps) {
       <div className="h-64">
         <Doughnut data={chartData} options={options} />
       </div>
-      
+
       <div className="grid grid-cols-2 gap-2 text-xs">
         {phases.map(([phase, time]) => {
           const percentage = (time / totalTime) * 100;
           const isBottleneck = phase === 'supplier_rfq' && time > 2.5; // SLA threshold
-          
+
           return (
             <div key={phase} className="flex items-center justify-between p-2 rounded bg-gray-50">
               <span className="capitalize">{phase.replace('_', ' ')}</span>
@@ -414,7 +414,7 @@ export function AnalyticsDashboard({ className, dateRange }: AnalyticsDashboardP
   const [analyticsData, setAnalyticsData] = useState<AnalyticsMetrics | null>(null);
   const [bottlenecks, setBottlenecks] = useState<BottleneckAlert[]>([]);
   const [supplierAnalytics, setSupplierAnalytics] = useState<SupplierAnalytics[]>([]);
-  
+
   const { getBottleneckAnalysis } = useProjects();
   const { getSupplierAnalytics } = useSuppliers();
 
@@ -523,7 +523,7 @@ export function AnalyticsDashboard({ className, dateRange }: AnalyticsDashboardP
               status={analyticsData && analyticsData.supplier_response_rate >= 85 ? 'good' : 'warning'}
               loading={loading}
             />
-            
+
             <KPICard
               title="Average Cycle Time"
               value={`${analyticsData?.average_cycle_time.toFixed(1)} days`}
@@ -533,7 +533,7 @@ export function AnalyticsDashboard({ className, dateRange }: AnalyticsDashboardP
               status={analyticsData && analyticsData.average_cycle_time <= 6 ? 'good' : 'warning'}
               loading={loading}
             />
-            
+
             <KPICard
               title="Win Rate"
               value={`${analyticsData?.win_rate.toFixed(1)}%`}
@@ -543,7 +543,7 @@ export function AnalyticsDashboard({ className, dateRange }: AnalyticsDashboardP
               status={analyticsData && analyticsData.win_rate >= 45 ? 'good' : 'warning'}
               loading={loading}
             />
-            
+
             <KPICard
               title="On-Time Delivery"
               value={`${analyticsData?.on_time_delivery_rate.toFixed(1)}%`}
@@ -564,7 +564,7 @@ export function AnalyticsDashboard({ className, dateRange }: AnalyticsDashboardP
               description="RFQs that result in won projects"
               loading={loading}
             />
-            
+
             <KPICard
               title="Cost Savings"
               value={`$${analyticsData?.cost_savings.toLocaleString()}`}
@@ -573,7 +573,7 @@ export function AnalyticsDashboard({ className, dateRange }: AnalyticsDashboardP
               description="Through competitive bidding"
               loading={loading}
             />
-            
+
             <KPICard
               title="Active Suppliers"
               value={supplierAnalytics.filter(s => s.total_quotes > 0).length}
@@ -584,8 +584,8 @@ export function AnalyticsDashboard({ className, dateRange }: AnalyticsDashboardP
           </div>
 
           {/* Bottleneck Alerts */}
-          <BottleneckAlertCard 
-            bottlenecks={bottlenecks} 
+          <BottleneckAlertCard
+            bottlenecks={bottlenecks}
             onViewDetails={handleViewProjectDetails}
           />
         </TabsContent>
@@ -598,22 +598,22 @@ export function AnalyticsDashboard({ className, dateRange }: AnalyticsDashboardP
                 <CardDescription>Top 10 suppliers by response rate</CardDescription>
               </CardHeader>
               <CardContent>
-                <SupplierPerformanceChart 
-                  supplierAnalytics={supplierAnalytics} 
-                  metric="response_rate" 
+                <SupplierPerformanceChart
+                  supplierAnalytics={supplierAnalytics}
+                  metric="response_rate"
                 />
               </CardContent>
             </Card>
-            
+
             <Card>
               <CardHeader>
                 <CardTitle>Win Rate Performance</CardTitle>
                 <CardDescription>Top 10 suppliers by win rate</CardDescription>
               </CardHeader>
               <CardContent>
-                <SupplierPerformanceChart 
-                  supplierAnalytics={supplierAnalytics} 
-                  metric="win_rate" 
+                <SupplierPerformanceChart
+                  supplierAnalytics={supplierAnalytics}
+                  metric="win_rate"
                 />
               </CardContent>
             </Card>
@@ -633,16 +633,16 @@ export function AnalyticsDashboard({ className, dateRange }: AnalyticsDashboardP
                 )}
               </CardContent>
             </Card>
-            
+
             <Card>
               <CardHeader>
                 <CardTitle>Response Time Performance</CardTitle>
                 <CardDescription>Average supplier response times</CardDescription>
               </CardHeader>
               <CardContent>
-                <SupplierPerformanceChart 
-                  supplierAnalytics={supplierAnalytics} 
-                  metric="avg_response_time" 
+                <SupplierPerformanceChart
+                  supplierAnalytics={supplierAnalytics}
+                  metric="avg_response_time"
                 />
               </CardContent>
             </Card>

@@ -20,7 +20,7 @@ const Index = () => {
     },
     {
       icon: Users,
-      title: "Team Collaboration", 
+      title: "Team Collaboration",
       description: "Enable seamless collaboration between engineering, procurement, and production teams."
     },
     {
@@ -50,13 +50,13 @@ const Index = () => {
   ];
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-background via-background to-blue-50/30">
+    <div className="min-h-screen bg-background">
       {/* Navigation Header */}
-      <nav className="border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
+      <nav className="border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60 shadow-sm">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex justify-between items-center h-16">
             <div className="flex items-center space-x-2">
-              <div className="w-8 h-8 rounded-lg bg-primary flex items-center justify-center">
+              <div className="w-8 h-8 rounded-lg bg-primary flex items-center justify-center shadow-sm">
                 <span className="text-primary-foreground font-bold text-sm">A</span>
               </div>
               <span className="text-xl font-bold text-foreground">Apillis</span>
@@ -65,12 +65,12 @@ const Index = () => {
             <div className="flex items-center space-x-4">
               {user ? (
                 <Link to="/dashboard">
-                  <Button>Go to Dashboard</Button>
+                  <Button className="shadow-sm">Go to Dashboard</Button>
                 </Link>
               ) : (
                 <>
                   <Link to="/rfq/submit">
-                    <Button className="bg-primary text-primary-foreground hover:bg-primary/90">
+                    <Button className="bg-primary text-primary-foreground hover:bg-primary/90 shadow-sm">
                       Submit RFQ
                     </Button>
                   </Link>
@@ -96,8 +96,8 @@ const Index = () => {
               <span className="text-primary block">Manufacturing Operations</span>
             </h1>
             <p className="text-xl text-muted-foreground mb-8 leading-relaxed">
-              Comprehensive manufacturing portal with RFQ management, workflow automation, 
-              real-time collaboration, and data-driven insights. Streamline your entire 
+              Comprehensive manufacturing portal with RFQ management, workflow automation,
+              real-time collaboration, and data-driven insights. Streamline your entire
               manufacturing process with Apillis.
             </p>
             <div className="flex flex-col sm:flex-row gap-4 justify-center">
@@ -144,10 +144,10 @@ const Index = () => {
               Need a Manufacturing Quote?
             </h2>
             <p className="text-lg text-muted-foreground mb-8 max-w-2xl mx-auto">
-              Submit your requirements through our streamlined RFQ portal and get a competitive quote 
+              Submit your requirements through our streamlined RFQ portal and get a competitive quote
               within 24 hours. No account required to get started.
             </p>
-            
+
             <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
               <div className="flex flex-col items-center text-center">
                 <div className="w-12 h-12 rounded-full bg-primary/10 flex items-center justify-center mb-3">
@@ -156,7 +156,7 @@ const Index = () => {
                 <h3 className="font-semibold mb-1">Submit Requirements</h3>
                 <p className="text-sm text-muted-foreground">Upload specs, drawings, and project details</p>
               </div>
-              
+
               <div className="flex flex-col items-center text-center">
                 <div className="w-12 h-12 rounded-full bg-primary/10 flex items-center justify-center mb-3">
                   <CheckCircle className="h-6 w-6 text-primary" />
@@ -164,7 +164,7 @@ const Index = () => {
                 <h3 className="font-semibold mb-1">Expert Review</h3>
                 <p className="text-sm text-muted-foreground">Our team analyzes feasibility and requirements</p>
               </div>
-              
+
               <div className="flex flex-col items-center text-center">
                 <div className="w-12 h-12 rounded-full bg-primary/10 flex items-center justify-center mb-3">
                   <BarChart3 className="h-6 w-6 text-primary" />
@@ -173,14 +173,14 @@ const Index = () => {
                 <p className="text-sm text-muted-foreground">Get detailed pricing and delivery timeline</p>
               </div>
             </div>
-            
+
             <Link to="/rfq/submit">
               <Button size="lg" className="text-lg px-8 py-4">
                 Submit Your RFQ Request
                 <ArrowRight className="ml-2 h-5 w-5" />
               </Button>
             </Link>
-            
+
             <p className="text-sm text-muted-foreground mt-4">
               Free submission • 24-hour response • No obligation
             </p>
@@ -196,11 +196,11 @@ const Index = () => {
               Complete Manufacturing Operations Platform
             </h2>
             <p className="text-lg text-muted-foreground max-w-2xl mx-auto">
-              Everything you need to manage your manufacturing operations, from RFQ management 
+              Everything you need to manage your manufacturing operations, from RFQ management
               to production workflows and team collaboration.
             </p>
           </div>
-          
+
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
             {features.map((feature, index) => (
               <Card key={index} className="card-elevated hover:shadow-lg transition-all duration-300">
@@ -228,7 +228,7 @@ const Index = () => {
                 Proven Results for Manufacturing Excellence
               </h2>
               <p className="text-lg text-muted-foreground mb-8 leading-relaxed">
-                Join leading manufacturers who have transformed their operations 
+                Join leading manufacturers who have transformed their operations
                 with measurable improvements in efficiency and profitability.
               </p>
               <div className="space-y-4">
@@ -277,7 +277,7 @@ const Index = () => {
         <div className="max-w-7xl mx-auto px-4 py-8 sm:px-6 lg:px-8">
           <div className="flex flex-col md:flex-row justify-between items-center">
             <div className="flex items-center space-x-2 mb-4 md:mb-0">
-              <div className="w-6 h-6 rounded bg-primary flex items-center justify-center">
+              <div className="w-6 h-6 rounded bg-primary flex items-center justify-center shadow-sm">
                 <span className="text-primary-foreground font-bold text-xs">A</span>
               </div>
               <span className="font-semibold text-foreground">Apillis Manufacturing Portal</span>

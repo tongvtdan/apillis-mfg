@@ -2,7 +2,7 @@ import { ProjectIntakePortal } from "@/components/project/ProjectIntakePortal";
 
 export default function PublicRFQ() {
   return (
-    <div className="min-h-screen bg-gradient-to-br from-background to-muted/30">
+    <div className="min-h-screen bg-background">
       <div className="container mx-auto py-8">
         {/* Header */}
         <div className="text-center mb-8">
@@ -12,7 +12,7 @@ export default function PublicRFQ() {
               Get competitive quotes for your manufacturing projects from our expert team
             </p>
           </div>
-          
+
           {/* Trust indicators */}
           <div className="grid grid-cols-1 md:grid-cols-3 gap-6 max-w-4xl mx-auto mb-8">
             <div className="text-center p-4">
@@ -22,7 +22,7 @@ export default function PublicRFQ() {
               <h3 className="font-semibold mb-1">Fast Response</h3>
               <p className="text-sm text-muted-foreground">Quote within 24 hours</p>
             </div>
-            
+
             <div className="text-center p-4">
               <div className="bg-primary/10 w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-3">
                 <span className="text-2xl font-bold text-primary">ISO</span>
@@ -30,7 +30,7 @@ export default function PublicRFQ() {
               <h3 className="font-semibold mb-1">Quality Certified</h3>
               <p className="text-sm text-muted-foreground">ISO 9001:2015 certified</p>
             </div>
-            
+
             <div className="text-center p-4">
               <div className="bg-primary/10 w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-3">
                 <span className="text-2xl font-bold text-primary">500+</span>

@@ -82,8 +82,8 @@ export function ProjectProgressCard({ project }: ProjectProgressCardProps) {
         {/* Header */}
         <div className="flex items-start justify-between mb-4">
           <div className="flex items-start space-x-3 flex-1">
-            <div className="p-2 bg-blue-100 rounded-lg flex-shrink-0">
-              <FileText className="h-5 w-5 text-blue-600" />
+            <div className="p-2 bg-primary/10 rounded-lg flex-shrink-0">
+              <FileText className="h-5 w-5 text-primary" />
             </div>
             <div className="min-w-0 flex-1">
               <h3 className="font-semibold text-lg mb-1">{project.title}</h3>
@@ -122,9 +122,9 @@ export function ProjectProgressCard({ project }: ProjectProgressCardProps) {
                   <div className="flex flex-col items-center">
                     <div
                       className={`w-8 h-8 rounded-full flex items-center justify-center text-sm font-medium
-                        ${isCompleted ? 'bg-green-500 text-white' : ''}
-                        ${isCurrent ? 'bg-blue-500 text-white' : ''}
-                        ${isNext ? 'bg-gray-200 text-gray-500' : ''}
+                        ${isCompleted ? 'bg-success text-success-foreground' : ''}
+                        ${isCurrent ? 'bg-primary text-primary-foreground' : ''}
+                        ${isNext ? 'bg-muted text-muted-foreground' : ''}
                       `}
                     >
                       {isCompleted ? (
@@ -136,7 +136,7 @@ export function ProjectProgressCard({ project }: ProjectProgressCardProps) {
                   </div>
                   {index < relevantSteps.length - 1 && (
                     <div
-                      className={`w-20 h-0.5 mx-2 ${isCompleted ? 'bg-green-500' : 'bg-gray-200'
+                      className={`w-20 h-0.5 mx-2 ${isCompleted ? 'bg-success' : 'bg-muted'
                         }`}
                     />
                   )}
@@ -149,7 +149,7 @@ export function ProjectProgressCard({ project }: ProjectProgressCardProps) {
           <div className="flex justify-between text-xs text-muted-foreground">
             {relevantSteps.map((step, index) => (
               <div key={`${step.id}-label-${index}`} className="text-center flex-1">
-                <div className={`font-medium ${step.stepType === 'current' ? 'text-blue-600' : ''}`}>
+                <div className={`font-medium ${step.stepType === 'current' ? 'text-primary' : ''}`}>
                   {step.label}
                 </div>
               </div>
@@ -197,7 +197,7 @@ export function ProjectProgressCard({ project }: ProjectProgressCardProps) {
             <div className="text-sm text-muted-foreground">
               <p className="line-clamp-2">{project.notes}</p>
               {project.notes.length > 100 && (
-                <button className="text-blue-600 text-xs hover:underline mt-1">
+                <button className="text-primary text-xs hover:underline mt-1">
                   +1 more requirements
                 </button>
               )}
@@ -223,7 +223,7 @@ export function ProjectProgressCard({ project }: ProjectProgressCardProps) {
           </div>
           <button
             onClick={handleViewDetails}
-            className="bg-blue-600 text-white px-4 py-2 rounded-lg text-sm font-medium hover:bg-blue-700 transition-colors"
+            className="bg-primary text-primary-foreground px-4 py-2 rounded-lg text-sm font-medium hover:bg-primary/90 transition-colors"
           >
             View Details
           </button>

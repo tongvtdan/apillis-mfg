@@ -29,8 +29,8 @@ export function ProjectOverviewCard({ project }: ProjectOverviewCardProps) {
       <CardContent className="p-4">
         <div className="flex justify-between items-start mb-4">
           <div className="flex items-center space-x-2 flex-1 min-w-0">
-            <div className="p-1.5 bg-blue-100 rounded-lg flex-shrink-0">
-              <FileText className="h-4 w-4 text-blue-600" />
+            <div className="p-1.5 bg-primary/10 rounded-lg flex-shrink-0">
+              <FileText className="h-4 w-4 text-primary" />
             </div>
             <div className="min-w-0 flex-1">
               <h4 className="font-medium text-sm truncate">{project.title}</h4>
@@ -39,7 +39,7 @@ export function ProjectOverviewCard({ project }: ProjectOverviewCardProps) {
               </p>
             </div>
           </div>
-          <Badge 
+          <Badge
             variant={priorityColors[project.priority]}
             className="text-xs ml-2 flex-shrink-0"
           >
@@ -53,14 +53,14 @@ export function ProjectOverviewCard({ project }: ProjectOverviewCardProps) {
             const isCompleted = index < currentStepIndex;
             const isCurrent = index === currentStepIndex;
             const isUpcoming = index > currentStepIndex;
-            
+
             return (
               <div key={step.id} className="flex items-center space-x-3">
                 <div
                   className={`w-6 h-6 rounded-full flex items-center justify-center text-xs font-medium flex-shrink-0
-                    ${isCompleted ? 'bg-blue-500 text-white' : ''}
-                    ${isCurrent ? 'bg-blue-500 text-white' : ''}
-                    ${isUpcoming ? 'bg-gray-200 text-gray-500' : ''}
+                    ${isCompleted ? 'bg-primary text-primary-foreground' : ''}
+                    ${isCurrent ? 'bg-primary text-primary-foreground' : ''}
+                    ${isUpcoming ? 'bg-muted text-muted-foreground' : ''}
                   `}
                 >
                   {isCompleted ? (
@@ -75,7 +75,7 @@ export function ProjectOverviewCard({ project }: ProjectOverviewCardProps) {
                   </div>
                 </div>
                 {isCurrent && (
-                  <div className="w-2 h-2 bg-blue-500 rounded-full animate-pulse flex-shrink-0"></div>
+                  <div className="w-2 h-2 bg-primary rounded-full animate-pulse flex-shrink-0"></div>
                 )}
               </div>
             );
@@ -85,7 +85,7 @@ export function ProjectOverviewCard({ project }: ProjectOverviewCardProps) {
         {/* Footer */}
         <div className="mt-4 pt-3 border-t flex justify-between text-xs text-muted-foreground">
           <span>
-            {project.due_date 
+            {project.due_date
               ? `Lead Time: ${Math.ceil((new Date(project.due_date).getTime() - new Date(project.created_at).getTime()) / (1000 * 60 * 60 * 24))} days`
               : 'Due Date: TBD'
             }

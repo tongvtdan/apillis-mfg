@@ -4,13 +4,13 @@ import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Progress } from '@/components/ui/progress';
-import { 
-  TrendingUp, 
-  TrendingDown, 
-  Clock, 
-  Target, 
-  Award, 
-  Users, 
+import {
+  TrendingUp,
+  TrendingDown,
+  Clock,
+  Target,
+  Award,
+  Users,
   BarChart3,
   PieChart,
   Activity,
@@ -24,22 +24,22 @@ import {
   ArrowUpRight,
   ArrowDownRight
 } from 'lucide-react';
-import { 
-  AnalyticsMetrics, 
+import {
+  AnalyticsMetrics,
   SupplierAnalytics,
-  SupplierPerformanceMetrics 
+  SupplierPerformanceMetrics
 } from '@/types/supplier';
 import { ProjectStatus } from '@/types/project';
 import { useProjects } from '@/hooks/useProjects';
 import { useSuppliers } from '@/hooks/useSuppliers';
-import { 
-  Chart as ChartJS, 
-  ArcElement, 
-  Tooltip, 
-  Legend, 
-  CategoryScale, 
-  LinearScale, 
-  BarElement, 
+import {
+  Chart as ChartJS,
+  ArcElement,
+  Tooltip,
+  Legend,
+  CategoryScale,
+  LinearScale,
+  BarElement,
   Title,
   LineElement,
   PointElement,
@@ -48,12 +48,12 @@ import {
 import { Doughnut, Bar, Line } from 'react-chartjs-2';
 
 ChartJS.register(
-  ArcElement, 
-  Tooltip, 
-  Legend, 
-  CategoryScale, 
-  LinearScale, 
-  BarElement, 
+  ArcElement,
+  Tooltip,
+  Legend,
+  CategoryScale,
+  LinearScale,
+  BarElement,
   Title,
   LineElement,
   PointElement,
@@ -102,7 +102,7 @@ const PHASE_TARGETS: Record<string, number> = {
 
 function LeadTimeBreakdownChart({ leadTimeData }: { leadTimeData: LeadTimePhase[] }) {
   const chartData = {
-    labels: leadTimeData.map(phase => 
+    labels: leadTimeData.map(phase =>
       phase.phase.replace('_', ' ').replace(/\b\w/g, l => l.toUpperCase())
     ),
     datasets: [
@@ -158,13 +158,12 @@ function SupplierRankingTable({ rankings }: { rankings: SupplierRanking[] }) {
             <div className="flex items-start justify-between">
               <div className="flex items-start space-x-4">
                 <div className="flex flex-col items-center">
-                  <Badge 
+                  <Badge
                     variant={ranking.rank <= 3 ? 'default' : 'secondary'}
-                    className={`text-lg px-3 py-1 ${
-                      ranking.rank === 1 ? 'bg-yellow-500 text-white' :
-                      ranking.rank === 2 ? 'bg-gray-400 text-white' :
-                      ranking.rank === 3 ? 'bg-orange-500 text-white' : ''
-                    }`}
+                    className={`text-lg px-3 py-1 ${ranking.rank === 1 ? 'bg-warning text-warning-foreground' :
+                        ranking.rank === 2 ? 'bg-muted text-muted-foreground' :
+                          ranking.rank === 3 ? 'bg-secondary text-secondary-foreground' : ''
+                      }`}
                   >
                     #{ranking.rank}
                   </Badge>
@@ -180,7 +179,7 @@ function SupplierRankingTable({ rankings }: { rankings: SupplierRanking[] }) {
                     </span>
                   </div>
                 </div>
-                
+
                 <div className="flex-1">
                   <div className="flex items-center space-x-2">
                     <h3 className="font-semibold">{ranking.supplier.supplier_name}</h3>
@@ -190,7 +189,7 @@ function SupplierRankingTable({ rankings }: { rankings: SupplierRanking[] }) {
                       </Badge>
                     )}
                   </div>
-                  
+
                   <div className="grid grid-cols-4 gap-4 mt-3 text-sm">
                     <div className="space-y-1">
                       <p className="text-muted-foreground">Response Rate</p>
@@ -209,7 +208,7 @@ function SupplierRankingTable({ rankings }: { rankings: SupplierRanking[] }) {
                       <p className="font-medium">{ranking.supplier.total_quotes}</p>
                     </div>
                   </div>
-                  
+
                   <div className="flex flex-wrap gap-2 mt-3">
                     {ranking.strengths.slice(0, 2).map((strength, index) => (
                       <Badge key={index} variant="secondary" className="text-xs bg-success/10 text-success">
@@ -226,7 +225,7 @@ function SupplierRankingTable({ rankings }: { rankings: SupplierRanking[] }) {
                   </div>
                 </div>
               </div>
-              
+
               <div className="text-right">
                 <div className="text-2xl font-bold">{ranking.score.toFixed(1)}</div>
                 <div className="text-xs text-muted-foreground">Performance Score</div>
@@ -256,34 +255,33 @@ function PhasePerformanceCards({ leadTimeData }: { leadTimeData: LeadTimePhase[]
                 <span className="text-2xl font-bold">{phase.avgDays.toFixed(1)}d</span>
                 <Badge variant={
                   phase.performance === 'excellent' ? 'default' :
-                  phase.performance === 'good' ? 'secondary' :
-                  'destructive'
+                    phase.performance === 'good' ? 'secondary' :
+                      'destructive'
                 }>
                   {phase.performance.toUpperCase()}
                 </Badge>
               </div>
-              
+
               <div className="space-y-1">
                 <div className="flex justify-between text-xs">
                   <span>Target: {phase.targetDays}d</span>
                   <span>{phase.projects} projects</span>
                 </div>
-                <Progress 
-                  value={(phase.targetDays / phase.avgDays) * 100} 
-                  className="h-1" 
+                <Progress
+                  value={(phase.targetDays / phase.avgDays) * 100}
+                  className="h-1"
                 />
               </div>
-              
+
               <div className="flex items-center space-x-2 text-xs">
-                <div className={`flex items-center space-x-1 px-2 py-1 rounded-full ${
-                  phase.bottleneckRisk >= 80 ? 'bg-destructive/10 text-destructive' :
-                  phase.bottleneckRisk >= 60 ? 'bg-warning/10 text-warning' :
-                  phase.bottleneckRisk >= 40 ? 'bg-primary/10 text-primary' :
-                  'bg-success/10 text-success'
-                }`}>
+                <div className={`flex items-center space-x-1 px-2 py-1 rounded-full ${phase.bottleneckRisk >= 80 ? 'bg-destructive/10 text-destructive' :
+                    phase.bottleneckRisk >= 60 ? 'bg-warning/10 text-warning' :
+                      phase.bottleneckRisk >= 40 ? 'bg-primary/10 text-primary' :
+                        'bg-success/10 text-success'
+                  }`}>
                   {phase.bottleneckRisk >= 80 ? <AlertCircle className="h-3 w-3" /> :
-                   phase.bottleneckRisk >= 60 ? <Timer className="h-3 w-3" /> :
-                   <CheckCircle className="h-3 w-3" />}
+                    phase.bottleneckRisk >= 60 ? <Timer className="h-3 w-3" /> :
+                      <CheckCircle className="h-3 w-3" />}
                   <span>{phase.bottleneckRisk}% risk</span>
                 </div>
               </div>
@@ -301,7 +299,7 @@ export function PerformanceAnalysis({ className, dateRange }: PerformanceAnalysi
   const [leadTimeData, setLeadTimeData] = useState<LeadTimePhase[]>([]);
   const [supplierAnalytics, setSupplierAnalytics] = useState<SupplierAnalytics[]>([]);
   const [supplierRankings, setSupplierRankings] = useState<SupplierRanking[]>([]);
-  
+
   const { projects } = useProjects();
   const { getSupplierAnalytics } = useSuppliers();
 
@@ -337,29 +335,29 @@ export function PerformanceAnalysis({ className, dateRange }: PerformanceAnalysi
             bottleneckRisk: 85
           }
         ];
-        
+
         setLeadTimeData(mockLeadTimeData);
 
         // Load supplier analytics
         const analyticsData = await getSupplierAnalytics();
         setSupplierAnalytics(analyticsData);
-        
+
         // Calculate rankings
         const rankings: SupplierRanking[] = analyticsData.map((supplier, index) => {
           const responseScore = supplier.response_rate_percent;
           const winScore = supplier.win_rate_percent;
           const speedScore = Math.max(0, 100 - supplier.avg_response_time_hours * 2);
           const volumeScore = Math.min(100, supplier.total_quotes * 2);
-          
+
           const compositeScore = (responseScore * 0.3 + winScore * 0.25 + speedScore * 0.25 + volumeScore * 0.2);
-          
+
           const strengths: string[] = [];
           const weaknesses: string[] = [];
-          
+
           if (supplier.response_rate_percent >= 90) strengths.push('Fast Response');
           if (supplier.win_rate_percent >= 50) strengths.push('High Win Rate');
           if (supplier.response_rate_percent < 70) weaknesses.push('Low Response Rate');
-          
+
           return {
             rank: index + 1,
             supplier,
@@ -369,11 +367,11 @@ export function PerformanceAnalysis({ className, dateRange }: PerformanceAnalysi
             weaknesses
           };
         })
-        .sort((a, b) => b.score - a.score)
-        .map((ranking, index) => ({ ...ranking, rank: index + 1 }));
-        
+          .sort((a, b) => b.score - a.score)
+          .map((ranking, index) => ({ ...ranking, rank: index + 1 }));
+
         setSupplierRankings(rankings);
-        
+
       } catch (error) {
         console.error('Error loading performance data:', error);
       } finally {
@@ -414,7 +412,7 @@ export function PerformanceAnalysis({ className, dateRange }: PerformanceAnalysi
             <Activity className="h-8 w-8 ml-auto text-primary" />
           </CardContent>
         </Card>
-        
+
         <Card>
           <CardContent className="flex items-center p-6">
             <div className="space-y-1">
@@ -424,7 +422,7 @@ export function PerformanceAnalysis({ className, dateRange }: PerformanceAnalysi
             <AlertCircle className="h-8 w-8 ml-auto text-destructive" />
           </CardContent>
         </Card>
-        
+
         <Card>
           <CardContent className="flex items-center p-6">
             <div className="space-y-1">
@@ -434,7 +432,7 @@ export function PerformanceAnalysis({ className, dateRange }: PerformanceAnalysi
             <Timer className="h-8 w-8 ml-auto text-warning" />
           </CardContent>
         </Card>
-        
+
         <Card>
           <CardContent className="flex items-center p-6">
             <div className="space-y-1">
@@ -454,7 +452,7 @@ export function PerformanceAnalysis({ className, dateRange }: PerformanceAnalysi
 
         <TabsContent value="leadtime" className="space-y-6">
           <PhasePerformanceCards leadTimeData={leadTimeData} />
-          
+
           <Card>
             <CardHeader>
               <CardTitle>Lead Time vs Target Analysis</CardTitle>

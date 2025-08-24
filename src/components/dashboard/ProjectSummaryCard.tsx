@@ -1,12 +1,12 @@
 import { useNavigate } from "react-router-dom";
 import { Badge } from "@/components/ui/badge";
-import { 
-  Users, 
-  Calendar, 
-  Paperclip, 
-  Clock, 
-  AlertTriangle, 
-  CheckCircle 
+import {
+  Users,
+  Calendar,
+  Paperclip,
+  Clock,
+  AlertTriangle,
+  CheckCircle
 } from "lucide-react";
 import { Project } from "@/types/project";
 
@@ -24,11 +24,11 @@ export function ProjectSummaryCard({ project, showUrgencyIndicators = false }: P
 
   const getPriorityColor = (priority: string) => {
     switch (priority) {
-      case 'urgent': return 'text-red-600';
-      case 'high': return 'text-red-500';
-      case 'medium': return 'text-yellow-500';
-      case 'low': return 'text-green-500';
-      default: return 'text-gray-500';
+      case 'urgent': return 'text-destructive';
+      case 'high': return 'text-destructive';
+      case 'medium': return 'text-warning';
+      case 'low': return 'text-success';
+      default: return 'text-muted-foreground';
     }
   };
 
@@ -79,13 +79,13 @@ export function ProjectSummaryCard({ project, showUrgencyIndicators = false }: P
   const hasApprovals = project.status !== 'inquiry_received' && Math.random() > 0.3;
 
   const cardClassName = showUrgencyIndicators ? (
-    urgency.level === 'critical' ? 'border-red-200 bg-red-50/50 ring-1 ring-red-200' :
-      urgency.level === 'high' ? 'border-orange-200 bg-orange-50/50 ring-1 ring-orange-200' :
-        'border-blue-200 bg-blue-50/50'
+    urgency.level === 'critical' ? 'border-destructive/20 bg-destructive/5 ring-1 ring-destructive/20' :
+      urgency.level === 'high' ? 'border-warning/20 bg-warning/5 ring-1 ring-warning/20' :
+        'border-primary/20 bg-primary/5'
   ) : '';
 
   return (
-    <div 
+    <div
       className={`flex items-center gap-4 p-4 bg-muted/30 rounded-lg border ${cardClassName} transition-all duration-200 hover:shadow-md hover:bg-muted/50 cursor-pointer`}
       onClick={handleCardClick}
     >
@@ -112,7 +112,7 @@ export function ProjectSummaryCard({ project, showUrgencyIndicators = false }: P
               </Badge>
             )}
             {urgency.level === 'high' && (
-              <Badge variant="secondary" className="text-xs bg-orange-100 text-orange-800">
+              <Badge variant="secondary" className="text-xs bg-warning/10 text-warning">
                 ACTION NEEDED
               </Badge>
             )}
@@ -136,20 +136,20 @@ export function ProjectSummaryCard({ project, showUrgencyIndicators = false }: P
 
         {/* Time in stage indicator */}
         {showUrgencyIndicators && (
-          <div className={`flex items-center gap-1 ${project.days_in_stage > 7 ? 'text-red-600' : project.days_in_stage > 3 ? 'text-orange-600' : 'text-muted-foreground'}`}>
+          <div className={`flex items-center gap-1 ${project.days_in_stage > 7 ? 'text-destructive' : project.days_in_stage > 3 ? 'text-warning' : 'text-muted-foreground'}`}>
             <Clock className="h-3 w-3" />
             <span>{project.days_in_stage}d</span>
           </div>
         )}
 
         {hasRisks && (
-          <div className="flex items-center gap-1 text-orange-600">
+          <div className="flex items-center gap-1 text-warning">
             <AlertTriangle className="h-3 w-3" />
             <span>2 risks logged</span>
           </div>
         )}
         {hasApprovals && (
-          <div className="flex items-center gap-1 text-green-600">
+          <div className="flex items-center gap-1 text-success">
             <CheckCircle className="h-3 w-3" />
             <span>Eng: Approved</span>
           </div>
