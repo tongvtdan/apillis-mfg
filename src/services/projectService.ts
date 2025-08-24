@@ -1,8 +1,8 @@
 import { Project } from '@/types/project';
 // Mock project data removed - using database only
 
-// Environment flag to control data source
-const USE_MOCK_DATA = process.env.NODE_ENV === 'development' || process.env.REACT_APP_USE_MOCK_DATA === 'true';
+// Environment flag to control data source - force Supabase mode
+const USE_MOCK_DATA = false;
 
 // Connection timeout for Supabase calls
 const CONNECTION_TIMEOUT = 5000; // 5 seconds
@@ -31,21 +31,21 @@ class ProjectService {
     async getProjectById(id: string, options: ProjectServiceOptions = {}): Promise<Project> {
         const { forceMock = false, timeout = this.connectionTimeout } = options;
 
-        console.log(`🔍 ProjectService: Fetching project ${id} (mode: ${forceMock || this.useMockData ? 'MOCK' : 'SUPABASE'})`);
+        console.log(`🔍 ProjectService: Fetching project ${id} (mode: ${forceMock ? 'MOCK' : 'SUPABASE'})`);
 
-        // If forced to use mock data or in mock mode
-        if (forceMock || this.useMockData) {
-            return this.getMockProject(id);
+        // If forced to use mock data, return error since mock data is not available
+        if (forceMock) {
+            throw new Error(`Mock data is not available. Please use Supabase mode.`);
         }
 
-        // Try Supabase first with timeout
+        // Try Supabase with timeout
         try {
             const supabaseProject = await this.getSupabaseProjectWithTimeout(id, timeout);
             console.log('✅ ProjectService: Successfully fetched from Supabase');
             return supabaseProject;
         } catch (error) {
-            console.warn('⚠️ ProjectService: Supabase failed, falling back to mock data:', error);
-            return this.getMockProject(id);
+            console.error('❌ ProjectService: Failed to fetch project from Supabase:', error);
+            throw new Error(`Project with ID "${id}" not found`);
         }
     }
 
@@ -53,38 +53,44 @@ class ProjectService {
     async getAllProjects(options: ProjectServiceOptions = {}): Promise<Project[]> {
         const { forceMock = false, timeout = this.connectionTimeout } = options;
 
-        console.log(`📊 ProjectService: Fetching all projects (mode: ${forceMock || this.useMockData ? 'MOCK' : 'SUPABASE'})`);
+        console.log(`📊 ProjectService: Fetching all projects (mode: ${forceMock ? 'MOCK' : 'SUPABASE'})`);
 
-        // If forced to use mock data or in mock mode
-        if (forceMock || this.useMockData) {
+        // If forced to use mock data, return empty array since mock data is not available
+        if (forceMock) {
+            console.warn('⚠️ ProjectService: Mock data requested but not available, returning empty array');
             return [];
         }
 
-        // Try Supabase first with timeout
+        // Try Supabase with timeout
         try {
             const supabaseProjects = await this.getSupabaseProjectsWithTimeout(timeout);
             console.log(`✅ ProjectService: Successfully fetched ${supabaseProjects.length} projects from Supabase`);
             return supabaseProjects;
         } catch (error) {
-            console.warn('⚠️ ProjectService: Supabase failed, falling back to empty array:', error);
+            console.warn('⚠️ ProjectService: Supabase failed, returning empty array:', error);
             return [];
         }
     }
 
     // Test connection to Supabase
     async testConnection(): Promise<{ success: boolean; error?: string; source: 'supabase' | 'mock' }> {
-        if (this.useMockData) {
-            return { success: true, source: 'mock' };
-        }
-
         try {
-            await this.getSupabaseProjectsWithTimeout(3000); // Quick test
+            const { supabase } = await import('@/integrations/supabase/client');
+            const { data, error } = await supabase
+                .from('projects')
+                .select('id')
+                .limit(1);
+
+            if (error) throw error;
+
+            console.log('✅ ProjectService: Supabase connection test successful');
             return { success: true, source: 'supabase' };
-        } catch (error) {
-            return {
-                success: false,
-                error: error instanceof Error ? error.message : 'Unknown error',
-                source: 'mock'
+        } catch (error: any) {
+            console.warn('⚠️ ProjectService: Supabase connection test failed:', error);
+            return { 
+                success: false, 
+                error: error?.message || 'Unknown error',
+                source: 'supabase'
             };
         }
     }

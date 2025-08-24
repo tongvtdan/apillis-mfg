@@ -475,7 +475,10 @@ export function AnalyticsDashboard({ className, dateRange }: AnalyticsDashboardP
   }, [dateRange, getBottleneckAnalysis, getSupplierAnalytics]);
 
   const handleViewProjectDetails = (projectId: string) => {
-    // Navigate to project detail page
+    // Use React Router navigation instead of window.location
+    console.log('Navigating to project details:', projectId);
+    // This should be handled by the parent component that has access to navigate
+    // For now, use window.location as fallback but ideally should use React Router
     window.location.href = `/project/${projectId}`;
   };
 
