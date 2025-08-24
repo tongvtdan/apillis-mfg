@@ -16,7 +16,8 @@ import {
   getAnimationConfig,
   FONT_SIZE_CONFIGS,
   getDaisyTheme,
-  applyDaisyTheme
+  applyDaisyTheme,
+  applyThemeDirectly
 } from '@/lib/theme';
 
 interface ThemeContextType {
@@ -39,6 +40,9 @@ interface ThemeContextType {
   isSystem: boolean;
   animationConfig: ReturnType<typeof getAnimationConfig>;
   fontConfig: typeof FONT_SIZE_CONFIGS[keyof typeof FONT_SIZE_CONFIGS];
+
+  // Current DaisyUI theme directly calculated for immediate use
+  currentDaisyTheme: DaisyTheme;
 }
 
 const ThemeContext = createContext<ThemeContextType | undefined>(undefined);
@@ -74,8 +78,16 @@ export function ThemeProvider({ children, defaultConfig }: ThemeProviderProps) {
   const isDark = effectiveMode === 'dark';
   const isSystem = config.mode === 'system';
 
-  // Get current DaisyUI theme
-  const daisyTheme = getDaisyTheme(config.mode, systemTheme);
+  // Get current DaisyUI theme - calculated directly for immediate use
+  const currentDaisyTheme = getDaisyTheme(config.mode, systemTheme);
+
+  // Update config.daisyTheme when mode changes
+  useEffect(() => {
+    const newDaisyTheme = getDaisyTheme(config.mode, systemTheme);
+    if (config.daisyTheme !== newDaisyTheme) {
+      setConfig(prev => ({ ...prev, daisyTheme: newDaisyTheme }));
+    }
+  }, [config.mode, systemTheme, config.daisyTheme]);
 
   // Get current theme colors
   const colors = getThemeColors(effectiveMode, config.colorScheme);
@@ -108,22 +120,23 @@ export function ThemeProvider({ children, defaultConfig }: ThemeProviderProps) {
     return () => mediaQuery.removeEventListener('change', handleChange);
   }, []);
 
-  // Apply theme to document
+  // Apply theme to document - key function for theme switching
   useEffect(() => {
+
+    // Determine if dark mode should be used
+    const shouldUseDarkMode = config.mode === 'dark' ||
+      (config.mode === 'system' && systemTheme === 'dark');
+
+    // Apply theme using our enhanced direct method
+    applyThemeDirectly(shouldUseDarkMode);
+
+    // Apply CSS custom properties
     const root = document.documentElement;
     const cssVariables = generateCSSVariables(colors);
 
-    // Apply DaisyUI theme
-    applyDaisyTheme(daisyTheme);
-
-    // Apply CSS custom properties
     Object.entries(cssVariables).forEach(([property, value]) => {
       root.style.setProperty(property, value);
     });
-
-    // Apply theme class
-    root.classList.remove('light', 'dark');
-    root.classList.add(effectiveMode);
 
     // Apply color scheme class
     root.classList.remove('default', 'high-contrast', 'color-blind-friendly');
@@ -141,8 +154,7 @@ export function ThemeProvider({ children, defaultConfig }: ThemeProviderProps) {
 
     // Save configuration
     saveThemeConfig(config);
-
-  }, [colors, effectiveMode, config, fontConfig, daisyTheme]);
+  }, [config.mode, systemTheme, colors, config, fontConfig]);
 
   // Theme actions
   const setMode = (mode: ThemeMode) => {
@@ -188,7 +200,8 @@ export function ThemeProvider({ children, defaultConfig }: ThemeProviderProps) {
     isDark,
     isSystem,
     animationConfig,
-    fontConfig
+    fontConfig,
+    currentDaisyTheme
   };
 
   return (

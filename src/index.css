@@ -4,6 +4,23 @@
 
 /* Factory Pulse Design System - DaisyUI Integration */
 
+/* Make DaisyUI theme classes work consistently across the application */
+.bg-base-100 {
+  background-color: var(--background) !important;
+}
+
+.text-base-content {
+  color: var(--foreground) !important;
+}
+
+.bg-base-200 {
+  background-color: var(--muted) !important;
+}
+
+.bg-base-300 {
+  background-color: var(--border) !important;
+}
+
 /* Custom styles for elevated cards and gradients - from HTML website */
 .card-elevated {
   transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
@@ -208,8 +225,8 @@
     --info-foreground: 0 0% 100%;
 
     /* Interface elements - Dark mode */
-    --border: 0 0% 18%;
-    /* dark borders */
+    --border: 0 0% 25%;
+    /* dark borders - lightened for better visibility */
     --input: 0 0% 12%;
     /* dark input background */
     --ring: 174 100% 44%;

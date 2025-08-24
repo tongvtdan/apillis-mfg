@@ -394,10 +394,59 @@ export const getDaisyTheme = (mode: ThemeMode, systemTheme: 'light' | 'dark'): D
   return effectiveMode === 'dark' ? 'factory-pulse-dark' : 'factory-pulse-light';
 };
 
+// Enhanced direct theme application - more reliable
+export const applyThemeDirectly = (isDarkMode: boolean): void => {
+  if (typeof document === 'undefined') return;
+
+  // Get the HTML element
+  const html = document.documentElement;
+
+  // Apply the appropriate DaisyUI theme
+  const themeName = isDarkMode ? 'factory-pulse-dark' : 'factory-pulse-light';
+  html.setAttribute('data-theme', themeName);
+
+  // Modify class list for additional styling
+  if (isDarkMode) {
+    html.classList.add('dark');
+    html.classList.remove('light');
+  } else {
+    html.classList.add('light');
+    html.classList.remove('dark');
+  }
+
+  // Apply additional class for backward compatibility
+  html.classList.add(isDarkMode ? 'theme-dark' : 'theme-light');
+
+  // Force a reflow to ensure styles are applied
+  const originalDisplay = document.body.style.display;
+  document.body.style.display = 'none';
+  void document.body.offsetHeight; // Trigger reflow
+  document.body.style.display = originalDisplay;
+
+  console.log(`Enhanced theme directly applied: ${themeName}`, {
+    'data-theme': html.getAttribute('data-theme'),
+    'classes': html.className,
+    'isDark': isDarkMode
+  });
+};
+
 // Apply DaisyUI theme to document
 export const applyDaisyTheme = (theme: DaisyTheme): void => {
   if (typeof document !== 'undefined') {
+    const prevTheme = document.documentElement.getAttribute('data-theme');
     document.documentElement.setAttribute('data-theme', theme);
+
+    // For debugging - log theme changes
+    if (prevTheme !== theme) {
+      console.log(`Theme changed: ${prevTheme || 'none'} → ${theme}`);
+    } else {
+      console.log(`Theme reapplied: ${theme}`);
+    }
+
+    // Force a repaint to ensure theme changes take effect
+    document.body.style.display = 'none';
+    document.body.offsetHeight; // Trigger reflow
+    document.body.style.display = '';
   }
 };
 

@@ -216,7 +216,7 @@ export default {
 					"neutral-content": "#E0E0E0",  // Light neutral content
 					"base-100": "#121212",         // Dark base
 					"base-200": "#1E1E1E",         // Dark secondary
-					"base-300": "#2D2D2D",         // Dark tertiary
+					"base-300": "#5A5A5A",         // Dark tertiary - Further lightened for better visibility
 					"base-content": "#E0E0E0",     // Light text
 					"info": "#2196F3",             // Blue - same in dark
 					"success": "#4CAF50",          // Green - same in dark
@@ -242,6 +242,6 @@ export default {
 		utils: true,
 		prefix: "",
 		logs: true,
-		themeRoot: ":root",
+		themeRoot: "html", // Changed from :root to html to ensure proper theme application
 	},
 } satisfies Config;

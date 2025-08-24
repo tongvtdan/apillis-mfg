@@ -1,0 +1,155 @@
+/**
+ * Debug CSS - Helps diagnose and fix theme issues
+ * This file adds visual indicators for theme-related elements
+ */
+
+/* Show theme attributes for debugging */
+body::before {
+    content: attr(class) " - data-theme: " attr(data-theme);
+    display: none;
+    /* Change to block to debug */
+    position: fixed;
+    bottom: 10px;
+    right: 10px;
+    background: rgba(0, 0, 0, 0.7);
+    color: white;
+    padding: 5px 10px;
+    border-radius: 4px;
+    z-index: 9999;
+    font-family: monospace;
+    font-size: 12px;
+}
+
+/* Force all cards to use theme colors */
+.card {
+    background-color: var(--card) !important;
+    color: var(--card-foreground) !important;
+    border-color: var(--border) !important;
+}
+
+/* Force all tables to use theme colors */
+table {
+    background-color: var(--background) !important;
+    color: var(--foreground) !important;
+}
+
+tr,
+td,
+th {
+    border-color: var(--border) !important;
+}
+
+/* Fix inconsistent text colors */
+h1,
+h2,
+h3,
+h4,
+h5,
+h6,
+p,
+span,
+div {
+    color: var(--foreground);
+}
+
+/* Fix badges and priority indicators */
+.badge {
+    background-color: var(--primary);
+    color: var(--primary-foreground);
+}
+
+.badge-secondary {
+    background-color: var(--secondary);
+    color: var(--secondary-foreground);
+}
+
+.badge-outline {
+    color: var(--foreground);
+}
+
+/* Fix buttons */
+button,
+.btn {
+    background-color: var(--primary);
+    color: var(--primary-foreground);
+}
+
+/* Fix status cards and project cards */
+.status-card,
+.project-card {
+    background-color: var(--card);
+    color: var(--card-foreground);
+    border-color: var(--border);
+}
+
+/* Fix DaisyUI specific classes */
+.bg-base-100 {
+    background-color: var(--background) !important;
+}
+
+.text-base-content {
+    color: var(--foreground) !important;
+}
+
+.bg-base-200 {
+    background-color: var(--muted) !important;
+}
+
+.bg-base-300 {
+    background-color: var(--border) !important;
+}
+
+/* Fix inputs */
+input,
+select,
+textarea {
+    background-color: var(--input);
+    color: var(--foreground);
+    border-color: var(--border);
+}
+
+input::placeholder,
+select::placeholder,
+textarea::placeholder {
+    color: var(--muted-foreground);
+}
+
+/* Fix dialog boxes and modals */
+.dialog,
+.modal {
+    background-color: var(--background);
+    color: var(--foreground);
+}
+
+/* Fix drawers and sidebars */
+.drawer,
+.sidebar {
+    background-color: var(--sidebar-background);
+    color: var(--sidebar-foreground);
+}
+
+/* Force UI consistency */
+[data-theme="factory-pulse-dark"] .bg-white,
+.dark .bg-white {
+    background-color: #121212 !important;
+}
+
+[data-theme="factory-pulse-dark"] .text-black,
+.dark .text-black {
+    color: #E0E0E0 !important;
+}
+
+[data-theme="factory-pulse-light"] .bg-black,
+.light .bg-black {
+    background-color: #FFFFFF !important;
+}
+
+[data-theme="factory-pulse-light"] .text-white,
+.light .text-white {
+    color: #1F2937 !important;
+}
+
+/* Fix transitions */
+* {
+    transition: background-color 0.2s ease-in-out, color 0.2s ease-in-out, border-color 0.2s ease-in-out;
+}

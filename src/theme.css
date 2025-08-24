@@ -1,0 +1,120 @@
+/* Global Theme CSS - Handles application-wide theme colors */
+
+:root {
+    /* Common colors that don't change with theme */
+    --primary: #03DAC6;
+    --primary-hover: #02c4b2;
+    --primary-foreground: #000000;
+    --secondary: #BB86FC;
+    --secondary-foreground: #FFFFFF;
+    --accent: #FFD740;
+    --accent-foreground: #1F2937;
+    --success: #4CAF50;
+    --success-foreground: #FFFFFF;
+    --warning: #FB8C00;
+    --warning-foreground: #FFFFFF;
+    --error: #CF6679;
+    --error-foreground: #FFFFFF;
+    --info: #2196F3;
+    --info-foreground: #FFFFFF;
+}
+
+/* Light theme (default) */
+[data-theme="factory-pulse-light"],
+.light {
+    --background: #FFFFFF;
+    --foreground: #1F2937;
+    --card: #FFFFFF;
+    --card-foreground: #1F2937;
+    --popover: #FFFFFF;
+    --popover-foreground: #1F2937;
+    --muted: #F9FAFB;
+    --muted-foreground: #6B7280;
+    --border: #E5E7EB;
+    --input: #F9FAFB;
+    --ring: #03DAC6;
+
+    /* Additional theme-specific colors */
+    --sidebar-background: #F9FAFB;
+    --sidebar-foreground: #1F2937;
+
+    /* DaisyUI specific variables */
+    --base-100: #FFFFFF;
+    --base-200: #F9FAFB;
+    --base-300: #E5E7EB;
+    --base-content: #1F2937;
+    --neutral: #1F2937;
+    --neutral-content: #FFFFFF;
+}
+
+/* Dark theme */
+[data-theme="factory-pulse-dark"],
+.dark {
+    --background: #121212;
+    --foreground: #E0E0E0;
+    --card: #1E1E1E;
+    --card-foreground: #E0E0E0;
+    --popover: #1E1E1E;
+    --popover-foreground: #E0E0E0;
+    --muted: #2D2D2D;
+    --muted-foreground: #9CA3AF;
+    --border: #5A5A5A;
+    /* Further lightened for better visibility in dark mode */
+    --input: #2D2D2D;
+    --ring: #03DAC6;
+
+    /* Additional theme-specific colors */
+    --sidebar-background: #1E1E1E;
+    --sidebar-foreground: #E0E0E0;
+
+    /* DaisyUI specific variables */
+    --base-100: #121212;
+    --base-200: #1E1E1E;
+    --base-300: #5A5A5A;
+    /* Lightened for better visibility in dark mode */
+    --base-content: #E0E0E0;
+    --neutral: #1E1E1E;
+    --neutral-content: #E0E0E0;
+}
+
+/* Dynamic classes that use theme variables */
+.bg-theme-background {
+    background-color: var(--background);
+}
+
+.text-theme-foreground {
+    color: var(--foreground);
+}
+
+.border-theme {
+    border-color: var(--border);
+}
+
+.bg-theme-card {
+    background-color: var(--card);
+}
+
+.text-theme-card-foreground {
+    color: var(--card-foreground);
+}
+
+.bg-theme-muted {
+    background-color: var(--muted);
+}
+
+.text-theme-muted {
+    color: var(--muted-foreground);
+}
+
+/* Force table color consistency */
+table {
+    background-color: var(--background);
+    color: var(--foreground);
+}
+
+/* Handle cards consistently */
+.card {
+    background-color: var(--card);
+    color: var(--card-foreground);
+    border-color: var(--border);
+}

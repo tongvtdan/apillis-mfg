@@ -3,7 +3,7 @@ import { useAuth } from "@/contexts/AuthContext";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Badge } from "@/components/ui/badge";
-import { ThemeToggle } from "@/components/theme/ThemeToggle";
+import { DirectThemeToggle } from "@/components/theme/DirectThemeToggle";
 import {
     Settings as SettingsIcon,
     Database,
@@ -127,7 +127,7 @@ export default function Settings() {
                                         Choose between light and dark mode
                                     </p>
                                 </div>
-                                <ThemeToggle />
+                                <DirectThemeToggle />
                             </div>
                         </CardContent>
                     </Card>

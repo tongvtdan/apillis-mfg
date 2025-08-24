@@ -37,7 +37,7 @@ import {
   Zap
 } from 'lucide-react';
 import { useTheme } from '@/contexts/ThemeContext';
-import { ThemeMode, ColorScheme } from '@/lib/theme';
+import { ThemeMode, ColorScheme, applyThemeDirectly } from '@/lib/theme';
 
 interface ThemeToggleProps {
   variant?: 'button' | 'icon' | 'dropdown';
@@ -47,6 +47,22 @@ interface ThemeToggleProps {
 
 export function ThemeToggle({ variant = 'icon', size = 'default', showLabel = false }: ThemeToggleProps) {
   const { config, toggleMode, isDark, isSystem } = useTheme();
+
+  // Enhanced toggle handler that forces immediate theme application
+  const handleToggle = () => {
+    toggleMode();
+
+    // Force a theme update to ensure changes take effect
+    setTimeout(() => {
+      // Determine if we should be in dark mode after toggle
+      const newIsDark = !isDark;
+
+      // Apply theme directly using our enhanced function
+      applyThemeDirectly(newIsDark);
+
+      console.log(`Theme toggled to: ${newIsDark ? 'dark' : 'light'}`);
+    }, 0);
+  };
 
   const getIcon = () => {
     if (isSystem) return <Monitor className="h-4 w-4" />;
@@ -63,7 +79,7 @@ export function ThemeToggle({ variant = 'icon', size = 'default', showLabel = fa
       <Button
         variant="outline"
         size={size}
-        onClick={toggleMode}
+        onClick={handleToggle}
         className="gap-2"
       >
         {getIcon()}
@@ -76,7 +92,7 @@ export function ThemeToggle({ variant = 'icon', size = 'default', showLabel = fa
     <Button
       variant="ghost"
       size={size === 'default' ? 'icon' : size}
-      onClick={toggleMode}
+      onClick={handleToggle}
       className="rounded-full"
       aria-label={`Switch to ${isDark ? 'light' : 'dark'} mode`}
     >
@@ -92,6 +108,22 @@ interface ThemeDropdownProps {
 export function ThemeDropdown({ align = 'end' }: ThemeDropdownProps) {
   const { config, setMode, isDark, isSystem } = useTheme();
 
+  // Enhanced mode change handler that forces immediate theme application
+  const handleModeChange = (value: string) => {
+    setMode(value as ThemeMode);
+
+    // Force theme update immediately
+    setTimeout(() => {
+      const isDarkMode = value === 'dark' ||
+        (value === 'system' && window.matchMedia('(prefers-color-scheme: dark)').matches);
+
+      // Apply theme directly using our enhanced function
+      applyThemeDirectly(isDarkMode);
+
+      console.log(`Theme applied via dropdown: ${isDarkMode ? 'dark' : 'light'}`);
+    }, 0);
+  };
+
   const modeOptions: { value: ThemeMode; label: string; icon: React.ReactNode }[] = [
     { value: 'light', label: 'Light', icon: <Sun className="h-4 w-4" /> },
     { value: 'dark', label: 'Dark', icon: <Moon className="h-4 w-4" /> },
@@ -102,14 +134,14 @@ export function ThemeDropdown({ align = 'end' }: ThemeDropdownProps) {
     <DropdownMenu>
       <DropdownMenuTrigger asChild>
         <Button variant="ghost" size="icon" className="rounded-full">
-          {isSystem ? <Monitor className="h-4 w-4" /> : 
-           isDark ? <Moon className="h-4 w-4" /> : <Sun className="h-4 w-4" />}
+          {isSystem ? <Monitor className="h-4 w-4" /> :
+            isDark ? <Moon className="h-4 w-4" /> : <Sun className="h-4 w-4" />}
         </Button>
       </DropdownMenuTrigger>
       <DropdownMenuContent align={align} className="w-48">
         <DropdownMenuLabel>Theme</DropdownMenuLabel>
         <DropdownMenuSeparator />
-        <DropdownMenuRadioGroup value={config.mode} onValueChange={(value) => setMode(value as ThemeMode)}>
+        <DropdownMenuRadioGroup value={config.mode} onValueChange={handleModeChange}>
           {modeOptions.map((option) => (
             <DropdownMenuRadioItem key={option.value} value={option.value} className="gap-2">
               {option.icon}
@@ -145,40 +177,40 @@ export function ThemeSettings({ trigger }: ThemeSettingsProps) {
   } = useTheme();
 
   const modeOptions: { value: ThemeMode; label: string; icon: React.ReactNode; description: string }[] = [
-    { 
-      value: 'light', 
-      label: 'Light', 
+    {
+      value: 'light',
+      label: 'Light',
       icon: <Sun className="h-4 w-4" />,
       description: 'Light theme for better visibility in bright environments'
     },
-    { 
-      value: 'dark', 
-      label: 'Dark', 
+    {
+      value: 'dark',
+      label: 'Dark',
       icon: <Moon className="h-4 w-4" />,
       description: 'Dark theme to reduce eye strain in low-light conditions'
     },
-    { 
-      value: 'system', 
-      label: 'System', 
+    {
+      value: 'system',
+      label: 'System',
       icon: <Monitor className="h-4 w-4" />,
       description: 'Automatically switch based on your system preference'
     },
   ];
 
   const colorSchemeOptions: { value: ColorScheme; label: string; description: string }[] = [
-    { 
-      value: 'default', 
-      label: 'Default', 
+    {
+      value: 'default',
+      label: 'Default',
       description: 'Standard color palette with full contrast'
     },
-    { 
-      value: 'high-contrast', 
-      label: 'High Contrast', 
+    {
+      value: 'high-contrast',
+      label: 'High Contrast',
       description: 'Enhanced contrast for better accessibility'
     },
-    { 
-      value: 'color-blind-friendly', 
-      label: 'Color Blind Friendly', 
+    {
+      value: 'color-blind-friendly',
+      label: 'Color Blind Friendly',
       description: 'Optimized colors for color vision deficiencies'
     },
   ];
@@ -222,11 +254,10 @@ export function ThemeSettings({ trigger }: ThemeSettingsProps) {
               {modeOptions.map((option) => (
                 <div
                   key={option.value}
-                  className={`flex items-center space-x-3 rounded-lg border p-3 cursor-pointer transition-colors ${
-                    config.mode === option.value 
-                      ? 'border-primary bg-primary/5' 
+                  className={`flex items-center space-x-3 rounded-lg border p-3 cursor-pointer transition-colors ${config.mode === option.value
+                      ? 'border-primary bg-primary/5'
                       : 'border-border hover:bg-muted/50'
-                  }`}
+                    }`}
                   onClick={() => setMode(option.value)}
                 >
                   <div className="flex-shrink-0">
@@ -263,11 +294,10 @@ export function ThemeSettings({ trigger }: ThemeSettingsProps) {
               {colorSchemeOptions.map((option) => (
                 <div
                   key={option.value}
-                  className={`flex items-center justify-between rounded-lg border p-3 cursor-pointer transition-colors ${
-                    config.colorScheme === option.value 
-                      ? 'border-primary bg-primary/5' 
+                  className={`flex items-center justify-between rounded-lg border p-3 cursor-pointer transition-colors ${config.colorScheme === option.value
+                      ? 'border-primary bg-primary/5'
                       : 'border-border hover:bg-muted/50'
-                  }`}
+                    }`}
                   onClick={() => setColorScheme(option.value)}
                 >
                   <div className="space-y-1">
@@ -296,11 +326,10 @@ export function ThemeSettings({ trigger }: ThemeSettingsProps) {
               {fontSizeOptions.map((option) => (
                 <div
                   key={option.value}
-                  className={`flex items-center justify-between rounded-lg border p-3 cursor-pointer transition-colors ${
-                    config.fontSize === option.value 
-                      ? 'border-primary bg-primary/5' 
+                  className={`flex items-center justify-between rounded-lg border p-3 cursor-pointer transition-colors ${config.fontSize === option.value
+                      ? 'border-primary bg-primary/5'
                       : 'border-border hover:bg-muted/50'
-                  }`}
+                    }`}
                   onClick={() => setFontSize(option.value)}
                 >
                   <div className="space-y-1">
@@ -325,7 +354,7 @@ export function ThemeSettings({ trigger }: ThemeSettingsProps) {
               <Accessibility className="h-4 w-4" />
               Accessibility
             </Label>
-            
+
             <div className="flex items-center justify-between rounded-lg border p-3">
               <div className="space-y-1">
                 <div className="flex items-center gap-2">
@@ -374,7 +403,7 @@ export function CompactThemeToggle() {
   return (
     <div className="flex items-center gap-1">
       <ThemeToggle variant="icon" size="sm" />
-      <ThemeSettings 
+      <ThemeSettings
         trigger={
           <Button variant="ghost" size="icon" className="h-8 w-8">
             <Settings className="h-3 w-3" />
