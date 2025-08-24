@@ -266,7 +266,7 @@ Top Reasons for Loss:
 
 🔄 Supplier Performance (Top 5)
 | Supplier             | Quote Submission | On-Time Delivery | Quality Score |
-|----------------------|------------------|------------------|---------------|
+| -------------------- | ---------------- | ---------------- | ------------- |
 | CNC Masters Inc.     | 98%              | 95%              | 4.8/5.0       |
 | Precision Metals Co. | 85%              | 90%              | 4.5/5.0       |
 | Alpha Fabricators    | 92%              | 88%              | 4.3/5.0       |
@@ -642,7 +642,7 @@ Top Reasons for Loss:
 
 🔄 Supplier Performance (Top 5)
 | Supplier             | Quote Submission | On-Time Delivery | Quality Score |
-|----------------------|------------------|------------------|---------------|
+| -------------------- | ---------------- | ---------------- | ------------- |
 | CNC Masters Inc.     | 98%              | 95%              | 4.8/5.0       |
 | Precision Metals Co. | 85%              | 90%              | 4.5/5.0       |
 | Alpha Fabricators    | 92%              | 88%              | 4.3/5.0       |
@@ -757,14 +757,14 @@ Notes: "Can meet spec with minor process adjustment."
 
 ## 🎨 Dark Mode Design Principles
 
-| Principle | Implementation |
-|--------|-----------------|
-| **High Contrast** | Light text on dark background (`#E0E0E0` on `#121212`) |
-| **Reduced Eye Strain** | No pure white; soft grays and accent colors |
-| **Visual Hierarchy** | Use elevation (shadows), color, and spacing |
-| **Accent Colors** | `#03DAC6` (primary), `#BB86FC` (secondary), `#CF6679` (error) |
-| **Consistency** | Same layout as light mode — only colors change |
-| **Accessibility** | Meets WCAG AA contrast standards |
+| Principle              | Implementation                                                |
+| ---------------------- | ------------------------------------------------------------- |
+| **High Contrast**      | Light text on dark background (`#E0E0E0` on `#121212`)        |
+| **Reduced Eye Strain** | No pure white; soft grays and accent colors                   |
+| **Visual Hierarchy**   | Use elevation (shadows), color, and spacing                   |
+| **Accent Colors**      | `#03DAC6` (primary), `#BB86FC` (secondary), `#CF6679` (error) |
+| **Consistency**        | Same layout as light mode — only colors change                |
+| **Accessibility**      | Meets WCAG AA contrast standards                              |
 
 ---
 

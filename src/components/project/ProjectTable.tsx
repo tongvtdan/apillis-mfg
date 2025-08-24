@@ -142,7 +142,8 @@ export function ProjectTable({ projects }: ProjectTableProps) {
               </TableCell>
               <TableCell className="text-right">
                 <Button variant="ghost" size="sm" onClick={() => handleViewProject(project.id)}>
-                  <ExternalLink className="h-4 w-4" />
+                  <ExternalLink className="h-4 w-4 mr-2" />
+                  View Details
                 </Button>
               </TableCell>
             </TableRow>

@@ -2,6 +2,7 @@ import { Card, CardContent, CardHeader } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { FileText, Clock, CheckCircle, Users, Calendar, DollarSign } from "lucide-react";
 import { formatDistanceToNow } from "date-fns";
+import { useNavigate } from "react-router-dom";
 import type { Project } from "@/types/project";
 
 interface ProjectProgressCardProps {
@@ -18,7 +19,7 @@ const workflowSteps = [
 
 const priorityColors = {
   high: "destructive",
-  medium: "secondary", 
+  medium: "secondary",
   low: "outline"
 } as const;
 
@@ -31,40 +32,45 @@ const statusBadgeColors = {
 } as const;
 
 export function ProjectProgressCard({ project }: ProjectProgressCardProps) {
+  const navigate = useNavigate();
+
+  const handleViewDetails = () => {
+    navigate(`/project/${project.id}`);
+  };
   const currentStepIndex = workflowSteps.findIndex(step => step.id === project.status);
-  
+
   // Get 3 relevant steps: completed, current, next
   const getRelevantSteps = () => {
     if (currentStepIndex === -1) return workflowSteps.slice(0, 3);
-    
+
     const steps = [];
-    
+
     // Add previous step if exists (completed)
     if (currentStepIndex > 0) {
       steps.push({ ...workflowSteps[currentStepIndex - 1], stepType: 'completed' });
     }
-    
+
     // Add current step
     steps.push({ ...workflowSteps[currentStepIndex], stepType: 'current' });
-    
+
     // Add next step if exists
     if (currentStepIndex < workflowSteps.length - 1) {
       steps.push({ ...workflowSteps[currentStepIndex + 1], stepType: 'next' });
     }
-    
+
     // If we don't have 3 steps, fill from the beginning
     while (steps.length < 3 && steps.length < workflowSteps.length) {
-      const missingIndex = steps.length === 1 ? currentStepIndex + 1 : 
-                          steps.length === 2 ? currentStepIndex + 2 : currentStepIndex - 1;
+      const missingIndex = steps.length === 1 ? currentStepIndex + 1 :
+        steps.length === 2 ? currentStepIndex + 2 : currentStepIndex - 1;
       if (missingIndex >= 0 && missingIndex < workflowSteps.length) {
         const stepType = missingIndex < currentStepIndex ? 'completed' :
-                        missingIndex === currentStepIndex ? 'current' : 'next';
+          missingIndex === currentStepIndex ? 'current' : 'next';
         steps.push({ ...workflowSteps[missingIndex], stepType });
       } else {
         break;
       }
     }
-    
+
     return steps.slice(0, 3);
   };
 
@@ -87,7 +93,7 @@ export function ProjectProgressCard({ project }: ProjectProgressCardProps) {
               </p>
             </div>
           </div>
-          <Badge 
+          <Badge
             variant={priorityColors[project.priority]}
             className="ml-3 flex-shrink-0"
           >
@@ -110,7 +116,7 @@ export function ProjectProgressCard({ project }: ProjectProgressCardProps) {
               const isCompleted = step.stepType === 'completed';
               const isCurrent = step.stepType === 'current';
               const isNext = step.stepType === 'next';
-              
+
               return (
                 <div key={`${step.id}-${index}`} className="flex items-center">
                   <div className="flex flex-col items-center">
@@ -130,16 +136,15 @@ export function ProjectProgressCard({ project }: ProjectProgressCardProps) {
                   </div>
                   {index < relevantSteps.length - 1 && (
                     <div
-                      className={`w-20 h-0.5 mx-2 ${
-                        isCompleted ? 'bg-green-500' : 'bg-gray-200'
-                      }`}
+                      className={`w-20 h-0.5 mx-2 ${isCompleted ? 'bg-green-500' : 'bg-gray-200'
+                        }`}
                     />
                   )}
                 </div>
               );
             })}
           </div>
-          
+
           {/* Step Labels */}
           <div className="flex justify-between text-xs text-muted-foreground">
             {relevantSteps.map((step, index) => (
@@ -177,7 +182,7 @@ export function ProjectProgressCard({ project }: ProjectProgressCardProps) {
               {project.due_date ? 'Lead Time' : 'Due Date'}
             </div>
             <div className="text-lg font-semibold">
-              {project.due_date 
+              {project.due_date
                 ? `${Math.ceil((new Date(project.due_date).getTime() - new Date(project.created_at).getTime()) / (1000 * 60 * 60 * 24))} days`
                 : 'TBD'
               }
@@ -216,7 +221,10 @@ export function ProjectProgressCard({ project }: ProjectProgressCardProps) {
               </div>
             )}
           </div>
-          <button className="bg-blue-600 text-white px-4 py-2 rounded-lg text-sm font-medium hover:bg-blue-700 transition-colors">
+          <button
+            onClick={handleViewDetails}
+            className="bg-blue-600 text-white px-4 py-2 rounded-lg text-sm font-medium hover:bg-blue-700 transition-colors"
+          >
             View Details
           </button>
         </div>
