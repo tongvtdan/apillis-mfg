@@ -185,7 +185,7 @@ export default {
 					"neutral-content": "#FFFFFF",  // neutral-content: #FFFFFF
 					"base-100": "#FFFFFF",         // White - light mode background
 					"base-200": "#F9FAFB",         // Light gray - secondary backgrounds
-					"base-300": "#E5E7EB",         // Medium gray - borders and dividers
+					"base-300": "#D1D5DB",         // Medium gray - borders and dividers (5% darker)
 					"base-content": "#1F2937",     // Dark text
 					"info": "#2196F3",             // Blue - informational elements
 					"success": "#4CAF50",          // Green - success states

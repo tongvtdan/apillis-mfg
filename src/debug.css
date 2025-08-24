@@ -99,6 +99,23 @@ button,
     background-color: var(--border) !important;
 }
 
+/* Add border color rule for base-300 */
+.border-base-300 {
+    border-color: var(--border) !important;
+}
+
+/* Add border color rule for border-border */
+.border-border {
+    border-color: var(--border) !important;
+}
+
+/* Custom styles for elevated cards and gradients - from HTML website */
+.elevated-card {
+    background: linear-gradient(145deg, #e6e6e6, #ffffff);
+    box-shadow: 20px 20px 60px #d1d1d1,
+        -20px -20px 60px #ffffff;
+}
+
 /* Fix inputs */
 input,
 select,

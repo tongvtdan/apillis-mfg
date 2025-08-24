@@ -30,7 +30,8 @@
     --popover-foreground: #1F2937;
     --muted: #F9FAFB;
     --muted-foreground: #6B7280;
-    --border: #E5E7EB;
+    --border: #D1D5DB;
+    /* 5% darker */
     --input: #F9FAFB;
     --ring: #03DAC6;
 
@@ -41,7 +42,8 @@
     /* DaisyUI specific variables */
     --base-100: #FFFFFF;
     --base-200: #F9FAFB;
-    --base-300: #E5E7EB;
+    --base-300: #d0d0d0;
+    /* 5% darker */
     --base-content: #1F2937;
     --neutral: #1F2937;
     --neutral-content: #FFFFFF;

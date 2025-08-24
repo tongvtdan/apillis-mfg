@@ -21,6 +21,16 @@
   background-color: var(--border) !important;
 }
 
+/* Add border color rule for border-border */
+.border-border {
+  border-color: var(--border) !important;
+}
+
+/* Add border color rule for base-300 */
+.border-base-300 {
+  border-color: var(--border) !important;
+}
+
 /* Custom styles for elevated cards and gradients - from HTML website */
 .card-elevated {
   transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
@@ -126,8 +136,8 @@
     /* Gray - neutral */
 
     /* Interface elements - Modern and clean */
-    --border: 214 32% 91%;
-    /* base-300: #E5E7EB */
+    --border: 214 32% 70%;
+    /* base-300: #D1D5DB - 5% darker */
     --input: 210 20% 98%;
     /* base-200: #F9FAFB */
     --ring: 174 100% 44%;
@@ -225,8 +235,8 @@
     --info-foreground: 0 0% 100%;
 
     /* Interface elements - Dark mode */
-    --border: 0 0% 25%;
-    /* dark borders - lightened for better visibility */
+    --border: 0 0% 20%;
+    /* dark borders - 5% darker for better contrast */
     --input: 0 0% 12%;
     /* dark input background */
     --ring: 174 100% 44%;
