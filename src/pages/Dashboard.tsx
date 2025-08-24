@@ -10,6 +10,9 @@ import { Card, CardContent } from "@/components/ui/card";
 import { useProjects } from "@/hooks/useProjects";
 import { useCustomers } from "@/hooks/useCustomers";
 import { useSuppliers } from "@/hooks/useSuppliers";
+import { usePurchaseOrders } from "@/hooks/usePurchaseOrders";
+import { useInventory } from "@/hooks/useInventory";
+import { useProductionOrders } from "@/hooks/useProductionOrders";
 import { useAuth } from "@/contexts/AuthContext";
 import {
   TrendingUp,
@@ -19,13 +22,17 @@ import {
   Truck,
   ShoppingCart,
   Package,
-  Factory
+  Factory,
+  AlertTriangle
 } from "lucide-react";
 
 export default function Dashboard() {
   const { projects, loading } = useProjects();
   const { customers } = useCustomers();
   const { suppliers } = useSuppliers();
+  const { purchaseOrders } = usePurchaseOrders();
+  const { inventory } = useInventory();
+  const { productionOrders } = useProductionOrders();
   const { profile } = useAuth();
   const navigate = useNavigate();
 
@@ -71,26 +78,51 @@ export default function Dashboard() {
     return filtered;
   }, [projects, searchQuery, priorityFilter, statusFilter, assigneeFilter, profile?.user_id]);
 
-  // Calculate stats from filtered projects
+  // Calculate detailed stats with attention-grabbing details
   const activeProjects = filteredProjects.filter(p =>
-    ['inquiry_received', 'technical_review', 'supplier_rfq_sent', 'quoted'].includes(p.status)
+    ['inquiry', 'review', 'quoted', 'production'].includes(p.status)
   ).length;
 
   const highPriorityProjects = filteredProjects.filter(p => p.priority === 'high').length;
   const overdueProjects = filteredProjects.filter(p => p.days_in_stage > 7).length;
 
-  // Overview data calculations
+  // Purchase Orders analysis
+  const pendingPOs = purchaseOrders.filter(po => po.status === 'pending').length;
+  const urgentPOs = purchaseOrders.filter(po => po.priority === 'urgent').length;
+  const overduePOs = purchaseOrders.filter(po => {
+    if (!po.due_date) return false;
+    return new Date(po.due_date) < new Date();
+  }).length;
+
+  // Inventory analysis
+  const lowStockItems = inventory.filter(item => 
+    item.current_stock <= (item.min_stock_level || 10)
+  ).length;
+  const outOfStockItems = inventory.filter(item => item.current_stock === 0).length;
+  const criticalItems = inventory.filter(item => 
+    item.current_stock < (item.min_stock_level || 10) * 0.5
+  ).length;
+
+  // Production analysis
+  const activeProduction = productionOrders.filter(po => po.status === 'in_progress').length;
+  const onHoldProduction = productionOrders.filter(po => po.status === 'on_hold').length;
+  const urgentProduction = productionOrders.filter(po => po.priority === 'urgent').length;
+
+  // Enhanced overview data with real data and important alerts
   const overviewData = [
     {
       title: "Projects",
       count: projects.length,
       activeCount: activeProjects,
-      description: `${activeProjects} active projects`,
+      description: highPriorityProjects > 0 
+        ? `⚠️ ${highPriorityProjects} high priority`
+        : `${activeProjects} active projects`,
       icon: FolderOpen,
       route: "/projects",
-      color: "text-blue-600",
-      bgColor: "bg-blue-50",
-      borderColor: "border-blue-200"
+      color: highPriorityProjects > 0 ? "text-red-600" : "text-blue-600",
+      bgColor: highPriorityProjects > 0 ? "bg-red-50" : "bg-blue-50",
+      borderColor: highPriorityProjects > 0 ? "border-red-200" : "border-blue-200",
+      alert: overdueProjects > 0 ? `${overdueProjects} overdue` : null
     },
     {
       title: "Customers",
@@ -101,7 +133,8 @@ export default function Dashboard() {
       route: "/customers",
       color: "text-green-600",
       bgColor: "bg-green-50",
-      borderColor: "border-green-200"
+      borderColor: "border-green-200",
+      alert: null
     },
     {
       title: "Suppliers",
@@ -112,40 +145,52 @@ export default function Dashboard() {
       route: "/suppliers",
       color: "text-purple-600",
       bgColor: "bg-purple-50",
-      borderColor: "border-purple-200"
+      borderColor: "border-purple-200",
+      alert: null
     },
     {
       title: "Purchase Orders",
-      count: 24, // Mock data - in real app would come from PO service
-      activeCount: 8,
-      description: "8 pending orders",
+      count: purchaseOrders.length,
+      activeCount: pendingPOs,
+      description: urgentPOs > 0 
+        ? `🚨 ${urgentPOs} urgent orders`
+        : `${pendingPOs} pending orders`,
       icon: ShoppingCart,
       route: "/purchase-orders",
-      color: "text-orange-600",
-      bgColor: "bg-orange-50",
-      borderColor: "border-orange-200"
+      color: urgentPOs > 0 ? "text-red-600" : "text-orange-600",
+      bgColor: urgentPOs > 0 ? "bg-red-50" : "bg-orange-50",
+      borderColor: urgentPOs > 0 ? "border-red-200" : "border-orange-200",
+      alert: overduePOs > 0 ? `${overduePOs} overdue` : null
     },
     {
       title: "Inventory",
-      count: 156, // Mock data - in real app would come from inventory service
-      activeCount: 12,
-      description: "12 low stock items",
+      count: inventory.length,
+      activeCount: lowStockItems,
+      description: criticalItems > 0 
+        ? `🔴 ${criticalItems} critical items`
+        : lowStockItems > 0 
+          ? `⚠️ ${lowStockItems} low stock`
+          : `${inventory.length} items tracked`,
       icon: Package,
       route: "/inventory",
-      color: "text-indigo-600",
-      bgColor: "bg-indigo-50",
-      borderColor: "border-indigo-200"
+      color: criticalItems > 0 ? "text-red-600" : lowStockItems > 0 ? "text-orange-600" : "text-indigo-600",
+      bgColor: criticalItems > 0 ? "bg-red-50" : lowStockItems > 0 ? "bg-orange-50" : "bg-indigo-50",
+      borderColor: criticalItems > 0 ? "border-red-200" : lowStockItems > 0 ? "border-orange-200" : "border-indigo-200",
+      alert: outOfStockItems > 0 ? `${outOfStockItems} out of stock` : null
     },
     {
       title: "Production",
-      count: 8, // Mock data - in real app would come from production service
-      activeCount: 3,
-      description: "3 in production",
+      count: productionOrders.length,
+      activeCount: activeProduction,
+      description: urgentProduction > 0 
+        ? `🚨 ${urgentProduction} urgent jobs`
+        : `${activeProduction} in production`,
       icon: Factory,
       route: "/production",
-      color: "text-teal-600",
-      bgColor: "bg-teal-50",
-      borderColor: "border-teal-200"
+      color: urgentProduction > 0 ? "text-red-600" : "text-teal-600",
+      bgColor: urgentProduction > 0 ? "bg-red-50" : "bg-teal-50",
+      borderColor: urgentProduction > 0 ? "border-red-200" : "border-teal-200",
+      alert: onHoldProduction > 0 ? `${onHoldProduction} on hold` : null
     }
   ];
 
@@ -242,6 +287,7 @@ export default function Dashboard() {
                 color={item.color}
                 bgColor={item.bgColor}
                 borderColor={item.borderColor}
+                alert={item.alert}
                 onClick={() => navigate(item.route)}
               />
             ))

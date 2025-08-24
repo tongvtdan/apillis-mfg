@@ -1,5 +1,6 @@
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent } from "@/components/ui/card";
+import { AlertTriangle } from "lucide-react";
 
 interface OverviewCardProps {
   title: string;
@@ -11,6 +12,7 @@ interface OverviewCardProps {
   color: string;
   bgColor: string;
   borderColor: string;
+  alert?: string | null;
   onClick: () => void;
 }
 
@@ -22,14 +24,23 @@ export function OverviewCard({
   icon: Icon, 
   color, 
   bgColor, 
-  borderColor, 
+  borderColor,
+  alert,
   onClick 
 }: OverviewCardProps) {
   return (
     <Card 
-      className={`cursor-pointer transition-all duration-200 hover:shadow-lg hover:scale-105 ${borderColor} ${bgColor}`}
+      className={`cursor-pointer transition-all duration-200 hover:shadow-lg hover:scale-105 ${borderColor} ${bgColor} relative`}
       onClick={onClick}
     >
+      {alert && (
+        <div className="absolute -top-2 -right-2 z-10">
+          <div className="bg-red-500 text-white text-xs px-2 py-1 rounded-full flex items-center gap-1 animate-pulse">
+            <AlertTriangle className="h-3 w-3" />
+            {alert}
+          </div>
+        </div>
+      )}
       <CardContent className="p-6">
         <div className="flex items-center justify-between">
           <div>
