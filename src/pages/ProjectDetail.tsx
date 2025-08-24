@@ -12,24 +12,29 @@ import {
   Calendar,
   Clock,
   FileText,
-  AlertTriangle,
   CheckCircle2,
   Send,
   Users,
   BarChart3,
   Settings,
   Download,
-  Upload,
   MessageSquare,
   Plus,
   Edit,
   X,
   AlertCircle,
   RefreshCw,
-  Database
+  Loader2
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { format } from "date-fns";
+import { Project } from "@/types/project";
+import { projectService } from "@/services/projectService";
+import { DatabaseDiagnostic } from "@/components/debug/DatabaseDiagnostic";
+import { QuickDatabaseSeeder } from "@/components/debug/QuickDatabaseSeeder";
+import { ProjectLoadTest } from "@/components/debug/ProjectLoadTest";
+// import { DataSourceIndicator } from "@/components/debug/DataSourceIndicator";
+// import { ProjectServiceTest } from "@/components/debug/ProjectServiceTest";
 
 // Document interface for mock data
 interface ProjectDocument {
@@ -66,32 +71,139 @@ export default function ProjectDetail() {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
 
+
   const [activeTab, setActiveTab] = useState("overview");
   const [showSupplierModal, setShowSupplierModal] = useState(false);
+  const [project, setProject] = useState<Project | null>(null);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+  const [dataSource, setDataSource] = useState<'supabase' | 'mock' | 'unknown'>('unknown');
 
-  // Mock project data for now
-  const project = {
-    id: id || '11111111-1111-1111-1111-111111111001',
-    project_id: 'P-25082301',
-    title: 'Advanced IoT Sensor System',
-    description: 'Complete IoT sensor system with wireless communication, data logging, and cloud integration for smart factory monitoring.',
-    status: 'inquiry_received' as const,
-    priority: 'urgent' as const,
-    estimated_value: 750000,
-    due_date: '2025-12-15',
-    created_at: '2025-08-21T10:00:00Z',
-    contact_name: 'Sarah Johnson',
-    contact_email: 'sarah.johnson@techcorp.com',
-    notes: 'Rush order for Q4 deployment',
-    customer: {
-      id: '1',
-      name: 'Sarah Johnson',
-      company: 'TechCorp Industries',
-      email: 'sarah.johnson@techcorp.com',
-      created_at: '2025-08-01T00:00:00Z',
-      updated_at: '2025-08-01T00:00:00Z'
-    }
-  };
+  useEffect(() => {
+    const fetchProject = async () => {
+      if (!id) {
+        setError("No project ID provided");
+        setLoading(false);
+        return;
+      }
+
+      try {
+        setLoading(true);
+        setError(null);
+        console.log('🔍 ProjectDetail: Fetching project with ID:', id);
+
+        // Test connection first
+        const connectionTest = await projectService.testConnection();
+        setDataSource(connectionTest.source);
+
+        if (!connectionTest.success) {
+          console.warn('⚠️ ProjectDetail: Connection test failed, using mock data:', connectionTest.error);
+        }
+
+        const projectData = await projectService.getProjectById(id);
+        setProject(projectData);
+        console.log('✅ ProjectDetail: Project loaded successfully:', projectData.project_id);
+      } catch (err) {
+        console.error('❌ ProjectDetail: Error loading project:', err);
+        setError(err instanceof Error ? err.message : 'Failed to load project');
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchProject();
+  }, [id]);
+
+  // Loading state
+  if (loading) {
+    return (
+      <div className="min-h-screen bg-background flex items-center justify-center">
+        <div className="text-center space-y-4">
+          <Loader2 className="h-8 w-8 animate-spin mx-auto" />
+          <div>
+            <h2 className="text-lg font-semibold">Loading Project Details</h2>
+            <p className="text-muted-foreground">Fetching project data...</p>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  // Error state with diagnostic tools
+  if (error || !project) {
+    return (
+      <div className="min-h-screen bg-background">
+        <div className="p-6">
+          <div className="flex items-center space-x-4 mb-6">
+            <Button variant="ghost" onClick={() => navigate('/projects')}>
+              <ArrowLeft className="w-4 h-4 mr-2" />
+              Back to Projects
+            </Button>
+            <Separator orientation="vertical" className="h-6" />
+            <div>
+              <h1 className="text-2xl font-bold text-red-600">Project Not Found</h1>
+              <p className="text-muted-foreground">Project ID: {id}</p>
+            </div>
+          </div>
+
+          <div className="space-y-6">
+            <Card className="border-red-200">
+              <CardHeader>
+                <CardTitle className="flex items-center text-red-600">
+                  <AlertCircle className="w-5 h-5 mr-2" />
+                  Error Details
+                </CardTitle>
+              </CardHeader>
+              <CardContent>
+                <p className="text-sm text-muted-foreground mb-4">{error}</p>
+
+                <div className="space-y-2 text-sm">
+                  <p><strong>Requested Project ID:</strong> {id}</p>
+                  <p><strong>Possible Causes:</strong></p>
+                  <ul className="list-disc list-inside ml-4 space-y-1 text-muted-foreground">
+                    <li>Project doesn't exist in the database</li>
+                    <li>Database connection issues</li>
+                    <li>Sample data hasn't been seeded</li>
+                    <li>Project ID format mismatch</li>
+                  </ul>
+                </div>
+              </CardContent>
+            </Card>
+
+            {/* Debug components temporarily disabled */}
+            {/* <DataSourceIndicator showControls={true} />
+            <ProjectServiceTest /> */}
+            <DatabaseDiagnostic />
+            <QuickDatabaseSeeder />
+            <ProjectLoadTest />
+
+            <Card>
+              <CardHeader>
+                <CardTitle>Quick Actions</CardTitle>
+              </CardHeader>
+              <CardContent className="space-y-3">
+                <Button
+                  onClick={() => navigate('/projects')}
+                  className="w-full"
+                >
+                  <ArrowLeft className="w-4 h-4 mr-2" />
+                  Go Back to Projects List
+                </Button>
+                <Button
+                  variant="outline"
+                  onClick={() => window.location.reload()}
+                  className="w-full"
+                >
+                  <RefreshCw className="w-4 h-4 mr-2" />
+                  Retry Loading
+                </Button>
+              </CardContent>
+            </Card>
+          </div>
+        </div>
+      </div>
+    );
+  }
 
   // Mock data for documents
   const documents = [
@@ -203,9 +315,7 @@ export default function ProjectDetail() {
     }
   ];
 
-  const handleSendRFQ = () => {
-    setShowSupplierModal(true);
-  };
+
 
   const getPriorityColor = (priority: string) => {
     const colors = {
@@ -302,6 +412,16 @@ export default function ProjectDetail() {
                     <Users className="w-4 h-4 mr-1" />
                     Owner: {project.assignee_id || 'Unassigned'}
                   </span>
+                  {dataSource === 'mock' && (
+                    <Badge variant="outline" className="bg-yellow-50 text-yellow-700 border-yellow-200">
+                      📋 Demo Data
+                    </Badge>
+                  )}
+                  {dataSource === 'supabase' && (
+                    <Badge variant="outline" className="bg-green-50 text-green-700 border-green-200">
+                      🔗 Live Data
+                    </Badge>
+                  )}
                 </div>
               </div>
             </div>

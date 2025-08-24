@@ -22,6 +22,7 @@ import Suppliers from "./pages/Suppliers";
 import Reports from "./pages/Reports";
 import { RFQDetail } from "./pages/RFQDetail";
 import ProjectDetail from "./pages/ProjectDetail";
+import ProjectDetailSimple from "./pages/ProjectDetailSimple";
 import Settings from "./pages/Settings";
 
 const queryClient = new QueryClient();
@@ -92,6 +93,11 @@ const App = () => (
               </ProtectedRoute>
             } />
             <Route path="/project/:id" element={
+              <ProtectedRoute>
+                <AppLayout><ProjectDetailSimple /></AppLayout>
+              </ProtectedRoute>
+            } />
+            <Route path="/project-full/:id" element={
               <ProtectedRoute>
                 <AppLayout><ProjectDetail /></AppLayout>
               </ProtectedRoute>
