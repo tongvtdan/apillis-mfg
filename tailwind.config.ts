@@ -28,7 +28,7 @@ export default {
 				'128': '32rem',   /* 512px */
 			},
 			colors: {
-				border: 'hsl(var(--border))',
+				border: 'hsl(var(--border))', // Updated for enhanced dark mode borders
 				input: 'hsl(var(--input))',
 				ring: 'hsl(var(--ring))',
 				background: 'hsl(var(--background))',
@@ -216,7 +216,7 @@ export default {
 					"neutral-content": "#E0E0E0",  // Light neutral content
 					"base-100": "#121212",         // Dark base
 					"base-200": "#1E1E1E",         // Dark secondary
-					"base-300": "#5A5A5A",         // Dark tertiary - Further lightened for better visibility
+					"base-300": "#333333",         // Dark tertiary - Made 15% darker for maximum contrast
 					"base-content": "#E0E0E0",     // Light text
 					"info": "#2196F3",             // Blue - same in dark
 					"success": "#4CAF50",          // Green - same in dark

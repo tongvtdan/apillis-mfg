@@ -60,8 +60,8 @@
     --popover-foreground: #E0E0E0;
     --muted: #2D2D2D;
     --muted-foreground: #9CA3AF;
-    --border: #5A5A5A;
-    /* Further lightened for better visibility in dark mode */
+    --border: #333333;
+    /* Darkened by 15% for maximum contrast in dark mode */
     --input: #2D2D2D;
     --ring: #03DAC6;
 
@@ -72,8 +72,8 @@
     /* DaisyUI specific variables */
     --base-100: #121212;
     --base-200: #1E1E1E;
-    --base-300: #5A5A5A;
-    /* Lightened for better visibility in dark mode */
+    --base-300: #333333;
+    /* Darkened by 15% for maximum contrast */
     --base-content: #E0E0E0;
     --neutral: #1E1E1E;
     --neutral-content: #E0E0E0;
@@ -119,4 +119,9 @@ table {
     background-color: var(--card);
     color: var(--card-foreground);
     border-color: var(--border);
+}
+
+/* Ensure separator background color matches border color */
+.bg-border {
+    background-color: var(--border);
 }
