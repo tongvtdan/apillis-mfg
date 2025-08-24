@@ -1,4 +1,5 @@
 import { useState, useMemo } from "react";
+import { useNavigate } from "react-router-dom";
 import { WorkflowKanban } from "@/components/dashboard/WorkflowKanban";
 import { RecentActivities } from "@/components/dashboard/RecentActivities";
 import { PendingTasks } from "@/components/dashboard/PendingTasks";
@@ -253,6 +254,12 @@ interface ProjectSummaryCardProps {
 }
 
 function ProjectSummaryCard({ project, showUrgencyIndicators = false }: ProjectSummaryCardProps) {
+  const navigate = useNavigate();
+
+  const handleCardClick = () => {
+    navigate(`/project/${project.id}`);
+  };
+
   const getPriorityColor = (priority: string) => {
     switch (priority) {
       case 'urgent': return 'text-red-600';
@@ -316,7 +323,10 @@ function ProjectSummaryCard({ project, showUrgencyIndicators = false }: ProjectS
   ) : '';
 
   return (
-    <div className={`flex items-center gap-4 p-4 bg-muted/30 rounded-lg border ${cardClassName} transition-all duration-200 hover:shadow-md`}>
+    <div 
+      className={`flex items-center gap-4 p-4 bg-muted/30 rounded-lg border ${cardClassName} transition-all duration-200 hover:shadow-md hover:bg-muted/50 cursor-pointer`}
+      onClick={handleCardClick}
+    >
       <div className="flex items-center gap-2 flex-1">
         <span className={getPriorityColor(project.priority)}>
           {getPriorityIcon(project.priority)}
