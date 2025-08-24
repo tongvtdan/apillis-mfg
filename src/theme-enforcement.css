@@ -1,6 +1,6 @@
 /**
- * Debug CSS - Helps diagnose and fix theme issues
- * This file adds visual indicators for theme-related elements
+ * Theme Enforcement CSS - Ensures consistent theme application across components
+ * This file adds high-specificity rules to enforce proper theme styling
  */
 
 /* Show theme attributes for debugging */
