@@ -167,10 +167,13 @@ textarea::placeholder {
 [data-theme="factory-pulse-dark"] .border,
 .dark .border,
 [data-theme="factory-pulse-dark"] .border-border,
-.dark .border-border,
+.dark .border-border {
+    border-color: #333333 !important;
+}
+
+/* Force separator background color in dark mode */
 [data-theme="factory-pulse-dark"] .bg-border,
 .dark .bg-border {
-    border-color: #333333 !important;
     background-color: #333333 !important;
 }
 
