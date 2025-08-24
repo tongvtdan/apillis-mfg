@@ -88,7 +88,7 @@ export function ThemeEnforcer() {
         document.querySelectorAll('.priority-badge').forEach(el => {
             // Get the text content to determine priority
             const priority = el.textContent?.toLowerCase().trim();
-            if (priority === 'high') {
+            if (priority === 'high' || priority === 'urgent') {
                 el.classList.add('high');
             } else if (priority === 'medium') {
                 el.classList.add('medium');
@@ -97,19 +97,87 @@ export function ThemeEnforcer() {
             }
         });
 
+        // Ensure proper badge styling for dashboard elements
+        document.querySelectorAll('.badge').forEach(badge => {
+            const variant = badge.getAttribute('data-variant');
+            if (variant) {
+                badge.classList.add(`badge-${variant}`);
+            }
+
+            // Add better contrast to badges with priority-related text
+            const badgeText = badge.textContent?.toLowerCase().trim();
+            if (badgeText) {
+                if (badgeText.includes('urgent') || badgeText.includes('high')) {
+                    badge.setAttribute('data-variant', 'destructive');
+                } else if (badgeText.includes('medium')) {
+                    badge.setAttribute('data-variant', 'warning');
+                } else if (badgeText.includes('low')) {
+                    badge.setAttribute('data-variant', 'success');
+                } else if (badgeText === 'action needed') {
+                    badge.classList.add('bg-warning/10');
+                    badge.classList.add('text-warning');
+                }
+            }
+        });
+
         // Fix any hardcoded backgrounds
         document.querySelectorAll('[class*="bg-base-"]').forEach(el => {
-            if (el.classList.contains('bg-base-100')) {
+            const classList = Array.from(el.classList);
+            if (classList.find(c => c === 'bg-base-100')) {
                 el.classList.add('bg-theme-background');
-            } else if (el.classList.contains('bg-base-200')) {
+            } else if (classList.find(c => c === 'bg-base-200')) {
                 el.classList.add('bg-theme-muted');
             }
         });
 
         // Fix any hardcoded text colors
         document.querySelectorAll('[class*="text-base-"]').forEach(el => {
-            if (el.classList.contains('text-base-content')) {
+            const classList = Array.from(el.classList);
+            if (classList.find(c => c === 'text-base-content')) {
                 el.classList.add('text-theme-foreground');
+            }
+        });
+
+        // Apply theme to warning backgrounds with opacity modifiers
+        document.querySelectorAll('[class*="bg-warning"]').forEach(el => {
+            const classList = Array.from(el.classList);
+            const hasOpacity = classList.some(cls => cls.includes('/10') || cls.includes('/20') || cls.includes('/30'));
+            
+            if (hasOpacity && !isDarkTheme) {
+                (el as HTMLElement).style.backgroundColor = 'rgba(251, 140, 0, 0.15)';
+                (el as HTMLElement).style.color = '#a85c00';
+            }
+        });
+
+        // Ensure proper status badge styling for better light mode contrast
+        document.querySelectorAll('[class*="bg-"][class*="-100"]').forEach(el => {
+            // For status badges with bg-color-100 classes (often used for status indicators)
+            const classList = Array.from(el.classList);
+            const bgColorClass = classList.find(c => c.startsWith('bg-') && c.endsWith('-100'));
+
+            if (bgColorClass) {
+                const color = bgColorClass.replace('bg-', '').replace('-100', '');
+                if (!isDarkTheme) {
+                    // Apply better contrast in light mode
+                    (el as HTMLElement).style.backgroundColor = `var(--${color}-opacity, rgba(0, 0, 0, 0.1))`;
+                    (el as HTMLElement).style.fontWeight = '600';
+                }
+            }
+        });
+
+        // Improve dashboard card highlights
+        document.querySelectorAll('[class*="bg-muted"]').forEach(el => {
+            if (el.classList.contains('bg-muted/30') && !isDarkTheme) {
+                (el as HTMLElement).style.borderColor = 'var(--border)';
+                (el as HTMLElement).style.borderWidth = '1px';
+                (el as HTMLElement).style.borderStyle = 'solid';
+            }
+        });
+
+        // Ensure urgent and action needed labels have proper styling
+        document.querySelectorAll('[class*="animate-pulse"]').forEach(el => {
+            if (el.hasAttribute('data-variant') && el.getAttribute('data-variant') === 'destructive' && !isDarkTheme) {
+                (el as HTMLElement).style.fontWeight = '700';
             }
         });
 

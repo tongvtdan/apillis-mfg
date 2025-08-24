@@ -58,42 +58,113 @@ div {
     align-items: center;
     justify-content: center;
     transition: all 0.2s ease-in-out;
+    font-weight: 600 !important;
 }
 
-.priority-badge.high {
+.priority-badge.high,
+.priority-badge.urgent {
     background-color: var(--error-opacity) !important;
     color: var(--error) !important;
+    border: 1px solid var(--error) !important;
+}
+
+[data-theme="factory-pulse-light"] .priority-badge.high,
+[data-theme="factory-pulse-light"] .priority-badge.urgent,
+.light .priority-badge.high,
+.light .priority-badge.urgent {
+    background-color: rgba(207, 102, 121, 0.15) !important;
+    color: #9c2b41 !important;
+    border: 1px solid #cf6679 !important;
+    font-weight: 600 !important;
 }
 
 .priority-badge.medium {
     background-color: var(--warning-opacity) !important;
     color: var(--warning) !important;
+    border: 1px solid var(--warning) !important;
+}
+
+[data-theme="factory-pulse-light"] .priority-badge.medium,
+.light .priority-badge.medium {
+    background-color: rgba(251, 140, 0, 0.15) !important;
+    color: #a85c00 !important;
+    border: 1px solid #fb8c00 !important;
+    font-weight: 600 !important;
 }
 
 .priority-badge.low {
     background-color: var(--muted) !important;
     color: var(--muted-foreground) !important;
+    border: 1px solid var(--border) !important;
+}
+
+[data-theme="factory-pulse-light"] .priority-badge.low,
+.light .priority-badge.low {
+    background-color: rgba(76, 175, 80, 0.15) !important;
+    color: #2e8432 !important;
+    border: 1px solid #4CAF50 !important;
+    font-weight: 600 !important;
 }
 
 /* Fix badges and priority indicators */
 .badge {
     background-color: var(--primary);
     color: var(--primary-foreground);
+    font-weight: 600 !important;
 }
 
 .badge-secondary {
     background-color: var(--secondary);
     color: var(--secondary-foreground);
+    font-weight: 600 !important;
 }
 
 .badge-outline {
     color: var(--foreground);
     border-color: var(--border) !important;
+    font-weight: 600 !important;
 }
 
 .badge-ghost {
     background-color: var(--muted);
     color: var(--muted-foreground);
+    font-weight: 600 !important;
+}
+
+/* Enhanced Badge Styling for Dashboard */
+[data-theme="factory-pulse-light"] .badge[data-variant="destructive"],
+.light .badge[data-variant="destructive"] {
+    background-color: #cf6679 !important;
+    color: white !important;
+    font-weight: 600 !important;
+}
+
+[data-theme="factory-pulse-light"] .badge[data-variant="secondary"],
+.light .badge[data-variant="secondary"] {
+    background-color: #bb86fc !important;
+    color: white !important;
+    font-weight: 600 !important;
+}
+
+[data-theme="factory-pulse-light"] .badge[data-variant="warning"],
+.light .badge[data-variant="warning"] {
+    background-color: #fb8c00 !important;
+    color: white !important;
+    font-weight: 600 !important;
+}
+
+[data-theme="factory-pulse-light"] .badge[data-variant="success"],
+.light .badge[data-variant="success"] {
+    background-color: #4caf50 !important;
+    color: white !important;
+    font-weight: 600 !important;
+}
+
+[data-theme="factory-pulse-light"] .badge[data-variant="outline"],
+.light .badge[data-variant="outline"] {
+    border: 1px solid var(--border) !important;
+    color: var(--foreground) !important;
+    font-weight: 600 !important;
 }
 
 /* Fix buttons */
@@ -253,4 +324,151 @@ textarea::placeholder {
 /* Fix transitions */
 * {
     transition: background-color 0.2s ease-in-out, color 0.2s ease-in-out, border-color 0.2s ease-in-out;
+}
+
+/* Dashboard Card Improvements for Light Mode */
+[data-theme="factory-pulse-light"] .card,
+.light .card {
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1), 0 1px 2px rgba(0, 0, 0, 0.06) !important;
+    border: 1px solid var(--border) !important;
+}
+
+/* Pending Tasks Styling Improvements */
+[data-theme="factory-pulse-light"] .bg-orange-100,
+.light .bg-orange-100 {
+    background-color: rgba(251, 140, 0, 0.15) !important;
+}
+
+[data-theme="factory-pulse-light"] .text-orange-800,
+.light .text-orange-800 {
+    color: #a85c00 !important;
+    font-weight: 600 !important;
+}
+
+[data-theme="factory-pulse-light"] .bg-yellow-100,
+.light .bg-yellow-100 {
+    background-color: rgba(255, 193, 7, 0.15) !important;
+}
+
+[data-theme="factory-pulse-light"] .text-yellow-800,
+.light .text-yellow-800 {
+    color: #cc9a06 !important;
+    font-weight: 600 !important;
+}
+
+[data-theme="factory-pulse-light"] .bg-blue-100,
+.light .bg-blue-100 {
+    background-color: rgba(33, 150, 243, 0.15) !important;
+}
+
+[data-theme="factory-pulse-light"] .text-blue-800,
+.light .text-blue-800 {
+    color: #0c63e4 !important;
+    font-weight: 600 !important;
+}
+
+[data-theme="factory-pulse-light"] .bg-green-100,
+.light .bg-green-100 {
+    background-color: rgba(76, 175, 80, 0.15) !important;
+}
+
+[data-theme="factory-pulse-light"] .text-green-800,
+.light .text-green-800 {
+    color: #2e8432 !important;
+    font-weight: 600 !important;
+}
+
+[data-theme="factory-pulse-light"] .bg-red-100,
+.light .bg-red-100 {
+    background-color: rgba(207, 102, 121, 0.15) !important;
+}
+
+[data-theme="factory-pulse-light"] .text-red-800,
+.light .text-red-800 {
+    color: #9c2b41 !important;
+    font-weight: 600 !important;
+}
+
+/* Enhanced Status Indicator Colors */
+[data-theme="factory-pulse-light"] .text-destructive,
+.light .text-destructive {
+    color: #9c2b41 !important;
+}
+
+[data-theme="factory-pulse-light"] .text-warning,
+.light .text-warning {
+    color: #a85c00 !important;
+}
+
+[data-theme="factory-pulse-light"] .text-success,
+.light .text-success {
+    color: #2e8432 !important;
+}
+
+/* Recent Activities Highlight Improvements */
+[data-theme="factory-pulse-light"] .text-red-500,
+.light .text-red-500 {
+    color: #cf6679 !important;
+}
+
+[data-theme="factory-pulse-light"] .text-green-500,
+.light .text-green-500 {
+    color: #4caf50 !important;
+}
+
+[data-theme="factory-pulse-light"] .text-blue-500,
+.light .text-blue-500 {
+    color: #2196f3 !important;
+}
+
+[data-theme="factory-pulse-light"] .text-purple-500,
+.light .text-purple-500 {
+    color: #bb86fc !important;
+}
+
+[data-theme="factory-pulse-light"] .text-yellow-500,
+.light .text-yellow-500 {
+    color: #fb8c00 !important;
+}
+
+/* Additional Background Styling */
+[data-theme="factory-pulse-light"] [class*="bg-muted"][class*="/30"],
+.light [class*="bg-muted"][class*="/30"] {
+    background-color: rgba(249, 250, 251, 0.6) !important;
+    border: 1px solid var(--border) !important;
+}
+
+/* Special Case for Urgent and Action Needed Labels */
+[data-theme="factory-pulse-light"] .animate-pulse[data-variant="destructive"],
+.light .animate-pulse[data-variant="destructive"] {
+    background-color: #cf6679 !important;
+    color: white !important;
+    font-weight: 700 !important;
+    box-shadow: 0 0 0 rgba(207, 102, 121, 0.4);
+    animation: pulse 2s infinite !important;
+}
+
+@keyframes pulse {
+    0% {
+        box-shadow: 0 0 0 0 rgba(207, 102, 121, 0.4);
+    }
+
+    70% {
+        box-shadow: 0 0 0 10px rgba(207, 102, 121, 0);
+    }
+
+    100% {
+        box-shadow: 0 0 0 0 rgba(207, 102, 121, 0);
+    }
+}
+
+[data-theme="factory-pulse-light"] [class*="bg-warning"][class*="/10"],
+.light [class*="bg-warning"][class*="/10"] {
+    background-color: rgba(251, 140, 0, 0.15) !important;
+}
+
+[data-theme="factory-pulse-light"] .text-warning,
+.light .text-warning {
+    color: #a85c00 !important;
+    font-weight: 600 !important;
 }
