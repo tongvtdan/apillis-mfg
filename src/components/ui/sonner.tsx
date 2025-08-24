@@ -1,10 +1,13 @@
-import { useTheme } from "next-themes"
+// Use our custom theme context instead of next-themes
+import { useTheme } from "@/contexts/ThemeContext";
 import { Toaster as Sonner, toast } from "sonner"
 
 type ToasterProps = React.ComponentProps<typeof Sonner>
 
 const Toaster = ({ ...props }: ToasterProps) => {
-  const { theme = "system" } = useTheme()
+  // Use our custom theme hook and provide a fallback
+  const themeContext = useTheme();
+  const theme = themeContext?.config?.mode || "system";
 
   return (
     <Sonner
