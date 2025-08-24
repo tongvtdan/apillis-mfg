@@ -321,10 +321,47 @@ textarea::placeholder {
     color: #1F2937 !important;
 }
 
-/* Fix transitions */
-* {
-    transition: background-color 0.2s ease-in-out, color 0.2s ease-in-out, border-color 0.2s ease-in-out;
+/* Dashboard Status Indicators */
+/* Status chips like 'urgent', 'high', etc. */
+[data-theme="factory-pulse-light"] .urgent-chip,
+.light .urgent-chip {
+    background-color: rgba(207, 102, 121, 0.15) !important;
+    color: #9c2b41 !important;
+    border: 1px solid #cf6679 !important;
+    border-radius: 9999px;
+    padding: 0.25rem 0.5rem;
+    font-size: 0.75rem;
+    font-weight: 600 !important;
+    display: inline-flex;
+    align-items: center;
 }
+
+[data-theme="factory-pulse-light"] .high-chip,
+.light .high-chip {
+    background-color: rgba(251, 140, 0, 0.15) !important;
+    color: #a85c00 !important;
+    border: 1px solid #fb8c00 !important;
+    border-radius: 9999px;
+    padding: 0.25rem 0.5rem;
+    font-size: 0.75rem;
+    font-weight: 600 !important;
+    display: inline-flex;
+    align-items: center;
+}
+
+/* Pending Tasks status indicators */
+[data-theme="factory-pulse-light"] span:contains("urgent"),
+.light span:contains("urgent") {
+    color: #9c2b41 !important;
+    font-weight: 600 !important;
+}
+
+[data-theme="factory-pulse-light"] span:contains("high"),
+.light span:contains("high") {
+    color: #a85c00 !important;
+    font-weight: 600 !important;
+}
+
 
 /* Dashboard Card Improvements for Light Mode */
 [data-theme="factory-pulse-light"] .card,
@@ -470,5 +507,72 @@ textarea::placeholder {
 [data-theme="factory-pulse-light"] .text-warning,
 .light .text-warning {
     color: #a85c00 !important;
+    font-weight: 600 !important;
+}
+
+/* Dashboard Status Background Enhancement */
+[data-theme="factory-pulse-light"] .bg-red-50,
+.light .bg-red-50 {
+    background-color: rgba(207, 102, 121, 0.15) !important;
+    border-color: #cf6679 !important;
+}
+
+[data-theme="factory-pulse-light"] .bg-yellow-50,
+.light .bg-yellow-50 {
+    background-color: rgba(251, 140, 0, 0.15) !important;
+    border-color: #fb8c00 !important;
+}
+
+[data-theme="factory-pulse-light"] .bg-blue-50,
+.light .bg-blue-50 {
+    background-color: rgba(33, 150, 243, 0.15) !important;
+    border-color: #2196f3 !important;
+}
+
+[data-theme="factory-pulse-light"] .bg-green-50,
+.light .bg-green-50 {
+    background-color: rgba(76, 175, 80, 0.15) !important;
+    border-color: #4caf50 !important;
+}
+
+[data-theme="factory-pulse-light"] .bg-purple-50,
+.light .bg-purple-50 {
+    background-color: rgba(187, 134, 252, 0.15) !important;
+    border-color: #bb86fc !important;
+}
+
+/* Status text styling for dashboard items */
+[data-theme="factory-pulse-light"] span:has(.text-red-500),
+[data-theme="factory-pulse-light"] span:has(.text-red-700),
+.light span:has(.text-red-500),
+.light span:has(.text-red-700) {
+    font-weight: 600 !important;
+}
+
+[data-theme="factory-pulse-light"] span:has(.text-yellow-500),
+[data-theme="factory-pulse-light"] span:has(.text-yellow-700),
+.light span:has(.text-yellow-500),
+.light span:has(.text-yellow-700) {
+    font-weight: 600 !important;
+}
+
+[data-theme="factory-pulse-light"] span:has(.text-blue-500),
+[data-theme="factory-pulse-light"] span:has(.text-blue-700),
+.light span:has(.text-blue-500),
+.light span:has(.text-blue-700) {
+    font-weight: 600 !important;
+}
+
+[data-theme="factory-pulse-light"] span:has(.text-green-500),
+[data-theme="factory-pulse-light"] span:has(.text-green-700),
+.light span:has(.text-green-500),
+.light span:has(.text-green-700) {
+    font-weight: 600 !important;
+}
+
+[data-theme="factory-pulse-light"] span:has(.text-purple-500),
+[data-theme="factory-pulse-light"] span:has(.text-purple-700),
+.light span:has(.text-purple-500),
+.light span:has(.text-purple-700) {
     font-weight: 600 !important;
 }

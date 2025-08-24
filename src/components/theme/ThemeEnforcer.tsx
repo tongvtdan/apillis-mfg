@@ -142,10 +142,56 @@ export function ThemeEnforcer() {
         document.querySelectorAll('[class*="bg-warning"]').forEach(el => {
             const classList = Array.from(el.classList);
             const hasOpacity = classList.some(cls => cls.includes('/10') || cls.includes('/20') || cls.includes('/30'));
-            
+
             if (hasOpacity && !isDarkTheme) {
                 (el as HTMLElement).style.backgroundColor = 'rgba(251, 140, 0, 0.15)';
                 (el as HTMLElement).style.color = '#a85c00';
+            }
+        });
+
+        // Apply styling to status chips in dashboard
+        document.querySelectorAll('.urgent-chip, .high-chip').forEach(el => {
+            if (!isDarkTheme) {
+                if (el.classList.contains('urgent-chip')) {
+                    (el as HTMLElement).style.backgroundColor = 'rgba(207, 102, 121, 0.15)';
+                    (el as HTMLElement).style.color = '#9c2b41';
+                    (el as HTMLElement).style.borderColor = '#cf6679';
+                } else if (el.classList.contains('high-chip')) {
+                    (el as HTMLElement).style.backgroundColor = 'rgba(251, 140, 0, 0.15)';
+                    (el as HTMLElement).style.color = '#a85c00';
+                    (el as HTMLElement).style.borderColor = '#fb8c00';
+                }
+                (el as HTMLElement).style.fontWeight = '600';
+                (el as HTMLElement).style.borderRadius = '9999px';
+                (el as HTMLElement).style.padding = '0.25rem 0.5rem';
+                (el as HTMLElement).style.fontSize = '0.75rem';
+                (el as HTMLElement).style.display = 'inline-flex';
+                (el as HTMLElement).style.alignItems = 'center';
+            }
+        });
+
+        // Enhance status indicators in dashboard
+        document.querySelectorAll('[class*="text-"][class*="-500"], [class*="text-"][class*="-700"]').forEach(el => {
+            if (!isDarkTheme) {
+                const classList = Array.from(el.classList);
+
+                // Apply better contrast to color status indicators
+                if (classList.some(cls => cls.includes('text-red'))) {
+                    (el as HTMLElement).style.color = '#9c2b41';
+                    (el as HTMLElement).style.fontWeight = '600';
+                } else if (classList.some(cls => cls.includes('text-yellow'))) {
+                    (el as HTMLElement).style.color = '#a85c00';
+                    (el as HTMLElement).style.fontWeight = '600';
+                } else if (classList.some(cls => cls.includes('text-blue'))) {
+                    (el as HTMLElement).style.color = '#0c63e4';
+                    (el as HTMLElement).style.fontWeight = '600';
+                } else if (classList.some(cls => cls.includes('text-green'))) {
+                    (el as HTMLElement).style.color = '#2e8432';
+                    (el as HTMLElement).style.fontWeight = '600';
+                } else if (classList.some(cls => cls.includes('text-purple'))) {
+                    (el as HTMLElement).style.color = '#7e3af2';
+                    (el as HTMLElement).style.fontWeight = '600';
+                }
             }
         });
 

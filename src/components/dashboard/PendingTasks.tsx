@@ -26,11 +26,12 @@ export function PendingTasks() {
     .slice(0, 4)
     .map(project => ({
       id: project.id,
-      title: project.status === 'inquiry_received' 
+      title: project.status === 'inquiry_received'
         ? `Review new inquiry: ${project.title}`
         : `Complete review for: ${project.title}`,
       priority: project.priority,
-      dueDate: formatDistanceToNow(new Date(project.updated_at), { addSuffix: true })
+      dueDate: formatDistanceToNow(new Date(project.updated_at), { addSuffix: true }),
+      statusClass: project.priority === 'high' ? 'high-chip' : project.priority === 'urgent' ? 'urgent-chip' : ''
     }));
 
   if (loading) {
@@ -70,7 +71,7 @@ export function PendingTasks() {
                 {task.title}
               </p>
               <div className="flex items-center space-x-2">
-                <Badge variant={priorityColors[task.priority]} className="text-xs">
+                <Badge variant={priorityColors[task.priority]} className="text-xs font-medium">
                   {task.priority}
                 </Badge>
                 <div className="flex items-center text-xs text-muted-foreground">
@@ -79,6 +80,10 @@ export function PendingTasks() {
                 </div>
               </div>
             </div>
+            {/* Status chips */}
+            {task.priority === 'high' || task.priority === 'urgent' ? (
+              <span className={task.statusClass}>{task.priority}</span>
+            ) : null}
           </div>
         ))}
         {pendingTasks.length === 0 && (
