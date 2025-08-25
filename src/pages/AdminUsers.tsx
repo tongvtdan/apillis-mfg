@@ -55,7 +55,7 @@ interface UserWithStats extends UserProfile {
 }
 
 export default function AdminUsers() {
-  const { profile } = useAuth();
+  const { profile, user } = useAuth();
   const { toast } = useToast();
   const [users, setUsers] = useState<UserWithStats[]>([]);
   const [filteredUsers, setFilteredUsers] = useState<UserWithStats[]>([]);
@@ -72,6 +72,7 @@ export default function AdminUsers() {
   const fetchUsers = async () => {
     try {
       setLoading(true);
+
       // First, fetch profiles
       const { data: profilesData, error: profilesError } = await supabase
         .from('profiles')
@@ -88,27 +89,11 @@ export default function AdminUsers() {
         return;
       }
 
-      // Then, fetch the admin-users view or get auth user data
-      // This approach depends on whether there's a view or direct access to auth data
-      const usersWithEmail = await Promise.all((profilesData || []).map(async (profile) => {
-        try {
-          // Try to get the auth user data for this profile to get the email
-          const { data: authData, error: authError } = await supabase.auth.admin.getUserById(profile.user_id);
-          
-          if (authError || !authData) {
-            console.warn(`Could not fetch auth data for user ${profile.user_id}:`, authError);
-            return { ...profile, email: null };
-          }
-          
-          return { ...profile, email: authData.user.email };
-        } catch (err) {
-          console.warn(`Error fetching auth data for user ${profile.user_id}:`, err);
-          return { ...profile, email: null };
-        }
-      }));
-
-      setUsers(usersWithEmail || []);
-      setFilteredUsers(usersWithEmail || []);
+      // For now, set the profiles without email
+      // In a real implementation, we'd need to join with auth.users or use auth admin APIs
+      // which might require server-side implementation
+      setUsers(profilesData || []);
+      setFilteredUsers(profilesData || []);
     } catch (error) {
       console.error('Error fetching users:', error);
     } finally {
@@ -270,6 +255,18 @@ export default function AdminUsers() {
       hour: '2-digit',
       minute: '2-digit'
     });
+  };
+
+  // Get email for a user from the auth data
+  const getUserEmail = (userId: string) => {
+    // For the current user, we can use the auth context
+    if (user && user.id === userId) {
+      return user.email || 'No email';
+    }
+
+    // For other users, we'd typically use an admin API or database view
+    // but this requires server-side implementation
+    return 'Email not available';
   };
 
   useEffect(() => {
@@ -448,7 +445,7 @@ export default function AdminUsers() {
                         <div>
                           <div className="font-medium">{user.display_name}</div>
                           <div className="text-sm text-base-content/70">
-                            {user.email || 'No email'}
+                            {getUserEmail(user.user_id)}
                           </div>
                           {user.login_attempts > 0 && (
                             <div className="text-xs text-red-600">
