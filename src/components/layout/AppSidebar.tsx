@@ -66,8 +66,8 @@ export function AppSidebar() {
           <span className="text-primary-foreground font-bold text-sm">FP</span>
         </div>
         <div>
-          <h2 className="font-semibold text-sidebar-foreground">Apillis
-            Factory Pulse</h2>
+          <h4 className="font-semibold text-sidebar-foreground">Apillis
+            Factory Pulse</h4>
           <p className="text-xs text-sidebar-foreground/70">The Heartbeat of Modern Manufacturing</p>
         </div>
       </div>
