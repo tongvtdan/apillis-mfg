@@ -40,21 +40,21 @@ export function OverviewCard({
 
     if (alert) {
       if (alert.includes('overdue')) {
-        return 'border-2 border-red-500 bg-gradient-to-r from-red-50 to-transparent dark:from-red-950/40 dark:to-transparent shadow-md';
+        return 'border-2 border-red-500 bg-red-50/10 dark:bg-red-950/20 shadow-md';
       } else if (alert.includes('urgent') || alert.includes('critical')) {
-        return 'border-2 border-orange-400 bg-gradient-to-r from-orange-50 to-transparent dark:from-orange-950/40 dark:to-transparent shadow-md';
+        return 'border-2 border-orange-400 bg-orange-50/10 dark:bg-orange-950/20 shadow-md';
       } else if (alert.includes('on hold')) {
-        return 'border-2 border-yellow-400 bg-gradient-to-r from-yellow-50 to-transparent dark:from-yellow-950/40 dark:to-transparent shadow-md';
+        return 'border-2 border-yellow-400 bg-yellow-50/10 dark:bg-yellow-950/20 shadow-md';
       }
-      return 'border-2 border-destructive/40 bg-gradient-to-r from-destructive/5 to-transparent shadow-md';
+      return 'border-2 border-destructive/40 bg-destructive/5 dark:bg-destructive/10 shadow-md';
     }
 
     if (description.includes('urgent') || description.includes('critical')) {
-      return 'border-l-4 border-l-orange-500 bg-gradient-to-r from-orange-50/50 to-transparent dark:from-orange-950/20 dark:to-transparent';
+      return 'border-l-4 border-l-orange-500 bg-orange-50/10 dark:bg-orange-950/10';
     } else if (description.includes('high priority')) {
-      return 'border-l-4 border-l-red-400 bg-gradient-to-r from-red-50/50 to-transparent dark:from-red-950/20 dark:to-transparent';
+      return 'border-l-4 border-l-red-400 bg-red-50/10 dark:bg-red-950/10';
     } else if (description.includes('low stock')) {
-      return 'border-l-4 border-l-yellow-400 bg-gradient-to-r from-yellow-50/50 to-transparent dark:from-yellow-950/20 dark:to-transparent';
+      return 'border-l-4 border-l-yellow-400 bg-yellow-50/10 dark:bg-yellow-950/10';
     }
 
     return '';

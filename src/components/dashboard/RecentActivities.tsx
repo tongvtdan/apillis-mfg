@@ -33,11 +33,11 @@ export function RecentActivities() {
       customer: rfq.company_name
     }))
   ].sort((a, b) => new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime())
-   .slice(0, 10);
+    .slice(0, 10);
 
   const getActivityIcon = (status: string) => {
     switch (status) {
-      case 'inquiry': 
+      case 'inquiry':
       case 'inquiry_received': return FileText;
       case 'won':
       case 'order_confirmed': return CheckCircle;
@@ -71,18 +71,18 @@ export function RecentActivities() {
     switch (status) {
       case 'inquiry':
       case 'inquiry_received':
-        return 'enhanced-list-item enhanced-list-item-normal border-l-4 border-l-blue-400 bg-gradient-to-r from-blue-50/30 to-transparent dark:from-blue-950/20 dark:to-transparent';
+        return 'enhanced-list-item enhanced-list-item-normal border-l-4 border-l-blue-400 bg-blue-50/10 dark:bg-blue-950/10';
       case 'won':
       case 'order_confirmed':
-        return 'enhanced-list-item enhanced-list-item-active border-l-4 border-l-green-400 bg-gradient-to-r from-green-50/30 to-transparent dark:from-green-950/20 dark:to-transparent';
+        return 'enhanced-list-item enhanced-list-item-active border-l-4 border-l-green-400 bg-green-50/10 dark:bg-green-950/10';
       case 'quoted':
-        return 'enhanced-list-item enhanced-list-item-medium border-l-4 border-l-purple-400 bg-gradient-to-r from-purple-50/30 to-transparent dark:from-purple-950/20 dark:to-transparent';
+        return 'enhanced-list-item enhanced-list-item-medium border-l-4 border-l-purple-400 bg-purple-50/10 dark:bg-purple-950/10';
       case 'review':
       case 'technical_review':
-        return 'enhanced-list-item enhanced-list-item-normal border-l-4 border-l-yellow-400 bg-gradient-to-r from-yellow-50/30 to-transparent dark:from-yellow-950/20 dark:to-transparent';
+        return 'enhanced-list-item enhanced-list-item-normal border-l-4 border-l-yellow-400 bg-yellow-50/10 dark:bg-yellow-950/10';
       case 'lost':
       case 'shipped_closed':
-        return 'enhanced-list-item enhanced-list-item-high border-l-4 border-l-red-400 bg-gradient-to-r from-red-50/30 to-transparent dark:from-red-950/20 dark:to-transparent';
+        return 'enhanced-list-item enhanced-list-item-high border-l-4 border-l-red-400 bg-red-50/10 dark:bg-red-950/10';
       default:
         return 'enhanced-list-item enhanced-list-item-normal';
     }

@@ -12,9 +12,9 @@ export function QuickStats({ activeProjects, highPriorityProjects, overdueProjec
   // Get appropriate styling based on count and type
   const getItemClass = (type: string, count: number) => {
     if (type === 'overdue' && count > 0) {
-      return 'enhanced-list-item enhanced-list-item-urgent border-l-4 border-l-red-500 bg-gradient-to-r from-red-50/50 to-transparent dark:from-red-950/30 dark:to-transparent flex items-center justify-between';
+      return 'enhanced-list-item enhanced-list-item-urgent border-l-4 border-l-red-500 bg-red-50/10 dark:bg-red-950/20 flex items-center justify-between';
     } else if (type === 'high' && count > 0) {
-      return 'enhanced-list-item enhanced-list-item-high border-l-4 border-l-orange-500 bg-gradient-to-r from-orange-50/40 to-transparent dark:from-orange-950/20 dark:to-transparent flex items-center justify-between';
+      return 'enhanced-list-item enhanced-list-item-high border-l-4 border-l-orange-500 bg-orange-50/10 dark:bg-orange-950/10 flex items-center justify-between';
     } else {
       return 'enhanced-list-item enhanced-list-item-normal flex items-center justify-between';
     }

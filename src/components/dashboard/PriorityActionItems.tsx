@@ -72,7 +72,7 @@ export function PriorityActionItems({ projects }: PriorityActionItemsProps) {
           </div>
           <span className="relative">
             Priority Action Items
-            <span className="absolute bottom-0 left-0 w-full h-0.5 bg-gradient-to-r from-red-500/60 to-transparent dark:from-red-500/40 rounded"></span>
+            <span className="absolute bottom-0 left-0 w-full h-0.5 bg-red-500/40 dark:bg-red-500/30 rounded"></span>
           </span>
         </h2>
         <p className="text-sm text-red-700/70 dark:text-red-400/70 font-medium mt-1">
@@ -85,7 +85,7 @@ export function PriorityActionItems({ projects }: PriorityActionItemsProps) {
             <ProjectSummaryCard key={project.id} project={project} showUrgencyIndicators={true} />
           ))
         ) : (
-          <Card className="enhanced-list-item enhanced-list-item-active p-6 text-center border-dashed border-2 border-green-300 dark:border-green-800 bg-gradient-to-r from-green-50/40 to-transparent dark:from-green-950/20">
+          <Card className="enhanced-list-item enhanced-list-item-active p-6 text-center border-dashed border-2 border-green-300 dark:border-green-800 bg-green-50/10 dark:bg-green-950/10">
             <div className="flex flex-col items-center gap-2 text-green-700 dark:text-green-400">
               <div className="p-2 rounded-full bg-green-100 dark:bg-green-900/50">
                 <CheckCircle className="h-8 w-8 text-green-600 dark:text-green-400" />
