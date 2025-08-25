@@ -1,0 +1,52 @@
+/**
+ * Project View Tabs Enhancement
+ * Improves tab visibility and active state distinction
+ */
+
+/* Enhanced tab list for better clarity */
+.project-view-tabs [role="tablist"] {
+    background-color: rgba(0, 0, 0, 0.04);
+    border: 1px solid rgba(0, 0, 0, 0.05);
+    border-radius: 0.5rem;
+    padding: 0.25rem;
+}
+
+/* Default tab styling */
+.project-view-tabs [role="tab"] {
+    border-radius: 0.375rem;
+    transition: all 0.2s ease;
+    font-weight: 500;
+    padding: 0.5rem 1rem;
+    border: 1px solid transparent;
+    color: var(--fp-muted-foreground);
+}
+
+/* Hover state */
+.project-view-tabs [role="tab"]:hover:not([data-state="active"]) {
+    background-color: rgba(0, 0, 0, 0.03);
+}
+
+/* Active tab - much more visually distinct */
+.project-view-tabs [role="tab"][data-state="active"] {
+    background-color: var(--fp-primary) !important;
+    color: var(--fp-primary-foreground) !important;
+    font-weight: 600;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+    border: 1px solid var(--fp-primary);
+}
+
+/* Dark mode adjustments */
+@media (prefers-color-scheme: dark) {
+    .project-view-tabs [role="tablist"] {
+        background-color: rgba(255, 255, 255, 0.05);
+        border: 1px solid rgba(255, 255, 255, 0.1);
+    }
+
+    .project-view-tabs [role="tab"]:hover:not([data-state="active"]) {
+        background-color: rgba(255, 255, 255, 0.1);
+    }
+
+    .project-view-tabs [role="tab"][data-state="active"] {
+        box-shadow: 0 0 8px rgba(var(--fp-primary-rgb), 0.4);
+    }
+}

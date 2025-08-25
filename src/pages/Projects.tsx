@@ -3,7 +3,8 @@ import { WorkflowKanban } from "@/components/dashboard/WorkflowKanban";
 import { ProjectTable } from "@/components/project/ProjectTable";
 import { StageFlowchart } from "@/components/project/StageFlowchart";
 import { ProjectTypeKanban } from "@/components/project/ProjectTypeKanban";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { TabsContent } from "@/components/ui/tabs";
+import { ProjectTabs, ProjectTabsList, ProjectTabsTrigger } from "@/components/project/ProjectTabs";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { useProjects } from "@/hooks/useProjects";
 import { ProjectStatus, ProjectType, PROJECT_TYPE_LABELS } from "@/types/project";
@@ -79,18 +80,18 @@ export default function Projects() {
 
   return (
     <div className="p-6 bg-base-100 text-base-content min-h-screen">
-      <Tabs defaultValue="flowchart" className="w-full relative">
+      <ProjectTabs defaultValue="flowchart" className="w-full relative">
         <div className="mb-6 flex justify-between items-center">
           <div>
             <h1 className="text-2xl font-bold text-base-content">Factory Pulse - Project Flow</h1>
             <p className="text-base-content/70">Track and manage your manufacturing projects from idea to delivery</p>
           </div>
           <div className="flex items-center gap-4">
-            <TabsList className="grid w-[300px] grid-cols-3">
-              <TabsTrigger value="flowchart">Flow</TabsTrigger>
-              <TabsTrigger value="kanban">Kanban</TabsTrigger>
-              <TabsTrigger value="table">Table</TabsTrigger>
-            </TabsList>
+            <ProjectTabsList className="grid w-[300px] grid-cols-3">
+              <ProjectTabsTrigger value="flowchart">Flow</ProjectTabsTrigger>
+              <ProjectTabsTrigger value="kanban">Kanban</ProjectTabsTrigger>
+              <ProjectTabsTrigger value="table">Table</ProjectTabsTrigger>
+            </ProjectTabsList>
 
             {/* Project Type Filter */}
             <div className="flex items-center space-x-3">
@@ -240,7 +241,7 @@ export default function Projects() {
             <p className="text-base-content/70">No active projects found</p>
           </div>
         )}
-      </Tabs>
+      </ProjectTabs>
     </div>
   );
 }
