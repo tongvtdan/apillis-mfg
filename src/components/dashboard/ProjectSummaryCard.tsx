@@ -78,43 +78,66 @@ export function ProjectSummaryCard({ project, showUrgencyIndicators = false }: P
   const hasRisks = project.priority === 'high' && Math.random() > 0.5;
   const hasApprovals = project.status !== 'inquiry_received' && Math.random() > 0.3;
 
-  const cardClassName = showUrgencyIndicators ? (
-    urgency.level === 'critical' ? 'border-destructive shadow-md shadow-destructive/10 bg-destructive/5 ring-1 ring-destructive/20' :
-      urgency.level === 'high' ? 'border-warning shadow-md shadow-warning/10 bg-warning/5 ring-1 ring-warning/20' :
-        'border-primary/20 bg-primary/5'
-  ) : '';
+  // Enhanced list item classes based on urgency level
+  const getListItemClasses = () => {
+    if (!showUrgencyIndicators) return 'enhanced-list-item enhanced-list-item-normal';
+
+    switch (urgency.level) {
+      case 'critical': return 'enhanced-list-item enhanced-list-item-urgent';
+      case 'high': return 'enhanced-list-item enhanced-list-item-high';
+      default: return 'enhanced-list-item enhanced-list-item-normal';
+    }
+  };
+
+  // Get status badge class based on priority
+  const getStatusBadgeClass = (priority: string) => {
+    switch (priority) {
+      case 'urgent': return 'status-badge status-badge-sm status-urgent';
+      case 'high': return 'status-badge status-badge-sm status-high';
+      case 'medium': return 'status-badge status-badge-sm status-medium';
+      case 'low': return 'status-badge status-badge-sm status-low';
+      default: return 'status-badge status-badge-sm';
+    }
+  };
+
+  // Get priority indicator class
+  const getPriorityIndicatorClass = (priority: string) => {
+    switch (priority) {
+      case 'urgent': return 'priority-indicator priority-indicator-urgent';
+      case 'high': return 'priority-indicator priority-indicator-high';
+      case 'medium': return 'priority-indicator priority-indicator-medium';
+      case 'low': return 'priority-indicator priority-indicator-low';
+      default: return 'priority-indicator';
+    }
+  };
 
   return (
     <div
-      className={`flex items-center gap-4 p-4 bg-muted/30 rounded-lg border ${cardClassName} transition-all duration-200 hover:shadow-md hover:bg-muted/50 cursor-pointer`}
+      className={`flex items-center gap-4 ${getListItemClasses()} cursor-pointer hover:shadow-md`}
       onClick={handleCardClick}
     >
       <div className="flex items-center gap-2 flex-1">
-        <span className={getPriorityColor(project.priority)}>
-          {getPriorityIcon(project.priority)}
-        </span>
+        <div className={getPriorityIndicatorClass(project.priority)}></div>
         <span className="font-medium">{project.project_id}</span>
         <span className="text-muted-foreground">–</span>
         <span className="font-medium">{project.title}</span>
-        <Badge
-          variant={project.priority === 'urgent' ? 'destructive' : project.priority === 'high' ? 'secondary' : 'outline'}
-          className={`text-xs font-bold ${project.priority === 'medium' ? 'bg-warning/10 text-warning' : project.priority === 'low' ? 'bg-success/10 text-success' : ''}`}
-        >
+
+        <div className={getStatusBadgeClass(project.priority)}>
           {project.priority} priority
-        </Badge>
+        </div>
 
         {/* Urgency indicators */}
         {showUrgencyIndicators && urgency.reasons.length > 0 && (
           <div className="flex items-center gap-2">
             {urgency.level === 'critical' && (
-              <Badge variant="destructive" className="text-xs font-bold animate-pulse">
+              <div className="status-badge status-badge-sm status-urgent">
                 URGENT
-              </Badge>
+              </div>
             )}
             {urgency.level === 'high' && (
-              <Badge variant="secondary" className="text-xs font-bold">
+              <div className="status-badge status-badge-sm status-high">
                 ACTION NEEDED
-              </Badge>
+              </div>
             )}
           </div>
         )}
@@ -136,7 +159,12 @@ export function ProjectSummaryCard({ project, showUrgencyIndicators = false }: P
 
         {/* Time in stage indicator */}
         {showUrgencyIndicators && (
-          <div className={`flex items-center gap-1 px-2 py-1 rounded-full text-xs ${project.days_in_stage > 7 ? 'bg-destructive/10 text-destructive font-bold' : project.days_in_stage > 3 ? 'bg-warning/10 text-warning font-bold' : 'bg-muted text-muted-foreground'}`}>
+          <div className={`flex items-center gap-1 rounded-full text-xs ${project.days_in_stage > 7
+            ? 'status-badge status-badge-sm status-overdue'
+            : project.days_in_stage > 3
+              ? 'status-badge status-badge-sm status-medium'
+              : 'status-badge status-badge-sm'
+            }`}>
             <Clock className="h-3 w-3" />
             <span>{project.days_in_stage}d</span>
           </div>

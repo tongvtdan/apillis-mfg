@@ -1,14 +1,7 @@
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Badge } from "@/components/ui/badge";
 import { useProjects } from "@/hooks/useProjects";
 import { formatDistanceToNow } from "date-fns";
 import { Clock } from "lucide-react";
-
-const priorityColors = {
-  high: "destructive",
-  medium: "secondary",
-  low: "outline"
-} as const;
 
 export function PendingTasks() {
   const { projects, loading } = useProjects();
@@ -31,8 +24,38 @@ export function PendingTasks() {
         : `Complete review for: ${project.title}`,
       priority: project.priority,
       dueDate: formatDistanceToNow(new Date(project.updated_at), { addSuffix: true }),
-      statusClass: project.priority === 'high' ? 'high-chip' : project.priority === 'urgent' ? 'urgent-chip' : ''
+      status: project.status
     }));
+
+  // Get the appropriate CSS class based on priority
+  const getPriorityClass = (priority: string) => {
+    switch (priority) {
+      case 'urgent': return 'enhanced-list-item-urgent';
+      case 'high': return 'enhanced-list-item-high';
+      case 'medium': return 'enhanced-list-item-medium';
+      default: return 'enhanced-list-item-normal';
+    }
+  };
+
+  // Get the appropriate status badge class
+  const getStatusBadgeClass = (priority: string) => {
+    switch (priority) {
+      case 'urgent': return 'status-badge status-badge-sm status-urgent';
+      case 'high': return 'status-badge status-badge-sm status-high';
+      case 'medium': return 'status-badge status-badge-sm status-medium';
+      case 'low': return 'status-badge status-badge-sm status-low';
+      default: return 'status-badge status-badge-sm';
+    }
+  };
+
+  // Get status class based on workflow status
+  const getWorkflowStatusClass = (status: string) => {
+    switch (status) {
+      case 'inquiry_received': return 'status-badge status-badge-sm status-inquiry';
+      case 'technical_review': return 'status-badge status-badge-sm status-review';
+      default: return 'status-badge status-badge-sm';
+    }
+  };
 
   if (loading) {
     return (
@@ -43,7 +66,7 @@ export function PendingTasks() {
         <CardContent>
           <div className="space-y-4">
             {[1, 2, 3, 4].map((i) => (
-              <div key={i} className="flex items-start justify-between p-3 bg-muted/30 rounded-lg">
+              <div key={i} className="flex items-start justify-between enhanced-list-item enhanced-list-item-normal">
                 <div className="flex-1 min-w-0 space-y-2">
                   <div className="h-4 bg-muted animate-pulse rounded w-3/4"></div>
                   <div className="flex items-center space-x-2">
@@ -65,25 +88,24 @@ export function PendingTasks() {
       </CardHeader>
       <CardContent className="space-y-4">
         {pendingTasks.map((task) => (
-          <div key={task.id} className="flex items-start justify-between p-3 bg-muted/30 rounded-lg">
+          <div key={task.id} className={`enhanced-list-item ${getPriorityClass(task.priority)} flex items-start justify-between`}>
             <div className="flex-1 min-w-0">
               <p className="text-sm font-medium text-foreground mb-1">
                 {task.title}
               </p>
               <div className="flex items-center space-x-2">
-                <Badge variant={priorityColors[task.priority]} className="text-xs font-medium">
+                <div className={getStatusBadgeClass(task.priority)}>
                   {task.priority}
-                </Badge>
+                </div>
+                <div className={getWorkflowStatusClass(task.status)}>
+                  {task.status === 'inquiry_received' ? 'New Inquiry' : 'Review'}
+                </div>
                 <div className="flex items-center text-xs text-muted-foreground">
                   <Clock className="h-3 w-3 mr-1" />
                   {task.dueDate}
                 </div>
               </div>
             </div>
-            {/* Status chips */}
-            {task.priority === 'high' || task.priority === 'urgent' ? (
-              <span className={task.statusClass}>{task.priority}</span>
-            ) : null}
           </div>
         ))}
         {pendingTasks.length === 0 && (

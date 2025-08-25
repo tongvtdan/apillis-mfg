@@ -83,9 +83,9 @@ export function PriorityActionItems({ projects }: PriorityActionItemsProps) {
             <ProjectSummaryCard key={project.id} project={project} showUrgencyIndicators={true} />
           ))
         ) : (
-          <Card className="p-6 text-center border-dashed">
+          <Card className="enhanced-list-item enhanced-list-item-active p-6 text-center border-dashed">
             <div className="flex flex-col items-center gap-2 text-muted-foreground">
-              <CheckCircle className="h-8 w-8" />
+              <CheckCircle className="h-8 w-8 text-success" />
               <p className="text-sm font-medium">All caught up!</p>
               <p className="text-xs">No urgent projects requiring immediate action.</p>
             </div>

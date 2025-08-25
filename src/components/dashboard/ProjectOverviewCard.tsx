@@ -75,7 +75,7 @@ export function ProjectOverviewCard({ project }: ProjectOverviewCardProps) {
                   </div>
                 </div>
                 {isCurrent && (
-                  <div className="w-2 h-2 bg-primary rounded-full animate-pulse flex-shrink-0"></div>
+                  <div className="w-2 h-2 bg-primary rounded-full flex-shrink-0"></div>
                 )}
               </div>
             );

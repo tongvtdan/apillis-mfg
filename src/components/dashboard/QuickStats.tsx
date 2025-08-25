@@ -18,30 +18,32 @@ export function QuickStats({ activeProjects, highPriorityProjects, overdueProjec
         </CardTitle>
       </CardHeader>
       <CardContent className="space-y-4">
-        <div className="flex items-center justify-between p-3 bg-muted/30 rounded-lg">
+        <div className="enhanced-list-item enhanced-list-item-normal flex items-center justify-between">
           <div className="flex items-center gap-2">
-            <div className="w-2 h-2 bg-blue-500 rounded-full"></div>
-            <span className="text-sm text-muted-foreground">Active Projects</span>
+            <div className="priority-indicator-low"></div>
+            <span className="text-sm font-medium">Active Projects</span>
           </div>
-          <Badge variant="outline" className="font-semibold">{activeProjects}</Badge>
+          <div className="status-badge status-badge-sm status-active">
+            {activeProjects}
+          </div>
         </div>
-        <div className="flex items-center justify-between p-3 bg-muted/30 rounded-lg">
+        <div className="enhanced-list-item enhanced-list-item-normal flex items-center justify-between">
           <div className="flex items-center gap-2">
-            <div className="w-2 h-2 bg-red-500 rounded-full"></div>
-            <span className="text-sm text-muted-foreground">High Priority</span>
+            <div className="priority-indicator-high"></div>
+            <span className="text-sm font-medium">High Priority</span>
           </div>
-          <Badge variant={highPriorityProjects > 0 ? "destructive" : "outline"} className="font-semibold">
+          <div className={highPriorityProjects > 0 ? "status-badge status-badge-sm status-high" : "status-badge status-badge-sm"}>
             {highPriorityProjects}
-          </Badge>
-        </div>
-        <div className="flex items-center justify-between p-3 bg-muted/30 rounded-lg">
-          <div className="flex items-center gap-2">
-            <div className="w-2 h-2 bg-orange-500 rounded-full"></div>
-            <span className="text-sm text-muted-foreground">Overdue</span>
           </div>
-          <Badge variant={overdueProjects > 0 ? "destructive" : "outline"} className="font-semibold overdue-badge">
+        </div>
+        <div className="enhanced-list-item enhanced-list-item-normal flex items-center justify-between">
+          <div className="flex items-center gap-2">
+            <div className="priority-indicator-urgent"></div>
+            <span className="text-sm font-medium">Overdue</span>
+          </div>
+          <div className={overdueProjects > 0 ? "status-badge status-badge-sm status-overdue" : "status-badge status-badge-sm"}>
             {overdueProjects}
-          </Badge>
+          </div>
         </div>
       </CardContent>
     </Card>

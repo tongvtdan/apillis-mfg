@@ -36,7 +36,7 @@ export function OverviewCard({
       {alert && (
         <div className="absolute -top-4 -right-3 z-20">
           <div className={`status-alert text-xs font-semibold px-4 py-2 rounded-full flex items-center gap-2 
-            shadow-lg border-2 backdrop-blur-sm animate-pulse transform hover:scale-110 transition-all duration-200
+            shadow-lg border-2 backdrop-blur-sm transition-all duration-200
             ${alert.includes('overdue') ? 'bg-red-500/90 text-white border-red-300 shadow-red-500/30' :
               alert.includes('on hold') ? 'bg-yellow-500/90 text-white border-yellow-300 shadow-yellow-500/30' :
                 alert.includes('urgent') ? 'bg-orange-500/90 text-white border-orange-300 shadow-orange-500/30' :
