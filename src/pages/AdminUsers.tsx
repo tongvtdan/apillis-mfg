@@ -279,7 +279,10 @@ export default function AdminUsers() {
           </p>
         </div>
 
-        <Button>
+        <Button
+          variant="accent"
+          className="action-button shadow-md hover:shadow-lg"
+        >
           <UserPlus className="h-4 w-4 mr-2" />
           Invite User
         </Button>
@@ -458,7 +461,7 @@ export default function AdminUsers() {
                                 <Edit className="h-4 w-4" />
                               </Button>
                             </DialogTrigger>
-                            <DialogContent>
+                            <DialogContent className="modal-dialog bg-background/100 border-amber-400 border-2">
                               <DialogHeader>
                                 <DialogTitle>Edit User: {user.display_name}</DialogTitle>
                                 <DialogDescription>
@@ -473,7 +476,7 @@ export default function AdminUsers() {
                                     value={selectedUser?.role}
                                     onValueChange={(value) => setSelectedUser(prev => prev ? { ...prev, role: value as any } : null)}
                                   >
-                                    <SelectTrigger>
+                                    <SelectTrigger className="bg-background/100 border-2">
                                       <SelectValue />
                                     </SelectTrigger>
                                     <SelectContent>
@@ -495,7 +498,7 @@ export default function AdminUsers() {
                                     value={selectedUser?.status}
                                     onValueChange={(value) => setSelectedUser(prev => prev ? { ...prev, status: value as any } : null)}
                                   >
-                                    <SelectTrigger>
+                                    <SelectTrigger className="bg-background/100 border-2">
                                       <SelectValue />
                                     </SelectTrigger>
                                     <SelectContent>
@@ -508,10 +511,10 @@ export default function AdminUsers() {
                               </div>
 
                               <DialogFooter>
-                                <Button variant="outline" onClick={() => setEditDialogOpen(false)}>
+                                <Button variant="outline" className="border-2" onClick={() => setEditDialogOpen(false)}>
                                   Cancel
                                 </Button>
-                                <Button onClick={() => {
+                                <Button className="bg-primary border-amber-400 border-2" onClick={() => {
                                   if (selectedUser) {
                                     if (selectedUser.role !== user.role) {
                                       updateUserRole(user.user_id, selectedUser.role);
