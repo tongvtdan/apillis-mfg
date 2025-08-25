@@ -83,8 +83,8 @@ export function ProjectSummaryCard({ project, showUrgencyIndicators = false }: P
     if (!showUrgencyIndicators) return 'enhanced-list-item enhanced-list-item-normal';
 
     switch (urgency.level) {
-      case 'critical': return 'enhanced-list-item enhanced-list-item-urgent';
-      case 'high': return 'enhanced-list-item enhanced-list-item-high';
+      case 'critical': return 'enhanced-list-item enhanced-list-item-urgent border-l-4 border-l-red-500 bg-gradient-to-r from-red-50/40 to-transparent dark:from-red-950/30 dark:to-transparent shadow-md';
+      case 'high': return 'enhanced-list-item enhanced-list-item-high border-l-4 border-l-orange-500 bg-gradient-to-r from-orange-50/30 to-transparent dark:from-orange-950/20 dark:to-transparent';
       default: return 'enhanced-list-item enhanced-list-item-normal';
     }
   };
