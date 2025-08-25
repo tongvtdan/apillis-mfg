@@ -9,12 +9,15 @@ This file contains important changes and updates made to the project.
 1. Created demo authentication accounts with 6-digit UUID endings for easy testing
 2. Set up 7 demo accounts with different roles: Customer, Supplier, Engineering, QA, Production, Procurement, Management
 3. All demo accounts use password "demo123" with email format: role@demo.com
-4. Fixed runtime crash by removing duplicate Router and React Query providers (kept providers in App.tsx, simplified main.tsx)
-5. Added safe debug logs in main.tsx to trace app initialization
-6. Left queryClient utility available for future centralization but unused for now
-7. Enhanced Settings page User Management section with improved UI, prominent call-to-action button, and detailed feature descriptions
-8. Fixed User Management link in Settings page - corrected route from `/admin/users` to `/users` to match App.tsx routing
-9. Resolved AdminUsers hooks order error by avoiding conditional returns before hooks; added canAccess guard and conditional data fetching
+4. Added avatar_url column to profiles table for user profile pictures
+5. Updated all demo profiles with complete information: proper display names, departments, status, and avatar URLs using DiceBear API
+6. Demo profiles now have realistic names: John Customer, Sarah Supplier, Mike Engineer, Lisa QA Lead, Tom Production, Anna Procurement, David Manager
+7. Fixed runtime crash by removing duplicate Router and React Query providers (kept providers in App.tsx, simplified main.tsx)
+8. Added safe debug logs in main.tsx to trace app initialization
+9. Left queryClient utility available for future centralization but unused for now
+10. Enhanced Settings page User Management section with improved UI, prominent call-to-action button, and detailed feature descriptions
+11. Fixed User Management link in Settings page - corrected route from `/admin/users` to `/users` to match App.tsx routing
+12. Resolved AdminUsers hooks order error by avoiding conditional returns before hooks; added canAccess guard and conditional data fetching
 
 Demo Sign-in Accounts:
 
