@@ -156,6 +156,8 @@ export default function Projects() {
                 ? activeProjects
                 : activeProjects.filter(p => p.project_type === selectedProjectType)
             }
+            updateProjectStatusOptimistic={updateProjectStatusOptimistic}
+            refetch={refetch}
           />
         </TabsContent>
 

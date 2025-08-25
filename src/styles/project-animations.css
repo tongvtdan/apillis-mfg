@@ -1,0 +1,179 @@
+/* Project Animation Enhancements */
+
+/* Smooth stage transition animations */
+.project-stage-transition {
+  transition: all 0.3s cubic-bezier(0.4, 0.0, 0.2, 1);
+}
+
+/* Enhanced hover effects for project cards */
+.project-card-hover {
+  transition: all 0.2s cubic-bezier(0.4, 0.0, 0.2, 1);
+}
+
+.project-card-hover:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
+}
+
+/* Smooth status badge transitions */
+.status-badge-transition {
+  transition: all 0.2s cubic-bezier(0.4, 0.0, 0.2, 1);
+}
+
+.status-badge-transition:hover {
+  transform: scale(1.05);
+}
+
+/* Loading spinner for status updates */
+.status-update-spinner {
+  animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+  from {
+    transform: rotate(0deg);
+  }
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+/* Smooth fade in/out for project transitions */
+.project-fade-enter {
+  opacity: 0;
+  transform: translateY(20px) scale(0.95);
+}
+
+.project-fade-enter-active {
+  opacity: 1;
+  transform: translateY(0) scale(1);
+  transition: all 0.3s cubic-bezier(0.4, 0.0, 0.2, 1);
+}
+
+.project-fade-exit {
+  opacity: 1;
+  transform: translateY(0) scale(1);
+}
+
+.project-fade-exit-active {
+  opacity: 0;
+  transform: translateY(-20px) scale(0.95);
+  transition: all 0.3s cubic-bezier(0.4, 0.0, 0.2, 1);
+}
+
+/* Enhanced stage count animations */
+.stage-count-pulse {
+  animation: stageCountPulse 0.6s cubic-bezier(0.4, 0.0, 0.2, 1);
+}
+
+@keyframes stageCountPulse {
+  0% {
+    transform: scale(1);
+  }
+  50% {
+    transform: scale(1.1);
+  }
+  100% {
+    transform: scale(1);
+  }
+}
+
+/* Smooth grid layout transitions */
+.project-grid {
+  transition: grid-template-columns 0.3s cubic-bezier(0.4, 0.0, 0.2, 1);
+}
+
+/* Enhanced button hover effects */
+.action-button-enhanced {
+  transition: all 0.2s cubic-bezier(0.4, 0.0, 0.2, 1);
+}
+
+.action-button-enhanced:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+}
+
+/* Smooth table row transitions */
+.table-row-transition {
+  transition: all 0.2s cubic-bezier(0.4, 0.0, 0.2, 1);
+}
+
+.table-row-transition:hover {
+  background-color: hsl(var(--muted) / 0.3);
+  transform: translateX(2px);
+}
+
+/* Enhanced dropdown animations */
+.dropdown-enhanced {
+  transition: all 0.2s cubic-bezier(0.4, 0.0, 0.2, 1);
+}
+
+.dropdown-enhanced:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+}
+
+/* Smooth stage selection indicator */
+.stage-selection-indicator {
+  transition: all 0.3s cubic-bezier(0.4, 0.0, 0.2, 1);
+}
+
+.stage-selection-indicator.selected {
+  transform: scale(1.02);
+  box-shadow: 0 0 0 3px hsl(var(--primary) / 0.2);
+}
+
+/* Enhanced loading states */
+.loading-enhanced {
+  transition: all 0.2s cubic-bezier(0.4, 0.0, 0.2, 1);
+}
+
+.loading-enhanced.loading {
+  opacity: 0.7;
+  pointer-events: none;
+}
+
+/* Smooth priority badge transitions */
+.priority-badge-transition {
+  transition: all 0.2s cubic-bezier(0.4, 0.0, 0.2, 1);
+}
+
+.priority-badge-transition:hover {
+  transform: scale(1.05);
+  filter: brightness(1.1);
+}
+
+/* Enhanced card elevation on hover */
+.card-elevated {
+  transition: all 0.2s cubic-bezier(0.4, 0.0, 0.2, 1);
+}
+
+.card-elevated:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
+}
+
+/* Smooth stage workflow transitions */
+.workflow-stage-transition {
+  transition: all 0.3s cubic-bezier(0.4, 0.0, 0.2, 1);
+}
+
+.workflow-stage-transition.completed {
+  transform: scale(1.05);
+  filter: brightness(1.1);
+}
+
+.workflow-stage-transition.current {
+  transform: scale(1.1);
+  filter: brightness(1.2);
+}
+
+/* Enhanced toast animations */
+.toast-enhanced {
+  transition: all 0.3s cubic-bezier(0.4, 0.0, 0.2, 1);
+}
+
+.toast-enhanced:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 8px 25px -5px rgba(0, 0, 0, 0.1), 0 8px 10px -5px rgba(0, 0, 0, 0.04);
+}

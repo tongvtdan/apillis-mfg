@@ -21,6 +21,7 @@ import {
     TooltipTrigger,
 } from "@/components/ui/tooltip";
 import { motion, AnimatePresence } from 'framer-motion';
+import { AnimatedProjectCard } from './AnimatedProjectCard';
 
 
 interface WorkflowFlowchartProps {
@@ -48,6 +49,7 @@ export function WorkflowFlowchart({
     const navigate = useNavigate();
     const [validationErrors, setValidationErrors] = useState<Record<string, string[]>>({});
     const [isUpdating, setIsUpdating] = useState(false);
+    const [updatingProjects, setUpdatingProjects] = useState<Set<string>>(new Set());
 
     // Use external projects and functions if provided, otherwise use hook versions
     const allProjects = externalProjects || hookProjects;
@@ -76,8 +78,8 @@ export function WorkflowFlowchart({
             return newErrors;
         });
 
-        // Show update animation
-        setIsUpdating(true);
+        // Track this specific project as updating
+        setUpdatingProjects(prev => new Set(prev).add(projectId));
 
         try {
             await updateProjectStatusOptimistic(projectId, newStatus);
@@ -85,7 +87,12 @@ export function WorkflowFlowchart({
             // Refresh projects data to ensure consistency
             await refetch(true);
         } finally {
-            setIsUpdating(false);
+            // Remove this project from updating state
+            setUpdatingProjects(prev => {
+                const newSet = new Set(prev);
+                newSet.delete(projectId);
+                return newSet;
+            });
         }
     };
 
@@ -127,6 +134,8 @@ export function WorkflowFlowchart({
                 return 'bg-gray-100 text-gray-800 border-gray-200';
         }
     };
+
+
 
     // Get available stages for a project (including completed stages for rollback)
     const getAvailableStages = (project: Project) => {
@@ -172,7 +181,8 @@ export function WorkflowFlowchart({
     };
 
     // Format currency
-    const formatCurrency = (amount: number) => {
+    const formatCurrency = (amount: number | null) => {
+        if (!amount) return null;
         return new Intl.NumberFormat('en-US', {
             style: 'currency',
             currency: 'USD',
@@ -227,149 +237,19 @@ export function WorkflowFlowchart({
         });
     }, [allProjects]);
 
-    // Render project card in Kanban style
+    // Render project card using animated component
     const renderProjectCard = (project: Project) => {
-        const isOverdue = project.days_in_stage > 7;
-        const timeIndicator = isOverdue ?
-            { icon: AlertCircle, color: 'text-warning', bg: 'bg-warning/10' } :
-            { icon: Play, color: 'text-success', bg: 'bg-success/10' };
-
         return (
-            <Card key={project.id} className="card-elevated hover:shadow-md transition-all duration-200 hover:scale-[1.02]">
-                <CardHeader className="pb-2">
-                    <div className="flex items-center justify-between">
-                        <CardTitle className="text-sm font-medium">
-                            {project.project_id}
-                        </CardTitle>
-                        <DropdownMenu>
-                            <DropdownMenuTrigger asChild>
-                                <Button variant="ghost" size="sm" className="h-6 w-6 p-0">
-                                    <span className="sr-only">Open menu</span>
-                                    <ChevronRight className="h-4 w-4" />
-                                </Button>
-                            </DropdownMenuTrigger>
-                            <DropdownMenuContent align="end">
-                                <DropdownMenuItem onClick={() => navigate(`/project/${project.id}`)}>
-                                    View Details
-                                </DropdownMenuItem>
-                                <DropdownMenuItem>Edit</DropdownMenuItem>
-                                <DropdownMenuItem>Assign to...</DropdownMenuItem>
-                            </DropdownMenuContent>
-                        </DropdownMenu>
-                    </div>
-                    <div className="flex items-center justify-between">
-                        <div className="flex items-center space-x-2">
-                            <Badge
-                                variant="outline"
-                                className={`text-xs ${getPriorityColor(project.priority)}`}
-                            >
-                                {project.priority.toUpperCase()}
-                            </Badge>
-                            <div className={`flex items-center space-x-1 px-2 py-1 rounded-full text-xs ${timeIndicator.bg}`}>
-                                <timeIndicator.icon className={`h-3 w-3 ${timeIndicator.color}`} />
-                                <span className={timeIndicator.color}>{project.days_in_stage}d</span>
-                            </div>
-                        </div>
-                    </div>
-                </CardHeader>
-
-                <CardContent className="pt-0 space-y-3">
-                    <div>
-                        <p className="font-medium text-sm">{project.title}</p>
-                        <div className="flex items-center space-x-1 text-xs text-muted-foreground mt-1">
-                            <span>{project.customer?.company || project.customer?.name || project.contact_name || 'Unknown'}</span>
-                        </div>
-                    </div>
-
-                    <div className="space-y-2 text-xs">
-                        <div className="flex items-center justify-between">
-                            <div className="flex items-center space-x-1 text-muted-foreground">
-                                <span>{project.contact_name || project.assignee_id || 'Unassigned'}</span>
-                            </div>
-                            {project.estimated_value && (
-                                <span className="font-medium">{formatCurrency(project.estimated_value)}</span>
-                            )}
-                        </div>
-
-                        <div className="flex items-center justify-between">
-                            {project.due_date && (
-                                <div className="flex items-center space-x-1 text-muted-foreground">
-                                    <span>{formatDate(project.due_date)}</span>
-                                </div>
-                            )}
-                            <div className="flex items-center space-x-1 text-muted-foreground">
-                                <span>{project.days_in_stage} days</span>
-                            </div>
-                        </div>
-                    </div>
-
-                    <div className="pt-2 border-t">
-                        <div className="flex flex-col gap-2">
-                            <Button
-                                variant="accent"
-                                size="sm"
-                                className="w-full justify-center h-7 action-button hover:scale-[1.02] transition-all duration-200"
-                                onClick={() => navigate(`/project/${project.id}`)}
-                            >
-                                <Eye className="mr-2 h-3 w-3 flex-shrink-0" />
-                                <span className="truncate">View Details</span>
-                            </Button>
-                            <DropdownMenu>
-                                <DropdownMenuTrigger asChild>
-                                    <Button
-                                        variant="default"
-                                        size="sm"
-                                        className="w-full justify-center h-7 bg-primary hover:bg-primary/90 text-primary-foreground hover:scale-[1.02] transition-all duration-200 shadow-sm"
-                                    >
-                                        <Users className="mr-1 h-3 w-3 flex-shrink-0" />
-                                        <span className="truncate">Change Stage</span>
-                                    </Button>
-                                </DropdownMenuTrigger>
-                                <DropdownMenuContent
-                                    align="end"
-                                    className="bg-background backdrop-blur-lg border border-muted-foreground/20"
-                                >
-                                    {getAvailableStages(project).map((stage) => {
-                                        const stageStatus = getProjectStageStatus(project, stage.id);
-                                        const isCurrentStage = project.status === stage.id;
-
-                                        return (
-                                            <DropdownMenuItem
-                                                key={stage.id}
-                                                onClick={() => handleUpdateStatus(project, stage.id)}
-                                                disabled={isCurrentStage}
-                                                className={`
-                                                    ${isCurrentStage ? "opacity-50 cursor-not-allowed" : "cursor-pointer"}
-                                                    transition-all duration-200 ease-in-out
-                                                    hover:bg-accent hover:text-accent-foreground
-                                                    focus:bg-accent focus:text-accent-foreground
-                                                    data-[highlighted]:bg-accent data-[highlighted]:text-accent-foreground
-                                                    hover:pl-3 hover:scale-[1.02] transform
-                                                    rounded-sm my-0.5
-                                                `}
-                                            >
-                                                <div className="flex items-center w-full">
-                                                    <span className="flex-1">{stage.name}</span>
-                                                    {isCurrentStage && (
-                                                        <Badge variant="secondary" className="ml-2 text-xs">
-                                                            Current
-                                                        </Badge>
-                                                    )}
-                                                    {stageStatus === 'completed' && !isCurrentStage && (
-                                                        <Badge variant="outline" className="ml-2 text-xs border-green-500 text-green-500">
-                                                            Completed
-                                                        </Badge>
-                                                    )}
-                                                </div>
-                                            </DropdownMenuItem>
-                                        );
-                                    })}
-                                </DropdownMenuContent>
-                            </DropdownMenu>
-                        </div>
-                    </div>
-                </CardContent>
-            </Card>
+            <AnimatedProjectCard
+                key={project.id}
+                project={project}
+                onStatusChange={handleStatusChange}
+                getAvailableStages={getAvailableStages}
+                getPriorityColor={getPriorityColor}
+                formatCurrency={formatCurrency}
+                formatDate={formatDate}
+                isUpdating={updatingProjects.has(project.id)}
+            />
         );
     };
 
@@ -392,10 +272,22 @@ export function WorkflowFlowchart({
                         <div className="flex items-center gap-4 min-w-max">
                             {PROJECT_STAGES.map((stage, index) => (
                                 <React.Fragment key={stage.id}>
-                                    <div className="flex flex-col items-center space-y-2">
-                                        <Badge className={`${stage.color} text-xs font-medium`} variant="outline">
-                                            {projectsByStage.find(s => s.id === stage.id)?.projects.length || 0}
-                                        </Badge>
+                                    <motion.div
+                                        className="flex flex-col items-center space-y-2"
+                                        initial={{ opacity: 0, y: 20 }}
+                                        animate={{ opacity: 1, y: 0 }}
+                                        transition={{ delay: index * 0.1, duration: 0.3 }}
+                                    >
+                                        <motion.div
+                                            key={`${stage.id}-${projectsByStage.find(s => s.id === stage.id)?.projects.length || 0}`}
+                                            initial={{ scale: 1.2 }}
+                                            animate={{ scale: 1 }}
+                                            transition={{ duration: 0.2 }}
+                                        >
+                                            <Badge className={`${stage.color} text-xs font-medium`} variant="outline">
+                                                {projectsByStage.find(s => s.id === stage.id)?.projects.length || 0}
+                                            </Badge>
+                                        </motion.div>
                                         <Card
                                             className={`w-48 cursor-pointer hover:shadow-md transition-shadow ${selectedStage === stage.id ? 'ring-2 ring-primary' : ''}`}
                                             onClick={() => onStageSelect && onStageSelect(stage.id)}
@@ -406,10 +298,16 @@ export function WorkflowFlowchart({
                                                 </div>
                                             </CardContent>
                                         </Card>
-                                    </div>
+                                    </motion.div>
 
                                     {index < PROJECT_STAGES.length - 1 && (
-                                        <ChevronRight className="h-5 w-5 text-muted-foreground flex-shrink-0" />
+                                        <motion.div
+                                            initial={{ opacity: 0 }}
+                                            animate={{ opacity: 1 }}
+                                            transition={{ delay: index * 0.1 + 0.15, duration: 0.3 }}
+                                        >
+                                            <ChevronRight className="h-5 w-5 text-muted-foreground flex-shrink-0" />
+                                        </motion.div>
                                     )}
                                 </React.Fragment>
                             ))}
@@ -502,16 +400,26 @@ export function WorkflowFlowchart({
                     </CardHeader>
                     <CardContent>
                         {filteredProjects.length > 0 ? (
-                            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-                                {filteredProjects.map(project => renderProjectCard(project))}
-                            </div>
+                            <motion.div
+                                className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4"
+                                layout
+                            >
+                                <AnimatePresence mode="popLayout">
+                                    {filteredProjects.map(project => renderProjectCard(project))}
+                                </AnimatePresence>
+                            </motion.div>
                         ) : (
-                            <div className="text-center py-8 text-muted-foreground">
+                            <motion.div
+                                className="text-center py-8 text-muted-foreground"
+                                initial={{ opacity: 0 }}
+                                animate={{ opacity: 1 }}
+                                transition={{ duration: 0.3 }}
+                            >
                                 <p className="text-sm">No projects found</p>
                                 {selectedStage && (
                                     <p className="text-xs mt-1">No projects in this stage</p>
                                 )}
-                            </div>
+                            </motion.div>
                         )}
                     </CardContent>
                 </Card>

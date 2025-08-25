@@ -1,3 +1,4 @@
+import React, { useState, useMemo } from "react";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import {
@@ -17,11 +18,15 @@ import {
 } from "@/components/ui/table";
 import { Project, ProjectStatus, PROJECT_STAGES } from "@/types/project";
 import { useProjects } from "@/hooks/useProjects";
-import { ExternalLink, User } from "lucide-react";
+import { ExternalLink, User, ArrowUpDown, ArrowUp, ArrowDown } from "lucide-react";
 import { useNavigate } from "react-router-dom";
+import { AnimatedTableRow } from "./AnimatedTableRow";
+import { WorkflowValidator } from "@/lib/workflow-validator";
 
 interface ProjectTableProps {
   projects: Project[];
+  updateProjectStatusOptimistic?: (projectId: string, newStatus: ProjectStatus) => Promise<boolean>;
+  refetch?: (forceRefresh?: boolean) => Promise<void>;
 }
 
 const statusVariants = {
@@ -41,18 +46,67 @@ const priorityVariants = {
   high: "bg-red-100 text-red-800",
 } as const;
 
-export function ProjectTable({ projects }: ProjectTableProps) {
-  const { updateProjectStatusOptimistic, refetch } = useProjects();
+export function ProjectTable({ projects, updateProjectStatusOptimistic: externalUpdateFn, refetch: externalRefetch }: ProjectTableProps) {
+  const { updateProjectStatusOptimistic: hookUpdateFn, refetch: hookRefetch } = useProjects();
   const navigate = useNavigate();
+  const [updatingProjects, setUpdatingProjects] = useState<Set<string>>(new Set());
+  const [sortField, setSortField] = useState<'name' | 'stage' | 'priority'>('name');
+  const [sortDirection, setSortDirection] = useState<'asc' | 'desc'>('asc');
+
+  // Use external functions if provided, otherwise use hook versions
+  const updateProjectStatusOptimistic = externalUpdateFn || hookUpdateFn;
+  const refetch = externalRefetch || hookRefetch;
 
   const handleStatusChange = async (projectId: string, newStatus: ProjectStatus) => {
+    console.log(`🔄 ProjectTable: Starting status change for project ${projectId} to ${newStatus}`);
+
+    const project = projects.find(p => p.id === projectId);
+    if (!project) {
+      console.error('❌ Project not found:', projectId);
+      return;
+    }
+
+    console.log(`📊 Current project status: ${project.status}, target: ${newStatus}`);
+
+    // Validate the status change using workflow validator
+    const validationResult = await WorkflowValidator.validateStatusChange(project, newStatus);
+
+    if (!validationResult.isValid) {
+      // Show validation errors via toast (handled by the hook)
+      console.error('❌ Validation failed:', validationResult.errors);
+      return;
+    }
+
+    console.log('✅ Validation passed, proceeding with update');
+
+    // Track this specific project as updating
+    setUpdatingProjects(prev => new Set(prev).add(projectId));
+
     try {
-      await updateProjectStatusOptimistic(projectId, newStatus);
-      // Refresh projects data to ensure consistency
-      await refetch(true);
+      console.log('🚀 Calling updateProjectStatusOptimistic...');
+      const result = await updateProjectStatusOptimistic(projectId, newStatus);
+      console.log('📊 Update result:', result);
+
+      if (result) {
+        console.log('🔄 Calling refetch...');
+        // Refresh projects data to ensure consistency
+        await refetch(true);
+        console.log('✅ Refetch completed');
+      } else {
+        console.error('❌ Update failed, result was false');
+      }
       // Errors will be shown via toast notifications from the hook
     } catch (error) {
+      console.error('❌ Error in handleStatusChange:', error);
       // Error handling is already done in the hook via toast notifications
+    } finally {
+      // Remove this project from updating state
+      setUpdatingProjects(prev => {
+        const newSet = new Set(prev);
+        newSet.delete(projectId);
+        return newSet;
+      });
+      console.log('🧹 Cleaned up updating state for project:', projectId);
     }
   };
 
@@ -73,16 +127,137 @@ export function ProjectTable({ projects }: ProjectTableProps) {
     return `$${value.toLocaleString()}`;
   };
 
+  // Sort projects based on current sort field and direction
+  const sortedProjects = useMemo(() => {
+    const sorted = [...projects].sort((a, b) => {
+      let aValue: string | number;
+      let bValue: string | number;
+
+      switch (sortField) {
+        case 'name':
+          aValue = a.title.toLowerCase();
+          bValue = b.title.toLowerCase();
+          break;
+        case 'stage':
+          aValue = PROJECT_STAGES.find(s => s.id === a.status)?.name || a.status;
+          bValue = PROJECT_STAGES.find(s => s.id === b.status)?.name || b.status;
+          break;
+        case 'priority':
+          aValue = a.priority;
+          bValue = b.priority;
+          break;
+        default:
+          aValue = a.title.toLowerCase();
+          bValue = b.title.toLowerCase();
+      }
+
+      if (typeof aValue === 'string' && typeof bValue === 'string') {
+        if (sortDirection === 'asc') {
+          return aValue.localeCompare(bValue);
+        } else {
+          return bValue.localeCompare(aValue);
+        }
+      }
+
+      return 0;
+    });
+
+    return sorted;
+  }, [projects, sortField, sortDirection]);
+
+  const handleSort = (field: 'name' | 'stage' | 'priority') => {
+    if (sortField === field) {
+      setSortDirection(prev => prev === 'asc' ? 'desc' : 'asc');
+    } else {
+      setSortField(field);
+      setSortDirection('asc');
+    }
+  };
+
+  const getSortIcon = (field: 'name' | 'stage' | 'priority') => {
+    if (sortField !== field) {
+      return <ArrowUpDown className="h-4 w-4" />;
+    }
+    return sortDirection === 'asc' ? <ArrowUp className="h-4 w-4" /> : <ArrowDown className="h-4 w-4" />;
+  };
+
   return (
     <div className="space-y-4">
+      {/* Sorting Summary */}
+      <div className="flex items-center justify-between text-sm text-muted-foreground">
+        <div>
+          Showing {sortedProjects.length} project{sortedProjects.length !== 1 ? 's' : ''}
+          {sortField !== 'name' && (
+            <span className="ml-2">
+              • Sorted by {sortField === 'stage' ? 'Stage' : sortField === 'priority' ? 'Priority' : 'Name'}
+              ({sortDirection === 'asc' ? 'A to Z' : 'Z to A'})
+            </span>
+          )}
+        </div>
+        <div className="flex items-center gap-2">
+          <span>Sort by:</span>
+          <Button
+            variant={sortField === 'name' ? 'default' : 'outline'}
+            size="sm"
+            onClick={() => handleSort('name')}
+            className="h-7 text-xs"
+          >
+            Name {getSortIcon('name')}
+          </Button>
+          <Button
+            variant={sortField === 'stage' ? 'default' : 'outline'}
+            size="sm"
+            onClick={() => handleSort('stage')}
+            className="h-7 text-xs"
+          >
+            Stage {getSortIcon('stage')}
+          </Button>
+          <Button
+            variant={sortField === 'priority' ? 'default' : 'outline'}
+            size="sm"
+            onClick={() => handleSort('priority')}
+            className="h-7 text-xs"
+          >
+            Priority {getSortIcon('priority')}
+          </Button>
+        </div>
+      </div>
+
       <div className="rounded-md border">
         <Table>
           <TableHeader>
             <TableRow>
-              <TableHead className="w-[200px]">Project</TableHead>
+              <TableHead className="w-[200px]">
+                <Button
+                  variant="ghost"
+                  onClick={() => handleSort('name')}
+                  className="h-auto p-0 font-semibold hover:bg-transparent"
+                >
+                  Project
+                  {getSortIcon('name')}
+                </Button>
+              </TableHead>
               <TableHead>Customer</TableHead>
-              <TableHead>Status</TableHead>
-              <TableHead>Priority</TableHead>
+              <TableHead>
+                <Button
+                  variant="ghost"
+                  onClick={() => handleSort('stage')}
+                  className="h-auto p-0 font-semibold hover:bg-transparent"
+                >
+                  Stage
+                  {getSortIcon('stage')}
+                </Button>
+              </TableHead>
+              <TableHead>
+                <Button
+                  variant="ghost"
+                  onClick={() => handleSort('priority')}
+                  className="h-auto p-0 font-semibold hover:bg-transparent"
+                >
+                  Priority
+                  {getSortIcon('priority')}
+                </Button>
+              </TableHead>
               <TableHead>Assignee</TableHead>
               <TableHead>Lead Time</TableHead>
               <TableHead>Value</TableHead>
@@ -90,85 +265,18 @@ export function ProjectTable({ projects }: ProjectTableProps) {
             </TableRow>
           </TableHeader>
           <TableBody>
-            {projects.map((project) => (
-              <TableRow key={project.id}>
-                <TableCell className="font-medium">
-                  <div
-                    className="cursor-pointer hover:text-primary"
-                    onClick={() => handleViewProject(project.id)}
-                  >
-                    <div className="font-semibold">{project.title}</div>
-                    <div className="text-sm text-muted-foreground">
-                      {project.project_id}
-                    </div>
-                  </div>
-                </TableCell>
-                <TableCell>
-                  <div>
-                    <div className="font-medium">
-                      {project.customer?.company || project.contact_name}
-                    </div>
-                    <div className="text-sm text-muted-foreground">
-                      {project.contact_email}
-                    </div>
-                  </div>
-                </TableCell>
-                <TableCell>
-                  <Select
-                    value={project.status}
-                    onValueChange={(value: ProjectStatus) => handleStatusChange(project.id, value)}
-                  >
-                    <SelectTrigger className="w-[180px]">
-                      <SelectValue>
-                        <Badge className={statusVariants[project.status as keyof typeof statusVariants]}>
-                          {PROJECT_STAGES.find(s => s.id === project.status)?.name || project.status}
-                        </Badge>
-                      </SelectValue>
-                    </SelectTrigger>
-                    <SelectContent>
-                      {PROJECT_STAGES.map((stage) => (
-                        <SelectItem key={stage.id} value={stage.id}>
-                          <Badge className={statusVariants[stage.id as keyof typeof statusVariants]}>
-                            {stage.name}
-                          </Badge>
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                </TableCell>
-                <TableCell>
-                  <Badge className={priorityVariants[project.priority as keyof typeof priorityVariants]}>
-                    {project.priority?.toUpperCase()}
-                  </Badge>
-                </TableCell>
-                <TableCell>
-                  <div className="flex items-center gap-2">
-                    <User className="h-4 w-4" />
-                    <span className="text-sm">
-                      {project.assignee_id || 'Unassigned'}
-                    </span>
-                  </div>
-                </TableCell>
-                <TableCell>
-                  <div className="text-sm">
-                    {calculateLeadTime(project.due_date, project.created_at)}
-                  </div>
-                </TableCell>
-                <TableCell>
-                  {formatCurrency(project.estimated_value)}
-                </TableCell>
-                <TableCell className="text-right">
-                  <Button
-                    variant="accent"
-                    size="sm"
-                    className="action-button hover:scale-[1.02] transition-all duration-200"
-                    onClick={() => handleViewProject(project.id)}
-                  >
-                    <ExternalLink className="h-4 w-4 mr-2" />
-                    View Details
-                  </Button>
-                </TableCell>
-              </TableRow>
+            {sortedProjects.map((project) => (
+              <AnimatedTableRow
+                key={project.id}
+                project={project}
+                onStatusChange={handleStatusChange}
+                onViewProject={handleViewProject}
+                statusVariants={statusVariants}
+                priorityVariants={priorityVariants}
+                calculateLeadTime={calculateLeadTime}
+                formatCurrency={formatCurrency}
+                isUpdating={updatingProjects.has(project.id)}
+              />
             ))}
           </TableBody>
         </Table>
