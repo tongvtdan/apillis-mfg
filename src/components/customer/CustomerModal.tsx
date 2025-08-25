@@ -147,12 +147,12 @@ export function CustomerModal({ open, onClose, customer }: CustomerModalProps) {
 
     return (
         <Dialog open={open} onOpenChange={handleClose}>
-            <DialogContent className="sm:max-w-[500px]">
-                <DialogHeader>
-                    <DialogTitle>
+            <DialogContent className="sm:max-w-[500px] modal-dialog">
+                <DialogHeader className="modal-dialog-header">
+                    <DialogTitle className="modal-dialog-title">
                         {isEditing ? 'Edit Customer' : 'Add New Customer'}
                     </DialogTitle>
-                    <DialogDescription>
+                    <DialogDescription className="modal-dialog-description">
                         {isEditing
                             ? 'Update customer information and contact details.'
                             : 'Add a new customer to your database with their contact information.'
@@ -171,6 +171,7 @@ export function CustomerModal({ open, onClose, customer }: CustomerModalProps) {
                                     minLength: { value: 2, message: 'Name must be at least 2 characters' }
                                 })}
                                 placeholder="John Smith"
+                                className="modal-form-input"
                             />
                             {errors.name && (
                                 <p className="text-sm text-destructive">{errors.name.message}</p>
@@ -183,6 +184,7 @@ export function CustomerModal({ open, onClose, customer }: CustomerModalProps) {
                                 id="company"
                                 {...register('company')}
                                 placeholder="Acme Manufacturing"
+                                className="modal-form-input"
                             />
                         </div>
                     </div>
@@ -200,6 +202,7 @@ export function CustomerModal({ open, onClose, customer }: CustomerModalProps) {
                                     }
                                 })}
                                 placeholder="john@acme.com"
+                                className="modal-form-input"
                             />
                             {errors.email && (
                                 <p className="text-sm text-destructive">{errors.email.message}</p>
@@ -212,6 +215,7 @@ export function CustomerModal({ open, onClose, customer }: CustomerModalProps) {
                                 id="phone"
                                 {...register('phone')}
                                 placeholder="+1-555-0123"
+                                className="modal-form-input"
                             />
                         </div>
                     </div>
@@ -223,6 +227,7 @@ export function CustomerModal({ open, onClose, customer }: CustomerModalProps) {
                             {...register('address')}
                             placeholder="123 Industrial Ave, Detroit, MI 48201"
                             rows={2}
+                            className="modal-form-textarea"
                         />
                     </div>
 
@@ -232,7 +237,7 @@ export function CustomerModal({ open, onClose, customer }: CustomerModalProps) {
                             value={watch('country')}
                             onValueChange={(value) => setValue('country', value)}
                         >
-                            <SelectTrigger>
+                            <SelectTrigger className="modal-select-trigger">
                                 <SelectValue placeholder="Select country" />
                             </SelectTrigger>
                             <SelectContent>
@@ -251,12 +256,15 @@ export function CustomerModal({ open, onClose, customer }: CustomerModalProps) {
                             variant="outline"
                             onClick={handleClose}
                             disabled={loading}
+                            className="modal-button-secondary"
                         >
                             Cancel
                         </Button>
                         <Button
                             type="submit"
                             disabled={!isValid || loading}
+                            className="modal-button-primary"
+                            variant="accent"
                         >
                             {loading ? 'Saving...' : (isEditing ? 'Update Customer' : 'Add Customer')}
                         </Button>

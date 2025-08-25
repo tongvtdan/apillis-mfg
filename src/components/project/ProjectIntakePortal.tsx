@@ -20,7 +20,7 @@ export function ProjectIntakePortal({ onSuccess }: ProjectIntakePortalProps) {
     // Listen for changes
     const handleChange = (e: MediaQueryListEvent) => setIsDarkMode(e.matches);
     darkModeQuery.addEventListener('change', handleChange);
-    
+
     return () => darkModeQuery.removeEventListener('change', handleChange);
   }, []);
 
@@ -40,8 +40,8 @@ export function ProjectIntakePortal({ onSuccess }: ProjectIntakePortalProps) {
       </div>
 
       <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full project-intake-tabs">
-        <TabsList 
-          className="grid w-full grid-cols-3 mb-4" 
+        <TabsList
+          className="grid w-full grid-cols-3 mb-4"
           style={{
             backgroundColor: isDarkMode ? 'rgba(58, 58, 58, 0.7)' : 'rgba(187, 134, 252, 0.1)',
             padding: '0.25rem',
@@ -49,16 +49,16 @@ export function ProjectIntakePortal({ onSuccess }: ProjectIntakePortalProps) {
             border: '1px solid rgba(255, 215, 64, 0.1)',
           }}
         >
-          <TabsTrigger 
-            value="rfq" 
+          <TabsTrigger
+            value="rfq"
             className="flex items-center gap-2"
             style={{
-              backgroundColor: activeTab === 'rfq' 
-                ? isDarkMode ? 'rgba(255, 215, 64, 0.7)' : '#FFD740' 
+              backgroundColor: activeTab === 'rfq'
+                ? isDarkMode ? 'rgba(255, 215, 64, 0.7)' : '#FFD740'
                 : 'transparent',
               color: activeTab === 'rfq' ? '#1F2937' : undefined,
-              boxShadow: activeTab === 'rfq' 
-                ? isDarkMode ? '0 0 8px rgba(255, 215, 64, 0.3)' : '0 2px 4px rgba(0, 0, 0, 0.1)' 
+              boxShadow: activeTab === 'rfq'
+                ? isDarkMode ? '0 0 8px rgba(255, 215, 64, 0.3)' : '0 2px 4px rgba(0, 0, 0, 0.1)'
                 : 'none',
               fontWeight: activeTab === 'rfq' ? 600 : 400,
             }}
@@ -66,16 +66,16 @@ export function ProjectIntakePortal({ onSuccess }: ProjectIntakePortalProps) {
             <MessageSquare className="h-4 w-4" />
             RFQ / Quote Request
           </TabsTrigger>
-          <TabsTrigger 
-            value="po" 
+          <TabsTrigger
+            value="po"
             className="flex items-center gap-2"
             style={{
-              backgroundColor: activeTab === 'po' 
-                ? isDarkMode ? 'rgba(255, 215, 64, 0.7)' : '#FFD740' 
+              backgroundColor: activeTab === 'po'
+                ? isDarkMode ? 'rgba(255, 215, 64, 0.7)' : '#FFD740'
                 : 'transparent',
               color: activeTab === 'po' ? '#1F2937' : undefined,
-              boxShadow: activeTab === 'po' 
-                ? isDarkMode ? '0 0 8px rgba(255, 215, 64, 0.3)' : '0 2px 4px rgba(0, 0, 0, 0.1)' 
+              boxShadow: activeTab === 'po'
+                ? isDarkMode ? '0 0 8px rgba(255, 215, 64, 0.3)' : '0 2px 4px rgba(0, 0, 0, 0.1)'
                 : 'none',
               fontWeight: activeTab === 'po' ? 600 : 400,
             }}
@@ -83,16 +83,16 @@ export function ProjectIntakePortal({ onSuccess }: ProjectIntakePortalProps) {
             <FileText className="h-4 w-4" />
             Purchase Order
           </TabsTrigger>
-          <TabsTrigger 
-            value="idea" 
+          <TabsTrigger
+            value="idea"
             className="flex items-center gap-2"
             style={{
-              backgroundColor: activeTab === 'idea' 
-                ? isDarkMode ? 'rgba(255, 215, 64, 0.7)' : '#FFD740' 
+              backgroundColor: activeTab === 'idea'
+                ? isDarkMode ? 'rgba(255, 215, 64, 0.7)' : '#FFD740'
                 : 'transparent',
               color: activeTab === 'idea' ? '#1F2937' : undefined,
-              boxShadow: activeTab === 'idea' 
-                ? isDarkMode ? '0 0 8px rgba(255, 215, 64, 0.3)' : '0 2px 4px rgba(0, 0, 0, 0.1)' 
+              boxShadow: activeTab === 'idea'
+                ? isDarkMode ? '0 0 8px rgba(255, 215, 64, 0.3)' : '0 2px 4px rgba(0, 0, 0, 0.1)'
                 : 'none',
               fontWeight: activeTab === 'idea' ? 600 : 400,
             }}

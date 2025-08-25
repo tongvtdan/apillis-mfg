@@ -132,12 +132,12 @@ export function SupplierModal({ isOpen, onClose, onSubmit, supplier }: SupplierM
 
     return (
         <Dialog open={isOpen} onOpenChange={onClose}>
-            <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
-                <DialogHeader>
-                    <DialogTitle>
+            <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto modal-dialog">
+                <DialogHeader className="modal-dialog-header">
+                    <DialogTitle className="modal-dialog-title">
                         {supplier ? "Edit Supplier" : "Add New Supplier"}
                     </DialogTitle>
-                    <DialogDescription>
+                    <DialogDescription className="modal-dialog-description">
                         {supplier
                             ? "Update the supplier information below."
                             : "Enter the details for the new supplier."}
@@ -155,6 +155,7 @@ export function SupplierModal({ isOpen, onClose, onSubmit, supplier }: SupplierM
                                 value={name}
                                 onChange={(e) => setName(e.target.value)}
                                 placeholder="Supplier contact name"
+                                className="modal-form-input"
                             />
                         </div>
                     </div>
@@ -169,6 +170,7 @@ export function SupplierModal({ isOpen, onClose, onSubmit, supplier }: SupplierM
                                 value={company}
                                 onChange={(e) => setCompany(e.target.value)}
                                 placeholder="Company name"
+                                className="modal-form-input"
                             />
                         </div>
                     </div>
@@ -184,6 +186,7 @@ export function SupplierModal({ isOpen, onClose, onSubmit, supplier }: SupplierM
                                 value={email}
                                 onChange={(e) => setEmail(e.target.value)}
                                 placeholder="supplier@example.com"
+                                className="modal-form-input"
                             />
                         </div>
                     </div>
@@ -198,6 +201,7 @@ export function SupplierModal({ isOpen, onClose, onSubmit, supplier }: SupplierM
                                 value={phone}
                                 onChange={(e) => setPhone(e.target.value)}
                                 placeholder="+1 (555) 123-4567"
+                                className="modal-form-input"
                             />
                         </div>
                     </div>
@@ -212,7 +216,7 @@ export function SupplierModal({ isOpen, onClose, onSubmit, supplier }: SupplierM
                                 value={address}
                                 onChange={(e) => setAddress(e.target.value)}
                                 placeholder="Street address"
-                                className="resize-none"
+                                className="modal-form-textarea resize-none"
                             />
                         </div>
                     </div>
@@ -227,6 +231,7 @@ export function SupplierModal({ isOpen, onClose, onSubmit, supplier }: SupplierM
                                 value={country}
                                 onChange={(e) => setCountry(e.target.value)}
                                 placeholder="Country"
+                                className="modal-form-input"
                             />
                         </div>
                     </div>
@@ -267,6 +272,7 @@ export function SupplierModal({ isOpen, onClose, onSubmit, supplier }: SupplierM
                                 value={rating}
                                 onChange={(e) => setRating(parseFloat(e.target.value) || 0)}
                                 placeholder="0.0"
+                                className="modal-form-input"
                             />
                             <p className="text-sm text-muted-foreground mt-1">
                                 Rating from 0.0 to 5.0
@@ -288,6 +294,7 @@ export function SupplierModal({ isOpen, onClose, onSubmit, supplier }: SupplierM
                                 value={responseRate}
                                 onChange={(e) => setResponseRate(parseInt(e.target.value) || 0)}
                                 placeholder="0"
+                                className="modal-form-input"
                             />
                             <p className="text-sm text-muted-foreground mt-1">
                                 Percentage from 0 to 100
@@ -321,7 +328,7 @@ export function SupplierModal({ isOpen, onClose, onSubmit, supplier }: SupplierM
                                 value={notes}
                                 onChange={(e) => setNotes(e.target.value)}
                                 placeholder="Additional notes about this supplier"
-                                className="resize-none"
+                                className="modal-form-textarea resize-none"
                             />
                         </div>
                     </div>
@@ -336,6 +343,7 @@ export function SupplierModal({ isOpen, onClose, onSubmit, supplier }: SupplierM
                                 value={tags}
                                 onChange={(e) => setTags(e.target.value)}
                                 placeholder="tag1, tag2, tag3"
+                                className="modal-form-input"
                             />
                             <p className="text-sm text-muted-foreground mt-1">
                                 Comma-separated tags
@@ -345,10 +353,10 @@ export function SupplierModal({ isOpen, onClose, onSubmit, supplier }: SupplierM
                 </div>
 
                 <DialogFooter>
-                    <Button variant="outline" onClick={onClose}>
+                    <Button variant="outline" onClick={onClose} className="modal-button-secondary">
                         Cancel
                     </Button>
-                    <Button onClick={handleSubmit}>
+                    <Button onClick={handleSubmit} className="modal-button-primary" variant="accent">
                         {supplier ? "Update Supplier" : "Add Supplier"}
                     </Button>
                 </DialogFooter>

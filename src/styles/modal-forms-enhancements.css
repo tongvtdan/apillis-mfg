@@ -1,0 +1,123 @@
+/**
+ * Modal Forms UI Enhancements
+ * Provides consistent styling for customer and supplier modals
+ * Matches the amber color scheme used in other forms
+ */
+
+/* Dialog styling */
+.modal-dialog {
+    @apply shadow-lg;
+    border: 1px solid var(--fp-border);
+    background-color: var(--fp-card);
+}
+
+.modal-dialog-header {
+    @apply bg-gradient-to-b from-accent/20 to-transparent pb-2;
+    border-bottom: 1px solid rgba(255, 215, 64, 0.3);
+}
+
+.modal-dialog-title {
+    @apply text-lg font-semibold;
+    color: var(--fp-foreground);
+}
+
+.modal-dialog-description {
+    @apply text-sm;
+    color: var(--fp-muted-foreground);
+}
+
+/* Form elements styling */
+.modal-form-input {
+    @apply border-base-300 focus:border-accent transition-colors;
+    border-width: 1px;
+    background-color: var(--fp-input);
+    color: var(--fp-foreground);
+}
+
+.modal-form-input:focus {
+    @apply ring-2;
+    border-color: var(--fp-accent);
+    ring-color: rgba(255, 215, 64, 0.5);
+}
+
+.modal-form-textarea {
+    @apply border-base-300 focus:border-accent transition-colors;
+    border-width: 1px;
+    background-color: var(--fp-input);
+    color: var(--fp-foreground);
+}
+
+.modal-form-textarea:focus {
+    @apply ring-2;
+    border-color: var(--fp-accent);
+    ring-color: rgba(255, 215, 64, 0.5);
+}
+
+.modal-select-trigger {
+    @apply border-base-300 transition-colors;
+    background-color: var(--fp-input);
+    color: var(--fp-foreground);
+}
+
+.modal-select-trigger[data-state="open"] {
+    @apply ring-2;
+    border-color: var(--fp-accent);
+    ring-color: rgba(255, 215, 64, 0.5);
+}
+
+/* Buttons styling */
+.modal-button-primary {
+    @apply shadow-md font-bold transition-all duration-200;
+    background-color: var(--fp-accent);
+    color: var(--fp-accent-foreground);
+}
+
+.modal-button-primary:hover:not(:disabled) {
+    @apply shadow-lg;
+    background-color: rgba(255, 215, 64, 0.9);
+}
+
+.modal-button-secondary {
+    @apply border-base-300 hover:bg-base-200 hover:text-base-content;
+    border-width: 1px;
+    background-color: var(--fp-background);
+    color: var(--fp-foreground);
+}
+
+/* Dark mode enhancements */
+@media (prefers-color-scheme: dark) {
+    .modal-dialog {
+        background-color: var(--fp-card);
+        border: 1px solid rgba(255, 215, 64, 0.3);
+    }
+
+    .modal-form-input,
+    .modal-form-textarea,
+    .modal-select-trigger {
+        background-color: rgba(51, 51, 51, 0.9);
+        border-color: rgba(255, 215, 64, 0.3);
+    }
+
+    .modal-button-primary {
+        background-color: rgba(255, 215, 64, 0.95);
+        /* 95% opacity amber (almost solid) */
+        color: #1a1a1a;
+    }
+
+    .modal-button-primary:hover:not(:disabled) {
+        background-color: rgba(255, 215, 64, 1);
+        /* 100% opacity amber on hover (completely solid) */
+    }
+
+    .modal-button-secondary {
+        background-color: rgba(42, 42, 42, 0.95);
+        border-color: rgba(255, 215, 64, 0.4);
+    }
+
+    .modal-form-input:focus,
+    .modal-form-textarea:focus,
+    .modal-select-trigger[data-state="open"] {
+        border-color: rgba(255, 215, 64, 0.95);
+        box-shadow: 0 0 0 2px rgba(255, 215, 64, 0.5);
+    }
+}
