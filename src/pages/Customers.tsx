@@ -61,7 +61,11 @@ export default function Customers() {
             <h1 className="text-2xl font-bold text-base-content">Customer Management</h1>
             <p className="text-base-content/70">Manage your customer database and relationships</p>
           </div>
-          <Button onClick={() => setShowModal(true)}>
+          <Button 
+            onClick={() => setShowModal(true)} 
+            variant="accent" 
+            className="action-button shadow-md hover:shadow-lg"
+          >
             <Plus className="w-4 h-4 mr-2" />
             Add Customer
           </Button>

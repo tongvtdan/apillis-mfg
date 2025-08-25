@@ -1,0 +1,35 @@
+/**
+ * Action Button UI Enhancements
+ * Provides consistent styling for action buttons with proper dark mode contrast
+ */
+
+/* Action buttons styling for consistent amber accent color */
+.action-button {
+    @apply shadow-md font-bold transition-all duration-200;
+    background-color: var(--fp-accent);
+    color: var(--fp-accent-foreground);
+}
+
+.action-button:hover:not(:disabled) {
+    @apply shadow-lg;
+    background-color: rgba(255, 215, 64, 0.9);
+}
+
+/* Dark mode enhancements for better contrast */
+@media (prefers-color-scheme: dark) {
+    .action-button {
+        background-color: rgba(255, 215, 64, 0.95);
+        /* 95% opacity amber (almost solid) */
+        color: #000000;
+        /* Black text for maximum contrast */
+        text-shadow: 0 1px 1px rgba(255, 255, 255, 0.2);
+        /* Subtle text shadow for better readability */
+        font-weight: 600;
+        /* Slightly bolder text in dark mode */
+    }
+
+    .action-button:hover:not(:disabled) {
+        background-color: rgba(255, 215, 64, 1);
+        /* 100% opacity amber on hover (completely solid) */
+    }
+}
