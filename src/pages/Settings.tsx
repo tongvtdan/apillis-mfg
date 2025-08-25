@@ -3,12 +3,10 @@ import { useAuth } from "@/contexts/AuthContext";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Badge } from "@/components/ui/badge";
-import { DirectThemeToggle } from "@/components/theme/DirectThemeToggle";
 import {
     Settings as SettingsIcon,
     Database,
     Users,
-    Palette,
     Bell,
     Shield,
     Activity,
@@ -36,14 +34,10 @@ export default function Settings() {
             </div>
 
             <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-6">
-                <TabsList className="grid w-full grid-cols-2 lg:grid-cols-5">
+                <TabsList className="grid w-full grid-cols-2 lg:grid-cols-4">
                     <TabsTrigger value="general" className="flex items-center gap-2">
                         <SettingsIcon className="h-4 w-4" />
                         General
-                    </TabsTrigger>
-                    <TabsTrigger value="appearance" className="flex items-center gap-2">
-                        <Palette className="h-4 w-4" />
-                        Appearance
                     </TabsTrigger>
                     <TabsTrigger value="notifications" className="flex items-center gap-2">
                         <Bell className="h-4 w-4" />
@@ -102,32 +96,6 @@ export default function Settings() {
                                         {profile?.status || "Unknown"}
                                     </Badge>
                                 </div>
-                            </div>
-                        </CardContent>
-                    </Card>
-                </TabsContent>
-
-                {/* Appearance Settings */}
-                <TabsContent value="appearance" className="space-y-6">
-                    <Card>
-                        <CardHeader>
-                            <CardTitle className="flex items-center gap-2">
-                                <Palette className="h-5 w-5" />
-                                Theme & Display
-                            </CardTitle>
-                            <CardDescription>
-                                Customize the appearance of the application.
-                            </CardDescription>
-                        </CardHeader>
-                        <CardContent className="space-y-4">
-                            <div className="flex items-center justify-between">
-                                <div>
-                                    <label className="text-sm font-medium">Theme</label>
-                                    <p className="text-xs text-base-content/70 mt-1">
-                                        Choose between light and dark mode
-                                    </p>
-                                </div>
-                                <DirectThemeToggle />
                             </div>
                         </CardContent>
                     </Card>

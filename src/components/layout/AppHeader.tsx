@@ -1,7 +1,6 @@
 import { Bell, Search, LogOut, Settings, HelpCircle, UserCircle, Plus } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { DirectThemeToggle } from "@/components/theme/DirectThemeToggle";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -68,8 +67,6 @@ export function AppHeader() {
               3
             </Badge>
           </Button>
-
-          <DirectThemeToggle />
 
           <DropdownMenu>
             <DropdownMenuTrigger asChild>

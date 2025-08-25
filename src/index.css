@@ -1,9 +1,7 @@
+@import './theme-adaptive.css';
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
-
-/* Import the adaptive theme CSS */
-@import './theme-adaptive.css';
 
 /* Factory Pulse Adaptive Theme (FP-AT) */
 
