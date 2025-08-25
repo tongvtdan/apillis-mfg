@@ -10,7 +10,7 @@ import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigge
 import { Calendar, Clock, AlertTriangle, Eye, Building2, User, MoreHorizontal } from "lucide-react";
 import { Project, ProjectType, PROJECT_TYPE_LABELS, PROJECT_TYPE_DESCRIPTIONS, PROJECT_TYPE_COLORS, PRIORITY_COLORS } from "@/types/project";
 import { Link } from "react-router-dom";
-import { ProjectUpdateAnimation } from './ProjectUpdateAnimation';
+
 import { useProjects } from "@/hooks/useProjects";
 
 interface ProjectTypeKanbanProps {
@@ -209,8 +209,7 @@ function ProjectTypeSection({ type, projectCount }: ProjectTypeSectionProps) {
 export function ProjectTypeKanban({ projects, onUpdateProject }: ProjectTypeKanbanProps) {
   const { refetch } = useProjects();
   const [activeProject, setActiveProject] = useState<Project | null>(null);
-  const [showUpdateAnimation, setShowUpdateAnimation] = useState(false);
-  const [isUpdating, setIsUpdating] = useState(false);
+
 
   const projectsByType = useMemo(() => {
     const grouped: Record<ProjectType, Project[]> = {
@@ -254,22 +253,12 @@ export function ProjectTypeKanban({ projects, onUpdateProject }: ProjectTypeKanb
 
     if (project && project.project_type !== newType && onUpdateProject) {
       try {
-        // Show update animation
-        setShowUpdateAnimation(true);
-        setIsUpdating(true);
-
         await onUpdateProject(projectId, { project_type: newType });
 
         // Refresh projects data to ensure consistency
         await refetch(true);
       } catch (error) {
         console.error('Failed to update project type:', error);
-      } finally {
-        // Hide update animation after a short delay
-        setTimeout(() => {
-          setShowUpdateAnimation(false);
-          setIsUpdating(false);
-        }, 1500);
       }
     }
   }, [projects, onUpdateProject]);
@@ -284,10 +273,6 @@ export function ProjectTypeKanban({ projects, onUpdateProject }: ProjectTypeKanb
 
   return (
     <div className="space-y-6">
-      <ProjectUpdateAnimation isVisible={showUpdateAnimation} message="Updating projects..." />
-
-
-
       <DndContext
         sensors={sensors}
         onDragStart={handleDragStart}

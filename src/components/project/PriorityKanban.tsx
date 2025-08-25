@@ -37,7 +37,7 @@ import {
 } from "@dnd-kit/sortable";
 import { CSS } from "@dnd-kit/utilities";
 import { Project, ProjectPriority, PRIORITY_COLORS } from "@/types/project";
-import { ProjectUpdateAnimation } from './ProjectUpdateAnimation';
+
 
 interface ProjectCardProps {
   project: Project;
