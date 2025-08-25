@@ -11,6 +11,7 @@ import './styles/project-tabs-fix.css';
 import './styles/modal-forms-enhancements.css';
 import './styles/action-buttons-enhancements.css';
 import './styles/toast-enhancements.css';
+import './styles/toast-opacity-fix.css';
 import './lib/theme-init';
 import { queryClient } from './lib/queryClient';
 

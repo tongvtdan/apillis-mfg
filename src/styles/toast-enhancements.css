@@ -2,44 +2,55 @@
 
 /* Initial entrance animation */
 .toaster .toast[data-state="open"] {
-  animation: toast-pop-in 0.3s cubic-bezier(0.16, 1, 0.3, 1);
-  transform-origin: top center;
+    animation: toast-pop-in 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+    transform-origin: top center;
 }
 
 /* Enhanced shadow effect */
 .toaster .toast {
-  box-shadow: 0 4px 12px rgba(255, 215, 64, 0.4), 0 2px 4px rgba(0, 0, 0, 0.1);
-  transition: all 0.2s ease-out;
+    box-shadow: 0 4px 12px rgba(255, 215, 64, 0.4), 0 2px 4px rgba(0, 0, 0, 0.1);
+    transition: all 0.2s ease-out;
+    background-color: white !important;
+    backdrop-filter: none !important;
+}
+
+/* Dark mode background color override */
+@media (prefers-color-scheme: dark) {
+    .toaster .toast {
+        background-color: rgb(2, 6, 23) !important;
+    }
 }
 
 /* Hover effect */
 .toaster .toast:hover {
-  transform: translateY(-2px);
-  box-shadow: 0 6px 16px rgba(255, 215, 64, 0.5), 0 3px 6px rgba(0, 0, 0, 0.12);
+    transform: translateY(-2px);
+    box-shadow: 0 6px 16px rgba(255, 215, 64, 0.5), 0 3px 6px rgba(0, 0, 0, 0.12);
 }
 
 /* Pop-in animation */
 @keyframes toast-pop-in {
-  0% {
-    opacity: 0;
-    transform: scale(0.9) translateY(-10px);
-  }
-  50% {
-    transform: scale(1.02) translateY(0);
-  }
-  100% {
-    opacity: 1;
-    transform: scale(1) translateY(0);
-  }
+    0% {
+        opacity: 0;
+        transform: scale(0.9) translateY(-10px);
+    }
+
+    50% {
+        transform: scale(1.02) translateY(0);
+    }
+
+    100% {
+        opacity: 1;
+        transform: scale(1) translateY(0);
+    }
 }
 
 /* Dark mode enhancements */
 @media (prefers-color-scheme: dark) {
-  .toaster .toast {
-    box-shadow: 0 4px 12px rgba(255, 215, 64, 0.3), 0 2px 4px rgba(0, 0, 0, 0.2);
-  }
-  
-  .toaster .toast:hover {
-    box-shadow: 0 6px 16px rgba(255, 215, 64, 0.4), 0 3px 6px rgba(0, 0, 0, 0.3);
-  }
+    .toaster .toast {
+        box-shadow: 0 4px 12px rgba(255, 215, 64, 0.3), 0 2px 4px rgba(0, 0, 0, 0.2);
+    }
+
+    .toaster .toast:hover {
+        box-shadow: 0 6px 16px rgba(255, 215, 64, 0.4), 0 3px 6px rgba(0, 0, 0, 0.3);
+    }
 }

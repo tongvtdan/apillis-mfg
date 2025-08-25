@@ -1,0 +1,52 @@
+/* Toast Opacity Fix */
+
+/* Force completely opaque backgrounds for all toast variants */
+.toaster .toast,
+.toast-container>div,
+.sonner-toast,
+.sonner-toast-container>div {
+    background-color: white !important;
+    opacity: 1 !important;
+}
+
+/* Dark mode specific overrides */
+@media (prefers-color-scheme: dark) {
+
+    .toaster .toast,
+    .toast-container>div,
+    .sonner-toast,
+    .sonner-toast-container>div {
+        background-color: rgb(2, 6, 23) !important;
+    }
+}
+
+/* Ensure opaque text */
+.toaster .toast *,
+.toast-container>div *,
+.sonner-toast *,
+.sonner-toast-container>div * {
+    opacity: 1 !important;
+}
+
+/* Add a subtle inset white shadow for better contrast */
+.toaster .toast,
+.toast-container>div,
+.sonner-toast,
+.sonner-toast-container>div {
+    box-shadow: inset 0 0 0 1000px rgba(255, 255, 255, 1),
+        0 4px 12px rgba(255, 215, 64, 0.4),
+        0 2px 4px rgba(0, 0, 0, 0.1) !important;
+}
+
+/* Dark mode shadow adjustment */
+@media (prefers-color-scheme: dark) {
+
+    .toaster .toast,
+    .toast-container>div,
+    .sonner-toast,
+    .sonner-toast-container>div {
+        box-shadow: inset 0 0 0 1000px rgba(2, 6, 23, 1),
+            0 4px 12px rgba(255, 215, 64, 0.4),
+            0 2px 4px rgba(0, 0, 0, 0.3) !important;
+    }
+}
