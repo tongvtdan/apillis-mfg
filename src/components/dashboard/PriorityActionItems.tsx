@@ -67,13 +67,15 @@ export function PriorityActionItems({ projects }: PriorityActionItemsProps) {
     <div className="mt-6">
       <div className="mb-4">
         <h2 className="text-lg font-semibold text-foreground flex items-center gap-2">
-          <AlertTriangle className="h-5 w-5 text-destructive" />
+          <div className="p-1.5 rounded-full bg-red-100 dark:bg-red-900/30">
+            <AlertTriangle className="h-4 w-4 text-red-600 dark:text-red-400" />
+          </div>
           <span className="relative">
             Priority Action Items
-            <span className="absolute bottom-0 left-0 w-full h-0.5 bg-destructive/40 rounded"></span>
+            <span className="absolute bottom-0 left-0 w-full h-0.5 bg-gradient-to-r from-red-500/60 to-transparent dark:from-red-500/40 rounded"></span>
           </span>
         </h2>
-        <p className="text-sm text-muted-foreground mt-1">
+        <p className="text-sm text-red-700/70 dark:text-red-400/70 font-medium mt-1">
           Projects requiring immediate attention based on priority, urgency, and time in stage
         </p>
       </div>
@@ -83,11 +85,13 @@ export function PriorityActionItems({ projects }: PriorityActionItemsProps) {
             <ProjectSummaryCard key={project.id} project={project} showUrgencyIndicators={true} />
           ))
         ) : (
-          <Card className="enhanced-list-item enhanced-list-item-active p-6 text-center border-dashed">
-            <div className="flex flex-col items-center gap-2 text-muted-foreground">
-              <CheckCircle className="h-8 w-8 text-success" />
-              <p className="text-sm font-medium">All caught up!</p>
-              <p className="text-xs">No urgent projects requiring immediate action.</p>
+          <Card className="enhanced-list-item enhanced-list-item-active p-6 text-center border-dashed border-2 border-green-300 dark:border-green-800 bg-gradient-to-r from-green-50/40 to-transparent dark:from-green-950/20">
+            <div className="flex flex-col items-center gap-2 text-green-700 dark:text-green-400">
+              <div className="p-2 rounded-full bg-green-100 dark:bg-green-900/50">
+                <CheckCircle className="h-8 w-8 text-green-600 dark:text-green-400" />
+              </div>
+              <p className="text-sm font-semibold">All caught up!</p>
+              <p className="text-xs">No urgent projects requiring immediate attention.</p>
             </div>
           </Card>
         )}

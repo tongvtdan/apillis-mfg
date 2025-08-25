@@ -27,13 +27,17 @@ export function PendingTasks() {
       status: project.status
     }));
 
-  // Get the appropriate CSS class based on priority
+  // Get the appropriate CSS class based on priority with enhanced styling
   const getPriorityClass = (priority: string) => {
     switch (priority) {
-      case 'urgent': return 'enhanced-list-item-urgent';
-      case 'high': return 'enhanced-list-item-high';
-      case 'medium': return 'enhanced-list-item-medium';
-      default: return 'enhanced-list-item-normal';
+      case 'urgent':
+        return 'enhanced-list-item-urgent border-l-4 border-l-red-500 bg-gradient-to-r from-red-50/50 to-transparent dark:from-red-950/30 dark:to-transparent shadow-md';
+      case 'high':
+        return 'enhanced-list-item-high border-l-4 border-l-orange-500 bg-gradient-to-r from-orange-50/40 to-transparent dark:from-orange-950/20 dark:to-transparent';
+      case 'medium':
+        return 'enhanced-list-item-medium border-l-4 border-l-yellow-500 bg-gradient-to-r from-yellow-50/30 to-transparent dark:from-yellow-950/20 dark:to-transparent';
+      default:
+        return 'enhanced-list-item-normal';
     }
   };
 
@@ -54,6 +58,20 @@ export function PendingTasks() {
       case 'inquiry_received': return 'status-badge status-badge-sm status-inquiry';
       case 'technical_review': return 'status-badge status-badge-sm status-review';
       default: return 'status-badge status-badge-sm';
+    }
+  };
+
+  // Get text style based on priority
+  const getTextClass = (priority: string) => {
+    switch (priority) {
+      case 'urgent':
+        return 'text-sm font-semibold text-red-700 dark:text-red-400';
+      case 'high':
+        return 'text-sm font-semibold text-orange-700 dark:text-orange-400';
+      case 'medium':
+        return 'text-sm font-medium text-yellow-700 dark:text-yellow-400';
+      default:
+        return 'text-sm font-medium text-foreground';
     }
   };
 
@@ -90,10 +108,10 @@ export function PendingTasks() {
         {pendingTasks.map((task) => (
           <div key={task.id} className={`enhanced-list-item ${getPriorityClass(task.priority)} flex items-start justify-between`}>
             <div className="flex-1 min-w-0">
-              <p className="text-sm font-medium text-foreground mb-1">
+              <p className={getTextClass(task.priority)}>
                 {task.title}
               </p>
-              <div className="flex items-center space-x-2">
+              <div className="flex items-center space-x-2 mt-1.5">
                 <div className={getStatusBadgeClass(task.priority)}>
                   {task.priority}
                 </div>

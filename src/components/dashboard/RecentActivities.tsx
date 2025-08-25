@@ -35,39 +35,57 @@ export function RecentActivities() {
     }
   };
 
-  // Get the list item classes
+  // Get the list item classes with enhanced styling
   const getListItemClass = (status: string) => {
     switch (status) {
-      case 'inquiry': return 'enhanced-list-item enhanced-list-item-normal';
-      case 'won': return 'enhanced-list-item enhanced-list-item-active';
-      case 'quoted': return 'enhanced-list-item enhanced-list-item-medium';
-      case 'review': return 'enhanced-list-item enhanced-list-item-normal';
-      case 'lost': return 'enhanced-list-item enhanced-list-item-high';
-      default: return 'enhanced-list-item enhanced-list-item-normal';
+      case 'inquiry':
+        return 'enhanced-list-item enhanced-list-item-normal border-l-4 border-l-blue-400 bg-gradient-to-r from-blue-50/30 to-transparent dark:from-blue-950/20 dark:to-transparent';
+      case 'won':
+        return 'enhanced-list-item enhanced-list-item-active border-l-4 border-l-green-400 bg-gradient-to-r from-green-50/30 to-transparent dark:from-green-950/20 dark:to-transparent';
+      case 'quoted':
+        return 'enhanced-list-item enhanced-list-item-medium border-l-4 border-l-purple-400 bg-gradient-to-r from-purple-50/30 to-transparent dark:from-purple-950/20 dark:to-transparent';
+      case 'review':
+        return 'enhanced-list-item enhanced-list-item-normal border-l-4 border-l-yellow-400 bg-gradient-to-r from-yellow-50/30 to-transparent dark:from-yellow-950/20 dark:to-transparent';
+      case 'lost':
+        return 'enhanced-list-item enhanced-list-item-high border-l-4 border-l-red-400 bg-gradient-to-r from-red-50/30 to-transparent dark:from-red-950/20 dark:to-transparent';
+      default:
+        return 'enhanced-list-item enhanced-list-item-normal';
     }
   };
 
-  // Get activity icon color
+  // Get activity icon color with enhanced visibility
   const getIconColorClass = (status: string) => {
     switch (status) {
-      case 'inquiry': return 'text-blue-500';
-      case 'won': return 'text-green-500';
-      case 'quoted': return 'text-purple-500';
-      case 'review': return 'text-yellow-500';
-      case 'lost': return 'text-red-500';
-      default: return 'text-gray-500';
+      case 'inquiry': return 'text-blue-600 dark:text-blue-400';
+      case 'won': return 'text-green-600 dark:text-green-400';
+      case 'quoted': return 'text-purple-600 dark:text-purple-400';
+      case 'review': return 'text-yellow-600 dark:text-yellow-400';
+      case 'lost': return 'text-red-600 dark:text-red-400';
+      default: return 'text-gray-600 dark:text-gray-400';
     }
   };
 
-  // Get icon background class
+  // Get icon background class with enhanced styling
   const getIconBgClass = (status: string) => {
     switch (status) {
-      case 'inquiry': return 'bg-blue-50 dark:bg-blue-950/50';
-      case 'won': return 'bg-green-50 dark:bg-green-950/50';
-      case 'quoted': return 'bg-purple-50 dark:bg-purple-950/50';
-      case 'review': return 'bg-yellow-50 dark:bg-yellow-950/50';
-      case 'lost': return 'bg-red-50 dark:bg-red-950/50';
-      default: return 'bg-gray-50 dark:bg-gray-800/50';
+      case 'inquiry': return 'bg-blue-100 dark:bg-blue-950/70 shadow-sm';
+      case 'won': return 'bg-green-100 dark:bg-green-950/70 shadow-sm';
+      case 'quoted': return 'bg-purple-100 dark:bg-purple-950/70 shadow-sm';
+      case 'review': return 'bg-yellow-100 dark:bg-yellow-950/70 shadow-sm';
+      case 'lost': return 'bg-red-100 dark:bg-red-950/70 shadow-sm';
+      default: return 'bg-gray-100 dark:bg-gray-800/80 shadow-sm';
+    }
+  };
+
+  // Get text styling based on status
+  const getTitleClass = (status: string) => {
+    switch (status) {
+      case 'inquiry': return 'text-sm font-medium text-blue-800 dark:text-blue-300';
+      case 'won': return 'text-sm font-medium text-green-800 dark:text-green-300';
+      case 'quoted': return 'text-sm font-medium text-purple-800 dark:text-purple-300';
+      case 'review': return 'text-sm font-medium text-yellow-800 dark:text-yellow-300';
+      case 'lost': return 'text-sm font-medium text-red-800 dark:text-red-300';
+      default: return 'text-sm font-medium text-foreground';
     }
   };
 
@@ -112,6 +130,7 @@ export function RecentActivities() {
           const iconBg = getIconBgClass(project.status);
           const statusClass = getStatusClass(project.status);
           const listItemClass = getListItemClass(project.status);
+          const titleClass = getTitleClass(project.status);
 
           return (
             <div key={project.id} className={`flex items-start space-x-3 ${listItemClass}`}>
@@ -120,7 +139,7 @@ export function RecentActivities() {
               </div>
               <div className="flex-1 min-w-0">
                 <div className="flex items-center space-x-2 mb-1">
-                  <p className="text-sm font-medium text-foreground">
+                  <p className={titleClass}>
                     {project.title}
                   </p>
                   <div className={statusClass}>

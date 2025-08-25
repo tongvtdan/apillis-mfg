@@ -125,6 +125,50 @@ export default function Dashboard() {
       alert: overdueProjects > 0 ? `${overdueProjects} overdue` : null
     },
     {
+      title: "Purchase Orders",
+      count: purchaseOrders.length,
+      activeCount: pendingPOs,
+      description: urgentPOs > 0
+        ? `🚨 ${urgentPOs} urgent orders`
+        : `${pendingPOs} pending orders`,
+      icon: ShoppingCart,
+      route: "/purchase-orders",
+      color: urgentPOs > 0 ? "text-destructive" : "text-warning",
+      bgColor: urgentPOs > 0 ? "bg-destructive/10" : "bg-warning/10",
+      borderColor: urgentPOs > 0 ? "border-destructive/20" : "border-warning/20",
+      alert: overduePOs > 0 ? `${overduePOs} overdue` : null
+    },
+    {
+      title: "Production",
+      count: productionOrders.length,
+      activeCount: activeProduction,
+      description: urgentProduction > 0
+        ? `🚨 ${urgentProduction} urgent jobs`
+        : `${activeProduction} in production`,
+      icon: Factory,
+      route: "/production",
+      color: urgentProduction > 0 ? "text-destructive" : "text-accent",
+      bgColor: urgentProduction > 0 ? "bg-destructive/10" : "bg-accent/10",
+      borderColor: urgentProduction > 0 ? "border-destructive/20" : "border-accent/20",
+      alert: onHoldProduction > 0 ? `${onHoldProduction} on hold` : null
+    },
+    {
+      title: "Inventory",
+      count: inventory.length,
+      activeCount: lowStockItems,
+      description: criticalItems > 0
+        ? `🔴 ${criticalItems} critical items`
+        : lowStockItems > 0
+          ? `⚠️ ${lowStockItems} low stock`
+          : `${inventory.length} items tracked`,
+      icon: Package,
+      route: "/inventory",
+      color: criticalItems > 0 ? "text-destructive" : lowStockItems > 0 ? "text-warning" : "text-info",
+      bgColor: criticalItems > 0 ? "bg-destructive/10" : lowStockItems > 0 ? "bg-warning/10" : "bg-info/10",
+      borderColor: criticalItems > 0 ? "border-destructive/20" : lowStockItems > 0 ? "border-warning/20" : "border-info/20",
+      alert: outOfStockItems > 0 ? `${outOfStockItems} out of stock` : null
+    },
+    {
       title: "Customers",
       count: customers?.length || 0,
       activeCount: customers?.filter(c => c.name).length || 0,
@@ -147,50 +191,6 @@ export default function Dashboard() {
       bgColor: "bg-secondary/10",
       borderColor: "border-secondary/20",
       alert: null
-    },
-    {
-      title: "Purchase Orders",
-      count: purchaseOrders.length,
-      activeCount: pendingPOs,
-      description: urgentPOs > 0
-        ? `🚨 ${urgentPOs} urgent orders`
-        : `${pendingPOs} pending orders`,
-      icon: ShoppingCart,
-      route: "/purchase-orders",
-      color: urgentPOs > 0 ? "text-destructive" : "text-warning",
-      bgColor: urgentPOs > 0 ? "bg-destructive/10" : "bg-warning/10",
-      borderColor: urgentPOs > 0 ? "border-destructive/20" : "border-warning/20",
-      alert: overduePOs > 0 ? `${overduePOs} overdue` : null
-    },
-    {
-      title: "Inventory",
-      count: inventory.length,
-      activeCount: lowStockItems,
-      description: criticalItems > 0
-        ? `🔴 ${criticalItems} critical items`
-        : lowStockItems > 0
-          ? `⚠️ ${lowStockItems} low stock`
-          : `${inventory.length} items tracked`,
-      icon: Package,
-      route: "/inventory",
-      color: criticalItems > 0 ? "text-destructive" : lowStockItems > 0 ? "text-warning" : "text-info",
-      bgColor: criticalItems > 0 ? "bg-destructive/10" : lowStockItems > 0 ? "bg-warning/10" : "bg-info/10",
-      borderColor: criticalItems > 0 ? "border-destructive/20" : lowStockItems > 0 ? "border-warning/20" : "border-info/20",
-      alert: outOfStockItems > 0 ? `${outOfStockItems} out of stock` : null
-    },
-    {
-      title: "Production",
-      count: productionOrders.length,
-      activeCount: activeProduction,
-      description: urgentProduction > 0
-        ? `🚨 ${urgentProduction} urgent jobs`
-        : `${activeProduction} in production`,
-      icon: Factory,
-      route: "/production",
-      color: urgentProduction > 0 ? "text-destructive" : "text-accent",
-      bgColor: urgentProduction > 0 ? "bg-destructive/10" : "bg-accent/10",
-      borderColor: urgentProduction > 0 ? "border-destructive/20" : "border-accent/20",
-      alert: onHoldProduction > 0 ? `${onHoldProduction} on hold` : null
     }
   ];
 
