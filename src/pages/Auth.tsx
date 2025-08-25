@@ -100,17 +100,17 @@ export default function Auth() {
   }
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-background p-4">
-      <div className="w-full max-w-md space-y-8">
+    <div className="min-h-screen flex items-center justify-center bg-gradient-to-b from-background to-base-200/50 p-4">
+      <div className="auth-container mx-auto space-y-8">
         <div className="text-center">
           <div className="flex justify-center mb-4">
-            <Factory className="h-12 w-12 text-primary" />
+            <Factory className="auth-logo" />
           </div>
-          <h1 className="text-3xl font-bold tracking-tight">Apillis Manufacturing Portal</h1>
-          <p className="text-muted-foreground">Complete Manufacturing Operations Platform</p>
+          <h1 className="text-3xl font-bold tracking-tight text-primary-900">Apillis Manufacturing Portal</h1>
+          <p className="text-muted-foreground mt-2">Complete Manufacturing Operations Platform</p>
         </div>
 
-        <Card>
+        <Card className="auth-card">
           <CardHeader>
             <CardTitle>Authentication</CardTitle>
             <CardDescription>
@@ -131,9 +131,9 @@ export default function Auth() {
               </Alert>
             )}
             <Tabs defaultValue="signin" className="w-full">
-              <TabsList className="grid w-full grid-cols-2">
-                <TabsTrigger value="signin">Sign In</TabsTrigger>
-                <TabsTrigger value="signup">Sign Up</TabsTrigger>
+              <TabsList className="auth-tabs-list">
+                <TabsTrigger value="signin" className="auth-tab-trigger">Sign In</TabsTrigger>
+                <TabsTrigger value="signup" className="auth-tab-trigger">Sign Up</TabsTrigger>
               </TabsList>
 
               <TabsContent value="signin" className="space-y-4">
@@ -146,6 +146,7 @@ export default function Auth() {
                       placeholder="Enter your email"
                       value={signInData.email}
                       onChange={(e) => setSignInData(prev => ({ ...prev, email: e.target.value }))}
+                      className="border-base-300 focus:border-primary transition-colors"
                       required
                     />
                   </div>
@@ -157,10 +158,11 @@ export default function Auth() {
                       placeholder="Enter your password"
                       value={signInData.password}
                       onChange={(e) => setSignInData(prev => ({ ...prev, password: e.target.value }))}
+                      className="border-base-300 focus:border-primary transition-colors"
                       required
                     />
                   </div>
-                  <Button type="submit" className="w-full" disabled={isLoading}>
+                  <Button type="submit" className="auth-button" disabled={isLoading}>
                     {isLoading ? <Loader2 className="h-4 w-4 animate-spin mr-2" /> : null}
                     Sign In
                   </Button>
@@ -250,12 +252,12 @@ export default function Auth() {
                             <div
                               key={level}
                               className={`h-1 flex-1 rounded ${level <= passwordStrength.score
-                                  ? passwordStrength.score <= 2
-                                    ? 'bg-red-500'
-                                    : passwordStrength.score <= 3
-                                      ? 'bg-yellow-500'
-                                      : 'bg-green-500'
-                                  : 'bg-gray-200'
+                                ? passwordStrength.score <= 2
+                                  ? 'bg-red-500'
+                                  : passwordStrength.score <= 3
+                                    ? 'bg-yellow-500'
+                                    : 'bg-green-500'
+                                : 'bg-gray-200'
                                 }`}
                             />
                           ))}
@@ -288,7 +290,7 @@ export default function Auth() {
                       required
                     />
                   </div>
-                  <Button type="submit" className="w-full" disabled={isLoading}>
+                  <Button type="submit" className="auth-button" disabled={isLoading}>
                     {isLoading ? <Loader2 className="h-4 w-4 animate-spin mr-2" /> : null}
                     Create Account
                   </Button>

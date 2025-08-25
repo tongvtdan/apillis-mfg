@@ -1,0 +1,72 @@
+/**
+ * Auth UI Enhancements
+ * Provides better visibility for authentication UI elements in both light and dark modes
+ */
+
+/* Base styling for auth elements */
+.auth-container {
+    max-width: 32rem;
+    width: 100%;
+}
+
+.auth-logo {
+    @apply text-primary bg-primary/10 rounded-full shadow-md;
+    height: 4rem;
+    width: 4rem;
+    padding: 0.5rem;
+}
+
+.auth-card {
+    @apply shadow-lg border border-base-200;
+}
+
+/* Enhanced button styling for light/dark mode adaptability */
+.auth-button {
+    @apply w-full shadow-md hover:shadow-lg transition-all duration-200 mt-2 font-bold;
+    background-color: var(--fp-accent);
+    color: var(--fp-accent-foreground);
+}
+
+.auth-button:hover {
+    background-color: var(--fp-accent);
+    opacity: 0.9;
+}
+
+/* Enhanced tab styling for light/dark mode adaptability */
+.auth-tabs-list {
+    @apply grid w-full grid-cols-2 mb-4 p-1 rounded-lg;
+    background-color: var(--fp-muted);
+}
+
+.auth-tab-trigger {
+    @apply rounded-md transition-all duration-200;
+}
+
+.auth-tab-trigger[data-state="active"] {
+    @apply shadow-md;
+    background-color: var(--fp-accent);
+    color: var(--fp-accent-foreground);
+}
+
+/* Dark mode enhancements with 30% lighter background */
+@media (prefers-color-scheme: dark) {
+    .auth-button {
+        background-color: rgba(255, 215, 64, 0.7);
+        /* 70% opacity amber */
+    }
+
+    .auth-button:hover {
+        background-color: rgba(255, 215, 64, 0.8);
+        /* 80% opacity amber on hover */
+    }
+
+    .auth-tab-trigger[data-state="active"] {
+        background-color: rgba(255, 215, 64, 0.7);
+        /* 70% opacity amber */
+    }
+
+    .auth-tabs-list {
+        background-color: rgba(58, 58, 58, 0.7);
+        /* 70% opacity dark muted */
+    }
+}
