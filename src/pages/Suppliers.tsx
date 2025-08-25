@@ -72,9 +72,9 @@ export default function Suppliers() {
                         <h1 className="text-2xl font-bold text-base-content">Supplier Management</h1>
                         <p className="text-base-content/70">Manage your supplier network and performance</p>
                     </div>
-                    <Button 
+                    <Button
                         onClick={() => setShowModal(true)}
-                        variant="accent" 
+                        variant="accent"
                         className="action-button shadow-md hover:shadow-lg"
                     >
                         <Plus className="w-4 h-4 mr-2" />
