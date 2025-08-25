@@ -26,8 +26,6 @@ import Settings from "./pages/Settings";
 import { ThemeShowcase } from "./components/theme/ThemeShowcase";
 import { applyAdaptiveTheme } from "@/lib/theme";
 
-
-
 const App = () => {
   // Apply adaptive theme on initial render
   useEffect(() => {
