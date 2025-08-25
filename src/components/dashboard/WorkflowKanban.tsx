@@ -71,7 +71,7 @@ interface ProjectCardProps {
   quoteReadiness?: QuoteReadinessIndicator;
   isBottleneck?: boolean;
   onSendRFQ?: (project: Project) => void;
-  onUpdateStatus?: (project: Project, newStatus: ProjectStatus) => void; // Add this prop
+  onUpdateStatus?: (project: Project, newStatus: ProjectStatus) => void;
 }
 
 function ProjectCard({ project, isDragging = false, index, quoteReadiness, isBottleneck = false, onSendRFQ, onUpdateStatus }: ProjectCardProps) {
@@ -157,10 +157,24 @@ function ProjectCard({ project, isDragging = false, index, quoteReadiness, isBot
   const showBottleneckWarning = isBottleneck || project.days_in_stage > 14;
   const showRFQAction = project.status === 'technical_review' && project.days_in_stage > 2;
 
-  // Get available stages for this project
+  // Get available stages for this project (including completed stages for rollback)
   const getAvailableStages = () => {
-    const currentStageIndex = WorkflowValidator.getStageIndex(project.status);
-    return PROJECT_STAGES.filter((_, index) => index >= currentStageIndex);
+    // Include all stages, not just forward stages, to allow rollback
+    return PROJECT_STAGES;
+  };
+
+  // Get project stage status
+  const getProjectStageStatus = (stageId: ProjectStatus) => {
+    const projectStageIndex = WorkflowValidator.getStageIndex(project.status);
+    const stageIndex = WorkflowValidator.getStageIndex(stageId);
+
+    if (stageIndex < projectStageIndex) {
+      return 'completed';
+    } else if (stageIndex === projectStageIndex) {
+      return 'current';
+    } else {
+      return 'pending';
+    }
   };
 
   return (
@@ -333,19 +347,45 @@ function ProjectCard({ project, isDragging = false, index, quoteReadiness, isBot
                     Change Stage
                   </Button>
                 </DropdownMenuTrigger>
-                <DropdownMenuContent align="end">
-                  {getAvailableStages().map((stage) => (
-                    <DropdownMenuItem
-                      key={stage.id}
-                      onClick={() => onUpdateStatus?.(project, stage.id)}
-                      disabled={project.status === stage.id}
-                    >
-                      {stage.name}
-                      {project.status === stage.id && (
-                        <span className="ml-2 text-xs text-muted-foreground">(Current)</span>
-                      )}
-                    </DropdownMenuItem>
-                  ))}
+                <DropdownMenuContent 
+                  align="end" 
+                  className="bg-background/90 backdrop-blur-sm border border-muted-foreground/20"
+                >
+                  {getAvailableStages().map((stage) => {
+                    const stageStatus = getProjectStageStatus(stage.id);
+                    const isCurrentStage = project.status === stage.id;
+                    
+                    return (
+                      <DropdownMenuItem
+                        key={stage.id}
+                        onClick={() => onUpdateStatus?.(project, stage.id)}
+                        disabled={isCurrentStage}
+                        className={`
+                          ${isCurrentStage ? "opacity-50 cursor-not-allowed" : "cursor-pointer"}
+                          transition-all duration-200 ease-in-out
+                          hover:bg-accent hover:text-accent-foreground
+                          focus:bg-accent focus:text-accent-foreground
+                          data-[highlighted]:bg-accent data-[highlighted]:text-accent-foreground
+                          hover:pl-3 hover:scale-[1.02] transform
+                          rounded-sm my-0.5
+                        `}
+                      >
+                        <div className="flex items-center w-full">
+                          <span className="flex-1">{stage.name}</span>
+                          {isCurrentStage && (
+                            <Badge variant="secondary" className="ml-2 text-xs">
+                              Current
+                            </Badge>
+                          )}
+                          {stageStatus === 'completed' && !isCurrentStage && (
+                            <Badge variant="outline" className="ml-2 text-xs border-green-500 text-green-500">
+                              Completed
+                            </Badge>
+                          )}
+                        </div>
+                      </DropdownMenuItem>
+                    );
+                  })}
                 </DropdownMenuContent>
               </DropdownMenu>
             </div>
@@ -408,7 +448,7 @@ interface VirtualizedProjectListProps {
   quoteReadiness: Record<string, QuoteReadinessIndicator>;
   bottlenecks: BottleneckAlert[];
   onSendRFQ: (project: Project) => void;
-  onUpdateStatus: (project: Project, newStatus: ProjectStatus) => void; // Add this prop
+  onUpdateStatus: (project: Project, newStatus: ProjectStatus) => void;
 }
 
 function VirtualizedProjectList({ projects, stageId, quoteReadiness, bottlenecks, onSendRFQ, onUpdateStatus }: VirtualizedProjectListProps) {

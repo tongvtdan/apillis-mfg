@@ -1,5 +1,4 @@
 import React from "react";
-import { WorkflowKanban } from "@/components/dashboard/WorkflowKanban";
 import { ProjectTable } from "@/components/project/ProjectTable";
 import { StageFlowchart } from "@/components/project/StageFlowchart";
 import { ProjectTypeKanban } from "@/components/project/ProjectTypeKanban";
@@ -93,9 +92,8 @@ export default function Projects() {
             <p className="text-base-content/70">Track and manage your manufacturing projects from idea to delivery</p>
           </div>
           <div className="flex items-center gap-4">
-            <ProjectTabsList className="grid w-[300px] grid-cols-3">
-              <ProjectTabsTrigger value="flowchart">Flow</ProjectTabsTrigger>
-              <ProjectTabsTrigger value="kanban">Kanban</ProjectTabsTrigger>
+            <ProjectTabsList className="grid w-[300px] grid-cols-2">
+              <ProjectTabsTrigger value="flowchart">Kanban Flow</ProjectTabsTrigger>
               <ProjectTabsTrigger value="table">Table</ProjectTabsTrigger>
             </ProjectTabsList>
 
@@ -129,23 +127,9 @@ export default function Projects() {
             onProjectSelect={setSelectedProject}
             onStageSelect={handleStageSelect} // Pass the stage selection handler
             selectedStage={selectedStage} // Pass the selected stage
+            projectTypeFilter={selectedProjectType} // Pass the project type filter
+            projects={projects} // Pass all projects
           />
-        </TabsContent>
-
-        <TabsContent value="kanban" className="mt-4 space-y-6">
-          <div className="bg-base-100 rounded-lg p-6 border border-base-300">
-            <div className="mb-4">
-              <h3 className="text-lg font-semibold text-base-content">Project Workflow Kanban</h3>
-              <p className="text-sm text-base-content/70 mt-1">
-                {selectedProjectType === 'all'
-                  ? `Showing ${activeProjects.length} projects`
-                  : `Showing ${activeProjects.filter(p => p.project_type === selectedProjectType).length} ${PROJECT_TYPE_LABELS[selectedProjectType]} projects`
-                }
-              </p>
-            </div>
-          </div>
-
-          <WorkflowKanban projectTypeFilter={selectedProjectType} />
         </TabsContent>
 
         <TabsContent value="table" className="mt-4 space-y-6">

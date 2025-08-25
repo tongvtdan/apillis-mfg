@@ -1,25 +1,52 @@
-import React, { useState } from 'react';
+import React, { useState, useMemo } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { CheckCircle, AlertCircle, ChevronRight, Play, Pause, XCircle } from "lucide-react";
-import { PROJECT_STAGES, ProjectStatus, Project } from "@/types/project";
+import { CheckCircle, AlertCircle, ChevronRight, Play, Pause, XCircle, Eye, Users } from "lucide-react";
+import { PROJECT_STAGES, ProjectStatus, Project, ProjectType } from "@/types/project";
 import { useProjects } from "@/hooks/useProjects";
 import { WorkflowValidator } from "@/lib/workflow-validator";
+import { useNavigate } from "react-router-dom";
+import {
+    DropdownMenu,
+    DropdownMenuContent,
+    DropdownMenuItem,
+    DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
+import { Progress } from "@/components/ui/progress";
+import {
+    Tooltip,
+    TooltipContent,
+    TooltipProvider,
+    TooltipTrigger,
+} from "@/components/ui/tooltip";
 
 interface WorkflowFlowchartProps {
     selectedProject: Project | null;
     onProjectSelect: (project: Project | null) => void;
-    onStageSelect?: (stage: ProjectStatus) => void; // Add this prop
-    selectedStage?: ProjectStatus | null; // Add this prop
+    onStageSelect?: (stage: ProjectStatus) => void;
+    selectedStage?: ProjectStatus | null;
+    projectTypeFilter?: ProjectType | 'all';
+    projects?: Project[]; // Add this prop
 }
 
-export function WorkflowFlowchart({ selectedProject, onProjectSelect, onStageSelect, selectedStage }: WorkflowFlowchartProps) {
-    const { projects, updateProjectStatusOptimistic } = useProjects();
+export function WorkflowFlowchart({
+    selectedProject,
+    onProjectSelect,
+    onStageSelect,
+    selectedStage,
+    projectTypeFilter = 'all',
+    projects: externalProjects // Rename to avoid conflict
+}: WorkflowFlowchartProps) {
+    const { projects: hookProjects, updateProjectStatusOptimistic } = useProjects();
+    const navigate = useNavigate();
     const [validationErrors, setValidationErrors] = useState<Record<string, string[]>>({});
 
+    // Use external projects if provided, otherwise use hook projects
+    const allProjects = externalProjects || hookProjects;
+
     const handleStatusChange = async (projectId: string, newStatus: ProjectStatus) => {
-        const project = projects.find(p => p.id === projectId);
+        const project = allProjects.find(p => p.id === projectId);
         if (!project) return;
 
         // Validate the status change
@@ -82,11 +109,233 @@ export function WorkflowFlowchart({ selectedProject, onProjectSelect, onStageSel
         }
     };
 
+    // Get available stages for a project (including completed stages for rollback)
+    const getAvailableStages = (project: Project) => {
+        const currentStageIndex = WorkflowValidator.getStageIndex(project.status);
+        // Include all stages, not just forward stages, to allow rollback
+        return PROJECT_STAGES.filter((_, index) => {
+            // Allow moving to any stage, including completed ones for rollback scenarios
+            return true;
+        });
+    };
+
+    // Handle project status update from dropdown
+    const handleUpdateStatus = async (project: Project, newStatus: ProjectStatus) => {
+        // Validate the status change
+        const validationResult = await WorkflowValidator.validateStatusChange(project, newStatus);
+
+        if (!validationResult.isValid) {
+            setValidationErrors(prev => ({
+                ...prev,
+                [project.id]: validationResult.errors
+            }));
+            return;
+        }
+
+        // Clear any previous errors for this project
+        setValidationErrors(prev => {
+            const newErrors = { ...prev };
+            delete newErrors[project.id];
+            return newErrors;
+        });
+
+        await updateProjectStatusOptimistic(project.id, newStatus);
+    };
+
+    // Format currency
+    const formatCurrency = (amount: number) => {
+        return new Intl.NumberFormat('en-US', {
+            style: 'currency',
+            currency: 'USD',
+            minimumFractionDigits: 0,
+            maximumFractionDigits: 0,
+        }).format(amount);
+    };
+
+    // Format date
+    const formatDate = (dateString: string) => {
+        return new Date(dateString).toLocaleDateString();
+    };
+
+    // Get priority color
+    const getPriorityColor = (priority: string) => {
+        const PRIORITY_COLORS: Record<string, string> = {
+            urgent: 'bg-red-100 text-red-800 border-red-200',
+            high: 'bg-orange-100 text-orange-800 border-orange-200',
+            medium: 'bg-yellow-100 text-yellow-800 border-yellow-200',
+            low: 'bg-green-100 text-green-800 border-green-200'
+        };
+        return PRIORITY_COLORS[priority] || 'bg-gray-100 text-gray-800 border-gray-200';
+    };
+
+    // Filter projects based on selected stage and type
+    const filteredProjects = useMemo(() => {
+        let filtered = allProjects;
+
+        // Apply stage filter if selected
+        if (selectedStage) {
+            filtered = filtered.filter(p => p.status === selectedStage);
+        }
+
+        // Apply project type filter
+        if (projectTypeFilter !== 'all') {
+            filtered = filtered.filter(p => p.project_type === projectTypeFilter);
+        }
+
+        return filtered;
+    }, [allProjects, selectedStage, projectTypeFilter]);
+
     // Group projects by their current stage
     const projectsByStage = PROJECT_STAGES.map(stage => ({
         ...stage,
-        projects: projects.filter(p => p.status === stage.id)
+        projects: allProjects.filter(p => p.status === stage.id)
     }));
+
+    // Render project card in Kanban style
+    const renderProjectCard = (project: Project) => {
+        const isOverdue = project.days_in_stage > 7;
+        const timeIndicator = isOverdue ? 
+            { icon: AlertCircle, color: 'text-warning', bg: 'bg-warning/10' } : 
+            { icon: Play, color: 'text-success', bg: 'bg-success/10' };
+
+        return (
+            <Card key={project.id} className="card-elevated hover:shadow-md transition-all duration-200 hover:scale-[1.02]">
+                <CardHeader className="pb-2">
+                    <div className="flex items-center justify-between">
+                        <CardTitle className="text-sm font-medium">
+                            {project.project_id}
+                        </CardTitle>
+                        <DropdownMenu>
+                            <DropdownMenuTrigger asChild>
+                                <Button variant="ghost" size="sm" className="h-6 w-6 p-0">
+                                    <span className="sr-only">Open menu</span>
+                                    <ChevronRight className="h-4 w-4" />
+                                </Button>
+                            </DropdownMenuTrigger>
+                            <DropdownMenuContent align="end">
+                                <DropdownMenuItem onClick={() => navigate(`/project/${project.id}`)}>
+                                    View Details
+                                </DropdownMenuItem>
+                                <DropdownMenuItem>Edit</DropdownMenuItem>
+                                <DropdownMenuItem>Assign to...</DropdownMenuItem>
+                            </DropdownMenuContent>
+                        </DropdownMenu>
+                    </div>
+                    <div className="flex items-center justify-between">
+                        <div className="flex items-center space-x-2">
+                            <Badge
+                                variant="outline"
+                                className={`text-xs ${getPriorityColor(project.priority)}`}
+                            >
+                                {project.priority.toUpperCase()}
+                            </Badge>
+                            <div className={`flex items-center space-x-1 px-2 py-1 rounded-full text-xs ${timeIndicator.bg}`}>
+                                <timeIndicator.icon className={`h-3 w-3 ${timeIndicator.color}`} />
+                                <span className={timeIndicator.color}>{project.days_in_stage}d</span>
+                            </div>
+                        </div>
+                    </div>
+                </CardHeader>
+
+                <CardContent className="pt-0 space-y-3">
+                    <div>
+                        <p className="font-medium text-sm">{project.title}</p>
+                        <div className="flex items-center space-x-1 text-xs text-muted-foreground mt-1">
+                            <span>{project.customer?.company || project.customer?.name || project.contact_name || 'Unknown'}</span>
+                        </div>
+                    </div>
+
+                    <div className="space-y-2 text-xs">
+                        <div className="flex items-center justify-between">
+                            <div className="flex items-center space-x-1 text-muted-foreground">
+                                <span>{project.contact_name || project.assignee_id || 'Unassigned'}</span>
+                            </div>
+                            {project.estimated_value && (
+                                <span className="font-medium">{formatCurrency(project.estimated_value)}</span>
+                            )}
+                        </div>
+
+                        <div className="flex items-center justify-between">
+                            {project.due_date && (
+                                <div className="flex items-center space-x-1 text-muted-foreground">
+                                    <span>{formatDate(project.due_date)}</span>
+                                </div>
+                            )}
+                            <div className="flex items-center space-x-1 text-muted-foreground">
+                                <span>{project.days_in_stage} days</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div className="pt-2 border-t">
+                        <div className="flex space-x-2">
+                            <Button
+                                variant="accent"
+                                size="sm"
+                                className="flex-1 justify-start h-7 action-button hover:scale-[1.02] transition-all duration-200"
+                                onClick={() => navigate(`/project/${project.id}`)}
+                            >
+                                <Eye className="mr-2 h-3 w-3" />
+                                View Details
+                            </Button>
+                            <DropdownMenu>
+                                <DropdownMenuTrigger asChild>
+                                    <Button
+                                        variant="outline"
+                                        size="sm"
+                                        className="h-7 action-button hover:scale-[1.02] transition-all duration-200"
+                                    >
+                                        <Users className="mr-1 h-3 w-3" />
+                                        Change Stage
+                                    </Button>
+                                </DropdownMenuTrigger>
+                                <DropdownMenuContent 
+                                    align="end" 
+                                    className="bg-background/90 backdrop-blur-sm border border-muted-foreground/20"
+                                >
+                                    {getAvailableStages(project).map((stage) => {
+                                        const stageStatus = getProjectStageStatus(project, stage.id);
+                                        const isCurrentStage = project.status === stage.id;
+                                        
+                                        return (
+                                            <DropdownMenuItem
+                                                key={stage.id}
+                                                onClick={() => handleUpdateStatus(project, stage.id)}
+                                                disabled={isCurrentStage}
+                                                className={`
+                                                    ${isCurrentStage ? "opacity-50 cursor-not-allowed" : "cursor-pointer"}
+                                                    transition-all duration-200 ease-in-out
+                                                    hover:bg-accent hover:text-accent-foreground
+                                                    focus:bg-accent focus:text-accent-foreground
+                                                    data-[highlighted]:bg-accent data-[highlighted]:text-accent-foreground
+                                                    hover:pl-3 hover:scale-[1.02] transform
+                                                    rounded-sm my-0.5
+                                                `}
+                                            >
+                                                <div className="flex items-center w-full">
+                                                    <span className="flex-1">{stage.name}</span>
+                                                    {isCurrentStage && (
+                                                        <Badge variant="secondary" className="ml-2 text-xs">
+                                                            Current
+                                                        </Badge>
+                                                    )}
+                                                    {stageStatus === 'completed' && !isCurrentStage && (
+                                                        <Badge variant="outline" className="ml-2 text-xs border-green-500 text-green-500">
+                                                            Completed
+                                                        </Badge>
+                                                    )}
+                                                </div>
+                                            </DropdownMenuItem>
+                                        );
+                                    })}
+                                </DropdownMenuContent>
+                            </DropdownMenu>
+                        </div>
+                    </div>
+                </CardContent>
+            </Card>
+        );
+    };
 
     return (
         <div className="space-y-6">
@@ -108,7 +357,7 @@ export function WorkflowFlowchart({ selectedProject, onProjectSelect, onStageSel
                                         </Badge>
                                         <Card
                                             className={`w-48 cursor-pointer hover:shadow-md transition-shadow ${selectedStage === stage.id ? 'ring-2 ring-primary' : ''}`}
-                                            onClick={() => onStageSelect && onStageSelect(stage.id)} // Add click handler
+                                            onClick={() => onStageSelect && onStageSelect(stage.id)}
                                         >
                                             <CardContent className="p-4">
                                                 <div className="text-center">
@@ -197,53 +446,32 @@ export function WorkflowFlowchart({ selectedProject, onProjectSelect, onStageSel
                 </Card>
             )}
 
+            {/* Kanban-style project list */}
             {!selectedProject && (
                 <Card>
                     <CardHeader>
-                        <CardTitle>Select a Project</CardTitle>
+                        <CardTitle>
+                            {selectedStage
+                                ? `${PROJECT_STAGES.find(s => s.id === selectedStage)?.name || 'Selected'} Projects`
+                                : 'All Projects'}
+                        </CardTitle>
                         <CardDescription>
-                            Click on a project in any stage to view and manage its workflow
+                            {filteredProjects.length} project{filteredProjects.length !== 1 ? 's' : ''} found
                         </CardDescription>
                     </CardHeader>
                     <CardContent>
-                        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-                            {projectsByStage.map(stage => (
-                                <Card
-                                    key={stage.id}
-                                    className={`hover:shadow-md transition-shadow ${selectedStage === stage.id ? 'ring-2 ring-primary' : ''}`}
-                                    onClick={() => onStageSelect && onStageSelect(stage.id)} // Add click handler
-                                >
-                                    <CardHeader className="pb-2">
-                                        <CardTitle className="text-sm flex items-center justify-between">
-                                            <span>{stage.name}</span>
-                                            <Badge variant="secondary">{stage.projects.length}</Badge>
-                                        </CardTitle>
-                                    </CardHeader>
-                                    <CardContent>
-                                        <div className="space-y-2 max-h-60 overflow-y-auto">
-                                            {stage.projects.map(project => (
-                                                <div
-                                                    key={project.id}
-                                                    className="p-2 rounded border cursor-pointer hover:bg-muted transition-colors"
-                                                    onClick={(e) => {
-                                                        e.stopPropagation();
-                                                        onProjectSelect(project);
-                                                    }}
-                                                >
-                                                    <div className="font-medium text-sm truncate">{project.title}</div>
-                                                    <div className="text-xs text-muted-foreground">{project.project_id}</div>
-                                                </div>
-                                            ))}
-                                            {stage.projects.length === 0 && (
-                                                <div className="text-center py-4 text-muted-foreground text-sm">
-                                                    No projects in this stage
-                                                </div>
-                                            )}
-                                        </div>
-                                    </CardContent>
-                                </Card>
-                            ))}
-                        </div>
+                        {filteredProjects.length > 0 ? (
+                            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                                {filteredProjects.map(project => renderProjectCard(project))}
+                            </div>
+                        ) : (
+                            <div className="text-center py-8 text-muted-foreground">
+                                <p className="text-sm">No projects found</p>
+                                {selectedStage && (
+                                    <p className="text-xs mt-1">No projects in this stage</p>
+                                )}
+                            </div>
+                        )}
                     </CardContent>
                 </Card>
             )}
