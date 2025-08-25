@@ -158,9 +158,9 @@ function ProjectCard({ project, onUpdateProject }: ProjectCardProps) {
 
           <div className="pt-2 border-t">
             <Button
-              variant="ghost"
+              variant="accent"
               size="sm"
-              className="w-full justify-start h-7 px-2"
+              className="w-full justify-start h-7 action-button hover:scale-[1.02] transition-all duration-200"
               asChild
             >
               <Link
