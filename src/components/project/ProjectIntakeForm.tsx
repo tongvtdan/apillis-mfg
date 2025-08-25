@@ -34,14 +34,14 @@ export function ProjectIntakeForm({ submissionType, onSuccess }: ProjectIntakeFo
     contactName: "",
     contactEmail: "",
     contactPhone: "",
-    
+
     // Project Details
     projectTitle: "",
     description: "",
     priority: "medium" as ProjectPriority,
     estimatedValue: "",
     dueDate: "",
-    
+
     // Additional Information
     notes: ""
   });
@@ -59,7 +59,7 @@ export function ProjectIntakeForm({ submissionType, onSuccess }: ProjectIntakeFo
       const sequence = String(Math.floor(Math.random() * 100)).padStart(2, '0');
       return `P-${year}${month}${day}${sequence}`;
     };
-    
+
     setTempProjectId(generateTempId());
   });
 
@@ -95,7 +95,7 @@ export function ProjectIntakeForm({ submissionType, onSuccess }: ProjectIntakeFo
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    
+
     if (uploadedFiles.length === 0) {
       toast({
         variant: "destructive",
@@ -135,7 +135,7 @@ export function ProjectIntakeForm({ submissionType, onSuccess }: ProjectIntakeFo
       // This would be implemented in Phase 1 completion
 
       setIsSubmitted(true);
-      
+
       toast({
         title: "Project Submitted Successfully!",
         description: `Your ${submissionType.toLowerCase()} has been submitted with ID: ${project.project_id}`,
@@ -157,21 +157,21 @@ export function ProjectIntakeForm({ submissionType, onSuccess }: ProjectIntakeFo
 
   if (isSubmitted) {
     return (
-      <Card className="border-green-200 bg-green-50/50">
+      <Card className="border-accent/30 bg-accent/5">
         <CardHeader className="text-center">
-          <div className="mx-auto mb-4 flex h-12 w-12 items-center justify-center rounded-full bg-green-100">
-            <CheckCircle2 className="h-6 w-6 text-green-600" />
+          <div className="mx-auto mb-4 flex h-12 w-12 items-center justify-center rounded-full bg-accent/20">
+            <CheckCircle2 className="h-6 w-6 text-accent" />
           </div>
-          <CardTitle className="text-green-800">Project Submitted Successfully!</CardTitle>
-          <CardDescription className="text-green-600">
+          <CardTitle className="text-accent-foreground">Project Submitted Successfully!</CardTitle>
+          <CardDescription className="text-accent-foreground/80">
             Your {submissionType.toLowerCase()} has been received and assigned ID: <strong>{tempProjectId}</strong>
           </CardDescription>
         </CardHeader>
         <CardContent className="text-center">
-          <p className="text-sm text-green-600 mb-4">
+          <p className="text-sm text-accent-foreground/70 mb-4">
             You will receive email updates as your project progresses through our review process.
           </p>
-          <Button onClick={() => window.location.reload()} variant="outline">
+          <Button onClick={() => window.location.reload()} variant="outline" className="border-accent/30 text-accent hover:bg-accent/10">
             Submit Another Project
           </Button>
         </CardContent>
@@ -182,17 +182,17 @@ export function ProjectIntakeForm({ submissionType, onSuccess }: ProjectIntakeFo
   return (
     <form onSubmit={handleSubmit} className="space-y-8">
       {/* Project ID Display */}
-      <div className="text-center p-4 bg-primary/5 rounded-lg border border-primary/20">
+      <div className="project-header">
         <p className="text-sm text-muted-foreground mb-1">Temporary Project ID</p>
-        <p className="text-xl font-mono font-semibold text-primary">{tempProjectId}</p>
+        <p className="project-header-title">{tempProjectId}</p>
         <p className="text-xs text-muted-foreground mt-1">
           A permanent ID will be assigned upon submission
         </p>
       </div>
 
       {/* Company & Contact Information */}
-      <Card>
-        <CardHeader>
+      <Card className="project-card">
+        <CardHeader className="project-card-header">
           <CardTitle>Company & Contact Information</CardTitle>
           <CardDescription>
             Tell us about your company and the primary contact for this project.
@@ -207,6 +207,7 @@ export function ProjectIntakeForm({ submissionType, onSuccess }: ProjectIntakeFo
                 value={formData.companyName}
                 onChange={(e) => handleInputChange('companyName', e.target.value)}
                 placeholder="Enter company name"
+                className="project-input"
                 required
               />
             </div>
@@ -217,6 +218,7 @@ export function ProjectIntakeForm({ submissionType, onSuccess }: ProjectIntakeFo
                 value={formData.contactName}
                 onChange={(e) => handleInputChange('contactName', e.target.value)}
                 placeholder="Enter contact person name"
+                className="project-input"
                 required
               />
             </div>
@@ -230,6 +232,7 @@ export function ProjectIntakeForm({ submissionType, onSuccess }: ProjectIntakeFo
                 value={formData.contactEmail}
                 onChange={(e) => handleInputChange('contactEmail', e.target.value)}
                 placeholder="Enter email address"
+                className="project-input"
                 required
               />
             </div>
@@ -241,6 +244,7 @@ export function ProjectIntakeForm({ submissionType, onSuccess }: ProjectIntakeFo
                 value={formData.contactPhone}
                 onChange={(e) => handleInputChange('contactPhone', e.target.value)}
                 placeholder="Enter phone number"
+                className="project-input"
               />
             </div>
           </div>
@@ -248,8 +252,8 @@ export function ProjectIntakeForm({ submissionType, onSuccess }: ProjectIntakeFo
       </Card>
 
       {/* Project Details */}
-      <Card>
-        <CardHeader>
+      <Card className="project-card">
+        <CardHeader className="project-card-header">
           <CardTitle>Project Details</CardTitle>
           <CardDescription>
             Provide details about your manufacturing project or requirements.
@@ -263,10 +267,11 @@ export function ProjectIntakeForm({ submissionType, onSuccess }: ProjectIntakeFo
               value={formData.projectTitle}
               onChange={(e) => handleInputChange('projectTitle', e.target.value)}
               placeholder={`Enter ${submissionType.toLowerCase()} title`}
+              className="project-input"
               required
             />
           </div>
-          
+
           <div className="space-y-2">
             <Label htmlFor="description">Description *</Label>
             <Textarea
@@ -274,7 +279,7 @@ export function ProjectIntakeForm({ submissionType, onSuccess }: ProjectIntakeFo
               value={formData.description}
               onChange={(e) => handleInputChange('description', e.target.value)}
               placeholder="Describe your project requirements, materials, quantities, specifications, etc."
-              className="min-h-[100px]"
+              className="min-h-[100px] project-input"
               required
             />
           </div>
@@ -283,7 +288,7 @@ export function ProjectIntakeForm({ submissionType, onSuccess }: ProjectIntakeFo
             <div className="space-y-2">
               <Label htmlFor="priority">Priority Level</Label>
               <Select value={formData.priority} onValueChange={(value: ProjectPriority) => handleInputChange('priority', value)}>
-                <SelectTrigger>
+                <SelectTrigger className="project-select">
                   <SelectValue placeholder="Select priority" />
                 </SelectTrigger>
                 <SelectContent>
@@ -294,7 +299,7 @@ export function ProjectIntakeForm({ submissionType, onSuccess }: ProjectIntakeFo
                 </SelectContent>
               </Select>
             </div>
-            
+
             <div className="space-y-2">
               <Label htmlFor="estimatedValue">Estimated Value ($)</Label>
               <Input
@@ -304,9 +309,10 @@ export function ProjectIntakeForm({ submissionType, onSuccess }: ProjectIntakeFo
                 value={formData.estimatedValue}
                 onChange={(e) => handleInputChange('estimatedValue', e.target.value)}
                 placeholder="0.00"
+                className="project-input"
               />
             </div>
-            
+
             <div className="space-y-2">
               <Label htmlFor="dueDate">Target Due Date</Label>
               <Input
@@ -314,6 +320,7 @@ export function ProjectIntakeForm({ submissionType, onSuccess }: ProjectIntakeFo
                 type="date"
                 value={formData.dueDate}
                 onChange={(e) => handleInputChange('dueDate', e.target.value)}
+                className="project-input"
               />
             </div>
           </div>
@@ -325,15 +332,15 @@ export function ProjectIntakeForm({ submissionType, onSuccess }: ProjectIntakeFo
               value={formData.notes}
               onChange={(e) => handleInputChange('notes', e.target.value)}
               placeholder="Any additional information, special requirements, or notes..."
-              className="min-h-[80px]"
+              className="min-h-[80px] project-input"
             />
           </div>
         </CardContent>
       </Card>
 
       {/* File Upload */}
-      <Card>
-        <CardHeader>
+      <Card className="project-card">
+        <CardHeader className="project-card-header">
           <CardTitle className="flex items-center gap-2">
             <Upload className="h-5 w-5" />
             File Upload
@@ -343,11 +350,11 @@ export function ProjectIntakeForm({ submissionType, onSuccess }: ProjectIntakeFo
           </CardDescription>
         </CardHeader>
         <CardContent className="space-y-4">
-          <div className="border-2 border-dashed border-muted-foreground/25 rounded-lg p-6 text-center">
+          <div className="file-upload-area">
             <div className="space-y-2">
               <Upload className="mx-auto h-8 w-8 text-muted-foreground" />
               <div className="text-sm">
-                <Label htmlFor="fileUpload" className="cursor-pointer text-primary hover:underline">
+                <Label htmlFor="fileUpload" className="cursor-pointer file-upload-label hover:underline">
                   Click to upload files
                 </Label>
                 <Input
@@ -371,7 +378,7 @@ export function ProjectIntakeForm({ submissionType, onSuccess }: ProjectIntakeFo
               <h4 className="text-sm font-medium">Uploaded Files ({uploadedFiles.length})</h4>
               <div className="space-y-2">
                 {uploadedFiles.map((file) => (
-                  <div key={file.id} className="flex items-center justify-between p-3 bg-muted/50 rounded-lg">
+                  <div key={file.id} className="flex items-center justify-between file-item">
                     <div className="flex items-center gap-3">
                       <File className="h-4 w-4 text-muted-foreground" />
                       <div>
@@ -404,11 +411,11 @@ export function ProjectIntakeForm({ submissionType, onSuccess }: ProjectIntakeFo
 
       {/* Submit Button */}
       <div className="flex justify-end">
-        <Button 
-          type="submit" 
-          size="lg" 
+        <Button
+          type="submit"
+          size="lg"
           disabled={isSubmitting || uploadedFiles.length === 0}
-          className="min-w-[200px]"
+          className="min-w-[200px] project-submit-button"
         >
           {isSubmitting ? "Submitting..." : `Submit ${submissionType}`}
         </Button>

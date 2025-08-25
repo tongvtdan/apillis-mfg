@@ -1,0 +1,109 @@
+/**
+ * Project Form UI Enhancements
+ * Provides better visibility for project submission UI elements in both light and dark modes
+ * Applies the same amber color scheme and visual style as the authentication UI
+ */
+
+/* Base styling for project form elements */
+.project-header {
+    @apply text-center p-4 rounded-lg;
+    background-color: rgba(255, 215, 64, 0.1);
+    border: 1px solid rgba(255, 215, 64, 0.3);
+}
+
+.project-header-title {
+    @apply text-xl font-mono font-semibold;
+    color: var(--fp-accent);
+}
+
+.project-card {
+    @apply shadow-lg border-base-200 transition-all duration-200;
+    border: 1px solid var(--fp-border);
+}
+
+.project-card:hover {
+    @apply shadow-xl;
+    border-color: rgba(255, 215, 64, 0.3);
+}
+
+.project-card-header {
+    border-bottom: 1px solid rgba(255, 215, 64, 0.1);
+}
+
+.project-input {
+    @apply border-base-300 transition-colors;
+}
+
+.project-input:focus {
+    @apply ring-2;
+    border-color: var(--fp-accent);
+    ring-color: rgba(255, 215, 64, 0.3);
+}
+
+.project-select {
+    @apply border-base-300 transition-colors;
+}
+
+.project-select[data-state="open"] {
+    @apply ring-2;
+    border-color: var(--fp-accent);
+    ring-color: rgba(255, 215, 64, 0.3);
+}
+
+.project-submit-button {
+    @apply shadow-md font-bold transition-all duration-200;
+    background-color: var(--fp-accent);
+    color: var(--fp-accent-foreground);
+}
+
+.project-submit-button:hover:not(:disabled) {
+    @apply shadow-lg;
+    background-color: rgba(255, 215, 64, 0.9);
+}
+
+.file-upload-area {
+    @apply border-2 border-dashed rounded-lg p-6 text-center transition-all duration-200;
+    border-color: rgba(255, 215, 64, 0.3);
+}
+
+.file-upload-area:hover {
+    background-color: rgba(255, 215, 64, 0.05);
+}
+
+.file-upload-label {
+    color: var(--fp-accent);
+}
+
+.file-item {
+    @apply p-3 rounded-lg;
+    background-color: rgba(255, 215, 64, 0.1);
+}
+
+/* Dark mode enhancements with 30% lighter background */
+@media (prefers-color-scheme: dark) {
+    .project-submit-button {
+        background-color: rgba(255, 215, 64, 0.7);
+        /* 70% opacity amber */
+    }
+
+    .project-submit-button:hover:not(:disabled) {
+        background-color: rgba(255, 215, 64, 0.8);
+        /* 80% opacity amber on hover */
+    }
+
+    .project-header {
+        background-color: rgba(255, 215, 64, 0.15);
+    }
+
+    .file-upload-area {
+        border-color: rgba(255, 215, 64, 0.2);
+    }
+
+    .file-upload-area:hover {
+        background-color: rgba(255, 215, 64, 0.1);
+    }
+
+    .file-item {
+        background-color: rgba(255, 215, 64, 0.15);
+    }
+}

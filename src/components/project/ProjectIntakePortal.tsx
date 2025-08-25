@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { ProjectIntakeForm } from "./ProjectIntakeForm";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
@@ -10,6 +10,19 @@ interface ProjectIntakePortalProps {
 
 export function ProjectIntakePortal({ onSuccess }: ProjectIntakePortalProps) {
   const [activeTab, setActiveTab] = useState("rfq");
+  const [isDarkMode, setIsDarkMode] = useState(false);
+
+  useEffect(() => {
+    // Check for dark mode
+    const darkModeQuery = window.matchMedia('(prefers-color-scheme: dark)');
+    setIsDarkMode(darkModeQuery.matches);
+
+    // Listen for changes
+    const handleChange = (e: MediaQueryListEvent) => setIsDarkMode(e.matches);
+    darkModeQuery.addEventListener('change', handleChange);
+    
+    return () => darkModeQuery.removeEventListener('change', handleChange);
+  }, []);
 
   const handleFormSuccess = (projectId: string) => {
     console.log('Project submitted successfully:', projectId);
@@ -26,17 +39,64 @@ export function ProjectIntakePortal({ onSuccess }: ProjectIntakePortalProps) {
         </p>
       </div>
 
-      <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
-        <TabsList className="grid w-full grid-cols-3">
-          <TabsTrigger value="rfq" className="flex items-center gap-2">
+      <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full project-intake-tabs">
+        <TabsList 
+          className="grid w-full grid-cols-3 mb-4" 
+          style={{
+            backgroundColor: isDarkMode ? 'rgba(58, 58, 58, 0.7)' : 'rgba(187, 134, 252, 0.1)',
+            padding: '0.25rem',
+            borderRadius: '0.5rem',
+            border: '1px solid rgba(255, 215, 64, 0.1)',
+          }}
+        >
+          <TabsTrigger 
+            value="rfq" 
+            className="flex items-center gap-2"
+            style={{
+              backgroundColor: activeTab === 'rfq' 
+                ? isDarkMode ? 'rgba(255, 215, 64, 0.7)' : '#FFD740' 
+                : 'transparent',
+              color: activeTab === 'rfq' ? '#1F2937' : undefined,
+              boxShadow: activeTab === 'rfq' 
+                ? isDarkMode ? '0 0 8px rgba(255, 215, 64, 0.3)' : '0 2px 4px rgba(0, 0, 0, 0.1)' 
+                : 'none',
+              fontWeight: activeTab === 'rfq' ? 600 : 400,
+            }}
+          >
             <MessageSquare className="h-4 w-4" />
             RFQ / Quote Request
           </TabsTrigger>
-          <TabsTrigger value="po" className="flex items-center gap-2">
+          <TabsTrigger 
+            value="po" 
+            className="flex items-center gap-2"
+            style={{
+              backgroundColor: activeTab === 'po' 
+                ? isDarkMode ? 'rgba(255, 215, 64, 0.7)' : '#FFD740' 
+                : 'transparent',
+              color: activeTab === 'po' ? '#1F2937' : undefined,
+              boxShadow: activeTab === 'po' 
+                ? isDarkMode ? '0 0 8px rgba(255, 215, 64, 0.3)' : '0 2px 4px rgba(0, 0, 0, 0.1)' 
+                : 'none',
+              fontWeight: activeTab === 'po' ? 600 : 400,
+            }}
+          >
             <FileText className="h-4 w-4" />
             Purchase Order
           </TabsTrigger>
-          <TabsTrigger value="idea" className="flex items-center gap-2">
+          <TabsTrigger 
+            value="idea" 
+            className="flex items-center gap-2"
+            style={{
+              backgroundColor: activeTab === 'idea' 
+                ? isDarkMode ? 'rgba(255, 215, 64, 0.7)' : '#FFD740' 
+                : 'transparent',
+              color: activeTab === 'idea' ? '#1F2937' : undefined,
+              boxShadow: activeTab === 'idea' 
+                ? isDarkMode ? '0 0 8px rgba(255, 215, 64, 0.3)' : '0 2px 4px rgba(0, 0, 0, 0.1)' 
+                : 'none',
+              fontWeight: activeTab === 'idea' ? 600 : 400,
+            }}
+          >
             <Lightbulb className="h-4 w-4" />
             Project Idea
           </TabsTrigger>
@@ -51,9 +111,9 @@ export function ProjectIntakePortal({ onSuccess }: ProjectIntakePortalProps) {
               </CardDescription>
             </CardHeader>
             <CardContent>
-              <ProjectIntakeForm 
+              <ProjectIntakeForm
                 submissionType="RFQ"
-                onSuccess={handleFormSuccess} 
+                onSuccess={handleFormSuccess}
               />
             </CardContent>
           </Card>
@@ -68,9 +128,9 @@ export function ProjectIntakePortal({ onSuccess }: ProjectIntakePortalProps) {
               </CardDescription>
             </CardHeader>
             <CardContent>
-              <ProjectIntakeForm 
+              <ProjectIntakeForm
                 submissionType="Purchase Order"
-                onSuccess={handleFormSuccess} 
+                onSuccess={handleFormSuccess}
               />
             </CardContent>
           </Card>
@@ -85,9 +145,9 @@ export function ProjectIntakePortal({ onSuccess }: ProjectIntakePortalProps) {
               </CardDescription>
             </CardHeader>
             <CardContent>
-              <ProjectIntakeForm 
+              <ProjectIntakeForm
                 submissionType="Project Idea"
-                onSuccess={handleFormSuccess} 
+                onSuccess={handleFormSuccess}
               />
             </CardContent>
           </Card>

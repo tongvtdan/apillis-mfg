@@ -6,6 +6,8 @@ import App from './App.tsx';
 import './index.css';
 import './styles/enhanced-status.css';
 import './styles/auth-ui-enhancements.css';
+import './styles/project-form-enhancements.css';
+import './styles/project-tabs-fix.css';
 import './lib/theme-init';
 import { queryClient } from './lib/queryClient';
 
