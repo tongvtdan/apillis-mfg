@@ -14,6 +14,9 @@ This file contains important changes and updates made to the project.
 6. **Better User Experience**: Users now see only one workflow visualization and understand when manual refresh is needed
 7. **Added debugging for project status update issues**: Added console logs to track optimistic updates and stage count recalculations to debug UI update problems
 8. **Enhanced reactivity for WorkflowFlowchart**: Wrapped projectsByStage calculation in useMemo with proper dependencies for better reactivity when projects change
+9. **CRITICAL FIX - Project Status Update Issue**: Identified and fixed root cause where `technical_review` and `supplier_rfq_sent` were both mapped to same database value `review`, causing optimistic updates to be reverted by real-time subscription
+10. **Database Schema Update**: Added missing `supplier_rfq` and `procurement` status values to project_status enum to support complete workflow with distinct database values for each stage
+11. **Enhanced Database Update Logging**: Added comprehensive logging for database updates and real-time subscription events to track status change issues
 
 ### 2025-01-25
 - **ProjectTable Component Optimization Complete**:

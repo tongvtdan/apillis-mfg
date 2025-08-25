@@ -1156,6 +1156,8 @@ export type Database = {
         | "production"
         | "completed"
         | "cancelled"
+        | "supplier_rfq"
+        | "procurement"
       project_type: "system_build" | "fabrication" | "manufacturing"
       review_status: "pending" | "approved" | "rejected" | "revision_requested"
       rfq_priority: "low" | "medium" | "high" | "urgent"
@@ -1325,6 +1327,8 @@ export const Constants = {
         "production",
         "completed",
         "cancelled",
+        "supplier_rfq",
+        "procurement",
       ],
       project_type: ["system_build", "fabrication", "manufacturing"],
       review_status: ["pending", "approved", "rejected", "revision_requested"],
