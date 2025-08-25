@@ -7,7 +7,6 @@ import { AppLayout } from "@/components/layout/AppLayout";
 import { AuthProvider } from "@/contexts/AuthContext";
 import { ProtectedRoute } from "@/components/auth/ProtectedRoute";
 import React, { useEffect } from "react";
-import { ThemeEnforcer } from "@/components/theme/ThemeEnforcer";
 import Index from "./pages/Index";
 import Dashboard from "./pages/Dashboard";
 import PublicRFQ from "./pages/PublicRFQ";
@@ -26,135 +25,126 @@ import { RFQDetail } from "./pages/RFQDetail";
 import ProjectDetail from "./pages/ProjectDetail";
 import Settings from "./pages/Settings";
 import { ThemeShowcase } from "./components/theme/ThemeShowcase";
-{/* Import our custom ThemeProvider instead of next-themes */ }
-import { ThemeProvider } from "@/contexts/ThemeContext";
+import { applyAdaptiveTheme } from "@/lib/theme";
 
 const queryClient = new QueryClient();
 
 const App = () => {
-  // This ensures the root element has a data-theme attribute from initial render
+  // Apply adaptive theme on initial render
   useEffect(() => {
-    const daisyTheme = document.documentElement.getAttribute('data-theme');
-    if (!daisyTheme) {
-      document.documentElement.setAttribute('data-theme', 'factory-pulse-light');
-      console.log('Applied initial data-theme attribute to document root');
-    }
+    applyAdaptiveTheme();
   }, []);
 
   return (
     <QueryClientProvider client={queryClient}>
-      {/* Use our custom ThemeProvider */}
-      <ThemeProvider>
-        <ThemeEnforcer />
-        <AuthProvider>
-          <TooltipProvider>
-            <Toaster />
-            <Sonner />
-            <BrowserRouter>
-              <Routes>
-                <Route path="/" element={<Index />} />
-                <Route path="/auth" element={<Auth />} />
-                <Route path="/dashboard" element={
-                  <ProtectedRoute>
-                    <AppLayout><Dashboard /></AppLayout>
-                  </ProtectedRoute>
-                } />
-                <Route path="/vendors" element={
-                  <ProtectedRoute>
-                    <AppLayout><Vendors /></AppLayout>
-                  </ProtectedRoute>
-                } />
-                <Route path="/projects" element={
-                  <ProtectedRoute>
-                    <AppLayout><Projects /></AppLayout>
-                  </ProtectedRoute>
-                } />
-                <Route path="/purchase-orders" element={
-                  <ProtectedRoute>
-                    <AppLayout><PurchaseOrders /></AppLayout>
-                  </ProtectedRoute>
-                } />
-                <Route path="/inventory" element={
-                  <ProtectedRoute>
-                    <AppLayout><Inventory /></AppLayout>
-                  </ProtectedRoute>
-                } />
-                <Route path="/customers" element={
-                  <ProtectedRoute>
-                    <AppLayout><Customers /></AppLayout>
-                  </ProtectedRoute>
-                } />
-                <Route path="/suppliers" element={
-                  <ProtectedRoute>
-                    <AppLayout><Suppliers /></AppLayout>
-                  </ProtectedRoute>
-                } />
-                <Route path="/reports" element={
-                  <ProtectedRoute>
-                    <AppLayout><Reports /></AppLayout>
-                  </ProtectedRoute>
-                } />
-                <Route path="/rfq/new" element={
-                  <ProtectedRoute>
-                    <AppLayout><NewRFQ /></AppLayout>
-                  </ProtectedRoute>
-                } />
-                <Route path="/rfqs" element={
-                  <ProtectedRoute>
-                    <AppLayout><Projects /></AppLayout>
-                  </ProtectedRoute>
-                } />
-                <Route path="/reviews" element={
-                  <ProtectedRoute requiredRoles={['Engineering', 'QA', 'Production', 'Management', 'Procurement']}>
-                    <AppLayout><div className="p-6">Reviews - Coming Soon</div></AppLayout>
-                  </ProtectedRoute>
-                } />
-                <Route path="/project/:id" element={
-                  <ProtectedRoute>
-                    <AppLayout><ProjectDetail /></AppLayout>
-                  </ProtectedRoute>
-                } />
-                <Route path="/rfq/:id" element={
-                  <ProtectedRoute>
-                    <AppLayout><RFQDetail /></AppLayout>
-                  </ProtectedRoute>
-                } />
-                <Route path="/production" element={
-                  <ProtectedRoute requiredRoles={['Production', 'Management']}>
-                    <AppLayout><div className="p-6">Production - Coming Soon</div></AppLayout>
-                  </ProtectedRoute>
-                } />
-                <Route path="/analytics" element={
-                  <ProtectedRoute requiredRoles={['Management', 'Procurement Owner']}>
-                    <AppLayout><div className="p-6">Analytics - Coming Soon</div></AppLayout>
-                  </ProtectedRoute>
-                } />
-                <Route path="/users" element={
-                  <ProtectedRoute requiredRoles={['Management']}>
-                    <AppLayout><AdminUsers /></AppLayout>
-                  </ProtectedRoute>
-                } />
-                <Route path="/settings" element={
-                  <ProtectedRoute>
-                    <AppLayout><Settings /></AppLayout>
-                  </ProtectedRoute>
-                } />
-                <Route path="/theme-showcase" element={
-                  <ProtectedRoute>
-                    <AppLayout>
-                      <div className="p-6">
-                        <ThemeShowcase />
-                      </div>
-                    </AppLayout>
-                  </ProtectedRoute>
-                } />
-                {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
-                <Route path="*" element={<NotFound />} />
-              </Routes>
-            </BrowserRouter>
-          </TooltipProvider>
-        </AuthProvider>
-      </ThemeProvider>
+      <AuthProvider>
+        <TooltipProvider>
+          <Toaster />
+          <Sonner />
+          <BrowserRouter>
+            <Routes>
+              <Route path="/" element={<Index />} />
+              <Route path="/auth" element={<Auth />} />
+              <Route path="/dashboard" element={
+                <ProtectedRoute>
+                  <AppLayout><Dashboard /></AppLayout>
+                </ProtectedRoute>
+              } />
+              <Route path="/vendors" element={
+                <ProtectedRoute>
+                  <AppLayout><Vendors /></AppLayout>
+                </ProtectedRoute>
+              } />
+              <Route path="/projects" element={
+                <ProtectedRoute>
+                  <AppLayout><Projects /></AppLayout>
+                </ProtectedRoute>
+              } />
+              <Route path="/purchase-orders" element={
+                <ProtectedRoute>
+                  <AppLayout><PurchaseOrders /></AppLayout>
+                </ProtectedRoute>
+              } />
+              <Route path="/inventory" element={
+                <ProtectedRoute>
+                  <AppLayout><Inventory /></AppLayout>
+                </ProtectedRoute>
+              } />
+              <Route path="/customers" element={
+                <ProtectedRoute>
+                  <AppLayout><Customers /></AppLayout>
+                </ProtectedRoute>
+              } />
+              <Route path="/suppliers" element={
+                <ProtectedRoute>
+                  <AppLayout><Suppliers /></AppLayout>
+                </ProtectedRoute>
+              } />
+              <Route path="/reports" element={
+                <ProtectedRoute>
+                  <AppLayout><Reports /></AppLayout>
+                </ProtectedRoute>
+              } />
+              <Route path="/rfq/new" element={
+                <ProtectedRoute>
+                  <AppLayout><NewRFQ /></AppLayout>
+                </ProtectedRoute>
+              } />
+              <Route path="/rfqs" element={
+                <ProtectedRoute>
+                  <AppLayout><Projects /></AppLayout>
+                </ProtectedRoute>
+              } />
+              <Route path="/reviews" element={
+                <ProtectedRoute requiredRoles={['Engineering', 'QA', 'Production', 'Management', 'Procurement']}>
+                  <AppLayout><div className="p-6">Reviews - Coming Soon</div></AppLayout>
+                </ProtectedRoute>
+              } />
+              <Route path="/project/:id" element={
+                <ProtectedRoute>
+                  <AppLayout><ProjectDetail /></AppLayout>
+                </ProtectedRoute>
+              } />
+              <Route path="/rfq/:id" element={
+                <ProtectedRoute>
+                  <AppLayout><RFQDetail /></AppLayout>
+                </ProtectedRoute>
+              } />
+              <Route path="/production" element={
+                <ProtectedRoute requiredRoles={['Production', 'Management']}>
+                  <AppLayout><div className="p-6">Production - Coming Soon</div></AppLayout>
+                </ProtectedRoute>
+              } />
+              <Route path="/analytics" element={
+                <ProtectedRoute requiredRoles={['Management', 'Procurement Owner']}>
+                  <AppLayout><div className="p-6">Analytics - Coming Soon</div></AppLayout>
+                </ProtectedRoute>
+              } />
+              <Route path="/users" element={
+                <ProtectedRoute requiredRoles={['Management']}>
+                  <AppLayout><AdminUsers /></AppLayout>
+                </ProtectedRoute>
+              } />
+              <Route path="/settings" element={
+                <ProtectedRoute>
+                  <AppLayout><Settings /></AppLayout>
+                </ProtectedRoute>
+              } />
+              <Route path="/theme-showcase" element={
+                <ProtectedRoute>
+                  <AppLayout>
+                    <div className="p-6">
+                      <ThemeShowcase />
+                    </div>
+                  </AppLayout>
+                </ProtectedRoute>
+              } />
+              {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
+              <Route path="*" element={<NotFound />} />
+            </Routes>
+          </BrowserRouter>
+        </TooltipProvider>
+      </AuthProvider>
     </QueryClientProvider>
   );
 };

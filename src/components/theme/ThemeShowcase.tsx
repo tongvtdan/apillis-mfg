@@ -2,7 +2,6 @@ import React from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { useTheme } from "@/contexts/ThemeContext";
 import { FactoryPulseLanding } from "@/components/FactoryPulseLanding";
 import {
     Factory,
@@ -20,7 +19,6 @@ import {
 } from "lucide-react";
 
 export function ThemeShowcase() {
-    const { isDark, toggleMode } = useTheme();
     const [showLanding, setShowLanding] = React.useState(false);
 
     if (showLanding) {
@@ -33,9 +31,6 @@ export function ThemeShowcase() {
                     >
                         <Palette className="w-4 h-4 mr-1" />
                         Theme Showcase
-                    </button>
-                    <button onClick={toggleMode} className="btn btn-primary btn-sm">
-                        Switch to {isDark ? 'Light' : 'Dark'} Mode
                     </button>
                 </div>
                 <FactoryPulseLanding />
@@ -55,9 +50,6 @@ export function ThemeShowcase() {
                     focused on usability, readability on factory floor displays, and seamless responsive experience.
                 </p>
                 <div className="flex gap-4 justify-center mt-6">
-                    <Button onClick={toggleMode} className="btn-primary">
-                        Switch to {isDark ? 'Light' : 'Dark'} Mode
-                    </Button>
                     <button
                         onClick={() => setShowLanding(true)}
                         className="btn btn-outline"

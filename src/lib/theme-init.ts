@@ -1,7 +1,7 @@
 /**
  * Theme initialization script
- * This script initializes the theme based on localStorage preference
- * or system preference when the application starts
+ * This script initializes the adaptive theme based on system preference
+ * Factory Pulse Adaptive Theme (FP-AT) - Single theme that adapts to environment
  */
 
 export function initializeTheme() {
@@ -9,59 +9,32 @@ export function initializeTheme() {
     if (typeof window === 'undefined') return;
 
     const html = document.documentElement;
-    const body = document.body;
 
-    // Check for saved theme preference
-    const savedTheme = localStorage.getItem('theme-preference');
+    // For adaptive theme, we always use the same theme name
+    html.setAttribute('data-theme', 'factory-pulse-adaptive');
+    html.classList.add('adaptive-theme');
 
-    // Check for system preference
-    const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
+    // The theme will automatically adapt based on system preference
+    // via CSS media queries in our theme-adaptive.css file
 
-    // Determine which theme to use
-    const shouldUseDark = savedTheme
-        ? savedTheme === 'dark'
-        : prefersDark;
+    console.log('Factory Pulse Adaptive Theme initialized');
 
-    // Apply the theme
-    if (shouldUseDark) {
-        html.setAttribute('data-theme', 'factory-pulse-dark');
-        html.classList.add('dark');
-        html.classList.remove('light');
-        body.classList.add('dark');
-        body.classList.remove('light');
+    // Set up a listener for system theme changes
+    const mediaQuery = window.matchMedia('(prefers-color-scheme: dark)');
+
+    const handleThemeChange = (e: MediaQueryListEvent) => {
+        // The CSS media queries in theme-adaptive.css will handle the actual theme switching
+        // We just log the change for debugging purposes
+        console.log(`System theme preference changed to: ${e.matches ? 'dark' : 'light'}`);
+    };
+
+    // Add listener for theme changes
+    if (mediaQuery.addEventListener) {
+        mediaQuery.addEventListener('change', handleThemeChange);
     } else {
-        html.setAttribute('data-theme', 'factory-pulse-light');
-        html.classList.add('light');
-        html.classList.remove('dark');
-        body.classList.add('light');
-        body.classList.remove('dark');
+        // Fallback for older browsers
+        mediaQuery.addListener(handleThemeChange);
     }
-
-    console.log(`Theme initialized to: ${shouldUseDark ? 'dark' : 'light'}`);
-
-    // Set up a listener for theme changes
-    const observer = new MutationObserver((mutations) => {
-        mutations.forEach((mutation) => {
-            if (mutation.attributeName === 'data-theme' || mutation.attributeName === 'class') {
-                const isDark = html.getAttribute('data-theme') === 'factory-pulse-dark' ||
-                    html.classList.contains('dark');
-
-                // Ensure body class matches
-                if (isDark) {
-                    body.classList.add('dark');
-                    body.classList.remove('light');
-                } else {
-                    body.classList.add('light');
-                    body.classList.remove('dark');
-                }
-            }
-        });
-    });
-
-    observer.observe(html, {
-        attributes: true,
-        attributeFilter: ['data-theme', 'class']
-    });
 }
 
 // Run initialization when imported

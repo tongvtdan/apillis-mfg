@@ -2,38 +2,235 @@
 @tailwind components;
 @tailwind utilities;
 
-/* Factory Pulse Design System - DaisyUI Integration */
+/* Import the adaptive theme CSS */
+@import './theme-adaptive.css';
+
+/* Factory Pulse Adaptive Theme (FP-AT) */
+
+@layer base {
+  :root {
+    /* Base colors - neutral palette that adapts to environment */
+    --background: 210 13% 96%;
+    /* #F8F9FA - Light neutral background */
+    --foreground: 220 13% 18%;
+    /* #212529 - High contrast text */
+
+    --card: 0 0% 100%;
+    /* #FFFFFF - Pure white cards */
+    --card-foreground: 220 13% 18%;
+    /* #212529 - Dark text on cards */
+
+    --popover: 0 0% 100%;
+    /* #FFFFFF - Pure white popovers */
+    --popover-foreground: 220 13% 18%;
+    /* #212529 - Dark text in popovers */
+
+    /* Industry-standard accent colors */
+    --primary: 210 100% 40%;
+    /* #0066CC - Industrial Blue */
+    --primary-foreground: 0 0% 100%;
+    /* #FFFFFF - White text on primary */
+    --primary-hover: 210 100% 35%;
+    --primary-light: 210 100% 95%;
+
+    --secondary: 258 100% 76%;
+    /* #BB86FC - Purple (brand continuity) */
+    --secondary-foreground: 0 0% 100%;
+    /* #FFFFFF - White text on secondary */
+
+    /* Neutral colors for borders and muted elements */
+    --muted: 210 15% 92%;
+    /* #EBEEF1 - Light muted background */
+    --muted-foreground: 215 16% 47%;
+    /* #6C757D - Muted text */
+
+    --accent: 45 100% 63%;
+    /* #FFD740 - Amber (brand continuity) */
+    --accent-foreground: 220 13% 18%;
+    /* #1F2937 - Dark text on accent */
+
+    /* Status colors - industry-standard for clarity */
+    --success: 160 100% 30%;
+    /* #009966 - Success Green */
+    --success-foreground: 0 0% 100%;
+    /* #FFFFFF - White text on success */
+    --success-light: 160 100% 95%;
+
+    --warning: 36 100% 50%;
+    /* #FF9900 - Warning Orange */
+    --warning-foreground: 0 0% 100%;
+    /* #FFFFFF - White text on warning */
+    --warning-light: 36 100% 95%;
+
+    --destructive: 345 100% 40%;
+    /* #CC0033 - Error Red */
+    --destructive-foreground: 0 0% 100%;
+    /* #FFFFFF - White text on error */
+    --destructive-light: 345 100% 95%;
+
+    --info: 207 90% 54%;
+    /* #2196F3 - Info Blue (brand continuity) */
+    --info-foreground: 0 0% 100%;
+    /* #FFFFFF - White text on info */
+
+    /* Interface elements with appropriate contrast */
+    --border: 214 15% 85%;
+    /* #D8DFE6 - Subtle borders */
+    --input: 210 15% 95%;
+    /* #F2F4F7 - Light input backgrounds */
+    --ring: 210 100% 40%;
+    /* #0066CC - Industrial Blue ring */
+
+    --radius: 0.5rem;
+    /* 8px border radius */
+
+    /* Factory Pulse gradients using industry-standard colors */
+    --gradient-primary: linear-gradient(135deg, #0066CC 0%, #0288D1 100%);
+    --gradient-secondary: linear-gradient(135deg, #F8F9FA 0%, #FFFFFF 100%);
+    --gradient-accent: linear-gradient(135deg, #FFD740 0%, #FF9900 100%);
+    --gradient-success: linear-gradient(135deg, #009966 0%, #00C853 100%);
+    --gradient-warning: linear-gradient(135deg, #FF9900 0%, #FF6D00 100%);
+    --gradient-error: linear-gradient(135deg, #CC0033 0%, #B71C1C 100%);
+
+    /* Modern shadows optimized for both light and dark environments */
+    --shadow-sm: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
+    --shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+    --shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+    --shadow-tech: 0 4px 16px -2px rgba(0, 102, 204, 0.15);
+
+    /* Smooth animations - cubic-bezier(0.4, 0, 0.2, 1) */
+    --transition-all: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    --transition-colors: color 0.15s ease-in-out, background-color 0.15s ease-in-out, border-color 0.15s ease-in-out;
+
+    /* Sidebar - Clean modern with better contrast */
+    --sidebar-background: 210 15% 92%;
+    /* Light muted background */
+    --sidebar-foreground: 220 13% 18%;
+    /* Dark text for good contrast */
+    --sidebar-primary: 210 100% 40%;
+    /* Industrial Blue */
+    --sidebar-primary-foreground: 0 0% 100%;
+    /* White text on primary */
+    --sidebar-accent: 210 100% 40%;
+    /* Use primary color for accent */
+    --sidebar-accent-foreground: 0 0% 100%;
+    /* White text on accent */
+    --sidebar-border: 214 15% 85%;
+    /* Subtle borders */
+    --sidebar-ring: 210 100% 40%;
+    /* Industrial Blue ring */
+  }
+}
+
+/* Dark mode adaptation using media query */
+@media (prefers-color-scheme: dark) {
+  :root {
+    --background: 0 0% 12%;
+    /* #1E1E1E - Dark neutral background */
+    --foreground: 0 0% 91%;
+    /* #E9ECEF - Light text for dark background */
+
+    --card: 0 0% 16%;
+    /* #2A2A2A - Slightly lighter card background */
+    --card-foreground: 0 0% 91%;
+    /* #E9ECEF - Light text on cards */
+
+    --popover: 0 0% 16%;
+    /* #2A2A2A - Slightly lighter popover background */
+    --popover-foreground: 0 0% 91%;
+    /* #E9ECEF - Light text in popovers */
+
+    --primary: 210 100% 40%;
+    /* #0066CC - Industrial Blue (same for consistency) */
+    --primary-foreground: 0 0% 100%;
+    /* #FFFFFF - White text on primary */
+    --primary-hover: 210 100% 45%;
+    --primary-light: 210 100% 20%;
+
+    --secondary: 258 100% 76%;
+    /* #BB86FC - Purple (brand continuity) */
+    --secondary-foreground: 0 0% 100%;
+    /* #FFFFFF - White text on secondary */
+
+    --muted: 0 0% 23%;
+    /* #3A3A3A - Darker muted background */
+    --muted-foreground: 0 0% 68%;
+    /* #ADB5BD - Lighter muted text */
+
+    --accent: 45 100% 63%;
+    /* #FFD740 - Amber (brand continuity) */
+    --accent-foreground: 220 13% 18%;
+    /* #1F2937 - Dark text on accent */
+
+    --success: 160 100% 30%;
+    /* #009966 - Success Green (same for consistency) */
+    --success-foreground: 0 0% 100%;
+    /* #FFFFFF - White text on success */
+    --success-light: 160 100% 20%;
+
+    --warning: 36 100% 50%;
+    /* #FF9900 - Warning Orange (same for consistency) */
+    --warning-foreground: 0 0% 100%;
+    /* #FFFFFF - White text on warning */
+    --warning-light: 36 100% 20%;
+
+    --destructive: 345 100% 40%;
+    /* #CC0033 - Error Red (same for consistency) */
+    --destructive-foreground: 0 0% 100%;
+    /* #FFFFFF - White text on error */
+    --destructive-light: 345 100% 20%;
+
+    --info: 207 90% 54%;
+    /* #2196F3 - Info Blue (brand continuity) */
+    --info-foreground: 0 0% 100%;
+    /* #FFFFFF - White text on info */
+
+    --border: 0 0% 25%;
+    /* #404040 - Subtle borders for dark mode */
+    --input: 0 0% 20%;
+    /* #333333 - Darker input backgrounds */
+    --ring: 210 100% 40%;
+    /* #0066CC - Industrial Blue ring */
+
+    --sidebar-background: 0 0% 16%;
+    /* Slightly lighter background */
+    --sidebar-foreground: 0 0% 91%;
+    /* Light text for good contrast */
+    --sidebar-border: 0 0% 25%;
+    /* Subtle borders for dark mode */
+  }
+}
 
 /* Make DaisyUI theme classes work consistently across the application */
 .bg-base-100 {
-  background-color: var(--background) !important;
+  background-color: hsl(var(--background)) !important;
 }
 
 .text-base-content {
-  color: var(--foreground) !important;
+  color: hsl(var(--foreground)) !important;
 }
 
 .bg-base-200 {
-  background-color: var(--muted) !important;
+  background-color: hsl(var(--muted)) !important;
 }
 
 .bg-base-300 {
-  background-color: var(--border) !important;
+  background-color: hsl(var(--border)) !important;
 }
 
 /* Add border color rule for border-border */
 .border-border {
-  border-color: var(--border) !important;
+  border-color: hsl(var(--border)) !important;
 }
 
 /* Add border color rule for base-300 */
 .border-base-300 {
-  border-color: var(--border) !important;
+  border-color: hsl(var(--border)) !important;
 }
 
 /* Add background color rule for bg-border to ensure separators use border color */
 .bg-border {
-  background-color: var(--border) !important;
+  background-color: hsl(var(--border)) !important;
 }
 
 /* Custom styles for elevated cards and gradients - from HTML website */
@@ -52,214 +249,18 @@
 }
 
 .priority-badge.high {
-  background: linear-gradient(135deg, #CF6679 0%, #B71C1C 100%);
+  background: var(--gradient-error);
   color: white;
 }
 
 .priority-badge.medium {
-  background: linear-gradient(135deg, #FFD740 0%, #FF8F00 100%);
+  background: var(--gradient-warning);
   color: #1F2937;
 }
 
 .priority-badge.low {
-  background: linear-gradient(135deg, #69F0AE 0%, #00C853 100%);
+  background: var(--gradient-success);
   color: white;
-}
-
-@layer base {
-  :root {
-    /* FACTORY PULSE THEME - Light Mode */
-    /* Based on design specification colors */
-    --background: 0 0% 100%;
-    /* base-100: #FFFFFF */
-    --foreground: 220 13% 18%;
-    /* base-content: #1F2937 */
-
-    --card: 0 0% 100%;
-    /* base-100: #FFFFFF */
-    --card-foreground: 220 13% 18%;
-
-    --popover: 0 0% 100%;
-    --popover-foreground: 220 13% 18%;
-
-    /* Teal/Cyan - Primary brand color */
-    --primary: 174 100% 44%;
-    /* primary: #03DAC6 */
-    --primary-foreground: 0 0% 0%;
-    /* primary-content: #000000 */
-    --primary-hover: 174 100% 40%;
-    --primary-light: 174 100% 95%;
-
-    /* Purple - Secondary actions */
-    --secondary: 258 100% 76%;
-    /* secondary: #BB86FC */
-    --secondary-foreground: 0 0% 100%;
-    /* secondary-content: #FFFFFF */
-
-    /* Clean neutrals - Base colors */
-    --muted: 210 20% 98%;
-    /* base-200: #F9FAFB */
-    --muted-foreground: 215 16% 47%;
-    /* neutral content */
-
-    /* Amber - Warnings and highlights */
-    --accent: 45 100% 63%;
-    /* accent: #FFD740 */
-    --accent-foreground: 220 13% 18%;
-    /* accent-content: #1F2937 */
-
-    /* Status colors - Factory Pulse themed */
-    --success: 122 39% 49%;
-    /* success: #4CAF50 */
-    --success-foreground: 0 0% 100%;
-    --success-light: 122 39% 95%;
-
-    --warning: 36 100% 50%;
-    /* warning: #FB8C00 */
-    --warning-foreground: 0 0% 100%;
-    --warning-light: 36 100% 95%;
-
-    --destructive: 351 83% 61%;
-    /* error: #CF6679 */
-    --destructive-foreground: 0 0% 100%;
-    --destructive-light: 351 83% 95%;
-
-    --info: 207 90% 54%;
-    /* info: #2196F3 */
-    --info-foreground: 0 0% 100%;
-
-    /* Manufacturing workflow colors */
-    --status-inquiry: 207 90% 54%;
-    /* Blue - informational */
-    --status-review: 36 100% 50%;
-    /* Orange - warnings */
-    --status-quote: 258 100% 76%;
-    /* Purple - secondary */
-    --status-production: 122 39% 49%;
-    /* Green - success */
-    --status-completed: 215 16% 47%;
-    /* Gray - neutral */
-
-    /* Interface elements - Modern and clean */
-    --border: 214 32% 70%;
-    /* base-300: #D1D5DB - 5% darker */
-    --input: 210 20% 98%;
-    /* base-200: #F9FAFB */
-    --ring: 174 100% 44%;
-    /* primary ring */
-
-    --radius: 0.5rem;
-    /* 8px border radius */
-
-    /* Factory Pulse gradients */
-    --gradient-primary: linear-gradient(135deg, #03DAC6 0%, #0288D1 100%);
-    --gradient-secondary: linear-gradient(135deg, #F9FAFB 0%, #FFFFFF 100%);
-    --gradient-accent: linear-gradient(135deg, #FFD740 0%, #FF8F00 100%);
-
-    /* Modern shadows */
-    --shadow-sm: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
-    --shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
-    --shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
-    --shadow-tech: 0 4px 16px -2px rgba(3, 218, 198, 0.15);
-
-    /* Smooth animations - cubic-bezier(0.4, 0, 0.2, 1) */
-    --transition-all: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-    --transition-colors: color 0.15s ease-in-out, background-color 0.15s ease-in-out, border-color 0.15s ease-in-out;
-
-    /* Sidebar - Clean modern with better contrast */
-    --sidebar-background: 210 20% 98%;
-    /* Light gray background */
-    --sidebar-foreground: 220 13% 18%;
-    /* Dark text for good contrast */
-    --sidebar-primary: 174 100% 44%;
-    --sidebar-primary-foreground: 0 0% 100%;
-    --sidebar-accent: 174 100% 44%;
-    /* Use primary color for accent */
-    --sidebar-accent-foreground: 0 0% 100%;
-    /* White text on primary */
-    --sidebar-border: 214 32% 91%;
-    --sidebar-ring: 174 100% 44%;
-  }
-
-  .dark {
-    /* FACTORY PULSE THEME - Dark Mode */
-    /* Based on design specification dark colors */
-    --background: 0 0% 7%;
-    /* dark base-100: #121212 */
-    --foreground: 0 0% 88%;
-    /* dark base-content: #E0E0E0 */
-
-    --card: 0 0% 12%;
-    /* dark base-200: #1E1E1E */
-    --card-foreground: 0 0% 88%;
-
-    --popover: 0 0% 12%;
-    --popover-foreground: 0 0% 88%;
-
-    /* Teal/Cyan - Same primary in dark */
-    --primary: 174 100% 44%;
-    /* primary: #03DAC6 */
-    --primary-foreground: 0 0% 0%;
-    /* primary-content: #000000 */
-    --primary-hover: 174 100% 50%;
-    --primary-light: 174 100% 8%;
-
-    /* Purple - Same secondary in dark */
-    --secondary: 258 100% 76%;
-    /* secondary: #BB86FC */
-    --secondary-foreground: 0 0% 100%;
-
-    /* Dark neutrals */
-    --muted: 0 0% 18%;
-    /* dark neutral: #2D2D2D */
-    --muted-foreground: 0 0% 63%;
-
-    /* Amber - Same accent in dark */
-    --accent: 45 100% 63%;
-    /* accent: #FFD740 */
-    --accent-foreground: 220 13% 18%;
-
-    /* Dark mode status colors - Same as light */
-    --success: 122 39% 49%;
-    /* success: #4CAF50 */
-    --success-foreground: 0 0% 100%;
-    --success-light: 122 39% 10%;
-
-    --warning: 36 100% 50%;
-    /* warning: #FB8C00 */
-    --warning-foreground: 0 0% 100%;
-    --warning-light: 36 100% 10%;
-
-    --destructive: 351 83% 61%;
-    /* error: #CF6679 */
-    --destructive-foreground: 0 0% 100%;
-    --destructive-light: 351 83% 10%;
-
-    --info: 207 90% 54%;
-    /* info: #2196F3 */
-    --info-foreground: 0 0% 100%;
-
-    /* Interface elements - Dark mode */
-    --border: 0 0% 5%;
-    /* dark borders - 15% darker than original for maximum contrast */
-    --input: 0 0% 12%;
-    /* dark input background */
-    --ring: 174 100% 44%;
-
-    /* Dark sidebar - Better contrast */
-    --sidebar-background: 0 0% 7%;
-    /* Slightly lighter dark background */
-    --sidebar-foreground: 0 0% 88%;
-    /* Light text */
-    --sidebar-primary: 174 100% 44%;
-    --sidebar-primary-foreground: 0 0% 0%;
-    --sidebar-accent: 174 100% 44%;
-    /* Use primary color for accent */
-    --sidebar-accent-foreground: 0 0% 0%;
-    /* Dark text on primary */
-    --sidebar-border: 0 0% 15%;
-    --sidebar-ring: 174 100% 44%;
-  }
 }
 
 @layer base {

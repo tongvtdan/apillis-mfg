@@ -28,7 +28,7 @@ export default {
 				'128': '32rem',   /* 512px */
 			},
 			colors: {
-				border: 'hsl(var(--border))', // Updated for enhanced dark mode borders
+				border: 'hsl(var(--border))',
 				input: 'hsl(var(--input))',
 				ring: 'hsl(var(--ring))',
 				background: 'hsl(var(--background))',
@@ -174,23 +174,40 @@ export default {
 	daisyui: {
 		themes: [
 			{
-				"factory-pulse-light": {
-					"primary": "#03DAC6",          // Teal/Cyan - main brand color
-					"primary-content": "#000000",  // primary-content: #000000
-					"secondary": "#BB86FC",        // Purple - secondary actions
-					"secondary-content": "#FFFFFF", // secondary-content: #FFFFFF
-					"accent": "#FFD740",           // Amber - warnings and highlights
-					"accent-content": "#1F2937",   // accent-content: #1F2937
-					"neutral": "#1F2937",          // Dark slate - base elements
-					"neutral-content": "#FFFFFF",  // neutral-content: #FFFFFF
-					"base-100": "#FFFFFF",         // White - light mode background
-					"base-200": "#F9FAFB",         // Light gray - secondary backgrounds
-					"base-300": "#D1D5DB",         // Medium gray - borders and dividers (5% darker)
-					"base-content": "#1F2937",     // Dark text
-					"info": "#2196F3",             // Blue - informational elements
-					"success": "#4CAF50",          // Green - success states
-					"warning": "#FB8C00",          // Orange - warnings
-					"error": "#CF6679",            // Pink-red - errors and critical items
+				"factory-pulse-adaptive": {
+					// Neutral base that adapts to environment
+					"background": "#F8F9FA",       // Light neutral background
+					"foreground": "#212529",       // High contrast text
+					"card": "#FFFFFF",             // Pure white cards for clarity
+					"card-foreground": "#212529",  // Dark text on cards
+					"popover": "#FFFFFF",          // Pure white popovers
+					"popover-foreground": "#212529", // Dark text in popovers
+
+					// Industry-standard accent colors
+					"primary": "#0066CC",          // Industrial Blue (trusted in manufacturing)
+					"primary-content": "#FFFFFF",  // White text on primary
+					"secondary": "#BB86FC",        // Purple (brand continuity)
+					"secondary-content": "#FFFFFF", // White text on secondary
+					"accent": "#FFD740",           // Amber (brand continuity)
+					"accent-content": "#1F2937",   // Dark text on accent
+
+					// Status colors - industry-standard for clarity
+					"success": "#009966",          // Success Green
+					"success-content": "#FFFFFF",  // White text on success
+					"warning": "#FF9900",          // Warning Orange
+					"warning-content": "#FFFFFF",  // White text on warning
+					"error": "#CC0033",            // Error Red
+					"error-content": "#FFFFFF",    // White text on error
+					"info": "#2196F3",             // Info Blue (brand continuity)
+					"info-content": "#FFFFFF",     // White text on info
+
+					// Neutral colors for borders and muted elements
+					"neutral": "#1F2937",          // Dark slate for base elements
+					"neutral-content": "#FFFFFF",  // White text on neutral
+					"base-100": "#F8F9FA",         // Light background
+					"base-200": "#EBEEF1",         // Light muted background
+					"base-300": "#D8DFE6",         // Subtle borders
+					"base-content": "#212529",     // Dark text
 
 					// Additional custom properties
 					"--rounded-box": "1rem",       // border radius rounded-box utility class, used in card and other large boxes
@@ -204,44 +221,13 @@ export default {
 					"--tab-radius": "0.5rem",      // border radius of tabs
 				},
 			},
-			{
-				"factory-pulse-dark": {
-					"primary": "#03DAC6",          // Teal/Cyan - same in dark
-					"primary-content": "#000000",  // primary-content: #000000
-					"secondary": "#BB86FC",        // Purple - same in dark
-					"secondary-content": "#FFFFFF", // secondary-content: #FFFFFF
-					"accent": "#FFD740",           // Amber - same in dark
-					"accent-content": "#1F2937",   // accent-content: #1F2937
-					"neutral": "#1E1E1E",          // Dark neutral
-					"neutral-content": "#E0E0E0",  // Light neutral content
-					"base-100": "#121212",         // Dark base
-					"base-200": "#1E1E1E",         // Dark secondary
-					"base-300": "#333333",         // Dark tertiary - Made 15% darker for maximum contrast
-					"base-content": "#E0E0E0",     // Light text
-					"info": "#2196F3",             // Blue - same in dark
-					"success": "#4CAF50",          // Green - same in dark
-					"warning": "#FB8C00",          // Orange - same in dark
-					"error": "#CF6679",            // Pink-red - same in dark
-
-					// Additional custom properties
-					"--rounded-box": "1rem",
-					"--rounded-btn": "0.5rem",
-					"--rounded-badge": "1.9rem",
-					"--animation-btn": "0.25s",
-					"--animation-input": "0.2s",
-					"--btn-focus-scale": "0.95",
-					"--border-btn": "1px",
-					"--tab-border": "1px",
-					"--tab-radius": "0.5rem",
-				},
-			},
 		],
-		darkTheme: "factory-pulse-dark",
+		darkTheme: "factory-pulse-adaptive", // Uses the same theme but adapts via CSS
 		base: true,
 		styled: true,
 		utils: true,
 		prefix: "",
 		logs: true,
-		themeRoot: "html", // Changed from :root to html to ensure proper theme application
+		themeRoot: "html",
 	},
 } satisfies Config;

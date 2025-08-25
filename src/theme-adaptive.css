@@ -1,0 +1,230 @@
+/**
+ * Factory Pulse Adaptive Theme (FP-AT)
+ * Single theme that adapts to user's system preference
+ * Based on Adaptive Neutral Design (AND) principles
+ * One Theme, Adaptive Behavior
+ */
+
+/* Root variables for light mode (default) */
+:root {
+    /* Base colors - neutral palette */
+    --fp-background: #F8F9FA;
+    /* Light neutral background */
+    --fp-foreground: #212529;
+    /* High contrast text */
+    --fp-card: #FFFFFF;
+    /* Pure white cards */
+    --fp-card-foreground: #212529;
+    /* Dark text on cards */
+    --fp-popover: #FFFFFF;
+    /* Pure white popovers */
+    --fp-popover-foreground: #212529;
+    /* Dark text in popovers */
+
+    /* Industry-standard accent colors */
+    --fp-primary: #0066CC;
+    /* Industrial Blue */
+    --fp-primary-foreground: #FFFFFF;
+    /* White text on primary */
+    --fp-secondary: #BB86FC;
+    /* Purple (brand continuity) */
+    --fp-secondary-foreground: #FFFFFF;
+    /* White text on secondary */
+    --fp-accent: #FFD740;
+    /* Amber (brand continuity) */
+    --fp-accent-foreground: #1F2937;
+    /* Dark text on accent */
+
+    /* Status colors - industry-standard for clarity */
+    --fp-destructive: #CC0033;
+    /* Error Red */
+    --fp-destructive-foreground: #FFFFFF;
+    /* White text on error */
+    --fp-success: #009966;
+    /* Success Green */
+    --fp-success-foreground: #FFFFFF;
+    /* White text on success */
+    --fp-warning: #FF9900;
+    /* Warning Orange */
+    --fp-warning-foreground: #FFFFFF;
+    /* White text on warning */
+    --fp-info: #2196F3;
+    /* Info Blue (brand continuity) */
+    --fp-info-foreground: #FFFFFF;
+    /* White text on info */
+
+    /* Neutral colors for borders and muted elements */
+    --fp-muted: #EBEEF1;
+    /* Light muted background */
+    --fp-muted-foreground: #6C757D;
+    /* Muted text */
+    --fp-border: #D8DFE6;
+    /* Subtle borders */
+    --fp-input: #F2F4F7;
+    /* Light input backgrounds */
+    --fp-ring: #0066CC;
+    /* Industrial Blue ring */
+
+    /* Chart colors */
+    --fp-chart-primary: #0066CC;
+    /* Industrial Blue */
+    --fp-chart-secondary: #BB86FC;
+    /* Purple */
+    --fp-chart-tertiary: #FFD740;
+    /* Amber */
+    --fp-chart-quaternary: #009966;
+    /* Success Green */
+    --fp-chart-quinary: #CC0033;
+    /* Error Red */
+
+    /* Color scheme for browser optimization */
+    color-scheme: light;
+}
+
+/* Dark mode adaptation using media query */
+@media (prefers-color-scheme: dark) {
+    :root {
+        /* Base colors - adapted for dark environments */
+        --fp-background: #1E1E1E;
+        /* Dark neutral background */
+        --fp-foreground: #E9ECEF;
+        /* Light text for dark background */
+        --fp-card: #2A2A2A;
+        /* Slightly lighter card background */
+        --fp-card-foreground: #E9ECEF;
+        /* Light text on cards */
+        --fp-popover: #2A2A2A;
+        /* Slightly lighter popover background */
+        --fp-popover-foreground: #E9ECEF;
+        /* Light text in popovers */
+
+        /* Industry-standard accent colors (same for consistency) */
+        --fp-primary: #0066CC;
+        /* Industrial Blue */
+        --fp-primary-foreground: #FFFFFF;
+        /* White text on primary */
+        --fp-secondary: #BB86FC;
+        /* Purple (brand continuity) */
+        --fp-secondary-foreground: #FFFFFF;
+        /* White text on secondary */
+        --fp-accent: #FFD740;
+        /* Amber (brand continuity) */
+        --fp-accent-foreground: #1F2937;
+        /* Dark text on accent */
+
+        /* Status colors - industry-standard for clarity (same for consistency) */
+        --fp-destructive: #CC0033;
+        /* Error Red */
+        --fp-destructive-foreground: #FFFFFF;
+        /* White text on error */
+        --fp-success: #009966;
+        /* Success Green */
+        --fp-success-foreground: #FFFFFF;
+        /* White text on success */
+        --fp-warning: #FF9900;
+        /* Warning Orange */
+        --fp-warning-foreground: #FFFFFF;
+        /* White text on warning */
+        --fp-info: #2196F3;
+        /* Info Blue (brand continuity) */
+        --fp-info-foreground: #FFFFFF;
+        /* White text on info */
+
+        /* Neutral colors adapted for dark mode */
+        --fp-muted: #3A3A3A;
+        /* Darker muted background */
+        --fp-muted-foreground: #ADB5BD;
+        /* Lighter muted text */
+        --fp-border: #404040;
+        /* Subtle borders for dark mode */
+        --fp-input: #333333;
+        /* Darker input backgrounds */
+        --fp-ring: #0066CC;
+        /* Industrial Blue ring */
+
+        /* Chart colors (same for consistency) */
+        --fp-chart-primary: #0066CC;
+        /* Industrial Blue */
+        --fp-chart-secondary: #BB86FC;
+        /* Purple */
+        --fp-chart-tertiary: #FFD740;
+        /* Amber */
+        --fp-chart-quaternary: #009966;
+        /* Success Green */
+        --fp-chart-quinary: #CC0033;
+        /* Error Red */
+
+        /* Color scheme for browser optimization */
+        color-scheme: dark;
+    }
+}
+
+/* Apply theme variables to DaisyUI theme */
+[data-theme="factory-pulse-adaptive"] {
+    --background: var(--fp-background);
+    --foreground: var(--fp-foreground);
+    --card: var(--fp-card);
+    --card-foreground: var(--fp-card-foreground);
+    --popover: var(--fp-popover);
+    --popover-foreground: var(--fp-popover-foreground);
+    --primary: var(--fp-primary);
+    --primary-foreground: var(--fp-primary-foreground);
+    --secondary: var(--fp-secondary);
+    --secondary-foreground: var(--fp-secondary-foreground);
+    --accent: var(--fp-accent);
+    --accent-foreground: var(--fp-accent-foreground);
+    --destructive: var(--fp-destructive);
+    --destructive-foreground: var(--fp-destructive-foreground);
+    --success: var(--fp-success);
+    --success-foreground: var(--fp-success-foreground);
+    --warning: var(--fp-warning);
+    --warning-foreground: var(--fp-warning-foreground);
+    --info: var(--fp-info);
+    --info-foreground: var(--fp-info-foreground);
+    --muted: var(--fp-muted);
+    --muted-foreground: var(--fp-muted-foreground);
+    --border: var(--fp-border);
+    --input: var(--fp-input);
+    --ring: var(--fp-ring);
+    --chart-primary: var(--fp-chart-primary);
+    --chart-secondary: var(--fp-chart-secondary);
+    --chart-tertiary: var(--fp-chart-tertiary);
+    --chart-quaternary: var(--fp-chart-quaternary);
+    --chart-quinary: var(--fp-chart-quinary);
+}
+
+/* Ensure proper contrast for text */
+.text-foreground {
+    color: var(--fp-foreground);
+}
+
+.text-muted-foreground {
+    color: var(--fp-muted-foreground);
+}
+
+/* Ensure proper background colors */
+.bg-background {
+    background-color: var(--fp-background);
+}
+
+.bg-card {
+    background-color: var(--fp-card);
+}
+
+.bg-muted {
+    background-color: var(--fp-muted);
+}
+
+/* Border utilities */
+.border {
+    border-color: var(--fp-border);
+}
+
+.border-input {
+    border-color: var(--fp-input);
+}
+
+/* Ring utilities */
+.ring-ring {
+    --tw-ring-color: var(--fp-ring);
+}
