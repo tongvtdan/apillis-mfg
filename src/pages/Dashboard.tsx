@@ -27,7 +27,10 @@ import {
 } from "lucide-react";
 
 export default function Dashboard() {
+  console.log('🔧 Dashboard: Component rendering');
+  
   const { data: dashboardData, isLoading: dashboardLoading } = useDashboardData();
+  console.log('🔧 Dashboard: Hook data:', { dashboardData, dashboardLoading });
   const { customers } = useCustomers();
   const { suppliers } = useSuppliers();
   const { purchaseOrders } = usePurchaseOrders();

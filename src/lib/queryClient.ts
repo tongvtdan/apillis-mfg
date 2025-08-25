@@ -1,5 +1,7 @@
 import { QueryClient } from '@tanstack/react-query';
 
+console.log('🔧 queryClient.ts: Creating QueryClient');
+
 export const queryClient = new QueryClient({
   defaultOptions: {
     queries: {
@@ -21,3 +23,5 @@ export const queryClient = new QueryClient({
     },
   },
 });
+
+console.log('🔧 queryClient.ts: QueryClient created successfully', queryClient);

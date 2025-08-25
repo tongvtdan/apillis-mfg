@@ -8,12 +8,22 @@ import './styles/enhanced-status.css';
 import './lib/theme-init';
 import { queryClient } from "./lib/queryClient.ts";
 
-createRoot(document.getElementById("root")!).render(
-  <StrictMode>
-    <QueryClientProvider client={queryClient}>
-      <BrowserRouter>
-        <App />
-      </BrowserRouter>
-    </QueryClientProvider>
-  </StrictMode>,
-);
+console.log('🔧 main.tsx: Starting app initialization');
+console.log('🔧 main.tsx: QueryClient imported:', queryClient);
+
+console.log('🔧 main.tsx: About to render app');
+
+try {
+  createRoot(document.getElementById("root")!).render(
+    <StrictMode>
+      <QueryClientProvider client={queryClient}>
+        <BrowserRouter>
+          <App />
+        </BrowserRouter>
+      </QueryClientProvider>
+    </StrictMode>,
+  );
+  console.log('🔧 main.tsx: App rendered successfully');
+} catch (error) {
+  console.error('🚨 main.tsx: Error during app render:', error);
+}

@@ -1,6 +1,8 @@
 import { useQuery } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 
+console.log('🔧 useDashboardData.ts: Hook file loaded');
+
 export interface DashboardSummary {
   projects: {
     total: number;
@@ -32,6 +34,8 @@ export interface DashboardSummary {
 }
 
 export function useDashboardData() {
+  console.log('🔧 useDashboardData: Hook called');
+  
   return useQuery({
     queryKey: ['dashboard-summary'],
     queryFn: async (): Promise<DashboardSummary> => {
