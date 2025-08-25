@@ -322,9 +322,17 @@ export function useProjects() {
     }
   };
 
-  // Set up real-time subscription
+  // Set up real-time subscription - only for project detail pages
   useEffect(() => {
     fetchProjects();
+
+    // Only subscribe to real-time updates on specific routes
+    const shouldSubscribeToRealtime = window.location.pathname.includes('/projects/') || 
+                                     window.location.pathname === '/projects';
+
+    if (!shouldSubscribeToRealtime) {
+      return;
+    }
 
     const channel = supabase
       .channel('projects-changes')

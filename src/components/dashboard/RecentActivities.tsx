@@ -1,5 +1,5 @@
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { useProjects } from "@/hooks/useProjects";
+import { useRecentActivity } from '@/hooks/useDashboardData';
 import { formatDistanceToNow } from "date-fns";
 import {
   FileText,
@@ -10,15 +10,42 @@ import {
 } from "lucide-react";
 
 export function RecentActivities() {
-  const { projects, loading } = useProjects();
+  const { projects, rfqs, isLoading } = useRecentActivity();
+
+  // Combine and sort recent activities
+  const allActivities = [
+    ...projects.map(project => ({
+      id: `project-${project.id}`,
+      type: 'project' as const,
+      title: project.title,
+      subtitle: `Project ${project.project_id}`,
+      timestamp: project.created_at,
+      status: project.status,
+      customer: project.customer_name
+    })),
+    ...rfqs.map(rfq => ({
+      id: `rfq-${rfq.id}`,
+      type: 'rfq' as const,
+      title: rfq.project_name,
+      subtitle: `RFQ ${rfq.rfq_number}`,
+      timestamp: rfq.created_at,
+      status: rfq.status,
+      customer: rfq.company_name
+    }))
+  ].sort((a, b) => new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime())
+   .slice(0, 10);
 
   const getActivityIcon = (status: string) => {
     switch (status) {
-      case 'inquiry': return FileText;
-      case 'won': return CheckCircle;
+      case 'inquiry': 
+      case 'inquiry_received': return FileText;
+      case 'won':
+      case 'order_confirmed': return CheckCircle;
       case 'quoted': return TrendingUp;
-      case 'review': return Building2;
-      case 'lost': return AlertTriangle;
+      case 'review':
+      case 'technical_review': return Building2;
+      case 'lost':
+      case 'shipped_closed': return AlertTriangle;
       default: return FileText;
     }
   };
@@ -26,11 +53,15 @@ export function RecentActivities() {
   // Get the status badge classes
   const getStatusClass = (status: string) => {
     switch (status) {
-      case 'inquiry': return 'status-badge status-badge-sm status-inquiry';
-      case 'won': return 'status-badge status-badge-sm status-active';
+      case 'inquiry':
+      case 'inquiry_received': return 'status-badge status-badge-sm status-inquiry';
+      case 'won':
+      case 'order_confirmed': return 'status-badge status-badge-sm status-active';
       case 'quoted': return 'status-badge status-badge-sm status-quote';
-      case 'review': return 'status-badge status-badge-sm status-review';
-      case 'lost': return 'status-badge status-badge-sm status-overdue';
+      case 'review':
+      case 'technical_review': return 'status-badge status-badge-sm status-review';
+      case 'lost':
+      case 'shipped_closed': return 'status-badge status-badge-sm status-overdue';
       default: return 'status-badge status-badge-sm';
     }
   };
@@ -39,14 +70,18 @@ export function RecentActivities() {
   const getListItemClass = (status: string) => {
     switch (status) {
       case 'inquiry':
+      case 'inquiry_received':
         return 'enhanced-list-item enhanced-list-item-normal border-l-4 border-l-blue-400 bg-gradient-to-r from-blue-50/30 to-transparent dark:from-blue-950/20 dark:to-transparent';
       case 'won':
+      case 'order_confirmed':
         return 'enhanced-list-item enhanced-list-item-active border-l-4 border-l-green-400 bg-gradient-to-r from-green-50/30 to-transparent dark:from-green-950/20 dark:to-transparent';
       case 'quoted':
         return 'enhanced-list-item enhanced-list-item-medium border-l-4 border-l-purple-400 bg-gradient-to-r from-purple-50/30 to-transparent dark:from-purple-950/20 dark:to-transparent';
       case 'review':
+      case 'technical_review':
         return 'enhanced-list-item enhanced-list-item-normal border-l-4 border-l-yellow-400 bg-gradient-to-r from-yellow-50/30 to-transparent dark:from-yellow-950/20 dark:to-transparent';
       case 'lost':
+      case 'shipped_closed':
         return 'enhanced-list-item enhanced-list-item-high border-l-4 border-l-red-400 bg-gradient-to-r from-red-50/30 to-transparent dark:from-red-950/20 dark:to-transparent';
       default:
         return 'enhanced-list-item enhanced-list-item-normal';
@@ -56,11 +91,15 @@ export function RecentActivities() {
   // Get activity icon color with enhanced visibility
   const getIconColorClass = (status: string) => {
     switch (status) {
-      case 'inquiry': return 'text-blue-600 dark:text-blue-400';
-      case 'won': return 'text-green-600 dark:text-green-400';
+      case 'inquiry':
+      case 'inquiry_received': return 'text-blue-600 dark:text-blue-400';
+      case 'won':
+      case 'order_confirmed': return 'text-green-600 dark:text-green-400';
       case 'quoted': return 'text-purple-600 dark:text-purple-400';
-      case 'review': return 'text-yellow-600 dark:text-yellow-400';
-      case 'lost': return 'text-red-600 dark:text-red-400';
+      case 'review':
+      case 'technical_review': return 'text-yellow-600 dark:text-yellow-400';
+      case 'lost':
+      case 'shipped_closed': return 'text-red-600 dark:text-red-400';
       default: return 'text-gray-600 dark:text-gray-400';
     }
   };
@@ -68,11 +107,15 @@ export function RecentActivities() {
   // Get icon background class with enhanced styling
   const getIconBgClass = (status: string) => {
     switch (status) {
-      case 'inquiry': return 'bg-blue-100 dark:bg-blue-950/70 shadow-sm';
-      case 'won': return 'bg-green-100 dark:bg-green-950/70 shadow-sm';
+      case 'inquiry':
+      case 'inquiry_received': return 'bg-blue-100 dark:bg-blue-950/70 shadow-sm';
+      case 'won':
+      case 'order_confirmed': return 'bg-green-100 dark:bg-green-950/70 shadow-sm';
       case 'quoted': return 'bg-purple-100 dark:bg-purple-950/70 shadow-sm';
-      case 'review': return 'bg-yellow-100 dark:bg-yellow-950/70 shadow-sm';
-      case 'lost': return 'bg-red-100 dark:bg-red-950/70 shadow-sm';
+      case 'review':
+      case 'technical_review': return 'bg-yellow-100 dark:bg-yellow-950/70 shadow-sm';
+      case 'lost':
+      case 'shipped_closed': return 'bg-red-100 dark:bg-red-950/70 shadow-sm';
       default: return 'bg-gray-100 dark:bg-gray-800/80 shadow-sm';
     }
   };
@@ -80,21 +123,23 @@ export function RecentActivities() {
   // Get text styling based on status
   const getTitleClass = (status: string) => {
     switch (status) {
-      case 'inquiry': return 'text-sm font-medium text-blue-800 dark:text-blue-300';
-      case 'won': return 'text-sm font-medium text-green-800 dark:text-green-300';
+      case 'inquiry':
+      case 'inquiry_received': return 'text-sm font-medium text-blue-800 dark:text-blue-300';
+      case 'won':
+      case 'order_confirmed': return 'text-sm font-medium text-green-800 dark:text-green-300';
       case 'quoted': return 'text-sm font-medium text-purple-800 dark:text-purple-300';
-      case 'review': return 'text-sm font-medium text-yellow-800 dark:text-yellow-300';
-      case 'lost': return 'text-sm font-medium text-red-800 dark:text-red-300';
+      case 'review':
+      case 'technical_review': return 'text-sm font-medium text-yellow-800 dark:text-yellow-300';
+      case 'lost':
+      case 'shipped_closed': return 'text-sm font-medium text-red-800 dark:text-red-300';
       default: return 'text-sm font-medium text-foreground';
     }
   };
 
-  // Get recent projects sorted by updated_at
-  const recentProjects = projects
-    .sort((a, b) => new Date(b.updated_at).getTime() - new Date(a.updated_at).getTime())
-    .slice(0, 5);
+  // Get recent activities from the combined list
+  const recentActivities = allActivities.slice(0, 5);
 
-  if (loading) {
+  if (isLoading) {
     return (
       <Card>
         <CardHeader>
@@ -118,43 +163,44 @@ export function RecentActivities() {
       </Card>
     );
   }
+
   return (
     <Card>
       <CardHeader>
         <CardTitle className="text-lg font-semibold">Recent Activities</CardTitle>
       </CardHeader>
       <CardContent className="space-y-4">
-        {recentProjects.map((project) => {
-          const IconComponent = getActivityIcon(project.status);
-          const iconColor = getIconColorClass(project.status);
-          const iconBg = getIconBgClass(project.status);
-          const statusClass = getStatusClass(project.status);
-          const listItemClass = getListItemClass(project.status);
-          const titleClass = getTitleClass(project.status);
+        {recentActivities.map((activity) => {
+          const IconComponent = getActivityIcon(activity.status);
+          const iconColor = getIconColorClass(activity.status);
+          const iconBg = getIconBgClass(activity.status);
+          const statusClass = getStatusClass(activity.status);
+          const listItemClass = getListItemClass(activity.status);
+          const titleClass = getTitleClass(activity.status);
 
           return (
-            <div key={project.id} className={`flex items-start space-x-3 ${listItemClass}`}>
+            <div key={activity.id} className={`flex items-start space-x-3 ${listItemClass}`}>
               <div className={`p-2 rounded-full ${iconBg}`}>
                 <IconComponent className={`h-4 w-4 ${iconColor}`} />
               </div>
               <div className="flex-1 min-w-0">
                 <div className="flex items-center space-x-2 mb-1">
                   <p className={titleClass}>
-                    {project.title}
+                    {activity.title}
                   </p>
                   <div className={statusClass}>
-                    {project.status.charAt(0).toUpperCase() + project.status.slice(1)}
+                    {activity.status.replace('_', ' ').charAt(0).toUpperCase() + activity.status.replace('_', ' ').slice(1)}
                   </div>
                 </div>
                 <p className="text-xs text-muted-foreground">
-                  {formatDistanceToNow(new Date(project.updated_at), { addSuffix: true })}
+                  {formatDistanceToNow(new Date(activity.timestamp), { addSuffix: true })}
                 </p>
               </div>
             </div>
           );
         })}
-        {recentProjects.length === 0 && (
-          <p className="text-sm text-muted-foreground">No recent project activities</p>
+        {recentActivities.length === 0 && (
+          <p className="text-sm text-muted-foreground">No recent activities</p>
         )}
       </CardContent>
     </Card>

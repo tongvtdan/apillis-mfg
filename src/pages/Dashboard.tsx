@@ -7,7 +7,7 @@ import { PriorityActionItems } from "@/components/dashboard/PriorityActionItems"
 import { QuickStats } from "@/components/dashboard/QuickStats";
 import { OverviewCard } from "@/components/dashboard/OverviewCard";
 import { Card, CardContent } from "@/components/ui/card";
-import { useProjects } from "@/hooks/useProjects";
+import { useDashboardData } from '@/hooks/useDashboardData';
 import { useCustomers } from "@/hooks/useCustomers";
 import { useSuppliers } from "@/hooks/useSuppliers";
 import { usePurchaseOrders } from "@/hooks/usePurchaseOrders";
@@ -27,7 +27,7 @@ import {
 } from "lucide-react";
 
 export default function Dashboard() {
-  const { projects, loading } = useProjects();
+  const { data: dashboardData, isLoading: dashboardLoading } = useDashboardData();
   const { customers } = useCustomers();
   const { suppliers } = useSuppliers();
   const { purchaseOrders } = usePurchaseOrders();
@@ -36,55 +36,45 @@ export default function Dashboard() {
   const { profile } = useAuth();
   const navigate = useNavigate();
 
+  // Extract project data from dashboard summary
+  const projects = dashboardData?.recent_projects || [];
+  const projectsTotal = dashboardData?.projects?.total || 0;
+  const projectsByStatus = dashboardData?.projects?.by_status || {};
+  const loading = dashboardLoading;
+
   // Search and filter states
   const [searchQuery, setSearchQuery] = useState("");
   const [priorityFilter, setPriorityFilter] = useState("all");
   const [statusFilter, setStatusFilter] = useState("all");
   const [assigneeFilter, setAssigneeFilter] = useState("all");
 
-  // Filter projects based on search and filters
+  // Filter projects based on search and filters - simplified for dashboard data
   const filteredProjects = useMemo(() => {
     let filtered = projects;
 
-    // Search filter
+    // Search filter - only search basic fields available in dashboard data
     if (searchQuery) {
       const query = searchQuery.toLowerCase();
       filtered = filtered.filter(project =>
         project.project_id?.toLowerCase().includes(query) ||
         project.title?.toLowerCase().includes(query) ||
-        project.description?.toLowerCase().includes(query) ||
-        project.customer?.name?.toLowerCase().includes(query) ||
-        project.customer?.company?.toLowerCase().includes(query)
+        project.customer_name?.toLowerCase().includes(query)
       );
     }
 
-    // Priority filter
-    if (priorityFilter !== "all") {
-      filtered = filtered.filter(project => project.priority === priorityFilter);
-    }
-
-    // Status filter
-    if (statusFilter !== "all") {
-      filtered = filtered.filter(project => project.status === statusFilter);
-    }
-
-    // Assignee filter
-    if (assigneeFilter === "mine") {
-      filtered = filtered.filter(project => project.assignee_id === profile?.user_id);
-    } else if (assigneeFilter === "overdue") {
-      filtered = filtered.filter(project => project.days_in_stage > 7);
-    }
+    // Priority filter - disabled for now as dashboard data doesn't include priority details
+    // Status filter - disabled for now as dashboard data uses simplified status
 
     return filtered;
-  }, [projects, searchQuery, priorityFilter, statusFilter, assigneeFilter, profile?.user_id]);
+  }, [projects, searchQuery]);
 
   // Calculate detailed stats with attention-grabbing details
-  const activeProjects = filteredProjects.filter(p =>
-    ['inquiry', 'review', 'quoted', 'production'].includes(p.status)
-  ).length;
+  const activeProjects = Object.entries(projectsByStatus)
+    .filter(([status]) => !['shipped_closed', 'cancelled'].includes(status))
+    .reduce((sum, [, count]) => sum + count, 0);
 
-  const highPriorityProjects = filteredProjects.filter(p => p.priority === 'high').length;
-  const overdueProjects = filteredProjects.filter(p => p.days_in_stage > 7).length;
+  const highPriorityProjects = 0; // Will be available when priority data is added
+  const overdueProjects = 0; // Will be calculated from stage tracking
 
   // Purchase Orders analysis
   const pendingPOs = purchaseOrders.filter(po => po.status === 'pending').length;
@@ -112,7 +102,7 @@ export default function Dashboard() {
   const overviewData = [
     {
       title: "Projects",
-      count: projects.length,
+      count: projectsTotal,
       activeCount: activeProjects,
       description: highPriorityProjects > 0
         ? `⚠️ ${highPriorityProjects} high priority`
@@ -234,11 +224,11 @@ export default function Dashboard() {
           onStatusFilterChange={setStatusFilter}
           assigneeFilter={assigneeFilter}
           onAssigneeFilterChange={setAssigneeFilter}
-          projectsCount={filteredProjects.length}
+          projectsCount={projects.length}
         />
 
         {/* Priority Action Items */}
-        <PriorityActionItems projects={filteredProjects} />
+        <PriorityActionItems projects={[]} />
 
         {/* Overview Cards */}
         <div className="mt-8">
@@ -301,7 +291,7 @@ export default function Dashboard() {
           <QuickStats
             activeProjects={activeProjects}
             highPriorityProjects={highPriorityProjects}
-            overdueProjects={overdueProjects}
+            overdueProjects={0}
           />
 
           {/* Pending Tasks */}

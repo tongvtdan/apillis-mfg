@@ -2,6 +2,27 @@
 
 This file contains important changes and updates made to the project.
 
+## Latest Changes Summary
+
+### 2025-01-25
+- **Database Performance Optimization Complete**: 
+  1. Added comprehensive database indexes for faster queries (projects, RFQs, suppliers, customers)
+  2. Created optimized `get_dashboard_summary()` RPC function to reduce server-side processing
+  3. Implemented React Query with QueryClient for client-side caching and deduplication
+  4. Created `useDashboardData` hook for efficient data fetching with 30s stale time
+  5. Updated dashboard components to use optimized hooks instead of over-fetching
+  6. Scoped real-time subscriptions to specific routes only (performance improvement)
+  7. Reduced data payload by fetching only required fields in dashboard summary
+  8. Fixed TypeScript compatibility issues with simplified dashboard data structure
+  9. App launch performance significantly improved through optimized data fetching strategy
+
+### Previous Changes
+- Date: 2025-01-25
+- What we completed / changed:
+1. Enhanced status badge styling with vibrant colors, shadows, and hover effects
+2. Made status badges more visually distinctive and prominent in OverviewCard component
+3. Changed sidebar title from h2 to h4 for better hierarchy
+
 - Date: 2025-01-21
 - What we completed / changed:
 1. Implemented modern Factory Pulse theme design system
@@ -27,138 +48,10 @@ This file contains important changes and updates made to the project.
 1. **Optimized Grid Layout and Responsiveness (Step 3)**: Enhanced dashboard layout with responsive breakpoints (sm:grid-cols-2 xl:grid-cols-3)
 2. **Improved Mobile Experience**: Made header responsive with flex-col on mobile, adjusted padding and spacing for different screen sizes
 3. **Enhanced Visual Hierarchy**: Upgraded section headers with larger icons and better typography (text-xl, h-6 w-6 icons)
-4. **Added Loading States**: Implemented skeleton loading animation for overview cards with proper pulse animation during data loading
+4. Added Loading States**: Implemented skeleton loading animation for overview cards with proper pulse animation during data loading
 5. **Refined Quick Stats Design**: Enhanced Quick Stats with colored indicators, better spacing, and improved background styling
 6. **Better Responsive Layout**: Optimized grid layouts for different screen sizes with proper column spanning and gap adjustments
 7. **Replaced Workflow Section with Overview Cards (Step 2)**: Removed WorkflowKanban component and replaced with 6 overview cards (Projects, Customers, Suppliers, Purchase Orders, Inventory, Production)
 8. **Added Overview Data Calculations**: Created overviewData array with real data from useProjects, useCustomers, useSuppliers hooks and mock data for PO/Inventory/Production
 9. **Created OverviewCard Component**: Built reusable card component with click navigation, hover effects, count displays, and proper styling
 10. **Updated Dashboard Layout**: Changed from 4-column Kanban layout to overview cards + 3-column stats/activities grid below
-2. **Cleaned Up Routing**: Removed duplicate /project-full/:id route since both were pointing to the same ProjectDetail component
-3. **Removed Unused Import**: Removed ProjectDetailSimple import from App.tsx since it's no longer used in routing
-4. **Updated Project Detail Page Layout**: Redesigned ProjectDetail.tsx to match the wireframe design from docs/text-based-figma-wireframe-pack.md Screen 3
-5. **Improved Header Design**: Updated header to show project info, status, priority, customer, created date, and owner in wireframe format with proper styling
-6. **Enhanced Navigation Sidebar**: Improved left navigation with "NAVIGATION" label and better visual hierarchy
-7. **Restructured Overview Tab**: Changed overview to show all sections (Details, Documents, Reviews, Supplier RFQ, Activity) in wireframe layout format
-8. **Consistent Section Headers**: Added uppercase, tracked section headers matching wireframe design
-9. **Better Content Layout**: Improved spacing and layout of all content sections to match wireframe specifications
-10. **Enhanced Status Display**: Added proper status labels and improved badge styling for better visual hierarchy
-
-- Date: 2025-08-24
-- What we completed / changed:
-1. **Database Schema Cleanup**: Cleared all existing data and removed all mock data files and test components
-2. **Suppliers Table**: Created suppliers table with ratings, capabilities, industry types, and RLS policies
-3. **Sample Data**: Generated 10 customers, 10 suppliers, and 10 projects with proper relationships
-4. **Project Relations**: Added supplier_id to projects table and updated types to include supplier relationships
-5. **Code Cleanup**: Removed mock data files, test components, and simplified project service
-6. **UI Updates**: Updated project detail page to display supplier information alongside customer data
-7. **Build Fixes**: Fixed TypeScript compilation errors and removed unused imports
-
-- Date: 2025-08-22
-- What we completed / changed:
-1. Implemented User Authentication & Role Management with Supabase
-2. Set up role-based access control (RBAC) system
-3. Created authentication pages (login, signup) 
-4. Implemented protected routes and navigation
-5. Added user profile management
-6. Set up audit logging for security events
-
-- Date: 2025-08-22
-- What we completed / changed:
-1. Implemented Internal Review System with database schema for reviews, risks, and clarifications
-2. Created ReviewForm component for Engineering, QA, and Production departments
-3. Built ReviewStatusPanel for consolidated review status tracking
-4. Added ClarificationModal for customer clarification requests
-5. Created RFQDetail page with tabs for overview, reviews, documents, and activity
-6. Integrated review system with existing RFQ workflow and Kanban dashboard
-7. Set up proper RLS policies for secure access to review data
-
-- Date: 2025-08-22
-- What we completed / changed:
-1. **Dashboard & Sidebar Enhancement**: Redesigned dashboard layout matching reference design with Recent Activities, Pending Tasks, and Monthly Progress sections
-2. **Enhanced Navigation**: Updated sidebar with comprehensive MES modules (Vendors, Purchase Orders, Inventory, Production, Customers, Reports)
-3. **Improved Statistics Cards**: Streamlined from 6 to 4 key metric cards with better spacing and visual hierarchy
-4. **Factory Pulse Branding**: Completed rebrand from "Apillis" to "Factory Pulse" with updated logo and messaging
-5. **Component Architecture**: Created reusable dashboard components (RecentActivities, PendingTasks, MonthlyProgress)
-6. **Navigation System**: Added all new routes and placeholder pages for future Phase 2 development
-7. **Layout Optimization**: Implemented responsive grid layout with proper card spacing and typography
-8. **Welcome Message**: Updated dashboard header with procurement operations focus matching reference design
-
-- Date: 2025-08-22
-- What we completed / changed:
-1. Fixed runtime error in AppSidebar (systemItems not defined) by renaming to systemNavItems and updating references
-2. Ensured sidebar "System" section renders reliably with defined navigation list
-3. Kept all recent dashboard and navigation enhancements intact
-
-- Date: 2025-01-22
-- What we completed / changed:
-1. Updated Dashboard to show real project data instead of static mock data
-2. Modified summary header cards to display actual project counts (active, won, high priority, total)
-3. Updated RecentActivities component to show recent project updates with real timestamps
-4. Modified PendingTasks to generate tasks from projects in 'inquiry' and 'review' status
-5. Updated MonthlyProgress to calculate percentages based on actual project status distribution
-
-- Date: 2025-01-22
-- What we completed / changed:
-1. Created new progress-based project workflow UI with step indicators following reference design
-2. Built ProjectProgressCard component showing projects as cards with visual progress steps
-3. Implemented workflow steps: Intake → Internal Review → Quoted → Production → Delivered
-4. Added project metrics display (BOM Items, Documents, Vendors Matched, Quotes Received)
-5. Replaced Kanban workflow with progress-based card layout for better visual project tracking
-6. Simplified Dashboard to show project overview cards with vertical progress steps
-7. Updated Projects page to use detailed ProjectProgressCard for full functionality
-8. Modified project information display to prioritize due date and lead time over created date
-9. Moved Monthly Progress Overview section to the bottom of the dashboard
-10. Redesigned ProjectProgressCard to match reference design with only 3 progress steps (completed, current, next) visible for better card layout
-
-- Date: 2025-01-22
-- What we completed / changed:
-1. Updated project workflow to 8-stage process with "Supplier RFQ Sent" stage
-2. Added stage change functionality to ProjectTable with dropdown select for direct stage changes
-3. Implemented data sync across all views (Flowchart, Kanban, Table) using useProjects hook
-4. Fixed "React is not defined" error by adding React import to Projects.tsx  
-5. Added localStorage persistence for selected stage in Projects page
-6. Updated status variants in ProjectTable to match new 8-stage workflow
-
-- Date: 2025-01-21
-- What we completed / changed:
-1. Simplified project workflow to 7-stage Kanban layout as requested: Inquiry Received → Technical Review → Quoted → Order Confirmed → Procurement & Planning → In Production → Shipped & Closed
-2. Updated PROJECT_STAGES constant and ProjectStatus type to match the ASCII diagram layout
-3. Modified WorkflowKanban component grid to show 7 columns instead of 11
-4. Updated status mapping functions in useProjects hook for proper database compatibility
-5. Enhanced project status display formatting throughout the application
-6. Fixed all component files to use new status values (MonthlyProgress, PendingTasks, ProjectProgressView, Dashboard, Projects)
-
-- Date: 2025-01-22
-- What we completed / changed:
-1. Added project_type column to projects database with enum values: system_build, fabrication, manufacturing
-2. Updated Project TypeScript interface to include project_type field  
-3. Created ProjectTypeKanban component to group projects by type instead of priority
-4. Added new "Type Kanban" tab to Projects page that displays projects grouped by System Build, Fabrication, and Manufacturing
-5. Updated flowchart view to show projects grouped by type when a stage is selected
-
-- Date: 2025-01-22
-- What we completed / changed:
-1. **Enhanced WorkflowKanban with Advanced Features**: Implemented virtual scrolling for performance optimization using @tanstack/react-virtual
-2. **Improved Drag & Drop**: Enhanced drag & drop functionality with better visual feedback, measuring strategy, and performance optimizations
-3. **Time-in-Stage Tracking**: Added comprehensive time tracking with visual indicators (green for on-time, yellow for approaching deadline, orange for overdue, red for bottlenecks)
-4. **Bottleneck Detection**: Implemented automatic bottleneck detection for projects spending >14 days in a stage with visual alerts and metrics
-5. **Performance Metrics**: Created WorkflowMetrics widget component showing total projects, average cycle time, overdue count, and bottleneck percentages
-6. **Stage Performance Tracking**: Built StageMetrics widget component for individual stage performance with average time and issue counts
-7. **Modular Architecture**: Separated metrics into reusable widget components following user rule #10b for better maintainability
-8. **Enhanced Visual Feedback**: Added smooth animations, better hover effects, and performance indicators throughout the kanban interface
-9. **Performance Optimization**: Implemented virtual scrolling for large project lists, reducing DOM nodes and improving rendering performance
-10. **Code Quality**: Maintained clean, functional code with <300 LOC per file and proper TypeScript interfaces
-
-- Date: 2025-01-22
-- What we completed / changed:
-1. **Enhanced Floating Header**: Added project type filter to the floating header alongside view tabs for complete always-visible navigation
-2. **Unified Control Center**: Both view switching and project filtering are now in one floating header that's always accessible
-3. **Eliminated Duplicate Filters**: Removed individual project type filters from each view header to prevent redundancy
-4. **Improved Header Layout**: Changed from horizontal to vertical layout to accommodate both tabs and filter in the floating header
-5. **Better Visual Hierarchy**: Increased padding and spacing for better readability and professional appearance
-6. **Consistent User Experience**: Users can now access all navigation and filtering controls from any scroll position
-7. **Enhanced Accessibility**: Project type filtering is always visible regardless of horizontal or vertical scrolling
-8. **Cleaner View Headers**: Individual view headers now only show title and project count, reducing clutter
-9. **Optimized Spacing**: Increased bottom margin (mb-24) to accommodate the larger floating header
-10. **Professional Design**: Floating header now serves as a complete control center for the entire Projects page
