@@ -104,16 +104,17 @@ export class WorkflowValidator {
 
             case 'supplier_rfq_sent':
                 if (newStatus === 'quoted') {
-                    // Check that supplier quotes are received
-                    if (!supplierQuotes || supplierQuotes.length === 0) {
-                        result.errors.push("Supplier quotes are required before moving to Quoted stage");
-                    } else {
+                    // Check that supplier quotes are received (optional for MVP)
+                    if (supplierQuotes && supplierQuotes.length > 0) {
                         const receivedQuotes = supplierQuotes.filter(q => q.status === 'received').length;
                         const totalQuotes = supplierQuotes.length;
 
                         if (receivedQuotes < totalQuotes) {
-                            result.errors.push(`All supplier quotes must be received (${receivedQuotes}/${totalQuotes} received)`);
+                            result.warnings.push(`Not all supplier quotes received (${receivedQuotes}/${totalQuotes} received)`);
                         }
+                    } else {
+                        // For MVP, allow transition without supplier quotes but show warning
+                        result.warnings.push("No supplier quotes found - ensure all quotes are received before finalizing");
                     }
                 }
                 break;

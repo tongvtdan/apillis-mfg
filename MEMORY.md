@@ -17,6 +17,7 @@ This file contains important changes and updates made to the project.
 9. **CRITICAL FIX - Project Status Update Issue**: Identified and fixed root cause where `technical_review` and `supplier_rfq_sent` were both mapped to same database value `review`, causing optimistic updates to be reverted by real-time subscription
 10. **Database Schema Update**: Added missing `supplier_rfq` and `procurement` status values to project_status enum to support complete workflow with distinct database values for each stage
 11. **Enhanced Database Update Logging**: Added comprehensive logging for database updates and real-time subscription events to track status change issues
+12. **FIXED - Supplier RFQ to Quoted Transition**: Resolved validation error blocking transition from "Supplier RFQ Sent" to "Quoted" by making supplier quotes optional for MVP and converting hard errors to warnings
 
 ### 2025-01-25
 - **ProjectTable Component Optimization Complete**:
