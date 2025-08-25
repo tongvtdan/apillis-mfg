@@ -18,7 +18,7 @@ import {
 import { Project, ProjectStatus, PROJECT_STAGES } from "@/types/project";
 import { useProjects } from "@/hooks/useProjects";
 import { formatDistanceToNow } from "date-fns";
-import { ExternalLink, User, AlertTriangle, RefreshCw } from "lucide-react";
+import { ExternalLink, User, AlertTriangle } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { useState } from "react";
 import {
@@ -86,23 +86,7 @@ export function ProjectTable({ projects }: ProjectTableProps) {
     <div className="space-y-4">
       <ProjectUpdateAnimation isVisible={showUpdateAnimation} message="Updating project status..." />
 
-      {/* Refresh button */}
-      <div className="flex justify-end">
-        <Button
-          variant="outline"
-          size="sm"
-          onClick={() => {
-            setShowUpdateAnimation(true);
-            refetch(true).then(() => {
-              setTimeout(() => setShowUpdateAnimation(false), 1000);
-            });
-          }}
-          disabled={isUpdating}
-        >
-          <RefreshCw className={`h-4 w-4 mr-2 ${isUpdating ? 'animate-spin' : ''}`} />
-          Refresh Projects
-        </Button>
-      </div>
+
 
       <div className="rounded-md border">
         <Table>

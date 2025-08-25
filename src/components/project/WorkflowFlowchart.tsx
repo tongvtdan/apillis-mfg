@@ -2,7 +2,7 @@ import React, { useState, useMemo } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { CheckCircle, AlertCircle, ChevronRight, Play, Pause, XCircle, Eye, Users, RefreshCw } from "lucide-react";
+import { CheckCircle, AlertCircle, ChevronRight, Play, Pause, XCircle, Eye, Users } from "lucide-react";
 import { PROJECT_STAGES, ProjectStatus, Project, ProjectType } from "@/types/project";
 import { useProjects } from "@/hooks/useProjects";
 import { WorkflowValidator } from "@/lib/workflow-validator";
@@ -21,7 +21,7 @@ import {
     TooltipTrigger,
 } from "@/components/ui/tooltip";
 import { motion, AnimatePresence } from 'framer-motion';
-import { ProjectUpdateAnimation } from './ProjectUpdateAnimation';
+
 
 interface WorkflowFlowchartProps {
     selectedProject: Project | null;
@@ -44,7 +44,6 @@ export function WorkflowFlowchart({
     const navigate = useNavigate();
     const [validationErrors, setValidationErrors] = useState<Record<string, string[]>>({});
     const [isUpdating, setIsUpdating] = useState(false);
-    const [showUpdateAnimation, setShowUpdateAnimation] = useState(false);
 
     // Use external projects if provided, otherwise use hook projects
     const allProjects = externalProjects || hookProjects;
@@ -72,7 +71,6 @@ export function WorkflowFlowchart({
         });
 
         // Show update animation
-        setShowUpdateAnimation(true);
         setIsUpdating(true);
 
         try {
@@ -81,11 +79,7 @@ export function WorkflowFlowchart({
             // Refresh projects data to ensure consistency
             await refetch(true);
         } finally {
-            // Hide update animation after a short delay
-            setTimeout(() => {
-                setShowUpdateAnimation(false);
-                setIsUpdating(false);
-            }, 1500);
+            setIsUpdating(false);
         }
     };
 
@@ -159,7 +153,6 @@ export function WorkflowFlowchart({
         });
 
         // Show update animation
-        setShowUpdateAnimation(true);
         setIsUpdating(true);
 
         try {
@@ -168,11 +161,7 @@ export function WorkflowFlowchart({
             // Refresh projects data to ensure consistency
             await refetch(true);
         } finally {
-            // Hide update animation after a short delay
-            setTimeout(() => {
-                setShowUpdateAnimation(false);
-                setIsUpdating(false);
-            }, 1500);
+            setIsUpdating(false);
         }
     };
 
@@ -302,7 +291,7 @@ export function WorkflowFlowchart({
                     </div>
 
                     <div className="pt-2 border-t">
-                        <div className="flex space-x-2">
+                        <div className="flex items-center gap-3">
                             <Button
                                 variant="accent"
                                 size="sm"
@@ -312,12 +301,13 @@ export function WorkflowFlowchart({
                                 <Eye className="mr-2 h-3 w-3" />
                                 View Details
                             </Button>
+                            <div className="w-2"></div>
                             <DropdownMenu>
                                 <DropdownMenuTrigger asChild>
                                     <Button
-                                        variant="outline"
+                                        variant="default"
                                         size="sm"
-                                        className="h-7 action-button hover:scale-[1.02] transition-all duration-200"
+                                        className="flex-1 h-7 bg-primary hover:bg-primary/90 text-primary-foreground hover:scale-[1.02] transition-all duration-200 shadow-sm"
                                     >
                                         <Users className="mr-1 h-3 w-3" />
                                         Change Stage
@@ -373,13 +363,17 @@ export function WorkflowFlowchart({
 
     return (
         <div className="space-y-6">
-            <ProjectUpdateAnimation isVisible={showUpdateAnimation} message="Updating project status..." />
             <Card>
                 <CardHeader>
-                    <CardTitle>Workflow Visualization</CardTitle>
-                    <CardDescription>
-                        Visualize and manage project workflow stages
-                    </CardDescription>
+                    <div className="flex items-center justify-between">
+                        <div>
+                            <CardTitle>Workflow Visualization</CardTitle>
+                            <CardDescription>
+                                Visualize and manage project workflow stages
+                            </CardDescription>
+                        </div>
+
+                    </div>
                 </CardHeader>
                 <CardContent>
                     <div className="overflow-x-auto pb-4">
@@ -511,69 +505,7 @@ export function WorkflowFlowchart({
                 </Card>
             )}
 
-            {/* Refresh button - Only needed if real-time updates fail or for manual refresh */}
-            <div className="flex justify-end">
-                <div className="text-right">
-                    <p className="text-xs text-muted-foreground mb-2">
-                        Real-time updates should happen automatically. Use refresh only if needed.
-                    </p>
-                    <Button
-                        variant="outline"
-                        size="sm"
-                        onClick={() => {
-                            setShowUpdateAnimation(true);
-                            refetch(true).then(() => {
-                                setTimeout(() => setShowUpdateAnimation(false), 1000);
-                            });
-                        }}
-                        disabled={isUpdating}
-                        className="mb-4"
-                        title="Manual refresh - use only if real-time updates aren't working"
-                    >
-                        <RefreshCw className={`h-4 w-4 mr-2 ${isUpdating ? 'animate-spin' : ''}`} />
-                        Refresh Projects
-                    </Button>
-                </div>
-            </div>
 
-            {/* Single Workflow Visualization */}
-            <Card>
-                <CardHeader>
-                    <CardTitle>Workflow Visualization</CardTitle>
-                    <CardDescription>
-                        Visualize and manage project workflow stages
-                    </CardDescription>
-                </CardHeader>
-                <CardContent>
-                    <div className="overflow-x-auto pb-4">
-                        <div className="flex items-center gap-4 min-w-max">
-                            {PROJECT_STAGES.map((stage, index) => (
-                                <React.Fragment key={stage.id}>
-                                    <div className="flex flex-col items-center space-y-2">
-                                        <Badge className={`${stage.color} text-xs font-medium`} variant="outline">
-                                            {projectsByStage.find(s => s.id === stage.id)?.projects.length || 0}
-                                        </Badge>
-                                        <Card
-                                            className={`w-48 cursor-pointer hover:shadow-md transition-shadow ${selectedStage === stage.id ? 'ring-2 ring-primary' : ''}`}
-                                            onClick={() => onStageSelect && onStageSelect(stage.id)}
-                                        >
-                                            <CardContent className="p-4">
-                                                <div className="text-center">
-                                                    <h3 className="font-medium text-sm">{stage.name}</h3>
-                                                </div>
-                                            </CardContent>
-                                        </Card>
-                                    </div>
-
-                                    {index < PROJECT_STAGES.length - 1 && (
-                                        <ChevronRight className="h-5 w-5 text-muted-foreground flex-shrink-0" />
-                                    )}
-                                </React.Fragment>
-                            ))}
-                        </div>
-                    </div>
-                </CardContent>
-            </Card>
 
         </div>
     );

@@ -7,7 +7,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
-import { Calendar, Clock, AlertTriangle, Eye, Building2, User, MoreHorizontal, RefreshCw } from "lucide-react";
+import { Calendar, Clock, AlertTriangle, Eye, Building2, User, MoreHorizontal } from "lucide-react";
 import { Project, ProjectType, PROJECT_TYPE_LABELS, PROJECT_TYPE_DESCRIPTIONS, PROJECT_TYPE_COLORS, PRIORITY_COLORS } from "@/types/project";
 import { Link } from "react-router-dom";
 import { ProjectUpdateAnimation } from './ProjectUpdateAnimation';
@@ -286,23 +286,7 @@ export function ProjectTypeKanban({ projects, onUpdateProject }: ProjectTypeKanb
     <div className="space-y-6">
       <ProjectUpdateAnimation isVisible={showUpdateAnimation} message="Updating projects..." />
 
-      {/* Refresh button */}
-      <div className="flex justify-end">
-        <Button
-          variant="outline"
-          size="sm"
-          onClick={() => {
-            setShowUpdateAnimation(true);
-            refetch(true).then(() => {
-              setTimeout(() => setShowUpdateAnimation(false), 1000);
-            });
-          }}
-          disabled={isUpdating}
-        >
-          <RefreshCw className={`h-4 w-4 mr-2 ${isUpdating ? 'animate-spin' : ''}`} />
-          Refresh Projects
-        </Button>
-      </div>
+
 
       <DndContext
         sensors={sensors}

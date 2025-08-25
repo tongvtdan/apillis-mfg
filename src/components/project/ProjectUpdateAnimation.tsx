@@ -5,9 +5,21 @@ import { RefreshCw } from 'lucide-react';
 interface ProjectUpdateAnimationProps {
     isVisible: boolean;
     message?: string;
+    variant?: 'fixed' | 'inline';
 }
 
-export function ProjectUpdateAnimation({ isVisible, message = "Updating projects..." }: ProjectUpdateAnimationProps) {
+export function ProjectUpdateAnimation({
+    isVisible,
+    message = "Updating projects...",
+    variant = 'fixed'
+}: ProjectUpdateAnimationProps) {
+    const getPositionClasses = () => {
+        if (variant === 'inline') {
+            return 'relative'; // Inline positioning for header use
+        }
+        return 'fixed top-4 right-4 z-50'; // Fixed overlay positioning
+    };
+
     return (
         <AnimatePresence>
             {isVisible && (
@@ -16,7 +28,7 @@ export function ProjectUpdateAnimation({ isVisible, message = "Updating projects
                     animate={{ opacity: 1, y: 0 }}
                     exit={{ opacity: 0, y: -20 }}
                     transition={{ duration: 0.3 }}
-                    className="fixed top-4 right-4 z-50"
+                    className={getPositionClasses()}
                 >
                     <div className="bg-primary text-primary-foreground px-4 py-2 rounded-md shadow-lg flex items-center space-x-2">
                         <motion.div

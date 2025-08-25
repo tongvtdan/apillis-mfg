@@ -11,7 +11,6 @@ import {
 import { useAuth } from '@/contexts/AuthContext';
 import { useToast } from '@/hooks/use-toast';
 import { WorkflowValidator, WorkflowValidationResult } from '@/lib/workflow-validator';
-import { SupplierQuote } from '@/types/supplier';
 import { cacheService } from '@/services/cacheService';
 
 // Legacy status to new status mapping
@@ -170,6 +169,7 @@ export function useProjects() {
       // Show warnings if any
       if (validationResult.warnings.length > 0) {
         toast({
+          variant: "warning",
           title: "Status Updated with Warnings",
           description: `From ${formatStatusName(oldStatus)} to ${formatStatusName(newStatus)}. Warnings: ${validationResult.warnings.join(", ")}`,
         });
@@ -261,6 +261,7 @@ export function useProjects() {
       // Show warnings if any
       if (validationResult.warnings.length > 0) {
         toast({
+          variant: "warning",
           title: "Status Updated with Warnings",
           description: `From ${formatStatusName(oldStatus)} to ${formatStatusName(newStatus)}. Warnings: ${validationResult.warnings.join(", ")}`,
         });

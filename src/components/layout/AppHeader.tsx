@@ -1,3 +1,4 @@
+import React, { useState, useEffect } from "react";
 import { Bell, Search, LogOut, Settings, HelpCircle, UserCircle, Plus } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -13,11 +14,31 @@ import { Badge } from "@/components/ui/badge";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { useAuth } from "@/contexts/AuthContext";
 import { Link, useLocation } from "react-router-dom";
+import { ProjectUpdateAnimation } from "@/components/project/ProjectUpdateAnimation";
 
 export function AppHeader() {
   const { profile, signOut } = useAuth();
   const location = useLocation();
   const isProjectsPage = location.pathname === '/projects';
+  const [showUpdateAnimation, setShowUpdateAnimation] = useState(false);
+  const [updateMessage, setUpdateMessage] = useState("Updating project status...");
+
+  // Listen for custom events to show/hide the update animation
+  useEffect(() => {
+    const handleShowUpdate = (event: CustomEvent) => {
+      setUpdateMessage(event.detail?.message || "Updating project status...");
+      setShowUpdateAnimation(true);
+    };
+    const handleHideUpdate = () => setShowUpdateAnimation(false);
+
+    window.addEventListener('show-project-update', handleShowUpdate as EventListener);
+    window.addEventListener('hide-project-update', handleHideUpdate);
+
+    return () => {
+      window.removeEventListener('show-project-update', handleShowUpdate as EventListener);
+      window.removeEventListener('hide-project-update', handleHideUpdate);
+    };
+  }, []);
 
   const handleLogout = async () => {
     try {
@@ -42,12 +63,15 @@ export function AppHeader() {
         </div>
 
         <div className="flex flex-1 justify-center px-4">
-          <div className="relative w-64 md:w-96">
-            <Search className="absolute left-2 top-2.5 h-4 w-4 text-muted-foreground" />
-            <Input
-              placeholder="Search RFQs, customers, or documents..."
-              className="pl-8"
-            />
+          <div className="flex items-center gap-3">
+            <ProjectUpdateAnimation isVisible={showUpdateAnimation} message={updateMessage} variant="inline" />
+            <div className="relative w-64 md:w-96">
+              <Search className="absolute left-2 top-2.5 h-4 w-4 text-muted-foreground" />
+              <Input
+                placeholder="Search RFQs, customers, or documents..."
+                className="pl-8"
+              />
+            </div>
           </div>
         </div>
 

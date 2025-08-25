@@ -344,7 +344,7 @@ function ProjectCard({ project, isDragging = false, index, quoteReadiness, isBot
                     className="h-7 action-button hover:scale-[1.02] transition-all duration-200"
                   >
                     <Users className="mr-1 h-3 w-3" />
-                    Change Stage
+                    Change Project Stage
                   </Button>
                 </DropdownMenuTrigger>
                 <DropdownMenuContent
