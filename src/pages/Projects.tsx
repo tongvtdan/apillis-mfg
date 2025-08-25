@@ -5,13 +5,23 @@ import { StageFlowchart } from "@/components/project/StageFlowchart";
 import { TabsContent } from "@/components/ui/tabs";
 import { ProjectTabs, ProjectTabsList, ProjectTabsTrigger } from "@/components/project/ProjectTabs";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Button } from "@/components/ui/button";
 import { useProjects } from "@/hooks/useProjects";
 import { ProjectStatus, ProjectType, PROJECT_TYPE_LABELS, Project } from "@/types/project";
 import { WorkflowFlowchart } from "@/components/project/WorkflowFlowchart";
 
 
 export default function Projects() {
-  const { projects, loading, updateProjectStatus, updateProjectStatusOptimistic, refetch } = useProjects();
+  const { projects, loading, updateProjectStatus, updateProjectStatusOptimistic, refetch, testRealtimeSubscription, testManualStateUpdate } = useProjects();
+
+  // Debug logging for projects state changes
+  React.useEffect(() => {
+    console.log('🔄 Projects page: Projects state updated:', {
+      count: projects.length,
+      statuses: projects.map(p => ({ id: p.id, title: p.title, status: p.status }))
+    });
+  }, [projects]);
+
   const [selectedStage, setSelectedStage] = React.useState<ProjectStatus | null>(() => {
     // Try to restore from localStorage, default to 'inquiry_received' if none found
     const saved = localStorage.getItem('projects-selected-stage');
@@ -99,6 +109,36 @@ export default function Projects() {
               <ProjectTabsTrigger value="flowchart">Kanban Flow</ProjectTabsTrigger>
               <ProjectTabsTrigger value="table">Table</ProjectTabsTrigger>
             </ProjectTabsList>
+
+            {/* Debug button for testing real-time subscription */}
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={testRealtimeSubscription}
+              className="text-xs"
+            >
+              🧪 Test RT
+            </Button>
+
+            {/* Manual refresh button for testing */}
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => refetch(true)}
+              className="text-xs"
+            >
+              🔄 Refresh
+            </Button>
+
+            {/* Manual state update test button */}
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={testManualStateUpdate}
+              className="text-xs"
+            >
+              🧪 Test State
+            </Button>
 
             {/* Project Type Filter */}
             <div className="flex items-center space-x-3">

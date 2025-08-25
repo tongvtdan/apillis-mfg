@@ -56,6 +56,7 @@ export function useProjects() {
   const { user } = useAuth();
   const { toast } = useToast();
   const realtimeChannelRef = useRef<any>(null);
+  const globalChannelRef = useRef<any>(null);
 
   const fetchProjects = async (forceRefresh = false) => {
     if (!user) {
@@ -199,6 +200,97 @@ export function useProjects() {
     return realtimeChannelRef.current;
   }, []);
 
+  // Global real-time subscription for all project updates (needed for stage changes)
+  const subscribeToGlobalProjectUpdates = useCallback(() => {
+    console.log('🔔 Setting up global real-time subscription for all project updates');
+
+    const globalChannel = supabase
+      .channel('global-project-updates')
+      .on(
+        'postgres_changes',
+        {
+          event: 'UPDATE',
+          schema: 'public',
+          table: 'projects'
+        },
+        (payload) => {
+          console.log('🔔 Global real-time update received:', {
+            projectId: payload.new.id,
+            oldStatus: payload.old?.status,
+            newStatus: payload.new.status,
+            mappedStatus: mapLegacyStatusToNew((payload.new as any).status),
+            fullPayload: payload
+          });
+
+          // Update the project in our local state if it exists
+          setProjects(prev => {
+            const projectIndex = prev.findIndex(p => p.id === payload.new.id);
+            if (projectIndex !== -1) {
+              // Project exists in our list, update it
+              const updatedProjects = [...prev];
+              updatedProjects[projectIndex] = {
+                ...updatedProjects[projectIndex],
+                ...payload.new,
+                status: mapLegacyStatusToNew((payload.new as any).status),
+                updated_at: new Date().toISOString()
+              };
+
+              // Update cache
+              cacheService.updateProject(payload.new.id, {
+                ...payload.new,
+                status: mapLegacyStatusToNew((payload.new as any).status)
+              });
+
+              return updatedProjects;
+            }
+            // Project not in our list, but we need to refresh to catch stage changes
+            return prev;
+          });
+        }
+      )
+      .on(
+        'postgres_changes',
+        {
+          event: 'INSERT',
+          schema: 'public',
+          table: 'projects'
+        },
+        (payload) => {
+          console.log('🔔 Global new project created:', payload.new);
+          const newProject = {
+            ...payload.new as Project,
+            status: mapLegacyStatusToNew((payload.new as any).status)
+          };
+
+          setProjects(prev => {
+            const updatedProjects = [newProject, ...prev];
+            cacheService.setProjects(updatedProjects);
+            return updatedProjects;
+          });
+        }
+      )
+      .on(
+        'postgres_changes',
+        {
+          event: 'DELETE',
+          schema: 'public',
+          table: 'projects'
+        },
+        (payload) => {
+          console.log('🔔 Global project deleted:', payload.old);
+          setProjects(prev => {
+            const filteredProjects = prev.filter(project => project.id !== payload.old.id);
+            cacheService.setProjects(filteredProjects);
+            return filteredProjects;
+          });
+        }
+      )
+      .subscribe();
+
+    globalChannelRef.current = globalChannel;
+    return globalChannel;
+  }, []);
+
   const updateProjectStatus = async (projectId: string, newStatus: ProjectStatus) => {
     try {
       // Find the current project to get the old status
@@ -312,6 +404,8 @@ export function useProjects() {
 
     console.log(`🚀 Optimistic update: Project ${projectId} from ${oldStatus} to ${newStatus}`);
     console.log('📊 Updated projects count:', updatedProjects.length);
+    console.log('🔄 Projects before update:', projects.map(p => ({ id: p.id, status: p.status })));
+    console.log('🔄 Projects after update:', updatedProjects.map(p => ({ id: p.id, status: p.status })));
 
     setProjects(updatedProjects);
 
@@ -329,6 +423,8 @@ export function useProjects() {
         })
         .eq('id', projectId)
         .select('id, status');
+
+      console.log('🔄 Database update result:', { error, data, mappedStatus: mapNewStatusToLegacy(newStatus) });
 
       if (error) {
         console.error('❌ Database update failed:', error);
@@ -351,6 +447,18 @@ export function useProjects() {
       }
 
       console.log('✅ Database update successful:', data);
+      console.log('🔄 Database update should trigger real-time subscription for project:', projectId);
+
+      // Test if real-time subscription is working by checking state after a delay
+      setTimeout(() => {
+        console.log('🧪 Testing real-time subscription after 1 second...');
+        const currentProject = projects.find(p => p.id === projectId);
+        console.log('🧪 Current project state:', currentProject ? {
+          id: currentProject.id,
+          status: currentProject.status,
+          expectedStatus: newStatus
+        } : 'Project not found');
+      }, 1000);
 
       // Format status names for display
       const formatStatusName = (status: ProjectStatus) => {
@@ -502,13 +610,28 @@ export function useProjects() {
 
     // Set up selective subscription for visible projects
     const visibleProjectIds = projects.map(p => p.id);
+    console.log('🔔 Setting up real-time subscriptions for projects:', visibleProjectIds);
+
     if (visibleProjectIds.length > 0) {
       subscribeToProjectUpdates(visibleProjectIds);
     }
 
+    // Set up global subscription for all project updates
+    subscribeToGlobalProjectUpdates();
+
+    // Test real-time subscription by logging subscription status
+    console.log('🔔 Real-time subscriptions set up:', {
+      selectiveChannel: !!realtimeChannelRef.current,
+      globalChannel: !!globalChannelRef.current,
+      visibleProjects: visibleProjectIds.length
+    });
+
     return () => {
       if (realtimeChannelRef.current) {
         supabase.removeChannel(realtimeChannelRef.current);
+      }
+      if (globalChannelRef.current) {
+        supabase.removeChannel(globalChannelRef.current);
       }
     };
   }, [user, projects.length]); // Only re-run when projects array length changes
@@ -702,6 +825,30 @@ export function useProjects() {
     }
   };
 
+  // Test function to verify real-time subscription is working
+  const testRealtimeSubscription = () => {
+    console.log('🧪 Testing real-time subscription status:', {
+      selectiveChannel: !!realtimeChannelRef.current,
+      globalChannel: !!globalChannelRef.current,
+      currentProjects: projects.length
+    });
+  };
+
+  // Test function to manually trigger a state update
+  const testManualStateUpdate = () => {
+    console.log('🧪 Testing manual state update...');
+    const testProject = projects[0];
+    if (testProject) {
+      console.log('🧪 Manually updating project:', testProject.id, 'from', testProject.status);
+      setProjects(prev => prev.map(p =>
+        p.id === testProject.id
+          ? { ...p, status: 'technical_review' as ProjectStatus, updated_at: new Date().toISOString() }
+          : p
+      ));
+      console.log('🧪 Manual state update completed');
+    }
+  };
+
   return {
     projects,
     loading,
@@ -713,6 +860,7 @@ export function useProjects() {
     createOrGetCustomer,
     getProjectById,
     subscribeToProjectUpdates, // Export for external use
+    subscribeToGlobalProjectUpdates, // Export for external use
 
     // New supplier quote integration
     getProjectQuotes,
@@ -727,7 +875,11 @@ export function useProjects() {
     // Workflow optimization
     getProjectTimeline,
     getCriticalPath,
-    getProjectsWithQuoteReadiness
+    getProjectsWithQuoteReadiness,
+
+    // Debug functions
+    testRealtimeSubscription,
+    testManualStateUpdate
   };
 }
 

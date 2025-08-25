@@ -23,6 +23,7 @@ export function ProjectCardWrapper({
 
     // Only update local state when this specific project changes
     useEffect(() => {
+        console.log(`🔄 ProjectCardWrapper: Project ${project.id} status changed from ${localProject?.status} to ${project.status}`);
         setLocalProject(project);
     }, [project.id, project.status]);
 
@@ -55,6 +56,8 @@ export function ProjectCardWrapper({
         ...localProject,
         status: getEffectiveStatus(localProject.status)
     };
+
+    console.log(`🔄 ProjectCardWrapper: Effective project status for ${project.id}: ${effectiveProject.status} (local: ${localStatus}, original: ${localProject.status})`);
 
     return (
         <AnimatedProjectCard
