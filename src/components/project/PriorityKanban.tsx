@@ -1,4 +1,4 @@
-import React, { useCallback } from 'react';
+import React, { useCallback, useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -11,7 +11,8 @@ import {
   Building2,
   Clock,
   AlertTriangle,
-  Eye
+  Eye,
+  RefreshCw
 } from "lucide-react";
 import {
   DropdownMenu,
@@ -37,6 +38,7 @@ import {
 } from "@dnd-kit/sortable";
 import { CSS } from "@dnd-kit/utilities";
 import { Project, ProjectPriority, PRIORITY_COLORS } from "@/types/project";
+import { ProjectUpdateAnimation } from './ProjectUpdateAnimation';
 
 interface ProjectCardProps {
   project: Project;
@@ -247,8 +249,10 @@ interface PriorityKanbanProps {
 }
 
 export function PriorityKanban({ projects, selectedStage }: PriorityKanbanProps) {
-  const { updateProjectStatusOptimistic } = useProjects();
+  const { updateProjectStatusOptimistic, refetch } = useProjects();
   const [activeProject, setActiveProject] = React.useState<Project | null>(null);
+  const [showUpdateAnimation, setShowUpdateAnimation] = useState(false);
+  const [isUpdating, setIsUpdating] = useState(false);
 
   const sensors = useSensors(
     useSensor(PointerSensor, {
@@ -305,6 +309,26 @@ export function PriorityKanban({ projects, selectedStage }: PriorityKanbanProps)
 
   return (
     <div className="space-y-6">
+      <ProjectUpdateAnimation isVisible={showUpdateAnimation} message="Updating projects..." />
+      
+      {/* Refresh button */}
+      <div className="flex justify-end">
+        <Button 
+          variant="outline" 
+          size="sm" 
+          onClick={() => {
+            setShowUpdateAnimation(true);
+            refetch(true).then(() => {
+              setTimeout(() => setShowUpdateAnimation(false), 1000);
+            });
+          }}
+          disabled={isUpdating}
+        >
+          <RefreshCw className={`h-4 w-4 mr-2 ${isUpdating ? 'animate-spin' : ''}`} />
+          Refresh Projects
+        </Button>
+      </div>
+
       <div className="text-center">
         <h3 className="text-lg font-semibold">
           {selectedStage.replace('_', ' ').replace(/\b\w/g, l => l.toUpperCase())} Projects by Priority

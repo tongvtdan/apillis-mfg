@@ -8,9 +8,10 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { useProjects } from "@/hooks/useProjects";
 import { ProjectStatus, ProjectType, PROJECT_TYPE_LABELS, Project } from "@/types/project";
 import { WorkflowFlowchart } from "@/components/project/WorkflowFlowchart";
+import { ProjectUpdateAnimation } from "@/components/project/ProjectUpdateAnimation";
 
 export default function Projects() {
-  const { projects, loading, updateProjectStatus } = useProjects();
+  const { projects, loading, updateProjectStatus, refetch } = useProjects();
   const [selectedStage, setSelectedStage] = React.useState<ProjectStatus | null>(() => {
     // Try to restore from localStorage, default to 'inquiry_received' if none found
     const saved = localStorage.getItem('projects-selected-stage');
@@ -19,6 +20,8 @@ export default function Projects() {
 
   const [selectedProjectType, setSelectedProjectType] = React.useState<ProjectType | 'all'>('all');
   const [selectedProject, setSelectedProject] = React.useState<Project | null>(null);
+  const [showUpdateAnimation, setShowUpdateAnimation] = React.useState(false);
+  const [isUpdating, setIsUpdating] = React.useState(false);
 
   // Save selected stage to localStorage whenever it changes
   const handleStageSelect = React.useCallback((stage: ProjectStatus | null) => {
@@ -68,6 +71,7 @@ export default function Projects() {
   if (loading) {
     return (
       <div className="p-6">
+        <ProjectUpdateAnimation isVisible={showUpdateAnimation} message="Loading projects..." />
         <div className="mb-6">
           <h1 className="text-2xl font-bold">Projects</h1>
           <p className="text-muted-foreground">Manage all your projects and their workflow stages</p>
@@ -85,6 +89,8 @@ export default function Projects() {
 
   return (
     <div className="p-6 bg-base-100 text-base-content min-h-screen">
+      <ProjectUpdateAnimation isVisible={showUpdateAnimation} message="Updating projects..." />
+      
       <ProjectTabs defaultValue="flowchart" className="w-full relative">
         <div className="mb-6 flex justify-between items-center">
           <div>

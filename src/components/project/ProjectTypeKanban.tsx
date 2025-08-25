@@ -7,9 +7,11 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
-import { Calendar, Clock, AlertTriangle, Eye, Building2, User, MoreHorizontal } from "lucide-react";
+import { Calendar, Clock, AlertTriangle, Eye, Building2, User, MoreHorizontal, RefreshCw } from "lucide-react";
 import { Project, ProjectType, PROJECT_TYPE_LABELS, PROJECT_TYPE_DESCRIPTIONS, PROJECT_TYPE_COLORS, PRIORITY_COLORS } from "@/types/project";
 import { Link } from "react-router-dom";
+import { ProjectUpdateAnimation } from './ProjectUpdateAnimation';
+import { useProjects } from "@/hooks/useProjects";
 
 interface ProjectTypeKanbanProps {
   projects: Project[];
@@ -205,7 +207,10 @@ function ProjectTypeSection({ type, projectCount }: ProjectTypeSectionProps) {
 }
 
 export function ProjectTypeKanban({ projects, onUpdateProject }: ProjectTypeKanbanProps) {
+  const { refetch } = useProjects();
   const [activeProject, setActiveProject] = useState<Project | null>(null);
+  const [showUpdateAnimation, setShowUpdateAnimation] = useState(false);
+  const [isUpdating, setIsUpdating] = useState(false);
 
   const projectsByType = useMemo(() => {
     const grouped: Record<ProjectType, Project[]> = {
@@ -249,9 +254,22 @@ export function ProjectTypeKanban({ projects, onUpdateProject }: ProjectTypeKanb
 
     if (project && project.project_type !== newType && onUpdateProject) {
       try {
+        // Show update animation
+        setShowUpdateAnimation(true);
+        setIsUpdating(true);
+        
         await onUpdateProject(projectId, { project_type: newType });
+        
+        // Refresh projects data to ensure consistency
+        await refetch(true);
       } catch (error) {
         console.error('Failed to update project type:', error);
+      } finally {
+        // Hide update animation after a short delay
+        setTimeout(() => {
+          setShowUpdateAnimation(false);
+          setIsUpdating(false);
+        }, 1500);
       }
     }
   }, [projects, onUpdateProject]);
@@ -265,44 +283,66 @@ export function ProjectTypeKanban({ projects, onUpdateProject }: ProjectTypeKanb
   }
 
   return (
-    <DndContext
-      sensors={sensors}
-      onDragStart={handleDragStart}
-      onDragEnd={handleDragEnd}
-    >
-      <div className="space-y-8">
-        {Object.entries(projectsByType).map(([type, typeProjects]) => {
-          if (typeProjects.length === 0) return null;
-
-          return (
-            <div key={type} className="space-y-4">
-              <ProjectTypeSection
-                type={type as ProjectType}
-                projectCount={typeProjects.length}
-              />
-
-              {/* Responsive Grid Layout */}
-              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 2xl:grid-cols-5 gap-4">
-                <SortableContext items={typeProjects.map(p => p.id)} strategy={verticalListSortingStrategy}>
-                  {typeProjects.map((project) => (
-                    <ProjectCard
-                      key={project.id}
-                      project={project}
-                      onUpdateProject={onUpdateProject}
-                    />
-                  ))}
-                </SortableContext>
-              </div>
-            </div>
-          );
-        })}
+    <div className="space-y-6">
+      <ProjectUpdateAnimation isVisible={showUpdateAnimation} message="Updating projects..." />
+      
+      {/* Refresh button */}
+      <div className="flex justify-end">
+        <Button 
+          variant="outline" 
+          size="sm" 
+          onClick={() => {
+            setShowUpdateAnimation(true);
+            refetch(true).then(() => {
+              setTimeout(() => setShowUpdateAnimation(false), 1000);
+            });
+          }}
+          disabled={isUpdating}
+        >
+          <RefreshCw className={`h-4 w-4 mr-2 ${isUpdating ? 'animate-spin' : ''}`} />
+          Refresh Projects
+        </Button>
       </div>
 
-      <DragOverlay>
-        {activeProject ? (
-          <ProjectCard project={activeProject} />
-        ) : null}
-      </DragOverlay>
-    </DndContext>
+      <DndContext
+        sensors={sensors}
+        onDragStart={handleDragStart}
+        onDragEnd={handleDragEnd}
+      >
+        <div className="space-y-8">
+          {Object.entries(projectsByType).map(([type, typeProjects]) => {
+            if (typeProjects.length === 0) return null;
+
+            return (
+              <div key={type} className="space-y-4">
+                <ProjectTypeSection
+                  type={type as ProjectType}
+                  projectCount={typeProjects.length}
+                />
+
+                {/* Responsive Grid Layout */}
+                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 2xl:grid-cols-5 gap-4">
+                  <SortableContext items={typeProjects.map(p => p.id)} strategy={verticalListSortingStrategy}>
+                    {typeProjects.map((project) => (
+                      <ProjectCard
+                        key={project.id}
+                        project={project}
+                        onUpdateProject={onUpdateProject}
+                      />
+                    ))}
+                  </SortableContext>
+                </div>
+              </div>
+            );
+          })}
+        </div>
+
+        <DragOverlay>
+          {activeProject ? (
+            <ProjectCard project={activeProject} />
+          ) : null}
+        </DragOverlay>
+      </DndContext>
+    </div>
   );
 }

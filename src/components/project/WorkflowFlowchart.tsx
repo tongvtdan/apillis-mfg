@@ -2,7 +2,7 @@ import React, { useState, useMemo } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { CheckCircle, AlertCircle, ChevronRight, Play, Pause, XCircle, Eye, Users } from "lucide-react";
+import { CheckCircle, AlertCircle, ChevronRight, Play, Pause, XCircle, Eye, Users, RefreshCw } from "lucide-react";
 import { PROJECT_STAGES, ProjectStatus, Project, ProjectType } from "@/types/project";
 import { useProjects } from "@/hooks/useProjects";
 import { WorkflowValidator } from "@/lib/workflow-validator";
@@ -20,6 +20,8 @@ import {
     TooltipProvider,
     TooltipTrigger,
 } from "@/components/ui/tooltip";
+import { motion, AnimatePresence } from 'framer-motion';
+import { ProjectUpdateAnimation } from './ProjectUpdateAnimation';
 
 interface WorkflowFlowchartProps {
     selectedProject: Project | null;
@@ -36,11 +38,13 @@ export function WorkflowFlowchart({
     onStageSelect,
     selectedStage,
     projectTypeFilter = 'all',
-    projects: externalProjects // Rename to avoid conflict
+    projects: externalProjects
 }: WorkflowFlowchartProps) {
-    const { projects: hookProjects, updateProjectStatusOptimistic } = useProjects();
+    const { projects: hookProjects, updateProjectStatusOptimistic, refetch } = useProjects();
     const navigate = useNavigate();
     const [validationErrors, setValidationErrors] = useState<Record<string, string[]>>({});
+    const [isUpdating, setIsUpdating] = useState(false);
+    const [showUpdateAnimation, setShowUpdateAnimation] = useState(false);
 
     // Use external projects if provided, otherwise use hook projects
     const allProjects = externalProjects || hookProjects;
@@ -67,7 +71,22 @@ export function WorkflowFlowchart({
             return newErrors;
         });
 
-        await updateProjectStatusOptimistic(projectId, newStatus);
+        // Show update animation
+        setShowUpdateAnimation(true);
+        setIsUpdating(true);
+
+        try {
+            await updateProjectStatusOptimistic(projectId, newStatus);
+            
+            // Refresh projects data to ensure consistency
+            await refetch(true);
+        } finally {
+            // Hide update animation after a short delay
+            setTimeout(() => {
+                setShowUpdateAnimation(false);
+                setIsUpdating(false);
+            }, 1500);
+        }
     };
 
     const getProjectStageStatus = (project: Project, stageId: ProjectStatus) => {
@@ -139,7 +158,22 @@ export function WorkflowFlowchart({
             return newErrors;
         });
 
-        await updateProjectStatusOptimistic(project.id, newStatus);
+        // Show update animation
+        setShowUpdateAnimation(true);
+        setIsUpdating(true);
+
+        try {
+            await updateProjectStatusOptimistic(project.id, newStatus);
+            
+            // Refresh projects data to ensure consistency
+            await refetch(true);
+        } finally {
+            // Hide update animation after a short delay
+            setTimeout(() => {
+                setShowUpdateAnimation(false);
+                setIsUpdating(false);
+            }, 1500);
+        }
     };
 
     // Format currency
@@ -339,6 +373,7 @@ export function WorkflowFlowchart({
 
     return (
         <div className="space-y-6">
+            <ProjectUpdateAnimation isVisible={showUpdateAnimation} message="Updating project status..." />
             <Card>
                 <CardHeader>
                     <CardTitle>Workflow Visualization</CardTitle>
@@ -445,6 +480,92 @@ export function WorkflowFlowchart({
                     </CardContent>
                 </Card>
             )}
+
+            {/* Kanban-style project list */}
+            {!selectedProject && (
+                <Card>
+                    <CardHeader>
+                        <CardTitle>
+                            {selectedStage
+                                ? `${PROJECT_STAGES.find(s => s.id === selectedStage)?.name || 'Selected'} Projects`
+                                : 'All Projects'}
+                        </CardTitle>
+                        <CardDescription>
+                            {filteredProjects.length} project{filteredProjects.length !== 1 ? 's' : ''} found
+                        </CardDescription>
+                    </CardHeader>
+                    <CardContent>
+                        {filteredProjects.length > 0 ? (
+                            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                                {filteredProjects.map(project => renderProjectCard(project))}
+                            </div>
+                        ) : (
+                            <div className="text-center py-8 text-muted-foreground">
+                                <p className="text-sm">No projects found</p>
+                                {selectedStage && (
+                                    <p className="text-xs mt-1">No projects in this stage</p>
+                                )}
+                            </div>
+                        )}
+                    </CardContent>
+                </Card>
+            )}
+
+            {/* Refresh button */}
+            <div className="flex justify-end">
+                <Button 
+                    variant="outline" 
+                    size="sm" 
+                    onClick={() => {
+                        setShowUpdateAnimation(true);
+                        refetch(true).then(() => {
+                            setTimeout(() => setShowUpdateAnimation(false), 1000);
+                        });
+                    }}
+                    disabled={isUpdating}
+                >
+                    <RefreshCw className={`h-4 w-4 mr-2 ${isUpdating ? 'animate-spin' : ''}`} />
+                    Refresh Projects
+                </Button>
+            </div>
+
+            <Card>
+                <CardHeader>
+                    <CardTitle>Workflow Visualization</CardTitle>
+                    <CardDescription>
+                        Visualize and manage project workflow stages
+                    </CardDescription>
+                </CardHeader>
+                <CardContent>
+                    <div className="overflow-x-auto pb-4">
+                        <div className="flex items-center gap-4 min-w-max">
+                            {PROJECT_STAGES.map((stage, index) => (
+                                <React.Fragment key={stage.id}>
+                                    <div className="flex flex-col items-center space-y-2">
+                                        <Badge className={`${stage.color} text-xs font-medium`} variant="outline">
+                                            {projectsByStage.find(s => s.id === stage.id)?.projects.length || 0}
+                                        </Badge>
+                                        <Card
+                                            className={`w-48 cursor-pointer hover:shadow-md transition-shadow ${selectedStage === stage.id ? 'ring-2 ring-primary' : ''}`}
+                                            onClick={() => onStageSelect && onStageSelect(stage.id)}
+                                        >
+                                            <CardContent className="p-4">
+                                                <div className="text-center">
+                                                    <h3 className="font-medium text-sm">{stage.name}</h3>
+                                                </div>
+                                            </CardContent>
+                                        </Card>
+                                    </div>
+
+                                    {index < PROJECT_STAGES.length - 1 && (
+                                        <ChevronRight className="h-5 w-5 text-muted-foreground flex-shrink-0" />
+                                    )}
+                                </React.Fragment>
+                            ))}
+                        </div>
+                    </div>
+                </CardContent>
+            </Card>
 
             {/* Kanban-style project list */}
             {!selectedProject && (

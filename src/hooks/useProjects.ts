@@ -12,6 +12,7 @@ import { useAuth } from '@/contexts/AuthContext';
 import { useToast } from '@/hooks/use-toast';
 import { WorkflowValidator, WorkflowValidationResult } from '@/lib/workflow-validator';
 import { SupplierQuote } from '@/types/supplier';
+import { cacheService } from '@/services/cacheService';
 
 // Legacy status to new status mapping
 const LEGACY_TO_NEW_STATUS: Record<string, ProjectStatus> = {
@@ -54,7 +55,7 @@ export function useProjects() {
   const { user } = useAuth();
   const { toast } = useToast();
 
-  const fetchProjects = async () => {
+  const fetchProjects = async (forceRefresh = false) => {
     if (!user) {
       setProjects([]);
       setLoading(false);
@@ -62,6 +63,17 @@ export function useProjects() {
     }
 
     try {
+      // Check if we have valid cached data
+      if (!forceRefresh && cacheService.isCacheValid()) {
+        const cachedProjects = cacheService.getProjects();
+        if (cachedProjects) {
+          console.log('🔄 Using cached projects data');
+          setProjects(cachedProjects);
+          setLoading(false);
+          return;
+        }
+      }
+
       setLoading(true);
       setError(null);
 
@@ -85,6 +97,8 @@ export function useProjects() {
         status: mapLegacyStatusToNew(project.status)
       }));
 
+      // Cache the data
+      cacheService.setProjects(mappedProjects);
       setProjects(mappedProjects);
     } catch (err) {
       console.error('Error in fetchProjects:', err);
@@ -391,6 +405,8 @@ export function useProjects() {
           if (payload.eventType === 'INSERT') {
             const newProject = { ...payload.new as Project, status: mapLegacyStatusToNew((payload.new as any).status) };
             setProjects(prev => [newProject, ...prev]);
+            // Update cache
+            cacheService.setProjects([newProject, ...projects]);
           } else if (payload.eventType === 'UPDATE') {
             const updatedProject = { ...payload.new as Project, status: mapLegacyStatusToNew((payload.new as any).status) };
             setProjects(prev => prev.map(project =>
@@ -398,8 +414,16 @@ export function useProjects() {
                 ? updatedProject
                 : project
             ));
+            // Update cache
+            const updatedProjects = projects.map(project =>
+              project.id === updatedProject.id ? updatedProject : project
+            );
+            cacheService.setProjects(updatedProjects);
           } else if (payload.eventType === 'DELETE') {
             setProjects(prev => prev.filter(project => project.id !== payload.old.id));
+            // Update cache
+            const filteredProjects = projects.filter(project => project.id !== payload.old.id);
+            cacheService.setProjects(filteredProjects);
           }
         }
       )
