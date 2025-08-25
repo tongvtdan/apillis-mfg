@@ -625,10 +625,14 @@ export function WorkflowKanban({ projectTypeFilter = 'all', filteredProjects }: 
   return (
     <Card>
       <CardHeader className="pb-3">
-        <CardTitle className="text-lg">Project Workflow</CardTitle>
-        <CardDescription>
-          Track and manage your manufacturing projects from idea to delivery
-        </CardDescription>
+        <div className="flex items-center justify-between">
+          <div>
+            <CardTitle className="text-lg">Project Workflow Stages</CardTitle>
+            <CardDescription>
+              Track and manage your manufacturing projects from idea to delivery
+            </CardDescription>
+          </div>
+        </div>
       </CardHeader>
       <CardContent>
         <div className="space-y-4">

@@ -79,21 +79,20 @@ export default function Projects() {
 
   return (
     <div className="p-6 bg-base-100 text-base-content min-h-screen">
-      <div className="mb-6">
-        <h1 className="text-2xl font-bold text-base-content">Factory Pulse - Project Flow</h1>
-        <p className="text-base-content/70">Track and manage your manufacturing projects from idea to delivery</p>
-      </div>
-
       <Tabs defaultValue="flowchart" className="w-full relative">
-        <div className="fixed top-16 left-1/2 transform -translate-x-1/2 z-30 bg-base-100/95 backdrop-blur supports-[backdrop-filter]:bg-base-100/90 border border-base-300 rounded-lg shadow-lg p-4">
-          <div className="flex flex-col items-center space-y-3">
+        <div className="mb-6 flex justify-between items-center">
+          <div>
+            <h1 className="text-2xl font-bold text-base-content">Factory Pulse - Project Flow</h1>
+            <p className="text-base-content/70">Track and manage your manufacturing projects from idea to delivery</p>
+          </div>
+          <div className="flex items-center gap-4">
             <TabsList className="grid w-[300px] grid-cols-3">
               <TabsTrigger value="flowchart">Flow</TabsTrigger>
               <TabsTrigger value="kanban">Kanban</TabsTrigger>
               <TabsTrigger value="table">Table</TabsTrigger>
             </TabsList>
 
-            {/* Project Type Filter - Always Visible */}
+            {/* Project Type Filter */}
             <div className="flex items-center space-x-3">
               <span className="text-sm text-base-content/70">Filter by type:</span>
               <Select value={selectedProjectType} onValueChange={(value) => setSelectedProjectType(value as ProjectType | 'all')}>
@@ -116,9 +115,8 @@ export default function Projects() {
             </div>
           </div>
         </div>
-        <div className="mb-24"></div>
 
-        <TabsContent value="flowchart" className="mt-0 space-y-6">
+        <TabsContent value="flowchart" className="mt-4 space-y-6">
           <div className="bg-base-100 rounded-lg p-6 border border-base-300">
             <h3 className="text-lg font-semibold mb-4 text-base-content">Project Workflow Stages</h3>
             <StageFlowchart
@@ -199,7 +197,7 @@ export default function Projects() {
           )}
         </TabsContent>
 
-        <TabsContent value="kanban" className="mt-0 space-y-6">
+        <TabsContent value="kanban" className="mt-4 space-y-6">
           <div className="bg-base-100 rounded-lg p-6 border border-base-300">
             <div className="mb-4">
               <h3 className="text-lg font-semibold text-base-content">Project Workflow Kanban</h3>
@@ -215,7 +213,7 @@ export default function Projects() {
           <WorkflowKanban projectTypeFilter={selectedProjectType} />
         </TabsContent>
 
-        <TabsContent value="table" className="mt-0 space-y-6">
+        <TabsContent value="table" className="mt-4 space-y-6">
           <div className="bg-base-100 rounded-lg p-6 border border-base-300">
             <div className="mb-4">
               <h3 className="text-lg font-semibold text-base-content">Project Table View</h3>
