@@ -16,7 +16,15 @@ This file contains important changes and updates made to the project.
 8. Fixed User Management link in Settings page - corrected route from `/admin/users` to `/users` to match App.tsx routing
 9. Resolved AdminUsers hooks order error by avoiding conditional returns before hooks; added canAccess guard and conditional data fetching
 
+Demo Sign-in Accounts:
 
+customer@demo.com / demo123 (Customer role)
+supplier@demo.com / demo123 (Supplier role)
+engineer@demo.com / demo123 (Engineering role)
+qa@demo.com / demo123 (QA role)
+production@demo.com / demo123 (Production role)
+procurement@demo.com / demo123 (Procurement role)
+manager@demo.com / demo123 (Management role)
 
 ### 2025-01-25
 - **Database Performance Optimization Complete**: 
