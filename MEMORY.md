@@ -9,6 +9,7 @@ This file contains important changes and updates made to the project.
 1. Fixed runtime crash by removing duplicate Router and React Query providers (kept providers in App.tsx, simplified main.tsx)
 2. Added safe debug logs in main.tsx to trace app initialization
 3. Left queryClient utility available for future centralization but unused for now
+4. Enhanced Settings page User Management section with improved UI, prominent call-to-action button, and detailed feature descriptions
 
 
 

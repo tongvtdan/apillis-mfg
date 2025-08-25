@@ -136,23 +136,31 @@ export default function Settings() {
                             </CardHeader>
                             <CardContent className="space-y-4">
                                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                                    <Card className="border-dashed">
+                                    <Card className="border-2 border-primary/20 bg-primary/5 hover:bg-primary/10 transition-colors">
                                         <CardHeader className="pb-3">
-                                            <CardTitle className="text-base flex items-center gap-2">
+                                            <CardTitle className="text-base flex items-center gap-2 text-primary">
                                                 <Users className="h-4 w-4" />
                                                 User Management
                                             </CardTitle>
                                         </CardHeader>
                                         <CardContent>
                                             <p className="text-sm text-base-content/70 mb-3">
-                                                Manage user accounts, roles, and permissions.
+                                                Manage user accounts, assign roles, and control permissions across the system.
                                             </p>
-                                            <a
-                                                href="/admin/users"
-                                                className="text-sm text-primary hover:underline"
-                                            >
-                                                Go to User Management →
-                                            </a>
+                                            <div className="flex flex-col gap-2">
+                                                <a
+                                                    href="/admin/users"
+                                                    className="inline-flex items-center justify-center px-4 py-2 bg-primary text-primary-foreground hover:bg-primary/90 rounded-md text-sm font-medium transition-colors"
+                                                >
+                                                    <Users className="h-4 w-4 mr-2" />
+                                                    Open User Management
+                                                </a>
+                                                <p className="text-xs text-base-content/60">
+                                                    • Change user roles and permissions<br/>
+                                                    • Manage account status and access<br/>
+                                                    • View user activity and audit logs
+                                                </p>
+                                            </div>
                                         </CardContent>
                                     </Card>
 
