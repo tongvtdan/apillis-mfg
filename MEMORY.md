@@ -4,47 +4,21 @@ This file contains important changes and updates made to the project.
 
 ## Latest Changes Summary
 
-- Date: 2025-08-25
+- Date: 2025-01-22
 - What we completed / changed:
-1. Created demo authentication accounts with 6-digit UUID endings for easy testing
-2. Set up 7 demo accounts with different roles: Customer, Supplier, Engineering, QA, Production, Procurement, Management
-3. All demo accounts use password "demo123" with email format: role@demo.com
-4. Added avatar_url column to profiles table for user profile pictures
-5. Updated all demo profiles with complete information: proper display names, departments, status, and avatar URLs using DiceBear API
-6. Demo profiles now have realistic names: John Customer, Sarah Supplier, Mike Engineer, Lisa QA Lead, Tom Production, Anna Procurement, David Manager
-7. Fixed runtime crash by removing duplicate Router and React Query providers (kept providers in App.tsx, simplified main.tsx)
-8. Added safe debug logs in main.tsx to trace app initialization
-9. Left queryClient utility available for future centralization but unused for now
-10. Enhanced Settings page User Management section with improved UI, prominent call-to-action button, and detailed feature descriptions
-11. Fixed User Management link in Settings page - corrected route from `/admin/users` to `/users` to match App.tsx routing
-12. Resolved AdminUsers hooks order error by avoiding conditional returns before hooks; added canAccess guard and conditional data fetching
+1. **Fixed Duplicate Workflow Visualization Issue**: Removed duplicate "Workflow Visualization" and "Kanban-style project list" sections from WorkflowFlowchart component that were causing UI duplication
+2. **Improved Real-time Updates**: Fixed bug in useProjects hook where real-time subscription cache updates were using stale state, preventing automatic project stage updates
+3. **Enhanced Refresh Button**: Added explanatory text and improved refresh button to clarify that real-time updates should happen automatically
+4. **UI Cleanup**: Streamlined WorkflowFlowchart component to show single workflow visualization and project list sections
+5. **Better User Experience**: Users now see only one workflow visualization and understand when manual refresh is needed
 
-Demo Sign-in Accounts:
-
-customer@demo.com / demo123 (Customer role)
-supplier@demo.com / demo123 (Supplier role)
-engineer@demo.com / demo123 (Engineering role)
-qa@demo.com / demo123 (QA role)
-production@demo.com / demo123 (Production role)
-procurement@demo.com / demo123 (Procurement role)
-manager@demo.com / demo123 (Management role)
-
-### 2025-08-25
-- **Project Workflow System Implementation Complete**:
-  1. Created WorkflowValidator class to enforce exit criteria and stage progression rules
-  2. Integrated workflow validation into useProjects hook for all status updates
-  3. Updated WorkflowKanban component to validate drag-and-drop operations
-  4. Enhanced ProjectTable component with validation feedback
-  5. Created WorkflowFlowchart component for visual workflow management
-  6. Added comprehensive workflow documentation
-  7. Implemented stage progression controls across all project views (Flow, Kanban, Table)
-  8. Added validation to prevent invalid backward movement in workflow
-  9. Implemented exit criteria validation for each stage
-  10. Added real-time validation with clear user feedback via toast notifications
-  11. Enhanced all project views with consistent workflow validation
-  
-  I'll help you develop a workflow system to control and manage project status changes across different views. Let me first analyze the workflow requirements from the provided document and then implement the necessary components.
-
+### 2025-01-22
+- **Workflow Visualization Duplication Fix**:
+  1. Identified and removed duplicate "Workflow Visualization" sections in WorkflowFlowchart component
+  2. Removed duplicate "Kanban-style project list" sections that were causing UI clutter
+  3. Fixed real-time subscription cache update bug in useProjects hook that prevented automatic project stage updates
+  4. Enhanced refresh button with explanatory text about real-time updates
+  5. Streamlined component structure for better maintainability and user experience
 
 ## Project Workflow System Implementation Complete
 

@@ -33,6 +33,9 @@
 - [ ] Create SystemSettings.tsx - Global configuration options
 
 ## Recently Completed
+- [done] 2025-01-22: Fixed duplicate Workflow Visualization sections in WorkflowFlowchart component - removed duplicate UI elements causing confusion
+- [done] 2025-01-22: Fixed real-time update bug in useProjects hook that prevented automatic project stage updates from working properly
+- [done] 2025-01-22: Enhanced refresh button with explanatory text about when manual refresh is needed vs automatic updates
 - [done] 2025-01-22: Enhanced floating header with project type filter for complete always-visible navigation and filtering
 - [done] 2025-01-22: Enhanced Project Views with fixed-width centered tabbar and consistent project type filtering across all views (Flow, Kanban, Table)
 - [done] 2025-01-22: Fixed Kanban rendering issues - resolved missing imports and duplicate style attributes that prevented proper display

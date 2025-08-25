@@ -511,24 +511,32 @@ export function WorkflowFlowchart({
                 </Card>
             )}
 
-            {/* Refresh button */}
+            {/* Refresh button - Only needed if real-time updates fail or for manual refresh */}
             <div className="flex justify-end">
-                <Button
-                    variant="outline"
-                    size="sm"
-                    onClick={() => {
-                        setShowUpdateAnimation(true);
-                        refetch(true).then(() => {
-                            setTimeout(() => setShowUpdateAnimation(false), 1000);
-                        });
-                    }}
-                    disabled={isUpdating}
-                >
-                    <RefreshCw className={`h-4 w-4 mr-2 ${isUpdating ? 'animate-spin' : ''}`} />
-                    Refresh Projects
-                </Button>
+                <div className="text-right">
+                    <p className="text-xs text-muted-foreground mb-2">
+                        Real-time updates should happen automatically. Use refresh only if needed.
+                    </p>
+                    <Button
+                        variant="outline"
+                        size="sm"
+                        onClick={() => {
+                            setShowUpdateAnimation(true);
+                            refetch(true).then(() => {
+                                setTimeout(() => setShowUpdateAnimation(false), 1000);
+                            });
+                        }}
+                        disabled={isUpdating}
+                        className="mb-4"
+                        title="Manual refresh - use only if real-time updates aren't working"
+                    >
+                        <RefreshCw className={`h-4 w-4 mr-2 ${isUpdating ? 'animate-spin' : ''}`} />
+                        Refresh Projects
+                    </Button>
+                </div>
             </div>
 
+            {/* Single Workflow Visualization */}
             <Card>
                 <CardHeader>
                     <CardTitle>Workflow Visualization</CardTitle>
@@ -567,35 +575,6 @@ export function WorkflowFlowchart({
                 </CardContent>
             </Card>
 
-            {/* Kanban-style project list */}
-            {!selectedProject && (
-                <Card>
-                    <CardHeader>
-                        <CardTitle>
-                            {selectedStage
-                                ? `${PROJECT_STAGES.find(s => s.id === selectedStage)?.name || 'Selected'} Projects`
-                                : 'All Projects'}
-                        </CardTitle>
-                        <CardDescription>
-                            {filteredProjects.length} project{filteredProjects.length !== 1 ? 's' : ''} found
-                        </CardDescription>
-                    </CardHeader>
-                    <CardContent>
-                        {filteredProjects.length > 0 ? (
-                            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-                                {filteredProjects.map(project => renderProjectCard(project))}
-                            </div>
-                        ) : (
-                            <div className="text-center py-8 text-muted-foreground">
-                                <p className="text-sm">No projects found</p>
-                                {selectedStage && (
-                                    <p className="text-xs mt-1">No projects in this stage</p>
-                                )}
-                            </div>
-                        )}
-                    </CardContent>
-                </Card>
-            )}
         </div>
     );
 }

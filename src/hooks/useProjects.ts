@@ -404,26 +404,31 @@ export function useProjects() {
 
           if (payload.eventType === 'INSERT') {
             const newProject = { ...payload.new as Project, status: mapLegacyStatusToNew((payload.new as any).status) };
-            setProjects(prev => [newProject, ...prev]);
-            // Update cache
-            cacheService.setProjects([newProject, ...projects]);
+            setProjects(prev => {
+              const updatedProjects = [newProject, ...prev];
+              // Update cache with fresh data
+              cacheService.setProjects(updatedProjects);
+              return updatedProjects;
+            });
           } else if (payload.eventType === 'UPDATE') {
             const updatedProject = { ...payload.new as Project, status: mapLegacyStatusToNew((payload.new as any).status) };
-            setProjects(prev => prev.map(project =>
-              project.id === updatedProject.id
-                ? updatedProject
-                : project
-            ));
-            // Update cache
-            const updatedProjects = projects.map(project =>
-              project.id === updatedProject.id ? updatedProject : project
-            );
-            cacheService.setProjects(updatedProjects);
+            setProjects(prev => {
+              const updatedProjects = prev.map(project =>
+                project.id === updatedProject.id
+                  ? updatedProject
+                  : project
+              );
+              // Update cache with fresh data
+              cacheService.setProjects(updatedProjects);
+              return updatedProjects;
+            });
           } else if (payload.eventType === 'DELETE') {
-            setProjects(prev => prev.filter(project => project.id !== payload.old.id));
-            // Update cache
-            const filteredProjects = projects.filter(project => project.id !== payload.old.id);
-            cacheService.setProjects(filteredProjects);
+            setProjects(prev => {
+              const filteredProjects = prev.filter(project => project.id !== payload.old.id);
+              // Update cache with fresh data
+              cacheService.setProjects(filteredProjects);
+              return filteredProjects;
+            });
           }
         }
       )
