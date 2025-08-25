@@ -297,31 +297,30 @@ export function WorkflowFlowchart({
                     </div>
 
                     <div className="pt-2 border-t">
-                        <div className="flex items-center gap-3">
+                        <div className="flex flex-col gap-2">
                             <Button
                                 variant="accent"
                                 size="sm"
-                                className="flex-1 justify-start h-7 action-button hover:scale-[1.02] transition-all duration-200"
+                                className="w-full justify-center h-7 action-button hover:scale-[1.02] transition-all duration-200"
                                 onClick={() => navigate(`/project/${project.id}`)}
                             >
-                                <Eye className="mr-2 h-3 w-3" />
-                                View Details
+                                <Eye className="mr-2 h-3 w-3 flex-shrink-0" />
+                                <span className="truncate">View Details</span>
                             </Button>
-                            <div className="w-2"></div>
                             <DropdownMenu>
                                 <DropdownMenuTrigger asChild>
                                     <Button
                                         variant="default"
                                         size="sm"
-                                        className="flex-1 h-7 bg-primary hover:bg-primary/90 text-primary-foreground hover:scale-[1.02] transition-all duration-200 shadow-sm"
+                                        className="w-full justify-center h-7 bg-primary hover:bg-primary/90 text-primary-foreground hover:scale-[1.02] transition-all duration-200 shadow-sm"
                                     >
-                                        <Users className="mr-1 h-3 w-3" />
-                                        Change Stage
+                                        <Users className="mr-1 h-3 w-3 flex-shrink-0" />
+                                        <span className="truncate">Change Stage</span>
                                     </Button>
                                 </DropdownMenuTrigger>
                                 <DropdownMenuContent
                                     align="end"
-                                    className="bg-background/90 backdrop-blur-sm border border-muted-foreground/20"
+                                    className="bg-background backdrop-blur-lg border border-muted-foreground/20"
                                 >
                                     {getAvailableStages(project).map((stage) => {
                                         const stageStatus = getProjectStageStatus(project, stage.id);
