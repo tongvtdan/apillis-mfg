@@ -28,6 +28,8 @@ This file contains important changes and updates made to the project.
   11. **Removed unused components**: Deleted PriorityKanban and ProjectTypeKanban components that were imported but never used in the codebase
   12. **Cleaned up duplicate RFQ components**: Removed unused RFQIntakeForm.tsx and RFQIntakePortal.tsx from src/components/rfq/ directory, eliminating duplicate functionality with ProjectIntakeForm and ProjectIntakePortal
   13. **Removed development tab from Settings**: Eliminated development tab and its related code from Settings page, cleaned up unused imports (Database icon) and variables (isDev), and updated grid layout for better tab distribution
+  14. **Removed unused PublicRFQ.tsx**: Deleted unused PublicRFQ.tsx file that was imported but never routed to, cleaned up unused import from App.tsx, and maintained NewRFQ.tsx for active /rfq/new route
+  15. **Removed unused theme showcase components**: Deleted unused ThemeShowcase.tsx, ThemeToggle.tsx, and FactoryPulseLanding.tsx components, removed /theme-showcase route, and cleaned up theme directory while maintaining active theme system functionality
 
 ### 2025-01-22
 - **Workflow Visualization Duplication Fix**:

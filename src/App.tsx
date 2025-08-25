@@ -8,7 +8,7 @@ import { ProtectedRoute } from "@/components/auth/ProtectedRoute";
 import React, { useEffect } from "react";
 import Index from "./pages/Index";
 import Dashboard from "./pages/Dashboard";
-import PublicRFQ from "./pages/PublicRFQ";
+
 import NewRFQ from "./pages/NewRFQ";
 import AdminUsers from "./pages/AdminUsers";
 import NotFound from "./pages/NotFound";
@@ -23,7 +23,7 @@ import Reports from "./pages/Reports";
 import { RFQDetail } from "./pages/RFQDetail";
 import ProjectDetail from "./pages/ProjectDetail";
 import Settings from "./pages/Settings";
-import { ThemeShowcase } from "./components/theme/ThemeShowcase";
+
 import { applyAdaptiveTheme } from "@/lib/theme";
 
 const App = () => {
@@ -125,15 +125,7 @@ const App = () => {
               <AppLayout><Settings /></AppLayout>
             </ProtectedRoute>
           } />
-          <Route path="/theme-showcase" element={
-            <ProtectedRoute>
-              <AppLayout>
-                <div className="p-6">
-                  <ThemeShowcase />
-                </div>
-              </AppLayout>
-            </ProtectedRoute>
-          } />
+
           {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
           <Route path="*" element={<NotFound />} />
         </Routes>
