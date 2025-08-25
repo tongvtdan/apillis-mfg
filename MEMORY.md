@@ -4,6 +4,14 @@ This file contains important changes and updates made to the project.
 
 ## Latest Changes Summary
 
+- Date: 2025-08-25
+- What we completed / changed:
+1. Fixed runtime crash by removing duplicate Router and React Query providers (kept providers in App.tsx, simplified main.tsx)
+2. Added safe debug logs in main.tsx to trace app initialization
+3. Left queryClient utility available for future centralization but unused for now
+
+
+
 ### 2025-01-25
 - **Database Performance Optimization Complete**: 
   1. Added comprehensive database indexes for faster queries (projects, RFQs, suppliers, customers)
