@@ -347,14 +347,14 @@ function ProjectCard({ project, isDragging = false, index, quoteReadiness, isBot
                     Change Stage
                   </Button>
                 </DropdownMenuTrigger>
-                <DropdownMenuContent 
-                  align="end" 
+                <DropdownMenuContent
+                  align="end"
                   className="bg-background/90 backdrop-blur-sm border border-muted-foreground/20"
                 >
                   {getAvailableStages().map((stage) => {
                     const stageStatus = getProjectStageStatus(stage.id);
                     const isCurrentStage = project.status === stage.id;
-                    
+
                     return (
                       <DropdownMenuItem
                         key={stage.id}

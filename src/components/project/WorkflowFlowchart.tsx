@@ -194,8 +194,8 @@ export function WorkflowFlowchart({
     // Render project card in Kanban style
     const renderProjectCard = (project: Project) => {
         const isOverdue = project.days_in_stage > 7;
-        const timeIndicator = isOverdue ? 
-            { icon: AlertCircle, color: 'text-warning', bg: 'bg-warning/10' } : 
+        const timeIndicator = isOverdue ?
+            { icon: AlertCircle, color: 'text-warning', bg: 'bg-warning/10' } :
             { icon: Play, color: 'text-success', bg: 'bg-success/10' };
 
         return (
@@ -289,14 +289,14 @@ export function WorkflowFlowchart({
                                         Change Stage
                                     </Button>
                                 </DropdownMenuTrigger>
-                                <DropdownMenuContent 
-                                    align="end" 
+                                <DropdownMenuContent
+                                    align="end"
                                     className="bg-background/90 backdrop-blur-sm border border-muted-foreground/20"
                                 >
                                     {getAvailableStages(project).map((stage) => {
                                         const stageStatus = getProjectStageStatus(project, stage.id);
                                         const isCurrentStage = project.status === stage.id;
-                                        
+
                                         return (
                                             <DropdownMenuItem
                                                 key={stage.id}
