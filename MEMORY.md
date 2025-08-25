@@ -11,6 +11,7 @@ This file contains important changes and updates made to the project.
 3. Left queryClient utility available for future centralization but unused for now
 4. Enhanced Settings page User Management section with improved UI, prominent call-to-action button, and detailed feature descriptions
 5. Fixed User Management link in Settings page - corrected route from `/admin/users` to `/users` to match App.tsx routing
+6. Resolved AdminUsers hooks order error by avoiding conditional returns before hooks; added canAccess guard and conditional data fetching
 
 
 

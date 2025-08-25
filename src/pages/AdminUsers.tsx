@@ -66,20 +66,8 @@ export default function AdminUsers() {
   const [selectedUser, setSelectedUser] = useState<UserWithStats | null>(null);
   const [editDialogOpen, setEditDialogOpen] = useState(false);
 
-  // Check if user has management permissions
-  if (profile?.role !== 'Management') {
-    return (
-      <div className="min-h-screen flex items-center justify-center bg-base-100">
-        <div className="text-center">
-          <Shield className="h-12 w-12 text-base-content/70 mx-auto mb-4" />
-          <h1 className="text-2xl font-bold mb-2 text-base-content">Access Denied</h1>
-          <p className="text-base-content/70">
-            You don't have permission to access user management.
-          </p>
-        </div>
-      </div>
-    );
-  }
+  // Compute access but do not return before hooks to keep hook order stable
+  const canAccess = profile?.role === 'Management';
 
   const fetchUsers = async () => {
     try {
@@ -265,8 +253,10 @@ export default function AdminUsers() {
   };
 
   useEffect(() => {
-    fetchUsers();
-  }, []);
+    if (canAccess) {
+      fetchUsers();
+    }
+  }, [canAccess]);
 
   useEffect(() => {
     filterUsers();
