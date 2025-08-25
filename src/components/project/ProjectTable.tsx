@@ -88,10 +88,9 @@ export function ProjectTable({ projects, updateProjectStatusOptimistic: external
       console.log('📊 Update result:', result);
 
       if (result) {
-        console.log('🔄 Calling refetch...');
-        // Refresh projects data to ensure consistency
-        await refetch(true);
-        console.log('✅ Refetch completed');
+        console.log('✅ Update completed successfully');
+        // ❌ Removed unnecessary refetch - let real-time handle updates
+        // await refetch(true);
       } else {
         console.error('❌ Update failed, result was false');
       }

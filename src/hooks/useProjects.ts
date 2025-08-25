@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback, useRef } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { Project, ProjectStatus, Customer } from '@/types/project';
 import {
@@ -55,6 +55,7 @@ export function useProjects() {
   const [error, setError] = useState<string | null>(null);
   const { user } = useAuth();
   const { toast } = useToast();
+  const realtimeChannelRef = useRef<any>(null);
 
   const fetchProjects = async (forceRefresh = false) => {
     if (!user) {
@@ -108,6 +109,95 @@ export function useProjects() {
       setLoading(false);
     }
   };
+
+  // Selective real-time subscription for specific projects
+  const subscribeToProjectUpdates = useCallback((projectIds: string[]) => {
+    if (projectIds.length === 0) return;
+
+    // Clean up existing subscription
+    if (realtimeChannelRef.current) {
+      supabase.removeChannel(realtimeChannelRef.current);
+    }
+
+    console.log('🔔 Setting up selective real-time subscription for projects:', projectIds);
+
+    realtimeChannelRef.current = supabase
+      .channel('selective-project-updates')
+      .on(
+        'postgres_changes',
+        {
+          event: 'UPDATE',
+          schema: 'public',
+          table: 'projects',
+          filter: `id=in.(${projectIds.join(',')})`
+        },
+        (payload) => {
+          console.log('🔔 Selective real-time update received:', {
+            projectId: payload.new.id,
+            newStatus: payload.new.status,
+            mappedStatus: mapLegacyStatusToNew(payload.new.status)
+          });
+
+          // Update only the specific project
+          setProjects(prev => prev.map(project =>
+            project.id === payload.new.id
+              ? {
+                ...project,
+                ...payload.new,
+                status: mapLegacyStatusToNew((payload.new as any).status),
+                updated_at: new Date().toISOString()
+              }
+              : project
+          ));
+
+          // Update cache with the specific project change
+          cacheService.updateProject(payload.new.id, {
+            ...payload.new,
+            status: mapLegacyStatusToNew((payload.new as any).status)
+          });
+        }
+      )
+      .on(
+        'postgres_changes',
+        {
+          event: 'INSERT',
+          schema: 'public',
+          table: 'projects'
+        },
+        (payload) => {
+          console.log('🔔 New project created:', payload.new);
+          const newProject = {
+            ...payload.new as Project,
+            status: mapLegacyStatusToNew((payload.new as any).status)
+          };
+
+          setProjects(prev => {
+            const updatedProjects = [newProject, ...prev];
+            cacheService.setProjects(updatedProjects);
+            return updatedProjects;
+          });
+        }
+      )
+      .on(
+        'postgres_changes',
+        {
+          event: 'DELETE',
+          schema: 'public',
+          table: 'projects'
+        },
+        (payload) => {
+          console.log('🔔 Project deleted:', payload.old);
+          setProjects(prev => {
+            const filteredProjects = prev.filter(project => project.id !== payload.old.id);
+            cacheService.setProjects(filteredProjects);
+            return filteredProjects;
+          });
+        }
+      )
+      .subscribe();
+
+    return realtimeChannelRef.current;
+  }, []);
 
   const updateProjectStatus = async (projectId: string, newStatus: ProjectStatus) => {
     try {
@@ -219,18 +309,18 @@ export function useProjects() {
         ? { ...project, status: newStatus, updated_at: new Date().toISOString() }
         : project
     );
-    
+
     console.log(`🚀 Optimistic update: Project ${projectId} from ${oldStatus} to ${newStatus}`);
     console.log('📊 Updated projects count:', updatedProjects.length);
-    
+
     setProjects(updatedProjects);
-    
+
     // Immediately write to cache for instant UI updates
     cacheService.setProjects(updatedProjects);
 
     try {
       console.log(`🔄 Attempting database update: ${projectId} to ${mapNewStatusToLegacy(newStatus)}`);
-      
+
       const { error, data } = await supabase
         .from('projects')
         .update({
@@ -242,7 +332,7 @@ export function useProjects() {
 
       if (error) {
         console.error('❌ Database update failed:', error);
-        
+
         // Revert optimistic update on error
         const revertedProjects = projects.map(project =>
           project.id === projectId
@@ -410,62 +500,18 @@ export function useProjects() {
       return;
     }
 
-    const channel = supabase
-      .channel('projects-changes')
-      .on(
-        'postgres_changes',
-        {
-          event: '*',
-          schema: 'public',
-          table: 'projects'
-        },
-        (payload) => {
-          console.log('Project change received:', payload);
-
-          if (payload.eventType === 'INSERT') {
-            const newProject = { ...payload.new as Project, status: mapLegacyStatusToNew((payload.new as any).status) };
-            setProjects(prev => {
-              const updatedProjects = [newProject, ...prev];
-              // Update cache with fresh data
-              cacheService.setProjects(updatedProjects);
-              return updatedProjects;
-            });
-          } else if (payload.eventType === 'UPDATE') {
-            const updatedProject = { ...payload.new as Project, status: mapLegacyStatusToNew((payload.new as any).status) };
-            console.log('🔔 Real-time update received:', {
-              projectId: updatedProject.id,
-              newStatus: updatedProject.status,
-              rawStatus: (payload.new as any).status,
-              fullPayload: payload.new
-            });
-            
-            setProjects(prev => {
-              const updatedProjects = prev.map(project =>
-                project.id === updatedProject.id
-                  ? updatedProject
-                  : project
-              );
-              // Update cache with fresh data
-              cacheService.setProjects(updatedProjects);
-              console.log('🔄 Projects updated via real-time, new count:', updatedProjects.length);
-              return updatedProjects;
-            });
-          } else if (payload.eventType === 'DELETE') {
-            setProjects(prev => {
-              const filteredProjects = prev.filter(project => project.id !== payload.old.id);
-              // Update cache with fresh data
-              cacheService.setProjects(filteredProjects);
-              return filteredProjects;
-            });
-          }
-        }
-      )
-      .subscribe();
+    // Set up selective subscription for visible projects
+    const visibleProjectIds = projects.map(p => p.id);
+    if (visibleProjectIds.length > 0) {
+      subscribeToProjectUpdates(visibleProjectIds);
+    }
 
     return () => {
-      supabase.removeChannel(channel);
+      if (realtimeChannelRef.current) {
+        supabase.removeChannel(realtimeChannelRef.current);
+      }
     };
-  }, [user]);
+  }, [user, projects.length]); // Only re-run when projects array length changes
 
   // Get project by ID
   const getProjectById = async (id: string): Promise<Project> => {
@@ -666,6 +712,7 @@ export function useProjects() {
     createProject,
     createOrGetCustomer,
     getProjectById,
+    subscribeToProjectUpdates, // Export for external use
 
     // New supplier quote integration
     getProjectQuotes,

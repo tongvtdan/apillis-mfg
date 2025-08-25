@@ -2,7 +2,7 @@
 
 ## Current Sprint: Supplier Quote Management Phase 1
 
-
+### [done] 2025-01-25: Project Card State Control Optimization - Fixed whole screen refresh issues by implementing granular state management, selective real-time subscriptions, and removing unnecessary refetch calls. Created useProjectUpdate hook for individual project updates, enhanced cache service with differential updates, optimized real-time subscriptions, created ProjectCardWrapper component for better state isolation, and removed unnecessary refetch calls from status change handlers.
 
 ### [ ] Priority 1: Supplier Quote Management System
 - [ ] Create SupplierQuoteModal.tsx - Send RFQ to suppliers

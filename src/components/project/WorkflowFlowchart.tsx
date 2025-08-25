@@ -21,7 +21,7 @@ import {
     TooltipTrigger,
 } from "@/components/ui/tooltip";
 import { motion, AnimatePresence } from 'framer-motion';
-import { AnimatedProjectCard } from './AnimatedProjectCard';
+import { ProjectCardWrapper } from './ProjectCardWrapper';
 
 
 interface WorkflowFlowchartProps {
@@ -83,9 +83,8 @@ export function WorkflowFlowchart({
 
         try {
             await updateProjectStatusOptimistic(projectId, newStatus);
-
-            // Refresh projects data to ensure consistency
-            await refetch(true);
+            // ❌ Removed unnecessary refetch - let real-time handle updates
+            // await refetch(true);
         } finally {
             // Remove this project from updating state
             setUpdatingProjects(prev => {
@@ -172,9 +171,8 @@ export function WorkflowFlowchart({
 
         try {
             await updateProjectStatusOptimistic(project.id, newStatus);
-
-            // Refresh projects data to ensure consistency
-            await refetch(true);
+            // ❌ Removed unnecessary refetch - let real-time handle updates
+            // await refetch(true);
         } finally {
             setIsUpdating(false);
         }
@@ -237,18 +235,15 @@ export function WorkflowFlowchart({
         });
     }, [allProjects]);
 
-    // Render project card using animated component
+    // Render project card using wrapper component
     const renderProjectCard = (project: Project) => {
         return (
-            <AnimatedProjectCard
+            <ProjectCardWrapper
                 key={project.id}
                 project={project}
-                onStatusChange={handleStatusChange}
-                getAvailableStages={getAvailableStages}
                 getPriorityColor={getPriorityColor}
                 formatCurrency={formatCurrency}
                 formatDate={formatDate}
-                isUpdating={updatingProjects.has(project.id)}
             />
         );
     };

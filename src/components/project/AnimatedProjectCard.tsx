@@ -20,7 +20,6 @@ interface AnimatedProjectCardProps {
     getPriorityColor: (priority: string) => string;
     formatCurrency: (value: number | null) => string | null;
     formatDate: (date: string) => string;
-    isUpdating?: boolean;
 }
 
 export function AnimatedProjectCard({
@@ -29,8 +28,7 @@ export function AnimatedProjectCard({
     getAvailableStages,
     getPriorityColor,
     formatCurrency,
-    formatDate,
-    isUpdating = false
+    formatDate
 }: AnimatedProjectCardProps) {
     const navigate = useNavigate();
     const isOverdue = project.days_in_stage > 7;
@@ -59,24 +57,7 @@ export function AnimatedProjectCard({
                 layout
                 className="relative"
             >
-                <Card className={`card-elevated hover:shadow-md transition-all duration-200 hover:scale-[1.02] ${
-                    isUpdating ? 'opacity-75 pointer-events-none' : ''
-                }`}>
-                    {/* Status change indicator overlay */}
-                    {isUpdating && (
-                        <motion.div
-                            initial={{ opacity: 0 }}
-                            animate={{ opacity: 1 }}
-                            exit={{ opacity: 0 }}
-                            className="absolute inset-0 bg-primary/10 rounded-lg flex items-center justify-center z-10"
-                        >
-                            <motion.div
-                                animate={{ rotate: 360 }}
-                                transition={{ duration: 1, repeat: Infinity, ease: "linear" }}
-                                className="w-6 h-6 border-2 border-primary border-t-transparent rounded-full"
-                            />
-                        </motion.div>
-                    )}
+                <Card className="card-elevated hover:shadow-md transition-all duration-200 hover:scale-[1.02]">
 
                     <CardHeader className="pb-2">
                         <div className="flex items-center justify-between">
