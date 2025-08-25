@@ -17,17 +17,8 @@ import {
 } from "@/components/ui/table";
 import { Project, ProjectStatus, PROJECT_STAGES } from "@/types/project";
 import { useProjects } from "@/hooks/useProjects";
-import { formatDistanceToNow } from "date-fns";
-import { ExternalLink, User, AlertTriangle } from "lucide-react";
+import { ExternalLink, User } from "lucide-react";
 import { useNavigate } from "react-router-dom";
-import { useState } from "react";
-import {
-  Tooltip,
-  TooltipContent,
-  TooltipProvider,
-  TooltipTrigger,
-} from "@/components/ui/tooltip";
-import { ProjectUpdateAnimation } from './ProjectUpdateAnimation';
 
 interface ProjectTableProps {
   projects: Project[];
@@ -53,28 +44,15 @@ const priorityVariants = {
 export function ProjectTable({ projects }: ProjectTableProps) {
   const { updateProjectStatusOptimistic, refetch } = useProjects();
   const navigate = useNavigate();
-  const [validationErrors, setValidationErrors] = useState<Record<string, string[]>>({});
-  const [showUpdateAnimation, setShowUpdateAnimation] = useState(false);
-  const [isUpdating, setIsUpdating] = useState(false);
 
   const handleStatusChange = async (projectId: string, newStatus: ProjectStatus) => {
-    // Show update animation
-    setShowUpdateAnimation(true);
-    setIsUpdating(true);
-
     try {
-      const result = await updateProjectStatusOptimistic(projectId, newStatus);
-
+      await updateProjectStatusOptimistic(projectId, newStatus);
       // Refresh projects data to ensure consistency
       await refetch(true);
-
       // Errors will be shown via toast notifications from the hook
-    } finally {
-      // Hide update animation after a short delay
-      setTimeout(() => {
-        setShowUpdateAnimation(false);
-        setIsUpdating(false);
-      }, 1500);
+    } catch (error) {
+      // Error handling is already done in the hook via toast notifications
     }
   };
 
@@ -82,12 +60,21 @@ export function ProjectTable({ projects }: ProjectTableProps) {
     navigate(`/project/${projectId}`);
   };
 
+  const calculateLeadTime = (dueDate: string | null, createdAt: string) => {
+    if (!dueDate) return 'TBD';
+    const days = Math.ceil(
+      (new Date(dueDate).getTime() - new Date(createdAt).getTime()) / (1000 * 60 * 60 * 24)
+    );
+    return `${days} days`;
+  };
+
+  const formatCurrency = (value: number | null) => {
+    if (!value) return null;
+    return `$${value.toLocaleString()}`;
+  };
+
   return (
     <div className="space-y-4">
-      <ProjectUpdateAnimation isVisible={showUpdateAnimation} message="Updating project status..." />
-
-
-
       <div className="rounded-md border">
         <Table>
           <TableHeader>
@@ -106,7 +93,10 @@ export function ProjectTable({ projects }: ProjectTableProps) {
             {projects.map((project) => (
               <TableRow key={project.id}>
                 <TableCell className="font-medium">
-                  <div className="cursor-pointer hover:text-primary" onClick={() => handleViewProject(project.id)}>
+                  <div
+                    className="cursor-pointer hover:text-primary"
+                    onClick={() => handleViewProject(project.id)}
+                  >
                     <div className="font-semibold">{project.title}</div>
                     <div className="text-sm text-muted-foreground">
                       {project.project_id}
@@ -115,7 +105,9 @@ export function ProjectTable({ projects }: ProjectTableProps) {
                 </TableCell>
                 <TableCell>
                   <div>
-                    <div className="font-medium">{project.customer?.company || project.contact_name}</div>
+                    <div className="font-medium">
+                      {project.customer?.company || project.contact_name}
+                    </div>
                     <div className="text-sm text-muted-foreground">
                       {project.contact_email}
                     </div>
@@ -128,33 +120,17 @@ export function ProjectTable({ projects }: ProjectTableProps) {
                   >
                     <SelectTrigger className="w-[180px]">
                       <SelectValue>
-                        <div className="flex items-center gap-2">
-                          <Badge className={statusVariants[project.status as keyof typeof statusVariants]}>
-                            {PROJECT_STAGES.find(s => s.id === project.status)?.name || project.status}
-                          </Badge>
-                          {validationErrors[project.id] && (
-                            <TooltipProvider>
-                              <Tooltip>
-                                <TooltipTrigger>
-                                  <AlertTriangle className="h-4 w-4 text-yellow-500" />
-                                </TooltipTrigger>
-                                <TooltipContent>
-                                  <p>{validationErrors[project.id].join(", ")}</p>
-                                </TooltipContent>
-                              </Tooltip>
-                            </TooltipProvider>
-                          )}
-                        </div>
+                        <Badge className={statusVariants[project.status as keyof typeof statusVariants]}>
+                          {PROJECT_STAGES.find(s => s.id === project.status)?.name || project.status}
+                        </Badge>
                       </SelectValue>
                     </SelectTrigger>
                     <SelectContent>
                       {PROJECT_STAGES.map((stage) => (
                         <SelectItem key={stage.id} value={stage.id}>
-                          <div className="flex items-center gap-2">
-                            <Badge className={statusVariants[stage.id as keyof typeof statusVariants]}>
-                              {stage.name}
-                            </Badge>
-                          </div>
+                          <Badge className={statusVariants[stage.id as keyof typeof statusVariants]}>
+                            {stage.name}
+                          </Badge>
                         </SelectItem>
                       ))}
                     </SelectContent>
@@ -175,18 +151,11 @@ export function ProjectTable({ projects }: ProjectTableProps) {
                 </TableCell>
                 <TableCell>
                   <div className="text-sm">
-                    {project.due_date
-                      ? `${Math.ceil((new Date(project.due_date).getTime() - new Date(project.created_at).getTime()) / (1000 * 60 * 60 * 24))} days`
-                      : 'TBD'
-                    }
+                    {calculateLeadTime(project.due_date, project.created_at)}
                   </div>
                 </TableCell>
                 <TableCell>
-                  {project.estimated_value && (
-                    <div className="font-medium">
-                      ${project.estimated_value.toLocaleString()}
-                    </div>
-                  )}
+                  {formatCurrency(project.estimated_value)}
                 </TableCell>
                 <TableCell className="text-right">
                   <Button
