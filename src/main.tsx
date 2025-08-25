@@ -10,6 +10,7 @@ import './styles/project-form-enhancements.css';
 import './styles/project-tabs-fix.css';
 import './styles/modal-forms-enhancements.css';
 import './styles/action-buttons-enhancements.css';
+import './styles/toast-enhancements.css';
 import './lib/theme-init';
 import { queryClient } from './lib/queryClient';
 
