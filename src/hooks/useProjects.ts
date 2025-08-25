@@ -212,11 +212,16 @@ export function useProjects() {
     const oldStatus = currentProject.status;
 
     // Optimistically update local state immediately
-    setProjects(prev => prev.map(project =>
+    const updatedProjects = projects.map(project =>
       project.id === projectId
         ? { ...project, status: newStatus, updated_at: new Date().toISOString() }
         : project
-    ));
+    );
+    
+    setProjects(updatedProjects);
+    
+    // Immediately write to cache for instant UI updates
+    cacheService.setProjects(updatedProjects);
 
     try {
       const { error } = await supabase

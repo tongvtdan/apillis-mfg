@@ -29,7 +29,9 @@ interface WorkflowFlowchartProps {
     onStageSelect?: (stage: ProjectStatus) => void;
     selectedStage?: ProjectStatus | null;
     projectTypeFilter?: ProjectType | 'all';
-    projects?: Project[]; // Add this prop
+    projects?: Project[]; // Pass projects from parent
+    updateProjectStatusOptimistic?: (projectId: string, newStatus: ProjectStatus) => Promise<boolean>; // Pass update function
+    refetch?: (forceRefresh?: boolean) => Promise<void>; // Pass refetch function
 }
 
 export function WorkflowFlowchart({
@@ -38,15 +40,19 @@ export function WorkflowFlowchart({
     onStageSelect,
     selectedStage,
     projectTypeFilter = 'all',
-    projects: externalProjects
+    projects: externalProjects,
+    updateProjectStatusOptimistic: externalUpdateFn,
+    refetch: externalRefetch
 }: WorkflowFlowchartProps) {
-    const { projects: hookProjects, updateProjectStatusOptimistic, refetch } = useProjects();
+    const { projects: hookProjects, updateProjectStatusOptimistic: hookUpdateFn, refetch: hookRefetch } = useProjects();
     const navigate = useNavigate();
     const [validationErrors, setValidationErrors] = useState<Record<string, string[]>>({});
     const [isUpdating, setIsUpdating] = useState(false);
 
-    // Use external projects if provided, otherwise use hook projects
+    // Use external projects and functions if provided, otherwise use hook versions
     const allProjects = externalProjects || hookProjects;
+    const updateProjectStatusOptimistic = externalUpdateFn || hookUpdateFn;
+    const refetch = externalRefetch || hookRefetch;
 
     const handleStatusChange = async (projectId: string, newStatus: ProjectStatus) => {
         const project = allProjects.find(p => p.id === projectId);

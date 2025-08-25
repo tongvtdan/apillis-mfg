@@ -11,7 +11,7 @@ import { WorkflowFlowchart } from "@/components/project/WorkflowFlowchart";
 
 
 export default function Projects() {
-  const { projects, loading, updateProjectStatus, refetch } = useProjects();
+  const { projects, loading, updateProjectStatus, updateProjectStatusOptimistic, refetch } = useProjects();
   const [selectedStage, setSelectedStage] = React.useState<ProjectStatus | null>(() => {
     // Try to restore from localStorage, default to 'inquiry_received' if none found
     const saved = localStorage.getItem('projects-selected-stage');
@@ -132,6 +132,8 @@ export default function Projects() {
             selectedStage={selectedStage} // Pass the selected stage
             projectTypeFilter={selectedProjectType} // Pass the project type filter
             projects={projects} // Pass all projects
+            updateProjectStatusOptimistic={updateProjectStatusOptimistic} // Pass the optimistic update function
+            refetch={refetch} // Pass the refetch function
           />
         </TabsContent>
 

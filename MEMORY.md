@@ -30,6 +30,7 @@ This file contains important changes and updates made to the project.
   13. **Removed development tab from Settings**: Eliminated development tab and its related code from Settings page, cleaned up unused imports (Database icon) and variables (isDev), and updated grid layout for better tab distribution
   14. **Removed unused PublicRFQ.tsx**: Deleted unused PublicRFQ.tsx file that was imported but never routed to, cleaned up unused import from App.tsx, and maintained NewRFQ.tsx for active /rfq/new route
   15. **Removed unused theme showcase components**: Deleted unused ThemeShowcase.tsx, ThemeToggle.tsx, and FactoryPulseLanding.tsx components, removed /theme-showcase route, and cleaned up theme directory while maintaining active theme system functionality
+  16. **Implemented optimistic updates with cache synchronization**: Enhanced immediate UI updates for project status changes by passing optimistic update functions from Projects.tsx to WorkflowFlowchart component, updated useProjects hook to write changes immediately to local storage cache, and established single source of truth for project data to ensure stage counts and project cards update instantly
 
 ### 2025-01-22
 - **Workflow Visualization Duplication Fix**:
