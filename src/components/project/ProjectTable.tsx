@@ -18,8 +18,15 @@ import {
 import { Project, ProjectStatus, PROJECT_STAGES } from "@/types/project";
 import { useProjects } from "@/hooks/useProjects";
 import { formatDistanceToNow } from "date-fns";
-import { ExternalLink, User } from "lucide-react";
+import { ExternalLink, User, AlertTriangle } from "lucide-react";
 import { useNavigate } from "react-router-dom";
+import { useState } from "react";
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
+} from "@/components/ui/tooltip";
 
 interface ProjectTableProps {
   projects: Project[];
@@ -45,14 +52,17 @@ const priorityVariants = {
 export function ProjectTable({ projects }: ProjectTableProps) {
   const { updateProjectStatusOptimistic } = useProjects();
   const navigate = useNavigate();
+  const [validationErrors, setValidationErrors] = useState<Record<string, string[]>>({});
 
   const handleStatusChange = async (projectId: string, newStatus: ProjectStatus) => {
-    await updateProjectStatusOptimistic(projectId, newStatus);
+    const result = await updateProjectStatusOptimistic(projectId, newStatus);
+    // Errors will be shown via toast notifications from the hook
   };
 
   const handleViewProject = (projectId: string) => {
     navigate(`/project/${projectId}`);
   };
+
   return (
     <div className="rounded-md border">
       <Table>
@@ -94,9 +104,23 @@ export function ProjectTable({ projects }: ProjectTableProps) {
                 >
                   <SelectTrigger className="w-[180px]">
                     <SelectValue>
-                      <Badge className={statusVariants[project.status as keyof typeof statusVariants]}>
-                        {PROJECT_STAGES.find(s => s.id === project.status)?.name || project.status}
-                      </Badge>
+                      <div className="flex items-center gap-2">
+                        <Badge className={statusVariants[project.status as keyof typeof statusVariants]}>
+                          {PROJECT_STAGES.find(s => s.id === project.status)?.name || project.status}
+                        </Badge>
+                        {validationErrors[project.id] && (
+                          <TooltipProvider>
+                            <Tooltip>
+                              <TooltipTrigger>
+                                <AlertTriangle className="h-4 w-4 text-yellow-500" />
+                              </TooltipTrigger>
+                              <TooltipContent>
+                                <p>{validationErrors[project.id].join(", ")}</p>
+                              </TooltipContent>
+                            </Tooltip>
+                          </TooltipProvider>
+                        )}
+                      </div>
                     </SelectValue>
                   </SelectTrigger>
                   <SelectContent>
@@ -121,7 +145,7 @@ export function ProjectTable({ projects }: ProjectTableProps) {
                 <div className="flex items-center gap-2">
                   <User className="h-4 w-4" />
                   <span className="text-sm">
-                    Unassigned
+                    {project.assignee_id || 'Unassigned'}
                   </span>
                 </div>
               </TableCell>

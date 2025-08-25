@@ -10,6 +10,8 @@ import {
 } from '@/types/supplier';
 import { useAuth } from '@/contexts/AuthContext';
 import { useToast } from '@/hooks/use-toast';
+import { WorkflowValidator, WorkflowValidationResult } from '@/lib/workflow-validator';
+import { SupplierQuote } from '@/types/supplier';
 
 // Legacy status to new status mapping
 const LEGACY_TO_NEW_STATUS: Record<string, ProjectStatus> = {
@@ -105,6 +107,18 @@ export function useProjects() {
         return false;
       }
 
+      // Validate the status change using workflow validator
+      const validationResult = await WorkflowValidator.validateStatusChange(currentProject, newStatus);
+      
+      if (!validationResult.isValid) {
+        toast({
+          variant: "destructive",
+          title: "Validation Error",
+          description: validationResult.errors.join(", "),
+        });
+        return false;
+      }
+
       const oldStatus = currentProject.status;
 
       const { error } = await supabase
@@ -139,10 +153,18 @@ export function useProjects() {
         return statusMap[status] || status;
       };
 
-      toast({
-        title: "Status Updated",
-        description: `From ${formatStatusName(oldStatus)} to ${formatStatusName(newStatus)}`,
-      });
+      // Show warnings if any
+      if (validationResult.warnings.length > 0) {
+        toast({
+          title: "Status Updated with Warnings",
+          description: `From ${formatStatusName(oldStatus)} to ${formatStatusName(newStatus)}. Warnings: ${validationResult.warnings.join(", ")}`,
+        });
+      } else {
+        toast({
+          title: "Status Updated",
+          description: `From ${formatStatusName(oldStatus)} to ${formatStatusName(newStatus)}`,
+        });
+      }
 
       return true;
     } catch (err) {
@@ -160,6 +182,18 @@ export function useProjects() {
   const updateProjectStatusOptimistic = async (projectId: string, newStatus: ProjectStatus) => {
     const currentProject = projects.find(project => project.id === projectId);
     if (!currentProject) return false;
+
+    // Validate the status change using workflow validator
+    const validationResult = await WorkflowValidator.validateStatusChange(currentProject, newStatus);
+    
+    if (!validationResult.isValid) {
+      toast({
+        variant: "destructive",
+        title: "Validation Error",
+        description: validationResult.errors.join(", "),
+      });
+      return false;
+    }
 
     const oldStatus = currentProject.status;
 
@@ -210,10 +244,18 @@ export function useProjects() {
         return statusMap[status] || status;
       };
 
-      toast({
-        title: "Status Updated",
-        description: `From ${formatStatusName(oldStatus)} to ${formatStatusName(newStatus)}`,
-      });
+      // Show warnings if any
+      if (validationResult.warnings.length > 0) {
+        toast({
+          title: "Status Updated with Warnings",
+          description: `From ${formatStatusName(oldStatus)} to ${formatStatusName(newStatus)}. Warnings: ${validationResult.warnings.join(", ")}`,
+        });
+      } else {
+        toast({
+          title: "Status Updated",
+          description: `From ${formatStatusName(oldStatus)} to ${formatStatusName(newStatus)}`,
+        });
+      }
 
       return true;
     } catch (err) {

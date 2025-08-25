@@ -61,6 +61,7 @@ import { QuoteReadinessIndicator, BottleneckAlert, QUOTE_READINESS_COLORS } from
 import { WorkflowMetrics } from "./WorkflowMetrics";
 import { StageMetrics } from "./StageMetrics";
 import { SupplierQuoteModal } from "../supplier/SupplierQuoteModal";
+import { WorkflowValidator } from "@/lib/workflow-validator";
 
 // Enhanced ProjectCard with better visual feedback and performance
 interface ProjectCardProps {
@@ -548,6 +549,17 @@ export function WorkflowKanban({ projectTypeFilter = 'all', filteredProjects }: 
     }
 
     console.log('Updating project status:', { projectId, from: currentProject.status, to: newStatus });
+
+    // Validate the status change using workflow validator
+    const validationResult = await WorkflowValidator.validateStatusChange(currentProject, newStatus);
+    
+    if (!validationResult.isValid) {
+      // Show validation errors (they will be shown via toast from the hook)
+      console.log('Validation failed:', validationResult.errors);
+      setActiveProject(null);
+      setIsDragging(false);
+      return;
+    }
 
     // Clear the drag overlay immediately
     setActiveProject(null);

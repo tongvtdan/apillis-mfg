@@ -7,7 +7,8 @@ import { TabsContent } from "@/components/ui/tabs";
 import { ProjectTabs, ProjectTabsList, ProjectTabsTrigger } from "@/components/project/ProjectTabs";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { useProjects } from "@/hooks/useProjects";
-import { ProjectStatus, ProjectType, PROJECT_TYPE_LABELS } from "@/types/project";
+import { ProjectStatus, ProjectType, PROJECT_TYPE_LABELS, Project } from "@/types/project";
+import { WorkflowFlowchart } from "@/components/project/WorkflowFlowchart";
 
 export default function Projects() {
   const { projects, loading, updateProjectStatus } = useProjects();
@@ -18,6 +19,7 @@ export default function Projects() {
   });
 
   const [selectedProjectType, setSelectedProjectType] = React.useState<ProjectType | 'all'>('all');
+  const [selectedProject, setSelectedProject] = React.useState<Project | null>(null);
 
   // Save selected stage to localStorage whenever it changes
   const handleStageSelect = React.useCallback((stage: ProjectStatus) => {
@@ -118,84 +120,10 @@ export default function Projects() {
         </div>
 
         <TabsContent value="flowchart" className="mt-4 space-y-6">
-          <div className="bg-base-100 rounded-lg p-6 border border-base-300">
-            <h3 className="text-lg font-semibold mb-4 text-base-content">Project Workflow Stages</h3>
-            <StageFlowchart
-              selectedStage={selectedStage}
-              onStageSelect={handleStageSelect}
-              stageCounts={stageCounts}
-            />
-          </div>
-
-          {selectedStage && (
-            <div className="bg-base-100 rounded-lg p-6 border border-base-300">
-              <div className="flex items-center justify-between mb-4">
-                <div>
-                  <h3 className="text-lg font-semibold text-base-content">
-                    Projects in {selectedStage.replace(/_/g, ' ').replace(/\b\w/g, l => l.toUpperCase())}
-                  </h3>
-                  <p className="text-sm text-base-content/70 mt-1">
-                    {selectedProjectType === 'all'
-                      ? `Showing ${selectedStageProjects.length} projects`
-                      : `Showing ${selectedStageProjects.length} ${PROJECT_TYPE_LABELS[selectedProjectType]} projects`
-                    }
-                  </p>
-                </div>
-
-                {/* Project Type Filter */}
-                <div className="flex items-center space-x-3">
-                  <span className="text-sm text-muted-foreground">Filter by type:</span>
-                  <Select value={selectedProjectType} onValueChange={(value) => setSelectedProjectType(value as ProjectType | 'all')}>
-                    <SelectTrigger className="w-[180px]">
-                      <SelectValue placeholder="All project types" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="all">All Types ({projects.filter(p => p.status === selectedStage).length})</SelectItem>
-                      <SelectItem value="system_build">
-                        {PROJECT_TYPE_LABELS.system_build} ({projects.filter(p => p.status === selectedStage && p.project_type === 'system_build').length})
-                      </SelectItem>
-                      <SelectItem value="fabrication">
-                        {PROJECT_TYPE_LABELS.fabrication} ({projects.filter(p => p.status === selectedStage && p.project_type === 'fabrication').length})
-                      </SelectItem>
-                      <SelectItem value="manufacturing">
-                        {PROJECT_TYPE_LABELS.manufacturing} ({projects.filter(p => p.status === selectedStage && p.project_type === 'manufacturing').length})
-                      </SelectItem>
-                    </SelectContent>
-                  </Select>
-                </div>
-              </div>
-
-              {selectedStageProjects.length > 0 ? (
-                <ProjectTypeKanban
-                  projects={selectedStageProjects}
-                  onUpdateProject={async (projectId, updates) => {
-                    // Handle project updates if needed
-                    console.log('Update project:', projectId, updates);
-                  }}
-                />
-              ) : (
-                <div className="text-center py-12">
-                  <p className="text-base-content/70">
-                    {selectedProjectType === 'all'
-                      ? 'No projects found in this stage'
-                      : `No ${PROJECT_TYPE_LABELS[selectedProjectType]} projects found in this stage`
-                    }
-                  </p>
-                  <p className="text-sm text-base-content/70 mt-2">
-                    Try selecting a different project type or stage
-                  </p>
-                </div>
-              )}
-            </div>
-          )}
-
-          {!selectedStage && (
-            <div className="text-center py-12">
-              <p className="text-base-content/70">
-                Click on a stage above to view projects in that stage
-              </p>
-            </div>
-          )}
+          <WorkflowFlowchart 
+            selectedProject={selectedProject} 
+            onProjectSelect={setSelectedProject} 
+          />
         </TabsContent>
 
         <TabsContent value="kanban" className="mt-4 space-y-6">
