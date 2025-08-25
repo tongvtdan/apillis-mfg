@@ -25,6 +25,7 @@ This file contains important changes and updates made to the project.
   8. **Complete ProjectUpdateAnimation Removal**: Removed ProjectUpdateAnimation component and all its usages from the entire codebase (PriorityKanban, ProjectTypeKanban, Projects.tsx, AppHeader.tsx)
   9. **Cleaned up unused state variables**: Removed `isUpdating` state from Projects.tsx and `showUpdateAnimation`/`updateMessage` states from AppHeader.tsx
   10. **Removed unused imports**: Cleaned up React hooks (useState, useEffect) that were no longer needed after animation removal
+  11. **Removed unused components**: Deleted PriorityKanban and ProjectTypeKanban components that were imported but never used in the codebase
 
 ### 2025-01-22
 - **Workflow Visualization Duplication Fix**:

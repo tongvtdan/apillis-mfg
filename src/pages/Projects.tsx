@@ -1,7 +1,7 @@
 import React from "react";
 import { ProjectTable } from "@/components/project/ProjectTable";
 import { StageFlowchart } from "@/components/project/StageFlowchart";
-import { ProjectTypeKanban } from "@/components/project/ProjectTypeKanban";
+
 import { TabsContent } from "@/components/ui/tabs";
 import { ProjectTabs, ProjectTabsList, ProjectTabsTrigger } from "@/components/project/ProjectTabs";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
