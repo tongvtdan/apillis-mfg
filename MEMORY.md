@@ -27,6 +27,7 @@ This file contains important changes and updates made to the project.
   10. **Removed unused imports**: Cleaned up React hooks (useState, useEffect) that were no longer needed after animation removal
   11. **Removed unused components**: Deleted PriorityKanban and ProjectTypeKanban components that were imported but never used in the codebase
   12. **Cleaned up duplicate RFQ components**: Removed unused RFQIntakeForm.tsx and RFQIntakePortal.tsx from src/components/rfq/ directory, eliminating duplicate functionality with ProjectIntakeForm and ProjectIntakePortal
+  13. **Removed development tab from Settings**: Eliminated development tab and its related code from Settings page, cleaned up unused imports (Database icon) and variables (isDev), and updated grid layout for better tab distribution
 
 ### 2025-01-22
 - **Workflow Visualization Duplication Fix**:

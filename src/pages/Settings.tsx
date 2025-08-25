@@ -5,7 +5,6 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Badge } from "@/components/ui/badge";
 import {
     Settings as SettingsIcon,
-    Database,
     Users,
     Bell,
     Shield,
@@ -18,7 +17,6 @@ export default function Settings() {
     const [activeTab, setActiveTab] = useState("general");
 
     const isManagement = profile?.role === "Management";
-    const isDev = import.meta.env.DEV;
 
     return (
         <div className="space-y-6 p-6 bg-base-100 text-base-content min-h-screen">
@@ -34,7 +32,7 @@ export default function Settings() {
             </div>
 
             <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-6">
-                <TabsList className="grid w-full grid-cols-2 lg:grid-cols-4">
+                <TabsList className="grid w-full grid-cols-2 lg:grid-cols-3">
                     <TabsTrigger value="general" className="flex items-center gap-2">
                         <SettingsIcon className="h-4 w-4" />
                         General
@@ -49,13 +47,7 @@ export default function Settings() {
                             Admin
                         </TabsTrigger>
                     )}
-                    {isDev && (
-                        <TabsTrigger value="development" className="flex items-center gap-2">
-                            <Database className="h-4 w-4" />
-                            Development
-                            <Badge variant="secondary" className="ml-1">DEV</Badge>
-                        </TabsTrigger>
-                    )}
+
                 </TabsList>
 
                 {/* General Settings */}
@@ -156,8 +148,8 @@ export default function Settings() {
                                                     Open User Management
                                                 </a>
                                                 <p className="text-xs text-base-content/60">
-                                                    • Change user roles and permissions<br/>
-                                                    • Manage account status and access<br/>
+                                                    • Change user roles and permissions<br />
+                                                    • Manage account status and access<br />
                                                     • View user activity and audit logs
                                                 </p>
                                             </div>
@@ -186,42 +178,7 @@ export default function Settings() {
                     </TabsContent>
                 )}
 
-                {/* Development Settings */}
-                {isDev && (
-                    <TabsContent value="development" className="space-y-6">
-                        <Card>
-                            <CardHeader>
-                                <CardTitle className="flex items-center gap-2">
-                                    <Database className="h-5 w-5" />
-                                    Development Tools
-                                    <Badge variant="outline">Development Only</Badge>
-                                </CardTitle>
-                                <CardDescription>
-                                    Development tools and database management utilities.
-                                </CardDescription>
-                            </CardHeader>
-                            <CardContent>
-                                <div className="space-y-6">
-                                    <div className="p-4 border border-orange-200 bg-orange-50 dark:border-orange-800 dark:bg-orange-950 rounded-lg">
-                                        <h4 className="text-sm font-medium text-orange-800 dark:text-orange-200 mb-2">
-                                            ⚠️ Development Environment Only
-                                        </h4>
-                                        <p className="text-xs text-orange-700 dark:text-orange-300">
-                                            These tools are only available in development mode and will not be visible in production.
-                                        </p>
-                                    </div>
 
-                                    <div className="space-y-6">
-                                        <h3 className="text-lg font-medium mb-4">Development Tools</h3>
-                                        <p className="text-sm text-base-content/70">
-                                            Development tools will be available in a future update.
-                                        </p>
-                                    </div>
-                                </div>
-                            </CardContent>
-                        </Card>
-                    </TabsContent>
-                )}
             </Tabs>
         </div>
     );
