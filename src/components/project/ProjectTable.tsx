@@ -165,9 +165,9 @@ export function ProjectTable({ projects }: ProjectTableProps) {
                 )}
               </TableCell>
               <TableCell className="text-right">
-                <Button 
-                  variant="accent" 
-                  size="sm" 
+                <Button
+                  variant="accent"
+                  size="sm"
                   className="action-button hover:scale-[1.02] transition-all duration-200"
                   onClick={() => handleViewProject(project.id)}
                 >

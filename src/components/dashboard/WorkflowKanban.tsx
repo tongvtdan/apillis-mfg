@@ -552,7 +552,7 @@ export function WorkflowKanban({ projectTypeFilter = 'all', filteredProjects }: 
 
     // Validate the status change using workflow validator
     const validationResult = await WorkflowValidator.validateStatusChange(currentProject, newStatus);
-    
+
     if (!validationResult.isValid) {
       // Show validation errors (they will be shown via toast from the hook)
       console.log('Validation failed:', validationResult.errors);

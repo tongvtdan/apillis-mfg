@@ -109,7 +109,7 @@ export function useProjects() {
 
       // Validate the status change using workflow validator
       const validationResult = await WorkflowValidator.validateStatusChange(currentProject, newStatus);
-      
+
       if (!validationResult.isValid) {
         toast({
           variant: "destructive",
@@ -185,7 +185,7 @@ export function useProjects() {
 
     // Validate the status change using workflow validator
     const validationResult = await WorkflowValidator.validateStatusChange(currentProject, newStatus);
-    
+
     if (!validationResult.isValid) {
       toast({
         variant: "destructive",
@@ -369,8 +369,8 @@ export function useProjects() {
     fetchProjects();
 
     // Only subscribe to real-time updates on specific routes
-    const shouldSubscribeToRealtime = window.location.pathname.includes('/projects/') || 
-                                     window.location.pathname === '/projects';
+    const shouldSubscribeToRealtime = window.location.pathname.includes('/projects/') ||
+      window.location.pathname === '/projects';
 
     if (!shouldSubscribeToRealtime) {
       return;

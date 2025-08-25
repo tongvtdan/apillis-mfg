@@ -120,9 +120,9 @@ export default function Projects() {
         </div>
 
         <TabsContent value="flowchart" className="mt-4 space-y-6">
-          <WorkflowFlowchart 
-            selectedProject={selectedProject} 
-            onProjectSelect={setSelectedProject} 
+          <WorkflowFlowchart
+            selectedProject={selectedProject}
+            onProjectSelect={setSelectedProject}
           />
         </TabsContent>
 
