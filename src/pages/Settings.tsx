@@ -149,7 +149,7 @@ export default function Settings() {
                                             </p>
                                             <div className="flex flex-col gap-2">
                                                 <a
-                                                    href="/admin/users"
+                                                    href="/users"
                                                     className="inline-flex items-center justify-center px-4 py-2 bg-primary text-primary-foreground hover:bg-primary/90 rounded-md text-sm font-medium transition-colors"
                                                 >
                                                     <Users className="h-4 w-4 mr-2" />
