@@ -71,9 +71,10 @@ interface ProjectCardProps {
   quoteReadiness?: QuoteReadinessIndicator;
   isBottleneck?: boolean;
   onSendRFQ?: (project: Project) => void;
+  onUpdateStatus?: (project: Project, newStatus: ProjectStatus) => void; // Add this prop
 }
 
-function ProjectCard({ project, isDragging = false, index, quoteReadiness, isBottleneck = false, onSendRFQ }: ProjectCardProps) {
+function ProjectCard({ project, isDragging = false, index, quoteReadiness, isBottleneck = false, onSendRFQ, onUpdateStatus }: ProjectCardProps) {
   const navigate = useNavigate();
   const {
     attributes,
@@ -155,6 +156,12 @@ function ProjectCard({ project, isDragging = false, index, quoteReadiness, isBot
   // Enhanced bottleneck detection
   const showBottleneckWarning = isBottleneck || project.days_in_stage > 14;
   const showRFQAction = project.status === 'technical_review' && project.days_in_stage > 2;
+
+  // Get available stages for this project
+  const getAvailableStages = () => {
+    const currentStageIndex = WorkflowValidator.getStageIndex(project.status);
+    return PROJECT_STAGES.filter((_, index) => index >= currentStageIndex);
+  };
 
   return (
     <div
@@ -301,18 +308,47 @@ function ProjectCard({ project, isDragging = false, index, quoteReadiness, isBot
           )}
 
           <div className="pt-2 border-t">
-            <Button
-              variant="accent"
-              size="sm"
-              className="w-full justify-start h-7 action-button hover:scale-[1.02] transition-all duration-200"
-              onClick={(e) => {
-                e.stopPropagation();
-                navigate(`/project/${project.id}`);
-              }}
-            >
-              <Eye className="mr-2 h-3 w-3" />
-              View Details
-            </Button>
+            <div className="flex space-x-2">
+              <Button
+                variant="accent"
+                size="sm"
+                className="flex-1 justify-start h-7 action-button hover:scale-[1.02] transition-all duration-200"
+                onClick={(e) => {
+                  e.stopPropagation();
+                  navigate(`/project/${project.id}`);
+                }}
+              >
+                <Eye className="mr-2 h-3 w-3" />
+                View Details
+              </Button>
+              {/* Add Change Stage button */}
+              <DropdownMenu>
+                <DropdownMenuTrigger asChild>
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    className="h-7 action-button hover:scale-[1.02] transition-all duration-200"
+                  >
+                    <Users className="mr-1 h-3 w-3" />
+                    Change Stage
+                  </Button>
+                </DropdownMenuTrigger>
+                <DropdownMenuContent align="end">
+                  {getAvailableStages().map((stage) => (
+                    <DropdownMenuItem
+                      key={stage.id}
+                      onClick={() => onUpdateStatus?.(project, stage.id)}
+                      disabled={project.status === stage.id}
+                    >
+                      {stage.name}
+                      {project.status === stage.id && (
+                        <span className="ml-2 text-xs text-muted-foreground">(Current)</span>
+                      )}
+                    </DropdownMenuItem>
+                  ))}
+                </DropdownMenuContent>
+              </DropdownMenu>
+            </div>
           </div>
         </CardContent>
       </Card>
@@ -372,9 +408,10 @@ interface VirtualizedProjectListProps {
   quoteReadiness: Record<string, QuoteReadinessIndicator>;
   bottlenecks: BottleneckAlert[];
   onSendRFQ: (project: Project) => void;
+  onUpdateStatus: (project: Project, newStatus: ProjectStatus) => void; // Add this prop
 }
 
-function VirtualizedProjectList({ projects, stageId, quoteReadiness, bottlenecks, onSendRFQ }: VirtualizedProjectListProps) {
+function VirtualizedProjectList({ projects, stageId, quoteReadiness, bottlenecks, onSendRFQ, onUpdateStatus }: VirtualizedProjectListProps) {
   if (projects.length === 0) {
     return (
       <div className="text-center py-8 text-muted-foreground">
@@ -398,6 +435,7 @@ function VirtualizedProjectList({ projects, stageId, quoteReadiness, bottlenecks
               quoteReadiness={projectQuoteReadiness}
               isBottleneck={isBottleneck}
               onSendRFQ={onSendRFQ}
+              onUpdateStatus={onUpdateStatus} // Pass the update status handler
             />
           </div>
         );
@@ -432,61 +470,26 @@ export function WorkflowKanban({ projectTypeFilter = 'all', filteredProjects }: 
     })
   );
 
-  // Load bottleneck detection data
-  useEffect(() => {
-    const loadBottlenecks = async () => {
-      try {
-        const bottleneckData = await getBottleneckAnalysis();
-        setBottlenecks(bottleneckData);
-      } catch (error) {
-        console.error('Error loading bottlenecks:', error);
-      }
-    };
-
-    if (projects.length > 0) {
-      loadBottlenecks();
-    }
-  }, [projects.length, getBottleneckAnalysis]);
-
-  // Load quote readiness data for relevant projects
-  useEffect(() => {
-    const loadQuoteReadiness = async () => {
-      const relevantProjects = projects.filter(
-        p => p.status === 'supplier_rfq_sent' || p.status === 'quoted'
-      );
-
-      const readinessPromises = relevantProjects.map(async (project) => {
-        try {
-          const readiness = await getQuoteReadinessScore(project.id);
-          return { projectId: project.id, readiness };
-        } catch (error) {
-          console.error(`Error loading quote readiness for project ${project.id}:`, error);
-          return { projectId: project.id, readiness: null };
-        }
-      });
-
-      const results = await Promise.all(readinessPromises);
-      const readinessMap: Record<string, QuoteReadinessIndicator> = {};
-
-      results.forEach(({ projectId, readiness }) => {
-        if (readiness) {
-          readinessMap[projectId] = readiness;
-        }
-      });
-
-      setQuoteReadiness(readinessMap);
-    };
-
-    if (projects.length > 0) {
-      loadQuoteReadiness();
-    }
-  }, [projects, getQuoteReadinessScore]);
-
   // Handle RFQ sending
   const handleSendRFQ = useCallback((project: Project) => {
     setSelectedProject(project);
     setShowSupplierModal(true);
   }, []);
+
+  // Handle project status update
+  const handleUpdateStatus = useCallback(async (project: Project, newStatus: ProjectStatus) => {
+    // Validate the status change using workflow validator
+    const validationResult = await WorkflowValidator.validateStatusChange(project, newStatus);
+
+    if (!validationResult.isValid) {
+      // In a real implementation, we would show validation errors to the user
+      console.log('Validation failed:', validationResult.errors);
+      return;
+    }
+
+    // Make the optimistic API call (this will update UI immediately)
+    await updateProjectStatusOptimistic(project.id, newStatus);
+  }, [updateProjectStatusOptimistic]);
 
   const handleRFQSuccess = useCallback(() => {
     setShowSupplierModal(false);
@@ -569,6 +572,56 @@ export function WorkflowKanban({ projectTypeFilter = 'all', filteredProjects }: 
     await updateProjectStatusOptimistic(projectId, newStatus);
   }, [updateProjectStatusOptimistic, projects]);
 
+  // Load bottleneck detection data
+  useEffect(() => {
+    const loadBottlenecks = async () => {
+      try {
+        const bottleneckData = await getBottleneckAnalysis();
+        setBottlenecks(bottleneckData);
+      } catch (error) {
+        console.error('Error loading bottlenecks:', error);
+      }
+    };
+
+    if (projects.length > 0) {
+      loadBottlenecks();
+    }
+  }, [projects.length, getBottleneckAnalysis]);
+
+  // Load quote readiness data for relevant projects
+  useEffect(() => {
+    const loadQuoteReadiness = async () => {
+      const relevantProjects = projects.filter(
+        p => p.status === 'supplier_rfq_sent' || p.status === 'quoted'
+      );
+
+      const readinessPromises = relevantProjects.map(async (project) => {
+        try {
+          const readiness = await getQuoteReadinessScore(project.id);
+          return { projectId: project.id, readiness };
+        } catch (error) {
+          console.error(`Error loading quote readiness for project ${project.id}:`, error);
+          return { projectId: project.id, readiness: null };
+        }
+      });
+
+      const results = await Promise.all(readinessPromises);
+      const readinessMap: Record<string, QuoteReadinessIndicator> = {};
+
+      results.forEach(({ projectId, readiness }) => {
+        if (readiness) {
+          readinessMap[projectId] = readiness;
+        }
+      });
+
+      setQuoteReadiness(readinessMap);
+    };
+
+    if (projects.length > 0) {
+      loadQuoteReadiness();
+    }
+  }, [projects, getQuoteReadinessScore]);
+
   const getStageProjects = useCallback((stageId: ProjectStatus) => {
     let filtered = projects.filter(project => project.status === stageId);
 
@@ -588,8 +641,6 @@ export function WorkflowKanban({ projectTypeFilter = 'all', filteredProjects }: 
       projects: getStageProjects(stage.id)
     }));
   }, [getStageProjects]);
-
-
 
   if (loading) {
     return (
@@ -712,6 +763,7 @@ export function WorkflowKanban({ projectTypeFilter = 'all', filteredProjects }: 
                           quoteReadiness={quoteReadiness}
                           bottlenecks={bottlenecks}
                           onSendRFQ={handleSendRFQ}
+                          onUpdateStatus={handleUpdateStatus} // Pass the update status handler
                         />
                       </SortableContext>
                     </DroppableStage>
@@ -731,6 +783,7 @@ export function WorkflowKanban({ projectTypeFilter = 'all', filteredProjects }: 
                   quoteReadiness={quoteReadiness[activeProject.id]}
                   isBottleneck={bottlenecks.some(b => b.project_id === activeProject.id)}
                   onSendRFQ={handleSendRFQ}
+                  onUpdateStatus={handleUpdateStatus} // Pass the update status handler
                 />
               ) : null}
             </DragOverlay>

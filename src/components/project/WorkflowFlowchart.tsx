@@ -10,9 +10,11 @@ import { WorkflowValidator } from "@/lib/workflow-validator";
 interface WorkflowFlowchartProps {
     selectedProject: Project | null;
     onProjectSelect: (project: Project | null) => void;
+    onStageSelect?: (stage: ProjectStatus) => void; // Add this prop
+    selectedStage?: ProjectStatus | null; // Add this prop
 }
 
-export function WorkflowFlowchart({ selectedProject, onProjectSelect }: WorkflowFlowchartProps) {
+export function WorkflowFlowchart({ selectedProject, onProjectSelect, onStageSelect, selectedStage }: WorkflowFlowchartProps) {
     const { projects, updateProjectStatusOptimistic } = useProjects();
     const [validationErrors, setValidationErrors] = useState<Record<string, string[]>>({});
 
@@ -104,7 +106,10 @@ export function WorkflowFlowchart({ selectedProject, onProjectSelect }: Workflow
                                         <Badge className={`${stage.color} text-xs font-medium`} variant="outline">
                                             {projectsByStage.find(s => s.id === stage.id)?.projects.length || 0}
                                         </Badge>
-                                        <Card className="w-48 cursor-pointer hover:shadow-md transition-shadow">
+                                        <Card
+                                            className={`w-48 cursor-pointer hover:shadow-md transition-shadow ${selectedStage === stage.id ? 'ring-2 ring-primary' : ''}`}
+                                            onClick={() => onStageSelect && onStageSelect(stage.id)} // Add click handler
+                                        >
                                             <CardContent className="p-4">
                                                 <div className="text-center">
                                                     <h3 className="font-medium text-sm">{stage.name}</h3>
@@ -203,7 +208,11 @@ export function WorkflowFlowchart({ selectedProject, onProjectSelect }: Workflow
                     <CardContent>
                         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
                             {projectsByStage.map(stage => (
-                                <Card key={stage.id} className="hover:shadow-md transition-shadow">
+                                <Card
+                                    key={stage.id}
+                                    className={`hover:shadow-md transition-shadow ${selectedStage === stage.id ? 'ring-2 ring-primary' : ''}`}
+                                    onClick={() => onStageSelect && onStageSelect(stage.id)} // Add click handler
+                                >
                                     <CardHeader className="pb-2">
                                         <CardTitle className="text-sm flex items-center justify-between">
                                             <span>{stage.name}</span>
@@ -216,7 +225,10 @@ export function WorkflowFlowchart({ selectedProject, onProjectSelect }: Workflow
                                                 <div
                                                     key={project.id}
                                                     className="p-2 rounded border cursor-pointer hover:bg-muted transition-colors"
-                                                    onClick={() => onProjectSelect(project)}
+                                                    onClick={(e) => {
+                                                        e.stopPropagation();
+                                                        onProjectSelect(project);
+                                                    }}
                                                 >
                                                     <div className="font-medium text-sm truncate">{project.title}</div>
                                                     <div className="text-xs text-muted-foreground">{project.project_id}</div>

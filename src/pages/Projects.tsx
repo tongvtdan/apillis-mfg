@@ -22,9 +22,13 @@ export default function Projects() {
   const [selectedProject, setSelectedProject] = React.useState<Project | null>(null);
 
   // Save selected stage to localStorage whenever it changes
-  const handleStageSelect = React.useCallback((stage: ProjectStatus) => {
+  const handleStageSelect = React.useCallback((stage: ProjectStatus | null) => {
     setSelectedStage(stage);
-    localStorage.setItem('projects-selected-stage', stage);
+    if (stage) {
+      localStorage.setItem('projects-selected-stage', stage);
+    } else {
+      localStorage.removeItem('projects-selected-stage');
+    }
   }, []);
 
   const activeProjects = projects.filter(p => p.status !== 'shipped_closed');
@@ -123,6 +127,8 @@ export default function Projects() {
           <WorkflowFlowchart
             selectedProject={selectedProject}
             onProjectSelect={setSelectedProject}
+            onStageSelect={handleStageSelect} // Pass the stage selection handler
+            selectedStage={selectedStage} // Pass the selected stage
           />
         </TabsContent>
 
