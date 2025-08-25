@@ -72,23 +72,43 @@ export default function AdminUsers() {
   const fetchUsers = async () => {
     try {
       setLoading(true);
-      const { data, error } = await supabase
+      // First, fetch profiles
+      const { data: profilesData, error: profilesError } = await supabase
         .from('profiles')
         .select('*')
         .order('created_at', { ascending: false });
 
-      if (error) {
-        console.error('Error fetching users:', error);
+      if (profilesError) {
+        console.error('Error fetching profiles:', profilesError);
         toast({
           variant: "destructive",
           title: "Error",
-          description: "Failed to fetch users."
+          description: "Failed to fetch user profiles."
         });
         return;
       }
 
-      setUsers(data || []);
-      setFilteredUsers(data || []);
+      // Then, fetch the admin-users view or get auth user data
+      // This approach depends on whether there's a view or direct access to auth data
+      const usersWithEmail = await Promise.all((profilesData || []).map(async (profile) => {
+        try {
+          // Try to get the auth user data for this profile to get the email
+          const { data: authData, error: authError } = await supabase.auth.admin.getUserById(profile.user_id);
+          
+          if (authError || !authData) {
+            console.warn(`Could not fetch auth data for user ${profile.user_id}:`, authError);
+            return { ...profile, email: null };
+          }
+          
+          return { ...profile, email: authData.user.email };
+        } catch (err) {
+          console.warn(`Error fetching auth data for user ${profile.user_id}:`, err);
+          return { ...profile, email: null };
+        }
+      }));
+
+      setUsers(usersWithEmail || []);
+      setFilteredUsers(usersWithEmail || []);
     } catch (error) {
       console.error('Error fetching users:', error);
     } finally {
@@ -461,10 +481,10 @@ export default function AdminUsers() {
                                 <Edit className="h-4 w-4" />
                               </Button>
                             </DialogTrigger>
-                            <DialogContent className="modal-dialog bg-background/100 border-amber-400 border-2">
-                              <DialogHeader>
-                                <DialogTitle>Edit User: {user.display_name}</DialogTitle>
-                                <DialogDescription>
+                            <DialogContent className="modal-dialog">
+                              <DialogHeader className="modal-dialog-header">
+                                <DialogTitle className="modal-dialog-title">Edit User: {user.display_name}</DialogTitle>
+                                <DialogDescription className="modal-dialog-description">
                                   Update user role and status
                                 </DialogDescription>
                               </DialogHeader>
@@ -476,7 +496,7 @@ export default function AdminUsers() {
                                     value={selectedUser?.role}
                                     onValueChange={(value) => setSelectedUser(prev => prev ? { ...prev, role: value as any } : null)}
                                   >
-                                    <SelectTrigger className="bg-background/100 border-2">
+                                    <SelectTrigger className="modal-select-trigger">
                                       <SelectValue />
                                     </SelectTrigger>
                                     <SelectContent>
@@ -498,7 +518,7 @@ export default function AdminUsers() {
                                     value={selectedUser?.status}
                                     onValueChange={(value) => setSelectedUser(prev => prev ? { ...prev, status: value as any } : null)}
                                   >
-                                    <SelectTrigger className="bg-background/100 border-2">
+                                    <SelectTrigger className="modal-select-trigger">
                                       <SelectValue />
                                     </SelectTrigger>
                                     <SelectContent>
@@ -511,10 +531,10 @@ export default function AdminUsers() {
                               </div>
 
                               <DialogFooter>
-                                <Button variant="outline" className="border-2" onClick={() => setEditDialogOpen(false)}>
+                                <Button variant="outline" className="border-2 modal-button-secondary" onClick={() => setEditDialogOpen(false)}>
                                   Cancel
                                 </Button>
-                                <Button className="bg-primary border-amber-400 border-2" onClick={() => {
+                                <Button variant="accent" className="modal-button-primary" onClick={() => {
                                   if (selectedUser) {
                                     if (selectedUser.role !== user.role) {
                                       updateUserRole(user.user_id, selectedUser.role);
