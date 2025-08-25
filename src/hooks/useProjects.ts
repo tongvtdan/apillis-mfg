@@ -17,11 +17,13 @@ import { cacheService } from '@/services/cacheService';
 const LEGACY_TO_NEW_STATUS: Record<string, ProjectStatus> = {
   'inquiry': 'inquiry_received',
   'review': 'technical_review',
+  'supplier_rfq': 'supplier_rfq_sent',
   'quoted': 'quoted',
   'won': 'order_confirmed',
-  'lost': 'shipped_closed', // Map legacy 'lost' to completed for now
+  'procurement': 'procurement_planning',
   'production': 'in_production',
   'completed': 'shipped_closed',
+  'lost': 'shipped_closed',
   'cancelled': 'shipped_closed'
 };
 
@@ -29,10 +31,10 @@ const LEGACY_TO_NEW_STATUS: Record<string, ProjectStatus> = {
 const NEW_TO_LEGACY_STATUS: Record<ProjectStatus, string> = {
   'inquiry_received': 'inquiry',
   'technical_review': 'review',
-  'supplier_rfq_sent': 'review',
+  'supplier_rfq_sent': 'supplier_rfq',
   'quoted': 'quoted',
   'order_confirmed': 'won',
-  'procurement_planning': 'won',
+  'procurement_planning': 'procurement',
   'in_production': 'production',
   'shipped_closed': 'completed'
 };
@@ -227,29 +229,38 @@ export function useProjects() {
     cacheService.setProjects(updatedProjects);
 
     try {
-      const { error } = await supabase
+      console.log(`🔄 Attempting database update: ${projectId} to ${mapNewStatusToLegacy(newStatus)}`);
+      
+      const { error, data } = await supabase
         .from('projects')
         .update({
           status: mapNewStatusToLegacy(newStatus) as any,
           updated_at: new Date().toISOString()
         })
-        .eq('id', projectId);
+        .eq('id', projectId)
+        .select('id, status');
 
       if (error) {
+        console.error('❌ Database update failed:', error);
+        
         // Revert optimistic update on error
-        setProjects(prev => prev.map(project =>
+        const revertedProjects = projects.map(project =>
           project.id === projectId
             ? { ...project, status: oldStatus, updated_at: new Date().toISOString() }
             : project
-        ));
+        );
+        setProjects(revertedProjects);
+        cacheService.setProjects(revertedProjects);
 
         toast({
           variant: "destructive",
-          title: "Error",
-          description: "Failed to update project status",
+          title: "Database Error",
+          description: `Failed to update project status: ${error.message}`,
         });
         return false;
       }
+
+      console.log('✅ Database update successful:', data);
 
       // Format status names for display
       const formatStatusName = (status: ProjectStatus) => {
@@ -421,6 +432,13 @@ export function useProjects() {
             });
           } else if (payload.eventType === 'UPDATE') {
             const updatedProject = { ...payload.new as Project, status: mapLegacyStatusToNew((payload.new as any).status) };
+            console.log('🔔 Real-time update received:', {
+              projectId: updatedProject.id,
+              newStatus: updatedProject.status,
+              rawStatus: (payload.new as any).status,
+              fullPayload: payload.new
+            });
+            
             setProjects(prev => {
               const updatedProjects = prev.map(project =>
                 project.id === updatedProject.id
@@ -429,6 +447,7 @@ export function useProjects() {
               );
               // Update cache with fresh data
               cacheService.setProjects(updatedProjects);
+              console.log('🔄 Projects updated via real-time, new count:', updatedProjects.length);
               return updatedProjects;
             });
           } else if (payload.eventType === 'DELETE') {
