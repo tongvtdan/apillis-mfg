@@ -218,6 +218,9 @@ export function useProjects() {
         : project
     );
     
+    console.log(`🚀 Optimistic update: Project ${projectId} from ${oldStatus} to ${newStatus}`);
+    console.log('📊 Updated projects count:', updatedProjects.length);
+    
     setProjects(updatedProjects);
     
     // Immediately write to cache for instant UI updates

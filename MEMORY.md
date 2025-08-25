@@ -12,6 +12,8 @@ This file contains important changes and updates made to the project.
 4. **Enhanced Refresh Button**: Added explanatory text and improved refresh button to clarify that real-time updates should happen automatically
 5. **UI Cleanup**: Streamlined WorkflowFlowchart component to show single workflow visualization and project list sections
 6. **Better User Experience**: Users now see only one workflow visualization and understand when manual refresh is needed
+7. **Added debugging for project status update issues**: Added console logs to track optimistic updates and stage count recalculations to debug UI update problems
+8. **Enhanced reactivity for WorkflowFlowchart**: Wrapped projectsByStage calculation in useMemo with proper dependencies for better reactivity when projects change
 
 ### 2025-01-25
 - **ProjectTable Component Optimization Complete**:

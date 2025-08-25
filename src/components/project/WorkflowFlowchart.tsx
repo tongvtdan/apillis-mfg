@@ -215,10 +215,17 @@ export function WorkflowFlowchart({
     }, [allProjects, selectedStage, projectTypeFilter]);
 
     // Group projects by their current stage
-    const projectsByStage = PROJECT_STAGES.map(stage => ({
-        ...stage,
-        projects: allProjects.filter(p => p.status === stage.id)
-    }));
+    const projectsByStage = useMemo(() => {
+        console.log('🔄 Recalculating projectsByStage with projects:', allProjects.length);
+        return PROJECT_STAGES.map(stage => {
+            const stageProjects = allProjects.filter(p => p.status === stage.id);
+            console.log(`📊 Stage ${stage.id}: ${stageProjects.length} projects`);
+            return {
+                ...stage,
+                projects: stageProjects
+            };
+        });
+    }, [allProjects]);
 
     // Render project card in Kanban style
     const renderProjectCard = (project: Project) => {
