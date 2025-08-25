@@ -54,7 +54,7 @@ function ProjectCard({ project, isDragging = false }: ProjectCardProps) {
     transform,
     transition,
     isDragging: sortableIsDragging,
-  } = useSortable({ 
+  } = useSortable({
     id: project.id,
     data: {
       type: 'project',
@@ -179,9 +179,9 @@ function ProjectCard({ project, isDragging = false }: ProjectCardProps) {
           )}
 
           <div className="pt-2 border-t">
-            <Button 
-              variant="accent" 
-              size="sm" 
+            <Button
+              variant="accent"
+              size="sm"
               className="w-full justify-start h-7 action-button hover:scale-[1.02] transition-all duration-200"
               onClick={(e) => {
                 e.stopPropagation();
@@ -226,9 +226,8 @@ function DroppablePriorityColumn({ priority, title, count, children }: Droppable
   return (
     <div
       ref={setNodeRef}
-      className={`space-y-4 p-4 rounded-lg border-2 border-dashed transition-all duration-300 min-h-[400px] ${
-        isOver ? 'border-primary bg-primary/10 scale-[1.02] shadow-md' : `${getColumnColor()} hover:border-muted-foreground/50`
-      }`}
+      className={`space-y-4 p-4 rounded-lg border-2 border-dashed transition-all duration-300 min-h-[400px] ${isOver ? 'border-primary bg-primary/10 scale-[1.02] shadow-md' : `${getColumnColor()} hover:border-muted-foreground/50`
+        }`}
     >
       <div className="flex items-center justify-between">
         <div className="flex items-center space-x-2">
@@ -280,7 +279,7 @@ export function PriorityKanban({ projects, selectedStage }: PriorityKanbanProps)
 
   const handleDragEnd = useCallback(async (event: DragEndEvent) => {
     const { active, over } = event;
-    
+
     if (!over) {
       setActiveProject(null);
       return;
@@ -288,10 +287,10 @@ export function PriorityKanban({ projects, selectedStage }: PriorityKanbanProps)
 
     const projectId = active.id as string;
     const overData = over.data.current;
-    
+
     // Clear the drag overlay immediately
     setActiveProject(null);
-    
+
     // For now, we're not updating priority through drag and drop
     // This could be implemented later if needed
     console.log('Priority reordering not implemented yet');
@@ -310,12 +309,12 @@ export function PriorityKanban({ projects, selectedStage }: PriorityKanbanProps)
   return (
     <div className="space-y-6">
       <ProjectUpdateAnimation isVisible={showUpdateAnimation} message="Updating projects..." />
-      
+
       {/* Refresh button */}
       <div className="flex justify-end">
-        <Button 
-          variant="outline" 
-          size="sm" 
+        <Button
+          variant="outline"
+          size="sm"
           onClick={() => {
             setShowUpdateAnimation(true);
             refetch(true).then(() => {

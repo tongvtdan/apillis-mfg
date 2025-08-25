@@ -64,10 +64,10 @@ export function ProjectTable({ projects }: ProjectTableProps) {
 
     try {
       const result = await updateProjectStatusOptimistic(projectId, newStatus);
-      
+
       // Refresh projects data to ensure consistency
       await refetch(true);
-      
+
       // Errors will be shown via toast notifications from the hook
     } finally {
       // Hide update animation after a short delay
@@ -85,12 +85,12 @@ export function ProjectTable({ projects }: ProjectTableProps) {
   return (
     <div className="space-y-4">
       <ProjectUpdateAnimation isVisible={showUpdateAnimation} message="Updating project status..." />
-      
+
       {/* Refresh button */}
       <div className="flex justify-end">
-        <Button 
-          variant="outline" 
-          size="sm" 
+        <Button
+          variant="outline"
+          size="sm"
           onClick={() => {
             setShowUpdateAnimation(true);
             refetch(true).then(() => {

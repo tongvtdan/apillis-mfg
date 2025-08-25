@@ -257,9 +257,9 @@ export function ProjectTypeKanban({ projects, onUpdateProject }: ProjectTypeKanb
         // Show update animation
         setShowUpdateAnimation(true);
         setIsUpdating(true);
-        
+
         await onUpdateProject(projectId, { project_type: newType });
-        
+
         // Refresh projects data to ensure consistency
         await refetch(true);
       } catch (error) {
@@ -285,12 +285,12 @@ export function ProjectTypeKanban({ projects, onUpdateProject }: ProjectTypeKanb
   return (
     <div className="space-y-6">
       <ProjectUpdateAnimation isVisible={showUpdateAnimation} message="Updating projects..." />
-      
+
       {/* Refresh button */}
       <div className="flex justify-end">
-        <Button 
-          variant="outline" 
-          size="sm" 
+        <Button
+          variant="outline"
+          size="sm"
           onClick={() => {
             setShowUpdateAnimation(true);
             refetch(true).then(() => {

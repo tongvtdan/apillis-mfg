@@ -77,7 +77,7 @@ export function WorkflowFlowchart({
 
         try {
             await updateProjectStatusOptimistic(projectId, newStatus);
-            
+
             // Refresh projects data to ensure consistency
             await refetch(true);
         } finally {
@@ -164,7 +164,7 @@ export function WorkflowFlowchart({
 
         try {
             await updateProjectStatusOptimistic(project.id, newStatus);
-            
+
             // Refresh projects data to ensure consistency
             await refetch(true);
         } finally {
@@ -513,9 +513,9 @@ export function WorkflowFlowchart({
 
             {/* Refresh button */}
             <div className="flex justify-end">
-                <Button 
-                    variant="outline" 
-                    size="sm" 
+                <Button
+                    variant="outline"
+                    size="sm"
                     onClick={() => {
                         setShowUpdateAnimation(true);
                         refetch(true).then(() => {
