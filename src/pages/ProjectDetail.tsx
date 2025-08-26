@@ -35,6 +35,7 @@ import { WorkflowStepper } from "@/components/project/WorkflowStepper";
 import { useDocuments } from "@/hooks/useDocuments";
 import { useProjectMessages } from "@/hooks/useMessages";
 import { useSupplierRfqs } from "@/hooks/useSupplierRfqs";
+import { useProjectReviews } from "@/hooks/useProjectReviews";
 
 export default function ProjectDetail() {
   const { id } = useParams<{ id: string }>();
@@ -55,6 +56,7 @@ export default function ProjectDetail() {
   const { data: documents = [], isLoading: documentsLoading } = useDocuments(id || '');
   const { data: messages = [], isLoading: messagesLoading } = useProjectMessages(id || '');
   const { data: supplierRfqs = [], isLoading: supplierRfqsLoading } = useSupplierRfqs(id || '');
+  const { reviews, loading: reviewsLoading, getReviewStatuses, getReviewSummary } = useProjectReviews(id || '');
 
   useEffect(() => {
     const fetchProject = async () => {
@@ -366,17 +368,6 @@ export default function ProjectDetail() {
                 Overview
               </button>
               <button
-                onClick={() => handleTabChange("documents")}
-                className={cn(
-                  "w-full text-left px-4 py-2.5 rounded-md text-sm font-medium transition-all duration-200",
-                  activeTab === "documents"
-                    ? "bg-primary text-primary-foreground font-bold shadow-sm border-l-4 border-primary"
-                    : "text-foreground hover:bg-muted hover:border-l-4 hover:border-muted-foreground/30"
-                )}
-              >
-                Documents
-              </button>
-              <button
                 onClick={() => handleTabChange("reviews")}
                 className={cn(
                   "w-full text-left px-4 py-2.5 rounded-md text-sm font-medium transition-all duration-200",
@@ -386,6 +377,17 @@ export default function ProjectDetail() {
                 )}
               >
                 Reviews
+              </button>
+              <button
+                onClick={() => handleTabChange("documents")}
+                className={cn(
+                  "w-full text-left px-4 py-2.5 rounded-md text-sm font-medium transition-all duration-200",
+                  activeTab === "documents"
+                    ? "bg-primary text-primary-foreground font-bold shadow-sm border-l-4 border-primary"
+                    : "text-foreground hover:bg-muted hover:border-l-4 hover:border-muted-foreground/30"
+                )}
+              >
+                Documents
               </button>
               <button
                 onClick={() => handleTabChange("supplier")}
@@ -483,6 +485,120 @@ export default function ProjectDetail() {
                       <div className="flex-1 text-sm">{project.notes || 'N/A'}</div>
                     </div>
                   </div>
+                </CardContent>
+              </Card>
+
+              {/* Review Status Section */}
+              <Card>
+                <CardHeader>
+                  <CardTitle className="text-sm font-semibold text-muted-foreground uppercase tracking-wide">
+                    REVIEW STATUS
+                  </CardTitle>
+                  <p className="text-xs text-muted-foreground">
+                    Internal review progress for Engineering, QA, and Production
+                  </p>
+                </CardHeader>
+                <CardContent>
+                  {reviewsLoading ? (
+                    <div className="flex items-center justify-center py-4">
+                      <Loader2 className="h-4 w-4 animate-spin mr-2" />
+                      <span className="text-sm text-muted-foreground">Loading review status...</span>
+                    </div>
+                  ) : (
+                    <div className="space-y-4">
+                      {/* Review Progress Bar */}
+                      <div className="space-y-2">
+                        <div className="flex justify-between text-sm">
+                          <span className="text-muted-foreground">Overall Progress</span>
+                          <span className="font-medium">{getReviewSummary().progress}%</span>
+                        </div>
+                        <div className="w-full bg-muted rounded-full h-2">
+                          <div
+                            className="bg-primary h-2 rounded-full transition-all duration-300"
+                            style={{ width: `${getReviewSummary().progress}%` }}
+                          />
+                        </div>
+                      </div>
+
+                      {/* Department Review Statuses */}
+                      <div className="grid grid-cols-1 gap-3">
+                        {(['Engineering', 'QA', 'Production'] as const).map((department) => {
+                          const status = getReviewStatuses()[department];
+                          const review = reviews.find(r => r.department === department);
+
+                          const getStatusIcon = (status: string) => {
+                            switch (status) {
+                              case 'approved': return <CheckCircle2 className="w-4 h-4 text-green-600" />;
+                              case 'rejected': return <X className="w-4 h-4 text-red-600" />;
+                              case 'revision_requested': return <AlertCircle className="w-4 h-4 text-orange-600" />;
+                              default: return <Clock className="w-4 h-4 text-gray-400" />;
+                            }
+                          };
+
+                          const getStatusColor = (status: string) => {
+                            switch (status) {
+                              case 'approved': return 'bg-green-100 text-green-800 border-green-200';
+                              case 'rejected': return 'bg-red-100 text-red-800 border-red-200';
+                              case 'revision_requested': return 'bg-orange-100 text-orange-800 border-orange-200';
+                              default: return 'bg-yellow-100 text-yellow-800 border-yellow-200';
+                            }
+                          };
+
+                          return (
+                            <div key={department} className="flex items-center justify-between p-3 border rounded-lg">
+                              <div className="flex items-center space-x-3">
+                                <div className="flex items-center space-x-2">
+                                  {getStatusIcon(status)}
+                                  <span className="font-medium text-sm">{department}</span>
+                                </div>
+                                {review?.reviewer_id && (
+                                  <span className="text-xs text-muted-foreground">
+                                    👤 {review.reviewer_id}
+                                  </span>
+                                )}
+                              </div>
+                              <div className="flex items-center space-x-2">
+                                <Badge className={`text-xs ${getStatusColor(status)}`}>
+                                  {status === 'pending' ? 'Pending' :
+                                    status === 'approved' ? 'Approved' :
+                                      status === 'rejected' ? 'Rejected' :
+                                        'Revision Requested'}
+                                </Badge>
+                                {review?.submitted_at && (
+                                  <span className="text-xs text-muted-foreground">
+                                    📅 {format(new Date(review.submitted_at), 'MMM dd')}
+                                  </span>
+                                )}
+                              </div>
+                            </div>
+                          );
+                        })}
+                      </div>
+
+                      {/* Review Summary */}
+                      <div className="pt-3 border-t">
+                        <div className="grid grid-cols-2 gap-4 text-sm">
+                          <div className="text-center">
+                            <div className="font-semibold text-green-600">{getReviewSummary().approved}</div>
+                            <div className="text-muted-foreground">Approved</div>
+                          </div>
+                          <div className="text-center">
+                            <div className="font-semibold text-yellow-600">{getReviewSummary().pending}</div>
+                            <div className="text-muted-foreground">Pending</div>
+                          </div>
+                        </div>
+                      </div>
+
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        className="w-full"
+                        onClick={() => handleTabChange("reviews")}
+                      >
+                        🔍 View All Reviews
+                      </Button>
+                    </div>
+                  )}
                 </CardContent>
               </Card>
 

@@ -24,6 +24,29 @@ This file contains important changes and updates made to the project.
 7. Resolved duplicate useSupplierQuotes hook naming conflicts
 8. Updated components to use the correct API hooks and real data sources
 
+- Date: 2025-01-26
+- What we completed / changed:
+1. **Project Details Navigation and Overview Tab Enhancements**: 
+   - **Moved Reviews Tab before Documents Tab** in the navigation sidebar for better workflow logical order
+   - **Added Review Status Section above Documents Section** in the Overview Tab showing:
+     - Overall review progress bar with percentage completion
+     - Individual department review statuses (Engineering, QA, Production) with status icons and badges
+     - Review summary showing approved vs pending counts
+     - Navigation button to Reviews tab for detailed review management
+   - **Created useProjectReviews hook** for project-specific review data management
+   - **Enhanced Overview Tab structure** to show review progress prominently before document management
+   - **Maintained read-only nature** of Overview Tab while providing comprehensive review status visibility
+2. **Project Details Overview Tab Enhancement**: 
+   - Enhanced the Overview Tab to be completely read-only with no action buttons
+   - Added clear messaging that this is a read-only overview and actions should be done in other tabs
+   - Converted all action buttons to navigation links that open corresponding tabs
+   - Enhanced document summary to show only first 3 documents with "+X more" indicator
+   - Enhanced supplier RFQ summary to show only first 3 RFQs with "+X more" indicator  
+   - Enhanced activity summary to show only first 3 messages with "+X more" indicator
+   - Added Quick Navigation section with buttons to navigate to Reviews, Timeline, Analytics, and Settings tabs
+   - Maintained all existing data display functionality while removing all action capabilities
+   - **Overview Tab now serves as pure information display** - any actions needed will link and open the corresponding tab
+
 - Date: 2025-01-25
 - What we completed / changed:
 1. **Comprehensive Database Schema Implementation**: 
