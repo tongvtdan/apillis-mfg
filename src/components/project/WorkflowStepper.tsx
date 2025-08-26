@@ -277,6 +277,104 @@ export function WorkflowStepper({ project }: WorkflowStepperProps) {
     return 'bg-gray-200';
   };
 
+  const getStageTooltipContent = (stage: ProjectStatus, status: 'completed' | 'current' | 'pending') => {
+    const stageTitle = stageConfig[stage].title;
+
+    const stageDescriptions: Record<ProjectStatus, {
+      description: string;
+      keyActions: string[];
+      exitCriteria: string[];
+    }> = {
+      inquiry_received: {
+        description: "Initial customer inquiry and project setup",
+        keyActions: ["Customer information collected", "Project requirements documented", "Initial assessment completed"],
+        exitCriteria: ["Customer details verified", "Project scope defined", "Technical requirements gathered"]
+      },
+      technical_review: {
+        description: "Engineering, QA, and Production review process",
+        keyActions: ["Engineering feasibility assessment", "QA requirements definition", "Production capability evaluation"],
+        exitCriteria: ["All department reviews completed", "Technical risks identified", "Manufacturing process defined"]
+      },
+      supplier_rfq_sent: {
+        description: "Supplier selection and quote collection",
+        keyActions: ["BOM breakdown completed", "Suppliers selected and contacted", "RFQ documents sent", "Quote deadlines set"],
+        exitCriteria: ["All critical supplier quotes received", "Quote comparison completed", "Supplier selection finalized"]
+      },
+      quoted: {
+        description: "Final quote preparation and customer submission",
+        keyActions: ["Internal costing finalized", "Quote document generated", "Customer quote submitted"],
+        exitCriteria: ["Quote sent to customer", "Follow-up schedule set", "Customer response tracked"]
+      },
+      order_confirmed: {
+        description: "Customer order acceptance and processing",
+        keyActions: ["Customer PO received", "Internal sales order created", "Order details verified"],
+        exitCriteria: ["Purchase order validated", "Payment terms confirmed", "Delivery schedule agreed"]
+      },
+      procurement_planning: {
+        description: "Material procurement and production planning",
+        keyActions: ["Purchase orders finalized", "Production schedule created", "Material availability confirmed"],
+        exitCriteria: ["All materials ordered", "Production slots reserved", "Delivery timeline confirmed"]
+      },
+      in_production: {
+        description: "Manufacturing and quality control process",
+        keyActions: ["Work orders released", "Manufacturing in progress", "Quality inspections performed"],
+        exitCriteria: ["Production completed", "Quality tests passed", "Packaging and shipping prepared"]
+      },
+      shipped_closed: {
+        description: "Final delivery and project closure",
+        keyActions: ["Product shipped", "Delivery confirmed", "Customer feedback collected"],
+        exitCriteria: ["Proof of delivery received", "Customer satisfaction confirmed", "Project documentation complete"]
+      }
+    };
+
+    const stageInfo = stageDescriptions[stage];
+
+    return (
+      <div className="text-sm space-y-2 modal-dialog p-2 rounded-lg">
+        <div className="font-medium">{stageTitle}</div>
+        <div className="text-muted-foreground text-xs">{stageInfo.description}</div>
+
+        {status === 'current' && (
+          <div className="space-y-2">
+            <div>
+              <div className="font-medium text-xs text-blue-600">Key Actions:</div>
+              <ul className="list-disc list-inside mt-1 space-y-0.5 text-xs">
+                {stageInfo.keyActions.map((action, idx) => (
+                  <li key={idx} className="text-muted-foreground">{action}</li>
+                ))}
+              </ul>
+            </div>
+            <div>
+              <div className="font-medium text-xs text-green-600">Exit Criteria:</div>
+              <ul className="list-disc list-inside mt-1 space-y-0.5 text-xs">
+                {stageInfo.exitCriteria.map((criteria, idx) => (
+                  <li key={idx} className="text-muted-foreground">{criteria}</li>
+                ))}
+              </ul>
+            </div>
+          </div>
+        )}
+
+        {status === 'pending' && (
+          <div>
+            <div className="font-medium text-xs text-orange-600">What happens next:</div>
+            <ul className="list-disc list-inside mt-1 space-y-0.5 text-xs">
+              {stageInfo.keyActions.slice(0, 2).map((action, idx) => (
+                <li key={idx} className="text-muted-foreground">{action}</li>
+              ))}
+            </ul>
+          </div>
+        )}
+
+        {status === 'completed' && (
+          <div className="text-xs text-green-600 font-medium">
+            ✓ Stage completed successfully
+          </div>
+        )}
+      </div>
+    );
+  };
+
   if (error) {
     return (
       <Card className="w-full mb-6 border-red-200 bg-red-50">
@@ -370,29 +468,8 @@ export function WorkflowStepper({ project }: WorkflowStepperProps) {
                           </span>
                         </div>
                       </TooltipTrigger>
-                      <TooltipContent side="bottom" className="max-w-xs">
-                        <div className="text-sm">
-                          <div className="font-medium mb-1">{stageTitle}</div>
-                          <div className="text-muted-foreground">
-                            {status === 'completed' && 'Completed'}
-                            {status === 'current' && 'Current stage'}
-                            {status === 'pending' && 'Upcoming stage'}
-                          </div>
-                          {status === 'current' && (
-                            <div className="mt-1 text-xs">
-                              {WorkflowValidator.getExitCriteriaForStage(stage).length > 0 && (
-                                <div>
-                                  <div className="font-medium">Exit criteria:</div>
-                                  <ul className="list-disc list-inside mt-1 space-y-1">
-                                    {WorkflowValidator.getExitCriteriaForStage(stage).map((criteria, idx) => (
-                                      <li key={idx} className="text-muted-foreground">{criteria}</li>
-                                    ))}
-                                  </ul>
-                                </div>
-                              )}
-                            </div>
-                          )}
-                        </div>
+                      <TooltipContent side="bottom" className="max-w-sm bg-background border border-muted-foreground/20 shadow-lg">
+                        {getStageTooltipContent(stage, status)}
                       </TooltipContent>
                     </Tooltip>
                   </TooltipProvider>
@@ -419,7 +496,7 @@ export function WorkflowStepper({ project }: WorkflowStepperProps) {
                     relative flex items-center justify-center w-10 h-10 rounded-full border-2 mr-4
                     ${getStatusColor(stage)}
                     ${stageConfig[stage].bgColor}
-                    ${isClickable ? 'cursor-pointer hover:shadow-md focus:ring-2 focus:ring-blue-500 focus:outline-none' : ''}
+                    ${isClickable ? 'cursor-pointer hover:shadow-lg focus:ring-2 focus:ring-blue-500 focus:outline-none' : ''}
                     transition-all duration-200
                   `}
                     onClick={() => isClickable && handleStageClick(stage)}
