@@ -125,8 +125,7 @@ export default function Projects() {
           <div>
             <h1 className="text-2xl font-bold text-base-content">Factory Pulse - Project Flow</h1>
             <p className="text-base-content/70">Track and manage your manufacturing projects from idea to delivery</p>
-            {/* Debug info */}
-            <p className="text-xs text-muted-foreground mt-1">Debug: Active Tab = "{defaultTab}"</p>
+
           </div>
           <div className="flex items-center gap-4">
             <TabsList className="grid w-[450px] grid-cols-3 bg-muted/30 p-1 rounded-lg">

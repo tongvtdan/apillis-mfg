@@ -2,6 +2,7 @@ import React, { useState, useMemo } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Calendar, ChevronLeft, ChevronRight, Eye, Clock, AlertCircle, CheckCircle } from "lucide-react";
 import { Project, ProjectStatus, PROJECT_STAGES } from "@/types/project";
 import { useNavigate } from "react-router-dom";
@@ -24,9 +25,12 @@ interface CalendarWeek {
     days: CalendarDay[];
 }
 
+type DateDisplayMode = 'due_date' | 'created_date' | 'stage_date';
+
 export function ProjectCalendar({ projects, projectTypeFilter = 'all' }: ProjectCalendarProps) {
     const navigate = useNavigate();
     const [currentMonth, setCurrentMonth] = useState(new Date());
+    const [dateDisplayMode, setDateDisplayMode] = useState<DateDisplayMode>('due_date');
 
     // Filter projects by type if specified
     const filteredProjects = useMemo(() => {
@@ -34,26 +38,36 @@ export function ProjectCalendar({ projects, projectTypeFilter = 'all' }: Project
         return projects.filter(p => p.project_type === projectTypeFilter);
     }, [projects, projectTypeFilter]);
 
-    // Get projects for a specific date
+    // Get projects for a specific date based on selected display mode
     const getProjectsForDate = (date: Date): Project[] => {
         return filteredProjects.filter(project => {
-            // Check due date
-            if (project.due_date && isSameDay(new Date(project.due_date), date)) {
-                return true;
-            }
+            switch (dateDisplayMode) {
+                case 'due_date':
+                    // Only show projects on their due date
+                    return project.due_date && isSameDay(new Date(project.due_date), date);
 
-            // Check if project was created on this date
-            if (project.created_at && isSameDay(new Date(project.created_at), date)) {
-                return true;
-            }
+                case 'created_date':
+                    // Only show projects on their creation date
+                    return project.created_at && isSameDay(new Date(project.created_at), date);
 
-            // Check if project status changed on this date (approximation)
-            if (project.stage_entered_at && isSameDay(new Date(project.stage_entered_at), date)) {
-                return true;
-            }
+                case 'stage_date':
+                    // Only show projects on their stage entry date
+                    return project.stage_entered_at && isSameDay(new Date(project.stage_entered_at), date);
 
-            return false;
+                default:
+                    return false;
+            }
         });
+    };
+
+    // Get display mode label
+    const getDisplayModeLabel = (mode: DateDisplayMode): string => {
+        switch (mode) {
+            case 'due_date': return 'Due Dates';
+            case 'created_date': return 'Created Dates';
+            case 'stage_date': return 'Stage Entry Dates';
+            default: return 'Due Dates';
+        }
     };
 
     // Generate calendar data
@@ -81,7 +95,7 @@ export function ProjectCalendar({ projects, projectTypeFilter = 'all' }: Project
         });
 
         return weeks;
-    }, [currentMonth, filteredProjects]);
+    }, [currentMonth, filteredProjects, dateDisplayMode]);
 
     // Navigate to previous/next month
     const goToPreviousMonth = () => setCurrentMonth(subMonths(currentMonth, 1));
@@ -122,32 +136,49 @@ export function ProjectCalendar({ projects, projectTypeFilter = 'all' }: Project
                         <div>
                             <CardTitle className="text-xl">Project Calendar</CardTitle>
                             <p className="text-sm text-muted-foreground">
-                                View projects by due dates, milestones, and timeline
+                                View projects by {getDisplayModeLabel(dateDisplayMode).toLowerCase()}
                             </p>
                         </div>
-                        <div className="flex items-center space-x-2">
-                            <Button
-                                variant="outline"
-                                size="sm"
-                                onClick={goToToday}
-                                className="text-xs"
-                            >
-                                Today
-                            </Button>
-                            <Button
-                                variant="outline"
-                                size="sm"
-                                onClick={goToPreviousMonth}
-                            >
-                                <ChevronLeft className="h-4 w-4" />
-                            </Button>
-                            <Button
-                                variant="outline"
-                                size="sm"
-                                onClick={goToNextMonth}
-                            >
-                                <ChevronRight className="h-4 w-4" />
-                            </Button>
+                        <div className="flex items-center space-x-4">
+                            {/* Date Display Mode Selector */}
+                            <div className="flex items-center space-x-2">
+                                <span className="text-sm text-muted-foreground">Show by:</span>
+                                <Select value={dateDisplayMode} onValueChange={(value) => setDateDisplayMode(value as DateDisplayMode)}>
+                                    <SelectTrigger className="w-[180px]">
+                                        <SelectValue />
+                                    </SelectTrigger>
+                                    <SelectContent>
+                                        <SelectItem value="due_date">Due Dates</SelectItem>
+                                        <SelectItem value="created_date">Created Dates</SelectItem>
+                                        <SelectItem value="stage_date">Stage Entry Dates</SelectItem>
+                                    </SelectContent>
+                                </Select>
+                            </div>
+
+                            <div className="flex items-center space-x-2">
+                                <Button
+                                    variant="outline"
+                                    size="sm"
+                                    onClick={goToToday}
+                                    className="text-xs"
+                                >
+                                    Today
+                                </Button>
+                                <Button
+                                    variant="outline"
+                                    size="sm"
+                                    onClick={goToPreviousMonth}
+                                >
+                                    <ChevronLeft className="h-4 w-4" />
+                                </Button>
+                                <Button
+                                    variant="outline"
+                                    size="sm"
+                                    onClick={goToNextMonth}
+                                >
+                                    <ChevronRight className="h-4 w-4" />
+                                </Button>
+                            </div>
                         </div>
                     </div>
 
@@ -285,22 +316,37 @@ export function ProjectCalendar({ projects, projectTypeFilter = 'all' }: Project
             {/* Calendar Legend */}
             <Card>
                 <CardContent className="p-4">
-                    <div className="flex items-center justify-center space-x-6 text-sm">
-                        <div className="flex items-center space-x-2">
-                            <div className="w-3 h-3 bg-primary/20 border border-primary/30 rounded"></div>
-                            <span>Active Projects</span>
+                    <div className="space-y-4">
+                        {/* Current Display Mode Info */}
+                        <div className="text-center">
+                            <p className="text-sm text-muted-foreground">
+                                Currently showing projects by <strong>{getDisplayModeLabel(dateDisplayMode)}</strong>
+                            </p>
+                            <p className="text-xs text-muted-foreground/70 mt-1">
+                                {dateDisplayMode === 'due_date' && 'Projects appear on their due dates'}
+                                {dateDisplayMode === 'created_date' && 'Projects appear on their creation dates'}
+                                {dateDisplayMode === 'stage_date' && 'Projects appear when they entered their current stage'}
+                            </p>
                         </div>
-                        <div className="flex items-center space-x-2">
-                            <div className="w-3 h-3 bg-red-100 border border-red-200 rounded"></div>
-                            <span>Overdue Projects</span>
-                        </div>
-                        <div className="flex items-center space-x-2">
-                            <div className="w-3 h-3 bg-muted/30 border border-muted-foreground/20 rounded"></div>
-                            <span>Other Month</span>
-                        </div>
-                        <div className="flex items-center space-x-2">
-                            <div className="w-3 h-3 bg-primary ring-2 ring-primary/50 rounded"></div>
-                            <span>Today</span>
+
+                        {/* Visual Legend */}
+                        <div className="flex items-center justify-center space-x-6 text-sm">
+                            <div className="flex items-center space-x-2">
+                                <div className="w-3 h-3 bg-primary/20 border border-primary/30 rounded"></div>
+                                <span>Active Projects</span>
+                            </div>
+                            <div className="flex items-center space-x-2">
+                                <div className="w-3 h-3 bg-red-100 border border-red-200 rounded"></div>
+                                <span>Overdue Projects</span>
+                            </div>
+                            <div className="flex items-center space-x-2">
+                                <div className="w-3 h-3 bg-muted/30 border border-muted-foreground/20 rounded"></div>
+                                <span>Other Month</span>
+                            </div>
+                            <div className="flex items-center space-x-2">
+                                <div className="w-3 h-3 bg-primary ring-2 ring-primary/50 rounded"></div>
+                                <span>Today</span>
+                            </div>
                         </div>
                     </div>
                 </CardContent>

@@ -4,8 +4,16 @@ This file contains important changes and updates made to the project.
 
 ## Latest Changes Summary
 
-- Date: 2025-08-26
+- Date: 2025-01-25
 - What we completed / changed:
+1. **Fixed Project Calendar Duplicate Projects Issue**: 
+   - Identified root cause: ProjectCalendar was showing projects on multiple dates due to checking three different date fields (due_date, created_at, stage_entered_at)
+   - Implemented date display mode selector allowing users to choose between "Due Dates", "Created Dates", or "Stage Entry Dates"
+   - Modified getProjectsForDate function to show projects only on their primary date based on selected mode
+   - Added clear visual indicators showing current display mode and explanation of what each mode represents
+   - Enhanced calendar legend with contextual information about the selected date display mode
+   - Resolved confusion where same project appeared multiple times across different calendar days
+   - Improved user experience by providing clear control over how projects are displayed in calendar view
 1. **Projects Page Header Improvements**: 
    - Enhanced tab styling with background color and visual distinction for selected tabs
    - Added `bg-muted/30` background to TabsList container with rounded corners and padding
