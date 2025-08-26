@@ -1,18 +1,19 @@
 import React from "react";
 import { ProjectTable } from "@/components/project/ProjectTable";
 import { StageFlowchart } from "@/components/project/StageFlowchart";
+import { ProjectCalendar } from "@/components/project/ProjectCalendar";
 
-import { TabsContent } from "@/components/ui/tabs";
-import { ProjectTabs, ProjectTabsList, ProjectTabsTrigger } from "@/components/project/ProjectTabs";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Button } from "@/components/ui/button";
 import { useProjects } from "@/hooks/useProjects";
 import { ProjectStatus, ProjectType, PROJECT_TYPE_LABELS, Project } from "@/types/project";
 import { WorkflowFlowchart } from "@/components/project/WorkflowFlowchart";
-
+import { useSearchParams } from "react-router-dom";
 
 export default function Projects() {
   const { projects, loading, updateProjectStatus, updateProjectStatusOptimistic, refetch, testRealtimeSubscription, testManualStateUpdate, testSupabaseRealtime } = useProjects();
+  const [searchParams, setSearchParams] = useSearchParams();
 
   // Debug logging for projects state changes
   React.useEffect(() => {
@@ -31,7 +32,29 @@ export default function Projects() {
   const [selectedProjectType, setSelectedProjectType] = React.useState<ProjectType | 'all'>('all');
   const [selectedProject, setSelectedProject] = React.useState<Project | null>(null);
 
+  // Get default tab from URL params or localStorage
+  const getDefaultTab = () => {
+    const tabParam = searchParams.get('tab');
+    if (tabParam === 'calendar' || tabParam === 'table' || tabParam === 'flowchart') {
+      return tabParam;
+    }
+    // Try to restore from localStorage, default to 'flowchart'
+    const saved = localStorage.getItem('projects-selected-tab');
+    return saved ? (saved as string) : 'flowchart';
+  };
 
+  const [activeTab, setActiveTab] = React.useState(getDefaultTab());
+
+  // Save selected tab to localStorage and URL params
+  const handleTabChange = (value: string) => {
+    setActiveTab(value);
+    localStorage.setItem('projects-selected-tab', value);
+    setSearchParams(prev => {
+      const newParams = new URLSearchParams(prev);
+      newParams.set('tab', value);
+      return newParams;
+    });
+  };
 
   // Save selected stage to localStorage whenever it changes
   const handleStageSelect = React.useCallback((stage: ProjectStatus | null) => {
@@ -98,17 +121,18 @@ export default function Projects() {
 
   return (
     <div className="p-6 bg-base-100 text-base-content min-h-screen">
-      <ProjectTabs defaultValue="flowchart" className="w-full relative">
+      <Tabs value={activeTab} onValueChange={handleTabChange} className="w-full relative">
         <div className="mb-6 flex justify-between items-center">
           <div>
             <h1 className="text-2xl font-bold text-base-content">Factory Pulse - Project Flow</h1>
             <p className="text-base-content/70">Track and manage your manufacturing projects from idea to delivery</p>
           </div>
           <div className="flex items-center gap-4">
-            <ProjectTabsList className="grid w-[300px] grid-cols-2">
-              <ProjectTabsTrigger value="flowchart">Kanban Flow</ProjectTabsTrigger>
-              <ProjectTabsTrigger value="table">Table</ProjectTabsTrigger>
-            </ProjectTabsList>
+            <TabsList className="grid w-[450px] grid-cols-3">
+              <TabsTrigger value="flowchart">Kanban Flow</TabsTrigger>
+              <TabsTrigger value="table">Table</TabsTrigger>
+              <TabsTrigger value="calendar">Calendar</TabsTrigger>
+            </TabsList>
 
             {/* Debug button for testing real-time subscription */}
             <Button
@@ -224,12 +248,19 @@ export default function Projects() {
           />
         </TabsContent>
 
+        <TabsContent value="calendar" className="mt-4 space-y-6">
+          <ProjectCalendar
+            projects={activeProjects}
+            projectTypeFilter={selectedProjectType}
+          />
+        </TabsContent>
+
         {activeProjects.length === 0 && (
           <div className="text-center py-12">
             <p className="text-base-content/70">No active projects found</p>
           </div>
         )}
-      </ProjectTabs>
+      </Tabs>
     </div>
   );
 }
