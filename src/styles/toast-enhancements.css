@@ -6,25 +6,28 @@
     transform-origin: top center;
 }
 
-/* Enhanced shadow effect */
+/* Enhanced shadow effect with backdrop blur background */
 .toaster .toast {
-    box-shadow: 0 4px 12px rgba(255, 215, 64, 0.4), 0 2px 4px rgba(0, 0, 0, 0.1);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1), 0 2px 4px rgba(0, 0, 0, 0.05);
     transition: all 0.2s ease-out;
-    background-color: white !important;
-    backdrop-filter: none !important;
+    background-color: hsl(var(--background)) !important;
+    backdrop-filter: blur(16px) !important;
+    border: 1px solid hsl(var(--muted-foreground) / 0.2) !important;
 }
 
 /* Dark mode background color override */
 @media (prefers-color-scheme: dark) {
     .toaster .toast {
-        background-color: rgb(2, 6, 23) !important;
+        background-color: hsl(var(--background)) !important;
+        backdrop-filter: blur(16px) !important;
+        border: 1px solid hsl(var(--muted-foreground) / 0.2) !important;
     }
 }
 
 /* Hover effect */
 .toaster .toast:hover {
     transform: translateY(-2px);
-    box-shadow: 0 6px 16px rgba(255, 215, 64, 0.5), 0 3px 6px rgba(0, 0, 0, 0.12);
+    box-shadow: 0 6px 16px rgba(0, 0, 0, 0.15), 0 3px 6px rgba(0, 0, 0, 0.1);
 }
 
 /* Pop-in animation */
@@ -47,10 +50,10 @@
 /* Dark mode enhancements */
 @media (prefers-color-scheme: dark) {
     .toaster .toast {
-        box-shadow: 0 4px 12px rgba(255, 215, 64, 0.3), 0 2px 4px rgba(0, 0, 0, 0.2);
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2), 0 2px 4px rgba(0, 0, 0, 0.1);
     }
 
     .toaster .toast:hover {
-        box-shadow: 0 6px 16px rgba(255, 215, 64, 0.4), 0 3px 6px rgba(0, 0, 0, 0.3);
+        box-shadow: 0 6px 16px rgba(0, 0, 0, 0.25), 0 3px 6px rgba(0, 0, 0, 0.15);
     }
 }

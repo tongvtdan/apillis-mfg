@@ -2,6 +2,8 @@
 
 ## Current Sprint: Supplier Quote Management Phase 1
 
+### [done] 2025-01-25: Project Card Stage Requirements Enhancement - Improved project card view to show stage requirements with current status indicators (Completed, In Progress, Pending) and visual icons. Simplified stage change dropdown to show "Blocked" with info icon instead of detailed requirements text. Added tooltip functionality to show why stages are blocked, providing cleaner UI while maintaining accessibility to detailed information.
+
 ### [done] 2025-01-25: Project Card State Control Optimization - Fixed whole screen refresh issues by implementing granular state management, selective real-time subscriptions, and removing unnecessary refetch calls. Created useProjectUpdate hook for individual project updates, enhanced cache service with differential updates, optimized real-time subscriptions, created ProjectCardWrapper component for better state isolation, and removed unnecessary refetch calls from status change handlers.
 
 ### [ ] Priority 1: Supplier Quote Management System
@@ -33,6 +35,9 @@
 - [ ] Create SystemSettings.tsx - Global configuration options
 
 ## Recently Completed
+- [done] 2025-08-26: Fixed Interactive Info Button in Stage Change Dropdown - Resolved issue where the information button (ℹ️) in blocked stage dropdown items was disabled along with the dropdown item. Now users can click the info button to see why a stage is blocked, even when the stage itself cannot be selected. Added proper event handling with preventDefault and stopPropagation to ensure the info button remains interactive.
+- [done] 2025-08-26: Project Card Stage Requirements Enhancement - Improved project card view to show stage requirements with current status indicators (Completed, In Progress, Pending) and visual icons. Simplified stage change dropdown to show "Blocked" with info icon instead of detailed requirements text. Added tooltip functionality to show why stages are blocked, providing cleaner UI while maintaining accessibility to detailed information.
+- [done] 2025-08-25: Project Card State Control Optimization - Fixed whole screen refresh issues by implementing granular state management, selective real-time subscriptions, and removing unnecessary refetch calls. Created useProjectUpdate hook for individual project updates, enhanced cache service with differential updates, optimized real-time subscriptions, created ProjectCardWrapper component for better state isolation, and removed unnecessary refetch calls from status change handlers.
 - [done] 2025-01-25: Complete ProjectUpdateAnimation Removal and Unused Component Cleanup - removed ProjectUpdateAnimation component and all its usages from the entire codebase, cleaned up unused state variables and imports, optimized ProjectTable component, deleted unused PriorityKanban and ProjectTypeKanban components, removed duplicate RFQ components (RFQIntakeForm.tsx, RFQIntakePortal.tsx), removed development tab from Settings page, removed unused PublicRFQ.tsx file, and removed unused theme showcase components (ThemeShowcase.tsx, ThemeToggle.tsx, FactoryPulseLanding.tsx)
 - [done] 2025-01-22: Fixed duplicate Workflow Visualization sections in WorkflowFlowchart component - removed duplicate UI elements causing confusion
 - [done] 2025-01-22: Fixed real-time update bug in useProjects hook that prevented automatic project stage updates from working properly

@@ -3,7 +3,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { AlertCircle, Play, Eye, Users, ChevronRight } from "lucide-react";
+import { AlertCircle, Play, Eye, Users, ChevronRight, Info, CheckCircle, Clock, XCircle } from "lucide-react";
 import { Project, ProjectStatus } from "@/types/project";
 import { useNavigate } from "react-router-dom";
 import { WorkflowValidator } from "@/lib/workflow-validator";
@@ -13,6 +13,12 @@ import {
     DropdownMenuItem,
     DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
+import {
+    Tooltip,
+    TooltipContent,
+    TooltipProvider,
+    TooltipTrigger,
+} from "@/components/ui/tooltip";
 
 interface AnimatedProjectCardProps {
     project: Project;
@@ -47,6 +53,69 @@ export function AnimatedProjectCard({
 
     const handleUpdateStatus = async (project: Project, newStatus: ProjectStatus) => {
         await onStatusChange(project.id, newStatus);
+    };
+
+    // Get stage progress and requirements with status
+    const getStageRequirementsWithStatus = (project: Project) => {
+        const stageProgress = WorkflowValidator.getStageProgress(project);
+        const exitCriteria = stageProgress.exitCriteria;
+
+        // For MVP, we'll determine status based on project data
+        const requirementsWithStatus = exitCriteria.map(criteria => {
+            let status: 'completed' | 'in_progress' | 'pending' = 'pending';
+            let icon = Clock;
+            let iconColor = 'text-muted-foreground';
+
+            // Determine status based on criteria and project data
+            if (criteria.includes('Engineering review') && project.engineering_reviewer_id) {
+                status = 'completed';
+                icon = CheckCircle;
+                iconColor = 'text-green-600';
+            } else if (criteria.includes('QA inspection') && project.qa_reviewer_id) {
+                status = 'completed';
+                icon = CheckCircle;
+                iconColor = 'text-green-600';
+            } else if (criteria.includes('Production process') && project.production_reviewer_id) {
+                status = 'completed';
+                icon = CheckCircle;
+                iconColor = 'text-green-600';
+            } else if (criteria.includes('BOM breakdown') && project.description) {
+                status = 'in_progress';
+                icon = Clock;
+                iconColor = 'text-amber-600';
+            } else if (criteria.includes('Customer PO') && project.estimated_value) {
+                status = 'in_progress';
+                icon = Clock;
+                iconColor = 'text-amber-600';
+            }
+
+            return {
+                criteria,
+                status,
+                icon,
+                iconColor
+            };
+        });
+
+        return requirementsWithStatus;
+    };
+
+    const getStatusLabel = (status: 'completed' | 'in_progress' | 'pending') => {
+        switch (status) {
+            case 'completed': return 'Completed';
+            case 'in_progress': return 'In Progress';
+            case 'pending': return 'Pending';
+            default: return 'Pending';
+        }
+    };
+
+    const getStatusBadgeVariant = (status: 'completed' | 'in_progress' | 'pending') => {
+        switch (status) {
+            case 'completed': return 'default';
+            case 'in_progress': return 'secondary';
+            case 'pending': return 'outline';
+            default: return 'outline';
+        }
     };
 
     return (
@@ -131,16 +200,16 @@ export function AnimatedProjectCard({
 
                         <div className="pt-2 border-t">
                             <div className="flex flex-col gap-2">
-                                {/* Exit Criteria Indicator */}
+                                {/* Enhanced Stage Requirements with Status */}
                                 {(() => {
                                     const stageProgress = WorkflowValidator.getStageProgress(project);
-                                    const exitCriteria = stageProgress.exitCriteria;
+                                    const requirementsWithStatus = getStageRequirementsWithStatus(project);
 
-                                    if (exitCriteria.length === 0) return null;
+                                    if (requirementsWithStatus.length === 0) return null;
 
                                     return (
                                         <div className="mb-2 p-3 bg-muted/30 rounded-lg border border-muted-foreground/20">
-                                            <div className="flex items-center justify-between mb-2">
+                                            <div className="flex items-center justify-between mb-3">
                                                 <span className="text-xs font-medium text-muted-foreground">
                                                     Stage Requirements
                                                 </span>
@@ -148,24 +217,30 @@ export function AnimatedProjectCard({
                                                     variant={stageProgress.canAdvance ? "default" : "secondary"}
                                                     className="text-xs"
                                                 >
-                                                    {stageProgress.canAdvance ? "Ready" : "Pending"}
+                                                    {stageProgress.canAdvance ? "Ready to Advance" : "Requirements Pending"}
                                                 </Badge>
                                             </div>
 
-                                            <div className="space-y-1.5">
-                                                {exitCriteria.map((criteria, idx) => (
+                                            <div className="space-y-2">
+                                                {requirementsWithStatus.map((req, idx) => (
                                                     <div key={idx} className="flex items-center gap-2 text-xs">
-                                                        <div className="w-1.5 h-1.5 rounded-full bg-muted-foreground/40" />
-                                                        <span className="text-muted-foreground leading-tight">
-                                                            {criteria}
+                                                        <req.icon className={`h-3 w-3 flex-shrink-0 ${req.iconColor}`} />
+                                                        <span className="text-muted-foreground leading-tight flex-1">
+                                                            {req.criteria}
                                                         </span>
+                                                        <Badge
+                                                            variant={getStatusBadgeVariant(req.status)}
+                                                            className="text-xs ml-auto"
+                                                        >
+                                                            {getStatusLabel(req.status)}
+                                                        </Badge>
                                                     </div>
                                                 ))}
                                             </div>
 
                                             {!stageProgress.canAdvance && (
                                                 <div className="mt-2 text-xs text-muted-foreground/70 italic">
-                                                    Complete requirements to advance
+                                                    Complete all requirements to advance to next stage
                                                 </div>
                                             )}
                                         </div>
@@ -228,9 +303,59 @@ export function AnimatedProjectCard({
                                                                     </Badge>
                                                                 )}
                                                                 {!canMoveToStage && !isCurrentStage && (
-                                                                    <Badge variant="outline" className="text-xs text-muted-foreground">
-                                                                        Blocked
-                                                                    </Badge>
+                                                                    <div className="flex items-center gap-1">
+                                                                        <Badge variant="outline" className="text-xs text-muted-foreground">
+                                                                            Blocked
+                                                                        </Badge>
+                                                                        {/* Separate clickable info button that's not affected by disabled state */}
+                                                                        <div
+                                                                            className="inline-flex items-center justify-center"
+                                                                            onClick={(e) => {
+                                                                                e.preventDefault();
+                                                                                e.stopPropagation();
+                                                                            }}
+                                                                        >
+                                                                            <TooltipProvider>
+                                                                                <Tooltip>
+                                                                                    <TooltipTrigger asChild>
+                                                                                        <button
+                                                                                            type="button"
+                                                                                            className="h-3 w-3 text-muted-foreground/70 hover:text-muted-foreground cursor-help transition-colors duration-200 focus:outline-none focus:ring-2 focus:ring-primary/20 rounded"
+                                                                                            onClick={(e) => {
+                                                                                                e.preventDefault();
+                                                                                                e.stopPropagation();
+                                                                                            }}
+                                                                                        >
+                                                                                            <Info className="h-3 w-3" />
+                                                                                        </button>
+                                                                                    </TooltipTrigger>
+                                                                                    <TooltipContent side="left" className="max-w-xs">
+                                                                                        <div className="text-xs">
+                                                                                            <div className="font-medium mb-1">Stage is blocked because:</div>
+                                                                                            <div className="space-y-1">
+                                                                                                {(() => {
+                                                                                                    const stageProgress = WorkflowValidator.getStageProgress(project);
+                                                                                                    const requirementsWithStatus = getStageRequirementsWithStatus(project);
+                                                                                                    const pendingRequirements = requirementsWithStatus.filter(req => req.status !== 'completed');
+
+                                                                                                    if (pendingRequirements.length === 0) {
+                                                                                                        return <span>Current stage requirements not met</span>;
+                                                                                                    }
+
+                                                                                                    return pendingRequirements.map((req, idx) => (
+                                                                                                        <div key={idx} className="flex items-center gap-1">
+                                                                                                            <XCircle className="h-2.5 w-2.5 text-red-500" />
+                                                                                                            <span>{req.criteria}</span>
+                                                                                                        </div>
+                                                                                                    ));
+                                                                                                })()}
+                                                                                            </div>
+                                                                                        </div>
+                                                                                    </TooltipContent>
+                                                                                </Tooltip>
+                                                                            </TooltipProvider>
+                                                                        </div>
+                                                                    </div>
                                                                 )}
                                                                 {isNextStage && canMoveToStage && (
                                                                     <Badge variant="default" className="text-xs bg-green-600">
@@ -239,17 +364,6 @@ export function AnimatedProjectCard({
                                                                 )}
                                                             </div>
                                                         </div>
-
-                                                        {!canMoveToStage && !isCurrentStage && (
-                                                            <div className="text-xs text-muted-foreground bg-muted/30 p-2 rounded border-l-2 border-l-orange-400">
-                                                                <div className="font-medium mb-1 text-orange-600">
-                                                                    Requirements not met
-                                                                </div>
-                                                                <div className="text-muted-foreground/70">
-                                                                    Complete current stage requirements first
-                                                                </div>
-                                                            </div>
-                                                        )}
                                                     </div>
                                                 </DropdownMenuItem>
                                             );

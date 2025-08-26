@@ -1,7 +1,7 @@
 import React from 'react';
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { Users } from "lucide-react";
+import { Users, Info, XCircle } from "lucide-react";
 import { Project, ProjectStatus } from "@/types/project";
 import { WorkflowValidator } from "@/lib/workflow-validator";
 import {
@@ -10,6 +10,12 @@ import {
     DropdownMenuItem,
     DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
+import {
+    Tooltip,
+    TooltipContent,
+    TooltipProvider,
+    TooltipTrigger,
+} from "@/components/ui/tooltip";
 
 interface EnhancedStageDropdownProps {
     project: Project;
@@ -33,6 +39,37 @@ export function EnhancedStageDropdown({
 
     const handleUpdateStatus = async (project: Project, newStatus: ProjectStatus) => {
         await onStatusChange(project, newStatus);
+    };
+
+    // Get stage progress and requirements with status (same logic as AnimatedProjectCard)
+    const getStageRequirementsWithStatus = (project: Project) => {
+        const stageProgress = WorkflowValidator.getStageProgress(project);
+        const exitCriteria = stageProgress.exitCriteria;
+
+        // For MVP, we'll determine status based on project data
+        const requirementsWithStatus = exitCriteria.map(criteria => {
+            let status: 'completed' | 'in_progress' | 'pending' = 'pending';
+
+            // Determine status based on criteria and project data
+            if (criteria.includes('Engineering review') && project.engineering_reviewer_id) {
+                status = 'completed';
+            } else if (criteria.includes('QA inspection') && project.qa_reviewer_id) {
+                status = 'completed';
+            } else if (criteria.includes('Production process') && project.production_reviewer_id) {
+                status = 'completed';
+            } else if (criteria.includes('BOM breakdown') && project.description) {
+                status = 'in_progress';
+            } else if (criteria.includes('Customer PO') && project.estimated_value) {
+                status = 'in_progress';
+            }
+
+            return {
+                criteria,
+                status
+            };
+        });
+
+        return requirementsWithStatus;
     };
 
     return (
@@ -82,9 +119,50 @@ export function EnhancedStageDropdown({
                                             </Badge>
                                         )}
                                         {!canMoveToStage && !isCurrentStage && (
-                                            <Badge variant="outline" className="text-xs text-muted-foreground">
-                                                Blocked
-                                            </Badge>
+                                            <div className="flex items-center gap-1">
+                                                <Badge variant="outline" className="text-xs text-muted-foreground">
+                                                    Blocked
+                                                </Badge>
+                                                <TooltipProvider>
+                                                    <Tooltip>
+                                                        <TooltipTrigger asChild>
+                                                            <button
+                                                                type="button"
+                                                                className="h-3 w-3 text-muted-foreground/70 hover:text-muted-foreground cursor-help transition-colors duration-200 focus:outline-none focus:ring-2 focus:ring-primary/20 rounded"
+                                                                onClick={(e) => {
+                                                                    e.preventDefault();
+                                                                    e.stopPropagation();
+                                                                }}
+                                                            >
+                                                                <Info className="h-3 w-3" />
+                                                            </button>
+                                                        </TooltipTrigger>
+                                                        <TooltipContent side="left" className="max-w-xs">
+                                                            <div className="text-xs">
+                                                                <div className="font-medium mb-1">Stage is blocked because:</div>
+                                                                <div className="space-y-1">
+                                                                    {(() => {
+                                                                        const stageProgress = WorkflowValidator.getStageProgress(project);
+                                                                        const requirementsWithStatus = getStageRequirementsWithStatus(project);
+                                                                        const pendingRequirements = requirementsWithStatus.filter(req => req.status !== 'completed');
+
+                                                                        if (pendingRequirements.length === 0) {
+                                                                            return <span>Current stage requirements not met</span>;
+                                                                        }
+
+                                                                        return pendingRequirements.map((req, idx) => (
+                                                                            <div key={idx} className="flex items-center gap-1">
+                                                                                <XCircle className="h-2.5 w-2.5 text-red-500" />
+                                                                                <span>{req.criteria}</span>
+                                                                            </div>
+                                                                        ));
+                                                                    })()}
+                                                                </div>
+                                                            </div>
+                                                        </TooltipContent>
+                                                    </Tooltip>
+                                                </TooltipProvider>
+                                            </div>
                                         )}
                                         {isNextStage && canMoveToStage && (
                                             <Badge variant="default" className="text-xs bg-green-600">
@@ -93,17 +171,6 @@ export function EnhancedStageDropdown({
                                         )}
                                     </div>
                                 </div>
-
-                                {!canMoveToStage && !isCurrentStage && (
-                                    <div className="text-xs text-muted-foreground bg-muted/30 p-2 rounded border-l-2 border-l-orange-400">
-                                        <div className="font-medium mb-1 text-orange-600">
-                                            Requirements not met
-                                        </div>
-                                        <div className="text-muted-foreground/70">
-                                            Complete current stage requirements first
-                                        </div>
-                                    </div>
-                                )}
                             </div>
                         </DropdownMenuItem>
                     );
