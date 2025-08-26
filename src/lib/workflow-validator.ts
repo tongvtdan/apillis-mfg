@@ -1,10 +1,21 @@
 import { Project, ProjectStatus } from "@/types/project";
 import { SupplierQuote } from "@/types/supplier";
+import { UserRole } from "@/types/auth";
 
 export interface WorkflowValidationResult {
     isValid: boolean;
     errors: string[];
     warnings: string[];
+    canAutoAdvance: boolean;
+    requiresManagerApproval: boolean;
+    autoAdvanceReason?: string;
+}
+
+export interface WorkflowBypassRequest {
+    reason: string;
+    comment: string;
+    requestedBy: string;
+    requestedAt: Date;
 }
 
 export interface ExitCriteria {
@@ -62,7 +73,9 @@ export class WorkflowValidator {
         const result: WorkflowValidationResult = {
             isValid: true,
             errors: [],
-            warnings: []
+            warnings: [],
+            canAutoAdvance: false,
+            requiresManagerApproval: false
         };
 
         // Check if the status change is valid (can't go backwards except for specific cases)
@@ -74,6 +87,15 @@ export class WorkflowValidator {
             result.isValid = false;
             result.errors.push(`Cannot move project backwards from ${this.getStageName(project.status)} to ${this.getStageName(newStatus)}`);
             return result;
+        }
+
+        // Check if current stage exit criteria are met for auto-advance
+        const currentStageComplete = this.isStageComplete(project, project.status);
+        const isNextStage = newStageIndex === currentStageIndex + 1;
+
+        if (currentStageComplete && isNextStage) {
+            result.canAutoAdvance = true;
+            result.autoAdvanceReason = `All exit criteria for ${this.getStageName(project.status)} are met. Project can automatically advance to ${this.getStageName(newStatus)}.`;
         }
 
         // Validate exit criteria based on current status
@@ -92,39 +114,35 @@ export class WorkflowValidator {
 
             case 'technical_review':
                 if (newStatus === 'supplier_rfq_sent') {
-                    // Check exit criteria for technical review
-                    const technicalReviewCriteria = DEFAULT_EXIT_CRITERIA.technical_review;
-                    // In a real implementation, we would check actual review completion
-                    // For now, we'll assume it's completed if moving to next stage
-                    if (technicalReviewCriteria.length > 0) {
-                        result.warnings.push("Ensure all technical review tasks are completed");
+                    if (!this.areReviewCriteriaMet(project)) {
+                        result.requiresManagerApproval = true;
+                        result.warnings.push("Technical review criteria not fully met. Manager approval required or complete all reviews.");
                     }
                 }
                 break;
 
             case 'supplier_rfq_sent':
                 if (newStatus === 'quoted') {
-                    // Check that supplier quotes are received (optional for MVP)
                     if (supplierQuotes && supplierQuotes.length > 0) {
                         const receivedQuotes = supplierQuotes.filter(q => q.status === 'received').length;
                         const totalQuotes = supplierQuotes.length;
 
                         if (receivedQuotes < totalQuotes) {
-                            result.warnings.push(`Not all supplier quotes received (${receivedQuotes}/${totalQuotes} received)`);
+                            result.requiresManagerApproval = true;
+                            result.warnings.push(`Not all supplier quotes received (${receivedQuotes}/${totalQuotes} received). Manager approval required.`);
                         }
                     } else {
-                        // For MVP, allow transition without supplier quotes but show warning
-                        result.warnings.push("No supplier quotes found - ensure all quotes are received before finalizing");
+                        result.requiresManagerApproval = true;
+                        result.warnings.push("No supplier quotes found. Manager approval required to proceed.");
                     }
                 }
                 break;
 
             case 'quoted':
                 if (newStatus === 'order_confirmed') {
-                    // Check that quote has been sent to customer
-                    const quotedCriteria = DEFAULT_EXIT_CRITERIA.quoted;
-                    if (quotedCriteria.length > 0) {
-                        result.warnings.push("Ensure quote has been sent to customer and follow-up deadline is set");
+                    if (!project.estimated_value) {
+                        result.requiresManagerApproval = true;
+                        result.warnings.push("Quote value not set. Manager approval required.");
                     }
                 }
                 break;
@@ -303,5 +321,56 @@ export class WorkflowValidator {
             completedCriteria,
             pendingCriteria
         };
+    }
+
+    /**
+     * Check if user role can bypass workflow validation
+     */
+    static canBypassWorkflow(userRole?: UserRole): boolean {
+        if (!userRole) return false;
+
+        // Only Management and Procurement Owner roles can bypass workflow
+        return userRole === 'Management' || userRole === 'Procurement Owner';
+    }
+
+    /**
+     * Check if technical review criteria are met
+     */
+    private static areReviewCriteriaMet(project: Project): boolean {
+        return !!(project.engineering_reviewer_id &&
+            project.qa_reviewer_id &&
+            project.production_reviewer_id);
+    }
+
+    /**
+     * Auto-advance project to next stage if criteria are met
+     */
+    static async checkAndAutoAdvance(
+        project: Project,
+        supplierQuotes?: SupplierQuote[]
+    ): Promise<{ shouldAdvance: boolean; nextStage: ProjectStatus | null; reason: string }> {
+        const currentStageComplete = this.isStageComplete(project, project.status);
+
+        if (!currentStageComplete) {
+            return { shouldAdvance: false, nextStage: null, reason: "Exit criteria not met" };
+        }
+
+        const nextStages = this.getNextValidStages(project.status);
+        if (nextStages.length === 0) {
+            return { shouldAdvance: false, nextStage: null, reason: "Already at final stage" };
+        }
+
+        const nextStage = nextStages[0];
+        const canAdvance = this.canMoveToStage(project, nextStage);
+
+        if (canAdvance) {
+            return {
+                shouldAdvance: true,
+                nextStage,
+                reason: `Auto-advancing to ${this.getStageName(nextStage)} - all exit criteria met`
+            };
+        }
+
+        return { shouldAdvance: false, nextStage: null, reason: "Cannot advance to next stage" };
     }
 }

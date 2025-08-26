@@ -4,9 +4,18 @@ This file contains important changes and updates made to the project.
 
 ## Latest Changes Summary
 
-- Date: 2025-01-26
+- Date: 2025-08-26
 - What we completed / changed:
-1. **Project Detail Reviews Tab Implementation**: 
+1. **Enhanced Workflow System with Auto-Application and Manager Bypass**: 
+   - **Enhanced WorkflowValidator** with auto-application logic when exit criteria are met
+   - **Implemented manager bypass mechanism** with reason/comment requirement for managers and procurement owners
+   - **Created WorkflowBypassDialog component** for capturing bypass justification and comments
+   - **Created useWorkflowAutoAdvance hook** for monitoring and executing automatic stage progression
+   - **Enhanced WorkflowStepper component** with auto-advance detection and manager bypass integration
+   - **Added role-based permission checking** for workflow bypass (only Management and Procurement Owner roles)
+   - **Enhanced validation result interface** with auto-advance and bypass flags
+   - **Implemented audit trail support** for bypass requests with reason, comment, and user information
+2. **Project Detail Reviews Tab Implementation**: 
    - **Implemented full Reviews tab functionality** with Add Review and Configure actions
    - **Created ProjectReviewForm component** for submitting Engineering, QA, and Production reviews
    - **Created ReviewConfiguration component** for managing review workflow settings, SLA configuration, and notification preferences
@@ -19,7 +28,7 @@ This file contains important changes and updates made to the project.
    - **Enhanced review configuration** with workflow automation, SLA settings, and notification preferences
    - **Improved modal UI styling** with solid background (95% opacity) and backdrop blur for better readability and consistency with dropdown/notification styles
    - **Enhanced Switch component visibility** with distinct green (ON) and gray (OFF) colors, plus visual icons (✓ for ON, ✗ for OFF) for better state recognition
-2. **Project Detail Page Mock Data Removal and Real Data Integration**: 
+3. **Project Detail Page Mock Data Removal and Real Data Integration**: 
    - Removed all mock data arrays and interfaces (documents, reviews, activities, supplierRFQs)
    - Integrated real data fetching using existing hooks: useDocuments, useProjectMessages, useSupplierRfqs
    - Added proper loading states for each data type with spinner indicators
@@ -29,15 +38,15 @@ This file contains important changes and updates made to the project.
    - Maintained all existing functionality while ensuring data integrity
    - **Added missing Reviews tab** to navigation sidebar between Documents and Supplier tabs
    - Implemented placeholder content for Reviews tab with "Coming Soon" message and action buttons
-3. Enhanced database schema with workflow stages, document management, messaging, and supplier RFQ systems
-4. Implemented comprehensive TypeScript types and API wrappers for all new systems
-5. Created React Query hooks for data management with proper error handling and caching
-6. Fixed RLS policies to allow proper message and notification updates
-7. Integrated ProjectCommunication component with real messaging APIs instead of mock data
-8. Resolved duplicate useSupplierQuotes hook naming conflicts
-9. Updated components to use the correct API hooks and real data sources
+4. Enhanced database schema with workflow stages, document management, messaging, and supplier RFQ systems
+5. Implemented comprehensive TypeScript types and API wrappers for all new systems
+6. Created React Query hooks for data management with proper error handling and caching
+7. Fixed RLS policies to allow proper message and notification updates
+8. Integrated ProjectCommunication component with real messaging APIs instead of mock data
+9. Resolved duplicate useSupplierQuotes hook naming conflicts
+10. Updated components to use the correct API hooks and real data sources
 
-- Date: 2025-01-26
+- Date: 2025-08-26
 - What we completed / changed:
 1. **Project Details Navigation and Overview Tab Enhancements**: 
    - **Moved Reviews Tab before Documents Tab** in the navigation sidebar for better workflow logical order
@@ -60,7 +69,7 @@ This file contains important changes and updates made to the project.
    - Maintained all existing data display functionality while removing all action capabilities
    - **Overview Tab now serves as pure information display** - any actions needed will link and open the corresponding tab
 
-- Date: 2025-01-25
+- Date: 2025-08-25
 - What we completed / changed:
 1. **Comprehensive Database Schema Implementation**: 
    - Added slug field to workflow_stages table for better URL routing and stage identification
