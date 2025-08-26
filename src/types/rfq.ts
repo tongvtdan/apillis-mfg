@@ -1,4 +1,4 @@
-export type RFQStatus = 'inquiry' | 'review' | 'quote' | 'production' | 'completed' | 'cancelled';
+export type RFQStatus = 'inquiry' | 'review' | 'quote' | 'production' | 'completed' | 'cancelled' | 'inquiry_received' | 'technical_review' | 'supplier_rfq_sent' | 'order_confirmed' | 'procurement_planning' | 'in_production' | 'shipped_closed';
 export type RFQPriority = 'low' | 'medium' | 'high' | 'urgent';
 
 export interface RFQ {
@@ -55,11 +55,16 @@ export interface RFQStage {
 }
 
 export const RFQ_STAGES: RFQStage[] = [
-  { id: "inquiry", name: "New Inquiry", color: "bg-blue-100 text-blue-800", count: 0 },
-  { id: "review", name: "Under Review", color: "bg-orange-100 text-orange-800", count: 0 },
+  { id: "inquiry_received", name: "New Inquiry", color: "bg-blue-100 text-blue-800", count: 0 },
+  { id: "technical_review", name: "Under Review", color: "bg-orange-100 text-orange-800", count: 0 },
   { id: "quote", name: "Quotation", color: "bg-purple-100 text-purple-800", count: 0 },
-  { id: "production", name: "Production", color: "bg-green-100 text-green-800", count: 0 },
-  { id: "completed", name: "Completed", color: "bg-gray-100 text-gray-800", count: 0 }
+  { id: "in_production", name: "Production", color: "bg-green-100 text-green-800", count: 0 },
+  { id: "shipped_closed", name: "Completed", color: "bg-gray-100 text-gray-800", count: 0 },
+  // Legacy statuses for backward compatibility
+  { id: "inquiry", name: "New Inquiry (Legacy)", color: "bg-blue-100 text-blue-800", count: 0 },
+  { id: "review", name: "Under Review (Legacy)", color: "bg-orange-100 text-orange-800", count: 0 },
+  { id: "production", name: "Production (Legacy)", color: "bg-green-100 text-green-800", count: 0 },
+  { id: "completed", name: "Completed (Legacy)", color: "bg-gray-100 text-gray-800", count: 0 }
 ];
 
 export const PRIORITY_COLORS: Record<RFQPriority, string> = {

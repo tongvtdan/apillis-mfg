@@ -52,7 +52,7 @@ export function ReviewAssignmentModal({
     projectId,
     onClose,
     onSave,
-    currentAssignments = {},
+    currentAssignments = { Production: '', Engineering: '', QA: '' },
     availableUsers = mockUsers
 }: ReviewAssignmentModalProps) {
     const [assignments, setAssignments] = useState<ReviewAssignment[]>(

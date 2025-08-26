@@ -875,7 +875,7 @@ export default function ProjectDetail() {
                         {messages.slice(0, 5).map((message) => (
                           <div key={message.id} className="text-sm">
                             <div className="font-medium">
-                              📅 {message.created_at ? format(new Date(message.created_at), 'MMM dd, HH:mm') : 'N/A'} – {message.sender_name || 'N/A'}
+                              📅 {message.created_at ? format(new Date(message.created_at), 'MMM dd, HH:mm') : 'N/A'} – {message.sender_type || 'N/A'}
                             </div>
                             <div className="text-muted-foreground ml-4 mt-1">
                               {message.content || 'N/A'}

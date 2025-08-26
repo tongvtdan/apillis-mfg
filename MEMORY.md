@@ -4,6 +4,26 @@ This file contains important changes and updates made to the project.
 
 ## Latest Changes Summary
 
+- Date: 2025-01-26  
+- What we completed / changed:
+1. **Database Migration - Legacy Status Values Updated**: 
+   - **Successfully migrated database**: Updated Supabase database to migrate legacy status values to new standardized format
+   - **Added new enum values**: `inquiry_received`, `technical_review`, `supplier_rfq_sent`, `order_confirmed`, `procurement_planning`, `in_production`, `shipped_closed`
+   - **Updated existing project records**: Migrated 10 project records from legacy status values:
+     - `inquiry` → `inquiry_received` (2 records)
+     - `review` → `technical_review` (5 records)  
+     - `supplier_rfq` → `supplier_rfq_sent` (3 records)
+   - **Updated existing RFQ records**: Migrated 4 RFQ records from legacy status values:
+     - `review` → `technical_review` (1 record)
+     - `production` → `in_production` (1 record)
+   - **Set new defaults**: Updated default status values for both projects and RFQs tables to use `inquiry_received`
+   - **Maintained backward compatibility**: All status mapping logic continues to work for any remaining legacy values
+2. **TypeScript Types Update**: Updated RFQ status types to support both legacy and new values for complete backward compatibility
+3. **Build Fixes**: Resolved various TypeScript compilation errors:
+   - Removed problematic test file that was missing test dependencies
+   - Fixed ReviewAssignmentModal default props configuration
+   - Fixed ProjectDetail message sender property reference from `sender_name` to `sender_type`
+
 - Date: 2025-01-27
 - What we completed / changed:
 1. **Fixed Critical Project Detail Page Crash Issue**: 
