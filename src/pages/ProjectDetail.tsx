@@ -1117,7 +1117,7 @@ export default function ProjectDetail() {
 
       {/* Supplier Modal - Coming Soon */}
       {showSupplierModal && (
-        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
+        <div className="fixed inset-0 bg-background/95 backdrop-blur-lg flex items-center justify-center z-50">
           <div className="bg-card p-6 rounded-lg border shadow-lg">
             <h3 className="text-lg font-semibold mb-4 text-card-foreground">Supplier RFQ</h3>
             <p className="text-muted-foreground mb-4">Supplier RFQ functionality coming soon...</p>
@@ -1128,7 +1128,7 @@ export default function ProjectDetail() {
 
       {/* Review Form Modal */}
       {showReviewForm && (
-        <div className="fixed inset-0 bg-black/50 flex items-center justify-center p-4 z-50">
+        <div className="fixed inset-0 bg-background/95 backdrop-blur-lg flex items-center justify-center p-4 z-50">
           <div className="w-full max-w-4xl max-h-[90vh] overflow-y-auto">
             <ProjectReviewForm
               projectId={id || ''}
@@ -1146,7 +1146,7 @@ export default function ProjectDetail() {
 
       {/* Review Configuration Modal */}
       {showReviewConfig && (
-        <div className="fixed inset-0 bg-black/50 flex items-center justify-center p-4 z-50">
+        <div className="fixed inset-0 bg-background/95 backdrop-blur-lg flex items-center justify-center p-4 z-50">
           <div className="w-full max-w-6xl max-h-[90vh] overflow-y-auto">
             <ReviewConfiguration
               projectId={id || ''}
@@ -1159,7 +1159,7 @@ export default function ProjectDetail() {
 
       {/* Review Assignment Modal */}
       {showAssignmentModal && (
-        <div className="fixed inset-0 bg-black/50 flex items-center justify-center p-4 z-50">
+        <div className="fixed inset-0 bg-background/95 backdrop-blur-sm flex items-center justify-center p-4 z-50">
           <div className="w-full max-w-2xl max-h-[90vh] overflow-y-auto">
             <ReviewAssignmentModal
               projectId={id || ''}

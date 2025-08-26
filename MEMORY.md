@@ -17,6 +17,7 @@ This file contains important changes and updates made to the project.
    - **Implemented modal-based workflow** for better user experience and focused task completion
    - **Added review assignment system** with auto-assignment recommendations and manual override options
    - **Enhanced review configuration** with workflow automation, SLA settings, and notification preferences
+   - **Improved modal UI styling** with solid background (95% opacity) and backdrop blur for better readability and consistency with dropdown/notification styles
 2. **Project Detail Page Mock Data Removal and Real Data Integration**: 
    - Removed all mock data arrays and interfaces (documents, reviews, activities, supplierRFQs)
    - Integrated real data fetching using existing hooks: useDocuments, useProjectMessages, useSupplierRfqs
