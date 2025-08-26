@@ -141,14 +141,14 @@ export function ReviewAssignmentModal({
                             <div className="space-y-2">
                                 <Label>Reviewer</Label>
                                 <Select
-                                    value={assignment.reviewerId || ''}
-                                    onValueChange={(value) => updateAssignment(assignment.department, value || null)}
+                                    value={assignment.reviewerId || "auto-assign"}
+                                    onValueChange={(value) => updateAssignment(assignment.department, value)}
                                 >
                                     <SelectTrigger>
                                         <SelectValue placeholder="Select reviewer or leave unassigned for auto-assignment" />
                                     </SelectTrigger>
                                     <SelectContent>
-                                        <SelectItem value="">Auto-assign (Recommended)</SelectItem>
+                                        <SelectItem value="auto-assign">Auto-assign (Recommended)</SelectItem>
                                         {departmentUsers.map((user) => (
                                             <SelectItem key={user.id} value={user.id}>
                                                 <div className="flex flex-col">

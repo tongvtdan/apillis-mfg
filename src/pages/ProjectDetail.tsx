@@ -877,7 +877,7 @@ export default function ProjectDetail() {
                         onClick={() => setShowAssignmentModal(true)}
                       >
                         <Users className="w-4 h-4 mr-2" />
-                        👥 Assign
+                        Assign
                       </Button>
                       <Button
                         variant="outline"
@@ -885,7 +885,7 @@ export default function ProjectDetail() {
                         onClick={() => setShowReviewConfig(true)}
                       >
                         <Settings className="w-4 h-4 mr-2" />
-                        ⚙️ Configure
+                        Configure
                       </Button>
                     </div>
                   </div>
@@ -1159,7 +1159,7 @@ export default function ProjectDetail() {
 
       {/* Review Assignment Modal */}
       {showAssignmentModal && (
-        <div className="fixed inset-0 bg-background/95 backdrop-blur-sm flex items-center justify-center p-4 z-50">
+        <div className="fixed inset-0 bg-background/95 backdrop-blur-lg flex items-center justify-center p-4 z-50">
           <div className="w-full max-w-2xl max-h-[90vh] overflow-y-auto">
             <ReviewAssignmentModal
               projectId={id || ''}
