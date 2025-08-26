@@ -1556,6 +1556,13 @@ export type Database = {
         | "cancelled"
         | "supplier_rfq"
         | "procurement"
+        | "inquiry_received"
+        | "technical_review"
+        | "supplier_rfq_sent"
+        | "order_confirmed"
+        | "procurement_planning"
+        | "in_production"
+        | "shipped_closed"
       project_type: "system_build" | "fabrication" | "manufacturing"
       review_status: "pending" | "approved" | "rejected" | "revision_requested"
       rfq_priority: "low" | "medium" | "high" | "urgent"
@@ -1566,6 +1573,13 @@ export type Database = {
         | "production"
         | "completed"
         | "cancelled"
+        | "inquiry_received"
+        | "technical_review"
+        | "supplier_rfq_sent"
+        | "order_confirmed"
+        | "procurement_planning"
+        | "in_production"
+        | "shipped_closed"
       risk_category: "technical" | "timeline" | "cost" | "quality"
       risk_severity: "low" | "medium" | "high"
       user_role:
@@ -1727,6 +1741,13 @@ export const Constants = {
         "cancelled",
         "supplier_rfq",
         "procurement",
+        "inquiry_received",
+        "technical_review",
+        "supplier_rfq_sent",
+        "order_confirmed",
+        "procurement_planning",
+        "in_production",
+        "shipped_closed",
       ],
       project_type: ["system_build", "fabrication", "manufacturing"],
       review_status: ["pending", "approved", "rejected", "revision_requested"],
@@ -1738,6 +1759,13 @@ export const Constants = {
         "production",
         "completed",
         "cancelled",
+        "inquiry_received",
+        "technical_review",
+        "supplier_rfq_sent",
+        "order_confirmed",
+        "procurement_planning",
+        "in_production",
+        "shipped_closed",
       ],
       risk_category: ["technical", "timeline", "cost", "quality"],
       risk_severity: ["low", "medium", "high"],
