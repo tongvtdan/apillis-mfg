@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -113,6 +113,15 @@ export function WorkflowStepper({ project }: WorkflowStepperProps) {
     targetStage: null,
     warnings: []
   });
+
+  // Debug logging for project changes
+  useEffect(() => {
+    console.log('🔄 WorkflowStepper: Project prop changed:', {
+      id: project.id,
+      status: project.status,
+      updated_at: project.updated_at
+    });
+  }, [project.id, project.status, project.updated_at]);
 
   const currentIndex = allStages.indexOf(project.status);
   const progressPercentage = Math.round((currentIndex / (allStages.length - 1)) * 100);
@@ -330,7 +339,7 @@ export function WorkflowStepper({ project }: WorkflowStepperProps) {
     const stageInfo = stageDescriptions[stage];
 
     return (
-      <div className="text-sm space-y-2 modal-dialog p-2 rounded-lg">
+      <div className="text-sm space-y-2 rounded-lg">
         <div className="font-medium">{stageTitle}</div>
         <div className="text-muted-foreground text-xs">{stageInfo.description}</div>
 
@@ -468,7 +477,7 @@ export function WorkflowStepper({ project }: WorkflowStepperProps) {
                           </span>
                         </div>
                       </TooltipTrigger>
-                      <TooltipContent side="bottom" className="max-w-sm bg-background border border-muted-foreground/20 shadow-lg">
+                      <TooltipContent side="bottom" className="max-w-sm">
                         {getStageTooltipContent(stage, status)}
                       </TooltipContent>
                     </Tooltip>

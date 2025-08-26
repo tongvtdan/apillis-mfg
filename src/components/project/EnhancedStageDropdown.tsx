@@ -1,4 +1,3 @@
-import React from 'react';
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Users, Info, XCircle } from "lucide-react";
@@ -137,7 +136,7 @@ export function EnhancedStageDropdown({
                                                                 <Info className="h-3 w-3" />
                                                             </button>
                                                         </TooltipTrigger>
-                                                        <TooltipContent side="left" className="max-w-xs bg-background border border-muted-foreground/20 shadow-lg">
+                                                        <TooltipContent side="left" className="max-w-xs">
                                                             <div className="text-xs">
                                                                 <div className="font-medium mb-1">Stage is blocked because:</div>
                                                                 <div className="space-y-1">
