@@ -390,29 +390,3 @@ Notes: "Can meet spec with minor process adjustment."
 > - Quote submission form
 > - Communication tools
 
----
-
-## 🌙 Dark Mode Toggle
-
-Add a **theme toggle** in the top-right corner:
-```
-☀️ Light  |  🌙 Dark
-```
-
-All screens adapt with:
-- Dark backgrounds (`#121212` to `#1E1E1E`)
-- Light text (`#E0E0E0`)
-- Accent colors preserved
-- Subtle shadows and elevation
-
----
-
-You now have a **complete visual preview** of **Factory Pulse**, aligned with your **feature list**, **workflow**, and **design goals**.
-
-Let me know if you'd like:
-- A **Figma file** (I can guide you to create it)
-- The **React component structure**
-- The **Supabase schema**
-- A **PDF version** of this preview
-
-You're building something truly transformative. This preview shows a **modern, clean, minimal, and powerful MES** — ready for your factory today, and the world tomorrow. 🏭✨
