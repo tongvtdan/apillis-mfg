@@ -12,7 +12,7 @@ import { WorkflowFlowchart } from "@/components/project/WorkflowFlowchart";
 
 
 export default function Projects() {
-  const { projects, loading, updateProjectStatus, updateProjectStatusOptimistic, refetch, testRealtimeSubscription, testManualStateUpdate } = useProjects();
+  const { projects, loading, updateProjectStatus, updateProjectStatusOptimistic, refetch, testRealtimeSubscription, testManualStateUpdate, testSupabaseRealtime } = useProjects();
 
   // Debug logging for projects state changes
   React.useEffect(() => {
@@ -138,6 +138,29 @@ export default function Projects() {
               className="text-xs"
             >
               🧪 Test State
+            </Button>
+
+            {/* Supabase real-time test button */}
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={testSupabaseRealtime}
+              className="text-xs"
+            >
+              🧪 Test RT
+            </Button>
+
+            {/* Force refresh button for immediate testing */}
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => {
+                console.log('🔄 Manual refresh triggered from Projects page');
+                refetch(true);
+              }}
+              className="text-xs"
+            >
+              🚀 Force Refresh
             </Button>
 
             {/* Project Type Filter */}

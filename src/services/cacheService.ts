@@ -74,6 +74,7 @@ export const cacheService: CacheService = {
             );
 
             localStorage.setItem(CACHE_KEY, JSON.stringify(updatedProjects));
+            console.log('💾 Cache updated for project:', projectId, 'with updates:', updates);
         } catch (error) {
             console.warn('Failed to update cached project:', error);
         }
@@ -92,6 +93,7 @@ export const cacheService: CacheService = {
             );
 
             localStorage.setItem(CACHE_KEY, JSON.stringify(updatedProjects));
+            console.log('💾 Cache status updated for project:', projectId, 'to:', newStatus);
         } catch (error) {
             console.warn('Failed to update cached project status:', error);
         }

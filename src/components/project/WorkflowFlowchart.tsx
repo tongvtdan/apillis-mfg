@@ -240,6 +240,14 @@ export function WorkflowFlowchart({
         return result;
     }, [allProjects]);
 
+    // Debug logging for when projects change
+    React.useEffect(() => {
+        console.log('🔄 WorkflowFlowchart: Projects array changed:', {
+            count: allProjects.length,
+            statuses: allProjects.map(p => ({ id: p.id, title: p.title, status: p.status }))
+        });
+    }, [allProjects]);
+
     // Render project card using wrapper component
     const renderProjectCard = (project: Project) => {
         return (

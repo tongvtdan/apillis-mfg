@@ -412,6 +412,9 @@ export function useProjects() {
     // Immediately write to cache for instant UI updates
     cacheService.setProjects(updatedProjects);
 
+    // Also update the specific project in cache for better consistency
+    cacheService.updateProject(projectId, { status: newStatus, updated_at: new Date().toISOString() });
+
     try {
       console.log(`🔄 Attempting database update: ${projectId} to ${mapNewStatusToLegacy(newStatus)}`);
 
@@ -458,7 +461,25 @@ export function useProjects() {
           status: currentProject.status,
           expectedStatus: newStatus
         } : 'Project not found');
+
+        // If real-time subscription failed, manually refresh to ensure UI consistency
+        if (currentProject && currentProject.status !== newStatus) {
+          console.log('⚠️ Real-time subscription may have failed, manually refreshing projects...');
+          fetchProjects(true);
+        }
       }, 1000);
+
+      // Additional check for real-time subscription status
+      console.log('🔔 Checking real-time subscription status...');
+      console.log('🔔 Global channel active:', !!globalChannelRef.current);
+      console.log('🔔 Selective channel active:', !!realtimeChannelRef.current);
+
+      // Force a manual refresh after 2 seconds to ensure UI consistency
+      // This is a backup in case real-time subscription completely fails
+      setTimeout(() => {
+        console.log('🔄 Force refreshing projects to ensure UI consistency...');
+        fetchProjects(true);
+      }, 2000);
 
       // Format status names for display
       const formatStatusName = (status: ProjectStatus) => {
@@ -608,6 +629,12 @@ export function useProjects() {
       return;
     }
 
+    // Prevent infinite re-subscription loops
+    if (realtimeChannelRef.current || globalChannelRef.current) {
+      console.log('🔔 Real-time subscriptions already active, skipping setup');
+      return;
+    }
+
     // Set up selective subscription for visible projects
     const visibleProjectIds = projects.map(p => p.id);
     console.log('🔔 Setting up real-time subscriptions for projects:', visibleProjectIds);
@@ -634,7 +661,7 @@ export function useProjects() {
         supabase.removeChannel(globalChannelRef.current);
       }
     };
-  }, [user, projects.length]); // Only re-run when projects array length changes
+  }, [user]); // Remove projects.length dependency to prevent infinite loops
 
   // Get project by ID
   const getProjectById = async (id: string): Promise<Project> => {
@@ -849,6 +876,45 @@ export function useProjects() {
     }
   };
 
+  // Test function to verify Supabase real-time configuration
+  const testSupabaseRealtime = async () => {
+    console.log('🧪 Testing Supabase real-time configuration...');
+
+    try {
+      // Test if we can create a simple subscription
+      const testChannel = supabase
+        .channel('test-realtime')
+        .on(
+          'postgres_changes',
+          {
+            event: '*',
+            schema: 'public',
+            table: 'projects'
+          },
+          (payload) => {
+            console.log('🧪 Test real-time payload received:', payload);
+          }
+        )
+        .subscribe((status) => {
+          console.log('🧪 Test subscription status:', status);
+          if (status === 'SUBSCRIBED') {
+            console.log('✅ Supabase real-time is working for projects table');
+          } else {
+            console.error('❌ Supabase real-time failed for projects table:', status);
+          }
+        });
+
+      // Clean up test channel after 5 seconds
+      setTimeout(() => {
+        supabase.removeChannel(testChannel);
+        console.log('🧪 Test channel cleaned up');
+      }, 5000);
+
+    } catch (error) {
+      console.error('🧪 Error testing Supabase real-time:', error);
+    }
+  };
+
   return {
     projects,
     loading,
@@ -879,7 +945,8 @@ export function useProjects() {
 
     // Debug functions
     testRealtimeSubscription,
-    testManualStateUpdate
+    testManualStateUpdate,
+    testSupabaseRealtime
   };
 }
 
