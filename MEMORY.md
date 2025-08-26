@@ -6,49 +6,55 @@ This file contains important changes and updates made to the project.
 
 - Date: 2025-08-26
 - What we completed / changed:
-1. **Unified Toast Notification Background Styling**: Updated all toast notification components to use the same background styling as dropdown menus with `bg-background backdrop-blur-lg border border-muted-foreground/20`. This ensures visual consistency across the application by applying the same backdrop blur effect and border styling used in dropdown menus to all toast notifications. Updated both Sonner and Radix UI toast systems, along with their CSS files, to maintain consistent theming.
-2. **Fixed Interactive Info Button in Stage Change Dropdown**: Resolved issue where the information button (ℹ️) in blocked stage dropdown items was disabled along with the dropdown item. Now users can click the info button to see why a stage is blocked, even when the stage itself cannot be selected. Added proper event handling with preventDefault and stopPropagation to ensure the info button remains interactive.
-3. **Enhanced Project Card Stage Requirements Display**: Improved project card view to show stage requirements with current status indicators (Completed, In Progress, Pending) instead of just listing requirements. Added visual icons (CheckCircle, Clock, XCircle) and status badges for better user understanding of requirement completion status.
-4. **Simplified Stage Change Dropdown**: Streamlined the "Change Stage" dropdown to show "Blocked" with an information icon instead of detailed requirements text. Added tooltip functionality that shows specific reasons why a stage is blocked when hovering over the info icon, providing cleaner UI while maintaining accessibility to detailed information.
-5. **Improved User Experience**: Enhanced project cards with better visual hierarchy, clearer status indicators, and more intuitive information display. Users can now quickly see which requirements are completed, in progress, or pending, and understand why certain stages are blocked through interactive tooltips.
-6. **Code Cleanup**: Removed unused AnimatedProjectCardNew.tsx component to reduce codebase confusion and maintain consistency across project card implementations.
-7. **Global Dropdown Menu Theme Consistency**: Updated all dropdown menus to use consistent theme styling with background, backdrop blur, and borders, matching the "Change Stage" dropdown design across the entire application
-8. **Enhanced Header Icon Buttons**: Improved notification button with red background for attention-grabbing, and profile button with teal border and amber hover background for better visual definition
-9. **Updated Theme Design System with Teal/Cyan Primary Color and Gradients**: Implemented new teal/cyan-based theme system based on the landing page image reference, replacing the previous blue color scheme with vibrant teal/cyan (#0EA5E9) for buttons, selected items, and primary UI elements, now including subtle vertical gradients
-10. **Enhanced Color Palette**: Added comprehensive teal/cyan color variants (50-950) to Tailwind config and CSS custom properties for consistent theming across all components
-11. **Updated Toast Component**: Modified toast variants to use the new teal/cyan primary color instead of blue, ensuring visual consistency with the new theme
-12. **Created Teal/Cyan Theme CSS**: Added new theme-adaptive.css with teal/cyan color system, utility classes, button variants with gradients, and consistent theming
-13. **Integrated with Existing System**: Updated index.css to use the new teal/cyan theme system while maintaining compatibility with existing Tailwind classes and CSS variables
-14. **Added Gradient Support**: Implemented subtle vertical gradients for buttons that match the image reference, with hover effects and smooth transitions
-15. **Maintained Accessibility**: Ensured all new color combinations meet WCAG contrast requirements for manufacturing environments
-16. **Project Card State Control Optimization**: Fixed whole screen refresh issues by implementing granular state management, selective real-time subscriptions, and removing unnecessary refetch calls
-17. **Created useProjectUpdate Hook**: Built specialized hook for individual project updates with local state management and optimistic updates
-18. **Enhanced Cache Service**: Implemented differential updates and increased cache duration from 5 to 15 minutes for better stability
-19. **Optimized Real-time Subscriptions**: Replaced broad subscriptions with selective project-specific subscriptions to prevent unnecessary updates
-20. **Created ProjectCardWrapper Component**: Built wrapper component for better state isolation and reduced re-renders
-21. **Removed Unnecessary Refetch Calls**: Eliminated refetch(true) calls from status change handlers that were causing full screen refreshes
-22. **Implemented Smooth Project Stage Transition Animations**: Added comprehensive fade in/out animations and smooth transitions when project stages change to eliminate jarring screen refreshes
-23. **Fixed Project Table Stage Change Issues**: Resolved stage change functionality in table view by properly connecting updateProjectStatusOptimistic and refetch functions, added workflow validation, and implemented comprehensive debugging
-24. **Enhanced Project Table with Sorting**: Added sorting functionality for name, stage, and priority columns with visual indicators and enhanced user experience
-25. **Improved Project Table Column Headers**: Changed "Status" column to "Stage" for better clarity and added interactive sorting buttons with arrow indicators
-26. **Created AnimatedProjectCard Component**: Built reusable animated project card component with smooth transitions, loading states, and enhanced user experience
-27. **Created AnimatedTableRow Component**: Built animated table row component for smooth stage changes in table view with fade in/out effects
-28. **Enhanced WorkflowFlowchart Animations**: Added motion animations to stage counts, workflow visualization, and project grid with staggered entrance effects
-29. **Enhanced StageFlowchart Animations**: Added smooth hover effects and entrance animations to stage selection cards
-30. **Added Project Animation CSS**: Created comprehensive CSS file with smooth transitions, enhanced hover effects, and loading states
-31. **Improved User Experience**: Projects now smoothly animate between stages instead of abrupt refreshes, providing professional and polished feel
-32. **ProjectTable Component Optimization**: Cleaned up unused state variables, removed unused imports, extracted utility functions, and improved code organization for better maintainability
-33. **Fixed Duplicate Workflow Visualization Issue**: Removed duplicate "Workflow Visualization" and "Kanban-style project list" sections from WorkflowFlowchart component that were causing UI duplication
-34. **Improved Real-time Updates**: Fixed bug in useProjects hook where real-time subscription cache updates were using stale state, preventing automatic project stage updates
-35. **Enhanced Refresh Button**: Added explanatory text and improved refresh button to clarify that real-time updates should happen automatically
-36. **UI Cleanup**: Streamlined WorkflowFlowchart component to show single workflow visualization and project list sections
-37. **Better User Experience**: Users now see only one workflow visualization and understand when manual refresh is needed
-38. **Added debugging for project status update issues**: Added console logs to track optimistic updates and stage count recalculations to debug UI update problems
-39. **Enhanced reactivity for WorkflowFlowchart**: Wrapped projectsByStage calculation in useMemo with proper dependencies for better reactivity when projects change
-40. **CRITICAL FIX - Project Status Update Issue**: Identified and fixed root cause where `technical_review` and `supplier_rfq_sent` were both mapped to same database value `review`, causing optimistic updates to be reverted by real-time subscription
-41. **Database Schema Update**: Added missing `supplier_rfq` and `procurement` status values to project_status enum to support complete workflow with distinct database values for each stage
-42. **Enhanced Database Update Logging**: Added comprehensive logging for database updates and real-time subscription events to track status change issues
-43. **FIXED - Supplier RFQ to Quoted Transition**: Resolved validation error blocking transition from "Supplier RFQ Sent" to "Quoted" by making supplier quotes optional for MVP and converting hard errors to warnings
+1. **Project Card UI Improvements - Removed Change Stage Button and Enhanced Visual Information**: 
+   - Removed "Change Stage" button and dropdown from project cards as stage changes will now be handled automatically (based on current stage conditions) or manually in the Project Details page
+   - Added visual icons to project card information for better clarity: Calendar icon for due dates, DollarSign icon for estimated values, Clock icon for days in stage, User icon for assignees, and Building2 icon for customer companies
+   - Enhanced project card readability by making it clear what each piece of information represents (e.g., $95,000 is now clearly shown with a dollar sign icon, dates are shown with calendar icons)
+   - Simplified project card interface by removing complex stage change functionality while maintaining all other project information display
+   - Updated ProjectCardWrapper to remove unused stage change logic and props
+2. **Unified Toast Notification Background Styling**: Updated all toast notification components to use the same background styling as dropdown menus with `bg-background backdrop-blur-lg border border-muted-foreground/20`. This ensures visual consistency across the application by applying the same backdrop blur effect and border styling used in dropdown menus to all toast notifications. Updated both Sonner and Radix UI toast systems, along with their CSS files, to maintain consistent theming.
+3. **Fixed Interactive Info Button in Stage Change Dropdown**: Resolved issue where the information button (ℹ️) in blocked stage dropdown items was disabled along with the dropdown item. Now users can click the info button to see why a stage is blocked, even when the stage itself cannot be selected. Added proper event handling with preventDefault and stopPropagation to ensure the info button remains interactive.
+4. **Enhanced Project Card Stage Requirements Display**: Improved project card view to show stage requirements with current status indicators (Completed, In Progress, Pending) instead of just listing requirements. Added visual icons (CheckCircle, Clock, XCircle) and status badges for better user understanding of requirement completion status.
+5. **Simplified Stage Change Dropdown**: Streamlined the "Change Stage" dropdown to show "Blocked" with an information icon instead of detailed requirements text. Added tooltip functionality that shows specific reasons why a stage is blocked when hovering over the info icon, providing cleaner UI while maintaining accessibility to detailed information.
+6. **Improved User Experience**: Enhanced project cards with better visual hierarchy, clearer status indicators, and more intuitive information display. Users can now quickly see which requirements are completed, in progress, or pending, and understand why certain stages are blocked through interactive tooltips.
+7. **Code Cleanup**: Removed unused AnimatedProjectCardNew.tsx component to reduce codebase confusion and maintain consistency across project card implementations.
+8. **Global Dropdown Menu Theme Consistency**: Updated all dropdown menus to use consistent theme styling with background, backdrop blur, and borders, matching the "Change Stage" dropdown design across the entire application
+9. **Enhanced Header Icon Buttons**: Improved notification button with red background for attention-grabbing, and profile button with teal border and amber hover background for better visual definition
+10. **Updated Theme Design System with Teal/Cyan Primary Color and Gradients**: Implemented new teal/cyan-based theme system based on the landing page image reference, replacing the previous blue color scheme with vibrant teal/cyan (#0EA5E9) for buttons, selected items, and primary UI elements, now including subtle vertical gradients
+11. **Enhanced Color Palette**: Added comprehensive teal/cyan color variants (50-950) to Tailwind config and CSS custom properties for consistent theming across all components
+12. **Updated Toast Component**: Modified toast variants to use the new teal/cyan primary color instead of blue, ensuring visual consistency with the new theme
+13. **Created Teal/Cyan Theme CSS**: Added new theme-adaptive.css with teal/cyan color system, utility classes, button variants with gradients, and consistent theming
+14. **Integrated with Existing System**: Updated index.css to use the new teal/cyan theme system while maintaining compatibility with existing Tailwind classes and CSS variables
+15. **Added Gradient Support**: Implemented subtle vertical gradients for buttons that match the image reference, with hover effects and smooth transitions
+16. **Maintained Accessibility**: Ensured all new color combinations meet WCAG contrast requirements for manufacturing environments
+17. **Project Card State Control Optimization**: Fixed whole screen refresh issues by implementing granular state management, selective real-time subscriptions, and removing unnecessary refetch calls
+18. **Created useProjectUpdate Hook**: Built specialized hook for individual project updates with local state management and optimistic updates
+19. **Enhanced Cache Service**: Implemented differential updates and increased cache duration from 5 to 15 minutes for better stability
+20. **Optimized Real-time Subscriptions**: Replaced broad subscriptions with selective project-specific subscriptions to prevent unnecessary updates
+21. **Created ProjectCardWrapper Component**: Built wrapper component for better state isolation and reduced re-renders
+22. **Removed Unnecessary Refetch Calls**: Eliminated refetch(true) calls from status change handlers that were causing full screen refreshes
+23. **Implemented Smooth Project Stage Transition Animations**: Added comprehensive fade in/out animations and smooth transitions when project stages change to eliminate jarring screen refreshes
+24. **Fixed Project Table Stage Change Issues**: Resolved stage change functionality in table view by properly connecting updateProjectStatusOptimistic and refetch functions, added workflow validation, and implemented comprehensive debugging
+25. **Enhanced Project Table with Sorting**: Added sorting functionality for name, stage, and priority columns with visual indicators and enhanced user experience
+26. **Improved Project Table Column Headers**: Changed "Status" column to "Stage" for better clarity and added interactive sorting buttons with arrow indicators
+27. **Created AnimatedProjectCard Component**: Built reusable animated project card component with smooth transitions, loading states, and enhanced user experience
+28. **Created AnimatedTableRow Component**: Built animated table row component for smooth stage changes in table view with fade in/out effects
+29. **Enhanced WorkflowFlowchart Animations**: Added motion animations to stage counts, workflow visualization, and project grid with staggered entrance effects
+30. **Enhanced StageFlowchart Animations**: Added smooth hover effects and entrance animations to stage selection cards
+31. **Added Project Animation CSS**: Created comprehensive CSS file with smooth transitions, enhanced hover effects, and loading states
+32. **Improved User Experience**: Projects now smoothly animate between stages instead of abrupt refreshes, providing professional and polished feel
+33. **ProjectTable Component Optimization**: Cleaned up unused state variables, removed unused imports, extracted utility functions, and improved code organization for better maintainability
+34. **Fixed Duplicate Workflow Visualization Issue**: Removed duplicate "Workflow Visualization" and "Kanban-style project list" sections from WorkflowFlowchart component that were causing UI duplication
+35. **Improved Real-time Updates**: Fixed bug in useProjects hook where real-time subscription cache updates were using stale state, preventing automatic project stage updates
+36. **Enhanced Refresh Button**: Added explanatory text and improved refresh button to clarify that real-time updates should happen automatically
+37. **UI Cleanup**: Streamlined WorkflowFlowchart component to show single workflow visualization and project list sections
+38. **Better User Experience**: Users now see only one workflow visualization and understand when manual refresh is needed
+39. **Added debugging for project status update issues**: Added console logs to track optimistic updates and stage count recalculations to debug UI update problems
+40. **Enhanced reactivity for WorkflowFlowchart**: Wrapped projectsByStage calculation in useMemo with proper dependencies for better reactivity when projects change
+41. **CRITICAL FIX - Project Status Update Issue**: Identified and fixed root cause where `technical_review` and `supplier_rfq_sent` were both mapped to same database value `review`, causing optimistic updates to be reverted by real-time subscription
+42. **Database Schema Update**: Added missing `supplier_rfq` and `procurement` status values to project_status enum to support complete workflow with distinct database values for each stage
+43. **Enhanced Database Update Logging**: Added comprehensive logging for database updates and real-time subscription events to track status change issues
+44. **FIXED - Supplier RFQ to Quoted Transition**: Resolved validation error blocking transition from "Supplier RFQ Sent" to "Quoted" by making supplier quotes optional for MVP and converting hard errors to warnings
 
 ### 2025-08-25
 - **Smooth Project Stage Transition Animations Implementation Complete**:

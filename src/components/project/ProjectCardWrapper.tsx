@@ -2,8 +2,6 @@ import React, { useState, useEffect } from 'react';
 import { Project, ProjectStatus } from '@/types/project';
 import { AnimatedProjectCard } from './AnimatedProjectCard';
 import { useProjectUpdate } from '@/hooks/useProjectUpdate';
-import { PROJECT_STAGES } from '@/types/project';
-import { WorkflowValidator } from '@/lib/workflow-validator';
 
 interface ProjectCardWrapperProps {
     project: Project;
@@ -27,33 +25,6 @@ export function ProjectCardWrapper({
         setLocalProject(project);
     }, [project.id, project.status]);
 
-    // Get available stages for a project
-    const getAvailableStages = (project: Project) => {
-        const currentStageIndex = WorkflowValidator.getStageIndex(project.status);
-
-        // Return all stages but mark them with validation status
-        return PROJECT_STAGES.map(stage => ({
-            ...stage,
-            canMoveTo: WorkflowValidator.canMoveToStage(project, stage.id),
-            isNextStage: WorkflowValidator.getNextValidStages(project.status)[0] === stage.id,
-            isCurrentStage: project.status === stage.id
-        }));
-    };
-
-    // Handle status change with local state management
-    const handleStatusChange = async (projectId: string, newStatus: ProjectStatus) => {
-        // Validate the status change
-        const validationResult = await WorkflowValidator.validateStatusChange(project, newStatus);
-
-        if (!validationResult.isValid) {
-            // Validation errors are handled by the hook via toast
-            return;
-        }
-
-        // Update the status
-        await updateStatus(newStatus);
-    };
-
     // Create a project object with the effective status (local or original)
     const effectiveProject = {
         ...localProject,
@@ -66,8 +37,8 @@ export function ProjectCardWrapper({
         <AnimatedProjectCard
             key={`${project.id}-${effectiveProject.status}`}
             project={effectiveProject}
-            onStatusChange={handleStatusChange}
-            getAvailableStages={getAvailableStages}
+            onStatusChange={async () => { }} // No-op since stage changes are now handled in project details
+            getAvailableStages={() => []} // No-op since stage changes are now handled in project details
             getPriorityColor={getPriorityColor}
             formatCurrency={formatCurrency}
             formatDate={formatDate}
