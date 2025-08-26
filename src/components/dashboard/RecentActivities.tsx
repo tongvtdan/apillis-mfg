@@ -6,7 +6,10 @@ import {
   CheckCircle,
   Building2,
   AlertTriangle,
-  TrendingUp
+  TrendingUp,
+  Send,
+  Package,
+  Cog
 } from "lucide-react";
 
 export function RecentActivities() {
@@ -37,14 +40,13 @@ export function RecentActivities() {
 
   const getActivityIcon = (status: string) => {
     switch (status) {
-      case 'inquiry':
       case 'inquiry_received': return FileText;
-      case 'won':
       case 'order_confirmed': return CheckCircle;
       case 'quoted': return TrendingUp;
-      case 'review':
       case 'technical_review': return Building2;
-      case 'lost':
+      case 'supplier_rfq_sent': return Send;
+      case 'procurement_planning': return Package;
+      case 'in_production': return Cog;
       case 'shipped_closed': return AlertTriangle;
       default: return FileText;
     }
@@ -53,14 +55,13 @@ export function RecentActivities() {
   // Get the status badge classes
   const getStatusClass = (status: string) => {
     switch (status) {
-      case 'inquiry':
       case 'inquiry_received': return 'status-badge status-badge-sm status-inquiry';
-      case 'won':
       case 'order_confirmed': return 'status-badge status-badge-sm status-active';
       case 'quoted': return 'status-badge status-badge-sm status-quote';
-      case 'review':
       case 'technical_review': return 'status-badge status-badge-sm status-review';
-      case 'lost':
+      case 'supplier_rfq_sent': return 'status-badge status-badge-sm status-active';
+      case 'procurement_planning': return 'status-badge status-badge-sm status-review';
+      case 'in_production': return 'status-badge status-badge-sm status-active';
       case 'shipped_closed': return 'status-badge status-badge-sm status-overdue';
       default: return 'status-badge status-badge-sm';
     }
@@ -69,18 +70,20 @@ export function RecentActivities() {
   // Get the list item classes with enhanced styling
   const getListItemClass = (status: string) => {
     switch (status) {
-      case 'inquiry':
       case 'inquiry_received':
         return 'enhanced-list-item enhanced-list-item-normal border-l-4 border-l-blue-400 bg-blue-50/10 dark:bg-blue-950/10';
-      case 'won':
       case 'order_confirmed':
         return 'enhanced-list-item enhanced-list-item-active border-l-4 border-l-green-400 bg-green-50/10 dark:bg-green-950/10';
       case 'quoted':
         return 'enhanced-list-item enhanced-list-item-medium border-l-4 border-l-purple-400 bg-purple-50/10 dark:bg-purple-950/10';
-      case 'review':
       case 'technical_review':
         return 'enhanced-list-item enhanced-list-item-normal border-l-4 border-l-yellow-400 bg-yellow-50/10 dark:bg-yellow-950/10';
-      case 'lost':
+      case 'supplier_rfq_sent':
+        return 'enhanced-list-item enhanced-list-item-normal border-l-4 border-l-indigo-400 bg-indigo-50/10 dark:bg-indigo-950/10';
+      case 'procurement_planning':
+        return 'enhanced-list-item enhanced-list-item-normal border-l-4 border-l-yellow-400 bg-yellow-50/10 dark:bg-yellow-950/10';
+      case 'in_production':
+        return 'enhanced-list-item enhanced-list-item-active border-l-4 border-l-teal-400 bg-teal-50/10 dark:bg-teal-950/10';
       case 'shipped_closed':
         return 'enhanced-list-item enhanced-list-item-high border-l-4 border-l-red-400 bg-red-50/10 dark:bg-red-950/10';
       default:
@@ -91,14 +94,13 @@ export function RecentActivities() {
   // Get activity icon color with enhanced visibility
   const getIconColorClass = (status: string) => {
     switch (status) {
-      case 'inquiry':
       case 'inquiry_received': return 'text-blue-600 dark:text-blue-400';
-      case 'won':
       case 'order_confirmed': return 'text-green-600 dark:text-green-400';
       case 'quoted': return 'text-purple-600 dark:text-purple-400';
-      case 'review':
       case 'technical_review': return 'text-yellow-600 dark:text-yellow-400';
-      case 'lost':
+      case 'supplier_rfq_sent': return 'text-indigo-600 dark:text-indigo-400';
+      case 'procurement_planning': return 'text-yellow-600 dark:text-yellow-400';
+      case 'in_production': return 'text-teal-600 dark:text-teal-400';
       case 'shipped_closed': return 'text-red-600 dark:text-red-400';
       default: return 'text-gray-600 dark:text-gray-400';
     }
@@ -107,14 +109,13 @@ export function RecentActivities() {
   // Get icon background class with enhanced styling
   const getIconBgClass = (status: string) => {
     switch (status) {
-      case 'inquiry':
       case 'inquiry_received': return 'bg-blue-100 dark:bg-blue-950/70 shadow-sm';
-      case 'won':
       case 'order_confirmed': return 'bg-green-100 dark:bg-green-950/70 shadow-sm';
       case 'quoted': return 'bg-purple-100 dark:bg-purple-950/70 shadow-sm';
-      case 'review':
       case 'technical_review': return 'bg-yellow-100 dark:bg-yellow-950/70 shadow-sm';
-      case 'lost':
+      case 'supplier_rfq_sent': return 'bg-indigo-100 dark:bg-indigo-950/70 shadow-sm';
+      case 'procurement_planning': return 'bg-yellow-100 dark:bg-yellow-950/70 shadow-sm';
+      case 'in_production': return 'bg-teal-100 dark:bg-teal-950/70 shadow-sm';
       case 'shipped_closed': return 'bg-red-100 dark:bg-red-950/70 shadow-sm';
       default: return 'bg-gray-100 dark:bg-gray-800/80 shadow-sm';
     }
@@ -123,14 +124,13 @@ export function RecentActivities() {
   // Get text styling based on status
   const getTitleClass = (status: string) => {
     switch (status) {
-      case 'inquiry':
       case 'inquiry_received': return 'text-sm font-medium text-blue-800 dark:text-blue-300';
-      case 'won':
       case 'order_confirmed': return 'text-sm font-medium text-green-800 dark:text-green-300';
       case 'quoted': return 'text-sm font-medium text-purple-800 dark:text-purple-300';
-      case 'review':
       case 'technical_review': return 'text-sm font-medium text-yellow-800 dark:text-yellow-300';
-      case 'lost':
+      case 'supplier_rfq_sent': return 'text-sm font-medium text-indigo-800 dark:text-indigo-300';
+      case 'procurement_planning': return 'text-sm font-medium text-yellow-800 dark:text-yellow-300';
+      case 'in_production': return 'text-sm font-medium text-teal-800 dark:text-teal-300';
       case 'shipped_closed': return 'text-sm font-medium text-red-800 dark:text-red-300';
       default: return 'text-sm font-medium text-foreground';
     }

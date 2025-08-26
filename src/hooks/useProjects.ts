@@ -13,41 +13,7 @@ import { useToast } from '@/hooks/use-toast';
 import { WorkflowValidator, WorkflowValidationResult } from '@/lib/workflow-validator';
 import { cacheService } from '@/services/cacheService';
 
-// Legacy status to new status mapping
-const LEGACY_TO_NEW_STATUS: Record<string, ProjectStatus> = {
-  'inquiry': 'inquiry_received',
-  'review': 'technical_review',
-  'supplier_rfq': 'supplier_rfq_sent',
-  'quoted': 'quoted',
-  'won': 'order_confirmed',
-  'procurement': 'procurement_planning',
-  'production': 'in_production',
-  'completed': 'shipped_closed',
-  'lost': 'shipped_closed',
-  'cancelled': 'shipped_closed'
-};
-
-// New status to legacy status mapping for database operations
-const NEW_TO_LEGACY_STATUS: Record<ProjectStatus, string> = {
-  'inquiry_received': 'inquiry',
-  'technical_review': 'review',
-  'supplier_rfq_sent': 'supplier_rfq',
-  'quoted': 'quoted',
-  'order_confirmed': 'won',
-  'procurement_planning': 'procurement',
-  'in_production': 'production',
-  'shipped_closed': 'completed'
-};
-
-// Helper function to map legacy status to new status
-const mapLegacyStatusToNew = (legacyStatus: string): ProjectStatus => {
-  return LEGACY_TO_NEW_STATUS[legacyStatus] || 'inquiry_received';
-};
-
-// Helper function to map new status to legacy status for database
-const mapNewStatusToLegacy = (newStatus: ProjectStatus): string => {
-  return NEW_TO_LEGACY_STATUS[newStatus] || 'inquiry';
-};
+// Database now uses new status values directly - no mapping needed
 
 export function useProjects() {
   const [projects, setProjects] = useState<Project[]>([]);
@@ -93,11 +59,8 @@ export function useProjects() {
         return;
       }
 
-      // Map legacy status values to new status values
-      const mappedProjects = (data || []).map(project => ({
-        ...project,
-        status: mapLegacyStatusToNew(project.status)
-      }));
+      // Database now uses new status values directly - cast to Project type
+      const mappedProjects = (data || []) as Project[];
 
       // Cache the data
       cacheService.setProjects(mappedProjects);
@@ -134,8 +97,7 @@ export function useProjects() {
         (payload) => {
           console.log('🔔 Selective real-time update received:', {
             projectId: payload.new.id,
-            newStatus: payload.new.status,
-            mappedStatus: mapLegacyStatusToNew(payload.new.status)
+            newStatus: payload.new.status
           });
 
           // Update only the specific project
@@ -145,7 +107,7 @@ export function useProjects() {
                 ? {
                   ...project,
                   ...payload.new,
-                  status: mapLegacyStatusToNew((payload.new as any).status),
+                  status: (payload.new as any).status,
                   updated_at: new Date().toISOString()
                 }
                 : project
@@ -166,10 +128,7 @@ export function useProjects() {
         },
         (payload) => {
           console.log('🔔 New project created:', payload.new);
-          const newProject = {
-            ...payload.new as Project,
-            status: mapLegacyStatusToNew((payload.new as any).status)
-          };
+          const newProject = payload.new as Project;
 
           setProjects(prev => {
             const updatedProjects = [newProject, ...prev];
@@ -217,7 +176,7 @@ export function useProjects() {
             projectId: payload.new.id,
             oldStatus: payload.old?.status,
             newStatus: payload.new.status,
-            mappedStatus: mapLegacyStatusToNew((payload.new as any).status),
+            // Status is already in new format
             fullPayload: payload
           });
 
@@ -230,7 +189,7 @@ export function useProjects() {
               updatedProjects[projectIndex] = {
                 ...updatedProjects[projectIndex],
                 ...payload.new,
-                status: mapLegacyStatusToNew((payload.new as any).status),
+                status: (payload.new as any).status,
                 updated_at: new Date().toISOString()
               };
 
@@ -252,10 +211,7 @@ export function useProjects() {
         },
         (payload) => {
           console.log('🔔 Global new project created:', payload.new);
-          const newProject = {
-            ...payload.new as Project,
-            status: mapLegacyStatusToNew((payload.new as any).status)
-          };
+          const newProject = payload.new as Project;
 
           setProjects(prev => {
             const updatedProjects = [newProject, ...prev];
@@ -316,7 +272,7 @@ export function useProjects() {
       const { error } = await supabase
         .from('projects')
         .update({
-          status: mapNewStatusToLegacy(newStatus) as any,
+          status: newStatus,
           updated_at: new Date().toISOString()
         })
         .eq('id', projectId);
@@ -409,7 +365,7 @@ export function useProjects() {
       const { error, data } = await supabase
         .from('projects')
         .update({
-          status: mapNewStatusToLegacy(newStatus) as any,
+          status: newStatus,
           updated_at: new Date().toISOString()
         })
         .eq('id', projectId)
@@ -496,7 +452,7 @@ export function useProjects() {
         title: projectData.title!,
         description: projectData.description,
         customer_id: projectData.customer_id,
-        status: mapNewStatusToLegacy(projectData.status || 'inquiry_received'),
+        status: projectData.status || 'inquiry_received',
         priority: projectData.priority || 'medium',
         priority_score: projectData.priority_score,
         assignee_id: projectData.assignee_id,
@@ -524,7 +480,7 @@ export function useProjects() {
         throw error;
       }
 
-      setProjects(prev => [{ ...data, status: mapLegacyStatusToNew(data.status) }, ...prev]);
+      setProjects(prev => [{ ...data, status: data.status } as Project, ...prev]);
       return data;
     } catch (err) {
       console.error('Error in createProject:', err);
@@ -686,7 +642,7 @@ export function useProjects() {
         customer: data.customer?.name || 'No customer'
       });
 
-      return { ...data, status: mapLegacyStatusToNew(data.status) };
+      return { ...data, status: data.status } as Project;
     } catch (err) {
       console.error('💥 Critical error in getProjectById:', err);
       throw err;

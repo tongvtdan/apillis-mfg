@@ -17,8 +17,15 @@ This file contains important changes and updates made to the project.
      - `review` → `technical_review` (1 record)
      - `production` → `in_production` (1 record)
    - **Set new defaults**: Updated default status values for both projects and RFQs tables to use `inquiry_received`
-   - **Maintained backward compatibility**: All status mapping logic continues to work for any remaining legacy values
-2. **TypeScript Types Update**: Updated RFQ status types to support both legacy and new values for complete backward compatibility
+   - **Removed legacy status mapping**: Eliminated all legacy status mapping code since database now uses new values directly
+2. **Code Cleanup - Legacy Status Mapping Removed**: 
+   - **Removed mapLegacyStatusToNew function**: No longer needed since database returns new status values directly
+   - **Removed mapNewStatusToLegacy function**: No longer needed since database accepts new status values directly
+   - **Updated useProjects hook**: Removed all legacy status mapping logic and simplified database operations
+   - **Updated projectService**: Removed legacy status mapping methods and simplified project fetching
+   - **Updated component status handling**: Updated ProjectProgressCard, ProjectOverviewCard, and RecentActivities to use new status values only
+   - **Updated RFQ types**: Cleaned up RFQStatus type to only include new status values
+   - **Improved performance**: Eliminated unnecessary status mapping operations and simplified data flow
 3. **Build Fixes**: Resolved various TypeScript compilation errors:
    - Removed problematic test file that was missing test dependencies
    - Fixed ReviewAssignmentModal default props configuration

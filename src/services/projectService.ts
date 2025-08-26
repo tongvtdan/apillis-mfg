@@ -130,18 +130,8 @@ class ProjectService {
                     throw new Error(`Project with ID "${id}" not found in Supabase`);
                 }
 
-                // Map legacy status to new status if needed
-                const originalStatus = data.status;
-                const mappedStatus = this.mapLegacyStatusToNew(data.status);
-
-                if (originalStatus !== mappedStatus) {
-                    console.log(`🔄 ProjectService: Status mapped from "${originalStatus}" to "${mappedStatus}"`);
-                }
-
-                const mappedProject = {
-                    ...data,
-                    status: mappedStatus
-                };
+                // Database now uses new status values directly - no mapping needed
+                const mappedProject = data;
 
                 resolve(mappedProject);
             } catch (error) {
@@ -176,20 +166,8 @@ class ProjectService {
                     throw new Error(`Supabase error: ${error.message} (Code: ${error.code})`);
                 }
 
-                // Map legacy status to new status if needed
-                const mappedProjects = (data || []).map(project => {
-                    const originalStatus = project.status;
-                    const mappedStatus = this.mapLegacyStatusToNew(project.status);
-
-                    if (originalStatus !== mappedStatus) {
-                        console.log(`🔄 ProjectService: Project ${project.id} status mapped from "${originalStatus}" to "${mappedStatus}"`);
-                    }
-
-                    return {
-                        ...project,
-                        status: mappedStatus
-                    };
-                });
+                // Database now uses new status values directly - no mapping needed
+                const mappedProjects = data || [];
 
                 resolve(mappedProjects);
             } catch (error) {
@@ -199,24 +177,7 @@ class ProjectService {
         });
     }
 
-    // Helper function to map legacy status to new status
-    private mapLegacyStatusToNew(legacyStatus: string): any {
-        // Use the same mapping as useProjects hook for consistency
-        const LEGACY_TO_NEW_STATUS: Record<string, string> = {
-            'inquiry': 'inquiry_received',
-            'review': 'technical_review',
-            'supplier_rfq': 'supplier_rfq_sent',
-            'quoted': 'quoted',
-            'won': 'order_confirmed',
-            'procurement': 'procurement_planning',
-            'production': 'in_production',
-            'completed': 'shipped_closed',
-            'lost': 'shipped_closed',
-            'cancelled': 'shipped_closed'
-        };
 
-        return LEGACY_TO_NEW_STATUS[legacyStatus] || legacyStatus;
-    }
 }
 
 // Export singleton instance

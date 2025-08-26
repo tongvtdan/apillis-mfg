@@ -8,10 +8,14 @@ interface ProjectOverviewCardProps {
 }
 
 const workflowSteps = [
-  { id: 'inquiry', label: 'Intake' },
-  { id: 'review', label: 'Review' },
+  { id: 'inquiry_received', label: 'Intake' },
+  { id: 'technical_review', label: 'Review' },
+  { id: 'supplier_rfq_sent', label: 'Supplier RFQ' },
   { id: 'quoted', label: 'Quoted' },
-  { id: 'won', label: 'Production' }
+  { id: 'order_confirmed', label: 'Order Confirmed' },
+  { id: 'procurement_planning', label: 'Procurement' },
+  { id: 'in_production', label: 'Production' },
+  { id: 'shipped_closed', label: 'Delivered' }
 ];
 
 const priorityColors = {

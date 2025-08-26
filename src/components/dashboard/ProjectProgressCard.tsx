@@ -10,11 +10,14 @@ interface ProjectProgressCardProps {
 }
 
 const workflowSteps = [
-  { id: 'inquiry', label: 'Intake', description: 'Initial inquiry received' },
-  { id: 'review', label: 'Internal Review', description: 'Engineering & QA review' },
+  { id: 'inquiry_received', label: 'Intake', description: 'Initial inquiry received' },
+  { id: 'technical_review', label: 'Internal Review', description: 'Engineering & QA review' },
+  { id: 'supplier_rfq_sent', label: 'Supplier RFQ', description: 'RFQ sent to suppliers' },
   { id: 'quoted', label: 'Quoted', description: 'Quote generated' },
-  { id: 'won', label: 'Production', description: 'In production' },
-  { id: 'delivered', label: 'Delivered', description: 'Completed delivery' }
+  { id: 'order_confirmed', label: 'Order Confirmed', description: 'Order confirmed' },
+  { id: 'procurement_planning', label: 'Procurement', description: 'Procurement planning' },
+  { id: 'in_production', label: 'Production', description: 'In production' },
+  { id: 'shipped_closed', label: 'Delivered', description: 'Completed delivery' }
 ];
 
 const priorityColors = {
@@ -24,11 +27,14 @@ const priorityColors = {
 } as const;
 
 const statusBadgeColors = {
-  inquiry: "bg-orange-100 text-orange-800",
-  review: "bg-yellow-100 text-yellow-800",
+  inquiry_received: "bg-orange-100 text-orange-800",
+  technical_review: "bg-yellow-100 text-yellow-800",
+  supplier_rfq_sent: "bg-indigo-100 text-indigo-800",
   quoted: "bg-blue-100 text-blue-800",
-  won: "bg-green-100 text-green-800",
-  lost: "bg-red-100 text-red-800"
+  order_confirmed: "bg-green-100 text-green-800",
+  procurement_planning: "bg-yellow-100 text-yellow-800",
+  in_production: "bg-teal-100 text-teal-800",
+  shipped_closed: "bg-gray-100 text-gray-800"
 } as const;
 
 export function ProjectProgressCard({ project }: ProjectProgressCardProps) {
