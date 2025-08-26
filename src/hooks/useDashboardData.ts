@@ -1,8 +1,6 @@
 import { useQuery } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 
-console.log('🔧 useDashboardData.ts: Hook file loaded');
-
 export interface DashboardSummary {
   projects: {
     total: number;
@@ -34,18 +32,16 @@ export interface DashboardSummary {
 }
 
 export function useDashboardData() {
-  console.log('🔧 useDashboardData: Hook called');
-  
   return useQuery({
     queryKey: ['dashboard-summary'],
     queryFn: async (): Promise<DashboardSummary> => {
       const { data, error } = await supabase.rpc('get_dashboard_summary');
-      
+
       if (error) {
         console.error('Error fetching dashboard summary:', error);
         throw error;
       }
-      
+
       return data as unknown as DashboardSummary;
     },
     staleTime: 30000, // 30 seconds

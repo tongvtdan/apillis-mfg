@@ -6,6 +6,7 @@ import { Button } from "@/components/ui/button";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { ExternalLink, User } from "lucide-react";
 import { Project, ProjectStatus, PROJECT_STAGES } from "@/types/project";
+import { useUserDisplayName, useUsers } from "@/hooks/useUsers";
 
 interface AnimatedTableRowProps {
     project: Project;
@@ -28,6 +29,9 @@ export function AnimatedTableRow({
     formatCurrency,
     isUpdating = false
 }: AnimatedTableRowProps) {
+    // Get assignee display name at the top level
+    const assigneeDisplayName = useUserDisplayName(project.assignee_id);
+
     const handleStatusChange = async (projectId: string, newStatus: ProjectStatus) => {
         console.log(`🔄 AnimatedTableRow: Status change triggered for project ${projectId} to ${newStatus}`);
         await onStatusChange(projectId, newStatus);
@@ -100,12 +104,7 @@ export function AnimatedTableRow({
                     </Badge>
                 </TableCell>
                 <TableCell>
-                    <div className="flex items-center gap-2">
-                        <User className="h-4 w-4" />
-                        <span className="text-sm">
-                            {project.assignee_id || 'Unassigned'}
-                        </span>
-                    </div>
+                    <AssigneeCell assigneeId={project.assignee_id} displayName={assigneeDisplayName} />
                 </TableCell>
                 <TableCell>
                     <div className="text-sm">
@@ -129,5 +128,17 @@ export function AnimatedTableRow({
                 </TableCell>
             </motion.tr>
         </AnimatePresence>
+    );
+}
+
+// Helper component to display assignee
+function AssigneeCell({ assigneeId, displayName }: { assigneeId?: string; displayName: string }) {
+    return (
+        <div className="flex items-center gap-2">
+            <User className="h-4 w-4" />
+            <span className="text-sm">
+                {assigneeId ? displayName : 'Unassigned'}
+            </span>
+        </div>
     );
 }

@@ -123,8 +123,17 @@ export function WorkflowStepper({ project }: WorkflowStepperProps) {
     });
   }, [project.id, project.status, project.updated_at]);
 
+  // Debug logging to help identify status mapping issues
+  useEffect(() => {
+    if (project?.status && !stageConfig[project.status]) {
+      console.warn(`🚨 WorkflowStepper: Unknown project status "${project.status}" not found in stageConfig`);
+      console.warn(`🚨 Available stages:`, Object.keys(stageConfig));
+      console.warn(`🚨 Project:`, project);
+    }
+  }, [project?.status]);
+
   const currentIndex = allStages.indexOf(project.status);
-  const progressPercentage = Math.round((currentIndex / (allStages.length - 1)) * 100);
+  const progressPercentage = currentIndex >= 0 ? Math.round((currentIndex / (allStages.length - 1)) * 100) : 0;
 
   const handleStageClick = async (stage: ProjectStatus) => {
     if (stage === project.status) return;
@@ -208,7 +217,7 @@ export function WorkflowStepper({ project }: WorkflowStepperProps) {
         await updateProjectStatus(bypassDialog.targetStage);
         toast({
           title: "Status Updated",
-          description: `Project status changed to ${stageConfig[bypassDialog.targetStage].title} (bypassed)`,
+          description: `Project status changed to ${stageConfig[bypassDialog.targetStage]?.title || 'Unknown Stage'} (bypassed)`,
         });
       }
     } catch (err) {
@@ -227,7 +236,7 @@ export function WorkflowStepper({ project }: WorkflowStepperProps) {
     if (success) {
       toast({
         title: "Status Updated",
-        description: `Project status changed to ${stageConfig[stage].title}`,
+        description: `Project status changed to ${stageConfig[stage]?.title || 'Unknown Stage'}`,
       });
     } else {
       setError("Failed to update project status. Please try again.");
@@ -249,6 +258,7 @@ export function WorkflowStepper({ project }: WorkflowStepperProps) {
 
   const getStageStatus = (stage: ProjectStatus) => {
     const index = allStages.indexOf(stage);
+    if (index < 0) return 'pending'; // Handle unknown stages
     if (index < currentIndex) return 'completed';
     if (index === currentIndex) return 'current';
     return 'pending';
@@ -256,7 +266,14 @@ export function WorkflowStepper({ project }: WorkflowStepperProps) {
 
   const getStatusIcon = (stage: ProjectStatus) => {
     const status = getStageStatus(stage);
-    const Icon = stageConfig[stage].icon;
+    const stageConfigItem = stageConfig[stage];
+
+    if (!stageConfigItem) {
+      console.warn(`Warning: stageConfig not found for stage: ${stage}`);
+      return <Circle className="w-5 h-5 text-gray-300" />;
+    }
+
+    const Icon = stageConfigItem.icon;
 
     switch (status) {
       case 'completed':
@@ -282,12 +299,19 @@ export function WorkflowStepper({ project }: WorkflowStepperProps) {
 
   const getConnectorColor = (stage: ProjectStatus) => {
     const index = allStages.indexOf(stage);
+    if (index < 0) return 'bg-gray-200'; // Handle unknown stages
     if (index < currentIndex) return 'bg-green-600';
     return 'bg-gray-200';
   };
 
   const getStageTooltipContent = (stage: ProjectStatus, status: 'completed' | 'current' | 'pending') => {
-    const stageTitle = stageConfig[stage].title;
+    const stageConfigItem = stageConfig[stage];
+    if (!stageConfigItem) {
+      console.warn(`Warning: stageConfig not found for stage: ${stage}`);
+      return 'Unknown stage';
+    }
+
+    const stageTitle = stageConfigItem.title;
 
     const stageDescriptions: Record<ProjectStatus, {
       description: string;
@@ -438,7 +462,7 @@ export function WorkflowStepper({ project }: WorkflowStepperProps) {
             {allStages.map((stage, index) => {
               const status = getStageStatus(stage);
               const isClickable = status !== 'current' && !isUpdating;
-              const stageTitle = stageConfig[stage].title;
+              const stageTitle = stageConfig[stage]?.title || 'Unknown Stage';
 
               return (
                 <React.Fragment key={stage}>
@@ -460,7 +484,7 @@ export function WorkflowStepper({ project }: WorkflowStepperProps) {
                           <div className={`
                           relative flex items-center justify-center w-12 h-12 rounded-full border-2 mb-2
                           ${getStatusColor(stage)}
-                          ${stageConfig[stage].bgColor}
+                          ${stageConfig[stage]?.bgColor || 'bg-gray-100'}
                           ${isClickable ? 'hover:shadow-md focus:ring-2 focus:ring-blue-500 focus:outline-none' : ''}
                           transition-all duration-200
                         `}>
@@ -496,7 +520,7 @@ export function WorkflowStepper({ project }: WorkflowStepperProps) {
             {allStages.map((stage, index) => {
               const status = getStageStatus(stage);
               const isClickable = status !== 'current' && !isUpdating;
-              const stageTitle = stageConfig[stage].title;
+              const stageTitle = stageConfig[stage]?.title || 'Unknown Stage';
 
               return (
                 <div key={stage} className="flex items-center">
@@ -504,7 +528,7 @@ export function WorkflowStepper({ project }: WorkflowStepperProps) {
                     className={`
                     relative flex items-center justify-center w-10 h-10 rounded-full border-2 mr-4
                     ${getStatusColor(stage)}
-                    ${stageConfig[stage].bgColor}
+                    ${stageConfig[stage]?.bgColor || 'bg-gray-100'}
                     ${isClickable ? 'cursor-pointer hover:shadow-lg focus:ring-2 focus:ring-blue-500 focus:outline-none' : ''}
                     transition-all duration-200
                   `}
@@ -567,7 +591,7 @@ export function WorkflowStepper({ project }: WorkflowStepperProps) {
                   onClick={handleAutoAdvance}
                   className="bg-green-600 hover:bg-green-700 text-white"
                 >
-                  Auto-Advance to {stageConfig[nextStage].title}
+                  Auto-Advance to {stageConfig[nextStage]?.title || 'Unknown Stage'}
                 </Button>
               </div>
               <p className="text-xs text-green-600 mt-1">{autoAdvanceReason}</p>
@@ -581,8 +605,8 @@ export function WorkflowStepper({ project }: WorkflowStepperProps) {
         isOpen={bypassDialog.isOpen}
         onClose={() => setBypassDialog({ isOpen: false, targetStage: null, warnings: [] })}
         onConfirm={handleBypassConfirm}
-        currentStage={stageConfig[project.status].title}
-        nextStage={bypassDialog.targetStage ? stageConfig[bypassDialog.targetStage].title : ''}
+        currentStage={stageConfig[project.status]?.title || 'Unknown Stage'}
+        nextStage={bypassDialog.targetStage ? stageConfig[bypassDialog.targetStage]?.title || 'Unknown Stage' : ''}
         validationWarnings={bypassDialog.warnings}
       />
     </>

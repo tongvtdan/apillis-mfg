@@ -70,7 +70,6 @@ export function useProjects() {
       if (!forceRefresh && cacheService.isCacheValid()) {
         const cachedProjects = cacheService.getProjects();
         if (cachedProjects) {
-          console.log('🔄 Using cached projects data');
           setProjects(cachedProjects);
           setLoading(false);
           return;
@@ -398,11 +397,6 @@ export function useProjects() {
         : project
     );
 
-    console.log(`🚀 Optimistic update: Project ${projectId} from ${oldStatus} to ${newStatus}`);
-    console.log('📊 Updated projects count:', updatedProjects.length);
-    console.log('🔄 Projects before update:', projects.map(p => ({ id: p.id, status: p.status })));
-    console.log('🔄 Projects after update:', updatedProjects.map(p => ({ id: p.id, status: p.status })));
-
     setProjects(updatedProjects);
 
     // Immediately write to cache for instant UI updates
@@ -412,8 +406,6 @@ export function useProjects() {
     cacheService.updateProject(projectId, { status: newStatus, updated_at: new Date().toISOString() });
 
     try {
-      console.log(`🔄 Attempting database update: ${projectId} to ${mapNewStatusToLegacy(newStatus)}`);
-
       const { error, data } = await supabase
         .from('projects')
         .update({
@@ -422,8 +414,6 @@ export function useProjects() {
         })
         .eq('id', projectId)
         .select('id, status');
-
-      console.log('🔄 Database update result:', { error, data, mappedStatus: mapNewStatusToLegacy(newStatus) });
 
       if (error) {
         console.error('❌ Database update failed:', error);
@@ -444,9 +434,6 @@ export function useProjects() {
         });
         return false;
       }
-
-      console.log('✅ Database update successful:', data);
-      console.log('🔄 Database update should trigger real-time subscription for project:', projectId);
 
       // Log successful update for debugging
       console.log('✅ Database update successful, real-time subscription should handle UI updates');
@@ -602,17 +589,11 @@ export function useProjects() {
 
     // Prevent infinite re-subscription loops
     if (globalChannelRef.current) {
-      console.log('🔔 Global real-time subscription already active, skipping setup');
       return;
     }
 
     // Set up global subscription for all project updates (simplified approach)
     subscribeToGlobalProjectUpdates();
-
-    // Test real-time subscription by logging subscription status
-    console.log('🔔 Global real-time subscription set up:', {
-      globalChannel: !!globalChannelRef.current
-    });
 
     return () => {
       if (globalChannelRef.current) {

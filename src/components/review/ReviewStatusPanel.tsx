@@ -3,10 +3,10 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible';
-import { 
-  InternalReview, 
-  RFQRisk, 
-  RFQClarification, 
+import {
+  InternalReview,
+  RFQRisk,
+  RFQClarification,
   Department,
   DEPARTMENT_LABELS,
   STATUS_COLORS,
@@ -14,9 +14,9 @@ import {
   RISK_CATEGORY_COLORS
 } from '@/types/review';
 import { RFQ } from '@/types/rfq';
-import { 
-  CheckCircle, 
-  XCircle, 
+import {
+  CheckCircle,
+  XCircle,
   AlertCircle,
   Clock,
   ChevronDown,
@@ -25,6 +25,7 @@ import {
   User
 } from 'lucide-react';
 import { formatDistanceToNow } from 'date-fns';
+import { useUserDisplayName, useUsers } from '@/hooks/useUsers';
 
 interface ReviewStatusPanelProps {
   rfq: RFQ;
@@ -35,17 +36,21 @@ interface ReviewStatusPanelProps {
   canAssignReviewers?: boolean;
 }
 
-export function ReviewStatusPanel({ 
-  rfq, 
-  reviews, 
-  risks, 
-  clarifications, 
-  onAssignReviewer, 
-  canAssignReviewers 
+export function ReviewStatusPanel({
+  rfq,
+  reviews,
+  risks,
+  clarifications,
+  onAssignReviewer,
+  canAssignReviewers
 }: ReviewStatusPanelProps) {
-  
+
   const departments: Department[] = ['Engineering', 'QA', 'Production'];
-  
+
+  // Get all unique reviewer IDs to fetch display names
+  const reviewerIds = reviews ? [...new Set(reviews.map(review => review.reviewer_id).filter(Boolean))] : [];
+  const { users: reviewerUsers } = useUsers(reviewerIds);
+
   const getReviewForDepartment = (department: Department) => {
     return reviews.find(r => r.department === department);
   };
@@ -70,7 +75,7 @@ export function ReviewStatusPanel({
 
   const openClarifications = clarifications.filter(c => c.status === 'open');
   const highRisks = risks.filter(r => r.severity === 'high');
-  
+
   return (
     <div className="space-y-4">
       {/* Overview Summary */}
@@ -97,7 +102,7 @@ export function ReviewStatusPanel({
             {departments.map(department => {
               const review = getReviewForDepartment(department);
               const assignedReviewer = getAssignedReviewer(department);
-              
+
               return (
                 <div key={department} className="flex items-center justify-between p-3 border rounded-lg">
                   <div className="flex items-center gap-3">
@@ -122,13 +127,13 @@ export function ReviewStatusPanel({
                       )}
                     </div>
                   </div>
-                  
+
                   <div className="flex items-center gap-2">
                     {assignedReviewer && (
-                      <Badge variant="secondary" className="flex items-center gap-1">
-                        <User className="w-3 h-3" />
-                        Assigned
-                      </Badge>
+                      <AssignedReviewerBadge
+                        reviewerId={assignedReviewer}
+                        displayName={reviewerUsers.get(assignedReviewer)?.display_name || assignedReviewer}
+                      />
                     )}
                     {canAssignReviewers && !assignedReviewer && (
                       <Button
@@ -178,7 +183,7 @@ export function ReviewStatusPanel({
                       </p>
                     </div>
                   )}
-                  
+
                   {review.suggestions && review.suggestions.length > 0 && (
                     <div>
                       <h4 className="font-medium mb-2">Suggestions</h4>
@@ -274,5 +279,15 @@ export function ReviewStatusPanel({
         </Card>
       )}
     </div>
+  );
+}
+
+// Helper component to display assigned reviewer
+function AssignedReviewerBadge({ reviewerId, displayName }: { reviewerId: string; displayName: string }) {
+  return (
+    <Badge variant="secondary" className="flex items-center gap-1">
+      <User className="w-3 h-3" />
+      {displayName}
+    </Badge>
   );
 }

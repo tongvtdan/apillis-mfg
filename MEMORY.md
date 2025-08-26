@@ -4,6 +4,54 @@ This file contains important changes and updates made to the project.
 
 ## Latest Changes Summary
 
+- Date: 2025-01-27
+- What we completed / changed:
+1. **Fixed Critical Project Detail Page Crash Issue**: 
+   - **Root cause identified**: Missing status mapping in projectService caused WorkflowStepper to crash when opening projects with 'supplier_rfq' status
+   - **Status mapping fixed**: Added missing 'supplier_rfq': 'supplier_rfq_sent' and 'procurement': 'procurement_planning' mappings to projectService
+   - **Defensive programming added**: Added optional chaining and fallback values throughout WorkflowStepper component to prevent future crashes
+   - **Debug logging enhanced**: Added comprehensive logging to track status mapping and identify unknown stages
+   - **Conditional rendering**: Added safety checks to ensure WorkflowStepper only renders when project.status exists
+   - **Issue resolved**: Project detail pages can now be opened successfully from "Supplier RFQ Sent" stage without crashes
+   - **Maintained functionality**: All workflow features work correctly with proper status mapping
+   - **Improved robustness**: Component now gracefully handles edge cases and provides helpful error messages
+
+2. **Successfully Fixed Project Detail Page Navigation Issue**: 
+   - **Final solution implemented**: Created separate ProjectAutoAdvance component to avoid Rules of Hooks violation
+   - **Component structure**: ProjectAutoAdvance only renders when project is fully loaded, ensuring hooks are always called in same order
+   - **Hook isolation**: useWorkflowAutoAdvance hook is now isolated in its own component, preventing React crashes
+   - **Conditional rendering**: Auto-advance functionality only activates when project data is available
+   - **Issue resolved**: Project detail pages can now be opened successfully without Rules of Hooks violations
+   - **Maintained functionality**: All auto-advance features work correctly when project is loaded
+   - **Clean architecture**: Separated concerns between project loading and auto-advance logic
+
+2. **Fixed Critical Console Errors and Performance Issues**: 
+   - **Resolved Rules of Hooks violation** in ProjectDetail component by ensuring useWorkflowAutoAdvance hook is always called at top level
+   - **Fixed React queue error** by adding proper guards in useWorkflowAutoAdvance hook for null/empty projects
+   - **Resolved ref forwarding issue** with ProjectCardWrapper by wrapping component with forwardRef for framer-motion compatibility
+   - **Reduced excessive console logging** that was causing performance issues and console clutter:
+     - Removed excessive Dashboard component rendering logs
+     - Reduced useDashboardData hook logging frequency
+     - Optimized useProjects real-time subscription logging to only log significant changes
+     - Reduced ProjectDetail real-time update logging to only log status changes
+   - **Improved performance** by reducing unnecessary re-renders and console output
+   - **Maintained all existing functionality** while fixing the architectural issues
+   - **All components now follow React best practices** and Rules of Hooks
+
+2. **Fixed Rules of Hooks Violations in Project Components**: 
+   - **Resolved critical React Rules of Hooks violations** that were preventing project pages from loading
+   - **Fixed useUserDisplayName hook usage** in multiple components by moving hook calls to top level
+   - **Updated ProjectDetail.tsx** to properly use useUsers hook for fetching reviewer display names
+   - **Fixed ProjectSummaryCard.tsx** by moving useUserDisplayName to component top level
+   - **Fixed AnimatedProjectCard.tsx** by restructuring ProjectContactDisplay component
+   - **Fixed ReviewList.tsx** by updating ReviewerName component to accept display name as prop
+   - **Fixed ReviewStatusPanel.tsx** by updating AssignedReviewerBadge component
+   - **Fixed AnimatedTableRow.tsx** by updating AssigneeCell component
+   - **All components now follow React Rules of Hooks** - hooks are called at top level of components
+   - **Project pages can now load successfully** without "useUsers is not defined" errors
+   - **Maintained all existing functionality** while fixing the architectural issues
+   - **Improved performance** by batching user display name lookups using useUsers hook
+
 - Date: 2025-08-26
 - What we completed / changed:
 1. **Enhanced Workflow System with Auto-Application and Manager Bypass**: 

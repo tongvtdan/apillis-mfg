@@ -15,11 +15,6 @@ export default function Projects() {
   const { projects, loading, updateProjectStatus, updateProjectStatusOptimistic, refetch, testRealtimeSubscription, testManualStateUpdate, testSupabaseRealtime } = useProjects();
   const [searchParams, setSearchParams] = useSearchParams();
 
-  // Debug logging for projects state changes
-  React.useEffect(() => {
-    console.log('🔄 Projects page: Projects updated, count:', projects.length);
-  }, [projects]);
-
   const [selectedStage, setSelectedStage] = React.useState<ProjectStatus | null>(() => {
     // Try to restore from localStorage, default to 'inquiry_received' if none found
     const saved = localStorage.getItem('projects-selected-stage');

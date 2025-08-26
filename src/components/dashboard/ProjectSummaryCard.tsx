@@ -9,6 +9,7 @@ import {
   CheckCircle
 } from "lucide-react";
 import { Project } from "@/types/project";
+import { useUserDisplayName, useUsers } from "@/hooks/useUsers";
 
 interface ProjectSummaryCardProps {
   project: Project;
@@ -17,6 +18,9 @@ interface ProjectSummaryCardProps {
 
 export function ProjectSummaryCard({ project, showUrgencyIndicators = false }: ProjectSummaryCardProps) {
   const navigate = useNavigate();
+
+  // Get assignee display name at the top level
+  const assigneeDisplayName = useUserDisplayName(project.assignee_id);
 
   const handleCardClick = () => {
     navigate(`/project/${project.id}`);
@@ -146,7 +150,7 @@ export function ProjectSummaryCard({ project, showUrgencyIndicators = false }: P
       <div className="flex items-center gap-4 text-sm text-muted-foreground">
         <div className="flex items-center gap-1">
           <Users className="h-3 w-3" />
-          <span>{project.assignee_id || 'Unassigned'}</span>
+          <AssigneeDisplay assigneeId={project.assignee_id} displayName={assigneeDisplayName} />
         </div>
         <div className="flex items-center gap-1">
           <Calendar className="h-3 w-3" />
@@ -194,4 +198,13 @@ export function ProjectSummaryCard({ project, showUrgencyIndicators = false }: P
       )}
     </div>
   );
+}
+
+// Helper component to display assignee
+function AssigneeDisplay({ assigneeId, displayName }: { assigneeId?: string; displayName: string }) {
+  if (!assigneeId) {
+    return <span>Unassigned</span>;
+  }
+
+  return <span>{displayName}</span>;
 }

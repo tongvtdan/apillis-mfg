@@ -16,6 +16,7 @@ import {
 } from 'lucide-react';
 import { InternalReview, Department, ReviewStatus, STATUS_COLORS } from '@/types/review';
 import { format } from 'date-fns';
+import { useUserDisplayName, useUsers } from '@/hooks/useUsers';
 
 interface ReviewListProps {
     reviews: InternalReview[];
@@ -24,6 +25,10 @@ interface ReviewListProps {
 }
 
 export function ReviewList({ reviews, onEditReview, onViewReview }: ReviewListProps) {
+    // Get all unique reviewer IDs to fetch display names
+    const reviewerIds = reviews ? [...new Set(reviews.map(review => review.reviewer_id).filter(Boolean))] : [];
+    const { users: reviewerUsers } = useUsers(reviewerIds);
+
     const getStatusIcon = (status: ReviewStatus) => {
         switch (status) {
             case 'approved':
@@ -89,7 +94,10 @@ export function ReviewList({ reviews, onEditReview, onViewReview }: ReviewListPr
                                     <CardTitle className="text-base">{review.department} Review</CardTitle>
                                     <div className="flex items-center gap-2 text-sm text-muted-foreground">
                                         <User className="w-4 h-4" />
-                                        <span>{review.reviewer_id || 'Unassigned'}</span>
+                                        <ReviewerName
+                                            reviewerId={review.reviewer_id}
+                                            displayName={reviewerUsers.get(review.reviewer_id)?.display_name || review.reviewer_id}
+                                        />
                                         {review.submitted_at && (
                                             <>
                                                 <span>•</span>
@@ -173,4 +181,13 @@ export function ReviewList({ reviews, onEditReview, onViewReview }: ReviewListPr
             ))}
         </div>
     );
+}
+
+// Helper component to display reviewer name
+function ReviewerName({ reviewerId, displayName }: { reviewerId?: string; displayName: string }) {
+    if (!reviewerId) {
+        return <span>Unassigned</span>;
+    }
+
+    return <span>{displayName}</span>;
 }

@@ -87,8 +87,8 @@ class ProjectService {
             return { success: true, source: 'supabase' };
         } catch (error: any) {
             console.warn('⚠️ ProjectService: Supabase connection test failed:', error);
-            return { 
-                success: false, 
+            return {
+                success: false,
                 error: error?.message || 'Unknown error',
                 source: 'supabase'
             };
@@ -131,9 +131,16 @@ class ProjectService {
                 }
 
                 // Map legacy status to new status if needed
+                const originalStatus = data.status;
+                const mappedStatus = this.mapLegacyStatusToNew(data.status);
+
+                if (originalStatus !== mappedStatus) {
+                    console.log(`🔄 ProjectService: Status mapped from "${originalStatus}" to "${mappedStatus}"`);
+                }
+
                 const mappedProject = {
                     ...data,
-                    status: this.mapLegacyStatusToNew(data.status)
+                    status: mappedStatus
                 };
 
                 resolve(mappedProject);
@@ -170,10 +177,19 @@ class ProjectService {
                 }
 
                 // Map legacy status to new status if needed
-                const mappedProjects = (data || []).map(project => ({
-                    ...project,
-                    status: this.mapLegacyStatusToNew(project.status)
-                }));
+                const mappedProjects = (data || []).map(project => {
+                    const originalStatus = project.status;
+                    const mappedStatus = this.mapLegacyStatusToNew(project.status);
+
+                    if (originalStatus !== mappedStatus) {
+                        console.log(`🔄 ProjectService: Project ${project.id} status mapped from "${originalStatus}" to "${mappedStatus}"`);
+                    }
+
+                    return {
+                        ...project,
+                        status: mappedStatus
+                    };
+                });
 
                 resolve(mappedProjects);
             } catch (error) {
@@ -185,14 +201,17 @@ class ProjectService {
 
     // Helper function to map legacy status to new status
     private mapLegacyStatusToNew(legacyStatus: string): any {
+        // Use the same mapping as useProjects hook for consistency
         const LEGACY_TO_NEW_STATUS: Record<string, string> = {
             'inquiry': 'inquiry_received',
             'review': 'technical_review',
+            'supplier_rfq': 'supplier_rfq_sent',
             'quoted': 'quoted',
             'won': 'order_confirmed',
-            'lost': 'shipped_closed',
+            'procurement': 'procurement_planning',
             'production': 'in_production',
             'completed': 'shipped_closed',
+            'lost': 'shipped_closed',
             'cancelled': 'shipped_closed'
         };
 

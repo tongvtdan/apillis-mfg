@@ -1,4 +1,4 @@
-import React, { useMemo } from 'react';
+import React, { useMemo, forwardRef } from 'react';
 import { Project } from '@/types/project';
 import { AnimatedProjectCard } from './AnimatedProjectCard';
 import { useProjectUpdate } from '@/hooks/useProjectUpdate';
@@ -10,12 +10,12 @@ interface ProjectCardWrapperProps {
     formatDate: (date: string) => string;
 }
 
-export function ProjectCardWrapper({
+export const ProjectCardWrapper = forwardRef<HTMLDivElement, ProjectCardWrapperProps>(({
     project,
     getPriorityColor,
     formatCurrency,
     formatDate
-}: ProjectCardWrapperProps) {
+}, ref) => {
     const { isUpdating, localStatus, updateStatus, getEffectiveStatus } = useProjectUpdate(project.id);
 
     // Create a project object with the effective status (local or original)
@@ -26,14 +26,18 @@ export function ProjectCardWrapper({
     }), [project, getEffectiveStatus]);
 
     return (
-        <AnimatedProjectCard
-            key={`${project.id}-${effectiveProject.status}-${project.updated_at}`}
-            project={effectiveProject}
-            onStatusChange={async () => { }} // No-op since stage changes are now handled in project details
-            getAvailableStages={() => []} // No-op since stage changes are now handled in project details
-            getPriorityColor={getPriorityColor}
-            formatCurrency={formatCurrency}
-            formatDate={formatDate}
-        />
+        <div ref={ref}>
+            <AnimatedProjectCard
+                key={`${project.id}-${effectiveProject.status}-${project.updated_at}`}
+                project={effectiveProject}
+                onStatusChange={async () => { }} // No-op since stage changes are now handled in project details
+                getAvailableStages={() => []} // No-op since stage changes are now handled in project details
+                getPriorityColor={getPriorityColor}
+                formatCurrency={formatCurrency}
+                formatDate={formatDate}
+            />
+        </div>
     );
-}
+});
+
+ProjectCardWrapper.displayName = 'ProjectCardWrapper';

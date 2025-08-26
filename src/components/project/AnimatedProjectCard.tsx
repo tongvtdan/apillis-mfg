@@ -5,6 +5,7 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { AlertCircle, Play, Eye, ChevronRight, CheckCircle, Clock, XCircle, Calendar, DollarSign, Clock as ClockIcon, User, Building2, ExternalLink } from "lucide-react";
 import { Project, ProjectStatus } from "@/types/project";
+import { useUserDisplayName } from "@/hooks/useUsers";
 import { useNavigate } from "react-router-dom";
 import { WorkflowValidator } from "@/lib/workflow-validator";
 import {
@@ -207,7 +208,7 @@ export function AnimatedProjectCard({
                                         <Tooltip>
                                             <TooltipTrigger asChild>
                                                 <span className="cursor-help hover:bg-accent hover:text-accent-foreground px-1 py-0.5 rounded transition-all duration-200">
-                                                    {project.contact_name || project.assignee_id || 'Unassigned'}
+                                                    <ProjectContactDisplay project={project} />
                                                 </span>
                                             </TooltipTrigger>
                                             <TooltipContent side="top" className="max-w-xs">
@@ -354,4 +355,19 @@ export function AnimatedProjectCard({
             </AnimatePresence>
         </TooltipProvider>
     );
+}
+
+// Helper component to display project contact
+function ProjectContactDisplay({ project }: { project: Project }) {
+    const assigneeDisplayName = useUserDisplayName(project.assignee_id);
+
+    if (project.contact_name) {
+        return <span>{project.contact_name}</span>;
+    }
+
+    if (project.assignee_id) {
+        return <span>{assigneeDisplayName}</span>;
+    }
+
+    return <span>Unassigned</span>;
 }
