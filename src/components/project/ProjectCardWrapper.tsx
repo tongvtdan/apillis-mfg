@@ -30,11 +30,14 @@ export function ProjectCardWrapper({
     // Get available stages for a project
     const getAvailableStages = (project: Project) => {
         const currentStageIndex = WorkflowValidator.getStageIndex(project.status);
-        // Include all stages, not just forward stages, to allow rollback
-        return PROJECT_STAGES.filter((_, index) => {
-            // Allow moving to any stage, including completed ones for rollback scenarios
-            return true;
-        });
+
+        // Return all stages but mark them with validation status
+        return PROJECT_STAGES.map(stage => ({
+            ...stage,
+            canMoveTo: WorkflowValidator.canMoveToStage(project, stage.id),
+            isNextStage: WorkflowValidator.getNextValidStages(project.status)[0] === stage.id,
+            isCurrentStage: project.status === stage.id
+        }));
     };
 
     // Handle status change with local state management
@@ -68,7 +71,6 @@ export function ProjectCardWrapper({
             getPriorityColor={getPriorityColor}
             formatCurrency={formatCurrency}
             formatDate={formatDate}
-            isUpdating={isUpdating}
         />
     );
 }

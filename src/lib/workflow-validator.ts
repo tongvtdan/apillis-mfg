@@ -216,4 +216,92 @@ export class WorkflowValidator {
         // Return next stages (forward movement only)
         return allStages.slice(currentIndex + 1);
     }
+
+    static canMoveToStage(project: Project, targetStage: ProjectStatus): boolean {
+        const currentIndex = this.getStageIndex(project.status);
+        const targetIndex = this.getStageIndex(targetStage);
+
+        // Can't move backwards unless specifically allowed
+        if (targetIndex < currentIndex && !this.isBackwardMovementAllowed(project.status, targetStage)) {
+            return false;
+        }
+
+        // Check if current stage exit criteria are met for forward movement
+        if (targetIndex > currentIndex) {
+            return this.isStageComplete(project, project.status);
+        }
+
+        return true;
+    }
+
+    static getExitCriteriaForStage(status: ProjectStatus): string[] {
+        return DEFAULT_EXIT_CRITERIA[status] || [];
+    }
+
+    static isStageComplete(project: Project, status: ProjectStatus): boolean {
+        switch (status) {
+            case 'inquiry_received':
+                return !!(project.customer_id && project.description);
+
+            case 'technical_review':
+                return !!(project.engineering_reviewer_id &&
+                    project.qa_reviewer_id &&
+                    project.production_reviewer_id);
+
+            case 'supplier_rfq_sent':
+                // Check if supplier quotes are received (implement based on your data model)
+                // For now, allow transition but show warning
+                return true;
+
+            case 'quoted':
+                return !!(project.estimated_value && project.due_date);
+
+            case 'order_confirmed':
+                // Customer PO received - for MVP, assume it's complete
+                return true;
+
+            case 'procurement_planning':
+                // Purchase orders finalized - for MVP, assume it's complete
+                return true;
+
+            case 'in_production':
+                // Work order released - for MVP, assume it's complete
+                return true;
+
+            case 'shipped_closed':
+                // Product shipped - for MVP, assume it's complete
+                return true;
+
+            default:
+                return false;
+        }
+    }
+
+    static getStageProgress(project: Project): {
+        currentStage: ProjectStatus;
+        nextStage: ProjectStatus | null;
+        canAdvance: boolean;
+        exitCriteria: string[];
+        completedCriteria: string[];
+        pendingCriteria: string[];
+    } {
+        const currentStage = project.status;
+        const nextStages = this.getNextValidStages(currentStage);
+        const nextStage = nextStages.length > 0 ? nextStages[0] : null;
+        const canAdvance = nextStage ? this.canMoveToStage(project, nextStage) : false;
+        const exitCriteria = this.getExitCriteriaForStage(currentStage);
+
+        // For MVP, we'll show all criteria as pending since we don't have detailed tracking yet
+        const completedCriteria: string[] = [];
+        const pendingCriteria = exitCriteria;
+
+        return {
+            currentStage,
+            nextStage,
+            canAdvance,
+            exitCriteria,
+            completedCriteria,
+            pendingCriteria
+        };
+    }
 }
