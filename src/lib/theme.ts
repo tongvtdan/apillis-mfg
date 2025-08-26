@@ -12,23 +12,23 @@ export interface ThemeColors {
   popoverForeground: string;
 
   // Interactive elements - industry-standard colors
-  primary: string;        // Industrial Blue: #0066CC
+  primary: string;        // Dark Blue: #1E40AF (from image reference)
   primaryForeground: string;
-  secondary: string;      // Purple: #BB86FC (keeping for brand continuity)
+  secondary: string;      // Light Blue: #3B82F6 (complementary to primary)
   secondaryForeground: string;
   muted: string;
   mutedForeground: string;
-  accent: string;         // Amber: #FFD740 (keeping for brand continuity)
+  accent: string;         // Blue accent: #60A5FA (lighter blue variant)
   accentForeground: string;
 
   // Status colors - industry-standard colors for clarity
-  destructive: string;    // Error: #CC0033 (Red)
+  destructive: string;    // Error: #DC2626 (Red)
   destructiveForeground: string;
-  success: string;        // Success: #009966 (Green)
+  success: string;        // Success: #059669 (Green)
   successForeground: string;
-  warning: string;        // Warning: #FF9900 (Orange)
+  warning: string;        // Warning: #D97706 (Orange)
   warningForeground: string;
-  info: string;           // Info: #2196F3 (Blue - keeping for brand continuity)
+  info: string;           // Info: #2563EB (Blue - keeping for brand continuity)
   infoForeground: string;
 
   // Borders and inputs
@@ -47,7 +47,7 @@ export interface ThemeColors {
 }
 
 // Factory Pulse Adaptive Theme - Single theme that adapts to environment
-// Based on industrial design standards with neutral base and semantic accents
+// Based on industrial design standards with blue primary color from image reference
 export const ADAPTIVE_THEME: ThemeColors = {
   // Neutral base that works in all lighting conditions
   background: 'hsl(210 13% 96%)',    // #F8F9FA - Light neutral background
@@ -57,38 +57,38 @@ export const ADAPTIVE_THEME: ThemeColors = {
   popover: 'hsl(0 0% 100%)',         // #FFFFFF - Pure white popovers
   popoverForeground: 'hsl(220 13% 18%)', // #212529 - Dark text in popovers
 
-  // Industry-standard accent colors
-  primary: 'hsl(210 100% 40%)',      // #0066CC - Industrial Blue (trusted in manufacturing)
+  // Blue-based accent colors from image reference
+  primary: 'hsl(217 91% 33%)',       // #1E40AF - Dark Blue (from image primary buttons/headings)
   primaryForeground: 'hsl(0 0% 100%)', // #FFFFFF - White text on primary
-  secondary: 'hsl(258 100% 76%)',    // #BB86FC - Purple (brand continuity)
+  secondary: 'hsl(217 91% 60%)',     // #3B82F6 - Medium Blue (complementary to primary)
   secondaryForeground: 'hsl(0 0% 100%)', // #FFFFFF - White text on secondary
   muted: 'hsl(210 15% 92%)',         // #EBEEF1 - Light muted background
   mutedForeground: 'hsl(215 16% 47%)', // #6C757D - Muted text
-  accent: 'hsl(45 100% 63%)',        // #FFD740 - Amber (brand continuity)
+  accent: 'hsl(217 91% 70%)',        // #60A5FA - Light Blue (accent variant)
   accentForeground: 'hsl(220 13% 18%)', // #1F2937 - Dark text on accent
 
   // Industry-standard status colors
-  destructive: 'hsl(345 100% 40%)',  // #CC0033 - Error Red
+  destructive: 'hsl(0 84% 60%)',     // #DC2626 - Error Red
   destructiveForeground: 'hsl(0 0% 100%)', // #FFFFFF - White text on error
-  success: 'hsl(160 100% 30%)',      // #009966 - Success Green
+  success: 'hsl(160 84% 39%)',       // #059669 - Success Green
   successForeground: 'hsl(0 0% 100%)', // #FFFFFF - White text on success
-  warning: 'hsl(36 100% 50%)',       // #FF9900 - Warning Orange
+  warning: 'hsl(32 95% 44%)',        // #D97706 - Warning Orange
   warningForeground: 'hsl(0 0% 100%)', // #FFFFFF - White text on warning
-  info: 'hsl(207 90% 54%)',          // #2196F3 - Info Blue (brand continuity)
+  info: 'hsl(217 91% 60%)',          // #2563EB - Info Blue (brand continuity)
   infoForeground: 'hsl(0 0% 100%)',  // #FFFFFF - White text on info
 
   // Borders and inputs with appropriate contrast
   border: 'hsl(214 15% 85%)',        // #D8DFE6 - Subtle borders
   input: 'hsl(210 15% 95%)',         // #F2F4F7 - Light input backgrounds
-  ring: 'hsl(210 100% 40%)',         // #0066CC - Industrial Blue ring
+  ring: 'hsl(217 91% 33%)',          // #1E40AF - Dark Blue ring (matches primary)
 
-  // Chart colors using our semantic palette
+  // Chart colors using our blue-based semantic palette
   chart: {
-    primary: 'hsl(210 100% 40%)',    // Industrial Blue
-    secondary: 'hsl(258 100% 76%)',  // Purple
-    tertiary: 'hsl(45 100% 63%)',    // Amber
-    quaternary: 'hsl(160 100% 30%)', // Success Green
-    quinary: 'hsl(345 100% 40%)'     // Error Red
+    primary: 'hsl(217 91% 33%)',     // Dark Blue (primary)
+    secondary: 'hsl(217 91% 60%)',   // Medium Blue (secondary)
+    tertiary: 'hsl(217 91% 70%)',    // Light Blue (accent)
+    quaternary: 'hsl(160 84% 39%)',  // Success Green
+    quinary: 'hsl(0 84% 60%)'        // Error Red
   }
 };
 

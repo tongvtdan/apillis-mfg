@@ -37,11 +37,33 @@ export default {
 					DEFAULT: 'hsl(var(--primary))',
 					foreground: 'hsl(var(--primary-foreground))',
 					hover: 'hsl(var(--primary-hover))',
-					light: 'hsl(var(--primary-light))'
+					light: 'hsl(var(--primary-light))',
+					'50': '#EFF6FF',
+					'100': '#DBEAFE',
+					'200': '#BFDBFE',
+					'300': '#93C5FD',
+					'400': '#60A5FA',
+					'500': '#3B82F6',
+					'600': '#2563EB',
+					'700': '#1D4ED8',
+					'800': '#1E40AF',
+					'900': '#1E3A8A',
+					'950': '#172554'
 				},
 				secondary: {
 					DEFAULT: 'hsl(var(--secondary))',
-					foreground: 'hsl(var(--secondary-foreground))'
+					foreground: 'hsl(var(--secondary-foreground))',
+					'50': '#EFF6FF',
+					'100': '#DBEAFE',
+					'200': '#BFDBFE',
+					'300': '#93C5FD',
+					'400': '#60A5FA',
+					'500': '#3B82F6',
+					'600': '#2563EB',
+					'700': '#1D4ED8',
+					'800': '#1E40AF',
+					'900': '#1E3A8A',
+					'950': '#172554'
 				},
 				destructive: {
 					DEFAULT: 'hsl(var(--destructive))',
@@ -55,8 +77,7 @@ export default {
 				},
 				warning: {
 					DEFAULT: 'hsl(var(--warning))',
-					foreground: 'hsl(var(--warning-foreground))',
-					light: 'hsl(var(--warning-light))'
+					foreground: 'hsl(var(--warning-foreground))'
 				},
 				info: {
 					DEFAULT: 'hsl(var(--info))',

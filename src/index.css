@@ -3,7 +3,7 @@
 @tailwind components;
 @tailwind utilities;
 
-/* Factory Pulse Adaptive Theme (FP-AT) */
+/* Factory Pulse Blue Theme System (FP-BT) */
 
 @layer base {
   :root {
@@ -23,16 +23,18 @@
     --popover-foreground: 220 13% 18%;
     /* #212529 - Dark text in popovers */
 
-    /* Industry-standard accent colors */
-    --primary: 210 100% 40%;
-    /* #0066CC - Industrial Blue */
+    /* Blue-based primary color system from image reference */
+    --primary: 217 91% 33%;
+    /* #1E40AF - Dark Blue (from image primary buttons/headings) */
     --primary-foreground: 0 0% 100%;
     /* #FFFFFF - White text on primary */
-    --primary-hover: 210 100% 35%;
-    --primary-light: 210 100% 95%;
+    --primary-hover: 217 91% 28%;
+    /* #1E3A8A - Darker blue for hover */
+    --primary-light: 217 91% 70%;
+    /* #60A5FA - Lighter blue for light variants */
 
-    --secondary: 258 100% 76%;
-    /* #BB86FC - Purple (brand continuity) */
+    --secondary: 217 91% 60%;
+    /* #3B82F6 - Medium Blue (complementary to primary) */
     --secondary-foreground: 0 0% 100%;
     /* #FFFFFF - White text on secondary */
 
@@ -42,32 +44,32 @@
     --muted-foreground: 215 16% 47%;
     /* #6C757D - Muted text */
 
-    --accent: 45 100% 63%;
-    /* #FFD740 - Amber (brand continuity) */
+    --accent: 217 91% 70%;
+    /* #60A5FA - Light Blue (accent variant) */
     --accent-foreground: 220 13% 18%;
     /* #1F2937 - Dark text on accent */
 
     /* Status colors - industry-standard for clarity */
-    --success: 160 100% 30%;
-    /* #009966 - Success Green */
+    --success: 160 84% 39%;
+    /* #059669 - Success Green */
     --success-foreground: 0 0% 100%;
     /* #FFFFFF - White text on success */
-    --success-light: 160 100% 95%;
+    --success-light: 160 84% 95%;
 
-    --warning: 36 100% 50%;
-    /* #FF9900 - Warning Orange */
+    --warning: 32 95% 44%;
+    /* #D97706 - Warning Orange */
     --warning-foreground: 0 0% 100%;
     /* #FFFFFF - White text on warning */
-    --warning-light: 36 100% 95%;
+    --warning-light: 32 95% 95%;
 
-    --destructive: 345 100% 40%;
-    /* #CC0033 - Error Red */
+    --destructive: 0 84% 60%;
+    /* #DC2626 - Error Red */
     --destructive-foreground: 0 0% 100%;
     /* #FFFFFF - White text on error */
-    --destructive-light: 345 100% 95%;
+    --destructive-light: 0 84% 95%;
 
-    --info: 207 90% 54%;
-    /* #2196F3 - Info Blue (brand continuity) */
+    --info: 217 91% 60%;
+    /* #2563EB - Info Blue (brand continuity) */
     --info-foreground: 0 0% 100%;
     /* #FFFFFF - White text on info */
 
@@ -76,25 +78,32 @@
     /* #D8DFE6 - Subtle borders */
     --input: 210 15% 95%;
     /* #F2F4F7 - Light input backgrounds */
-    --ring: 210 100% 40%;
-    /* #0066CC - Industrial Blue ring */
+    --ring: 217 91% 33%;
+    /* #1E40AF - Dark Blue ring (matches primary) */
 
     --radius: 0.5rem;
     /* 8px border radius */
 
-    /* Factory Pulse gradients using industry-standard colors */
-    --gradient-primary: linear-gradient(135deg, #0066CC 0%, #0288D1 100%);
-    --gradient-secondary: linear-gradient(135deg, #F8F9FA 0%, #FFFFFF 100%);
-    --gradient-accent: linear-gradient(135deg, #FFD740 0%, #FF9900 100%);
-    --gradient-success: linear-gradient(135deg, #009966 0%, #00C853 100%);
-    --gradient-warning: linear-gradient(135deg, #FF9900 0%, #FF6D00 100%);
-    --gradient-error: linear-gradient(135deg, #CC0033 0%, #B71C1C 100%);
+    /* Blue theme color palette for direct use */
+    --blue-50: 239 246 255;
+    --blue-100: 219 234 254;
+    --blue-200: 191 219 254;
+    --blue-300: 147 197 253;
+    --blue-400: 96 165 250;
+    --blue-500: 59 130 246;
+    --blue-600: 37 99 235;
+    --blue-700: 29 78 216;
+    --blue-800: 30 64 175;
+    /* Primary blue from image */
+    --blue-900: 30 58 138;
+    --blue-950: 23 37 84;
 
     /* Modern shadows optimized for both light and dark environments */
     --shadow-sm: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
     --shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
     --shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
-    --shadow-tech: 0 4px 16px -2px rgba(0, 102, 204, 0.15);
+    --shadow-tech: 0 4px 16px -2px rgba(30, 64, 175, 0.15);
+    /* Updated to use new blue primary color */
 
     /* Smooth animations - cubic-bezier(0.4, 0, 0.2, 1) */
     --transition-all: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);

@@ -6,34 +6,40 @@ This file contains important changes and updates made to the project.
 
 - Date: 2025-01-25
 - What we completed / changed:
-1. **Implemented Project Card State Control Optimization**: Fixed whole screen refresh issues by implementing granular state management, selective real-time subscriptions, and removing unnecessary refetch calls
-2. **Created useProjectUpdate Hook**: Built specialized hook for individual project updates with local state management and optimistic updates
-3. **Enhanced Cache Service**: Implemented differential updates and increased cache duration from 5 to 15 minutes for better stability
-4. **Optimized Real-time Subscriptions**: Replaced broad subscriptions with selective project-specific subscriptions to prevent unnecessary updates
-5. **Created ProjectCardWrapper Component**: Built wrapper component for better state isolation and reduced re-renders
-6. **Removed Unnecessary Refetch Calls**: Eliminated refetch(true) calls from status change handlers that were causing full screen refreshes
-7. **Implemented Smooth Project Stage Transition Animations**: Added comprehensive fade in/out animations and smooth transitions when project stages change to eliminate jarring screen refreshes
-8. **Fixed Project Table Stage Change Issues**: Resolved stage change functionality in table view by properly connecting updateProjectStatusOptimistic and refetch functions, added workflow validation, and implemented comprehensive debugging
-9. **Enhanced Project Table with Sorting**: Added sorting functionality for name, stage, and priority columns with visual indicators and enhanced user experience
-10. **Improved Project Table Column Headers**: Changed "Status" column to "Stage" for better clarity and added interactive sorting buttons with arrow indicators
-2. **Created AnimatedProjectCard Component**: Built reusable animated project card component with smooth transitions, loading states, and enhanced user experience
-3. **Created AnimatedTableRow Component**: Built animated table row component for smooth stage changes in table view with fade in/out effects
-4. **Enhanced WorkflowFlowchart Animations**: Added motion animations to stage counts, workflow visualization, and project grid with staggered entrance effects
-5. **Enhanced StageFlowchart Animations**: Added smooth hover effects and entrance animations to stage selection cards
-6. **Added Project Animation CSS**: Created comprehensive CSS file with smooth transitions, enhanced hover effects, and loading states
-7. **Improved User Experience**: Projects now smoothly animate between stages instead of abrupt refreshes, providing professional and polished feel
-8. **ProjectTable Component Optimization**: Cleaned up unused state variables, removed unused imports, extracted utility functions, and improved code organization for better maintainability
-2. **Fixed Duplicate Workflow Visualization Issue**: Removed duplicate "Workflow Visualization" and "Kanban-style project list" sections from WorkflowFlowchart component that were causing UI duplication
-3. **Improved Real-time Updates**: Fixed bug in useProjects hook where real-time subscription cache updates were using stale state, preventing automatic project stage updates
-4. **Enhanced Refresh Button**: Added explanatory text and improved refresh button to clarify that real-time updates should happen automatically
-5. **UI Cleanup**: Streamlined WorkflowFlowchart component to show single workflow visualization and project list sections
-6. **Better User Experience**: Users now see only one workflow visualization and understand when manual refresh is needed
-7. **Added debugging for project status update issues**: Added console logs to track optimistic updates and stage count recalculations to debug UI update problems
-8. **Enhanced reactivity for WorkflowFlowchart**: Wrapped projectsByStage calculation in useMemo with proper dependencies for better reactivity when projects change
-9. **CRITICAL FIX - Project Status Update Issue**: Identified and fixed root cause where `technical_review` and `supplier_rfq_sent` were both mapped to same database value `review`, causing optimistic updates to be reverted by real-time subscription
-10. **Database Schema Update**: Added missing `supplier_rfq` and `procurement` status values to project_status enum to support complete workflow with distinct database values for each stage
-11. **Enhanced Database Update Logging**: Added comprehensive logging for database updates and real-time subscription events to track status change issues
-12. **FIXED - Supplier RFQ to Quoted Transition**: Resolved validation error blocking transition from "Supplier RFQ Sent" to "Quoted" by making supplier quotes optional for MVP and converting hard errors to warnings
+1. **Updated Theme Design System with Blue Primary Color**: Implemented new blue-based theme system based on the landing page image reference, replacing the previous amber/purple color scheme with a cohesive blue primary color (#1E40AF) for buttons, selected items, and primary UI elements
+2. **Enhanced Color Palette**: Added comprehensive blue color variants (50-950) to Tailwind config and CSS custom properties for consistent theming across all components
+3. **Updated Toast Component**: Modified toast variants to use the new blue primary color instead of amber, ensuring visual consistency with the new theme
+4. **Created Blue Theme CSS**: Added new theme-adaptive.css with blue color system, utility classes, and button variants for consistent blue theming
+5. **Integrated with Existing System**: Updated index.css to use the new blue theme system while maintaining compatibility with existing Tailwind classes and CSS variables
+6. **Maintained Accessibility**: Ensured all new color combinations meet WCAG contrast requirements for manufacturing environments
+7. **Project Card State Control Optimization**: Fixed whole screen refresh issues by implementing granular state management, selective real-time subscriptions, and removing unnecessary refetch calls
+8. **Created useProjectUpdate Hook**: Built specialized hook for individual project updates with local state management and optimistic updates
+9. **Enhanced Cache Service**: Implemented differential updates and increased cache duration from 5 to 15 minutes for better stability
+10. **Optimized Real-time Subscriptions**: Replaced broad subscriptions with selective project-specific subscriptions to prevent unnecessary updates
+11. **Created ProjectCardWrapper Component**: Built wrapper component for better state isolation and reduced re-renders
+12. **Removed Unnecessary Refetch Calls**: Eliminated refetch(true) calls from status change handlers that were causing full screen refreshes
+13. **Implemented Smooth Project Stage Transition Animations**: Added comprehensive fade in/out animations and smooth transitions when project stages change to eliminate jarring screen refreshes
+14. **Fixed Project Table Stage Change Issues**: Resolved stage change functionality in table view by properly connecting updateProjectStatusOptimistic and refetch functions, added workflow validation, and implemented comprehensive debugging
+15. **Enhanced Project Table with Sorting**: Added sorting functionality for name, stage, and priority columns with visual indicators and enhanced user experience
+16. **Improved Project Table Column Headers**: Changed "Status" column to "Stage" for better clarity and added interactive sorting buttons with arrow indicators
+17. **Created AnimatedProjectCard Component**: Built reusable animated project card component with smooth transitions, loading states, and enhanced user experience
+18. **Created AnimatedTableRow Component**: Built animated table row component for smooth stage changes in table view with fade in/out effects
+19. **Enhanced WorkflowFlowchart Animations**: Added motion animations to stage counts, workflow visualization, and project grid with staggered entrance effects
+20. **Enhanced StageFlowchart Animations**: Added smooth hover effects and entrance animations to stage selection cards
+21. **Added Project Animation CSS**: Created comprehensive CSS file with smooth transitions, enhanced hover effects, and loading states
+22. **Improved User Experience**: Projects now smoothly animate between stages instead of abrupt refreshes, providing professional and polished feel
+23. **ProjectTable Component Optimization**: Cleaned up unused state variables, removed unused imports, extracted utility functions, and improved code organization for better maintainability
+24. **Fixed Duplicate Workflow Visualization Issue**: Removed duplicate "Workflow Visualization" and "Kanban-style project list" sections from WorkflowFlowchart component that were causing UI duplication
+25. **Improved Real-time Updates**: Fixed bug in useProjects hook where real-time subscription cache updates were using stale state, preventing automatic project stage updates
+26. **Enhanced Refresh Button**: Added explanatory text and improved refresh button to clarify that real-time updates should happen automatically
+27. **UI Cleanup**: Streamlined WorkflowFlowchart component to show single workflow visualization and project list sections
+28. **Better User Experience**: Users now see only one workflow visualization and understand when manual refresh is needed
+29. **Added debugging for project status update issues**: Added console logs to track optimistic updates and stage count recalculations to debug UI update problems
+30. **Enhanced reactivity for WorkflowFlowchart**: Wrapped projectsByStage calculation in useMemo with proper dependencies for better reactivity when projects change
+31. **CRITICAL FIX - Project Status Update Issue**: Identified and fixed root cause where `technical_review` and `supplier_rfq_sent` were both mapped to same database value `review`, causing optimistic updates to be reverted by real-time subscription
+32. **Database Schema Update**: Added missing `supplier_rfq` and `procurement` status values to project_status enum to support complete workflow with distinct database values for each stage
+33. **Enhanced Database Update Logging**: Added comprehensive logging for database updates and real-time subscription events to track status change issues
+34. **FIXED - Supplier RFQ to Quoted Transition**: Resolved validation error blocking transition from "Supplier RFQ Sent" to "Quoted" by making supplier quotes optional for MVP and converting hard errors to warnings
 
 ### 2025-01-25
 - **Smooth Project Stage Transition Animations Implementation Complete**:
