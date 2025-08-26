@@ -104,19 +104,19 @@ export default function ProjectDetail() {
       try {
         setLoading(true);
         setError(null);
-        console.log('🔍 ProjectDetail: Fetching project with ID:', id);
+
 
         // Test connection first
         const connectionTest = await projectService.testConnection();
         setDataSource(connectionTest.source);
 
         if (!connectionTest.success) {
-          console.warn('⚠️ ProjectDetail: Connection test failed, using mock data:', connectionTest.error);
+
         }
 
         const projectData = await projectService.getProjectById(id);
         setProject(projectData);
-        console.log('✅ ProjectDetail: Project loaded successfully:', projectData.project_id);
+
       } catch (err) {
         console.error('❌ ProjectDetail: Error loading project:', err);
         setError(err instanceof Error ? err.message : 'Failed to load project');
@@ -137,13 +137,7 @@ export default function ProjectDetail() {
         if (!project ||
           project.status !== updatedProject.status ||
           project.updated_at !== updatedProject.updated_at) {
-          // Only log significant changes to reduce console noise
-          if (project?.status !== updatedProject.status) {
-            console.log('🔄 ProjectDetail: Status updated:', {
-              oldStatus: project?.status,
-              newStatus: updatedProject.status
-            });
-          }
+
           setProject(updatedProject);
         }
       }
@@ -369,7 +363,7 @@ export default function ProjectDetail() {
 
       // Check for auto-advance after review submission
       if (project?.status === 'technical_review') {
-        console.log('🔄 Review submitted, checking for auto-advance...');
+
         // Small delay to allow review data to update
         setTimeout(() => {
           // The autoAdvanceHook is now rendered conditionally, so we can call it directly
@@ -389,13 +383,13 @@ export default function ProjectDetail() {
 
   const handleReviewConfigSave = async (config: any) => {
     // TODO: Implement actual configuration saving
-    console.log('Saving review configuration:', config);
+
     setShowReviewConfig(false);
   };
 
   const handleAssignmentSave = async (assignments: any[]) => {
     // TODO: Implement actual assignment saving
-    console.log('Saving review assignments:', assignments);
+
     setShowAssignmentModal(false);
   };
 
@@ -462,11 +456,7 @@ export default function ProjectDetail() {
         {/* Workflow Stepper */}
         {project.status && (
           <>
-            {process.env.NODE_ENV === 'development' && (
-              <div className="mx-6 mb-4 p-2 bg-blue-50 border border-blue-200 rounded text-xs text-blue-800">
-                <strong>Debug:</strong> Rendering WorkflowStepper with status: {project.status}
-              </div>
-            )}
+
             <WorkflowStepper
               key={`${project.id}-${project.status}-${project.updated_at}`}
               project={project}
@@ -474,26 +464,7 @@ export default function ProjectDetail() {
           </>
         )}
 
-        {/* Debug info for testing */}
-        {process.env.NODE_ENV === 'development' && (
-          <div className="p-4 bg-muted/50 border rounded-lg text-xs text-muted-foreground mx-6 space-y-2">
-            <div><strong>Debug Info:</strong> Project Status: {project.status} | Updated: {project.updated_at}</div>
-            {/* The autoAdvanceHook is now rendered conditionally, so we can't access its state here directly */}
-            {/* {autoAdvanceHook && (
-              <div>
-                <strong>Auto-Advance:</strong> Available: {autoAdvanceHook.autoAdvanceAvailable ? 'Yes' : 'No'} |
-                Next Stage: {autoAdvanceHook.nextStage || 'None'} |
-                Reason: {autoAdvanceHook.autoAdvanceReason}
-              </div>
-            )} */}
-            {project.status === 'technical_review' && (
-              <div>
-                <strong>Reviews:</strong> Overall: {getOverallReviewStatus()} |
-                Summary: {JSON.stringify(getReviewSummary())}
-              </div>
-            )}
-          </div>
-        )}
+
 
         {/* Main Content */}
         <div className="flex">
