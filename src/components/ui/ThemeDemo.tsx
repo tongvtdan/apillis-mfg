@@ -8,43 +8,43 @@ export const ThemeDemo: React.FC = () => {
         <div className="p-8 space-y-8 bg-background">
             <div className="text-center space-y-4">
                 <h1 className="text-4xl font-bold text-foreground">
-                    Factory Pulse Blue Theme System
+                    Factory Pulse Teal/Cyan Theme System
                 </h1>
                 <p className="text-lg text-muted-foreground max-w-2xl mx-auto">
-                    Updated theme system using the blue primary color (#1E40AF) from the landing page image reference.
-                    This creates a cohesive, professional appearance for manufacturing environments.
+                    Updated theme system using the vibrant teal/cyan blue color (#0EA5E9) from the landing page image reference.
+                    This creates a cohesive, professional appearance with subtle gradients for manufacturing environments.
                 </p>
             </div>
 
             {/* Color Palette */}
             <Card>
                 <CardHeader>
-                    <CardTitle>Blue Color Palette</CardTitle>
+                    <CardTitle>Teal/Cyan Color Palette</CardTitle>
                     <CardDescription>
-                        Primary colors derived from the landing page image reference
+                        Primary colors derived from the landing page image reference with gradient support
                     </CardDescription>
                 </CardHeader>
                 <CardContent className="space-y-4">
                     <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
                         <div className="space-y-2">
-                            <div className="h-16 bg-blue-800 rounded-lg border"></div>
+                            <div className="h-16 bg-gradient-to-b from-sky-400 to-sky-600 rounded-lg border"></div>
                             <p className="text-sm font-medium">Primary</p>
-                            <p className="text-xs text-muted-foreground">#1E40AF</p>
+                            <p className="text-xs text-muted-foreground">#0EA5E9 (Gradient)</p>
                         </div>
                         <div className="space-y-2">
-                            <div className="h-16 bg-blue-500 rounded-lg border"></div>
+                            <div className="h-16 bg-gradient-to-b from-sky-300 to-sky-500 rounded-lg border"></div>
                             <p className="text-sm font-medium">Secondary</p>
-                            <p className="text-xs text-muted-foreground">#3B82F6</p>
+                            <p className="text-xs text-muted-foreground">#38BDF8 (Gradient)</p>
                         </div>
                         <div className="space-y-2">
-                            <div className="h-16 bg-blue-400 rounded-lg border"></div>
+                            <div className="h-16 bg-gradient-to-b from-sky-200 to-sky-400 rounded-lg border"></div>
                             <p className="text-sm font-medium">Accent</p>
-                            <p className="text-xs text-muted-foreground">#60A5FA</p>
+                            <p className="text-xs text-muted-foreground">#7DD3FC (Gradient)</p>
                         </div>
                         <div className="space-y-2">
-                            <div className="h-16 bg-blue-100 rounded-lg border"></div>
+                            <div className="h-16 bg-sky-100 rounded-lg border"></div>
                             <p className="text-sm font-medium">Light</p>
-                            <p className="text-xs text-muted-foreground">#DBEAFE</p>
+                            <p className="text-xs text-muted-foreground">#E0F2FE</p>
                         </div>
                     </div>
                 </CardContent>
@@ -53,9 +53,9 @@ export const ThemeDemo: React.FC = () => {
             {/* Button Variants */}
             <Card>
                 <CardHeader>
-                    <CardTitle>Button Variants</CardTitle>
+                    <CardTitle>Button Variants with Gradients</CardTitle>
                     <CardDescription>
-                        All button variants now use the new blue theme system
+                        All button variants now use the new teal/cyan theme system with subtle vertical gradients
                     </CardDescription>
                 </CardHeader>
                 <CardContent className="space-y-4">
@@ -107,7 +107,7 @@ export const ThemeDemo: React.FC = () => {
                 <CardHeader>
                     <CardTitle>Selected Item Styles</CardTitle>
                     <CardDescription>
-                        New selected item styles using the blue primary color
+                        New selected item styles using the teal/cyan primary color
                     </CardDescription>
                 </CardHeader>
                 <CardContent className="space-y-4">
@@ -115,19 +115,19 @@ export const ThemeDemo: React.FC = () => {
                         <div className="p-4 border rounded-lg selected-item">
                             <h4 className="font-medium">Selected Item</h4>
                             <p className="text-sm text-muted-foreground">
-                                Uses blue-100 background with blue-800 border
+                                Uses sky-100 background with sky-500 border
                             </p>
                         </div>
-                        <div className="p-4 border rounded-lg bg-blue-50 border-blue-200">
-                            <h4 className="font-medium text-blue-700">Light Blue Variant</h4>
-                            <p className="text-sm text-blue-600">
-                                Uses blue-50 background with blue-200 border
+                        <div className="p-4 border rounded-lg bg-sky-50 border-sky-200">
+                            <h4 className="font-medium text-sky-700">Light Teal Variant</h4>
+                            <p className="text-sm text-sky-600">
+                                Uses sky-50 background with sky-200 border
                             </p>
                         </div>
-                        <div className="p-4 border rounded-lg bg-blue-800 text-white">
-                            <h4 className="font-medium">Primary Blue</h4>
-                            <p className="text-sm text-blue-100">
-                                Uses blue-800 background with white text
+                        <div className="p-4 border rounded-lg bg-gradient-to-b from-sky-500 to-sky-600 text-white">
+                            <h4 className="font-medium">Primary Teal</h4>
+                            <p className="text-sm text-sky-100">
+                                Uses gradient background with white text
                             </p>
                         </div>
                     </div>
@@ -139,32 +139,64 @@ export const ThemeDemo: React.FC = () => {
                 <CardHeader>
                     <CardTitle>Utility Classes</CardTitle>
                     <CardDescription>
-                        New utility classes for consistent blue theming
+                        New utility classes for consistent teal/cyan theming with gradients
                     </CardDescription>
                 </CardHeader>
                 <CardContent className="space-y-4">
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                         <div className="space-y-2">
-                            <div className="p-3 bg-primary-blue rounded text-white text-center">
-                                .bg-primary-blue
+                            <div className="p-3 bg-primary-teal rounded text-white text-center">
+                                .bg-primary-teal
                             </div>
-                            <div className="p-3 border border-primary-blue rounded text-primary-blue text-center">
-                                .border-primary-blue
+                            <div className="p-3 border border-primary-teal rounded text-primary-teal text-center">
+                                .border-primary-teal
                             </div>
-                            <div className="p-3 ring-2 ring-primary-blue rounded text-center">
-                                .ring-primary-blue
+                            <div className="p-3 ring-2 ring-primary-teal rounded text-center">
+                                .ring-primary-teal
                             </div>
                         </div>
                         <div className="space-y-2">
-                            <div className="p-3 bg-blue-100 border border-blue-300 rounded text-blue-800 text-center">
+                            <div className="p-3 bg-sky-100 border border-sky-300 rounded text-sky-800 text-center">
                                 .status-primary
                             </div>
-                            <div className="p-3 bg-blue-50 border border-blue-200 rounded text-blue-700 text-center">
+                            <div className="p-3 bg-sky-50 border border-sky-200 rounded text-sky-700 text-center">
                                 .status-secondary
                             </div>
-                            <div className="p-3 bg-blue-800 text-white rounded text-center">
+                            <div className="p-3 bg-gradient-to-b from-sky-500 to-sky-600 text-white rounded text-center">
                                 .active-state
                             </div>
+                        </div>
+                    </div>
+                </CardContent>
+            </Card>
+
+            {/* Gradient Utilities */}
+            <Card>
+                <CardHeader>
+                    <CardTitle>Gradient Utilities</CardTitle>
+                    <CardDescription>
+                        New gradient utility classes for consistent button styling
+                    </CardDescription>
+                </CardHeader>
+                <CardContent className="space-y-4">
+                    <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                        <div className="p-4 rounded-lg gradient-primary text-white text-center">
+                            <h4 className="font-medium">.gradient-primary</h4>
+                            <p className="text-sm text-sky-100">
+                                Primary gradient button style
+                            </p>
+                        </div>
+                        <div className="p-4 rounded-lg gradient-secondary text-white text-center">
+                            <h4 className="font-medium">.gradient-secondary</h4>
+                            <p className="text-sm text-sky-100">
+                                Secondary gradient button style
+                            </p>
+                        </div>
+                        <div className="p-4 rounded-lg gradient-accent text-sky-900 text-center">
+                            <h4 className="font-medium">.gradient-accent</h4>
+                            <p className="text-sm text-sky-800">
+                                Accent gradient button style
+                            </p>
                         </div>
                     </div>
                 </CardContent>
@@ -180,10 +212,10 @@ export const ThemeDemo: React.FC = () => {
                 </CardHeader>
                 <CardContent>
                     <div className="bg-muted p-4 rounded-lg font-mono text-sm space-y-2">
-                        <div><span className="text-blue-600">--primary:</span> hsl(217 91% 33%)</div>
-                        <div><span className="text-blue-600">--secondary:</span> hsl(217 91% 60%)</div>
-                        <div><span className="text-blue-600">--accent:</span> hsl(217 91% 70%)</div>
-                        <div><span className="text-blue-600">--ring:</span> hsl(217 91% 33%)</div>
+                        <div><span className="text-sky-600">--primary:</span> hsl(199 89% 48%)</div>
+                        <div><span className="text-sky-600">--secondary:</span> hsl(199 89% 58%)</div>
+                        <div><span className="text-sky-600">--accent:</span> hsl(199 89% 68%)</div>
+                        <div><span className="text-sky-600">--ring:</span> hsl(199 89% 48%)</div>
                     </div>
                 </CardContent>
             </Card>

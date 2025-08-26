@@ -264,8 +264,8 @@
     }
 }
 
-/* Factory Pulse Blue Theme System - CSS Custom Properties */
-/* Based on the blue color reference from the landing page image */
+/* Factory Pulse Teal/Cyan Theme System - CSS Custom Properties */
+/* Based on the vibrant teal/cyan blue color reference from the landing page image */
 
 :root {
     /* Base colors */
@@ -276,21 +276,21 @@
     --popover: hsl(0 0% 100%);
     --popover-foreground: hsl(220 13% 18%);
 
-    /* Blue-based primary color system */
-    --primary: hsl(217 91% 33%);
-    /* #1E40AF - Dark Blue (from image) */
+    /* Teal/cyan-based primary color system */
+    --primary: hsl(199 89% 48%);
+    /* #0EA5E9 - Vibrant Teal/Cyan Blue (from image) */
     --primary-foreground: hsl(0 0% 100%);
-    --primary-hover: hsl(217 91% 28%);
-    /* #1E3A8A - Darker blue for hover */
-    --primary-light: hsl(217 91% 70%);
-    /* #60A5FA - Lighter blue for light variants */
+    --primary-hover: hsl(199 89% 43%);
+    /* #0284C7 - Darker teal for hover */
+    --primary-light: hsl(199 89% 68%);
+    /* #7DD3FC - Lighter teal for light variants */
 
     /* Secondary and accent colors */
-    --secondary: hsl(217 91% 60%);
-    /* #3B82F6 - Medium Blue */
+    --secondary: hsl(199 89% 58%);
+    /* #38BDF8 - Light Teal */
     --secondary-foreground: hsl(0 0% 100%);
-    --accent: hsl(217 91% 70%);
-    /* #60A5FA - Light Blue */
+    --accent: hsl(199 89% 68%);
+    /* #7DD3FC - Light Teal */
     --accent-foreground: hsl(220 13% 18%);
 
     /* Muted colors */
@@ -307,48 +307,47 @@
     --warning: hsl(32 95% 44%);
     /* #D97706 - Warning Orange */
     --warning-foreground: hsl(0 0% 100%);
-    --info: hsl(217 91% 60%);
-    /* #2563EB - Info Blue */
+    --info: hsl(199 89% 48%);
+    /* #0EA5E9 - Info Teal (matches primary) */
     --info-foreground: hsl(0 0% 100%);
 
     /* Borders and inputs */
     --border: hsl(214 15% 85%);
     --input: hsl(210 15% 95%);
-    --ring: hsl(217 91% 33%);
+    --ring: hsl(199 89% 48%);
     /* Matches primary */
 
     /* Chart colors */
-    --chart-primary: hsl(217 91% 33%);
-    /* Dark Blue */
-    --chart-secondary: hsl(217 91% 60%);
-    /* Medium Blue */
-    --chart-tertiary: hsl(217 91% 70%);
-    /* Light Blue */
+    --chart-primary: hsl(199 89% 48%);
+    /* Vibrant Teal */
+    --chart-secondary: hsl(199 89% 58%);
+    /* Light Teal */
+    --chart-tertiary: hsl(199 89% 68%);
+    /* Light Teal */
     --chart-quaternary: hsl(160 84% 39%);
     /* Success Green */
     --chart-quinary: hsl(0 84% 60%);
     /* Error Red */
 
-    /* Blue color palette for direct use */
-    --blue-50: #EFF6FF;
-    --blue-100: #DBEAFE;
-    --blue-200: #BFDBFE;
-    --blue-300: #93C5FD;
-    --blue-400: #60A5FA;
-    --blue-500: #3B82F6;
-    --blue-600: #2563EB;
-    --blue-700: #1D4ED8;
-    --blue-800: #1E40AF;
-    /* Primary blue from image */
-    --blue-900: #1E3A8A;
-    --blue-950: #172554;
+    /* Teal/cyan color palette for direct use */
+    --sky-50: #F0F9FF;
+    --sky-100: #E0F2FE;
+    --sky-200: #BAE6FD;
+    --sky-300: #7DD3FC;
+    --sky-400: #38BDF8;
+    --sky-500: #0EA5E9;
+    --sky-600: #0284C7;
+    --sky-700: #0369A1;
+    --sky-800: #075985;
+    --sky-900: #0C4A6E;
+    --sky-950: #082F49;
 
     /* Semantic color mappings */
-    --color-primary: var(--blue-800);
-    --color-primary-light: var(--blue-400);
-    --color-primary-dark: var(--blue-900);
-    --color-secondary: var(--blue-500);
-    --color-accent: var(--blue-400);
+    --color-primary: var(--sky-500);
+    --color-primary-light: var(--sky-400);
+    --color-primary-dark: var(--sky-600);
+    --color-secondary: var(--sky-400);
+    --color-accent: var(--sky-300);
 }
 
 /* Dark mode adaptation (if needed) */
@@ -367,88 +366,123 @@
     }
 }
 
-/* Utility classes for blue theme */
-.bg-primary-blue {
-    background-color: var(--blue-800);
+/* Utility classes for teal/cyan theme */
+.bg-primary-teal {
+    background-color: var(--sky-500);
 }
 
-.text-primary-blue {
-    color: var(--blue-800);
+.text-primary-teal {
+    color: var(--sky-500);
 }
 
-.border-primary-blue {
-    border-color: var(--blue-800);
+.border-primary-teal {
+    border-color: var(--sky-500);
 }
 
-.ring-primary-blue {
-    --tw-ring-color: var(--blue-800);
+.ring-primary-teal {
+    --tw-ring-color: var(--sky-500);
 }
 
-/* Button variants using blue theme */
+/* Button variants using teal/cyan theme with gradients */
 .btn-primary {
-    background-color: var(--blue-800);
+    background: linear-gradient(to bottom, var(--sky-400), var(--sky-600));
     color: white;
-    border: 2px solid var(--blue-800);
+    border: none;
+    box-shadow: 0 4px 6px -1px rgba(14, 165, 233, 0.2);
+    transition: all 0.2s ease;
 }
 
 .btn-primary:hover {
-    background-color: var(--blue-900);
-    border-color: var(--blue-900);
+    background: linear-gradient(to bottom, var(--sky-500), var(--sky-700));
+    box-shadow: 0 10px 15px -3px rgba(14, 165, 233, 0.3);
+    transform: translateY(-1px);
 }
 
 .btn-secondary {
-    background-color: var(--blue-500);
+    background: linear-gradient(to bottom, var(--sky-300), var(--sky-500));
     color: white;
-    border: 2px solid var(--blue-500);
+    border: none;
+    box-shadow: 0 4px 6px -1px rgba(14, 165, 233, 0.2);
+    transition: all 0.2s ease;
 }
 
 .btn-secondary:hover {
-    background-color: var(--blue-600);
-    border-color: var(--blue-600);
+    background: linear-gradient(to bottom, var(--sky-400), var(--sky-600));
+    box-shadow: 0 10px 15px -3px rgba(14, 165, 233, 0.3);
+    transform: translateY(-1px);
 }
 
 .btn-outline {
     background-color: transparent;
-    color: var(--blue-800);
-    border: 2px solid var(--blue-800);
+    color: var(--sky-500);
+    border: 2px solid var(--sky-500);
+    transition: all 0.2s ease;
 }
 
 .btn-outline:hover {
-    background-color: var(--blue-800);
+    background: linear-gradient(to bottom, var(--sky-400), var(--sky-600));
     color: white;
+    border-color: transparent;
+    box-shadow: 0 4px 6px -1px rgba(14, 165, 233, 0.2);
 }
 
 /* Selected item styles */
 .selected-item {
-    background-color: var(--blue-100);
-    border-color: var(--blue-800);
-    color: var(--blue-900);
+    background-color: var(--sky-100);
+    border-color: var(--sky-500);
+    color: var(--sky-900);
 }
 
 .selected-item:hover {
-    background-color: var(--blue-200);
+    background-color: var(--sky-200);
 }
 
 /* Focus and active states */
 .focus-ring:focus {
-    outline: 2px solid var(--blue-800);
+    outline: 2px solid var(--sky-500);
     outline-offset: 2px;
 }
 
 .active-state {
-    background-color: var(--blue-800);
+    background: linear-gradient(to bottom, var(--sky-500), var(--sky-600));
     color: white;
 }
 
-/* Status indicators using blue theme */
+/* Status indicators using teal/cyan theme */
 .status-primary {
-    background-color: var(--blue-100);
-    color: var(--blue-800);
-    border: 1px solid var(--blue-300);
+    background-color: var(--sky-100);
+    color: var(--sky-800);
+    border: 1px solid var(--sky-300);
 }
 
 .status-secondary {
-    background-color: var(--blue-50);
-    color: var(--blue-700);
-    border: 1px solid var(--blue-200);
+    background-color: var(--sky-50);
+    color: var(--sky-700);
+    border: 1px solid var(--sky-200);
+}
+
+/* Gradient utilities */
+.gradient-primary {
+    background: linear-gradient(to bottom, var(--sky-400), var(--sky-600));
+}
+
+.gradient-secondary {
+    background: linear-gradient(to bottom, var(--sky-300), var(--sky-500));
+}
+
+.gradient-accent {
+    background: linear-gradient(to bottom, var(--sky-200), var(--sky-400));
+}
+
+/* Hover effects for gradients */
+.gradient-primary:hover {
+    background: linear-gradient(to bottom, var(--sky-500), var(--sky-700));
+}
+
+.gradient-secondary:hover {
+    background: linear-gradient(to bottom, var(--sky-400), var(--sky-600));
+}
+
+.gradient-accent:hover {
+    background: linear-gradient(to bottom, var(--sky-300), var(--sky-500));
 }

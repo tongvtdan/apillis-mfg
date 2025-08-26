@@ -3,7 +3,7 @@
 @tailwind components;
 @tailwind utilities;
 
-/* Factory Pulse Blue Theme System (FP-BT) */
+/* Factory Pulse Teal/Cyan Theme System (FP-TT) */
 
 @layer base {
   :root {
@@ -23,18 +23,18 @@
     --popover-foreground: 220 13% 18%;
     /* #212529 - Dark text in popovers */
 
-    /* Blue-based primary color system from image reference */
-    --primary: 217 91% 33%;
-    /* #1E40AF - Dark Blue (from image primary buttons/headings) */
+    /* Vibrant teal/cyan blue-based primary color system from image reference */
+    --primary: 199 89% 48%;
+    /* #0EA5E9 - Vibrant Teal/Cyan Blue (from image buttons) */
     --primary-foreground: 0 0% 100%;
     /* #FFFFFF - White text on primary */
-    --primary-hover: 217 91% 28%;
-    /* #1E3A8A - Darker blue for hover */
-    --primary-light: 217 91% 70%;
-    /* #60A5FA - Lighter blue for light variants */
+    --primary-hover: 199 89% 43%;
+    /* #0284C7 - Darker teal for hover */
+    --primary-light: 199 89% 68%;
+    /* #7DD3FC - Lighter teal for light variants */
 
-    --secondary: 217 91% 60%;
-    /* #3B82F6 - Medium Blue (complementary to primary) */
+    --secondary: 199 89% 58%;
+    /* #38BDF8 - Light Teal (complementary to primary) */
     --secondary-foreground: 0 0% 100%;
     /* #FFFFFF - White text on secondary */
 
@@ -44,8 +44,8 @@
     --muted-foreground: 215 16% 47%;
     /* #6C757D - Muted text */
 
-    --accent: 217 91% 70%;
-    /* #60A5FA - Light Blue (accent variant) */
+    --accent: 199 89% 68%;
+    /* #7DD3FC - Light Teal (accent variant) */
     --accent-foreground: 220 13% 18%;
     /* #1F2937 - Dark text on accent */
 
@@ -68,8 +68,8 @@
     /* #FFFFFF - White text on error */
     --destructive-light: 0 84% 95%;
 
-    --info: 217 91% 60%;
-    /* #2563EB - Info Blue (brand continuity) */
+    --info: 199 89% 48%;
+    /* #0EA5E9 - Info Teal (matches primary) */
     --info-foreground: 0 0% 100%;
     /* #FFFFFF - White text on info */
 
@@ -78,32 +78,32 @@
     /* #D8DFE6 - Subtle borders */
     --input: 210 15% 95%;
     /* #F2F4F7 - Light input backgrounds */
-    --ring: 217 91% 33%;
-    /* #1E40AF - Dark Blue ring (matches primary) */
+    --ring: 199 89% 48%;
+    /* #0EA5E9 - Teal ring (matches primary) */
 
     --radius: 0.5rem;
     /* 8px border radius */
 
-    /* Blue theme color palette for direct use */
-    --blue-50: 239 246 255;
-    --blue-100: 219 234 254;
-    --blue-200: 191 219 254;
-    --blue-300: 147 197 253;
-    --blue-400: 96 165 250;
-    --blue-500: 59 130 246;
-    --blue-600: 37 99 235;
-    --blue-700: 29 78 216;
-    --blue-800: 30 64 175;
-    /* Primary blue from image */
-    --blue-900: 30 58 138;
-    --blue-950: 23 37 84;
+    /* Teal/cyan theme color palette for direct use */
+    --sky-50: 199 89% 97%;
+    --sky-100: 199 89% 94%;
+    --sky-200: 199 89% 89%;
+    --sky-300: 199 89% 84%;
+    --sky-400: 199 89% 78%;
+    --sky-500: 199 89% 48%;
+    --sky-600: 199 89% 43%;
+    --sky-700: 199 89% 38%;
+    --sky-800: 199 89% 33%;
+    /* Primary teal from image */
+    --sky-900: 199 89% 28%;
+    --sky-950: 199 89% 23%;
 
     /* Modern shadows optimized for both light and dark environments */
     --shadow-sm: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
     --shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
     --shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
-    --shadow-tech: 0 4px 16px -2px rgba(30, 64, 175, 0.15);
-    /* Updated to use new blue primary color */
+    --shadow-tech: 0 4px 16px -2px rgba(14, 165, 233, 0.15);
+    /* Updated to use new teal primary color */
 
     /* Smooth animations - cubic-bezier(0.4, 0, 0.2, 1) */
     --transition-all: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);

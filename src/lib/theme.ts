@@ -12,13 +12,13 @@ export interface ThemeColors {
   popoverForeground: string;
 
   // Interactive elements - industry-standard colors
-  primary: string;        // Dark Blue: #1E40AF (from image reference)
+  primary: string;        // Vibrant Teal/Cyan Blue: #0EA5E9 (from image reference)
   primaryForeground: string;
-  secondary: string;      // Light Blue: #3B82F6 (complementary to primary)
+  secondary: string;      // Light Teal: #38BDF8 (complementary to primary)
   secondaryForeground: string;
   muted: string;
   mutedForeground: string;
-  accent: string;         // Blue accent: #60A5FA (lighter blue variant)
+  accent: string;         // Teal accent: #7DD3FC (lighter teal variant)
   accentForeground: string;
 
   // Status colors - industry-standard colors for clarity
@@ -28,7 +28,7 @@ export interface ThemeColors {
   successForeground: string;
   warning: string;        // Warning: #D97706 (Orange)
   warningForeground: string;
-  info: string;           // Info: #2563EB (Blue - keeping for brand continuity)
+  info: string;           // Info: #0EA5E9 (Teal - matches primary)
   infoForeground: string;
 
   // Borders and inputs
@@ -47,7 +47,7 @@ export interface ThemeColors {
 }
 
 // Factory Pulse Adaptive Theme - Single theme that adapts to environment
-// Based on industrial design standards with blue primary color from image reference
+// Based on industrial design standards with vibrant teal/cyan blue from image reference
 export const ADAPTIVE_THEME: ThemeColors = {
   // Neutral base that works in all lighting conditions
   background: 'hsl(210 13% 96%)',    // #F8F9FA - Light neutral background
@@ -57,36 +57,36 @@ export const ADAPTIVE_THEME: ThemeColors = {
   popover: 'hsl(0 0% 100%)',         // #FFFFFF - Pure white popovers
   popoverForeground: 'hsl(220 13% 18%)', // #212529 - Dark text in popovers
 
-  // Blue-based accent colors from image reference
-  primary: 'hsl(217 91% 33%)',       // #1E40AF - Dark Blue (from image primary buttons/headings)
+  // Vibrant teal/cyan blue-based accent colors from image reference
+  primary: 'hsl(199 89% 48%)',       // #0EA5E9 - Vibrant Teal/Cyan Blue (from image buttons)
   primaryForeground: 'hsl(0 0% 100%)', // #FFFFFF - White text on primary
-  secondary: 'hsl(217 91% 60%)',     // #3B82F6 - Medium Blue (complementary to primary)
+  secondary: 'hsl(199 89% 58%)',     // #38BDF8 - Light Teal (complementary to primary)
   secondaryForeground: 'hsl(0 0% 100%)', // #FFFFFF - White text on secondary
   muted: 'hsl(210 15% 92%)',         // #EBEEF1 - Light muted background
   mutedForeground: 'hsl(215 16% 47%)', // #6C757D - Muted text
-  accent: 'hsl(217 91% 70%)',        // #60A5FA - Light Blue (accent variant)
+  accent: 'hsl(199 89% 68%)',        // #7DD3FC - Light Teal (accent variant)
   accentForeground: 'hsl(220 13% 18%)', // #1F2937 - Dark text on accent
 
   // Industry-standard status colors
   destructive: 'hsl(0 84% 60%)',     // #DC2626 - Error Red
   destructiveForeground: 'hsl(0 0% 100%)', // #FFFFFF - White text on error
-  success: 'hsl(160 84% 39%)',       // #059669 - Success Green
+  success: 'hsl(160 84% 39%)',        // #059669 - Success Green
   successForeground: 'hsl(0 0% 100%)', // #FFFFFF - White text on success
-  warning: 'hsl(32 95% 44%)',        // #D97706 - Warning Orange
+  warning: 'hsl(32 95% 44%)',         // #D97706 - Warning Orange
   warningForeground: 'hsl(0 0% 100%)', // #FFFFFF - White text on warning
-  info: 'hsl(217 91% 60%)',          // #2563EB - Info Blue (brand continuity)
+  info: 'hsl(199 89% 48%)',           // #0EA5E9 - Info Teal (matches primary)
   infoForeground: 'hsl(0 0% 100%)',  // #FFFFFF - White text on info
 
   // Borders and inputs with appropriate contrast
   border: 'hsl(214 15% 85%)',        // #D8DFE6 - Subtle borders
   input: 'hsl(210 15% 95%)',         // #F2F4F7 - Light input backgrounds
-  ring: 'hsl(217 91% 33%)',          // #1E40AF - Dark Blue ring (matches primary)
+  ring: 'hsl(199 89% 48%)',          // #0EA5E9 - Teal ring (matches primary)
 
-  // Chart colors using our blue-based semantic palette
+  // Chart colors using our teal-based semantic palette
   chart: {
-    primary: 'hsl(217 91% 33%)',     // Dark Blue (primary)
-    secondary: 'hsl(217 91% 60%)',   // Medium Blue (secondary)
-    tertiary: 'hsl(217 91% 70%)',    // Light Blue (accent)
+    primary: 'hsl(199 89% 48%)',     // Vibrant Teal (primary)
+    secondary: 'hsl(199 89% 58%)',   // Light Teal (secondary)
+    tertiary: 'hsl(199 89% 68%)',    // Light Teal (accent)
     quaternary: 'hsl(160 84% 39%)',  // Success Green
     quinary: 'hsl(0 84% 60%)'        // Error Red
   }
