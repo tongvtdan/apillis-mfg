@@ -30,6 +30,7 @@ import { cn } from "@/lib/utils";
 import { format } from "date-fns";
 import { Project } from "@/types/project";
 import { projectService } from "@/services/projectService";
+import ProjectCommunication from "@/components/project/ProjectCommunication";
 // import { DataSourceIndicator } from "@/components/debug/DataSourceIndicator";
 // import { ProjectServiceTest } from "@/components/debug/ProjectServiceTest";
 
@@ -412,7 +413,7 @@ export default function ProjectDetail() {
               <span>Project: {project.project_id} – {project.title}</span>
               <span>|</span>
               <span className="flex items-center">
-                Status: <Badge className={cn("ml-2", getStatusColor(project.status))}>
+                Stage: <Badge className={cn("ml-2", getStatusColor(project.status))}>
                   {getStatusLabel(project.status)}
                 </Badge>
               </span>
@@ -507,6 +508,17 @@ export default function ProjectDetail() {
                 )}
               >
                 Supplier
+              </button>
+              <button
+                onClick={() => handleTabChange("communication")}
+                className={cn(
+                  "w-full text-left px-4 py-2.5 rounded-md text-sm font-medium transition-all duration-200",
+                  activeTab === "communication"
+                    ? "bg-primary text-primary-foreground font-bold shadow-sm border-l-4 border-primary"
+                    : "text-foreground hover:bg-muted hover:border-l-4 hover:border-muted-foreground/30"
+                )}
+              >
+                Communication
               </button>
               <button
                 onClick={() => handleTabChange("timeline")}
@@ -878,6 +890,13 @@ export default function ProjectDetail() {
                 </CardContent>
               </Card>
             </div>
+          )}
+
+          {activeTab === "communication" && (
+            <ProjectCommunication
+              projectId={project.id}
+              projectTitle={project.title}
+            />
           )}
 
           {activeTab === "timeline" && (

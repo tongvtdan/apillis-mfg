@@ -6,6 +6,18 @@ This file contains important changes and updates made to the project.
 
 - Date: 2025-01-25
 - What we completed / changed:
+1. **Project Details Page Improvements - Communication System and UI Updates**: 
+   - Changed header "Status" to "Stage" for better clarity and consistency with workflow terminology
+   - Added new "Communication" navigation item below "Supplier" in the project details sidebar
+   - Created comprehensive ProjectCommunication component with tabs for emails, chat, comments, and notifications
+   - Implemented communication overview dashboard with metrics for emails (12), chat messages (8), comments (15), and pending items (3)
+   - Added communication history view with filtering by type (All, Emails, Chat, Comments)
+   - Created new message composition interface with template support for RFQ follow-ups and status updates
+   - Built communication types system supporting email, chat, comment, and notification types with priority levels and status tracking
+   - Added mock communication data for demonstration including RFQ follow-ups, engineering reviews, and customer inquiries
+   - Enhanced project details page with real-time data fetching from Supabase database (already implemented in projectService)
+   - Maintained existing project data structure while adding new communication capabilities
+   - All changes maintain consistent UI/UX patterns and responsive design principles
 1. **Fixed Project Calendar Duplicate Projects Issue**: 
    - Identified root cause: ProjectCalendar was showing projects on multiple dates due to checking three different date fields (due_date, created_at, stage_entered_at)
    - Implemented date display mode selector allowing users to choose between "Due Dates", "Created Dates", or "Stage Entry Dates"
