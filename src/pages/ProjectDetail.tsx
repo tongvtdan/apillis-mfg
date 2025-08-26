@@ -32,42 +32,13 @@ import { Project } from "@/types/project";
 import { projectService } from "@/services/projectService";
 import ProjectCommunication from "@/components/project/ProjectCommunication";
 import { WorkflowStepper } from "@/components/project/WorkflowStepper";
-
-// Document interface for mock data
-interface ProjectDocument {
-  id: string;
-  name: string;
-  version: string;
-  uploadedAt: string;
-  uploadedBy: string;
-  type: string;
-  size: number;
-  access: 'public' | 'internal' | 'restricted';
-}
-
-// Review interface for internal reviews
-interface DepartmentReview {
-  department: 'Engineering' | 'QA' | 'Production';
-  status: 'pending' | 'approved' | 'rejected' | 'in_review';
-  reviewer: string;
-  reviewedAt?: string;
-  comments: string[];
-}
-
-// Activity interface for timeline
-interface ProjectActivity {
-  id: string;
-  timestamp: string;
-  user: string;
-  action: string;
-  details?: string;
-  type: 'status_change' | 'comment' | 'document' | 'review' | 'rfq';
-}
+import { useDocuments } from "@/hooks/useDocuments";
+import { useProjectMessages } from "@/hooks/useMessages";
+import { useSupplierRfqs } from "@/hooks/useSupplierRfqs";
 
 export default function ProjectDetail() {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
-
 
   const [activeTab, setActiveTab] = useState(() => {
     // Try to restore the active tab from sessionStorage based on project ID
@@ -79,6 +50,11 @@ export default function ProjectDetail() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [dataSource, setDataSource] = useState<'supabase' | 'mock' | 'unknown'>('unknown');
+
+  // Fetch real data using hooks
+  const { data: documents = [], isLoading: documentsLoading } = useDocuments(id || '');
+  const { data: messages = [], isLoading: messagesLoading } = useProjectMessages(id || '');
+  const { data: supplierRfqs = [], isLoading: supplierRfqsLoading } = useSupplierRfqs(id || '');
 
   useEffect(() => {
     const fetchProject = async () => {
@@ -171,13 +147,6 @@ export default function ProjectDetail() {
               </CardContent>
             </Card>
 
-            {/* Debug components temporarily disabled - components not found */}
-            {/*
-            <DatabaseDiagnostic />
-            <QuickDatabaseSeeder />
-            <ProjectLoadTest />
-            */}
-
             <Card>
               <CardHeader>
                 <CardTitle>Quick Actions</CardTitle>
@@ -205,118 +174,6 @@ export default function ProjectDetail() {
       </div>
     );
   }
-
-  // Mock data for documents
-  const documents = [
-    {
-      id: '1',
-      name: 'Sensor_Mount_Drawing_REV2.pdf',
-      version: 'v2',
-      uploadedAt: '2025-08-20T14:30:00Z',
-      uploadedBy: 'Sarah',
-      type: 'pdf',
-      size: 2.1,
-      access: 'internal'
-    },
-    {
-      id: '2',
-      name: 'BOM_SensorMount.xlsx',
-      version: 'v1',
-      uploadedAt: '2025-08-20T15:15:00Z',
-      uploadedBy: 'Anna',
-      type: 'xlsx',
-      size: 0.8,
-      access: 'public'
-    },
-    {
-      id: '3',
-      name: 'Material_Spec_Al6061.pdf',
-      version: 'v1',
-      uploadedAt: '2025-08-20T16:00:00Z',
-      uploadedBy: 'Engineering',
-      type: 'pdf',
-      size: 1.5,
-      access: 'public'
-    }
-  ];
-
-  // Mock data for reviews
-  const reviews = [
-    {
-      department: 'Engineering',
-      status: 'approved',
-      reviewer: 'Minh',
-      reviewedAt: '2025-08-21T14:30:00Z',
-      comments: [
-        'Design feasible, no major risks',
-        'Suggest anodizing for corrosion resistance'
-      ]
-    },
-    {
-      department: 'QA',
-      status: 'approved',
-      reviewer: 'Linh',
-      reviewedAt: '2025-08-21T15:45:00Z',
-      comments: [
-        'CMM inspection required for critical dimensions'
-      ]
-    },
-    {
-      department: 'Production',
-      status: 'in_review',
-      reviewer: 'Hung',
-      reviewedAt: '2025-08-21T16:00:00Z',
-      comments: [
-        'Tooling required: custom jig ($1,200)',
-        'Cycle time: ~4.5 min/unit → may impact lead time'
-      ]
-    }
-  ];
-
-  // Mock data for activities
-  const activities = [
-    {
-      id: '1',
-      timestamp: '2025-08-25T10:15:00Z',
-      user: 'Sarah (Sales)',
-      action: 'Updated target price to $8.20 based on supplier quotes',
-      type: 'comment'
-    },
-    {
-      id: '2',
-      timestamp: '2025-08-21T16:20:00Z',
-      user: 'Anna (Procurement)',
-      action: 'Sent RFQ to 3 suppliers – deadline Aug 25',
-      type: 'rfq'
-    }
-  ];
-
-  // Mock supplier RFQ data
-  const supplierRFQs = [
-    {
-      supplier: 'Precision Metals Co.',
-      email: 'joe@precimetals.com',
-      status: 'pending',
-      deadline: 'Aug 25',
-      quote: null
-    },
-    {
-      supplier: 'CNC Masters Inc.',
-      email: 'quotes@cnchub.com',
-      status: 'received',
-      deadline: 'Aug 25',
-      quote: '$7.80/unit'
-    },
-    {
-      supplier: 'Alpha Fabricators',
-      email: 'rfq@alphafab.com',
-      status: 'received',
-      deadline: 'Aug 25',
-      quote: '$8.10/unit'
-    }
-  ];
-
-
 
   const getPriorityColor = (priority: string) => {
     const colors = {
@@ -375,7 +232,9 @@ export default function ProjectDetail() {
     }
   };
 
-  const formatFileSize = (sizeMB: number) => {
+  const formatFileSize = (sizeBytes: number) => {
+    if (!sizeBytes) return 'N/A';
+    const sizeMB = sizeBytes / (1024 * 1024);
     return `${sizeMB.toFixed(1)} MB`;
   };
 
@@ -391,6 +250,39 @@ export default function ProjectDetail() {
       shipped_closed: 'Shipped & Closed'
     };
     return labels[status as keyof typeof labels] || status;
+  };
+
+  // Helper function to get customer display name
+  const getCustomerDisplayName = () => {
+    if (project.customer?.company) return project.customer.company;
+    if (project.customer?.name) return project.customer.name;
+    if (project.contact_name) return project.contact_name;
+    return 'N/A';
+  };
+
+  // Helper function to get assignee display name
+  const getAssigneeDisplayName = () => {
+    if (project.assignee_id) return project.assignee_id;
+    return 'N/A';
+  };
+
+  // Helper function to get volume from estimated value or default
+  const getVolume = () => {
+    if (project.estimated_value) {
+      // Calculate volume based on estimated value and target price
+      const targetPrice = 8.50; // Default target price per unit
+      return Math.round(project.estimated_value / targetPrice).toLocaleString();
+    }
+    return 'N/A';
+  };
+
+  // Helper function to get target price per unit
+  const getTargetPricePerUnit = () => {
+    if (project.estimated_value) {
+      const volume = 5000; // Default volume
+      return `$${(project.estimated_value / volume).toFixed(2)}/unit`;
+    }
+    return '$8.50/unit';
   };
 
   return (
@@ -428,7 +320,7 @@ export default function ProjectDetail() {
             <div className="flex items-center space-x-6 text-sm text-muted-foreground">
               <span className="flex items-center">
                 <Building2 className="w-4 h-4 mr-1" />
-                Customer: {project.customer?.company || project.customer?.name || project.contact_name || 'TechNova Inc.'}
+                Customer: {getCustomerDisplayName()}
               </span>
               <span>|</span>
               <span className="flex items-center">
@@ -438,13 +330,8 @@ export default function ProjectDetail() {
               <span>|</span>
               <span className="flex items-center">
                 <Users className="w-4 h-4 mr-1" />
-                Owner: {project.assignee_id || 'Sarah Lee'}
+                Owner: {getAssigneeDisplayName()}
               </span>
-              {dataSource === 'mock' && (
-                <Badge variant="outline" className="bg-yellow-50 text-yellow-700 border-yellow-200">
-                  📋 Demo Data
-                </Badge>
-              )}
               {dataSource === 'supabase' && (
                 <Badge variant="outline" className="bg-green-50 text-green-700 border-green-200">
                   🔗 Live Data
@@ -488,17 +375,6 @@ export default function ProjectDetail() {
                 )}
               >
                 Documents
-              </button>
-              <button
-                onClick={() => handleTabChange("reviews")}
-                className={cn(
-                  "w-full text-left px-4 py-2.5 rounded-md text-sm font-medium transition-all duration-200",
-                  activeTab === "reviews"
-                    ? "bg-primary text-primary-foreground font-bold shadow-sm border-l-4 border-primary"
-                    : "text-foreground hover:bg-muted hover:border-l-4 hover:border-muted-foreground/30"
-                )}
-              >
-                Reviews
               </button>
               <button
                 onClick={() => handleTabChange("supplier")}
@@ -573,33 +449,33 @@ export default function ProjectDetail() {
                   <div className="grid grid-cols-1 gap-4">
                     <div className="flex">
                       <div className="w-24 text-sm font-medium text-muted-foreground">Title:</div>
-                      <div className="flex-1 text-sm">{project.title} – Aluminum Alloy</div>
+                      <div className="flex-1 text-sm">{project.title || 'N/A'}</div>
                     </div>
                     <div className="flex">
                       <div className="w-24 text-sm font-medium text-muted-foreground">Description:</div>
-                      <div className="flex-1 text-sm">{project.description || 'High-precision mount for industrial sensors'}</div>
+                      <div className="flex-1 text-sm">{project.description || 'N/A'}</div>
                     </div>
                     <div className="flex">
                       <div className="w-24 text-sm font-medium text-muted-foreground">Volume:</div>
-                      <div className="flex-1 text-sm">5,000 pcs</div>
+                      <div className="flex-1 text-sm">{getVolume()}</div>
                     </div>
                     <div className="flex">
                       <div className="w-24 text-sm font-medium text-muted-foreground">Target Price:</div>
-                      <div className="flex-1 text-sm">${project.estimated_value ? (project.estimated_value / 5000).toFixed(2) : '8.50'}/unit</div>
+                      <div className="flex-1 text-sm">{getTargetPricePerUnit()}</div>
                     </div>
                     <div className="flex">
                       <div className="w-24 text-sm font-medium text-muted-foreground">Delivery:</div>
-                      <div className="flex-1 text-sm">{project.due_date ? format(new Date(project.due_date), 'MMM dd, yyyy') : 'Oct 15, 2025'}</div>
+                      <div className="flex-1 text-sm">{project.due_date ? format(new Date(project.due_date), 'MMM dd, yyyy') : 'N/A'}</div>
                     </div>
                     <div className="flex">
                       <div className="w-24 text-sm font-medium text-muted-foreground">Notes:</div>
-                      <div className="flex-1 text-sm">{project.notes || 'Customer open to alternative materials'}</div>
+                      <div className="flex-1 text-sm">{project.notes || 'N/A'}</div>
                     </div>
                   </div>
                 </CardContent>
               </Card>
 
-              {/* All sections visible by default in Overview as per wireframe */}
+              {/* Documents Section */}
               <Card>
                 <CardHeader>
                   <CardTitle className="text-sm font-semibold text-muted-foreground uppercase tracking-wide">
@@ -607,73 +483,46 @@ export default function ProjectDetail() {
                   </CardTitle>
                 </CardHeader>
                 <CardContent>
-                  <div className="space-y-3">
-                    {documents.map((doc) => (
-                      <div key={doc.id} className="flex items-center justify-between text-sm">
-                        <div className="flex items-center space-x-2">
-                          <span>📄</span>
-                          <span className="font-medium">{doc.name}</span>
-                          <Badge variant="outline" className="text-xs px-1 py-0">
-                            [{doc.version}]
-                          </Badge>
-                          <span className="text-muted-foreground">
-                            📅 {format(new Date(doc.uploadedAt), 'MMM dd')} · 👤 {doc.uploadedBy}
-                          </span>
-                          {doc.access === 'internal' && (
-                            <Badge className="text-xs bg-orange-100 text-orange-800">
-                              🔒 Internal Only
-                            </Badge>
-                          )}
-                        </div>
-                      </div>
-                    ))}
-                    <Button variant="outline" size="sm" className="mt-3">
-                      <Plus className="w-4 h-4 mr-2" />
-                      Upload New File
-                    </Button>
-                  </div>
-                </CardContent>
-              </Card>
-
-              <Card>
-                <CardHeader>
-                  <CardTitle className="text-sm font-semibold text-muted-foreground uppercase tracking-wide">
-                    INTERNAL REVIEWS
-                  </CardTitle>
-                </CardHeader>
-                <CardContent>
-                  <div className="space-y-4">
-                    {reviews.map((review) => (
-                      <div key={review.department} className="space-y-2">
-                        <div className="flex items-center justify-between">
+                  {documentsLoading ? (
+                    <div className="flex items-center justify-center py-4">
+                      <Loader2 className="h-4 w-4 animate-spin mr-2" />
+                      <span className="text-sm text-muted-foreground">Loading documents...</span>
+                    </div>
+                  ) : documents.length > 0 ? (
+                    <div className="space-y-3">
+                      {documents.map((doc) => (
+                        <div key={doc.id} className="flex items-center justify-between text-sm">
                           <div className="flex items-center space-x-2">
-                            {review.status === 'approved' && <span className="text-green-600">✅</span>}
-                            {review.status === 'in_review' && <span className="text-yellow-600">🟡</span>}
-                            {review.status === 'pending' && <span className="text-gray-400">⏳</span>}
-                            <span className="font-medium">{review.department}</span>
-                          </div>
-                          <div className="text-sm text-muted-foreground">
-                            👤 {review.reviewer} · {review.reviewedAt ? format(new Date(review.reviewedAt), 'MMM dd') : 'Pending'}
-                            {review.reviewedAt && (
-                              <span className="ml-1">📅 {format(new Date(review.reviewedAt), 'HH:mm')}</span>
+                            <span>📄</span>
+                            <span className="font-medium">{doc.original_file_name || doc.filename || 'N/A'}</span>
+                            <Badge variant="outline" className="text-xs px-1 py-0">
+                              [{doc.version || 'v1'}]
+                            </Badge>
+                            <span className="text-muted-foreground">
+                              📅 {doc.uploaded_at ? format(new Date(doc.uploaded_at), 'MMM dd') : 'N/A'} · 👤 {doc.uploaded_by || 'N/A'}
+                            </span>
+                            {doc.access_level === 'internal' && (
+                              <Badge className="text-xs bg-orange-100 text-orange-800">
+                                🔒 Internal Only
+                              </Badge>
                             )}
                           </div>
                         </div>
-                        {review.comments.length > 0 && (
-                          <div className="ml-6 space-y-1">
-                            {review.comments.map((comment, index) => (
-                              <div key={index} className="text-sm text-muted-foreground">
-                                - {comment}
-                              </div>
-                            ))}
-                          </div>
-                        )}
-                      </div>
-                    ))}
-                  </div>
+                      ))}
+                    </div>
+                  ) : (
+                    <div className="text-center py-4 text-sm text-muted-foreground">
+                      No documents uploaded yet
+                    </div>
+                  )}
+                  <Button variant="outline" size="sm" className="mt-3">
+                    <Plus className="w-4 h-4 mr-2" />
+                    Upload New File
+                  </Button>
                 </CardContent>
               </Card>
 
+              {/* Supplier RFQ Section */}
               <Card>
                 <CardHeader>
                   <CardTitle className="text-sm font-semibold text-muted-foreground uppercase tracking-wide">
@@ -681,43 +530,55 @@ export default function ProjectDetail() {
                   </CardTitle>
                 </CardHeader>
                 <CardContent>
-                  <div className="space-y-4">
-                    <p className="text-sm font-medium">📧 Sent to:</p>
-                    <div className="space-y-2">
-                      {supplierRFQs.map((rfq, index) => (
-                        <div key={index} className="flex items-center justify-between text-sm">
-                          <div className="flex-1">
-                            <span>• {rfq.supplier} ({rfq.email})</span>
-                          </div>
-                          <div>
-                            {rfq.status === 'pending' && (
-                              <span className="text-yellow-600">– 🟡 Pending (Due: {rfq.deadline})</span>
-                            )}
-                            {rfq.status === 'received' && (
-                              <span className="text-green-600">– ✅ Received ({rfq.quote})</span>
-                            )}
-                          </div>
-                        </div>
-                      ))}
+                  {supplierRfqsLoading ? (
+                    <div className="flex items-center justify-center py-4">
+                      <Loader2 className="h-4 w-4 animate-spin mr-2" />
+                      <span className="text-sm text-muted-foreground">Loading supplier RFQs...</span>
                     </div>
-                    <div className="flex space-x-2 pt-2">
-                      <Button variant="outline" size="sm">
-                        <Send className="w-4 h-4 mr-1" />
-                        📤 Resend
-                      </Button>
-                      <Button variant="outline" size="sm">
-                        <Plus className="w-4 h-4 mr-1" />
-                        ➕ Add Supplier
-                      </Button>
-                      <Button variant="outline" size="sm">
-                        <Calendar className="w-4 h-4 mr-1" />
-                        📅 Set Deadline
-                      </Button>
+                  ) : supplierRfqs.length > 0 ? (
+                    <div className="space-y-4">
+                      <p className="text-sm font-medium">📧 Sent to:</p>
+                      <div className="space-y-2">
+                        {supplierRfqs.map((rfq) => (
+                          <div key={rfq.id} className="flex items-center justify-between text-sm">
+                            <div className="flex-1">
+                              <span>• {rfq.supplier_name || 'N/A'} ({rfq.supplier_email || 'N/A'})</span>
+                            </div>
+                            <div>
+                              {rfq.status === 'pending' && (
+                                <span className="text-yellow-600">– 🟡 Pending (Due: {rfq.deadline ? format(new Date(rfq.deadline), 'MMM dd') : 'N/A'})</span>
+                              )}
+                              {rfq.status === 'received' && (
+                                <span className="text-green-600">– ✅ Received</span>
+                              )}
+                            </div>
+                          </div>
+                        ))}
+                      </div>
                     </div>
+                  ) : (
+                    <div className="text-center py-4 text-sm text-muted-foreground">
+                      No supplier RFQs sent yet
+                    </div>
+                  )}
+                  <div className="flex space-x-2 pt-2">
+                    <Button variant="outline" size="sm">
+                      <Send className="w-4 h-4 mr-1" />
+                      📤 Resend
+                    </Button>
+                    <Button variant="outline" size="sm">
+                      <Plus className="w-4 h-4 mr-1" />
+                      ➕ Add Supplier
+                    </Button>
+                    <Button variant="outline" size="sm">
+                      <Calendar className="w-4 h-4 mr-1" />
+                      📅 Set Deadline
+                    </Button>
                   </div>
                 </CardContent>
               </Card>
 
+              {/* Activity & Comments Section */}
               <Card>
                 <CardHeader>
                   <CardTitle className="text-sm font-semibold text-muted-foreground uppercase tracking-wide">
@@ -725,18 +586,29 @@ export default function ProjectDetail() {
                   </CardTitle>
                 </CardHeader>
                 <CardContent>
-                  <div className="space-y-4">
-                    {activities.map((activity) => (
-                      <div key={activity.id} className="text-sm">
-                        <div className="font-medium">
-                          📅 {format(new Date(activity.timestamp), 'MMM dd, HH:mm')} – {activity.user}
+                  {messagesLoading ? (
+                    <div className="flex items-center justify-center py-4">
+                      <Loader2 className="h-4 w-4 animate-spin mr-2" />
+                      <span className="text-sm text-muted-foreground">Loading messages...</span>
+                    </div>
+                  ) : messages.length > 0 ? (
+                    <div className="space-y-4">
+                      {messages.slice(0, 5).map((message) => (
+                        <div key={message.id} className="text-sm">
+                          <div className="font-medium">
+                            📅 {message.created_at ? format(new Date(message.created_at), 'MMM dd, HH:mm') : 'N/A'} – {message.sender_name || 'N/A'}
+                          </div>
+                          <div className="text-muted-foreground ml-4 mt-1">
+                            {message.content || 'N/A'}
+                          </div>
                         </div>
-                        <div className="text-muted-foreground ml-4 mt-1">
-                          {activity.action}
-                        </div>
-                      </div>
-                    ))}
-                  </div>
+                      ))}
+                    </div>
+                  ) : (
+                    <div className="text-center py-4 text-sm text-muted-foreground">
+                      No activity or comments yet
+                    </div>
+                  )}
                 </CardContent>
               </Card>
             </div>
@@ -757,84 +629,54 @@ export default function ProjectDetail() {
                   </div>
                 </CardHeader>
                 <CardContent>
-                  <div className="space-y-4">
-                    {documents.map((doc) => (
-                      <div key={doc.id} className="flex items-center justify-between p-4 border rounded-lg hover:bg-muted/50">
-                        <div className="flex items-center space-x-4">
-                          <FileText className="w-5 h-5 text-muted-foreground" />
-                          <div>
-                            <div className="flex items-center space-x-2">
-                              <span className="font-medium">{doc.name}</span>
-                              <Badge variant="outline" className="text-xs">
-                                [{doc.version}]
-                              </Badge>
-                              <Badge className={`text-xs ${getAccessBadgeColor(doc.access)}`}>
-                                {doc.access === 'internal' ? '🔒 Internal Only' : '🌐 Public'}
-                              </Badge>
-                            </div>
-                            <div className="flex items-center space-x-4 text-sm text-muted-foreground mt-1">
-                              <span>📅 {format(new Date(doc.uploadedAt), 'MMM dd')}</span>
-                              <span>👤 {doc.uploadedBy}</span>
-                              <span>📁 {formatFileSize(doc.size)}</span>
-                            </div>
-                          </div>
-                        </div>
-                        <div className="flex items-center space-x-2">
-                          <Button variant="ghost" size="sm">
-                            <Download className="w-4 h-4" />
-                          </Button>
-                          <Button variant="ghost" size="sm">
-                            <Edit className="w-4 h-4" />
-                          </Button>
-                        </div>
-                      </div>
-                    ))}
-                  </div>
-                </CardContent>
-              </Card>
-            </div>
-          )}
-
-          {activeTab === "reviews" && (
-            <div className="space-y-6">
-              <Card>
-                <CardHeader>
-                  <CardTitle className="text-sm font-semibold text-muted-foreground uppercase tracking-wide">
-                    INTERNAL REVIEWS
-                  </CardTitle>
-                </CardHeader>
-                <CardContent>
-                  <div className="space-y-6">
-                    {reviews.map((review) => (
-                      <div key={review.department} className="border rounded-lg p-4">
-                        <div className="flex items-center justify-between mb-3">
-                          <div className="flex items-center space-x-3">
-                            {getStatusIcon(review.status)}
+                  {documentsLoading ? (
+                    <div className="flex items-center justify-center py-8">
+                      <Loader2 className="h-6 w-6 animate-spin mr-2" />
+                      <span className="text-muted-foreground">Loading documents...</span>
+                    </div>
+                  ) : documents.length > 0 ? (
+                    <div className="space-y-4">
+                      {documents.map((doc) => (
+                        <div key={doc.id} className="flex items-center justify-between p-4 border rounded-lg hover:bg-muted/50">
+                          <div className="flex items-center space-x-4">
+                            <FileText className="w-5 h-5 text-muted-foreground" />
                             <div>
-                              <h4 className="font-medium">{review.department}</h4>
-                              <p className="text-sm text-muted-foreground">
-                                {review.reviewedAt ? `👤 ${review.reviewer} · 📅 ${format(new Date(review.reviewedAt), 'MMM dd, HH:mm')}` : 'Pending review'}
-                              </p>
+                              <div className="flex items-center space-x-2">
+                                <span className="font-medium">{doc.original_file_name || doc.filename || 'N/A'}</span>
+                                <Badge variant="outline" className="text-xs">
+                                  [{doc.version || 'v1'}]
+                                </Badge>
+                                <Badge className={`text-xs ${getAccessBadgeColor(doc.access_level || 'public')}`}>
+                                  {doc.access_level === 'internal' ? '🔒 Internal Only' : '🌐 Public'}
+                                </Badge>
+                              </div>
+                              <div className="flex items-center space-x-4 text-sm text-muted-foreground mt-1">
+                                <span>📅 {doc.uploaded_at ? format(new Date(doc.uploaded_at), 'MMM dd') : 'N/A'}</span>
+                                <span>👤 {doc.uploaded_by || 'N/A'}</span>
+                                <span>📁 {formatFileSize(doc.file_size || 0)}</span>
+                              </div>
                             </div>
                           </div>
-                          <Badge className={`${getReviewStatusColor(review.status)} bg-transparent border`}>
-                            {review.status === 'approved' ? '✅' : review.status === 'in_review' ? '🟡' : '⏳'} {review.status.replace('_', ' ').toUpperCase()}
-                          </Badge>
-                        </div>
-
-                        {review.comments.length > 0 && (
-                          <div className="ml-8 space-y-2">
-                            {review.comments.map((comment, index) => (
-                              <div key={index} className="text-sm text-muted-foreground flex items-start space-x-2">
-                                <span className="text-muted-foreground">-</span>
-                                <span>{comment}</span>
-                              </div>
-                            ))}
+                          <div className="flex items-center space-x-2">
+                            <Button variant="ghost" size="sm">
+                              <Download className="w-4 h-4" />
+                            </Button>
+                            <Button variant="ghost" size="sm">
+                              <Edit className="w-4 h-4" />
+                            </Button>
                           </div>
-                        )}
-                      </div>
-                    ))}
-                  </div>
+                        </div>
+                      ))}
+                    </div>
+                  ) : (
+                    <div className="text-center py-12">
+                      <FileText className="w-12 h-12 mx-auto text-muted-foreground mb-4" />
+                      <h3 className="text-lg font-medium mb-2">No Documents</h3>
+                      <p className="text-muted-foreground">
+                        No documents have been uploaded for this project yet
+                      </p>
+                    </div>
+                  )}
                 </CardContent>
               </Card>
             </div>
@@ -865,30 +707,45 @@ export default function ProjectDetail() {
                   </div>
                 </CardHeader>
                 <CardContent>
-                  <div className="space-y-4">
-                    <p className="text-sm font-medium">📧 Sent to:</p>
-                    {supplierRFQs.map((rfq, index) => (
-                      <div key={index} className="flex items-center justify-between p-3 border rounded-lg">
-                        <div className="flex items-center space-x-3">
-                          <div>
-                            <p className="font-medium">• {rfq.supplier}</p>
-                            <p className="text-sm text-muted-foreground">({rfq.email})</p>
+                  {supplierRfqsLoading ? (
+                    <div className="flex items-center justify-center py-8">
+                      <Loader2 className="h-6 w-6 animate-spin mr-2" />
+                      <span className="text-muted-foreground">Loading supplier RFQs...</span>
+                    </div>
+                  ) : supplierRfqs.length > 0 ? (
+                    <div className="space-y-4">
+                      <p className="text-sm font-medium">📧 Sent to:</p>
+                      {supplierRfqs.map((rfq) => (
+                        <div key={rfq.id} className="flex items-center justify-between p-3 border rounded-lg">
+                          <div className="flex items-center space-x-3">
+                            <div>
+                              <p className="font-medium">• {rfq.supplier_name || 'N/A'}</p>
+                              <p className="text-sm text-muted-foreground">({rfq.supplier_email || 'N/A'})</p>
+                            </div>
+                          </div>
+                          <div className="flex items-center space-x-2">
+                            {rfq.status === 'pending' ? (
+                              <Badge className="bg-yellow-100 text-yellow-800">
+                                🟡 Pending (Due: {rfq.deadline ? format(new Date(rfq.deadline), 'MMM dd') : 'N/A'})
+                              </Badge>
+                            ) : (
+                              <Badge className="bg-green-100 text-green-800">
+                                ✅ Received
+                              </Badge>
+                            )}
                           </div>
                         </div>
-                        <div className="flex items-center space-x-2">
-                          {rfq.status === 'pending' ? (
-                            <Badge className="bg-yellow-100 text-yellow-800">
-                              🟡 Pending (Due: {rfq.deadline})
-                            </Badge>
-                          ) : (
-                            <Badge className="bg-green-100 text-green-800">
-                              ✅ Received ({rfq.quote})
-                            </Badge>
-                          )}
-                        </div>
-                      </div>
-                    ))}
-                  </div>
+                      ))}
+                    </div>
+                  ) : (
+                    <div className="text-center py-12">
+                      <Send className="w-12 h-12 mx-auto text-muted-foreground mb-4" />
+                      <h3 className="text-lg font-medium mb-2">No Supplier RFQs</h3>
+                      <p className="text-muted-foreground">
+                        No supplier RFQs have been sent for this project yet
+                      </p>
+                    </div>
+                  )}
                 </CardContent>
               </Card>
             </div>
@@ -930,20 +787,35 @@ export default function ProjectDetail() {
                     </div>
 
                     {/* Activity Timeline */}
-                    <div className="space-y-4">
-                      {activities.map((activity) => (
-                        <div key={activity.id} className="border-l-2 border-muted pl-4">
-                          <div className="flex items-center justify-between">
-                            <p className="text-sm font-medium text-foreground">
-                              📅 {format(new Date(activity.timestamp), 'MMM dd, HH:mm')} – {activity.user}
+                    {messagesLoading ? (
+                      <div className="flex items-center justify-center py-8">
+                        <Loader2 className="h-6 w-6 animate-spin mr-2" />
+                        <span className="text-muted-foreground">Loading messages...</span>
+                      </div>
+                    ) : messages.length > 0 ? (
+                      <div className="space-y-4">
+                        {messages.map((message) => (
+                          <div key={message.id} className="border-l-2 border-muted pl-4">
+                            <div className="flex items-center justify-between">
+                              <p className="text-sm font-medium text-foreground">
+                                📅 {message.created_at ? format(new Date(message.created_at), 'MMM dd, HH:mm') : 'N/A'} – {message.sender_name || 'N/A'}
+                              </p>
+                            </div>
+                            <p className="text-sm text-muted-foreground mt-1">
+                              {message.content || 'N/A'}
                             </p>
                           </div>
-                          <p className="text-sm text-muted-foreground mt-1">
-                            {activity.action}
-                          </p>
-                        </div>
-                      ))}
-                    </div>
+                        ))}
+                      </div>
+                    ) : (
+                      <div className="text-center py-8">
+                        <MessageSquare className="w-12 h-12 mx-auto text-muted-foreground mb-4" />
+                        <h3 className="text-lg font-medium mb-2">No Activity</h3>
+                        <p className="text-muted-foreground">
+                          No messages or activity for this project yet
+                        </p>
+                      </div>
+                    )}
                   </div>
                 </CardContent>
               </Card>
