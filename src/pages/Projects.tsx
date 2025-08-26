@@ -43,11 +43,10 @@ export default function Projects() {
     return saved ? (saved as string) : 'flowchart';
   };
 
-  const [activeTab, setActiveTab] = React.useState(getDefaultTab());
+  const defaultTab = getDefaultTab();
 
   // Save selected tab to localStorage and URL params
   const handleTabChange = (value: string) => {
-    setActiveTab(value);
     localStorage.setItem('projects-selected-tab', value);
     setSearchParams(prev => {
       const newParams = new URLSearchParams(prev);
@@ -121,30 +120,37 @@ export default function Projects() {
 
   return (
     <div className="p-6 bg-base-100 text-base-content min-h-screen">
-      <Tabs value={activeTab} onValueChange={handleTabChange} className="w-full relative">
+      <Tabs value={defaultTab} onValueChange={handleTabChange} className="w-full relative">
         <div className="mb-6 flex justify-between items-center">
           <div>
             <h1 className="text-2xl font-bold text-base-content">Factory Pulse - Project Flow</h1>
             <p className="text-base-content/70">Track and manage your manufacturing projects from idea to delivery</p>
+            {/* Debug info */}
+            <p className="text-xs text-muted-foreground mt-1">Debug: Active Tab = "{defaultTab}"</p>
           </div>
           <div className="flex items-center gap-4">
-            <TabsList className="grid w-[450px] grid-cols-3">
-              <TabsTrigger value="flowchart">Kanban Flow</TabsTrigger>
-              <TabsTrigger value="table">Table</TabsTrigger>
-              <TabsTrigger value="calendar">Calendar</TabsTrigger>
+            <TabsList className="grid w-[450px] grid-cols-3 bg-muted/30 p-1 rounded-lg">
+              <TabsTrigger
+                value="flowchart"
+                className="data-[state=active]:bg-primary data-[state=active]:text-primary-foreground data-[state=active]:shadow-lg data-[state=active]:font-semibold data-[state=active]:scale-105 data-[state=active]:border-2 data-[state=active]:border-primary/20 data-[state=inactive]:text-muted-foreground data-[state=inactive]:hover:bg-muted/50 transition-all duration-200"
+              >
+                Kanban Flow
+              </TabsTrigger>
+              <TabsTrigger
+                value="table"
+                className="data-[state=active]:bg-primary data-[state=active]:text-primary-foreground data-[state=active]:shadow-lg data-[state=active]:font-semibold data-[state=active]:scale-105 data-[state=active]:border-2 data-[state=active]:border-primary/20 data-[state=inactive]:text-muted-foreground data-[state=inactive]:hover:bg-muted/50 transition-all duration-200"
+              >
+                Table
+              </TabsTrigger>
+              <TabsTrigger
+                value="calendar"
+                className="data-[state=active]:bg-primary data-[state=active]:text-primary-foreground data-[state=active]:shadow-lg data-[state=active]:font-semibold data-[state=active]:scale-105 data-[state=active]:border-2 data-[state=active]:border-primary/20 data-[state=inactive]:text-muted-foreground data-[state=inactive]:hover:bg-muted/50 transition-all duration-200"
+              >
+                Calendar
+              </TabsTrigger>
             </TabsList>
 
-            {/* Debug button for testing real-time subscription */}
-            <Button
-              variant="outline"
-              size="sm"
-              onClick={testRealtimeSubscription}
-              className="text-xs"
-            >
-              🧪 Test RT
-            </Button>
-
-            {/* Manual refresh button for testing */}
+            {/* Manual refresh button */}
             <Button
               variant="outline"
               size="sm"
@@ -152,39 +158,6 @@ export default function Projects() {
               className="text-xs"
             >
               🔄 Refresh
-            </Button>
-
-            {/* Manual state update test button */}
-            <Button
-              variant="outline"
-              size="sm"
-              onClick={testManualStateUpdate}
-              className="text-xs"
-            >
-              🧪 Test State
-            </Button>
-
-            {/* Supabase real-time test button */}
-            <Button
-              variant="outline"
-              size="sm"
-              onClick={testSupabaseRealtime}
-              className="text-xs"
-            >
-              🧪 Test RT
-            </Button>
-
-            {/* Force refresh button for immediate testing */}
-            <Button
-              variant="outline"
-              size="sm"
-              onClick={() => {
-                console.log('🔄 Manual refresh triggered from Projects page');
-                refetch(true);
-              }}
-              className="text-xs"
-            >
-              🚀 Force Refresh
             </Button>
 
             {/* Project Type Filter */}
