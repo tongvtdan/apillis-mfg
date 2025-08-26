@@ -18,6 +18,7 @@ This file contains important changes and updates made to the project.
    - **Added review assignment system** with auto-assignment recommendations and manual override options
    - **Enhanced review configuration** with workflow automation, SLA settings, and notification preferences
    - **Improved modal UI styling** with solid background (95% opacity) and backdrop blur for better readability and consistency with dropdown/notification styles
+   - **Enhanced Switch component visibility** with distinct green (ON) and gray (OFF) colors, plus visual icons (✓ for ON, ✗ for OFF) for better state recognition
 2. **Project Detail Page Mock Data Removal and Real Data Integration**: 
    - Removed all mock data arrays and interfaces (documents, reviews, activities, supplierRFQs)
    - Integrated real data fetching using existing hooks: useDocuments, useProjectMessages, useSupplierRfqs
