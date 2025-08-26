@@ -29,6 +29,7 @@ import {
 import { cn } from "@/lib/utils";
 import { format } from "date-fns";
 import { Project } from "@/types/project";
+import { Department, ReviewSubmission, InternalReview } from "@/types/review";
 import { projectService } from "@/services/projectService";
 import ProjectCommunication from "@/components/project/ProjectCommunication";
 import { WorkflowStepper } from "@/components/project/WorkflowStepper";
@@ -36,6 +37,10 @@ import { useDocuments } from "@/hooks/useDocuments";
 import { useProjectMessages } from "@/hooks/useMessages";
 import { useSupplierRfqs } from "@/hooks/useSupplierRfqs";
 import { useProjectReviews } from "@/hooks/useProjectReviews";
+import { ProjectReviewForm } from "@/components/project/ProjectReviewForm";
+import { ReviewConfiguration } from "@/components/project/ReviewConfiguration";
+import { ReviewList } from "@/components/project/ReviewList";
+import { ReviewAssignmentModal } from "@/components/project/ReviewAssignmentModal";
 
 export default function ProjectDetail() {
   const { id } = useParams<{ id: string }>();
@@ -52,11 +57,17 @@ export default function ProjectDetail() {
   const [error, setError] = useState<string | null>(null);
   const [dataSource, setDataSource] = useState<'supabase' | 'mock' | 'unknown'>('unknown');
 
+  // Review state management
+  const [showReviewForm, setShowReviewForm] = useState<Department | null>(null);
+  const [showReviewConfig, setShowReviewConfig] = useState(false);
+  const [showAssignmentModal, setShowAssignmentModal] = useState(false);
+  const [selectedReview, setSelectedReview] = useState<InternalReview | null>(null);
+
   // Fetch real data using hooks
   const { data: documents = [], isLoading: documentsLoading } = useDocuments(id || '');
   const { data: messages = [], isLoading: messagesLoading } = useProjectMessages(id || '');
   const { data: supplierRfqs = [], isLoading: supplierRfqsLoading } = useSupplierRfqs(id || '');
-  const { reviews, loading: reviewsLoading, getReviewStatuses, getReviewSummary } = useProjectReviews(id || '');
+  const { reviews, loading: reviewsLoading, getReviewStatuses, getReviewSummary, submitReview } = useProjectReviews(id || '');
 
   useEffect(() => {
     const fetchProject = async () => {
@@ -285,6 +296,48 @@ export default function ProjectDetail() {
       return `$${(project.estimated_value / volume).toFixed(2)}/unit`;
     }
     return '$8.50/unit';
+  };
+
+  // Review handling functions
+  const handleAddReview = (department: Department) => {
+    setShowReviewForm(department);
+  };
+
+  const handleEditReview = (review: InternalReview) => {
+    setSelectedReview(review);
+    setShowReviewForm(review.department);
+  };
+
+  const handleViewReview = (review: InternalReview) => {
+    setSelectedReview(review);
+    // For now, just show the review form in read-only mode
+    setShowReviewForm(review.department);
+  };
+
+  const handleReviewSubmit = async (submission: ReviewSubmission) => {
+    if (!id) return false;
+
+    try {
+      await submitReview(showReviewForm!, submission);
+      setShowReviewForm(null);
+      setSelectedReview(null);
+      return true;
+    } catch (error) {
+      console.error('Failed to submit review:', error);
+      return false;
+    }
+  };
+
+  const handleReviewConfigSave = async (config: any) => {
+    // TODO: Implement actual configuration saving
+    console.log('Saving review configuration:', config);
+    setShowReviewConfig(false);
+  };
+
+  const handleAssignmentSave = async (assignments: any[]) => {
+    // TODO: Implement actual assignment saving
+    console.log('Saving review assignments:', assignments);
+    setShowAssignmentModal(false);
   };
 
   return (
@@ -818,11 +871,19 @@ export default function ProjectDetail() {
                       INTERNAL REVIEWS
                     </CardTitle>
                     <div className="flex space-x-2">
-                      <Button variant="outline" size="sm">
-                        <Plus className="w-4 h-4 mr-2" />
-                        ➕ Add Review
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        onClick={() => setShowAssignmentModal(true)}
+                      >
+                        <Users className="w-4 h-4 mr-2" />
+                        👥 Assign
                       </Button>
-                      <Button variant="outline" size="sm">
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        onClick={() => setShowReviewConfig(true)}
+                      >
                         <Settings className="w-4 h-4 mr-2" />
                         ⚙️ Configure
                       </Button>
@@ -830,16 +891,39 @@ export default function ProjectDetail() {
                   </div>
                 </CardHeader>
                 <CardContent>
-                  <div className="text-center py-12">
-                    <CheckCircle2 className="w-12 h-12 mx-auto text-muted-foreground mb-4" />
-                    <h3 className="text-lg font-medium mb-2">Reviews Coming Soon</h3>
-                    <p className="text-muted-foreground">
-                      Internal review system will be available here
-                    </p>
-                    <p className="text-sm text-muted-foreground mt-2">
-                      Engineering, QA, and Production reviews will be managed through this tab
-                    </p>
-                  </div>
+                  {reviewsLoading ? (
+                    <div className="flex items-center justify-center py-8">
+                      <Loader2 className="h-6 w-6 animate-spin mr-2" />
+                      <span className="text-muted-foreground">Loading reviews...</span>
+                    </div>
+                  ) : (
+                    <div className="space-y-4">
+                      {/* Quick Add Review Buttons */}
+                      <div className="flex gap-2">
+                        {(['Engineering', 'QA', 'Production'] as Department[]).map((department) => {
+                          const existingReview = reviews.find(r => r.department === department);
+                          return (
+                            <Button
+                              key={department}
+                              variant={existingReview ? "outline" : "default"}
+                              size="sm"
+                              onClick={() => handleAddReview(department)}
+                            >
+                              <Plus className="w-4 h-4 mr-2" />
+                              {existingReview ? `Update ${department}` : `Add ${department}`}
+                            </Button>
+                          );
+                        })}
+                      </div>
+
+                      {/* Review List */}
+                      <ReviewList
+                        reviews={reviews}
+                        onEditReview={handleEditReview}
+                        onViewReview={handleViewReview}
+                      />
+                    </div>
+                  )}
                 </CardContent>
               </Card>
             </div>
@@ -1038,6 +1122,50 @@ export default function ProjectDetail() {
             <h3 className="text-lg font-semibold mb-4 text-card-foreground">Supplier RFQ</h3>
             <p className="text-muted-foreground mb-4">Supplier RFQ functionality coming soon...</p>
             <Button onClick={() => setShowSupplierModal(false)}>Close</Button>
+          </div>
+        </div>
+      )}
+
+      {/* Review Form Modal */}
+      {showReviewForm && (
+        <div className="fixed inset-0 bg-black/50 flex items-center justify-center p-4 z-50">
+          <div className="w-full max-w-4xl max-h-[90vh] overflow-y-auto">
+            <ProjectReviewForm
+              projectId={id || ''}
+              department={showReviewForm}
+              existingReview={selectedReview || undefined}
+              onSubmit={handleReviewSubmit}
+              onCancel={() => {
+                setShowReviewForm(null);
+                setSelectedReview(null);
+              }}
+            />
+          </div>
+        </div>
+      )}
+
+      {/* Review Configuration Modal */}
+      {showReviewConfig && (
+        <div className="fixed inset-0 bg-black/50 flex items-center justify-center p-4 z-50">
+          <div className="w-full max-w-6xl max-h-[90vh] overflow-y-auto">
+            <ReviewConfiguration
+              projectId={id || ''}
+              onClose={() => setShowReviewConfig(false)}
+              onSave={handleReviewConfigSave}
+            />
+          </div>
+        </div>
+      )}
+
+      {/* Review Assignment Modal */}
+      {showAssignmentModal && (
+        <div className="fixed inset-0 bg-black/50 flex items-center justify-center p-4 z-50">
+          <div className="w-full max-w-2xl max-h-[90vh] overflow-y-auto">
+            <ReviewAssignmentModal
+              projectId={id || ''}
+              onClose={() => setShowAssignmentModal(false)}
+              onSave={handleAssignmentSave}
+            />
           </div>
         </div>
       )}
