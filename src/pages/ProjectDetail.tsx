@@ -377,6 +377,17 @@ export default function ProjectDetail() {
                 Documents
               </button>
               <button
+                onClick={() => handleTabChange("reviews")}
+                className={cn(
+                  "w-full text-left px-4 py-2.5 rounded-md text-sm font-medium transition-all duration-200",
+                  activeTab === "reviews"
+                    ? "bg-primary text-primary-foreground font-bold shadow-sm border-l-4 border-primary"
+                    : "text-foreground hover:bg-muted hover:border-l-4 hover:border-muted-foreground/30"
+                )}
+              >
+                Reviews
+              </button>
+              <button
                 onClick={() => handleTabChange("supplier")}
                 className={cn(
                   "w-full text-left px-4 py-2.5 rounded-md text-sm font-medium transition-all duration-200",
@@ -677,6 +688,42 @@ export default function ProjectDetail() {
                       </p>
                     </div>
                   )}
+                </CardContent>
+              </Card>
+            </div>
+          )}
+
+          {activeTab === "reviews" && (
+            <div className="space-y-6">
+              <Card>
+                <CardHeader>
+                  <div className="flex items-center justify-between">
+                    <CardTitle className="text-sm font-semibold text-muted-foreground uppercase tracking-wide">
+                      INTERNAL REVIEWS
+                    </CardTitle>
+                    <div className="flex space-x-2">
+                      <Button variant="outline" size="sm">
+                        <Plus className="w-4 h-4 mr-2" />
+                        ➕ Add Review
+                      </Button>
+                      <Button variant="outline" size="sm">
+                        <Settings className="w-4 h-4 mr-2" />
+                        ⚙️ Configure
+                      </Button>
+                    </div>
+                  </div>
+                </CardHeader>
+                <CardContent>
+                  <div className="text-center py-12">
+                    <CheckCircle2 className="w-12 h-12 mx-auto text-muted-foreground mb-4" />
+                    <h3 className="text-lg font-medium mb-2">Reviews Coming Soon</h3>
+                    <p className="text-muted-foreground">
+                      Internal review system will be available here
+                    </p>
+                    <p className="text-sm text-muted-foreground mt-2">
+                      Engineering, QA, and Production reviews will be managed through this tab
+                    </p>
+                  </div>
                 </CardContent>
               </Card>
             </div>

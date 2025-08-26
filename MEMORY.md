@@ -14,6 +14,8 @@ This file contains important changes and updates made to the project.
    - Added helper functions for handling missing data: getCustomerDisplayName, getAssigneeDisplayName, getVolume, getTargetPricePerUnit
    - Enhanced error handling and empty states for better user experience
    - Maintained all existing functionality while ensuring data integrity
+   - **Added missing Reviews tab** to navigation sidebar between Documents and Supplier tabs
+   - Implemented placeholder content for Reviews tab with "Coming Soon" message and action buttons
 2. Enhanced database schema with workflow stages, document management, messaging, and supplier RFQ systems
 3. Implemented comprehensive TypeScript types and API wrappers for all new systems
 4. Created React Query hooks for data management with proper error handling and caching
