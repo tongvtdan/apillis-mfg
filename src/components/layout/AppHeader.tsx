@@ -66,16 +66,16 @@ export function AppHeader() {
             </Button>
           )}
 
-          <Button variant="ghost" size="sm" className="relative">
+          <Button variant="ghost" size="sm" className="relative bg-red-100 hover:bg-red-200 text-red-700 hover:text-red-800 border border-red-300 hover:border-red-400">
             <Bell className="h-4 w-4" />
-            <Badge className="absolute -top-1 -right-1 h-5 w-5 rounded-full p-0 flex items-center justify-center text-xs">
+            <Badge className="absolute -top-1 -right-1 h-5 w-5 rounded-full p-0 flex items-center justify-center text-xs bg-red-600 text-white border-2 border-white">
               3
             </Badge>
           </Button>
 
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
-              <Button variant="ghost" size="sm" className="relative h-8 w-8 rounded-full">
+              <Button variant="ghost" size="sm" className="relative h-8 w-8 rounded-full border-2 border-sky-200 hover:border-sky-300 hover:bg-sky-50">
                 <Avatar className="h-8 w-8">
                   <AvatarFallback className="text-xs">
                     {profile ? getInitials(profile.display_name) : 'U'}
