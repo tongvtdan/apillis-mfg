@@ -2,10 +2,10 @@ import React, { useState } from 'react';
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { 
-  CheckCircle, 
-  Clock, 
-  Play, 
+import {
+  CheckCircle,
+  Clock,
+  Play,
   Circle,
   CheckCircle2,
   AlertCircle,
@@ -13,11 +13,11 @@ import {
 } from "lucide-react";
 import { Project, ProjectStatus } from "@/types/project";
 import { WorkflowValidator } from "@/lib/workflow-validator";
-import { 
-  Tooltip, 
-  TooltipContent, 
-  TooltipProvider, 
-  TooltipTrigger 
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger
 } from "@/components/ui/tooltip";
 import { useProjectUpdate } from "@/hooks/useProjectUpdate";
 import { useToast } from "@/hooks/use-toast";
@@ -26,9 +26,9 @@ interface WorkflowStepperProps {
   project: Project;
 }
 
-const stageConfig: Record<ProjectStatus, { 
-  title: string; 
-  icon: React.ElementType; 
+const stageConfig: Record<ProjectStatus, {
+  title: string;
+  icon: React.ElementType;
   color: string;
   bgColor: string;
 }> = {
@@ -104,11 +104,11 @@ export function WorkflowStepper({ project }: WorkflowStepperProps) {
 
   const handleStageClick = async (stage: ProjectStatus) => {
     if (stage === project.status) return;
-    
+
     try {
       // Validate the status change
       const validationResult = await WorkflowValidator.validateStatusChange(project, stage);
-      
+
       if (!validationResult.isValid) {
         toast({
           variant: "destructive",
@@ -117,7 +117,7 @@ export function WorkflowStepper({ project }: WorkflowStepperProps) {
         });
         return;
       }
-      
+
       setError(null); // Clear any previous errors
       const success = await updateStatus(stage);
       if (success) {
@@ -156,7 +156,7 @@ export function WorkflowStepper({ project }: WorkflowStepperProps) {
   const getStatusIcon = (stage: ProjectStatus) => {
     const status = getStageStatus(stage);
     const Icon = stageConfig[stage].icon;
-    
+
     switch (status) {
       case 'completed':
         return <CheckCircle className="w-5 h-5 text-green-600" />;
@@ -193,9 +193,9 @@ export function WorkflowStepper({ project }: WorkflowStepperProps) {
             <AlertCircle className="w-5 h-5 mr-2" />
             <span className="font-medium">Error: {error}</span>
           </div>
-          <Button 
-            variant="outline" 
-            size="sm" 
+          <Button
+            variant="outline"
+            size="sm"
             className="mt-2 text-red-700 border-red-300 hover:bg-red-100"
             onClick={() => setError(null)}
           >
@@ -217,7 +217,7 @@ export function WorkflowStepper({ project }: WorkflowStepperProps) {
             </div>
           </div>
         )}
-        
+
         <div className="mb-4">
           <div className="flex justify-between items-center mb-2">
             <h3 className="text-lg font-semibold">Project Workflow</h3>
@@ -226,8 +226,8 @@ export function WorkflowStepper({ project }: WorkflowStepperProps) {
             </Badge>
           </div>
           <div className="w-full bg-gray-200 rounded-full h-2" role="progressbar" aria-valuenow={progressPercentage} aria-valuemin={0} aria-valuemax={100}>
-            <div 
-              className="bg-blue-600 h-2 rounded-full transition-all duration-500 ease-out" 
+            <div
+              className="bg-blue-600 h-2 rounded-full transition-all duration-500 ease-out"
               style={{ width: `${progressPercentage}%` }}
             ></div>
           </div>
@@ -239,16 +239,15 @@ export function WorkflowStepper({ project }: WorkflowStepperProps) {
             const status = getStageStatus(stage);
             const isClickable = status !== 'current' && !isUpdating;
             const stageTitle = stageConfig[stage].title;
-            
+
             return (
               <React.Fragment key={stage}>
                 <TooltipProvider>
                   <Tooltip>
                     <TooltipTrigger asChild>
-                      <div 
-                        className={`flex flex-col items-center cursor-pointer transition-all duration-200 ${
-                          isClickable ? 'hover:scale-105' : 'cursor-default'
-                        }`}
+                      <div
+                        className={`flex flex-col items-center cursor-pointer transition-all duration-200 ${isClickable ? 'hover:scale-105' : 'cursor-default'
+                          }`}
                         onClick={() => isClickable && handleStageClick(stage)}
                         onKeyDown={(e) => isClickable && handleKeyDown(e, stage)}
                         onMouseEnter={() => setHoveredStage(stage)}
@@ -272,9 +271,8 @@ export function WorkflowStepper({ project }: WorkflowStepperProps) {
                             </div>
                           )}
                         </div>
-                        <span className={`text-xs text-center max-w-[100px] ${
-                          status === 'current' ? 'font-semibold' : 'text-muted-foreground'
-                        }`}>
+                        <span className={`text-xs text-center max-w-[100px] ${status === 'current' ? 'font-semibold' : 'text-muted-foreground'
+                          }`}>
                           {stageTitle}
                         </span>
                       </div>
@@ -305,7 +303,7 @@ export function WorkflowStepper({ project }: WorkflowStepperProps) {
                     </TooltipContent>
                   </Tooltip>
                 </TooltipProvider>
-                
+
                 {index < allStages.length - 1 && (
                   <div className={`flex-grow h-0.5 mx-2 ${getConnectorColor(stage)}`}></div>
                 )}
@@ -320,10 +318,10 @@ export function WorkflowStepper({ project }: WorkflowStepperProps) {
             const status = getStageStatus(stage);
             const isClickable = status !== 'current' && !isUpdating;
             const stageTitle = stageConfig[stage].title;
-            
+
             return (
               <div key={stage} className="flex items-center">
-                <div 
+                <div
                   className={`
                     relative flex items-center justify-center w-10 h-10 rounded-full border-2 mr-4
                     ${getStatusColor(stage)}
@@ -342,9 +340,8 @@ export function WorkflowStepper({ project }: WorkflowStepperProps) {
                 </div>
                 <div className="flex-1">
                   <div className="flex justify-between items-center">
-                    <span className={`font-medium ${
-                      status === 'current' ? 'text-blue-600' : 'text-muted-foreground'
-                    }`}>
+                    <span className={`font-medium ${status === 'current' ? 'text-blue-600' : 'text-muted-foreground'
+                      }`}>
                       {stageTitle}
                     </span>
                     <Badge variant="outline" className="text-xs">
