@@ -37,6 +37,7 @@ import { useDocuments } from "@/hooks/useDocuments";
 import { useProjectMessages } from "@/hooks/useMessages";
 import { useSupplierRfqs } from "@/hooks/useSupplierRfqs";
 import { useProjectReviews } from "@/hooks/useProjectReviews";
+import { useProjects } from "@/hooks/useProjects";
 import { ProjectReviewForm } from "@/components/project/ProjectReviewForm";
 import { ReviewConfiguration } from "@/components/project/ReviewConfiguration";
 import { ReviewList } from "@/components/project/ReviewList";
@@ -56,6 +57,9 @@ export default function ProjectDetail() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [dataSource, setDataSource] = useState<'supabase' | 'mock' | 'unknown'>('unknown');
+
+  // Use the projects hook to get real-time updates
+  const { projects } = useProjects();
 
   // Review state management
   const [showReviewForm, setShowReviewForm] = useState<Department | null>(null);
@@ -103,6 +107,27 @@ export default function ProjectDetail() {
 
     fetchProject();
   }, [id]);
+
+  // Update project when projects list changes (for real-time updates)
+  useEffect(() => {
+    if (id && projects.length > 0) {
+      const updatedProject = projects.find(p => p.id === id);
+      if (updatedProject) {
+        // Only update if the project has actually changed
+        if (!project ||
+          project.status !== updatedProject.status ||
+          project.updated_at !== updatedProject.updated_at) {
+          console.log('🔄 ProjectDetail: Updating project from real-time data:', {
+            oldStatus: project?.status,
+            newStatus: updatedProject.status,
+            oldUpdatedAt: project?.updated_at,
+            newUpdatedAt: updatedProject.updated_at
+          });
+          setProject(updatedProject);
+        }
+      }
+    }
+  }, [projects, id]);
 
   // Loading state
   if (loading) {
@@ -398,7 +423,17 @@ export default function ProjectDetail() {
       </div>
 
       {/* Workflow Stepper */}
-      <WorkflowStepper project={project} />
+      <WorkflowStepper
+        key={`${project.id}-${project.status}-${project.updated_at}`}
+        project={project}
+      />
+
+      {/* Debug info for testing */}
+      {process.env.NODE_ENV === 'development' && (
+        <div className="p-4 bg-muted/50 border rounded-lg text-xs text-muted-foreground mx-6">
+          <strong>Debug Info:</strong> Project Status: {project.status} | Updated: {project.updated_at} | Key: {`${project.id}-${project.status}-${project.updated_at}`}
+        </div>
+      )}
 
       {/* Main Content */}
       <div className="flex">
