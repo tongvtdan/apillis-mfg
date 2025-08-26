@@ -89,6 +89,98 @@ export type Database = {
         }
         Relationships: []
       }
+      document_access_log: {
+        Row: {
+          accessed_at: string | null
+          action: string
+          document_id: string | null
+          id: string
+          ip_address: unknown | null
+          user_agent: string | null
+          user_id: string | null
+        }
+        Insert: {
+          accessed_at?: string | null
+          action: string
+          document_id?: string | null
+          id?: string
+          ip_address?: unknown | null
+          user_agent?: string | null
+          user_id?: string | null
+        }
+        Update: {
+          accessed_at?: string | null
+          action?: string
+          document_id?: string | null
+          id?: string
+          ip_address?: unknown | null
+          user_agent?: string | null
+          user_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "document_access_log_document_id_fkey"
+            columns: ["document_id"]
+            isOneToOne: false
+            referencedRelation: "project_documents"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      document_comments: {
+        Row: {
+          comment: string
+          coordinates: Json | null
+          created_at: string | null
+          document_id: string | null
+          id: string
+          is_resolved: boolean | null
+          page_number: number | null
+          parent_comment_id: string | null
+          updated_at: string | null
+          user_id: string | null
+        }
+        Insert: {
+          comment: string
+          coordinates?: Json | null
+          created_at?: string | null
+          document_id?: string | null
+          id?: string
+          is_resolved?: boolean | null
+          page_number?: number | null
+          parent_comment_id?: string | null
+          updated_at?: string | null
+          user_id?: string | null
+        }
+        Update: {
+          comment?: string
+          coordinates?: Json | null
+          created_at?: string | null
+          document_id?: string | null
+          id?: string
+          is_resolved?: boolean | null
+          page_number?: number | null
+          parent_comment_id?: string | null
+          updated_at?: string | null
+          user_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "document_comments_document_id_fkey"
+            columns: ["document_id"]
+            isOneToOne: false
+            referencedRelation: "project_documents"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "document_comments_parent_comment_id_fkey"
+            columns: ["parent_comment_id"]
+            isOneToOne: false
+            referencedRelation: "document_comments"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       inventory_items: {
         Row: {
           category: string | null
@@ -150,6 +242,139 @@ export type Database = {
             columns: ["supplier_id"]
             isOneToOne: false
             referencedRelation: "suppliers"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      messages: {
+        Row: {
+          attachments: Json | null
+          content: string
+          created_at: string | null
+          id: string
+          is_read: boolean | null
+          message_type: string | null
+          metadata: Json | null
+          priority: string | null
+          project_id: string | null
+          read_at: string | null
+          recipient_department: string | null
+          recipient_id: string | null
+          recipient_role: string | null
+          recipient_type: string
+          sender_id: string | null
+          sender_type: string
+          subject: string | null
+          thread_id: string | null
+          updated_at: string | null
+        }
+        Insert: {
+          attachments?: Json | null
+          content: string
+          created_at?: string | null
+          id?: string
+          is_read?: boolean | null
+          message_type?: string | null
+          metadata?: Json | null
+          priority?: string | null
+          project_id?: string | null
+          read_at?: string | null
+          recipient_department?: string | null
+          recipient_id?: string | null
+          recipient_role?: string | null
+          recipient_type: string
+          sender_id?: string | null
+          sender_type: string
+          subject?: string | null
+          thread_id?: string | null
+          updated_at?: string | null
+        }
+        Update: {
+          attachments?: Json | null
+          content?: string
+          created_at?: string | null
+          id?: string
+          is_read?: boolean | null
+          message_type?: string | null
+          metadata?: Json | null
+          priority?: string | null
+          project_id?: string | null
+          read_at?: string | null
+          recipient_department?: string | null
+          recipient_id?: string | null
+          recipient_role?: string | null
+          recipient_type?: string
+          sender_id?: string | null
+          sender_type?: string
+          subject?: string | null
+          thread_id?: string | null
+          updated_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "messages_project_id_fkey"
+            columns: ["project_id"]
+            isOneToOne: false
+            referencedRelation: "projects"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      notifications: {
+        Row: {
+          created_at: string | null
+          delivered_at: string | null
+          delivery_method: string | null
+          id: string
+          is_read: boolean | null
+          link: string | null
+          message: string
+          metadata: Json | null
+          priority: string | null
+          project_id: string | null
+          read_at: string | null
+          title: string
+          type: string
+          user_id: string | null
+        }
+        Insert: {
+          created_at?: string | null
+          delivered_at?: string | null
+          delivery_method?: string | null
+          id?: string
+          is_read?: boolean | null
+          link?: string | null
+          message: string
+          metadata?: Json | null
+          priority?: string | null
+          project_id?: string | null
+          read_at?: string | null
+          title: string
+          type: string
+          user_id?: string | null
+        }
+        Update: {
+          created_at?: string | null
+          delivered_at?: string | null
+          delivery_method?: string | null
+          id?: string
+          is_read?: boolean | null
+          link?: string | null
+          message?: string
+          metadata?: Json | null
+          priority?: string | null
+          project_id?: string | null
+          read_at?: string | null
+          title?: string
+          type?: string
+          user_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "notifications_project_id_fkey"
+            columns: ["project_id"]
+            isOneToOne: false
+            referencedRelation: "projects"
             referencedColumns: ["id"]
           },
         ]
@@ -316,12 +541,18 @@ export type Database = {
       }
       project_documents: {
         Row: {
+          access_level: string | null
+          checksum: string | null
+          document_type: string | null
           file_size: number | null
           file_type: string | null
           file_url: string | null
           filename: string
           id: string
           is_latest: boolean | null
+          metadata: Json | null
+          mime_type: string | null
+          original_file_name: string | null
           project_id: string
           storage_path: string
           uploaded_at: string
@@ -329,12 +560,18 @@ export type Database = {
           version: number | null
         }
         Insert: {
+          access_level?: string | null
+          checksum?: string | null
+          document_type?: string | null
           file_size?: number | null
           file_type?: string | null
           file_url?: string | null
           filename: string
           id?: string
           is_latest?: boolean | null
+          metadata?: Json | null
+          mime_type?: string | null
+          original_file_name?: string | null
           project_id: string
           storage_path: string
           uploaded_at?: string
@@ -342,12 +579,18 @@ export type Database = {
           version?: number | null
         }
         Update: {
+          access_level?: string | null
+          checksum?: string | null
+          document_type?: string | null
           file_size?: number | null
           file_type?: string | null
           file_url?: string | null
           filename?: string
           id?: string
           is_latest?: boolean | null
+          metadata?: Json | null
+          mime_type?: string | null
+          original_file_name?: string | null
           project_id?: string
           storage_path?: string
           uploaded_at?: string
@@ -933,6 +1176,149 @@ export type Database = {
         }
         Relationships: []
       }
+      supplier_quotes: {
+        Row: {
+          currency: string | null
+          evaluated_at: string | null
+          evaluated_by: string | null
+          evaluation_notes: string | null
+          evaluation_score: number | null
+          id: string
+          is_selected: boolean | null
+          lead_time_days: number | null
+          notes: string | null
+          payment_terms: string | null
+          quantity: number | null
+          quote_file_url: string | null
+          quote_number: string | null
+          shipping_terms: string | null
+          submitted_at: string | null
+          supplier_rfq_id: string | null
+          total_price: number | null
+          unit_price: number | null
+          valid_until: string | null
+        }
+        Insert: {
+          currency?: string | null
+          evaluated_at?: string | null
+          evaluated_by?: string | null
+          evaluation_notes?: string | null
+          evaluation_score?: number | null
+          id?: string
+          is_selected?: boolean | null
+          lead_time_days?: number | null
+          notes?: string | null
+          payment_terms?: string | null
+          quantity?: number | null
+          quote_file_url?: string | null
+          quote_number?: string | null
+          shipping_terms?: string | null
+          submitted_at?: string | null
+          supplier_rfq_id?: string | null
+          total_price?: number | null
+          unit_price?: number | null
+          valid_until?: string | null
+        }
+        Update: {
+          currency?: string | null
+          evaluated_at?: string | null
+          evaluated_by?: string | null
+          evaluation_notes?: string | null
+          evaluation_score?: number | null
+          id?: string
+          is_selected?: boolean | null
+          lead_time_days?: number | null
+          notes?: string | null
+          payment_terms?: string | null
+          quantity?: number | null
+          quote_file_url?: string | null
+          quote_number?: string | null
+          shipping_terms?: string | null
+          submitted_at?: string | null
+          supplier_rfq_id?: string | null
+          total_price?: number | null
+          unit_price?: number | null
+          valid_until?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "supplier_quotes_supplier_rfq_id_fkey"
+            columns: ["supplier_rfq_id"]
+            isOneToOne: false
+            referencedRelation: "supplier_rfqs"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      supplier_rfqs: {
+        Row: {
+          created_at: string | null
+          created_by: string | null
+          due_date: string | null
+          expected_response_date: string | null
+          id: string
+          priority: string | null
+          project_id: string | null
+          requirements: string | null
+          rfq_number: string
+          sent_at: string | null
+          special_instructions: string | null
+          status: string | null
+          supplier_id: string | null
+          updated_at: string | null
+          viewed_at: string | null
+        }
+        Insert: {
+          created_at?: string | null
+          created_by?: string | null
+          due_date?: string | null
+          expected_response_date?: string | null
+          id?: string
+          priority?: string | null
+          project_id?: string | null
+          requirements?: string | null
+          rfq_number: string
+          sent_at?: string | null
+          special_instructions?: string | null
+          status?: string | null
+          supplier_id?: string | null
+          updated_at?: string | null
+          viewed_at?: string | null
+        }
+        Update: {
+          created_at?: string | null
+          created_by?: string | null
+          due_date?: string | null
+          expected_response_date?: string | null
+          id?: string
+          priority?: string | null
+          project_id?: string | null
+          requirements?: string | null
+          rfq_number?: string
+          sent_at?: string | null
+          special_instructions?: string | null
+          status?: string | null
+          supplier_id?: string | null
+          updated_at?: string | null
+          viewed_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "supplier_rfqs_project_id_fkey"
+            columns: ["project_id"]
+            isOneToOne: false
+            referencedRelation: "projects"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "supplier_rfqs_supplier_id_fkey"
+            columns: ["supplier_id"]
+            isOneToOne: false
+            referencedRelation: "suppliers"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       suppliers: {
         Row: {
           address: string | null
@@ -1045,25 +1431,37 @@ export type Database = {
         Row: {
           color: string
           created_at: string
+          description: string | null
+          exit_criteria: string | null
           id: string
           is_active: boolean | null
           name: string
+          responsible_roles: string[] | null
+          slug: string | null
           stage_order: number
         }
         Insert: {
           color: string
           created_at?: string
+          description?: string | null
+          exit_criteria?: string | null
           id?: string
           is_active?: boolean | null
           name: string
+          responsible_roles?: string[] | null
+          slug?: string | null
           stage_order: number
         }
         Update: {
           color?: string
           created_at?: string
+          description?: string | null
+          exit_criteria?: string | null
           id?: string
           is_active?: boolean | null
           name?: string
+          responsible_roles?: string[] | null
+          slug?: string | null
           stage_order?: number
         }
         Relationships: []

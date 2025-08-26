@@ -49,14 +49,43 @@ export interface ProjectDocument {
   id: string;
   project_id: string;
   filename: string;
+  original_file_name?: string;
   file_size?: number;
   file_type?: string;
   file_url?: string;
   storage_path: string;
+  mime_type?: string;
   version?: number;
   is_latest?: boolean;
+  document_type?: 'rfq' | 'drawing' | 'specification' | 'quote' | 'po' | 'invoice' | 'certificate' | 'report' | 'bom' | 'other';
+  access_level?: 'public' | 'customer' | 'supplier' | 'internal' | 'restricted';
+  checksum?: string;
+  metadata?: Record<string, any>;
   uploaded_at: string;
   uploaded_by?: string;
+}
+
+export interface DocumentComment {
+  id: string;
+  document_id: string;
+  user_id?: string;
+  comment: string;
+  page_number?: number;
+  coordinates?: Record<string, any>;
+  is_resolved: boolean;
+  parent_comment_id?: string;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface DocumentAccessLog {
+  id: string;
+  document_id: string;
+  user_id?: string;
+  action: 'view' | 'download' | 'upload' | 'delete' | 'share';
+  ip_address?: string;
+  user_agent?: string;
+  accessed_at: string;
 }
 
 export interface ProjectActivity {

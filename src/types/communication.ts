@@ -1,3 +1,4 @@
+// Legacy interface - now using Message from message.ts
 export interface ProjectCommunication {
     id: string;
     project_id: string;
