@@ -140,21 +140,21 @@ export function useProjects() {
           });
 
           // Update only the specific project
-          setProjects(prev => prev.map(project =>
-            project.id === payload.new.id
-              ? {
-                ...project,
-                ...payload.new,
-                status: mapLegacyStatusToNew((payload.new as any).status),
-                updated_at: new Date().toISOString()
-              }
-              : project
-          ));
+          setProjects(prev => {
+            const updatedProjects = prev.map(project =>
+              project.id === payload.new.id
+                ? {
+                  ...project,
+                  ...payload.new,
+                  status: mapLegacyStatusToNew((payload.new as any).status),
+                  updated_at: new Date().toISOString()
+                }
+                : project
+            );
 
-          // Update cache with the specific project change
-          cacheService.updateProject(payload.new.id, {
-            ...payload.new,
-            status: mapLegacyStatusToNew((payload.new as any).status)
+            // Update cache with the full projects list
+            cacheService.setProjects(updatedProjects);
+            return updatedProjects;
           });
         }
       )
@@ -235,15 +235,11 @@ export function useProjects() {
                 updated_at: new Date().toISOString()
               };
 
-              // Update cache
-              cacheService.updateProject(payload.new.id, {
-                ...payload.new,
-                status: mapLegacyStatusToNew((payload.new as any).status)
-              });
-
+              // Update cache with the full projects list
+              cacheService.setProjects(updatedProjects);
               return updatedProjects;
             }
-            // Project not in our list, but we need to refresh to catch stage changes
+            // Project not in our list, return unchanged
             return prev;
           });
         }
@@ -452,34 +448,9 @@ export function useProjects() {
       console.log('✅ Database update successful:', data);
       console.log('🔄 Database update should trigger real-time subscription for project:', projectId);
 
-      // Test if real-time subscription is working by checking state after a delay
-      setTimeout(() => {
-        console.log('🧪 Testing real-time subscription after 1 second...');
-        const currentProject = projects.find(p => p.id === projectId);
-        console.log('🧪 Current project state:', currentProject ? {
-          id: currentProject.id,
-          status: currentProject.status,
-          expectedStatus: newStatus
-        } : 'Project not found');
-
-        // If real-time subscription failed, manually refresh to ensure UI consistency
-        if (currentProject && currentProject.status !== newStatus) {
-          console.log('⚠️ Real-time subscription may have failed, manually refreshing projects...');
-          fetchProjects(true);
-        }
-      }, 1000);
-
-      // Additional check for real-time subscription status
-      console.log('🔔 Checking real-time subscription status...');
-      console.log('🔔 Global channel active:', !!globalChannelRef.current);
-      console.log('🔔 Selective channel active:', !!realtimeChannelRef.current);
-
-      // Force a manual refresh after 2 seconds to ensure UI consistency
-      // This is a backup in case real-time subscription completely fails
-      setTimeout(() => {
-        console.log('🔄 Force refreshing projects to ensure UI consistency...');
-        fetchProjects(true);
-      }, 2000);
+      // Log successful update for debugging
+      console.log('✅ Database update successful, real-time subscription should handle UI updates');
+      console.log('🔔 Global real-time channel status:', !!globalChannelRef.current);
 
       // Format status names for display
       const formatStatusName = (status: ProjectStatus) => {
@@ -630,35 +601,23 @@ export function useProjects() {
     }
 
     // Prevent infinite re-subscription loops
-    if (realtimeChannelRef.current || globalChannelRef.current) {
-      console.log('🔔 Real-time subscriptions already active, skipping setup');
+    if (globalChannelRef.current) {
+      console.log('🔔 Global real-time subscription already active, skipping setup');
       return;
     }
 
-    // Set up selective subscription for visible projects
-    const visibleProjectIds = projects.map(p => p.id);
-    console.log('🔔 Setting up real-time subscriptions for projects:', visibleProjectIds);
-
-    if (visibleProjectIds.length > 0) {
-      subscribeToProjectUpdates(visibleProjectIds);
-    }
-
-    // Set up global subscription for all project updates
+    // Set up global subscription for all project updates (simplified approach)
     subscribeToGlobalProjectUpdates();
 
     // Test real-time subscription by logging subscription status
-    console.log('🔔 Real-time subscriptions set up:', {
-      selectiveChannel: !!realtimeChannelRef.current,
-      globalChannel: !!globalChannelRef.current,
-      visibleProjects: visibleProjectIds.length
+    console.log('🔔 Global real-time subscription set up:', {
+      globalChannel: !!globalChannelRef.current
     });
 
     return () => {
-      if (realtimeChannelRef.current) {
-        supabase.removeChannel(realtimeChannelRef.current);
-      }
       if (globalChannelRef.current) {
         supabase.removeChannel(globalChannelRef.current);
+        globalChannelRef.current = null;
       }
     };
   }, [user]); // Remove projects.length dependency to prevent infinite loops

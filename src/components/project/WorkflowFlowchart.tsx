@@ -224,27 +224,12 @@ export function WorkflowFlowchart({
 
     // Group projects by their current stage
     const projectsByStage = useMemo(() => {
-        console.log('🔄 Recalculating projectsByStage with projects:', allProjects.length);
-        console.log('📊 All projects statuses:', allProjects.map(p => ({ id: p.id, title: p.title, status: p.status })));
-
-        const result = PROJECT_STAGES.map(stage => {
+        return PROJECT_STAGES.map(stage => {
             const stageProjects = allProjects.filter(p => p.status === stage.id);
-            console.log(`📊 Stage ${stage.id}: ${stageProjects.length} projects`);
             return {
                 ...stage,
                 projects: stageProjects
             };
-        });
-
-        console.log('🔄 Final projectsByStage result:', result.map(s => ({ stage: s.id, count: s.projects.length })));
-        return result;
-    }, [allProjects]);
-
-    // Debug logging for when projects change
-    React.useEffect(() => {
-        console.log('🔄 WorkflowFlowchart: Projects array changed:', {
-            count: allProjects.length,
-            statuses: allProjects.map(p => ({ id: p.id, title: p.title, status: p.status }))
         });
     }, [allProjects]);
 

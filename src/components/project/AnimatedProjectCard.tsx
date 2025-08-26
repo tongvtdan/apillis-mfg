@@ -165,7 +165,7 @@ export function AnimatedProjectCard({
                                                 <span className={timeIndicator.color}>{project.days_in_stage}d</span>
                                             </div>
                                         </TooltipTrigger>
-                                        <TooltipContent side="top" className="max-w-xs">
+                                        <TooltipContent side="top" className="max-w-xs bg-background border border-muted-foreground/20 shadow-lg">
                                             <div className="text-xs">
                                                 <div className="font-medium mb-1">Time in Current Stage</div>
                                                 <div>This project has been in the current stage for {project.days_in_stage} days</div>
@@ -210,7 +210,7 @@ export function AnimatedProjectCard({
                                                     {project.contact_name || project.assignee_id || 'Unassigned'}
                                                 </span>
                                             </TooltipTrigger>
-                                            <TooltipContent side="top" className="max-w-xs">
+                                            <TooltipContent side="top" className="max-w-xs bg-background border border-muted-foreground/20 shadow-lg">
                                                 <div className="text-xs">
                                                     <div className="font-medium mb-1">Project Contact</div>
                                                     <div>Primary contact person for this project</div>
@@ -231,7 +231,7 @@ export function AnimatedProjectCard({
                                                     <span>{formatCurrency(project.estimated_value)}</span>
                                                 </div>
                                             </TooltipTrigger>
-                                            <TooltipContent side="top" className="max-w-xs">
+                                            <TooltipContent side="top" className="max-w-xs bg-background border border-muted-foreground/20 shadow-lg">
                                                 <div className="text-xs">
                                                     <div className="font-medium mb-1">Estimated Project Value</div>
                                                     <div>Total estimated cost for this project</div>
@@ -257,7 +257,7 @@ export function AnimatedProjectCard({
                                                     <ExternalLink className="h-2.5 w-2.5 opacity-0 group-hover:opacity-100 transition-opacity duration-200" />
                                                 </button>
                                             </TooltipTrigger>
-                                            <TooltipContent side="top" className="max-w-xs">
+                                            <TooltipContent side="top" className="max-w-xs bg-background border border-muted-foreground/20 shadow-lg">
                                                 <div className="text-xs">
                                                     <div className="font-medium mb-1">Project Due Date</div>
                                                     <div>Target completion date for this project</div>
@@ -275,7 +275,7 @@ export function AnimatedProjectCard({
                                                 <span>{project.days_in_stage} days</span>
                                             </div>
                                         </TooltipTrigger>
-                                        <TooltipContent side="top" className="max-w-xs">
+                                        <TooltipContent side="top" className="max-w-xs bg-background border border-muted-foreground/20 shadow-lg">
                                             <div className="text-xs">
                                                 <div className="font-medium mb-1">Days in Current Stage</div>
                                                 <div>Time spent in the current workflow stage</div>

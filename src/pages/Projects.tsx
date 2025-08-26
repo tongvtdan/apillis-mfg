@@ -17,10 +17,7 @@ export default function Projects() {
 
   // Debug logging for projects state changes
   React.useEffect(() => {
-    console.log('🔄 Projects page: Projects state updated:', {
-      count: projects.length,
-      statuses: projects.map(p => ({ id: p.id, title: p.title, status: p.status }))
-    });
+    console.log('🔄 Projects page: Projects updated, count:', projects.length);
   }, [projects]);
 
   const [selectedStage, setSelectedStage] = React.useState<ProjectStatus | null>(() => {
