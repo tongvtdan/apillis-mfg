@@ -31,8 +31,7 @@ import { format } from "date-fns";
 import { Project } from "@/types/project";
 import { projectService } from "@/services/projectService";
 import ProjectCommunication from "@/components/project/ProjectCommunication";
-// import { DataSourceIndicator } from "@/components/debug/DataSourceIndicator";
-// import { ProjectServiceTest } from "@/components/debug/ProjectServiceTest";
+import { WorkflowStepper } from "@/components/project/WorkflowStepper";
 
 // Document interface for mock data
 interface ProjectDocument {
@@ -455,6 +454,9 @@ export default function ProjectDetail() {
           </div>
         </div>
       </div>
+
+      {/* Workflow Stepper */}
+      <WorkflowStepper project={project} />
 
       {/* Main Content */}
       <div className="flex">
