@@ -22,55 +22,13 @@ import {
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { format } from "date-fns";
-import { ProjectCommunication as CommunicationType } from "@/types/communication";
+import { useProjectMessages, useCreateMessage } from "@/hooks/useMessages";
+import { useAuth } from "@/contexts/AuthContext";
 
 interface ProjectCommunicationProps {
     projectId: string;
     projectTitle: string;
 }
-
-// Mock data for demonstration
-const mockCommunications: CommunicationType[] = [
-    {
-        id: '1',
-        project_id: 'project-1',
-        type: 'email',
-        subject: 'RFQ Follow-up - Sensor Mount Project',
-        content: 'Hi team, I wanted to follow up on the RFQ we sent last week. Have we received any responses from suppliers? We need to move forward with this project quickly.',
-        sender_id: 'user-1',
-        sender_name: 'Sarah Lee',
-        sender_email: 'sarah.lee@company.com',
-        status: 'read',
-        priority: 'high',
-        created_at: '2025-01-25T10:30:00Z',
-        read_at: '2025-01-25T11:15:00Z'
-    },
-    {
-        id: '2',
-        project_id: 'project-1',
-        type: 'comment',
-        content: 'Engineering review completed. All specifications look good. Ready to proceed to supplier RFQ phase.',
-        sender_id: 'user-2',
-        sender_name: 'Minh Nguyen',
-        sender_email: 'minh.nguyen@company.com',
-        status: 'read',
-        priority: 'medium',
-        created_at: '2025-01-24T16:45:00Z',
-        read_at: '2025-01-24T17:00:00Z'
-    },
-    {
-        id: '3',
-        project_id: 'project-1',
-        type: 'chat',
-        content: 'Customer is asking about lead time. Can we expedite this project?',
-        sender_id: 'user-3',
-        sender_name: 'Anna Chen',
-        sender_email: 'anna.chen@company.com',
-        status: 'delivered',
-        priority: 'urgent',
-        created_at: '2025-01-25T09:15:00Z'
-    }
-];
 
 const mockTemplates = [
     {
@@ -94,8 +52,14 @@ const mockTemplates = [
 export default function ProjectCommunication({ projectId, projectTitle }: ProjectCommunicationProps) {
     const [activeTab, setActiveTab] = useState('overview');
     const [newMessage, setNewMessage] = useState('');
+    const [newSubject, setNewSubject] = useState('');
+    const [messageType, setMessageType] = useState('message');
     const [selectedTemplate, setSelectedTemplate] = useState('');
     const [showNewMessage, setShowNewMessage] = useState(false);
+
+    const { user } = useAuth();
+    const { data: messages = [], isLoading } = useProjectMessages(projectId);
+    const createMessage = useCreateMessage();
 
     const getStatusIcon = (status: string) => {
         switch (status) {
@@ -126,11 +90,21 @@ export default function ProjectCommunication({ projectId, projectTitle }: Projec
         }
     };
 
-    const handleSendMessage = () => {
-        if (newMessage.trim()) {
-            // TODO: Implement actual message sending
-            console.log('Sending message:', newMessage);
+    const handleSendMessage = async () => {
+        if (newMessage.trim() && user) {
+            await createMessage.mutateAsync({
+                project_id: projectId,
+                sender_id: user.id,
+                sender_type: 'user',
+                recipient_type: 'department',
+                subject: newSubject || undefined,
+                content: newMessage,
+                message_type: messageType as any,
+                priority: 'normal',
+                is_read: false
+            });
             setNewMessage('');
+            setNewSubject('');
             setShowNewMessage(false);
         }
     };
@@ -166,23 +140,31 @@ export default function ProjectCommunication({ projectId, projectTitle }: Projec
                     <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-6">
                         <div className="text-center p-4 bg-blue-50 rounded-lg">
                             <Mail className="w-8 h-8 mx-auto text-blue-600 mb-2" />
-                            <div className="text-2xl font-bold text-blue-600">12</div>
-                            <div className="text-sm text-blue-600">Emails</div>
+                            <div className="text-2xl font-bold text-blue-600">
+                                {messages.filter(m => m.message_type === 'message' && m.subject).length}
+                            </div>
+                            <div className="text-sm text-blue-600">Messages</div>
                         </div>
                         <div className="text-center p-4 bg-green-50 rounded-lg">
                             <MessageCircle className="w-8 h-8 mx-auto text-green-600 mb-2" />
-                            <div className="text-2xl font-bold text-green-600">8</div>
-                            <div className="text-sm text-green-600">Chat Messages</div>
+                            <div className="text-2xl font-bold text-green-600">
+                                {messages.filter(m => m.message_type === 'message' && !m.subject).length}
+                            </div>
+                            <div className="text-sm text-green-600">Quick Messages</div>
                         </div>
                         <div className="text-center p-4 bg-purple-50 rounded-lg">
                             <MessageSquare className="w-8 h-8 mx-auto text-purple-600 mb-2" />
-                            <div className="text-2xl font-bold text-purple-600">15</div>
-                            <div className="text-sm text-purple-600">Comments</div>
+                            <div className="text-2xl font-bold text-purple-600">
+                                {messages.filter(m => m.message_type === 'notification').length}
+                            </div>
+                            <div className="text-sm text-purple-600">Notifications</div>
                         </div>
                         <div className="text-center p-4 bg-orange-50 rounded-lg">
                             <AlertCircle className="w-8 h-8 mx-auto text-orange-600 mb-2" />
-                            <div className="text-2xl font-bold text-orange-600">3</div>
-                            <div className="text-sm text-orange-600">Pending</div>
+                            <div className="text-2xl font-bold text-orange-600">
+                                {messages.filter(m => !m.is_read).length}
+                            </div>
+                            <div className="text-sm text-orange-600">Unread</div>
                         </div>
                     </div>
                 </CardContent>
@@ -205,44 +187,52 @@ export default function ProjectCommunication({ projectId, projectTitle }: Projec
                         </TabsList>
 
                         <TabsContent value="overview" className="space-y-4">
-                            {mockCommunications.map((comm) => (
-                                <div key={comm.id} className="border rounded-lg p-4 hover:bg-muted/50 transition-colors">
-                                    <div className="flex items-start justify-between mb-2">
-                                        <div className="flex items-center gap-2">
-                                            {getTypeIcon(comm.type)}
-                                            <Badge variant="outline" className={getPriorityColor(comm.priority)}>
-                                                {comm.priority}
-                                            </Badge>
-                                            <span className="text-sm text-muted-foreground">
-                                                {format(new Date(comm.created_at), 'MMM dd, yyyy HH:mm')}
-                                            </span>
+                            {isLoading ? (
+                                <div className="text-center py-8 text-muted-foreground">
+                                    <MessageSquare className="w-12 h-12 mx-auto mb-4" />
+                                    <p>Loading messages...</p>
+                                </div>
+                            ) : messages.length === 0 ? (
+                                <div className="text-center py-8 text-muted-foreground">
+                                    <MessageSquare className="w-12 h-12 mx-auto mb-4" />
+                                    <p>No messages yet</p>
+                                </div>
+                            ) : (
+                                messages.map((message) => (
+                                    <div key={message.id} className="border rounded-lg p-4 hover:bg-muted/50 transition-colors">
+                                        <div className="flex items-start justify-between mb-2">
+                                            <div className="flex items-center gap-2">
+                                                {getTypeIcon(message.message_type)}
+                                                <Badge variant="outline" className={getPriorityColor(message.priority)}>
+                                                    {message.priority}
+                                                </Badge>
+                                                <span className="text-sm text-muted-foreground">
+                                                    {format(new Date(message.created_at), 'MMM dd, yyyy HH:mm')}
+                                                </span>
+                                            </div>
+                                            {getStatusIcon(message.is_read ? 'read' : 'delivered')}
                                         </div>
-                                        {getStatusIcon(comm.status)}
-                                    </div>
 
-                                    {comm.subject && (
-                                        <h4 className="font-medium mb-2">{comm.subject}</h4>
-                                    )}
+                                        {message.subject && (
+                                            <h4 className="font-medium mb-2">{message.subject}</h4>
+                                        )}
 
-                                    <p className="text-sm text-muted-foreground mb-3">{comm.content}</p>
+                                        <p className="text-sm text-muted-foreground mb-3">{message.content}</p>
 
-                                    <div className="flex items-center justify-between text-xs text-muted-foreground">
-                                        <div className="flex items-center gap-2">
-                                            <User className="w-3 h-3" />
-                                            <span>{comm.sender_name}</span>
-                                            {comm.sender_email && (
-                                                <span>({comm.sender_email})</span>
+                                        <div className="flex items-center justify-between text-xs text-muted-foreground">
+                                            <div className="flex items-center gap-2">
+                                                <User className="w-3 h-3" />
+                                                <span>Sender ID: {message.sender_id}</span>
+                                            </div>
+                                            {message.recipient_id && (
+                                                <div className="flex items-center gap-2">
+                                                    <span>To: {message.recipient_id}</span>
+                                                </div>
                                             )}
                                         </div>
-                                        {comm.recipient_name && (
-                                            <div className="flex items-center gap-2">
-                                                <span>To:</span>
-                                                <span>{comm.recipient_name}</span>
-                                            </div>
-                                        )}
                                     </div>
-                                </div>
-                            ))}
+                                ))
+                            )}
                         </TabsContent>
 
                         <TabsContent value="emails" className="space-y-4">
@@ -299,19 +289,26 @@ export default function ProjectCommunication({ projectId, projectTitle }: Projec
                                 <Label htmlFor="type">Message Type</Label>
                                 <select
                                     id="type"
+                                    value={messageType}
+                                    onChange={(e) => setMessageType(e.target.value)}
                                     className="w-full p-2 border rounded-md"
                                 >
-                                    <option value="email">Email</option>
-                                    <option value="chat">Chat</option>
-                                    <option value="comment">Comment</option>
+                                    <option value="message">Message</option>
                                     <option value="notification">Notification</option>
+                                    <option value="alert">Alert</option>
+                                    <option value="reminder">Reminder</option>
                                 </select>
                             </div>
                         </div>
 
                         <div>
                             <Label htmlFor="subject">Subject</Label>
-                            <Input id="subject" placeholder="Message subject..." />
+                            <Input 
+                                id="subject" 
+                                value={newSubject}
+                                onChange={(e) => setNewSubject(e.target.value)}
+                                placeholder="Message subject..." 
+                            />
                         </div>
 
                         <div>

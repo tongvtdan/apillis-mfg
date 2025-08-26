@@ -51,7 +51,7 @@ export const useUpdateSupplierRfq = () => {
   });
 };
 
-export const useSupplierQuotes = (rfqId: string) => {
+export const useSupplierQuotesByRfq = (rfqId: string) => {
   return useQuery({
     queryKey: ['supplier-quotes', rfqId],
     queryFn: () => supplierQuotesApi.getByRfqId(rfqId),
