@@ -75,7 +75,7 @@ export function AppHeader() {
 
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
-              <Button variant="ghost" size="sm" className="relative h-8 w-8 rounded-full border-2 border-sky-200 hover:border-sky-300 hover:bg-sky-50">
+              <Button variant="ghost" size="sm" className="relative h-8 w-8 rounded-full border-2 border-sky-200 hover:border-sky-300 hover:bg-amber-500">
                 <Avatar className="h-8 w-8">
                   <AvatarFallback className="text-xs">
                     {profile ? getInitials(profile.display_name) : 'U'}
@@ -83,7 +83,7 @@ export function AppHeader() {
                 </Avatar>
               </Button>
             </DropdownMenuTrigger>
-            <DropdownMenuContent className="w-56" align="end" forceMount>
+            <DropdownMenuContent align="end" forceMount>
               <DropdownMenuLabel className="font-normal">
                 <div className="flex flex-col space-y-1">
                   <p className="text-sm font-medium leading-none">
