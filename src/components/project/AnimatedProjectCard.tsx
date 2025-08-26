@@ -160,7 +160,7 @@ export function AnimatedProjectCard({
                                     </Badge>
                                     <Tooltip>
                                         <TooltipTrigger asChild>
-                                            <div className={`flex items-center space-x-1 px-2 py-1 rounded-full text-xs ${timeIndicator.bg} cursor-help`}>
+                                            <div className={`flex items-center space-x-1 px-2 py-1 rounded-full text-xs ${timeIndicator.bg} cursor-help hover:bg-accent hover:text-accent-foreground transition-all duration-200`}>
                                                 <timeIndicator.icon className={`h-3 w-3 ${timeIndicator.color}`} />
                                                 <span className={timeIndicator.color}>{project.days_in_stage}d</span>
                                             </div>
@@ -189,7 +189,7 @@ export function AnimatedProjectCard({
                                     {project.customer?.id ? (
                                         <button
                                             onClick={handleCustomerClick}
-                                            className="hover:text-primary hover:underline transition-colors duration-200 flex items-center space-x-1 group"
+                                            className="hover:bg-accent hover:text-accent-foreground px-1 py-0.5 rounded transition-all duration-200 flex items-center space-x-1 group"
                                         >
                                             <span>{project.customer.company || project.customer.name || 'Unknown'}</span>
                                             <ExternalLink className="h-2.5 w-2.5 opacity-0 group-hover:opacity-100 transition-opacity duration-200" />
@@ -206,7 +206,7 @@ export function AnimatedProjectCard({
                                         <User className="h-3 w-3 flex-shrink-0" />
                                         <Tooltip>
                                             <TooltipTrigger asChild>
-                                                <span className="cursor-help hover:text-primary transition-colors duration-200">
+                                                <span className="cursor-help hover:bg-accent hover:text-accent-foreground px-1 py-0.5 rounded transition-all duration-200">
                                                     {project.contact_name || project.assignee_id || 'Unassigned'}
                                                 </span>
                                             </TooltipTrigger>
@@ -226,7 +226,7 @@ export function AnimatedProjectCard({
                                     {project.estimated_value && (
                                         <Tooltip>
                                             <TooltipTrigger asChild>
-                                                <div className="flex items-center space-x-1 font-medium cursor-help">
+                                                <div className="flex items-center space-x-1 font-medium cursor-help hover:bg-accent hover:text-accent-foreground px-1 py-0.5 rounded transition-all duration-200">
                                                     <DollarSign className="h-3 w-3 flex-shrink-0 text-green-600" />
                                                     <span>{formatCurrency(project.estimated_value)}</span>
                                                 </div>
@@ -250,7 +250,7 @@ export function AnimatedProjectCard({
                                             <TooltipTrigger asChild>
                                                 <button
                                                     onClick={handleDueDateClick}
-                                                    className="flex items-center space-x-1 text-muted-foreground hover:text-primary hover:underline transition-colors duration-200 group cursor-pointer"
+                                                    className="flex items-center space-x-1 text-muted-foreground hover:bg-accent hover:text-accent-foreground px-1 py-0.5 rounded transition-all duration-200 group cursor-pointer"
                                                 >
                                                     <Calendar className="h-3 w-3 flex-shrink-0" />
                                                     <span>{formatDate(project.due_date)}</span>
@@ -270,7 +270,7 @@ export function AnimatedProjectCard({
                                     )}
                                     <Tooltip>
                                         <TooltipTrigger asChild>
-                                            <div className="flex items-center space-x-1 text-muted-foreground cursor-help">
+                                            <div className="flex items-center space-x-1 text-muted-foreground cursor-help hover:bg-accent hover:text-accent-foreground px-1 py-0.5 rounded transition-all duration-200">
                                                 <ClockIcon className="h-3 w-3 flex-shrink-0" />
                                                 <span>{project.days_in_stage} days</span>
                                             </div>

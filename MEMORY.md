@@ -6,7 +6,18 @@ This file contains important changes and updates made to the project.
 
 - Date: 2025-08-26
 - What we completed / changed:
-1. **Project Card Interactive Actions and Calendar View Implementation**: 
+1. **Tooltip Background Styling Consistency**: 
+   - Updated TooltipContent component to use the same background styling as dropdown menus
+   - Changed tooltip styling from `bg-popover` to `bg-background backdrop-blur-lg border border-muted-foreground/20`
+   - Ensured visual consistency across the application by applying the same backdrop blur effect and border styling used in dropdown menus to all tooltips
+   - Maintained all existing tooltip animations and positioning while improving visual consistency
+2. **Project Card Hover Effect Styling Consistency**: 
+   - Updated all project card interactive elements to use consistent hover styling that matches dropdown button design
+   - Changed hover effects from `hover:text-primary` to `hover:bg-accent hover:text-accent-foreground` for company names, contact info, due dates, estimated values, and time indicators
+   - Added consistent padding (`px-1 py-0.5`) and rounded corners (`rounded`) to all hoverable elements
+   - Ensured visual consistency across the application by using the same accent background styling as dropdown menus
+   - Maintained smooth transitions with `transition-all duration-200` for all hover effects
+3. **Project Card Interactive Actions and Calendar View Implementation**: 
    - Enhanced project cards with interactive actions: clickable company/contact names that navigate to customer pages
    - Added comprehensive tooltips for all project information: due dates, estimated values, days in stage, and contact details
    - Made due dates clickable with visual indicators (ExternalLink icon) that navigate to the new Calendar View
