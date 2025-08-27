@@ -19,8 +19,9 @@ interface ProjectSummaryCardProps {
 export function ProjectSummaryCard({ project, showUrgencyIndicators = false }: ProjectSummaryCardProps) {
   const navigate = useNavigate();
 
-  // Get assignee display name at the top level
-  const assigneeDisplayName = useUserDisplayName(project.assignee_id);
+  // Get assignee display name - use new field names with fallback
+  const assigneeId = project.assigned_to || project.assignee_id;
+  const assigneeDisplayName = useUserDisplayName(assigneeId);
 
   const handleCardClick = () => {
     navigate(`/project/${project.id}`);
@@ -50,10 +51,13 @@ export function ProjectSummaryCard({ project, showUrgencyIndicators = false }: P
     let level = 'normal';
     let reasons = [];
 
-    if (project.priority === 'urgent') {
+    // Use priority_level with fallback to priority
+    const priority = project.priority_level || project.priority;
+
+    if (priority === 'urgent') {
       level = 'critical';
       reasons.push('Urgent priority');
-    } else if (project.priority === 'high') {
+    } else if (priority === 'high') {
       level = 'high';
       reasons.push('High priority');
     }
@@ -66,9 +70,10 @@ export function ProjectSummaryCard({ project, showUrgencyIndicators = false }: P
       reasons.push(`${project.days_in_stage} days overdue`);
     }
 
-    if (project.status === 'quoted') {
+    // Check current stage status for urgency indicators
+    if (project.current_stage === 'quoted') {
       reasons.push('Awaiting customer decision');
-    } else if (project.status === 'technical_review') {
+    } else if (project.current_stage === 'technical_review') {
       reasons.push('Review pending');
     }
 
@@ -121,13 +126,13 @@ export function ProjectSummaryCard({ project, showUrgencyIndicators = false }: P
       onClick={handleCardClick}
     >
       <div className="flex items-center gap-2 flex-1">
-        <div className={getPriorityIndicatorClass(project.priority)}></div>
+        <div className={getPriorityIndicatorClass(project.priority_level || project.priority)}></div>
         <span className="font-medium">{project.project_id}</span>
         <span className="text-muted-foreground">–</span>
         <span className="font-medium">{project.title}</span>
 
-        <div className={getStatusBadgeClass(project.priority)}>
-          {project.priority} priority
+        <div className={getStatusBadgeClass(project.priority_level || project.priority)}>
+          {project.priority_level || project.priority} priority
         </div>
 
         {/* Urgency indicators */}
@@ -150,7 +155,7 @@ export function ProjectSummaryCard({ project, showUrgencyIndicators = false }: P
       <div className="flex items-center gap-4 text-sm text-muted-foreground">
         <div className="flex items-center gap-1">
           <Users className="h-3 w-3" />
-          <AssigneeDisplay assigneeId={project.assignee_id} displayName={assigneeDisplayName} />
+          <AssigneeDisplay assigneeId={assigneeId} displayName={assigneeDisplayName} />
         </div>
         <div className="flex items-center gap-1">
           <Calendar className="h-3 w-3" />

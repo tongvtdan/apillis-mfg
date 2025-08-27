@@ -96,7 +96,8 @@ export function WorkflowFlowchart({
     };
 
     const getProjectStageStatus = (project: Project, stageId: ProjectStatus) => {
-        const projectStageIndex = WorkflowValidator.getStageIndex(project.status);
+        const currentStage = project.current_stage || project.status;
+        const projectStageIndex = WorkflowValidator.getStageIndex(currentStage);
         const stageIndex = WorkflowValidator.getStageIndex(stageId);
 
         if (stageIndex < projectStageIndex) {
@@ -138,7 +139,8 @@ export function WorkflowFlowchart({
 
     // Get available stages for a project (including completed stages for rollback)
     const getAvailableStages = (project: Project) => {
-        const currentStageIndex = WorkflowValidator.getStageIndex(project.status);
+        const currentStage = project.current_stage || project.status;
+        const currentStageIndex = WorkflowValidator.getStageIndex(currentStage);
         // Include all stages, not just forward stages, to allow rollback
         return PROJECT_STAGES.filter((_, index) => {
             // Allow moving to any stage, including completed ones for rollback scenarios
@@ -211,7 +213,7 @@ export function WorkflowFlowchart({
 
         // Apply stage filter if selected
         if (selectedStage) {
-            filtered = filtered.filter(p => p.status === selectedStage);
+            filtered = filtered.filter(p => (p.current_stage || p.status) === selectedStage);
         }
 
         // Apply project type filter
@@ -225,7 +227,7 @@ export function WorkflowFlowchart({
     // Group projects by their current stage
     const projectsByStage = useMemo(() => {
         return PROJECT_STAGES.map(stage => {
-            const stageProjects = allProjects.filter(p => p.status === stage.id);
+            const stageProjects = allProjects.filter(p => (p.current_stage || p.status) === stage.id);
             return {
                 ...stage,
                 projects: stageProjects

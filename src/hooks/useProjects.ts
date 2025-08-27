@@ -49,7 +49,8 @@ export function useProjects() {
         .from('projects')
         .select(`
           *,
-          customer:customers(*)
+          customer:contacts!customer_id(*),
+          current_stage:workflow_stages!current_stage_id(*)
         `)
         .order('created_at', { ascending: false });
 
@@ -174,7 +175,8 @@ export function useProjects() {
         .from('projects')
         .select(`
           *,
-          customer:customers(*)
+          customer:contacts!customer_id(*),
+          current_stage:workflow_stages!current_stage_id(*)
         `);
 
       if (allProjectsError) {
@@ -192,7 +194,8 @@ export function useProjects() {
         .from('projects')
         .select(`
           *,
-          customer:customers(*)
+          customer:contacts!customer_id(*),
+          current_stage:workflow_stages!current_stage_id(*)
         `)
         .eq('id', id)
         .single();
@@ -278,7 +281,8 @@ export function useProjects() {
       const { error } = await supabase
         .from('projects')
         .update({
-          status: newStatus,
+          current_stage: newStatus,
+          status: 'active', // Keep status as active unless explicitly changed
           updated_at: new Date().toISOString()
         })
         .eq('id', projectId);
@@ -361,7 +365,12 @@ export function useProjects() {
       setProjects(prev =>
         prev.map(project =>
           project.id === projectId
-            ? { ...project, status: newStatus, updated_at: new Date().toISOString() }
+            ? {
+              ...project,
+              current_stage: newStatus,
+              status: project.status || 'active', // Keep existing status or default to active
+              updated_at: new Date().toISOString()
+            }
             : project
         )
       );
@@ -369,7 +378,12 @@ export function useProjects() {
       // Update cache immediately for instant feedback
       const updatedProjects = projects.map(project =>
         project.id === projectId
-          ? { ...project, status: newStatus, updated_at: new Date().toISOString() }
+          ? {
+            ...project,
+            current_stage: newStatus,
+            status: project.status || 'active',
+            updated_at: new Date().toISOString()
+          }
           : project
       );
       cacheService.setProjects(updatedProjects);
@@ -382,7 +396,12 @@ export function useProjects() {
         setProjects(prev =>
           prev.map(project =>
             project.id === projectId
-              ? { ...project, status: oldStatus, updated_at: currentProject.updated_at }
+              ? {
+                ...project,
+                current_stage: currentProject.current_stage || oldStatus,
+                status: currentProject.status,
+                updated_at: currentProject.updated_at
+              }
               : project
           )
         );
@@ -390,7 +409,12 @@ export function useProjects() {
         // Revert cache
         const revertedProjects = projects.map(project =>
           project.id === projectId
-            ? { ...project, status: oldStatus, updated_at: currentProject.updated_at }
+            ? {
+              ...project,
+              current_stage: currentProject.current_stage || oldStatus,
+              status: currentProject.status,
+              updated_at: currentProject.updated_at
+            }
             : project
         );
         cacheService.setProjects(revertedProjects);

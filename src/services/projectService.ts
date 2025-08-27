@@ -115,7 +115,8 @@ class ProjectService {
                     .from('projects')
                     .select(`
             *,
-            customer:customers(*)
+            customer:contacts!customer_id(*),
+            current_stage:workflow_stages!current_stage_id(*)
           `)
                     .eq('id', id)
                     .single();
@@ -156,7 +157,8 @@ class ProjectService {
                     .from('projects')
                     .select(`
             *,
-            customer:customers(*)
+            customer:contacts!customer_id(*),
+            current_stage:workflow_stages!current_stage_id(*)
           `)
                     .order('created_at', { ascending: false });
 

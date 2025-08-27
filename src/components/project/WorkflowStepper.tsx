@@ -123,15 +123,18 @@ export const WorkflowStepper = React.memo(({ project }: WorkflowStepperProps) =>
 
   // Memoize stage calculations to prevent unnecessary recalculations
   const stageCalculations = useMemo(() => {
-    const currentIndex = allStages.indexOf(project.status);
+    // Use current_stage with fallback to status for backward compatibility
+    const currentStage = project.current_stage || project.status;
+    const currentIndex = allStages.indexOf(currentStage);
     const progressPercentage = currentIndex >= 0 ? Math.round((currentIndex / (allStages.length - 1)) * 100) : 0;
 
     return {
       currentIndex,
       progressPercentage,
-      totalStages: allStages.length
+      totalStages: allStages.length,
+      currentStage
     };
-  }, [project.status]);
+  }, [project.current_stage, project.status]);
 
   // Memoize stage status functions to prevent recreation on every render
   const getStageStatus = useCallback((stage: ProjectStatus) => {
@@ -184,45 +187,48 @@ export const WorkflowStepper = React.memo(({ project }: WorkflowStepperProps) =>
 
   // Debug logging for project changes - only log when status actually changes
   useEffect(() => {
-    const currentStatus = project.status;
+    const currentStatus = project.current_stage || project.status;
     const currentUpdatedAt = project.updated_at;
 
     if (lastStatusLogged.current !== currentStatus || lastUpdatedAtLogged.current !== currentUpdatedAt) {
       console.log('🔄 WorkflowStepper: Project status changed:', {
         id: project.id,
-        status: currentStatus,
+        current_stage: project.current_stage,
+        status: project.status,
         updated_at: currentUpdatedAt
       });
       lastStatusLogged.current = currentStatus;
       lastUpdatedAtLogged.current = currentUpdatedAt;
     }
-  }, [project.id, project.status, project.updated_at]);
+  }, [project.id, project.current_stage, project.status, project.updated_at]);
 
   // Debug logging for stage calculations - only log when calculations change
   useEffect(() => {
-    const currentStatus = project.status;
+    const currentStatus = stageCalculations.currentStage;
 
     if (lastStageCalculationsLogged.current !== currentStatus) {
       console.log('🔄 WorkflowStepper: Stage calculations updated:', {
-        currentStatus,
+        currentStage: stageCalculations.currentStage,
         currentIndex: stageCalculations.currentIndex,
         progressPercentage: stageCalculations.progressPercentage,
         totalStages: stageCalculations.totalStages
       });
       lastStageCalculationsLogged.current = currentStatus;
     }
-  }, [project.status, stageCalculations]);
+  }, [stageCalculations]);
 
   // Debug logging to help identify status mapping issues - only log once per status
   useEffect(() => {
-    if (project?.status && !stageConfig[project.status]) {
-      console.warn(`🚨 WorkflowStepper: Unknown project status "${project.status}" not found in stageConfig`);
+    const currentStage = project?.current_stage || project?.status;
+    if (currentStage && !stageConfig[currentStage]) {
+      console.warn(`🚨 WorkflowStepper: Unknown project stage "${currentStage}" not found in stageConfig`);
       console.warn(`🚨 Available stages:`, Object.keys(stageConfig));
     }
-  }, [project?.status]);
+  }, [project?.current_stage, project?.status]);
 
   const handleStageClick = useCallback(async (stage: ProjectStatus) => {
-    if (stage === project.status) return;
+    const currentStage = project.current_stage || project.status;
+    if (stage === currentStage) return;
 
     try {
       // Check if user can bypass workflow

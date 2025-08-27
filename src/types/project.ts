@@ -2,6 +2,7 @@ export type ProjectStage = 'inquiry_received' | 'technical_review' | 'supplier_r
 export type ProjectStatus = 'active' | 'delayed' | 'on_hold' | 'cancelled' | 'completed' | 'archived';
 export type ProjectPriority = 'low' | 'medium' | 'high' | 'urgent';
 export type ProjectType = 'system_build' | 'fabrication' | 'manufacturing';
+export type ProjectSource = 'manual' | 'portal' | 'email' | 'api' | 'import' | 'migration';
 
 export interface Customer {
   id: string;
@@ -15,39 +16,118 @@ export interface Customer {
   updated_at: string;
 }
 
+export interface Contact {
+  id: string;
+  organization_id: string;
+  type: 'customer' | 'supplier';
+  company_name: string;
+  contact_name?: string;
+  email?: string;
+  phone?: string;
+  address?: string;
+  city?: string;
+  state?: string;
+  country?: string;
+  postal_code?: string;
+  website?: string;
+  tax_id?: string;
+  payment_terms?: string;
+  credit_limit?: number;
+  is_active: boolean;
+  notes?: string;
+  metadata?: Record<string, any>;
+  // AI-ready fields
+  ai_category?: Record<string, any>;
+  ai_capabilities?: any[];
+  ai_risk_score?: number;
+  ai_last_analyzed?: string;
+  created_at: string;
+  updated_at: string;
+  created_by?: string;
+}
+
+export interface WorkflowStage {
+  id: string;
+  organization_id: string;
+  name: string;
+  slug: string;
+  description?: string;
+  color: string;
+  stage_order: number;
+  is_active: boolean;
+  exit_criteria?: string;
+  responsible_roles?: string[];
+  created_at: string;
+  updated_at: string;
+}
+
 export interface Project {
   id: string;
+  organization_id: string;
   project_id: string; // P-25082001 format
   title: string;
   description?: string;
   customer_id?: string;
   customer?: Customer;
-  current_stage: ProjectStage;
+  current_stage_id?: string;
+  current_stage: ProjectStage; // For backward compatibility
   stage_entered_at: string;
   status: ProjectStatus;
-  priority: ProjectPriority;
   priority_score?: number;
-  project_type: ProjectType;
-  assignee_id?: string;
+  priority_level: ProjectPriority;
+  priority: ProjectPriority; // For backward compatibility
   estimated_value?: number;
-  due_date?: string;
-  estimated_completion?: string;
-  actual_completion?: string;
+  estimated_delivery_date?: string;
+  actual_delivery_date?: string;
+  due_date?: string; // For backward compatibility
+  source: ProjectSource;
+  tags?: string[];
+  metadata?: Record<string, any>;
   created_at: string;
   updated_at: string;
   created_by?: string;
-  updated_by?: string;
+  assigned_to?: string;
+  assignee_id?: string; // For backward compatibility
+
+  // Calculated fields
   days_in_stage: number;
+
+  // Legacy fields for compatibility
+  project_type?: ProjectType;
+  estimated_completion?: string;
+  actual_completion?: string;
+  updated_by?: string;
   engineering_reviewer_id?: string;
   qa_reviewer_id?: string;
   production_reviewer_id?: string;
-  review_summary?: any; // JSONB field from database
+  review_summary?: any;
   contact_name?: string;
   contact_email?: string;
   contact_phone?: string;
-  tags?: string[];
   notes?: string;
-  metadata?: Record<string, any>;
+}
+
+export interface ProjectStageHistory {
+  id: string;
+  project_id: string;
+  stage_id: string;
+  entered_at: string;
+  exited_at?: string;
+  duration_minutes?: number;
+  entered_by?: string;
+  exit_reason?: string;
+  notes?: string;
+  created_at: string;
+}
+
+export interface ProjectAssignment {
+  id: string;
+  project_id: string;
+  user_id: string;
+  role: string;
+  assigned_at: string;
+  assigned_by?: string;
+  is_active: boolean;
 }
 
 export interface ProjectDocument {
