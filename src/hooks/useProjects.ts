@@ -402,29 +402,54 @@ export function useProjects() {
     subscribeToProjectUpdates,
     testSupabaseRealtime,
     refetch,
-    getBottleneckAnalysis: () => {
-      // Mock implementation for analytics - return just the bottlenecks array
-      const stageAnalysis = projects.reduce((acc, project) => {
-        const stage = project.current_stage || 'inquiry_received';
-        if (!acc[stage]) {
-          acc[stage] = { count: 0, avgDays: 0, projects: [] };
-        }
-        acc[stage].count++;
-        acc[stage].projects.push(project);
-        return acc;
-      }, {} as Record<string, { count: number; avgDays: number; projects: Project[] }>);
+    getBottleneckAnalysis: async () => {
+      console.log('📊 Getting bottleneck analysis...');
       
-      // Return the bottlenecks array format expected by the analytics components
-      return Object.entries(stageAnalysis)
-        .filter(([_, data]) => data.count > 5)
-        .map(([stage, data]) => ({ 
-          id: stage,
-          stage, 
-          count: data.count, 
-          avgDays: data.avgDays,
-          severity: data.count > 10 ? 'high' : 'medium' as 'high' | 'medium' | 'low',
-          description: `Bottleneck detected in ${stage} stage`
-        }));
+      // Define bottleneck detection thresholds
+      const stageThresholds = {
+        'inquiry_received': 3, // 3+ days
+        'technical_review': 5, // 5+ days  
+        'supplier_rfq_sent': 7, // 7+ days
+        'quoted': 2, // 2+ days
+        'order_confirmed': 1, // 1+ day
+        'procurement_planning': 5, // 5+ days
+        'in_production': 14, // 14+ days (production can be longer)
+        'shipped_closed': 1 // 1+ day
+      };
+
+      const bottleneckAlerts: BottleneckAlert[] = [];
+
+      // Check each stage for bottlenecks
+      projects.forEach(project => {
+        const threshold = stageThresholds[project.current_stage as keyof typeof stageThresholds] || 3;
+        
+        if (project.status === 'active' && project.days_in_stage >= threshold) {
+          const thresholdHours = threshold * 24;
+          const hoursInStage = project.days_in_stage * 24;
+          const severity: 'critical' | 'warning' | 'info' = 
+            hoursInStage > (thresholdHours * 3) ? 'critical' :
+            hoursInStage > (thresholdHours * 2) ? 'warning' : 'info';
+          
+          bottleneckAlerts.push({
+            type: '🔥 Bottlenecks Detected',
+            project_id: project.id,
+            project_title: project.title,
+            current_stage: project.current_stage,
+            hours_in_stage: hoursInStage,
+            sla_hours: thresholdHours,
+            severity,
+            issues: [`Project has been in ${project.current_stage} for ${project.days_in_stage} days`],
+            recommended_actions: [
+              `Review project status with assignee`,
+              `Check for blockers or dependencies`,
+              `Consider escalating to management`
+            ],
+            affected_projects: [project.id]
+          });
+        }
+      });
+
+      return bottleneckAlerts;
     }
   };
 }

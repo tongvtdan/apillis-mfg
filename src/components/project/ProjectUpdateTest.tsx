@@ -3,10 +3,10 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { useProjects } from "@/hooks/useProjects";
-import { ProjectStatus } from "@/types/project";
+import { ProjectStage } from "@/types/project";
 
 export function ProjectUpdateTest() {
-    const { projects, updateProjectStatusOptimistic } = useProjects();
+    const { projects, updateProjectStage } = useProjects();
     const [isUpdating, setIsUpdating] = useState(false);
     const [lastUpdate, setLastUpdate] = useState<string>('');
 
@@ -16,14 +16,14 @@ export function ProjectUpdateTest() {
         if (!testProject || isUpdating) return;
 
         setIsUpdating(true);
-        const newStatus: ProjectStatus = testProject.status === 'inquiry_received'
+        const newStage: ProjectStage = testProject.current_stage === 'inquiry_received'
             ? 'technical_review'
             : 'inquiry_received';
 
         try {
-            console.log('🧪 Test: Updating project', testProject.id, 'from', testProject.status, 'to', newStatus);
-            const result = await updateProjectStatusOptimistic(testProject.id, newStatus);
-            setLastUpdate(`Updated ${testProject.title} to ${newStatus} at ${new Date().toLocaleTimeString()}`);
+            console.log('🧪 Test: Updating project', testProject.id, 'from', testProject.current_stage, 'to', newStage);
+            const result = await updateProjectStage(testProject.id, newStage);
+            setLastUpdate(`Updated ${testProject.title} to ${newStage} at ${new Date().toLocaleTimeString()}`);
             console.log('🧪 Test: Update result:', result);
         } catch (error) {
             console.error('🧪 Test: Update failed:', error);
@@ -51,7 +51,7 @@ export function ProjectUpdateTest() {
             <CardContent className="space-y-4">
                 <div>
                     <p><strong>Test Project:</strong> {testProject.title}</p>
-                    <p><strong>Current Status:</strong> <Badge>{testProject.status}</Badge></p>
+                    <p><strong>Current Stage:</strong> <Badge>{testProject.current_stage}</Badge></p>
                     <p><strong>Last Updated:</strong> {testProject.updated_at}</p>
                 </div>
 
@@ -70,8 +70,8 @@ export function ProjectUpdateTest() {
                 )}
 
                 <div className="text-xs text-muted-foreground">
-                    <p>This will toggle the project status between inquiry_received and technical_review.</p>
-                    <p>Check if the status updates in both the project detail page and the project list.</p>
+                    <p>This will toggle the project stage between inquiry_received and technical_review.</p>
+                    <p>Check if the stage updates in both the project detail page and the project list.</p>
                 </div>
             </CardContent>
         </Card>

@@ -68,7 +68,7 @@ export function ProjectTable({ projects, updateProjectStatusOptimistic: external
 
     console.log(`📊 Current project status: ${project.status}, target: ${newStatus}`);
 
-    // Validate the status change using workflow validator
+    // Validate the stage change using workflow validator
     const validationResult = await WorkflowValidator.validateStatusChange(project, newStatus);
 
     if (!validationResult.isValid) {
@@ -138,8 +138,8 @@ export function ProjectTable({ projects, updateProjectStatusOptimistic: external
           bValue = b.title.toLowerCase();
           break;
         case 'stage':
-          aValue = PROJECT_STAGES.find(s => s.id === a.status)?.name || a.status;
-          bValue = PROJECT_STAGES.find(s => s.id === b.status)?.name || b.status;
+          aValue = PROJECT_STAGES.find(s => s.id === a.current_stage)?.name || a.current_stage;
+          bValue = PROJECT_STAGES.find(s => s.id === b.current_stage)?.name || b.current_stage;
           break;
         case 'priority':
           aValue = a.priority;

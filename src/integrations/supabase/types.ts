@@ -654,7 +654,7 @@ export type Database = {
           contact_phone: string | null
           created_at: string
           created_by: string | null
-          current_stage: Database["public"]["Enums"]["project_stage"] | null
+          current_stage: string
           customer_id: string | null
           days_in_stage: number | null
           description: string | null
@@ -665,15 +665,15 @@ export type Database = {
           id: string
           metadata: Json | null
           notes: string | null
-          priority: Database["public"]["Enums"]["project_priority"]
+          priority: string
           priority_score: number | null
           production_reviewer_id: string | null
           project_id: string
-          project_type: Database["public"]["Enums"]["project_type"]
+          project_type: string
           qa_reviewer_id: string | null
           review_summary: Json | null
           stage_entered_at: string | null
-          status: Database["public"]["Enums"]["project_lifecycle_status"] | null
+          status: string
           supplier_id: string | null
           tags: string[] | null
           title: string
@@ -688,7 +688,7 @@ export type Database = {
           contact_phone?: string | null
           created_at?: string
           created_by?: string | null
-          current_stage?: Database["public"]["Enums"]["project_stage"] | null
+          current_stage?: string
           customer_id?: string | null
           days_in_stage?: number | null
           description?: string | null
@@ -699,17 +699,15 @@ export type Database = {
           id?: string
           metadata?: Json | null
           notes?: string | null
-          priority?: Database["public"]["Enums"]["project_priority"]
+          priority?: string
           priority_score?: number | null
           production_reviewer_id?: string | null
           project_id: string
-          project_type?: Database["public"]["Enums"]["project_type"]
+          project_type?: string
           qa_reviewer_id?: string | null
           review_summary?: Json | null
           stage_entered_at?: string | null
-          status?:
-            | Database["public"]["Enums"]["project_lifecycle_status"]
-            | null
+          status?: string
           supplier_id?: string | null
           tags?: string[] | null
           title: string
@@ -724,7 +722,7 @@ export type Database = {
           contact_phone?: string | null
           created_at?: string
           created_by?: string | null
-          current_stage?: Database["public"]["Enums"]["project_stage"] | null
+          current_stage?: string
           customer_id?: string | null
           days_in_stage?: number | null
           description?: string | null
@@ -735,17 +733,15 @@ export type Database = {
           id?: string
           metadata?: Json | null
           notes?: string | null
-          priority?: Database["public"]["Enums"]["project_priority"]
+          priority?: string
           priority_score?: number | null
           production_reviewer_id?: string | null
           project_id?: string
-          project_type?: Database["public"]["Enums"]["project_type"]
+          project_type?: string
           qa_reviewer_id?: string | null
           review_summary?: Json | null
           stage_entered_at?: string | null
-          status?:
-            | Database["public"]["Enums"]["project_lifecycle_status"]
-            | null
+          status?: string
           supplier_id?: string | null
           tags?: string[] | null
           title?: string
