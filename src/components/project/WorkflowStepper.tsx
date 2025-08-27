@@ -125,7 +125,7 @@ export const WorkflowStepper = React.memo(({ project }: WorkflowStepperProps) =>
   const stageCalculations = useMemo(() => {
     // Use current_stage with fallback to status for backward compatibility
     const currentStage = project.current_stage || project.status;
-    const currentIndex = allStages.indexOf(currentStage);
+    const currentIndex = allStages.indexOf(currentStage as any);
     const progressPercentage = currentIndex >= 0 ? Math.round((currentIndex / (allStages.length - 1)) * 100) : 0;
 
     return {

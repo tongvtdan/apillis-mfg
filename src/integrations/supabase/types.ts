@@ -875,6 +875,115 @@ export type Database = {
           },
         ]
       }
+      review_checklist_items: {
+        Row: {
+          checked_at: string | null
+          checked_by: string | null
+          id: string
+          is_checked: boolean | null
+          is_required: boolean | null
+          item_text: string
+          notes: string | null
+          review_id: string | null
+        }
+        Insert: {
+          checked_at?: string | null
+          checked_by?: string | null
+          id?: string
+          is_checked?: boolean | null
+          is_required?: boolean | null
+          item_text: string
+          notes?: string | null
+          review_id?: string | null
+        }
+        Update: {
+          checked_at?: string | null
+          checked_by?: string | null
+          id?: string
+          is_checked?: boolean | null
+          is_required?: boolean | null
+          item_text?: string
+          notes?: string | null
+          review_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "review_checklist_items_review_id_fkey"
+            columns: ["review_id"]
+            isOneToOne: false
+            referencedRelation: "reviews"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      reviews: {
+        Row: {
+          comments: string | null
+          created_at: string | null
+          due_date: string | null
+          estimated_cost: number | null
+          estimated_lead_time: number | null
+          id: string
+          priority: string | null
+          project_id: string | null
+          recommendations: string | null
+          review_type: string | null
+          reviewed_at: string | null
+          reviewer_id: string | null
+          reviewer_role: string
+          risks: Json | null
+          status: string | null
+          tooling_required: boolean | null
+          updated_at: string | null
+        }
+        Insert: {
+          comments?: string | null
+          created_at?: string | null
+          due_date?: string | null
+          estimated_cost?: number | null
+          estimated_lead_time?: number | null
+          id?: string
+          priority?: string | null
+          project_id?: string | null
+          recommendations?: string | null
+          review_type?: string | null
+          reviewed_at?: string | null
+          reviewer_id?: string | null
+          reviewer_role: string
+          risks?: Json | null
+          status?: string | null
+          tooling_required?: boolean | null
+          updated_at?: string | null
+        }
+        Update: {
+          comments?: string | null
+          created_at?: string | null
+          due_date?: string | null
+          estimated_cost?: number | null
+          estimated_lead_time?: number | null
+          id?: string
+          priority?: string | null
+          project_id?: string | null
+          recommendations?: string | null
+          review_type?: string | null
+          reviewed_at?: string | null
+          reviewer_id?: string | null
+          reviewer_role?: string
+          risks?: Json | null
+          status?: string | null
+          tooling_required?: boolean | null
+          updated_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "reviews_project_id_fkey"
+            columns: ["project_id"]
+            isOneToOne: false
+            referencedRelation: "projects"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       supplier_quotes: {
         Row: {
           currency: string | null

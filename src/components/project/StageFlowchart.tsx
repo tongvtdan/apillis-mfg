@@ -23,7 +23,7 @@ export function StageFlowchart({
           transition={{ delay: index * 0.1, duration: 0.3 }}
           whileHover={{ y: -2 }}
         >
-          <Card className={`cursor-pointer transition-all duration-200 hover:shadow-md w-[160px] max-w-[160px] flex-none ${selectedStage === stage.id ? 'ring-2 ring-primary shadow-md' : ''}`} onClick={() => onStageSelect(stage.id)}>
+          <Card className={`cursor-pointer transition-all duration-200 hover:shadow-md w-[160px] max-w-[160px] flex-none ${selectedStage === stage.id as any ? 'ring-2 ring-primary shadow-md' : ''}`} onClick={() => onStageSelect(stage.id as any)}>
             <CardContent className="p-4 text-center w-full">
               <div className="space-y-2">
                 <motion.div

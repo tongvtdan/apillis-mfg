@@ -77,7 +77,7 @@ export function AnimatedTableRow({
                 <TableCell>
                     <Select
                         value={project.current_stage}
-                        onValueChange={(value: ProjectStage) => handleStageChange(project.id, value)}
+                        onValueChange={(value: ProjectStage) => onStatusChange(project.id, value as ProjectStatus)}
                         disabled={isUpdating}
                     >
                         <SelectTrigger className="w-[180px]">
