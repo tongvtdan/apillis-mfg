@@ -1599,6 +1599,7 @@ export type Database = {
         | "procurement_planning"
         | "in_production"
         | "shipped_closed"
+        | "quoted"
       risk_category: "technical" | "timeline" | "cost" | "quality"
       risk_severity: "low" | "medium" | "high"
       user_role:
@@ -1793,6 +1794,7 @@ export const Constants = {
         "procurement_planning",
         "in_production",
         "shipped_closed",
+        "quoted",
       ],
       risk_category: ["technical", "timeline", "cost", "quality"],
       risk_severity: ["low", "medium", "high"],
