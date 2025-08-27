@@ -270,12 +270,7 @@ export function useProjects() {
       const { error } = await supabase
         .from('projects')
         .update({
-<<<<<<< HEAD
-          current_stage: newStatus,
-          status: 'active', // Keep status as active unless explicitly changed
-=======
           current_stage: newStage,
->>>>>>> 30d8ef01c232710fe654cd3acd26cb63851f3828
           updated_at: new Date().toISOString()
         })
         .eq('id', projectId);
@@ -326,96 +321,10 @@ export function useProjects() {
 
   // Optimistic update for immediate UI feedback
   const updateProjectStatusOptimistic = useCallback(async (projectId: string, newStatus: ProjectStatus) => {
-<<<<<<< HEAD
-    try {
-      // Find the current project to get the old status
-      const currentProject = projects.find(project => project.id === projectId);
-      if (!currentProject) {
-        console.error('Project not found for optimistic update:', projectId);
-        return false;
-      }
-
-      // Validate the status change using workflow validator
-      const validationResult = await WorkflowValidator.validateStatusChange(currentProject, newStatus);
-
-      if (!validationResult.isValid) {
-        console.error('Validation failed for optimistic update:', validationResult.errors);
-        return false;
-      }
-
-      const oldStatus = currentProject.status;
-
-      // Optimistically update the UI first
-      setProjects(prev =>
-        prev.map(project =>
-          project.id === projectId
-            ? {
-              ...project,
-              current_stage: newStatus,
-              status: project.status || 'active', // Keep existing status or default to active
-              updated_at: new Date().toISOString()
-            }
-            : project
-        )
-      );
-
-      // Update cache immediately for instant feedback
-      const updatedProjects = projects.map(project =>
-        project.id === projectId
-          ? {
-            ...project,
-            current_stage: newStatus,
-            status: project.status || 'active',
-            updated_at: new Date().toISOString()
-          }
-          : project
-      );
-      cacheService.setProjects(updatedProjects);
-
-      // Perform the actual database update
-      const result = await updateProjectStatus(projectId, newStatus);
-
-      if (!result) {
-        // Revert optimistic update on failure
-        setProjects(prev =>
-          prev.map(project =>
-            project.id === projectId
-              ? {
-                ...project,
-                current_stage: currentProject.current_stage || oldStatus,
-                status: currentProject.status,
-                updated_at: currentProject.updated_at
-              }
-              : project
-          )
-        );
-
-        // Revert cache
-        const revertedProjects = projects.map(project =>
-          project.id === projectId
-            ? {
-              ...project,
-              current_stage: currentProject.current_stage || oldStatus,
-              status: currentProject.status,
-              updated_at: currentProject.updated_at
-            }
-            : project
-        );
-        cacheService.setProjects(revertedProjects);
-      }
-
-      return result;
-    } catch (error) {
-      console.error('Error in optimistic update:', error);
-      return false;
-    }
-  }, [projects, updateProjectStatus]);
-=======
     // This function is kept for backward compatibility but now focuses on status updates
     // Stage updates should use updateProjectStage instead
     return false; // Disable for now as we're moving to stage-based workflow
   }, []);
->>>>>>> 30d8ef01c232710fe654cd3acd26cb63851f3828
 
   // Create new project
   const createProject = async (projectData: Partial<Project>) => {
