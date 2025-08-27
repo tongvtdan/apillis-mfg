@@ -184,13 +184,29 @@ export function useProjects() {
           setProjects(prev => {
             const projectIndex = prev.findIndex(p => p.id === payload.new.id);
             if (projectIndex !== -1) {
+              const currentProject = prev[projectIndex];
+              const payloadTimestamp = new Date((payload.new as any).updated_at || payload.new.updated_at).getTime();
+              const currentTimestamp = new Date(currentProject.updated_at).getTime();
+
+              // Prevent stale updates from overwriting fresh data
+              if (payloadTimestamp <= currentTimestamp) {
+                console.log('⚠️ Global real-time: Ignoring stale update:', {
+                  projectId: payload.new.id,
+                  payloadTimestamp: new Date(payloadTimestamp).toISOString(),
+                  currentTimestamp: new Date(currentTimestamp).toISOString(),
+                  reason: 'Payload timestamp is older than or equal to current timestamp'
+                });
+                return prev; // Don't update with stale data
+              }
+
               console.log('✅ Global real-time: Updating existing project in state:', {
                 projectId: payload.new.id,
-                oldStatus: prev[projectIndex].status,
+                oldStatus: currentProject.status,
                 newStatus: payload.new.status,
-                oldUpdatedAt: prev[projectIndex].updated_at,
+                oldUpdatedAt: currentProject.updated_at,
                 newUpdatedAt: (payload.new as any).updated_at,
-                payloadUpdatedAt: payload.new.updated_at
+                payloadUpdatedAt: payload.new.updated_at,
+                timestampValidation: 'passed'
               });
 
               // Project exists in our list, update it
@@ -554,6 +570,12 @@ export function useProjects() {
     const shouldSubscribeToRealtime = window.location.pathname.includes('/projects/') ||
       window.location.pathname.includes('/project/') ||
       window.location.pathname === '/projects';
+
+    console.log('🔔 useProjects: Real-time subscription check:', {
+      currentPath: window.location.pathname,
+      shouldSubscribe: shouldSubscribeToRealtime,
+      hasGlobalChannel: !!globalChannelRef.current
+    });
 
     if (!shouldSubscribeToRealtime) {
       console.log('🔔 useProjects: Skipping real-time subscription for route:', window.location.pathname);

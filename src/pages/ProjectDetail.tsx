@@ -176,6 +176,35 @@ export default function ProjectDetail() {
     }
   }, [projects, id, project]);
 
+  // Fallback mechanism: Force refresh project data if no real-time update received
+  useEffect(() => {
+    if (!project || !id) return;
+
+    // Set up a timer to force refresh if no real-time update is received
+    const refreshTimer = setTimeout(async () => {
+      console.log('🔄 ProjectDetail: Fallback refresh triggered - fetching latest project data');
+      try {
+        const latestProject = await projectService.getProjectById(id);
+        if (latestProject && (
+          latestProject.status !== project.status ||
+          latestProject.updated_at !== project.updated_at
+        )) {
+          console.log('🔄 ProjectDetail: Fallback refresh found updated data:', {
+            oldStatus: project.status,
+            newStatus: latestProject.status,
+            oldUpdatedAt: project.updated_at,
+            newUpdatedAt: latestProject.updated_at
+          });
+          setProject(latestProject);
+        }
+      } catch (error) {
+        console.error('❌ ProjectDetail: Fallback refresh failed:', error);
+      }
+    }, 10000); // Increased to 10 seconds to prevent interference with real-time updates
+
+    return () => clearTimeout(refreshTimer);
+  }, [project?.status, project?.updated_at, id]);
+
   // Loading state
   if (loading) {
     return (

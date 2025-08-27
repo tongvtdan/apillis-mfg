@@ -25,6 +25,7 @@ import { WorkflowBypassDialog } from './WorkflowBypassDialog';
 import { usePermissions } from '@/hooks/usePermissions';
 import { WorkflowBypassRequest } from '@/lib/workflow-validator';
 import { useWorkflowAutoAdvance } from '@/hooks/useWorkflowAutoAdvance';
+import { projectService } from '@/services/projectService';
 
 interface WorkflowStepperProps {
   project: Project;
@@ -113,6 +114,16 @@ export function WorkflowStepper({ project }: WorkflowStepperProps) {
     targetStage: null,
     warnings: []
   });
+  const [isLocalUpdating, setIsLocalUpdating] = useState(false);
+  const [localProject, setLocalProject] = useState<Project | null>(null);
+
+  // Update local project when prop changes
+  useEffect(() => {
+    setLocalProject(project);
+  }, [project]);
+
+  // Use local project for rendering, fallback to prop if local is null
+  const displayProject = localProject || project;
 
   // Debug logging for project changes
   useEffect(() => {
@@ -248,11 +259,48 @@ export function WorkflowStepper({ project }: WorkflowStepperProps) {
       );
 
       if (validationResult.isValid) {
+        console.log('🔄 WorkflowStepper: Bypass validation passed, updating status');
         await updateProjectStatus(bypassDialog.targetStage);
+
+        console.log('✅ WorkflowStepper: Bypass status update completed');
+
+        // Close the bypass dialog
+        setBypassDialog({
+          isOpen: false,
+          targetStage: null,
+          warnings: []
+        });
+
         toast({
           title: "Status Updated",
           description: `Project status changed to ${stageConfig[bypassDialog.targetStage]?.title || 'Unknown Stage'} (bypassed)`,
         });
+
+        // Force a manual refresh of the project data since real-time update might not be working
+        console.log('🔄 WorkflowStepper: Triggering manual project refresh');
+        setTimeout(async () => {
+          try {
+            // Prevent multiple rapid updates
+            if (isLocalUpdating) {
+              console.log('🔄 WorkflowStepper: Skipping manual refresh - already updating');
+              return;
+            }
+
+            setIsLocalUpdating(true);
+            const latestProject = await projectService.getProjectById(project.id);
+            if (latestProject && latestProject.status === bypassDialog.targetStage) {
+              console.log('✅ WorkflowStepper: Manual refresh successful, updating local state');
+              // Update local state to force re-render
+              setLocalProject(latestProject);
+            }
+          } catch (error) {
+            console.error('❌ WorkflowStepper: Manual refresh failed:', error);
+          } finally {
+            setIsLocalUpdating(false);
+          }
+        }, 1000); // Wait 1 second for database to settle
+      } else {
+        console.error('❌ WorkflowStepper: Bypass validation failed:', validationResult.errors);
       }
     } catch (err) {
       console.error('Error processing bypass:', err);

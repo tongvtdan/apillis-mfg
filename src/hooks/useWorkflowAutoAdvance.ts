@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useState } from 'react';
+import { useCallback, useEffect, useState, useRef } from 'react';
 import { Project, ProjectStatus } from '@/types/project';
 import { WorkflowValidator } from '@/lib/workflow-validator';
 import { useProjects } from './useProjects';
@@ -12,6 +12,11 @@ export function useWorkflowAutoAdvance(project: Project) {
     const [autoAdvanceReason, setAutoAdvanceReason] = useState<string>('');
     const { updateProjectStatusOptimistic } = useProjects();
     const { toast } = useToast();
+
+    // Refs to track logging frequency and prevent excessive console output
+    const lastLoggedStatus = useRef<ProjectStatus | null>(null);
+    const lastReviewCheck = useRef<number>(0);
+    const lastMainCheck = useRef<number>(0);
 
     // Early return if project is not properly loaded
     if (!project || !project.id || !project.status) {
@@ -120,8 +125,7 @@ export function useWorkflowAutoAdvance(project: Project) {
 
         // Skip if we're already checking to prevent duplicate checks
         if (isChecking) {
-            console.log('🔄 useWorkflowAutoAdvance: Already checking, skipping duplicate check');
-            return;
+            return; // Remove logging to reduce console noise
         }
 
         // Skip if this is a fresh status change that just happened (likely from auto-advance execution)
@@ -130,15 +134,18 @@ export function useWorkflowAutoAdvance(project: Project) {
         const lastUpdateTime = new Date(project.updated_at).getTime();
         const timeSinceUpdate = now - lastUpdateTime;
 
-        if (timeSinceUpdate < 1000) { // Skip if less than 1 second since update
-            console.log('🔄 useWorkflowAutoAdvance: Recent status change detected, skipping immediate check');
-            return;
+        if (timeSinceUpdate < 2000) { // Increased to 2 seconds to reduce noise
+            return; // Remove logging to reduce console noise
         }
 
         // Skip if the status is not one that supports auto-advance
         const autoAdvanceSupportedStages = ['technical_review', 'inquiry_received'];
         if (!autoAdvanceSupportedStages.includes(project.status)) {
-            console.log('🔄 useWorkflowAutoAdvance: Stage does not support auto-advance:', project.status);
+            // Only log once per status change, not on every timestamp update
+            if (project.status !== lastLoggedStatus.current) {
+                console.log('🔄 useWorkflowAutoAdvance: Stage does not support auto-advance:', project.status);
+                lastLoggedStatus.current = project.status;
+            }
             setAutoAdvanceAvailable(false);
             setNextStage(null);
             setAutoAdvanceReason(`Stage ${project.status} does not support automatic progression.`);
@@ -149,17 +156,23 @@ export function useWorkflowAutoAdvance(project: Project) {
         // This prevents unnecessary re-runs when only updated_at changes
         if (project.status === 'technical_review') {
             // For technical_review stage, we need to check reviews even if only timestamp changed
-            console.log('🔄 useWorkflowAutoAdvance: Technical review stage - checking reviews for updates');
-        } else {
-            // For other stages, skip if only timestamp changed (likely from auto-advance execution)
-            console.log('🔄 useWorkflowAutoAdvance: Non-review stage - proceeding with auto-advance check');
+            // But reduce logging frequency
+            if (Date.now() - lastReviewCheck.current > 5000) { // Only log every 5 seconds
+                console.log('🔄 useWorkflowAutoAdvance: Technical review stage - checking reviews for updates');
+                lastReviewCheck.current = Date.now();
+            }
         }
 
-        console.log('🔄 useWorkflowAutoAdvance: Project changed, checking auto-advance...', {
-            projectId: project.id,
-            status: project.status,
-            updated_at: project.updated_at
-        });
+        // Only log the main check once per status change
+        if (project.status !== lastLoggedStatus.current || Date.now() - lastMainCheck.current > 10000) {
+            console.log('🔄 useWorkflowAutoAdvance: Project changed, checking auto-advance...', {
+                projectId: project.id,
+                status: project.status,
+                updated_at: project.updated_at
+            });
+            lastLoggedStatus.current = project.status;
+            lastMainCheck.current = Date.now();
+        }
 
         // Add a small delay to prevent rapid successive calls
         const timeoutId = setTimeout(() => {
@@ -174,10 +187,14 @@ export function useWorkflowAutoAdvance(project: Project) {
                         const overallReviewStatus = getOverallReviewStatus();
                         const reviewSummary = getReviewSummary();
 
-                        console.log('🔄 Auto-advance check for technical_review:', {
-                            overallStatus: overallReviewStatus,
-                            summary: reviewSummary
-                        });
+                        // Reduce logging frequency for technical review checks
+                        if (Date.now() - lastReviewCheck.current > 10000) { // Only log every 10 seconds
+                            console.log('🔄 Auto-advance check for technical_review:', {
+                                overallStatus: overallReviewStatus,
+                                summary: reviewSummary
+                            });
+                            lastReviewCheck.current = Date.now();
+                        }
 
                         if (overallReviewStatus === 'approved') {
                             setAutoAdvanceAvailable(true);
