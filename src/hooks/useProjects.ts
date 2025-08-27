@@ -187,7 +187,10 @@ export function useProjects() {
               console.log('✅ Global real-time: Updating existing project in state:', {
                 projectId: payload.new.id,
                 oldStatus: prev[projectIndex].status,
-                newStatus: payload.new.status
+                newStatus: payload.new.status,
+                oldUpdatedAt: prev[projectIndex].updated_at,
+                newUpdatedAt: (payload.new as any).updated_at,
+                payloadUpdatedAt: payload.new.updated_at
               });
 
               // Project exists in our list, update it
@@ -196,7 +199,7 @@ export function useProjects() {
                 ...updatedProjects[projectIndex],
                 ...payload.new,
                 status: (payload.new as any).status,
-                updated_at: new Date().toISOString()
+                updated_at: (payload.new as any).updated_at || new Date().toISOString()
               };
 
               // Update cache with the full projects list
@@ -358,9 +361,10 @@ export function useProjects() {
     const oldStatus = currentProject.status;
 
     // Optimistically update local state immediately
+    const optimisticTimestamp = new Date(Date.now() + 1).toISOString(); // Add 1ms to ensure different timestamp
     const updatedProjects = projects.map(project =>
       project.id === projectId
-        ? { ...project, status: newStatus, updated_at: new Date().toISOString() }
+        ? { ...project, status: newStatus, updated_at: optimisticTimestamp }
         : project
     );
 
@@ -370,7 +374,7 @@ export function useProjects() {
     cacheService.setProjects(updatedProjects);
 
     // Also update the specific project in cache for better consistency
-    cacheService.updateProject(projectId, { status: newStatus, updated_at: new Date().toISOString() });
+    cacheService.updateProject(projectId, { status: newStatus, updated_at: optimisticTimestamp });
 
     try {
       const { error, data } = await supabase

@@ -156,12 +156,19 @@ export default function ProjectDetail() {
             oldStatus: project?.status,
             newStatus: updatedProject.status,
             oldUpdatedAt: project?.updated_at,
-            newUpdatedAt: updatedProject.updated_at
+            newUpdatedAt: updatedProject.updated_at,
+            statusChanged: project?.status !== updatedProject.status,
+            timestampChanged: project?.updated_at !== updatedProject.updated_at
           });
 
           setProject(updatedProject);
         } else {
-          console.log('ℹ️ ProjectDetail: No changes detected, skipping update');
+          console.log('ℹ️ ProjectDetail: No changes detected, skipping update', {
+            statusMatch: project?.status === updatedProject.status,
+            timestampMatch: project?.updated_at === updatedProject.updated_at,
+            currentProject: project,
+            updatedProject: updatedProject
+          });
         }
       } else {
         console.log('⚠️ ProjectDetail: No matching project found in projects list for ID:', id);
