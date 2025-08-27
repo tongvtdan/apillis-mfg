@@ -43,7 +43,7 @@ export function ProjectProgressCard({ project }: ProjectProgressCardProps) {
   const handleViewDetails = () => {
     navigate(`/project/${project.id}`);
   };
-  const currentStepIndex = workflowSteps.findIndex(step => step.id === project.status);
+  const currentStepIndex = workflowSteps.findIndex(step => step.id === project.current_stage);
 
   // Get 3 relevant steps: completed, current, next
   const getRelevantSteps = () => {
@@ -109,9 +109,9 @@ export function ProjectProgressCard({ project }: ProjectProgressCardProps) {
 
         {/* Status Badge */}
         <div className="mb-4">
-          <div className={`inline-flex items-center px-2.5 py-1 rounded-full text-xs font-medium ${statusBadgeColors[project.status] || statusBadgeColors.inquiry}`}>
+          <div className={`inline-flex items-center px-2.5 py-1 rounded-full text-xs font-medium ${statusBadgeColors[project.current_stage] || statusBadgeColors.inquiry_received}`}>
             <Clock className="w-3 h-3 mr-1" />
-            {project.status.replace('_', ' ')}
+            {project.current_stage.replace('_', ' ')}
           </div>
         </div>
 

@@ -11,7 +11,7 @@ import {
   AlertCircle,
   Loader2
 } from "lucide-react";
-import { Project, ProjectStatus } from "@/types/project";
+import { Project, ProjectStatus, ProjectStage } from "@/types/project";
 import { WorkflowValidator } from "@/lib/workflow-validator";
 import {
   Tooltip,
@@ -31,7 +31,7 @@ interface WorkflowStepperProps {
   project: Project;
 }
 
-const stageConfig: Record<ProjectStatus, {
+const stageConfig: Record<ProjectStage, {
   title: string;
   icon: React.ElementType;
   color: string;
@@ -87,7 +87,7 @@ const stageConfig: Record<ProjectStatus, {
   }
 };
 
-const allStages: ProjectStatus[] = [
+const allStages: ProjectStage[] = [
   'inquiry_received',
   'technical_review',
   'supplier_rfq_sent',
@@ -103,11 +103,11 @@ export const WorkflowStepper = React.memo(({ project }: WorkflowStepperProps) =>
   const { updateStatus, isUpdating } = useProjectUpdate(project.id);
   const { checkPermission } = usePermissions();
   const { autoAdvanceAvailable, nextStage, autoAdvanceReason, executeAutoAdvance } = useWorkflowAutoAdvance(project);
-  const [hoveredStage, setHoveredStage] = useState<ProjectStatus | null>(null);
+  const [hoveredStage, setHoveredStage] = useState<ProjectStage | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [bypassDialog, setBypassDialog] = useState<{
     isOpen: boolean;
-    targetStage: ProjectStatus | null;
+    targetStage: ProjectStage | null;
     warnings: string[];
   }>({
     isOpen: false,
@@ -123,7 +123,7 @@ export const WorkflowStepper = React.memo(({ project }: WorkflowStepperProps) =>
 
   // Memoize stage calculations to prevent unnecessary recalculations
   const stageCalculations = useMemo(() => {
-    const currentIndex = allStages.indexOf(project.status);
+    const currentIndex = allStages.indexOf(project.current_stage);
     const progressPercentage = currentIndex >= 0 ? Math.round((currentIndex / (allStages.length - 1)) * 100) : 0;
 
     return {
@@ -131,10 +131,10 @@ export const WorkflowStepper = React.memo(({ project }: WorkflowStepperProps) =>
       progressPercentage,
       totalStages: allStages.length
     };
-  }, [project.status]);
+  }, [project.current_stage]);
 
   // Memoize stage status functions to prevent recreation on every render
-  const getStageStatus = useCallback((stage: ProjectStatus) => {
+  const getStageStatus = useCallback((stage: ProjectStage) => {
     const index = allStages.indexOf(stage);
     if (index < 0) return 'pending';
     if (index < stageCalculations.currentIndex) return 'completed';
@@ -142,7 +142,7 @@ export const WorkflowStepper = React.memo(({ project }: WorkflowStepperProps) =>
     return 'pending';
   }, [stageCalculations.currentIndex]);
 
-  const getStatusIcon = useCallback((stage: ProjectStatus) => {
+  const getStatusIcon = useCallback((stage: ProjectStage) => {
     const status = getStageStatus(stage);
     const stageConfigItem = stageConfig[stage];
 
@@ -163,7 +163,7 @@ export const WorkflowStepper = React.memo(({ project }: WorkflowStepperProps) =>
     }
   }, [getStageStatus]);
 
-  const getStatusColor = useCallback((stage: ProjectStatus) => {
+  const getStatusColor = useCallback((stage: ProjectStage) => {
     const status = getStageStatus(stage);
     switch (status) {
       case 'completed':
@@ -175,7 +175,7 @@ export const WorkflowStepper = React.memo(({ project }: WorkflowStepperProps) =>
     }
   }, [getStageStatus]);
 
-  const getConnectorColor = useCallback((stage: ProjectStatus) => {
+  const getConnectorColor = useCallback((stage: ProjectStage) => {
     const index = allStages.indexOf(stage);
     if (index < 0) return 'bg-gray-200';
     if (index < stageCalculations.currentIndex) return 'bg-green-600';
@@ -184,7 +184,7 @@ export const WorkflowStepper = React.memo(({ project }: WorkflowStepperProps) =>
 
   // Debug logging for project changes - only log when status actually changes
   useEffect(() => {
-    const currentStatus = project.status;
+    const currentStatus = project.current_stage;
     const currentUpdatedAt = project.updated_at;
 
     if (lastStatusLogged.current !== currentStatus || lastUpdatedAtLogged.current !== currentUpdatedAt) {
@@ -196,11 +196,11 @@ export const WorkflowStepper = React.memo(({ project }: WorkflowStepperProps) =>
       lastStatusLogged.current = currentStatus;
       lastUpdatedAtLogged.current = currentUpdatedAt;
     }
-  }, [project.id, project.status, project.updated_at]);
+  }, [project.id, project.current_stage, project.updated_at]);
 
   // Debug logging for stage calculations - only log when calculations change
   useEffect(() => {
-    const currentStatus = project.status;
+    const currentStatus = project.current_stage;
 
     if (lastStageCalculationsLogged.current !== currentStatus) {
       console.log('🔄 WorkflowStepper: Stage calculations updated:', {
@@ -211,18 +211,18 @@ export const WorkflowStepper = React.memo(({ project }: WorkflowStepperProps) =>
       });
       lastStageCalculationsLogged.current = currentStatus;
     }
-  }, [project.status, stageCalculations]);
+  }, [project.current_stage, stageCalculations]);
 
   // Debug logging to help identify status mapping issues - only log once per status
   useEffect(() => {
-    if (project?.status && !stageConfig[project.status]) {
-      console.warn(`🚨 WorkflowStepper: Unknown project status "${project.status}" not found in stageConfig`);
+    if (project?.current_stage && !stageConfig[project.current_stage]) {
+      console.warn(`🚨 WorkflowStepper: Unknown project stage "${project.current_stage}" not found in stageConfig`);
       console.warn(`🚨 Available stages:`, Object.keys(stageConfig));
     }
-  }, [project?.status]);
+  }, [project?.current_stage]);
 
-  const handleStageClick = useCallback(async (stage: ProjectStatus) => {
-    if (stage === project.status) return;
+  const handleStageClick = useCallback(async (stage: ProjectStage) => {
+    if (stage === project.current_stage) return;
 
     try {
       // Check if user can bypass workflow
@@ -349,7 +349,7 @@ export const WorkflowStepper = React.memo(({ project }: WorkflowStepperProps) =>
 
             setIsLocalUpdating(true);
             const latestProject = await projectService.getProjectById(project.id);
-            if (latestProject && latestProject.status === bypassDialog.targetStage) {
+            if (latestProject && latestProject.current_stage === bypassDialog.targetStage) {
               console.log('✅ WorkflowStepper: Manual refresh successful, updating local state');
               // Note: We don't need to update local state here since the parent component should handle this
             }
@@ -372,7 +372,7 @@ export const WorkflowStepper = React.memo(({ project }: WorkflowStepperProps) =>
     }
   }, [bypassDialog.targetStage, project, toast, isLocalUpdating]);
 
-  const updateProjectStatus = useCallback(async (stage: ProjectStatus) => {
+  const updateProjectStatus = useCallback(async (stage: ProjectStage) => {
     setError(null);
     const success = await updateStatus(stage);
     if (success) {
@@ -391,7 +391,7 @@ export const WorkflowStepper = React.memo(({ project }: WorkflowStepperProps) =>
     }
   }, [autoAdvanceAvailable, nextStage, executeAutoAdvance]);
 
-  const handleKeyDown = useCallback((event: React.KeyboardEvent, stage: ProjectStatus) => {
+  const handleKeyDown = useCallback((event: React.KeyboardEvent, stage: ProjectStage) => {
     if (event.key === 'Enter' || event.key === ' ') {
       event.preventDefault();
       handleStageClick(stage);
@@ -399,7 +399,7 @@ export const WorkflowStepper = React.memo(({ project }: WorkflowStepperProps) =>
   }, [handleStageClick]);
 
   // Memoize stage tooltip content to prevent recreation
-  const getStageTooltipContent = useCallback((stage: ProjectStatus, status: 'completed' | 'current' | 'pending') => {
+  const getStageTooltipContent = useCallback((stage: ProjectStage, status: 'completed' | 'current' | 'pending') => {
     const stageConfigItem = stageConfig[stage];
     if (!stageConfigItem) {
       console.warn(`Warning: stageConfig not found for stage: ${stage}`);
@@ -408,7 +408,7 @@ export const WorkflowStepper = React.memo(({ project }: WorkflowStepperProps) =>
 
     const stageTitle = stageConfigItem.title;
 
-    const stageDescriptions: Record<ProjectStatus, {
+    const stageDescriptions: Record<ProjectStage, {
       description: string;
       keyActions: string[];
       exitCriteria: string[];
@@ -700,15 +700,15 @@ export const WorkflowStepper = React.memo(({ project }: WorkflowStepperProps) =>
         isOpen={bypassDialog.isOpen}
         onClose={() => setBypassDialog({ isOpen: false, targetStage: null, warnings: [] })}
         onConfirm={handleBypassConfirm}
-        currentStage={stageConfig[project.status]?.title || 'Unknown Stage'}
+        currentStage={stageConfig[project.current_stage]?.title || 'Unknown Stage'}
         nextStage={bypassDialog.targetStage ? stageConfig[bypassDialog.targetStage]?.title || 'Unknown Stage' : ''}
         validationWarnings={bypassDialog.warnings}
       />
     </>
   );
 }, (prevProps, nextProps) => {
-  // Only re-render if the project status or updated_at changes
+  // Only re-render if the project current_stage or updated_at changes
   // This prevents unnecessary re-renders when other project properties change
-  return prevProps.project.status === nextProps.project.status &&
+  return prevProps.project.current_stage === nextProps.project.current_stage &&
     prevProps.project.updated_at === nextProps.project.updated_at;
 });

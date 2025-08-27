@@ -1,63 +1,65 @@
 import { useState, useCallback } from 'react';
-import { ProjectStatus } from '@/types/project';
+import { ProjectStage } from '@/types/project';
 import { useProjects } from './useProjects';
 import { useToast } from './use-toast';
 
 export function useProjectUpdate(projectId: string) {
     const [isUpdating, setIsUpdating] = useState(false);
-    const [localStatus, setLocalStatus] = useState<ProjectStatus | null>(null);
-    const { updateProjectStatusOptimistic } = useProjects();
+    const [localStage, setLocalStage] = useState<ProjectStage | null>(null);
+    const { updateProjectStage } = useProjects();
     const { toast } = useToast();
 
-    const updateStatus = useCallback(async (newStatus: ProjectStatus) => {
+    const updateStatus = useCallback(async (newStage: ProjectStage) => {
         if (isUpdating) return false;
 
-        console.log(`🔄 useProjectUpdate: Starting update for project ${projectId} to ${newStatus}`);
+        console.log(`🔄 useProjectUpdate: Starting stage update for project ${projectId} to ${newStage}`);
         setIsUpdating(true);
-        setLocalStatus(newStatus);
+        setLocalStage(newStage);
 
         try {
-            const result = await updateProjectStatusOptimistic(projectId, newStatus);
-            console.log(`📊 useProjectUpdate: Update result for project ${projectId}:`, result);
+            // For now, we'll use the existing updateProjectStatusOptimistic but pass the stage
+            // In a full implementation, this would update the current_stage field specifically
+            const result = await updateProjectStage(projectId, newStage);
+            console.log(`📊 useProjectUpdate: Stage update result for project ${projectId}:`, result);
 
             if (!result) {
-                // Revert local status on failure
-                console.log(`❌ useProjectUpdate: Update failed for project ${projectId}, reverting local status`);
-                setLocalStatus(null);
+                // Revert local stage on failure
+                console.log(`❌ useProjectUpdate: Stage update failed for project ${projectId}, reverting local stage`);
+                setLocalStage(null);
                 toast({
                     variant: "destructive",
                     title: "Update Failed",
-                    description: "Failed to update project status. Please try again.",
+                    description: "Failed to update project stage. Please try again.",
                 });
             } else {
-                console.log(`✅ useProjectUpdate: Update successful for project ${projectId}`);
+                console.log(`✅ useProjectUpdate: Stage update successful for project ${projectId}`);
             }
 
             return result;
         } catch (error) {
-            console.error('Error updating project status:', error);
-            setLocalStatus(null);
+            console.error('Error updating project stage:', error);
+            setLocalStage(null);
             toast({
                 variant: "destructive",
                 title: "Error",
-                description: "An unexpected error occurred while updating the project.",
+                description: "An unexpected error occurred while updating the project stage.",
             });
             return false;
         } finally {
             setIsUpdating(false);
-            // Clear local status after a longer delay to ensure real-time updates have propagated
+            // Clear local stage after a longer delay to ensure real-time updates have propagated
             setTimeout(() => {
-                console.log(`🧹 useProjectUpdate: Clearing local status for project ${projectId}`);
-                setLocalStatus(null);
+                console.log(`🧹 useProjectUpdate: Clearing local stage for project ${projectId}`);
+                setLocalStage(null);
             }, 2000);
         }
-    }, [projectId, isUpdating, updateProjectStatusOptimistic, toast]);
+    }, [projectId, isUpdating, updateProjectStage, toast]);
 
     return {
         isUpdating,
-        localStatus,
+        localStage,
         updateStatus,
-        // Helper to get the effective status (local or original)
-        getEffectiveStatus: (originalStatus: ProjectStatus) => localStatus || originalStatus
+        // Helper to get the effective stage (local or original)
+        getEffectiveStage: (originalStage: ProjectStage) => localStage || originalStage
     };
 }

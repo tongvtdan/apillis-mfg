@@ -14,7 +14,7 @@ export function PriorityActionItems({ projects }: PriorityActionItemsProps) {
     const urgentProjects = projects
       .filter(p =>
         // Filter for active projects that need action
-        ['inquiry_received', 'technical_review', 'supplier_rfq_sent', 'quoted'].includes(p.status) &&
+        ['inquiry_received', 'technical_review', 'supplier_rfq_sent', 'quoted'].includes(p.current_stage) &&
         // Include projects with high priority, overdue, or urgent status  
         (p.priority === 'high' || p.priority === 'urgent' || p.days_in_stage > 7)
       )
@@ -34,9 +34,9 @@ export function PriorityActionItems({ projects }: PriorityActionItemsProps) {
           else if (project.days_in_stage > 3) score += 10;
 
           // Status urgency weight
-          if (project.status === 'quoted') score += 25; // Needs decision
-          else if (project.status === 'technical_review') score += 20; // Blocking workflow
-          else if (project.status === 'inquiry_received') score += 15; // Needs initial action
+          if (project.current_stage === 'quoted') score += 25; // Needs decision
+          else if (project.current_stage === 'technical_review') score += 20; // Blocking workflow
+          else if (project.current_stage === 'inquiry_received') score += 15; // Needs initial action
 
           return score;
         };
@@ -51,7 +51,7 @@ export function PriorityActionItems({ projects }: PriorityActionItemsProps) {
       const urgentIds = new Set(urgentProjects.map(p => p.id));
       const recentActiveProjects = projects
         .filter(p =>
-          ['inquiry_received', 'technical_review', 'supplier_rfq_sent', 'quoted'].includes(p.status) &&
+          ['inquiry_received', 'technical_review', 'supplier_rfq_sent', 'quoted'].includes(p.current_stage) &&
           !urgentIds.has(p.id)
         )
         .sort((a, b) => new Date(b.updated_at || b.created_at).getTime() - new Date(a.updated_at || a.created_at).getTime())
