@@ -49,11 +49,11 @@ USING (
         SELECT 1 FROM public.projects p 
         WHERE p.id = reviews.project_id 
         AND (
-            has_role(auth.uid(), 'Management'::user_role) OR 
-            has_role(auth.uid(), 'Procurement'::user_role) OR 
-            has_role(auth.uid(), 'Engineering'::user_role) OR 
-            has_role(auth.uid(), 'Production'::user_role) OR 
-            has_role(auth.uid(), 'QA'::user_role) OR
+            user_has_role('Management') OR 
+            user_has_role('Procurement') OR 
+            user_has_role('Engineering') OR 
+            user_has_role('Production') OR 
+            user_has_role('QA') OR
             p.assignee_id = auth.uid()
         )
     )
@@ -68,11 +68,11 @@ WITH CHECK (
         SELECT 1 FROM public.projects p 
         WHERE p.id = reviews.project_id 
         AND (
-            has_role(auth.uid(), 'Management'::user_role) OR 
-            has_role(auth.uid(), 'Procurement'::user_role) OR 
-            has_role(auth.uid(), 'Engineering'::user_role) OR 
-            has_role(auth.uid(), 'Production'::user_role) OR 
-            has_role(auth.uid(), 'QA'::user_role)
+            user_has_role('Management') OR 
+            user_has_role('Procurement') OR 
+            user_has_role('Engineering') OR 
+            user_has_role('Production') OR 
+            user_has_role('QA')
         )
     )
 );
@@ -82,7 +82,7 @@ ON public.reviews
 FOR UPDATE 
 USING (
     reviewer_id = auth.uid() OR 
-    has_role(auth.uid(), 'Management'::user_role)
+    user_has_role('Management')
 );
 
 -- Create RLS policies for review_checklist_items table
@@ -95,11 +95,11 @@ USING (
         JOIN public.projects p ON r.project_id = p.id
         WHERE r.id = review_checklist_items.review_id 
         AND (
-            has_role(auth.uid(), 'Management'::user_role) OR 
-            has_role(auth.uid(), 'Procurement'::user_role) OR 
-            has_role(auth.uid(), 'Engineering'::user_role) OR 
-            has_role(auth.uid(), 'Production'::user_role) OR 
-            has_role(auth.uid(), 'QA'::user_role) OR
+            user_has_role('Management') OR 
+            user_has_role('Procurement') OR 
+            user_has_role('Engineering') OR 
+            user_has_role('Production') OR 
+            user_has_role('QA') OR
             p.assignee_id = auth.uid() OR
             r.reviewer_id = auth.uid()
         )
@@ -115,7 +115,7 @@ USING (
         WHERE r.id = review_checklist_items.review_id 
         AND (
             r.reviewer_id = auth.uid() OR 
-            has_role(auth.uid(), 'Management'::user_role)
+            user_has_role('Management')
         )
     )
 );
@@ -136,6 +136,7 @@ BEGIN
 END;
 $$ LANGUAGE plpgsql;
 
+DROP TRIGGER IF EXISTS update_reviews_updated_at ON public.reviews;
 CREATE TRIGGER update_reviews_updated_at
     BEFORE UPDATE ON public.reviews
     FOR EACH ROW

@@ -125,29 +125,17 @@ export default function Projects() {
 
           </div>
           <div className="flex items-center gap-4">
-            <TabsList className="grid w-[600px] grid-cols-4 bg-muted/30 p-1 rounded-lg">
-              <TabsTrigger
-                value="flowchart"
-                className="data-[state=active]:bg-primary data-[state=active]:text-primary-foreground data-[state=active]:shadow-lg data-[state=active]:font-semibold data-[state=active]:scale-105 data-[state=active]:border-2 data-[state=active]:border-primary/20 data-[state=inactive]:text-muted-foreground data-[state=inactive]:hover:bg-muted/50 transition-all duration-200"
-              >
+            <TabsList className="auth-tabs-list grid-cols-4 w-[600px]">
+              <TabsTrigger value="flowchart" className="auth-tab-trigger">
                 Kanban Flow
               </TabsTrigger>
-              <TabsTrigger
-                value="table"
-                className="data-[state=active]:bg-primary data-[state=active]:text-primary-foreground data-[state=active]:shadow-lg data-[state=active]:font-semibold data-[state=active]:scale-105 data-[state=active]:border-2 data-[state=active]:border-primary/20 data-[state=inactive]:text-muted-foreground data-[state=inactive]:hover:bg-muted/50 transition-all duration-200"
-              >
+              <TabsTrigger value="table" className="auth-tab-trigger">
                 Table
               </TabsTrigger>
-              <TabsTrigger
-                value="analytics"
-                className="data-[state=active]:bg-primary data-[state=active]:text-primary-foreground data-[state=active]:shadow-lg data-[state=active]:font-semibold data-[state=active]:scale-105 data-[state=active]:border-2 data-[state=active]:border-primary/20 data-[state=inactive]:text-muted-foreground data-[state=inactive]:hover:bg-muted/50 transition-all duration-200"
-              >
+              <TabsTrigger value="analytics" className="auth-tab-trigger">
                 Analytics
               </TabsTrigger>
-              <TabsTrigger
-                value="calendar"
-                className="data-[state=active]:bg-primary data-[state=active]:text-primary-foreground data-[state=active]:shadow-lg data-[state=active]:font-semibold data-[state=active]:scale-105 data-[state=active]:border-2 data-[state=active]:border-primary/20 data-[state=inactive]:text-muted-foreground data-[state=inactive]:hover:bg-muted/50 transition-all duration-200"
-              >
+              <TabsTrigger value="calendar" className="auth-tab-trigger">
                 Calendar
               </TabsTrigger>
             </TabsList>

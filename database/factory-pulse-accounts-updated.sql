@@ -1,12 +1,10 @@
--- Factory Pulse Account Creation Script (Compatible with existing users table)
--- Works with the current users table structure
+-- Factory Pulse Account Creation Script (Updated for status and role fields)
+-- Compatible with migration 20250827120000_update_users_table.sql
 
 -- First, let's add the missing columns to the existing users table
 ALTER TABLE public.users 
 ADD COLUMN IF NOT EXISTS employee_id VARCHAR(20),
-ADD COLUMN IF NOT EXISTS phone VARCHAR(50),
 ADD COLUMN IF NOT EXISTS extension VARCHAR(10),
-ADD COLUMN IF NOT EXISTS role VARCHAR(50),
 ADD COLUMN IF NOT EXISTS position VARCHAR(100),
 ADD COLUMN IF NOT EXISTS direct_manager VARCHAR(100),
 ADD COLUMN IF NOT EXISTS direct_reports TEXT[],
@@ -22,37 +20,16 @@ ADD COLUMN IF NOT EXISTS company_address TEXT,
 ADD COLUMN IF NOT EXISTS supplier_id VARCHAR(20),
 ADD COLUMN IF NOT EXISTS customer_id VARCHAR(20),
 ADD COLUMN IF NOT EXISTS primary_contact BOOLEAN DEFAULT false,
-ADD COLUMN IF NOT EXISTS account_manager VARCHAR(100),
-ADD COLUMN IF NOT EXISTS status VARCHAR(20) DEFAULT 'active';
+ADD COLUMN IF NOT EXISTS account_manager VARCHAR(100);
 
 -- Add unique constraints for new columns
-ALTER TABLE public.users 
-ADD CONSTRAINT IF NOT EXISTS users_employee_id_unique UNIQUE (employee_id),
-ADD CONSTRAINT IF NOT EXISTS users_supplier_id_unique UNIQUE (supplier_id),
-ADD CONSTRAINT IF NOT EXISTS users_customer_id_unique UNIQUE (customer_id);
-
--- Add CHECK constraints for role and status
 DO $$ 
 BEGIN
     IF NOT EXISTS (
-        SELECT 1 FROM information_schema.check_constraints 
-        WHERE constraint_name = 'users_role_check'
+        SELECT 1 FROM information_schema.table_constraints 
+        WHERE constraint_name = 'users_employee_id_unique'
     ) THEN
-        ALTER TABLE public.users 
-        ADD CONSTRAINT users_role_check 
-        CHECK (role IN ('customer', 'sales', 'procurement', 'engineering', 'qa', 'production', 'management', 'supplier', 'admin'));
-    END IF;
-END $$;
-
-DO $$ 
-BEGIN
-    IF NOT EXISTS (
-        SELECT 1 FROM information_schema.check_constraints 
-        WHERE constraint_name = 'users_status_check'
-    ) THEN
-        ALTER TABLE public.users 
-        ADD CONSTRAINT users_status_check 
-        CHECK (status IN ('active', 'dismiss'));
+        ALTER TABLE public.users ADD CONSTRAINT users_employee_id_unique UNIQUE (employee_id);
     END IF;
 END $$;
 
@@ -66,7 +43,7 @@ VALUES (
     NOW()
 ) ON CONFLICT (slug) DO NOTHING;
 
--- Function to create users with auth (simplified for existing structure)
+-- Function to create users (updated for new schema)
 CREATE OR REPLACE FUNCTION create_factory_user(
     p_email TEXT,
     p_name TEXT,
@@ -159,7 +136,7 @@ $$ LANGUAGE plpgsql SECURITY DEFINER;
 -- Clear existing Factory Pulse users (optional)
 DELETE FROM public.users WHERE email LIKE '%@factoryplus.com' OR email LIKE '%@viettech.com.vn' OR email LIKE '%@autotech.com';
 
--- Create all Factory Pulse accounts
+-- Create all Factory Pulse accounts with proper roles
 
 -- 1. Sales Staff - Nguyễn Thị Hương
 SELECT create_factory_user(
@@ -188,6 +165,7 @@ SELECT create_factory_user(
     '+84 (28) 123-4568',
     '1235',
     'Sales',
+    'sales',
     'Sales Manager',
     NULL,
     '2021-08-10'::DATE,
@@ -206,6 +184,7 @@ SELECT create_factory_user(
     '+84 (28) 123-4569',
     '1236',
     'Procurement',
+    'procurement',
     'Procurement Specialist',
     'Phạm Thị Lan (Procurement Manager)',
     '2022-11-20'::DATE,
@@ -224,6 +203,7 @@ SELECT create_factory_user(
     '+84 (28) 123-4570',
     '1237',
     'Procurement',
+    'procurement',
     'Procurement Manager',
     NULL,
     '2020-05-12'::DATE,
@@ -242,6 +222,7 @@ SELECT create_factory_user(
     '+84 (28) 123-4571',
     '1238',
     'Engineering',
+    'engineering',
     'Design Engineer',
     'Võ Thị Mai (Engineering Manager)',
     '2023-01-08'::DATE,
@@ -260,6 +241,7 @@ SELECT create_factory_user(
     '+84 (28) 123-4572',
     '1239',
     'Engineering',
+    'engineering',
     'Engineering Manager',
     NULL,
     '2019-09-25'::DATE,
@@ -278,6 +260,7 @@ SELECT create_factory_user(
     '+84 (28) 123-4573',
     '1240',
     'Quality Assurance',
+    'qa',
     'Quality Inspector',
     'Bùi Văn Hùng (QA Manager)',
     '2022-07-14'::DATE,
@@ -296,6 +279,7 @@ SELECT create_factory_user(
     '+84 (28) 123-4574',
     '1241',
     'Quality Assurance',
+    'qa',
     'QA Manager',
     NULL,
     '2018-12-03'::DATE,
@@ -314,6 +298,7 @@ SELECT create_factory_user(
     '+84 (28) 123-4575',
     '1242',
     'Production',
+    'production',
     'Production Operator',
     'Lý Thị Hoa (Production Manager)',
     '2023-05-22'::DATE,
@@ -332,6 +317,7 @@ SELECT create_factory_user(
     '+84 (28) 123-4576',
     '1243',
     'Production',
+    'production',
     'Production Manager',
     NULL,
     '2020-02-18'::DATE,
@@ -350,6 +336,7 @@ SELECT create_factory_user(
     '+84 (28) 123-4577',
     '1244',
     'Management',
+    'management',
     'Operations Director',
     'Cao Thị Nga (General Manager)',
     '2017-06-30'::DATE,
@@ -368,6 +355,7 @@ SELECT create_factory_user(
     '+84 (28) 123-4578',
     '1245',
     'Executive',
+    'admin',
     'General Manager',
     NULL,
     '2015-01-15'::DATE,
@@ -386,6 +374,7 @@ SELECT create_factory_user(
     '+84 (274) 987-6543',
     NULL,
     NULL,
+    'supplier',
     'Sales Representative',
     NULL,
     NULL,
@@ -395,12 +384,12 @@ SELECT create_factory_user(
     'External User',
     'Supplier Level',
     'supplier',
-    'VietTech Manufacturing Co., Ltd',
-    '123 Công Nghiệp Street, Bình Dương Province, Vietnam',
+    'VietTech Manufacturing',
+    '123 Công Nghiệp St, Bình Dương, Vietnam',
     'SUP-001',
     NULL,
     true,
-    'Lê Văn Đức (Internal)'
+    'Lê Văn Đức'
 );
 
 -- 14. Supplier Manager - Đỗ Thị Xuân
@@ -411,21 +400,22 @@ SELECT create_factory_user(
     '+84 (274) 987-6544',
     NULL,
     NULL,
+    'supplier',
     'Account Manager',
     NULL,
     NULL,
     '2023-02-10'::DATE,
     NULL,
-    ARRAY['All Supplier Contact permissions', 'Manage supplier relationship', 'Approve quotes over $10,000', 'Access supplier analytics', 'Manage supplier team access', 'Negotiate contract terms'],
+    ARRAY['Manage supplier relationship', 'Approve quotes over $10,000', 'Access supplier analytics'],
     'External Manager',
-    'Supplier Manager Level',
+    'Supplier Mgr Level',
     'supplier',
-    'VietTech Manufacturing Co., Ltd',
-    '123 Công Nghiệp Street, Bình Dương Province, Vietnam',
+    'VietTech Manufacturing',
+    '123 Công Nghiệp St, Bình Dương, Vietnam',
     'SUP-001-MGR',
     NULL,
     false,
-    'Phạm Thị Lan (Internal)'
+    'Phạm Thị Lan'
 );
 
 -- 15. Customer Contact - Michael Johnson
@@ -436,6 +426,7 @@ SELECT create_factory_user(
     '+1 (555) 456-7890',
     NULL,
     NULL,
+    'customer',
     'Procurement Specialist',
     NULL,
     NULL,
@@ -450,7 +441,7 @@ SELECT create_factory_user(
     NULL,
     'CUS-001',
     true,
-    'Nguyễn Thị Hương (Internal)'
+    'Nguyễn Thị Hương'
 );
 
 -- 16. Customer Manager - Rachel Green
@@ -461,21 +452,22 @@ SELECT create_factory_user(
     '+1 (555) 456-7891',
     NULL,
     NULL,
+    'customer',
     'Purchasing Manager',
     NULL,
     NULL,
     '2023-04-05'::DATE,
     NULL,
-    ARRAY['All Customer Contact permissions', 'Oversee customer relationship', 'Approve orders over $25,000', 'Access customer analytics', 'Manage customer team access', 'Negotiate pricing terms'],
+    ARRAY['Oversee customer relationship', 'Approve orders over $25,000', 'Access customer analytics'],
     'External Manager',
-    'Customer Manager Level',
+    'Customer Mgr Level',
     'customer',
     'AutoTech Solutions LLC',
     '5678 Business Park Dr, Auto City, AC 67890',
     NULL,
     'CUS-001-MGR',
     false,
-    'Trần Văn Minh (Internal)'
+    'Trần Văn Minh'
 );
 
 -- Update direct reports for managers
@@ -505,7 +497,8 @@ CREATE INDEX IF NOT EXISTS idx_users_employee_id ON public.users(employee_id);
 CREATE INDEX IF NOT EXISTS idx_users_account_type ON public.users(account_type);
 CREATE INDEX IF NOT EXISTS idx_users_supplier_id ON public.users(supplier_id);
 CREATE INDEX IF NOT EXISTS idx_users_customer_id ON public.users(customer_id);
-CREATE INDEX IF NOT EXISTS idx_users_department ON public.users(department);
+CREATE INDEX IF NOT EXISTS idx_users_role ON public.users(role);
+CREATE INDEX IF NOT EXISTS idx_users_status ON public.users(status);
 
 -- Success summary
 SELECT 
@@ -521,14 +514,10 @@ WHERE email LIKE '%@factoryplus.com' OR email LIKE '%@viettech.com.vn' OR email 
 SELECT 
     name,
     email,
-    CASE 
-        WHEN account_type = 'internal' THEN 'Internal Employee'
-        WHEN account_type = 'supplier' THEN 'Supplier Partner'
-        WHEN account_type = 'customer' THEN 'Customer Partner'
-        ELSE 'Unknown'
-    END as account_category,
+    role,
     department,
     position,
+    status,
     system_access_level
 FROM public.users
 WHERE email LIKE '%@factoryplus.com' OR email LIKE '%@viettech.com.vn' OR email LIKE '%@autotech.com'

@@ -7,9 +7,10 @@ export interface UserProfile {
   id: string;
   user_id: string;
   display_name: string;
-  role: 'Customer' | 'Procurement Owner' | 'Engineering' | 'QA' | 'Production' | 'Supplier' | 'Management' | 'Procurement';
-  status: 'Active' | 'Inactive' | 'Pending' | 'Locked' | 'Dormant';
+  role: 'customer' | 'procurement' | 'engineering' | 'qa' | 'production' | 'supplier' | 'management' | 'sales' | 'admin';
+  status: 'active' | 'inactive' | 'pending' | 'locked' | 'dormant';
   department?: string;
+  phone?: string;
   last_login?: string;
   created_at: string;
   updated_at: string;
@@ -24,6 +25,7 @@ export interface AuthContextType {
   signUp: (email: string, password: string, displayName: string) => Promise<void>;
   signOut: () => Promise<void>;
   resetPassword: (email: string) => Promise<void>;
+  updateUserProfile: (updates: Partial<UserProfile>) => Promise<void>;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
@@ -51,10 +53,11 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
   const fetchProfile = async (userId: string) => {
     try {
+      // Try to get user profile from users table instead of profiles
       const { data, error } = await supabase
-        .from('profiles')
+        .from('users')
         .select('*')
-        .eq('user_id', userId)
+        .eq('id', userId)
         .maybeSingle();
 
       if (error) {
@@ -62,26 +65,96 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         return;
       }
 
-      setProfile(data);
+      // Map user data to profile format if user exists
+      if (data) {
+        const mappedProfile: UserProfile = {
+          id: data.id,
+          user_id: data.id,
+          display_name: data.name || data.email,
+          role: data.role || 'customer',
+          status: data.status || 'active',
+          department: data.department,
+          phone: data.phone,
+          last_login: data.last_login_at,
+          created_at: data.created_at,
+          updated_at: data.updated_at,
+        };
+        setProfile(mappedProfile);
+      }
     } catch (error) {
       console.error('Error fetching profile:', error);
     }
   };
 
+  const createUserProfile = async (userId: string, email: string, displayName: string) => {
+    try {
+      // Get the default organization (or create one if none exists)
+      let { data: organization } = await supabase
+        .from('organizations')
+        .select('id')
+        .eq('slug', 'factory-pulse-demo')
+        .maybeSingle();
+
+      // If no organization exists, create a default one
+      if (!organization) {
+        const { data: newOrg, error: orgError } = await supabase
+          .from('organizations')
+          .insert({
+            name: 'Factory Pulse Demo',
+            slug: 'factory-pulse-demo',
+            domain: 'demo.factrypulse.com',
+            is_active: true
+          })
+          .select('id')
+          .single();
+
+        if (orgError) {
+          console.error('Error creating organization:', orgError);
+          throw orgError;
+        }
+        organization = newOrg;
+      }
+
+      // Create user profile in users table
+      const { error: userError } = await supabase
+        .from('users')
+        .insert({
+          id: userId,
+          email: email,
+          name: displayName,
+          role: 'customer', // Default role for new users
+          status: 'active',
+          organization_id: organization.id,
+        });
+
+      if (userError) {
+        console.error('Error creating user profile:', userError);
+        throw userError;
+      }
+
+      console.log('User profile created successfully');
+    } catch (error) {
+      console.error('Error in createUserProfile:', error);
+      throw error;
+    }
+  };
+
   const logAuditEvent = async (
     eventType: 'login_success' | 'login_failure' | 'logout' | 'role_change' | 'password_change' | 'account_locked' | 'account_unlocked' | 'profile_update',
-    success: boolean, 
+    success: boolean,
     details?: any
   ) => {
     try {
       const userAgent = navigator.userAgent;
-      
-      await supabase.from('audit_logs').insert({
-        event_type: eventType,
+
+      // Use activity_log table instead of audit_logs
+      await supabase.from('activity_log').insert({
+        action: eventType,
+        entity_type: 'auth',
+        entity_id: user?.id || 'anonymous',
         user_id: user?.id,
-        success,
         user_agent: userAgent,
-        details: details || {},
+        new_values: { success, details: details || {} },
         session_id: session?.access_token
       });
     } catch (error) {
@@ -126,7 +199,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     supabase.auth.getSession().then(({ data: { session } }) => {
       setSession(session);
       setUser(session?.user ?? null);
-      
+
       if (session?.user) {
         fetchProfile(session.user.id);
       }
@@ -147,7 +220,6 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       if (error) {
         // Handle failed login
         await handleFailedLogin(email);
-        
         await logAuditEvent('login_failure', false, { error: error.message });
         throw error;
       }
@@ -166,13 +238,11 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const signUp = async (email: string, password: string, displayName: string) => {
     setLoading(true);
     try {
-      const redirectUrl = `${window.location.origin}/`;
-      
-      const { error } = await supabase.auth.signUp({
+      // First, create the auth user
+      const { data, error } = await supabase.auth.signUp({
         email,
         password,
         options: {
-          emailRedirectTo: redirectUrl,
           data: {
             display_name: displayName,
           }
@@ -188,10 +258,22 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         throw error;
       }
 
-      toast({
-        title: "Account Created!",
-        description: "Please check your email to verify your account.",
-      });
+      // If user was created successfully, create the user record in users table
+      if (data.user) {
+        await createUserProfile(data.user.id, email, displayName);
+
+        if (!data.user.email_confirmed_at) {
+          toast({
+            title: "Account Created!",
+            description: "Please check your email to verify your account.",
+          });
+        } else {
+          toast({
+            title: "Account Created!",
+            description: "You can now sign in with your credentials.",
+          });
+        }
+      }
     } catch (error) {
       throw error;
     } finally {
@@ -224,10 +306,52 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     }
   };
 
+  const updateUserProfile = async (updates: Partial<UserProfile>) => {
+    if (!user) {
+      throw new Error('No authenticated user');
+    }
+
+    try {
+      const { error } = await supabase
+        .from('users')
+        .update({
+          name: updates.display_name,
+          role: updates.role,
+          department: updates.department,
+          phone: updates.phone,
+          updated_at: new Date().toISOString(),
+        })
+        .eq('id', user.id);
+
+      if (error) {
+        console.error('Error updating user profile:', error);
+        throw error;
+      }
+
+      // Refresh the profile data
+      await fetchProfile(user.id);
+
+      // Log the profile update
+      await logAuditEvent('profile_update', true, { updates });
+
+      toast({
+        title: "Profile Updated",
+        description: "Your profile has been successfully updated.",
+      });
+    } catch (error) {
+      toast({
+        variant: "destructive",
+        title: "Update Failed",
+        description: "Failed to update your profile. Please try again.",
+      });
+      throw error;
+    }
+  };
+
   const resetPassword = async (email: string) => {
     try {
       const redirectUrl = `${window.location.origin}/auth`;
-      
+
       const { error } = await supabase.auth.resetPasswordForEmail(email, {
         redirectTo: redirectUrl,
       });
@@ -259,6 +383,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     signUp,
     signOut,
     resetPassword,
+    updateUserProfile,
   };
 
   return (
