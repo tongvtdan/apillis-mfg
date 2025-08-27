@@ -162,6 +162,10 @@ export function useProjects() {
   const subscribeToGlobalProjectUpdates = useCallback(() => {
     console.log('🔔 Setting up global real-time subscription for all project updates');
 
+    // Add debouncing to prevent rapid successive updates
+    let updateTimeout: NodeJS.Timeout | null = null;
+    let pendingUpdates = new Map<string, any>();
+
     const globalChannel = supabase
       .channel('global-project-updates')
       .on(
@@ -180,56 +184,80 @@ export function useProjects() {
             fullPayload: payload
           });
 
-          // Update the project in our local state if it exists
-          setProjects(prev => {
-            const projectIndex = prev.findIndex(p => p.id === payload.new.id);
-            if (projectIndex !== -1) {
-              const currentProject = prev[projectIndex];
-              const payloadTimestamp = new Date((payload.new as any).updated_at || payload.new.updated_at).getTime();
-              const currentTimestamp = new Date(currentProject.updated_at).getTime();
+          // Store the update in pending updates
+          pendingUpdates.set(payload.new.id, payload);
 
-              // Prevent stale updates from overwriting fresh data
-              if (payloadTimestamp <= currentTimestamp) {
-                console.log('⚠️ Global real-time: Ignoring stale update:', {
-                  projectId: payload.new.id,
-                  payloadTimestamp: new Date(payloadTimestamp).toISOString(),
-                  currentTimestamp: new Date(currentTimestamp).toISOString(),
-                  reason: 'Payload timestamp is older than or equal to current timestamp'
-                });
-                return prev; // Don't update with stale data
+          // Clear existing timeout
+          if (updateTimeout) {
+            clearTimeout(updateTimeout);
+          }
+
+          // Debounce updates to prevent flickering
+          updateTimeout = setTimeout(() => {
+            console.log('🔔 Processing debounced updates:', Array.from(pendingUpdates.keys()));
+
+            // Process all pending updates at once
+            setProjects(prev => {
+              let updatedProjects = [...prev];
+              let hasChanges = false;
+
+              pendingUpdates.forEach((payload, projectId) => {
+                const projectIndex = updatedProjects.findIndex(p => p.id === projectId);
+                if (projectIndex !== -1) {
+                  const currentProject = updatedProjects[projectIndex];
+                  const payloadTimestamp = new Date((payload.new as any).updated_at || payload.new.updated_at).getTime();
+                  const currentTimestamp = new Date(currentProject.updated_at).getTime();
+
+                  // Prevent stale updates from overwriting fresh data
+                  if (payloadTimestamp <= currentTimestamp) {
+                    console.log('⚠️ Global real-time: Ignoring stale update:', {
+                      projectId: payload.new.id,
+                      payloadTimestamp: new Date(payloadTimestamp).toISOString(),
+                      currentTimestamp: new Date(currentTimestamp).toISOString(),
+                      reason: 'Payload timestamp is older than or equal to current timestamp'
+                    });
+                    return; // Skip this update
+                  }
+
+                  console.log('✅ Global real-time: Updating existing project in state:', {
+                    projectId: payload.new.id,
+                    oldStatus: currentProject.status,
+                    newStatus: payload.new.status,
+                    oldUpdatedAt: currentProject.updated_at,
+                    newUpdatedAt: (payload.new as any).updated_at,
+                    payloadUpdatedAt: payload.new.updated_at,
+                    timestampValidation: 'passed'
+                  });
+
+                  // Project exists in our list, update it
+                  updatedProjects[projectIndex] = {
+                    ...updatedProjects[projectIndex],
+                    ...payload.new,
+                    status: (payload.new as any).status,
+                    updated_at: (payload.new as any).updated_at || new Date().toISOString()
+                  };
+                  hasChanges = true;
+                } else {
+                  console.log('⚠️ Global real-time: Project not found in local state:', {
+                    projectId: payload.new.id,
+                    availableProjectIds: updatedProjects.map(p => p.id)
+                  });
+                }
+              });
+
+              // Clear pending updates
+              pendingUpdates.clear();
+
+              // Only update if there are actual changes
+              if (hasChanges) {
+                // Update cache with the full projects list
+                cacheService.setProjects(updatedProjects);
+                return updatedProjects;
               }
 
-              console.log('✅ Global real-time: Updating existing project in state:', {
-                projectId: payload.new.id,
-                oldStatus: currentProject.status,
-                newStatus: payload.new.status,
-                oldUpdatedAt: currentProject.updated_at,
-                newUpdatedAt: (payload.new as any).updated_at,
-                payloadUpdatedAt: payload.new.updated_at,
-                timestampValidation: 'passed'
-              });
-
-              // Project exists in our list, update it
-              const updatedProjects = [...prev];
-              updatedProjects[projectIndex] = {
-                ...updatedProjects[projectIndex],
-                ...payload.new,
-                status: (payload.new as any).status,
-                updated_at: (payload.new as any).updated_at || new Date().toISOString()
-              };
-
-              // Update cache with the full projects list
-              cacheService.setProjects(updatedProjects);
-              return updatedProjects;
-            } else {
-              console.log('⚠️ Global real-time: Project not found in local state:', {
-                projectId: payload.new.id,
-                availableProjectIds: prev.map(p => p.id)
-              });
-            }
-            // Project not in our list, return unchanged
-            return prev;
-          });
+              return prev;
+            });
+          }, 100); // 100ms debounce delay
         }
       )
       .on(

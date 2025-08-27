@@ -6,7 +6,31 @@ This file contains important changes and updates made to the project.
 
 - Date: 2025-01-27
 - What we completed / changed:
-1. **Bypass Dialog Styling Consistency Update**: 
+1. **Fixed WorkflowStepper Flickering Issue and Performance Optimization**: 
+   - **Root cause identified**: Multiple real-time subscription setups and excessive re-renders were causing the WorkflowStepper to flicker
+   - **Performance optimizations implemented**: 
+     - Wrapped WorkflowStepper with React.memo to prevent unnecessary re-renders
+     - Added useMemo for stage calculations to prevent recalculation on every render
+     - Converted all event handlers to useCallback to prevent function recreation
+     - Added custom comparison function to React.memo for efficient re-rendering
+   - **Real-time subscription improvements**: 
+     - Added debouncing (100ms delay) to prevent rapid successive updates
+     - Implemented pending updates queue to batch multiple updates together
+     - Enhanced subscription management to prevent duplicate channel creation
+     - Added better cleanup of existing channels before re-subscription
+   - **Debug logging optimization**: 
+     - Reduced excessive logging by only logging when values actually change
+     - Added ref-based tracking to prevent duplicate log messages
+     - Optimized stage calculation logging to only trigger on status changes
+   - **State management cleanup**: 
+     - Removed redundant localProject state that was causing conflicts
+     - Simplified component to rely on parent component for project updates
+     - Eliminated unnecessary local state updates that could cause flickering
+   - **Issue resolved**: WorkflowStepper now updates smoothly without flickering
+   - **Performance improved**: Significantly reduced unnecessary re-renders and calculations
+   - **Maintained functionality**: All workflow features continue to work correctly
+
+2. **Bypass Dialog Styling Consistency Update**: 
    - **Updated WorkflowBypassDialog component** to use consistent modal background styling matching other application modals
    - **Replaced Dialog component** with custom modal implementation using `bg-background/95 backdrop-blur-lg` styling
    - **Improved visual consistency** across the application by matching Add Review dialog and other modal styles

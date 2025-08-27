@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef, useMemo, useCallback } from 'react';
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -98,7 +98,7 @@ const allStages: ProjectStatus[] = [
   'shipped_closed'
 ];
 
-export function WorkflowStepper({ project }: WorkflowStepperProps) {
+export const WorkflowStepper = React.memo(({ project }: WorkflowStepperProps) => {
   const { toast } = useToast();
   const { updateStatus, isUpdating } = useProjectUpdate(project.id);
   const { checkPermission } = usePermissions();
@@ -115,52 +115,113 @@ export function WorkflowStepper({ project }: WorkflowStepperProps) {
     warnings: []
   });
   const [isLocalUpdating, setIsLocalUpdating] = useState(false);
-  const [localProject, setLocalProject] = useState<Project | null>(null);
 
-  // Update local project when prop changes
+  // Refs for tracking logged values to prevent duplicate logging
+  const lastStatusLogged = useRef<string>('');
+  const lastUpdatedAtLogged = useRef<string>('');
+  const lastStageCalculationsLogged = useRef<string>('');
+
+  // Memoize stage calculations to prevent unnecessary recalculations
+  const stageCalculations = useMemo(() => {
+    const currentIndex = allStages.indexOf(project.status);
+    const progressPercentage = currentIndex >= 0 ? Math.round((currentIndex / (allStages.length - 1)) * 100) : 0;
+
+    return {
+      currentIndex,
+      progressPercentage,
+      totalStages: allStages.length
+    };
+  }, [project.status]);
+
+  // Memoize stage status functions to prevent recreation on every render
+  const getStageStatus = useCallback((stage: ProjectStatus) => {
+    const index = allStages.indexOf(stage);
+    if (index < 0) return 'pending';
+    if (index < stageCalculations.currentIndex) return 'completed';
+    if (index === stageCalculations.currentIndex) return 'current';
+    return 'pending';
+  }, [stageCalculations.currentIndex]);
+
+  const getStatusIcon = useCallback((stage: ProjectStatus) => {
+    const status = getStageStatus(stage);
+    const stageConfigItem = stageConfig[stage];
+
+    if (!stageConfigItem) {
+      console.warn(`Warning: stageConfig not found for stage: ${stage}`);
+      return <Circle className="w-5 h-5 text-gray-300" />;
+    }
+
+    const Icon = stageConfigItem.icon;
+
+    switch (status) {
+      case 'completed':
+        return <CheckCircle className="w-5 h-5 text-green-600" />;
+      case 'current':
+        return <Play className="w-5 h-5 text-blue-600" />;
+      default:
+        return <Circle className="w-5 h-5 text-gray-300" />;
+    }
+  }, [getStageStatus]);
+
+  const getStatusColor = useCallback((stage: ProjectStatus) => {
+    const status = getStageStatus(stage);
+    switch (status) {
+      case 'completed':
+        return 'text-green-600 border-green-600';
+      case 'current':
+        return 'text-blue-600 border-blue-600 font-bold';
+      default:
+        return 'text-gray-400 border-gray-300';
+    }
+  }, [getStageStatus]);
+
+  const getConnectorColor = useCallback((stage: ProjectStatus) => {
+    const index = allStages.indexOf(stage);
+    if (index < 0) return 'bg-gray-200';
+    if (index < stageCalculations.currentIndex) return 'bg-green-600';
+    return 'bg-gray-200';
+  }, [stageCalculations.currentIndex]);
+
+  // Debug logging for project changes - only log when status actually changes
   useEffect(() => {
-    setLocalProject(project);
-  }, [project]);
+    const currentStatus = project.status;
+    const currentUpdatedAt = project.updated_at;
 
-  // Use local project for rendering, fallback to prop if local is null
-  const displayProject = localProject || project;
-
-  // Debug logging for project changes
-  useEffect(() => {
-    console.log('🔄 WorkflowStepper: Project prop changed:', {
-      id: project.id,
-      status: project.status,
-      updated_at: project.updated_at
-    });
+    if (lastStatusLogged.current !== currentStatus || lastUpdatedAtLogged.current !== currentUpdatedAt) {
+      console.log('🔄 WorkflowStepper: Project status changed:', {
+        id: project.id,
+        status: currentStatus,
+        updated_at: currentUpdatedAt
+      });
+      lastStatusLogged.current = currentStatus;
+      lastUpdatedAtLogged.current = currentUpdatedAt;
+    }
   }, [project.id, project.status, project.updated_at]);
 
-  // Debug logging to help identify status mapping issues
+  // Debug logging for stage calculations - only log when calculations change
+  useEffect(() => {
+    const currentStatus = project.status;
+
+    if (lastStageCalculationsLogged.current !== currentStatus) {
+      console.log('🔄 WorkflowStepper: Stage calculations updated:', {
+        currentStatus,
+        currentIndex: stageCalculations.currentIndex,
+        progressPercentage: stageCalculations.progressPercentage,
+        totalStages: stageCalculations.totalStages
+      });
+      lastStageCalculationsLogged.current = currentStatus;
+    }
+  }, [project.status, stageCalculations]);
+
+  // Debug logging to help identify status mapping issues - only log once per status
   useEffect(() => {
     if (project?.status && !stageConfig[project.status]) {
       console.warn(`🚨 WorkflowStepper: Unknown project status "${project.status}" not found in stageConfig`);
       console.warn(`🚨 Available stages:`, Object.keys(stageConfig));
-      console.warn(`🚨 Project:`, project);
     }
   }, [project?.status]);
 
-  // Additional debug logging for stage calculations
-  useEffect(() => {
-    const currentIndex = allStages.indexOf(project.status);
-    const progressPercentage = currentIndex >= 0 ? Math.round((currentIndex / (allStages.length - 1)) * 100) : 0;
-
-    console.log('🔄 WorkflowStepper: Stage calculations updated:', {
-      currentStatus: project.status,
-      currentIndex,
-      progressPercentage,
-      totalStages: allStages.length,
-      allStages
-    });
-  }, [project.status]);
-
-  const currentIndex = allStages.indexOf(project.status);
-  const progressPercentage = currentIndex >= 0 ? Math.round((currentIndex / (allStages.length - 1)) * 100) : 0;
-
-  const handleStageClick = async (stage: ProjectStatus) => {
+  const handleStageClick = useCallback(async (stage: ProjectStatus) => {
     if (stage === project.status) return;
 
     try {
@@ -239,9 +300,9 @@ export function WorkflowStepper({ project }: WorkflowStepperProps) {
         description: "An unexpected error occurred while updating the project status.",
       });
     }
-  };
+  }, [project, checkPermission, toast, updateStatus]);
 
-  const handleBypassConfirm = async (reason: string, comment: string) => {
+  const handleBypassConfirm = useCallback(async (reason: string, comment: string) => {
     if (!bypassDialog.targetStage) return;
 
     try {
@@ -290,8 +351,7 @@ export function WorkflowStepper({ project }: WorkflowStepperProps) {
             const latestProject = await projectService.getProjectById(project.id);
             if (latestProject && latestProject.status === bypassDialog.targetStage) {
               console.log('✅ WorkflowStepper: Manual refresh successful, updating local state');
-              // Update local state to force re-render
-              setLocalProject(latestProject);
+              // Note: We don't need to update local state here since the parent component should handle this
             }
           } catch (error) {
             console.error('❌ WorkflowStepper: Manual refresh failed:', error);
@@ -310,9 +370,9 @@ export function WorkflowStepper({ project }: WorkflowStepperProps) {
         description: "Failed to process workflow bypass. Please try again.",
       });
     }
-  };
+  }, [bypassDialog.targetStage, project, toast, isLocalUpdating]);
 
-  const updateProjectStatus = async (stage: ProjectStatus) => {
+  const updateProjectStatus = useCallback(async (stage: ProjectStatus) => {
     setError(null);
     const success = await updateStatus(stage);
     if (success) {
@@ -323,70 +383,23 @@ export function WorkflowStepper({ project }: WorkflowStepperProps) {
     } else {
       setError("Failed to update project status. Please try again.");
     }
-  };
+  }, [updateStatus, toast]);
 
-  const handleAutoAdvance = async () => {
+  const handleAutoAdvance = useCallback(async () => {
     if (autoAdvanceAvailable && nextStage) {
       await executeAutoAdvance();
     }
-  };
+  }, [autoAdvanceAvailable, nextStage, executeAutoAdvance]);
 
-  const handleKeyDown = (event: React.KeyboardEvent, stage: ProjectStatus) => {
+  const handleKeyDown = useCallback((event: React.KeyboardEvent, stage: ProjectStatus) => {
     if (event.key === 'Enter' || event.key === ' ') {
       event.preventDefault();
       handleStageClick(stage);
     }
-  };
+  }, [handleStageClick]);
 
-  const getStageStatus = (stage: ProjectStatus) => {
-    const index = allStages.indexOf(stage);
-    if (index < 0) return 'pending'; // Handle unknown stages
-    if (index < currentIndex) return 'completed';
-    if (index === currentIndex) return 'current';
-    return 'pending';
-  };
-
-  const getStatusIcon = (stage: ProjectStatus) => {
-    const status = getStageStatus(stage);
-    const stageConfigItem = stageConfig[stage];
-
-    if (!stageConfigItem) {
-      console.warn(`Warning: stageConfig not found for stage: ${stage}`);
-      return <Circle className="w-5 h-5 text-gray-300" />;
-    }
-
-    const Icon = stageConfigItem.icon;
-
-    switch (status) {
-      case 'completed':
-        return <CheckCircle className="w-5 h-5 text-green-600" />;
-      case 'current':
-        return <Play className="w-5 h-5 text-blue-600" />;
-      default:
-        return <Circle className="w-5 h-5 text-gray-300" />;
-    }
-  };
-
-  const getStatusColor = (stage: ProjectStatus) => {
-    const status = getStageStatus(stage);
-    switch (status) {
-      case 'completed':
-        return 'text-green-600 border-green-600';
-      case 'current':
-        return 'text-blue-600 border-blue-600 font-bold';
-      default:
-        return 'text-gray-400 border-gray-300';
-    }
-  };
-
-  const getConnectorColor = (stage: ProjectStatus) => {
-    const index = allStages.indexOf(stage);
-    if (index < 0) return 'bg-gray-200'; // Handle unknown stages
-    if (index < currentIndex) return 'bg-green-600';
-    return 'bg-gray-200';
-  };
-
-  const getStageTooltipContent = (stage: ProjectStatus, status: 'completed' | 'current' | 'pending') => {
+  // Memoize stage tooltip content to prevent recreation
+  const getStageTooltipContent = useCallback((stage: ProjectStatus, status: 'completed' | 'current' | 'pending') => {
     const stageConfigItem = stageConfig[stage];
     if (!stageConfigItem) {
       console.warn(`Warning: stageConfig not found for stage: ${stage}`);
@@ -488,7 +501,7 @@ export function WorkflowStepper({ project }: WorkflowStepperProps) {
         )}
       </div>
     );
-  };
+  }, []);
 
   if (error) {
     return (
@@ -528,13 +541,13 @@ export function WorkflowStepper({ project }: WorkflowStepperProps) {
             <div className="flex justify-between items-center mb-2">
               <h3 className="text-lg font-semibold">Project Workflow</h3>
               <Badge variant="secondary" className="text-sm">
-                {progressPercentage}% Complete
+                {stageCalculations.progressPercentage}% Complete
               </Badge>
             </div>
-            <div className="w-full bg-gray-200 rounded-full h-2" role="progressbar" aria-valuenow={progressPercentage} aria-valuemin={0} aria-valuemax={100}>
+            <div className="w-full bg-gray-200 rounded-full h-2" role="progressbar" aria-valuenow={stageCalculations.progressPercentage} aria-valuemin={0} aria-valuemax={100}>
               <div
                 className="bg-blue-600 h-2 rounded-full transition-all duration-500 ease-out"
-                style={{ width: `${progressPercentage}%` }}
+                style={{ width: `${stageCalculations.progressPercentage}%` }}
               ></div>
             </div>
           </div>
@@ -693,4 +706,9 @@ export function WorkflowStepper({ project }: WorkflowStepperProps) {
       />
     </>
   );
-}
+}, (prevProps, nextProps) => {
+  // Only re-render if the project status or updated_at changes
+  // This prevents unnecessary re-renders when other project properties change
+  return prevProps.project.status === nextProps.project.status &&
+    prevProps.project.updated_at === nextProps.project.updated_at;
+});
