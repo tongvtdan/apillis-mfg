@@ -5,7 +5,7 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { ExternalLink, User } from "lucide-react";
-import { Project, ProjectStatus, PROJECT_STAGES } from "@/types/project";
+import { Project, ProjectStatus, ProjectStage, PROJECT_STAGES } from "@/types/project";
 import { useUserDisplayName, useUsers } from "@/hooks/useUsers";
 
 interface AnimatedTableRowProps {
@@ -76,14 +76,14 @@ export function AnimatedTableRow({
                 </TableCell>
                 <TableCell>
                     <Select
-                        value={project.status}
-                        onValueChange={(value: ProjectStatus) => handleStatusChange(project.id, value)}
+                        value={project.current_stage}
+                        onValueChange={(value: ProjectStage) => handleStageChange(project.id, value)}
                         disabled={isUpdating}
                     >
                         <SelectTrigger className="w-[180px]">
                             <SelectValue>
-                                <Badge className={statusVariants[project.status as keyof typeof statusVariants]}>
-                                    {PROJECT_STAGES.find(s => s.id === project.status)?.name || project.status}
+                                <Badge className={statusVariants[project.current_stage as keyof typeof statusVariants]}>
+                                    {PROJECT_STAGES.find(s => s.id === project.current_stage)?.name || project.current_stage}
                                 </Badge>
                             </SelectValue>
                         </SelectTrigger>

@@ -16,19 +16,19 @@ export const ProjectCardWrapper = forwardRef<HTMLDivElement, ProjectCardWrapperP
     formatCurrency,
     formatDate
 }, ref) => {
-    const { isUpdating, localStatus, updateStatus, getEffectiveStatus } = useProjectUpdate(project.id);
+    const { isUpdating, localStage, updateStatus, getEffectiveStage } = useProjectUpdate(project.id);
 
-    // Create a project object with the effective status (local or original)
+    // Create a project object with the effective stage (local or original)
     // Use useMemo to avoid unnecessary re-renders
     const effectiveProject = useMemo(() => ({
         ...project,
-        status: getEffectiveStatus(project.status)
-    }), [project, getEffectiveStatus]);
+        current_stage: getEffectiveStage(project.current_stage)
+    }), [project, getEffectiveStage]);
 
     return (
         <div ref={ref}>
             <AnimatedProjectCard
-                key={`${project.id}-${effectiveProject.status}-${project.updated_at}`}
+                key={`${project.id}-${effectiveProject.current_stage}-${project.updated_at}`}
                 project={effectiveProject}
                 onStatusChange={async () => { }} // No-op since stage changes are now handled in project details
                 getAvailableStages={() => []} // No-op since stage changes are now handled in project details

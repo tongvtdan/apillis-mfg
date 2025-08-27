@@ -13,7 +13,6 @@ By defining these as PostgreSQL `ENUM` types (or constrained `VARCHAR` with `CHE
 
 ## 1. Organizations & Users
 
-### `enum_subscription_plan`
 Used in: `organizations.subscription_plan`
 
 ```sql
@@ -25,7 +24,6 @@ Used in: `organizations.subscription_plan`
 'cancelled'    -- Cancelled subscription
 ```
 
-### `enum_user_role`
 Used in: `users.role`
 
 ```sql
@@ -40,7 +38,6 @@ Used in: `users.role`
 'admin'        -- System administrators
 ```
 
-### `enum_contact_type`
 Used in: `contacts.type`
 
 ```sql
@@ -52,7 +49,6 @@ Used in: `contacts.type`
 
 ## 2. Projects & Workflow
 
-### `enum_project_status`
 Used in: `projects.status`
 
 ```sql
@@ -64,7 +60,6 @@ Used in: `projects.status`
 'archived'     -- Project completed and archived
 ```
 
-### `enum_project_priority_level`
 Used in: `projects.priority_level`
 
 ```sql
@@ -74,7 +69,6 @@ Used in: `projects.priority_level`
 'urgent'       -- Urgent priority (🔴 Red with special handling)
 ```
 
-### `enum_project_source`
 Used in: `projects.source`
 
 ```sql
@@ -86,7 +80,6 @@ Used in: `projects.source`
 'migration'    -- Migrated from legacy system
 ```
 
-### `enum_workflow_stage_slug`
 Used in: `workflow_stages.slug`
 
 ```sql
@@ -100,7 +93,6 @@ Used in: `workflow_stages.slug`
 'shipped_closed'       -- Completed and delivered
 ```
 
-### `enum_workflow_stage_color`
 Used in: `workflow_stages.color`
 
 ```sql
@@ -118,7 +110,6 @@ Used in: `workflow_stages.color`
 
 ## 3. Document Management
 
-### `enum_document_type`
 Used in: `documents.document_type`
 
 ```sql
@@ -134,7 +125,6 @@ Used in: `documents.document_type`
 'other'         -- Miscellaneous documents
 ```
 
-### `enum_storage_provider`
 Used in: `documents.storage_provider`
 
 ```sql
@@ -146,7 +136,6 @@ Used in: `documents.storage_provider`
 'azure_blob'    -- Azure Blob Storage
 ```
 
-### `enum_document_sync_status`
 Used in: `documents.sync_status`
 
 ```sql
@@ -167,7 +156,6 @@ Used in: `documents.ai_processing_status`
 'skipped'       -- AI processing skipped
 ```
 
-### `enum_document_access_level`
 Used in: `documents.access_level`
 
 ```sql
@@ -178,7 +166,6 @@ Used in: `documents.access_level`
 'restricted'    -- Admin/Management only
 ```
 
-### `enum_document_action`
 Used in: `document_access_log.action`
 
 ```sql
@@ -195,7 +182,6 @@ Used in: `document_access_log.action`
 
 ## 4. Reviews & Approvals
 
-### `enum_review_type`
 Used in: `reviews.review_type`
 
 ```sql
@@ -208,7 +194,6 @@ Used in: `reviews.review_type`
 'safety'        -- Safety assessment review
 ```
 
-### `enum_review_status`
 Used in: `reviews.status`
 
 ```sql
@@ -220,7 +205,6 @@ Used in: `reviews.status`
 'on_hold'       -- Review temporarily paused
 ```
 
-### `enum_review_priority`
 Used in: `reviews.priority`
 
 ```sql
@@ -234,7 +218,6 @@ Used in: `reviews.priority`
 
 ## 5. Supplier Management
 
-### `enum_supplier_rfq_status`
 Used in: `supplier_rfqs.status`
 
 ```sql
@@ -247,7 +230,6 @@ Used in: `supplier_rfqs.status`
 'cancelled'     -- RFQ cancelled
 ```
 
-### `enum_currency_code`
 Used in: `supplier_quotes.currency`
 
 ```sql
@@ -272,7 +254,6 @@ Used in: `supplier_quotes.currency`
 
 ## 6. Communication System
 
-### `enum_message_type`
 Used in: `messages.message_type`
 
 ```sql
@@ -284,7 +265,6 @@ Used in: `messages.message_type`
 'announcement'  -- Company announcement
 ```
 
-### `enum_message_priority`
 Used in: `messages.priority`
 
 ```sql
@@ -294,7 +274,6 @@ Used in: `messages.priority`
 'urgent'        -- Urgent message (triggers SMS/push)
 ```
 
-### `enum_sender_recipient_type`
 Used in: `messages.sender_type`, `messages.recipient_type`
 
 ```sql
@@ -305,7 +284,6 @@ Used in: `messages.sender_type`, `messages.recipient_type`
 'role'          -- Role-based message
 ```
 
-### `enum_notification_delivery_method`
 Used in: `notifications.delivery_method`
 
 ```sql
@@ -320,7 +298,6 @@ Used in: `notifications.delivery_method`
 
 ## 7. Activity & Audit Trail
 
-### `enum_activity_action`
 Used in: `activity_log.action`
 
 ```sql
@@ -340,7 +317,6 @@ Used in: `activity_log.action`
 'LOGOUT'        -- User logged out
 ```
 
-### `enum_entity_type`
 Used in: `activity_log.entity_type`
 
 ```sql
@@ -356,7 +332,6 @@ Used in: `activity_log.entity_type`
 'workflow_stages' -- Workflow stage records
 ```
 
-### `enum_system_event_status`
 Used in: `system_events.status`
 
 ```sql
@@ -367,7 +342,6 @@ Used in: `system_events.status`
 'cancelled'     -- Event cancelled
 ```
 
-### `enum_system_event_source`
 Used in: `system_events.source`
 
 ```sql
@@ -383,7 +357,6 @@ Used in: `system_events.source`
 
 ## 8. Workflow Configuration
 
-### `enum_workflow_rule_type`
 Used in: `workflow_business_rules.rule_type`
 
 ```sql
@@ -396,7 +369,6 @@ Used in: `workflow_business_rules.rule_type`
 'reminder'         -- Send reminder notifications
 ```
 
-### `enum_workflow_rule_execution_status`
 Used in: `workflow_rule_executions.execution_status`
 
 ```sql
@@ -406,7 +378,6 @@ Used in: `workflow_rule_executions.execution_status`
 'skipped'      -- Rule skipped (conditions not met)
 ```
 
-### `enum_approval_request_status`
 Used in: `approval_requests.status`
 
 ```sql
@@ -422,7 +393,6 @@ Used in: `approval_requests.status`
 
 ## 9. File and Media Types
 
-### `enum_file_type`
 Used in: `documents.file_type`
 
 ```sql
@@ -452,7 +422,6 @@ Used in: `documents.file_type`
 
 ## 10. Supplier Qualification System
 
-### `enum_supplier_qualification_type`
 Used in: `supplier_qualifications.qualification_type`
 
 ```sql
@@ -463,7 +432,6 @@ Used in: `supplier_qualifications.qualification_type`
 'certification' -- Certification-based qualification
 ```
 
-### `enum_supplier_status`
 Used in: `supplier_qualifications.status`
 
 ```sql
@@ -474,7 +442,6 @@ Used in: `supplier_qualifications.status`
 'pending_review' -- Pending qualification review
 ```
 
-### `enum_supplier_tier`
 Used in: `supplier_qualifications.tier`
 
 ```sql
@@ -484,7 +451,6 @@ Used in: `supplier_qualifications.tier`
 'restricted'    -- Restricted use (specific conditions)
 ```
 
-### `enum_performance_metric_type`
 Used in: `supplier_performance_metrics.metric_type`
 
 ```sql
@@ -497,7 +463,6 @@ Used in: `supplier_performance_metrics.metric_type`
 'communication_rating' -- Communication effectiveness
 ```
 
-### `enum_measurement_period`
 Used in: `supplier_performance_metrics.measurement_period`
 
 ```sql
@@ -512,7 +477,6 @@ Used in: `supplier_performance_metrics.measurement_period`
 
 ## 11. AI Processing System
 
-### `enum_ai_entity_type`
 Used in: `ai_processing_queue.entity_type`
 
 ```sql
@@ -523,7 +487,6 @@ Used in: `ai_processing_queue.entity_type`
 'quote'         -- Quote analysis
 ```
 
-### `enum_ai_processing_type`
 Used in: `ai_processing_queue.processing_type`
 
 ```sql
@@ -535,7 +498,6 @@ Used in: `ai_processing_queue.processing_type`
 'compliance_check'       -- Check compliance
 ```
 
-### `enum_ai_processing_status`
 Used in: `ai_processing_queue.status`
 
 ```sql
@@ -546,7 +508,6 @@ Used in: `ai_processing_queue.status`
 'cancelled'     -- Processing cancelled
 ```
 
-### `enum_ai_model_type`
 Used in: `ai_model_configs.model_type`
 
 ```sql
@@ -561,7 +522,6 @@ Used in: `ai_model_configs.model_type`
 
 ## 12. Cloud Storage Integration
 
-### `enum_cloud_storage_provider`
 Used in: `cloud_storage_integrations.provider`
 
 ```sql
@@ -572,7 +532,6 @@ Used in: `cloud_storage_integrations.provider`
 'azure_blob'    -- Azure Blob Storage
 ```
 
-### `enum_cloud_sync_status`
 Used in: `cloud_storage_integrations.sync_status`
 
 ```sql
@@ -582,7 +541,6 @@ Used in: `cloud_storage_integrations.sync_status`
 'expired'       -- Credentials expired
 ```
 
-### `enum_document_sync_action`
 Used in: `document_sync_log.sync_action`
 
 ```sql
@@ -593,7 +551,6 @@ Used in: `document_sync_log.sync_action`
 'conflict_resolution' -- Resolve sync conflict
 ```
 
-### `enum_sync_result_status`
 Used in: `document_sync_log.status`
 
 ```sql
@@ -607,7 +564,6 @@ Used in: `document_sync_log.status`
 
 ## 13. BOM Management
 
-### `enum_unit_of_measure`
 Used in: `bom_items.unit_of_measure`
 
 ```sql
@@ -636,7 +592,6 @@ Used in: `bom_items.unit_of_measure`
 
 ## 14. Localization
 
-### `enum_language_code`
 Used in: `user_preferences.language`
 
 ```sql
@@ -657,7 +612,6 @@ Used in: `user_preferences.language`
 'tl'            -- Filipino/Tagalog
 ```
 
-### `enum_time_zone`
 Used in: `user_preferences.timezone`
 
 ```sql
@@ -679,51 +633,3 @@ Used in: `user_preferences.timezone`
 'Asia/Hong_Kong'       -- Hong Kong Time (HKT)
 'Australia/Sydney'     -- AEST/AEDT
 ```
-
----
-
-## ✅ Usage Guidelines
-
-### 1. Database Implementation
-```sql
--- Example: Create ENUM type
-CREATE TYPE enum_project_status AS ENUM (
-  'active', 'delayed', 'on_hold', 'cancelled', 'completed', 'archived'
-);
-
--- Use in table
-CREATE TABLE projects (
-  status enum_project_status NOT NULL DEFAULT 'active'
-);
-```
-
-### 2. Frontend Implementation
-```ts
-// TypeScript enum for frontend
-enum ProjectStatus {
-  Active = 'active',
-  Delayed = 'delayed',
-  OnHold = 'on_hold',
-  Cancelled = 'cancelled',
-  Completed = 'completed',
-  Archived = 'archived'
-}
-```
-
-### 3. API Validation
-```json
-{
-  "status": {
-    "type": "string",
-    "enum": ["active", "delayed", "on_hold", "cancelled", "completed", "archived"]
-  }
-}
-```
-
-### 4. Migration & Updates
-- Always update this document first
-- Sync with database `CHECK` constraints or `ENUM` types
-- Update frontend dropdowns and API schemas
-- Add new values with `ALTER TYPE` or update `CHECK` constraints
-
-This `database-enum-types.md` serves as the **single source of truth** for all controlled vocabularies in the Factory Pulse system, ensuring consistency across database, API, and UI layers.

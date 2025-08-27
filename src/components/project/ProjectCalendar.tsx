@@ -4,7 +4,7 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Calendar, ChevronLeft, ChevronRight, Eye, Clock, AlertCircle, CheckCircle } from "lucide-react";
-import { Project, ProjectStatus, PROJECT_STAGES } from "@/types/project";
+import { Project, ProjectStatus, ProjectStage, PROJECT_STAGES } from "@/types/project";
 import { useNavigate } from "react-router-dom";
 import { motion, AnimatePresence } from "framer-motion";
 import { format, startOfMonth, endOfMonth, eachDayOfInterval, isSameMonth, isSameDay, isToday, addMonths, subMonths, startOfWeek, endOfWeek, eachWeekOfInterval } from "date-fns";
@@ -103,9 +103,9 @@ export function ProjectCalendar({ projects, projectTypeFilter = 'all' }: Project
     const goToToday = () => setCurrentMonth(new Date());
 
     // Get project status color
-    const getProjectStatusColor = (status: ProjectStatus) => {
-        const stage = PROJECT_STAGES.find(s => s.id === status);
-        return stage?.color || 'bg-gray-100 text-gray-800';
+    const getProjectStatusColor = (stage: ProjectStage) => {
+        const stageInfo = PROJECT_STAGES.find(s => s.id === stage);
+        return stageInfo?.color || 'bg-gray-100 text-gray-800';
     };
 
     // Get project priority color
@@ -124,7 +124,7 @@ export function ProjectCalendar({ projects, projectTypeFilter = 'all' }: Project
         if (!project.due_date) return false;
         const dueDate = new Date(project.due_date);
         const today = new Date();
-        return dueDate < today && project.status !== 'shipped_closed';
+        return dueDate < today && project.current_stage !== 'shipped_closed';
     };
 
     return (
@@ -266,12 +266,12 @@ export function ProjectCalendar({ projects, projectTypeFilter = 'all' }: Project
 
                                                             {/* Project Status and Priority */}
                                                             <div className="flex items-center gap-1 mb-1">
-                                                                <Badge
-                                                                    variant="outline"
-                                                                    className={`text-xs ${getProjectStatusColor(project.status)}`}
-                                                                >
-                                                                    {PROJECT_STAGES.find(s => s.id === project.status)?.name || project.status}
-                                                                </Badge>
+                                                <Badge
+                                                    variant="outline"
+                                                    className={`text-xs ${getProjectStatusColor(project.current_stage)}`}
+                                                >
+                                                    {PROJECT_STAGES.find(s => s.id === project.current_stage)?.name || project.current_stage}
+                                                </Badge>
                                                                 <Badge
                                                                     variant="outline"
                                                                     className={`text-xs ${getPriorityColor(project.priority)}`}

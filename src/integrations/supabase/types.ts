@@ -654,7 +654,7 @@ export type Database = {
           contact_phone: string | null
           created_at: string
           created_by: string | null
-          current_stage: Database["public"]["Enums"]["project_stage"] | null
+          current_stage: string
           customer_id: string | null
           days_in_stage: number | null
           description: string | null
@@ -665,15 +665,15 @@ export type Database = {
           id: string
           metadata: Json | null
           notes: string | null
-          priority: Database["public"]["Enums"]["project_priority"]
+          priority: string
           priority_score: number | null
           production_reviewer_id: string | null
           project_id: string
-          project_type: Database["public"]["Enums"]["project_type"]
+          project_type: string
           qa_reviewer_id: string | null
           review_summary: Json | null
           stage_entered_at: string | null
-          status: Database["public"]["Enums"]["project_lifecycle_status"] | null
+          status: string
           supplier_id: string | null
           tags: string[] | null
           title: string
@@ -688,7 +688,7 @@ export type Database = {
           contact_phone?: string | null
           created_at?: string
           created_by?: string | null
-          current_stage?: Database["public"]["Enums"]["project_stage"] | null
+          current_stage?: string
           customer_id?: string | null
           days_in_stage?: number | null
           description?: string | null
@@ -699,17 +699,15 @@ export type Database = {
           id?: string
           metadata?: Json | null
           notes?: string | null
-          priority?: Database["public"]["Enums"]["project_priority"]
+          priority?: string
           priority_score?: number | null
           production_reviewer_id?: string | null
           project_id: string
-          project_type?: Database["public"]["Enums"]["project_type"]
+          project_type?: string
           qa_reviewer_id?: string | null
           review_summary?: Json | null
           stage_entered_at?: string | null
-          status?:
-            | Database["public"]["Enums"]["project_lifecycle_status"]
-            | null
+          status?: string
           supplier_id?: string | null
           tags?: string[] | null
           title: string
@@ -724,7 +722,7 @@ export type Database = {
           contact_phone?: string | null
           created_at?: string
           created_by?: string | null
-          current_stage?: Database["public"]["Enums"]["project_stage"] | null
+          current_stage?: string
           customer_id?: string | null
           days_in_stage?: number | null
           description?: string | null
@@ -735,17 +733,15 @@ export type Database = {
           id?: string
           metadata?: Json | null
           notes?: string | null
-          priority?: Database["public"]["Enums"]["project_priority"]
+          priority?: string
           priority_score?: number | null
           production_reviewer_id?: string | null
           project_id?: string
-          project_type?: Database["public"]["Enums"]["project_type"]
+          project_type?: string
           qa_reviewer_id?: string | null
           review_summary?: Json | null
           stage_entered_at?: string | null
-          status?:
-            | Database["public"]["Enums"]["project_lifecycle_status"]
-            | null
+          status?: string
           supplier_id?: string | null
           tags?: string[] | null
           title?: string
@@ -878,319 +874,6 @@ export type Database = {
             referencedColumns: ["id"]
           },
         ]
-      }
-      rfq_activities: {
-        Row: {
-          activity_type: string
-          created_at: string
-          created_by: string | null
-          description: string
-          id: string
-          new_values: Json | null
-          old_values: Json | null
-          rfq_id: string
-        }
-        Insert: {
-          activity_type: string
-          created_at?: string
-          created_by?: string | null
-          description: string
-          id?: string
-          new_values?: Json | null
-          old_values?: Json | null
-          rfq_id: string
-        }
-        Update: {
-          activity_type?: string
-          created_at?: string
-          created_by?: string | null
-          description?: string
-          id?: string
-          new_values?: Json | null
-          old_values?: Json | null
-          rfq_id?: string
-        }
-        Relationships: [
-          {
-            foreignKeyName: "rfq_activities_rfq_id_fkey"
-            columns: ["rfq_id"]
-            isOneToOne: false
-            referencedRelation: "rfqs"
-            referencedColumns: ["id"]
-          },
-        ]
-      }
-      rfq_attachments: {
-        Row: {
-          file_size: number | null
-          file_type: string | null
-          filename: string
-          id: string
-          rfq_id: string
-          storage_path: string
-          uploaded_at: string
-          uploaded_by: string | null
-        }
-        Insert: {
-          file_size?: number | null
-          file_type?: string | null
-          filename: string
-          id?: string
-          rfq_id: string
-          storage_path: string
-          uploaded_at?: string
-          uploaded_by?: string | null
-        }
-        Update: {
-          file_size?: number | null
-          file_type?: string | null
-          filename?: string
-          id?: string
-          rfq_id?: string
-          storage_path?: string
-          uploaded_at?: string
-          uploaded_by?: string | null
-        }
-        Relationships: [
-          {
-            foreignKeyName: "rfq_attachments_rfq_id_fkey"
-            columns: ["rfq_id"]
-            isOneToOne: false
-            referencedRelation: "rfqs"
-            referencedColumns: ["id"]
-          },
-        ]
-      }
-      rfq_clarifications: {
-        Row: {
-          created_at: string
-          description: string
-          id: string
-          project_id: string | null
-          requested_by: string | null
-          resolution: string | null
-          resolved_at: string | null
-          resolved_by: string | null
-          rfq_id: string
-          status: string
-        }
-        Insert: {
-          created_at?: string
-          description: string
-          id?: string
-          project_id?: string | null
-          requested_by?: string | null
-          resolution?: string | null
-          resolved_at?: string | null
-          resolved_by?: string | null
-          rfq_id: string
-          status?: string
-        }
-        Update: {
-          created_at?: string
-          description?: string
-          id?: string
-          project_id?: string | null
-          requested_by?: string | null
-          resolution?: string | null
-          resolved_at?: string | null
-          resolved_by?: string | null
-          rfq_id?: string
-          status?: string
-        }
-        Relationships: [
-          {
-            foreignKeyName: "rfq_clarifications_project_id_fkey"
-            columns: ["project_id"]
-            isOneToOne: false
-            referencedRelation: "projects"
-            referencedColumns: ["id"]
-          },
-        ]
-      }
-      rfq_internal_reviews: {
-        Row: {
-          created_at: string
-          department: Database["public"]["Enums"]["user_role"]
-          feedback: string | null
-          id: string
-          project_id: string | null
-          reviewer_id: string | null
-          rfq_id: string
-          status: Database["public"]["Enums"]["review_status"]
-          submitted_at: string | null
-          submitted_by: string | null
-          suggestions: string[] | null
-          updated_at: string
-        }
-        Insert: {
-          created_at?: string
-          department: Database["public"]["Enums"]["user_role"]
-          feedback?: string | null
-          id?: string
-          project_id?: string | null
-          reviewer_id?: string | null
-          rfq_id: string
-          status?: Database["public"]["Enums"]["review_status"]
-          submitted_at?: string | null
-          submitted_by?: string | null
-          suggestions?: string[] | null
-          updated_at?: string
-        }
-        Update: {
-          created_at?: string
-          department?: Database["public"]["Enums"]["user_role"]
-          feedback?: string | null
-          id?: string
-          project_id?: string | null
-          reviewer_id?: string | null
-          rfq_id?: string
-          status?: Database["public"]["Enums"]["review_status"]
-          submitted_at?: string | null
-          submitted_by?: string | null
-          suggestions?: string[] | null
-          updated_at?: string
-        }
-        Relationships: [
-          {
-            foreignKeyName: "rfq_internal_reviews_project_id_fkey"
-            columns: ["project_id"]
-            isOneToOne: false
-            referencedRelation: "projects"
-            referencedColumns: ["id"]
-          },
-        ]
-      }
-      rfq_risks: {
-        Row: {
-          category: Database["public"]["Enums"]["risk_category"]
-          created_at: string
-          created_by: string | null
-          description: string
-          id: string
-          mitigation_plan: string | null
-          project_id: string | null
-          review_id: string | null
-          rfq_id: string
-          severity: Database["public"]["Enums"]["risk_severity"]
-        }
-        Insert: {
-          category: Database["public"]["Enums"]["risk_category"]
-          created_at?: string
-          created_by?: string | null
-          description: string
-          id?: string
-          mitigation_plan?: string | null
-          project_id?: string | null
-          review_id?: string | null
-          rfq_id: string
-          severity: Database["public"]["Enums"]["risk_severity"]
-        }
-        Update: {
-          category?: Database["public"]["Enums"]["risk_category"]
-          created_at?: string
-          created_by?: string | null
-          description?: string
-          id?: string
-          mitigation_plan?: string | null
-          project_id?: string | null
-          review_id?: string | null
-          rfq_id?: string
-          severity?: Database["public"]["Enums"]["risk_severity"]
-        }
-        Relationships: [
-          {
-            foreignKeyName: "rfq_risks_project_id_fkey"
-            columns: ["project_id"]
-            isOneToOne: false
-            referencedRelation: "projects"
-            referencedColumns: ["id"]
-          },
-        ]
-      }
-      rfqs: {
-        Row: {
-          assignee_id: string | null
-          company_name: string
-          contact_email: string | null
-          contact_name: string | null
-          contact_phone: string | null
-          created_at: string
-          created_by: string | null
-          days_in_stage: number | null
-          description: string | null
-          due_date: string | null
-          engineering_reviewer_id: string | null
-          estimated_value: number | null
-          id: string
-          notes: string | null
-          priority: Database["public"]["Enums"]["rfq_priority"]
-          production_reviewer_id: string | null
-          project_name: string
-          qa_reviewer_id: string | null
-          review_summary: Json | null
-          rfq_number: string
-          stage_entered_at: string | null
-          status: Database["public"]["Enums"]["rfq_status"]
-          tags: string[] | null
-          updated_at: string
-          updated_by: string | null
-        }
-        Insert: {
-          assignee_id?: string | null
-          company_name: string
-          contact_email?: string | null
-          contact_name?: string | null
-          contact_phone?: string | null
-          created_at?: string
-          created_by?: string | null
-          days_in_stage?: number | null
-          description?: string | null
-          due_date?: string | null
-          engineering_reviewer_id?: string | null
-          estimated_value?: number | null
-          id?: string
-          notes?: string | null
-          priority?: Database["public"]["Enums"]["rfq_priority"]
-          production_reviewer_id?: string | null
-          project_name: string
-          qa_reviewer_id?: string | null
-          review_summary?: Json | null
-          rfq_number: string
-          stage_entered_at?: string | null
-          status?: Database["public"]["Enums"]["rfq_status"]
-          tags?: string[] | null
-          updated_at?: string
-          updated_by?: string | null
-        }
-        Update: {
-          assignee_id?: string | null
-          company_name?: string
-          contact_email?: string | null
-          contact_name?: string | null
-          contact_phone?: string | null
-          created_at?: string
-          created_by?: string | null
-          days_in_stage?: number | null
-          description?: string | null
-          due_date?: string | null
-          engineering_reviewer_id?: string | null
-          estimated_value?: number | null
-          id?: string
-          notes?: string | null
-          priority?: Database["public"]["Enums"]["rfq_priority"]
-          production_reviewer_id?: string | null
-          project_name?: string
-          qa_reviewer_id?: string | null
-          review_summary?: Json | null
-          rfq_number?: string
-          stage_entered_at?: string | null
-          status?: Database["public"]["Enums"]["rfq_status"]
-          tags?: string[] | null
-          updated_at?: string
-          updated_by?: string | null
-        }
-        Relationships: []
       }
       supplier_quotes: {
         Row: {
@@ -1588,21 +1271,6 @@ export type Database = {
         | "shipped_closed"
       project_type: "system_build" | "fabrication" | "manufacturing"
       review_status: "pending" | "approved" | "rejected" | "revision_requested"
-      rfq_priority: "low" | "medium" | "high" | "urgent"
-      rfq_status:
-        | "inquiry"
-        | "review"
-        | "quote"
-        | "production"
-        | "completed"
-        | "cancelled"
-        | "inquiry_received"
-        | "technical_review"
-        | "supplier_rfq_sent"
-        | "order_confirmed"
-        | "procurement_planning"
-        | "in_production"
-        | "shipped_closed"
       risk_category: "technical" | "timeline" | "cost" | "quality"
       risk_severity: "low" | "medium" | "high"
       user_role:
@@ -1782,22 +1450,6 @@ export const Constants = {
       ],
       project_type: ["system_build", "fabrication", "manufacturing"],
       review_status: ["pending", "approved", "rejected", "revision_requested"],
-      rfq_priority: ["low", "medium", "high", "urgent"],
-      rfq_status: [
-        "inquiry",
-        "review",
-        "quote",
-        "production",
-        "completed",
-        "cancelled",
-        "inquiry_received",
-        "technical_review",
-        "supplier_rfq_sent",
-        "order_confirmed",
-        "procurement_planning",
-        "in_production",
-        "shipped_closed",
-      ],
       risk_category: ["technical", "timeline", "cost", "quality"],
       risk_severity: ["low", "medium", "high"],
       user_role: [

@@ -1,6 +1,6 @@
 import { useState, useEffect, useCallback, useRef } from 'react';
 import { supabase } from '@/integrations/supabase/client';
-import { Project, ProjectStatus, Customer } from '@/types/project';
+import { Project, ProjectStatus, ProjectStage, Customer } from '@/types/project';
 import {
   SupplierQuote,
   QuoteReadinessIndicator,
@@ -251,9 +251,10 @@ export function useProjects() {
     }
   };
 
-  const updateProjectStatus = async (projectId: string, newStatus: ProjectStatus) => {
+  // Update project stage (for workflow management)
+  const updateProjectStage = async (projectId: string, newStage: ProjectStage) => {
     try {
-      // Find the current project to get the old status
+      // Find the current project
       const currentProject = projects.find(project => project.id === projectId);
       if (!currentProject) {
         toast({
@@ -264,25 +265,17 @@ export function useProjects() {
         return false;
       }
 
-      // Validate the status change using workflow validator
-      const validationResult = await WorkflowValidator.validateStatusChange(currentProject, newStatus);
-
-      if (!validationResult.isValid) {
-        toast({
-          variant: "destructive",
-          title: "Validation Error",
-          description: validationResult.errors.join(", "),
-        });
-        return false;
-      }
-
-      const oldStatus = currentProject.status;
+      const oldStage = currentProject.current_stage;
 
       const { error } = await supabase
         .from('projects')
         .update({
+<<<<<<< HEAD
           current_stage: newStatus,
           status: 'active', // Keep status as active unless explicitly changed
+=======
+          current_stage: newStage,
+>>>>>>> 30d8ef01c232710fe654cd3acd26cb63851f3828
           updated_at: new Date().toISOString()
         })
         .eq('id', projectId);
@@ -291,18 +284,17 @@ export function useProjects() {
         toast({
           variant: "destructive",
           title: "Error",
-          description: "Failed to update project status",
+          description: "Failed to update project stage",
         });
         return false;
       }
 
       // Log successful update for debugging
-      console.log('✅ Database update successful, real-time subscription should handle UI updates');
-      console.log('🔔 Global real-time channel status:', realtimeManager.getStatus());
+      console.log('✅ Database stage update successful, real-time subscription should handle UI updates');
 
-      // Format status names for display
-      const formatStatusName = (status: ProjectStatus) => {
-        const statusMap = {
+      // Format stage names for display
+      const formatStageName = (stage: ProjectStage) => {
+        const stageMap: Record<ProjectStage, string> = {
           inquiry_received: "Inquiry Received",
           technical_review: "Technical Review",
           supplier_rfq_sent: "Supplier RFQ Sent",
@@ -312,30 +304,21 @@ export function useProjects() {
           in_production: "In Production",
           shipped_closed: "Shipped & Closed"
         };
-        return statusMap[status] || status;
+        return stageMap[stage] || stage;
       };
 
-      // Show warnings if any
-      if (validationResult.warnings.length > 0) {
-        toast({
-          variant: "warning",
-          title: "Status Updated with Warnings",
-          description: `From ${formatStatusName(oldStatus)} to ${formatStatusName(newStatus)}. Warnings: ${validationResult.warnings.join(", ")}`,
-        });
-      } else {
-        toast({
-          title: "Status Updated",
-          description: `From ${formatStatusName(oldStatus)} to ${formatStatusName(newStatus)}`,
-        });
-      }
+      toast({
+        title: "Stage Updated",
+        description: `From ${formatStageName(oldStage)} to ${formatStageName(newStage)}`,
+      });
 
       return true;
     } catch (err) {
-      console.error('Error updating project status:', err);
+      console.error('Error updating project stage:', err);
       toast({
         variant: "destructive",
         title: "Error",
-        description: "An unexpected error occurred while updating the project.",
+        description: "An unexpected error occurred while updating the project stage.",
       });
       return false;
     }
@@ -343,6 +326,7 @@ export function useProjects() {
 
   // Optimistic update for immediate UI feedback
   const updateProjectStatusOptimistic = useCallback(async (projectId: string, newStatus: ProjectStatus) => {
+<<<<<<< HEAD
     try {
       // Find the current project to get the old status
       const currentProject = projects.find(project => project.id === projectId);
@@ -426,6 +410,12 @@ export function useProjects() {
       return false;
     }
   }, [projects, updateProjectStatus]);
+=======
+    // This function is kept for backward compatibility but now focuses on status updates
+    // Stage updates should use updateProjectStage instead
+    return false; // Disable for now as we're moving to stage-based workflow
+  }, []);
+>>>>>>> 30d8ef01c232710fe654cd3acd26cb63851f3828
 
   // Create new project
   const createProject = async (projectData: Partial<Project>) => {
@@ -498,13 +488,62 @@ export function useProjects() {
     loading,
     error,
     fetchProjects,
-    updateProjectStatus,
+    updateProjectStage,
     updateProjectStatusOptimistic,
     createProject,
     createOrGetCustomer,
     getProjectById,
     subscribeToProjectUpdates,
     testSupabaseRealtime,
-    refetch
+    refetch,
+    getBottleneckAnalysis: async () => {
+      console.log('📊 Getting bottleneck analysis...');
+      
+      // Define bottleneck detection thresholds
+      const stageThresholds = {
+        'inquiry_received': 3, // 3+ days
+        'technical_review': 5, // 5+ days  
+        'supplier_rfq_sent': 7, // 7+ days
+        'quoted': 2, // 2+ days
+        'order_confirmed': 1, // 1+ day
+        'procurement_planning': 5, // 5+ days
+        'in_production': 14, // 14+ days (production can be longer)
+        'shipped_closed': 1 // 1+ day
+      };
+
+      const bottleneckAlerts: BottleneckAlert[] = [];
+
+      // Check each stage for bottlenecks
+      projects.forEach(project => {
+        const threshold = stageThresholds[project.current_stage as keyof typeof stageThresholds] || 3;
+        
+        if (project.status === 'active' && project.days_in_stage >= threshold) {
+          const thresholdHours = threshold * 24;
+          const hoursInStage = project.days_in_stage * 24;
+          const severity: 'critical' | 'warning' | 'info' = 
+            hoursInStage > (thresholdHours * 3) ? 'critical' :
+            hoursInStage > (thresholdHours * 2) ? 'warning' : 'info';
+          
+          bottleneckAlerts.push({
+            type: '🔥 Bottlenecks Detected',
+            project_id: project.id,
+            project_title: project.title,
+            current_stage: project.current_stage,
+            hours_in_stage: hoursInStage,
+            sla_hours: thresholdHours,
+            severity,
+            issues: [`Project has been in ${project.current_stage} for ${project.days_in_stage} days`],
+            recommended_actions: [
+              `Review project status with assignee`,
+              `Check for blockers or dependencies`,
+              `Consider escalating to management`
+            ],
+            affected_projects: [project.id]
+          });
+        }
+      });
+
+      return bottleneckAlerts;
+    }
   };
 }

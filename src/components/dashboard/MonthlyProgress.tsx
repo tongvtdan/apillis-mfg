@@ -7,10 +7,10 @@ export function MonthlyProgress() {
 
   // Calculate progress data from real projects
   const totalProjects = projects.length;
-  const inquiryProjects = projects.filter(p => p.status === 'inquiry_received').length;
-  const reviewProjects = projects.filter(p => p.status === 'technical_review').length;
-  const quotedProjects = projects.filter(p => p.status === 'quoted').length;
-  const wonProjects = projects.filter(p => p.status === 'in_production').length;
+  const inquiryProjects = projects.filter(p => p.current_stage === 'inquiry_received').length;
+  const reviewProjects = projects.filter(p => p.current_stage === 'technical_review').length;
+  const quotedProjects = projects.filter(p => p.current_stage === 'quoted').length;
+  const wonProjects = projects.filter(p => p.current_stage === 'in_production').length;
 
   const progressData = [
     {

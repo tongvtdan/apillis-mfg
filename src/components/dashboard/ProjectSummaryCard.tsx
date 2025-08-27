@@ -70,7 +70,10 @@ export function ProjectSummaryCard({ project, showUrgencyIndicators = false }: P
       reasons.push(`${project.days_in_stage} days overdue`);
     }
 
+<<<<<<< HEAD
     // Check current stage status for urgency indicators
+=======
+>>>>>>> 30d8ef01c232710fe654cd3acd26cb63851f3828
     if (project.current_stage === 'quoted') {
       reasons.push('Awaiting customer decision');
     } else if (project.current_stage === 'technical_review') {
@@ -85,7 +88,7 @@ export function ProjectSummaryCard({ project, showUrgencyIndicators = false }: P
   // Mock file count - in real app this would come from documents/attachments
   const fileCount = Math.floor(Math.random() * 6) + 1;
   const hasRisks = project.priority === 'high' && Math.random() > 0.5;
-  const hasApprovals = project.status !== 'inquiry_received' && Math.random() > 0.3;
+  const hasApprovals = project.current_stage !== 'inquiry_received' && Math.random() > 0.3;
 
   // Enhanced list item classes based on urgency level
   const getListItemClasses = () => {

@@ -6,7 +6,7 @@ export function ProjectProgressView() {
   const { projects, loading } = useProjects();
 
   // Show active projects (not completed) - limit to 6 for dashboard overview
-  const activeProjects = projects.filter(p => p.status !== 'shipped_closed').slice(0, 6);
+  const activeProjects = projects.filter(p => p.current_stage !== 'shipped_closed').slice(0, 6);
 
   if (loading) {
     return (

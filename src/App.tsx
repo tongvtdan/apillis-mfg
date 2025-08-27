@@ -20,7 +20,6 @@ import Inventory from "./pages/Inventory";
 import Customers from "./pages/Customers";
 import Suppliers from "./pages/Suppliers";
 import Reports from "./pages/Reports";
-import { RFQDetail } from "./pages/RFQDetail";
 import ProjectDetail from "./pages/ProjectDetail";
 import Settings from "./pages/Settings";
 
@@ -85,7 +84,7 @@ const App = () => {
               <AppLayout><NewRFQ /></AppLayout>
             </ProtectedRoute>
           } />
-          <Route path="/rfqs" element={
+          <Route path="/new-rfq" element={
             <ProtectedRoute>
               <AppLayout><Projects /></AppLayout>
             </ProtectedRoute>

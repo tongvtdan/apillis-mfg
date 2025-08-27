@@ -1,4 +1,15 @@
-# Project Memory
+# Project Memory and Change Log
+
+## Recent Changes
+
+- Date: 2025-01-27  
+- What we completed / changed:
+1. **Removed unused RFQ system completely** - Dropped all RFQ-related tables from database (rfqs, rfq_activities, rfq_attachments, rfq_clarifications, rfq_internal_reviews, rfq_risks)
+2. **Database cleanup** - Removed RFQ enums (rfq_status, rfq_priority) and updated get_dashboard_summary function
+3. **Code cleanup** - Deleted RFQ-related files (useRFQs.ts, RFQDetail.tsx, rfq.ts types, useReviews.ts, useProjectReviews.ts)
+4. **Component updates** - Updated dashboard and recent activities to work with projects-only data
+5. **Application now uses unified projects system** instead of separate RFQ/project systems
+6. **Security linter warnings detected** - Need to address function search path and auth configuration issues
 
 This file contains important changes and updates made to the project.
 
