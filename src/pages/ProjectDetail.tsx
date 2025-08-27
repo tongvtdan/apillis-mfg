@@ -131,15 +131,40 @@ export default function ProjectDetail() {
   // Update project when projects list changes (for real-time updates)
   useEffect(() => {
     if (id && projects.length > 0) {
+      console.log('🔄 ProjectDetail: Checking for project updates:', {
+        currentId: id,
+        projectsCount: projects.length,
+        currentProjectStatus: project?.status,
+        currentProjectUpdatedAt: project?.updated_at,
+        availableProjectIds: projects.map(p => ({ id: p.id, status: p.status, updated_at: p.updated_at }))
+      });
+
       const updatedProject = projects.find(p => p.id === id);
       if (updatedProject) {
+        console.log('✅ ProjectDetail: Found matching project:', {
+          projectId: updatedProject.id,
+          projectStatus: updatedProject.status,
+          projectUpdatedAt: updatedProject.updated_at
+        });
+
         // Only update if the project has actually changed
         if (!project ||
           project.status !== updatedProject.status ||
           project.updated_at !== updatedProject.updated_at) {
 
+          console.log('🔄 ProjectDetail: Project updated from real-time subscription:', {
+            oldStatus: project?.status,
+            newStatus: updatedProject.status,
+            oldUpdatedAt: project?.updated_at,
+            newUpdatedAt: updatedProject.updated_at
+          });
+
           setProject(updatedProject);
+        } else {
+          console.log('ℹ️ ProjectDetail: No changes detected, skipping update');
         }
+      } else {
+        console.log('⚠️ ProjectDetail: No matching project found in projects list for ID:', id);
       }
     }
   }, [projects, id, project]);
@@ -746,7 +771,7 @@ export default function ProjectDetail() {
                                 [{doc.version || 'v1'}]
                               </Badge>
                               <span className="text-muted-foreground">
-                                �� {doc.uploaded_at ? format(new Date(doc.uploaded_at), 'MMM dd') : 'N/A'} · 👤 {doc.uploaded_by || 'N/A'}
+                                📅 {doc.uploaded_at ? format(new Date(doc.uploaded_at), 'MMM dd') : 'N/A'} · 👤 {doc.uploaded_by || 'N/A'}
                               </span>
                               {doc.access_level === 'internal' && (
                                 <Badge className="text-xs bg-orange-100 text-orange-800">
@@ -897,7 +922,7 @@ export default function ProjectDetail() {
                                     [{doc.version || 'v1'}]
                                   </Badge>
                                   <Badge className={`text-xs ${getAccessBadgeColor(doc.access_level || 'public')}`}>
-                                    {doc.access_level === 'internal' ? '�� Internal Only' : '🌐 Public'}
+                                    {doc.access_level === 'internal' ? '🔒 Internal Only' : '🌐 Public'}
                                   </Badge>
                                 </div>
                                 <div className="flex items-center space-x-4 text-sm text-muted-foreground mt-1">

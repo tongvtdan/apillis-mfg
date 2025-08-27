@@ -184,6 +184,12 @@ export function useProjects() {
           setProjects(prev => {
             const projectIndex = prev.findIndex(p => p.id === payload.new.id);
             if (projectIndex !== -1) {
+              console.log('✅ Global real-time: Updating existing project in state:', {
+                projectId: payload.new.id,
+                oldStatus: prev[projectIndex].status,
+                newStatus: payload.new.status
+              });
+
               // Project exists in our list, update it
               const updatedProjects = [...prev];
               updatedProjects[projectIndex] = {
@@ -196,6 +202,11 @@ export function useProjects() {
               // Update cache with the full projects list
               cacheService.setProjects(updatedProjects);
               return updatedProjects;
+            } else {
+              console.log('⚠️ Global real-time: Project not found in local state:', {
+                projectId: payload.new.id,
+                availableProjectIds: prev.map(p => p.id)
+              });
             }
             // Project not in our list, return unchanged
             return prev;
@@ -537,22 +548,28 @@ export function useProjects() {
 
     // Only subscribe to real-time updates on specific routes
     const shouldSubscribeToRealtime = window.location.pathname.includes('/projects/') ||
+      window.location.pathname.includes('/project/') ||
       window.location.pathname === '/projects';
 
     if (!shouldSubscribeToRealtime) {
+      console.log('🔔 useProjects: Skipping real-time subscription for route:', window.location.pathname);
       return;
     }
 
     // Prevent infinite re-subscription loops
     if (globalChannelRef.current) {
+      console.log('🔔 useProjects: Global channel already exists, skipping subscription setup');
       return;
     }
+
+    console.log('🔔 useProjects: Setting up global real-time subscription for route:', window.location.pathname);
 
     // Set up global subscription for all project updates (simplified approach)
     subscribeToGlobalProjectUpdates();
 
     return () => {
       if (globalChannelRef.current) {
+        console.log('🔔 useProjects: Cleaning up global real-time subscription');
         supabase.removeChannel(globalChannelRef.current);
         globalChannelRef.current = null;
       }

@@ -59,7 +59,7 @@ export function WorkflowBypassDialog({
                             <X className="w-4 h-4" />
                         </Button>
                     </div>
-                    
+
                     <p className="text-sm text-muted-foreground mb-6">
                         You are attempting to move a project from <strong>{currentStage}</strong> to <strong>{nextStage}</strong>,
                         but some exit criteria are not met. As a manager, you can bypass this requirement.

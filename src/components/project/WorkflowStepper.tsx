@@ -132,6 +132,20 @@ export function WorkflowStepper({ project }: WorkflowStepperProps) {
     }
   }, [project?.status]);
 
+  // Additional debug logging for stage calculations
+  useEffect(() => {
+    const currentIndex = allStages.indexOf(project.status);
+    const progressPercentage = currentIndex >= 0 ? Math.round((currentIndex / (allStages.length - 1)) * 100) : 0;
+
+    console.log('🔄 WorkflowStepper: Stage calculations updated:', {
+      currentStatus: project.status,
+      currentIndex,
+      progressPercentage,
+      totalStages: allStages.length,
+      allStages
+    });
+  }, [project.status]);
+
   const currentIndex = allStages.indexOf(project.status);
   const progressPercentage = currentIndex >= 0 ? Math.round((currentIndex / (allStages.length - 1)) * 100) : 0;
 
