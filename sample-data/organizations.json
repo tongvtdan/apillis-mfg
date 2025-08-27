@@ -1,0 +1,143 @@
+[
+    {
+        "id": "550e8400-e29b-41d4-a716-446655440001",
+        "name": "Factory Pulse Vietnam Co., Ltd.",
+        "slug": "factory-pulse-vietnam",
+        "domain": "factorypulse.vn",
+        "logo_url": "https://storage.googleapis.com/factory-pulse-assets/logos/fpv-logo.png",
+        "settings": {
+            "timezone": "Asia/Ho_Chi_Minh",
+            "default_language": "vi",
+            "default_currency": "VND",
+            "date_format": "DD/MM/YYYY",
+            "time_format": "24h",
+            "working_hours": {
+                "monday": {
+                    "start": "08:00",
+                    "end": "17:00"
+                },
+                "tuesday": {
+                    "start": "08:00",
+                    "end": "17:00"
+                },
+                "wednesday": {
+                    "start": "08:00",
+                    "end": "17:00"
+                },
+                "thursday": {
+                    "start": "08:00",
+                    "end": "17:00"
+                },
+                "friday": {
+                    "start": "08:00",
+                    "end": "17:00"
+                },
+                "saturday": {
+                    "start": "08:00",
+                    "end": "12:00"
+                },
+                "sunday": {
+                    "start": "00:00",
+                    "end": "00:00"
+                }
+            },
+            "holidays": [
+                "2025-01-01",
+                "2025-02-09",
+                "2025-02-10",
+                "2025-02-11",
+                "2025-04-30",
+                "2025-05-01",
+                "2025-09-02",
+                "2025-09-03"
+            ],
+            "notification_preferences": {
+                "email_notifications": true,
+                "sms_notifications": true,
+                "push_notifications": true,
+                "auto_advance_workflow": true,
+                "escalation_enabled": true
+            },
+            "workflow_settings": {
+                "auto_advance_enabled": true,
+                "approval_required_for_stages": [
+                    "quoted",
+                    "order_confirmed"
+                ],
+                "default_reviewers": {
+                    "engineering": [
+                        "senior_engineer",
+                        "mechanical_engineer"
+                    ],
+                    "quality": [
+                        "qa_engineer",
+                        "quality_inspector"
+                    ],
+                    "production": [
+                        "production_supervisor",
+                        "team_lead"
+                    ]
+                }
+            },
+            "supplier_management": {
+                "auto_qualification_enabled": true,
+                "performance_tracking": true,
+                "risk_assessment_enabled": true,
+                "default_evaluation_criteria": [
+                    "price",
+                    "quality",
+                    "delivery",
+                    "service"
+                ]
+            },
+            "document_management": {
+                "auto_versioning": true,
+                "approval_workflow": true,
+                "access_control": true,
+                "audit_trail": true,
+                "file_size_limit_mb": 100,
+                "allowed_file_types": [
+                    "pdf",
+                    "dwg",
+                    "step",
+                    "xlsx",
+                    "docx",
+                    "png",
+                    "jpg"
+                ]
+            },
+            "ai_features": {
+                "document_extraction": true,
+                "supplier_categorization": true,
+                "risk_assessment": true,
+                "bom_generation": true,
+                "quote_analysis": true
+            },
+            "localization": {
+                "supported_languages": [
+                    "vi",
+                    "en",
+                    "th",
+                    "ms",
+                    "id"
+                ],
+                "supported_currencies": [
+                    "VND",
+                    "USD",
+                    "EUR",
+                    "THB",
+                    "MYR",
+                    "IDR",
+                    "PHP",
+                    "SGD"
+                ],
+                "address_format": "vietnam",
+                "phone_format": "vietnam"
+            }
+        },
+        "subscription_plan": "enterprise",
+        "is_active": true,
+        "created_at": "2025-01-27T08:00:00.000Z",
+        "updated_at": "2025-01-27T08:00:00.000Z"
+    }
+]

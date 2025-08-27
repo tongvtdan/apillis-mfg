@@ -1,0 +1,579 @@
+[
+    {
+        "id": "550e8400-e29b-41d4-a716-446655440301",
+        "organization_id": "550e8400-e29b-41d4-a716-446655440001",
+        "project_id": "P-25012701",
+        "title": "Automotive Bracket Assembly",
+        "description": "High-precision automotive bracket assembly for Toyota Vietnam, including welding, machining, and quality inspection",
+        "customer_id": "550e8400-e29b-41d4-a716-446655440101",
+        "current_stage_id": "550e8400-e29b-41d4-a716-446655440206",
+        "status": "active",
+        "priority_score": 85,
+        "priority_level": "high",
+        "estimated_value": 45000000,
+        "estimated_delivery_date": "2025-03-10",
+        "source": "portal",
+        "tags": [
+            "automotive",
+            "bracket",
+            "welding",
+            "machining"
+        ],
+        "metadata": {
+            "project_type": "fabrication",
+            "material": "steel",
+            "quantity": 1000,
+            "tolerance": "±0.1mm",
+            "surface_finish": "painted"
+        },
+        "created_at": "2025-01-27T08:00:00.000Z",
+        "updated_at": "2025-01-27T08:00:00.000Z",
+        "created_by": "550e8400-e29b-41d4-a716-446655440012",
+        "assigned_to": "550e8400-e29b-41d4-a716-446655440009"
+    },
+    {
+        "id": "550e8400-e29b-41d4-a716-446655440302",
+        "organization_id": "550e8400-e29b-41d4-a716-446655440001",
+        "project_id": "P-25012702",
+        "title": "Motorcycle Frame Welding",
+        "description": "Motorcycle frame welding project for Honda Vietnam, including jig design and quality assurance",
+        "customer_id": "550e8400-e29b-41d4-a716-446655440102",
+        "current_stage_id": "550e8400-e29b-41d4-a716-446655440202",
+        "status": "active",
+        "priority_score": 75,
+        "priority_level": "medium",
+        "estimated_value": 28000000,
+        "estimated_delivery_date": "2025-02-24",
+        "source": "portal",
+        "tags": [
+            "motorcycle",
+            "frame",
+            "welding",
+            "jig"
+        ],
+        "metadata": {
+            "project_type": "fabrication",
+            "material": "aluminum",
+            "quantity": 500,
+            "tolerance": "±0.5mm",
+            "surface_finish": "anodized"
+        },
+        "created_at": "2025-01-27T08:00:00.000Z",
+        "updated_at": "2025-01-27T08:00:00.000Z",
+        "created_by": "550e8400-e29b-41d4-a716-446655440012",
+        "assigned_to": "550e8400-e29b-41d4-a716-446655440006"
+    },
+    {
+        "id": "550e8400-e29b-41d4-a716-446655440303",
+        "organization_id": "550e8400-e29b-41d4-a716-446655440001",
+        "project_id": "P-25012703",
+        "title": "Aircraft Landing Gear Bracket",
+        "description": "High-precision aircraft landing gear bracket for Boeing Vietnam, aerospace-grade materials and certification",
+        "customer_id": "550e8400-e29b-41d4-a716-446655440103",
+        "current_stage_id": "550e8400-e29b-41d4-a716-446655440203",
+        "status": "active",
+        "priority_score": 95,
+        "priority_level": "urgent",
+        "estimated_value": 120000000,
+        "estimated_delivery_date": "2025-04-21",
+        "source": "portal",
+        "tags": [
+            "aerospace",
+            "landing_gear",
+            "bracket",
+            "certified"
+        ],
+        "metadata": {
+            "project_type": "fabrication",
+            "material": "titanium",
+            "quantity": 100,
+            "tolerance": "±0.05mm",
+            "surface_finish": "polished",
+            "certification": "AS9100"
+        },
+        "created_at": "2025-01-27T08:00:00.000Z",
+        "updated_at": "2025-01-27T08:00:00.000Z",
+        "created_by": "550e8400-e29b-41d4-a716-446655440012",
+        "assigned_to": "550e8400-e29b-41d4-a716-446655440005"
+    },
+    {
+        "id": "550e8400-e29b-41d4-a716-446655440304",
+        "organization_id": "550e8400-e29b-41d4-a716-446655440001",
+        "project_id": "P-25012704",
+        "title": "Industrial Control Panel Housing",
+        "description": "Industrial control panel housing for Siemens Vietnam, including mounting brackets and cable management",
+        "customer_id": "550e8400-e29b-41d4-a716-446655440105",
+        "current_stage_id": "550e8400-e29b-41d4-a716-446655440202",
+        "status": "delayed",
+        "priority_score": 70,
+        "priority_level": "medium",
+        "estimated_value": 35000000,
+        "estimated_delivery_date": "2025-03-03",
+        "source": "portal",
+        "tags": [
+            "industrial",
+            "control_panel",
+            "housing",
+            "mounting"
+        ],
+        "metadata": {
+            "project_type": "fabrication",
+            "material": "stainless_steel",
+            "quantity": 200,
+            "tolerance": "±0.2mm",
+            "surface_finish": "brushed",
+            "ip_rating": "IP65"
+        },
+        "created_at": "2025-01-27T08:00:00.000Z",
+        "updated_at": "2025-01-27T08:00:00.000Z",
+        "created_by": "550e8400-e29b-41d4-a716-446655440012",
+        "assigned_to": "550e8400-e29b-41d4-a716-446655440006"
+    },
+    {
+        "id": "550e8400-e29b-41d4-a716-446655440305",
+        "organization_id": "550e8400-e29b-41d4-a716-446655440001",
+        "project_id": "P-25012705",
+        "title": "Power System Enclosure",
+        "description": "Power system enclosure for ABB Vietnam, high-voltage safety requirements and thermal management",
+        "customer_id": "550e8400-e29b-41d4-a716-446655440105",
+        "current_stage_id": "550e8400-e29b-41d4-a716-446655440207",
+        "status": "active",
+        "priority_score": 80,
+        "priority_level": "high",
+        "estimated_value": 85000000,
+        "estimated_delivery_date": "2025-03-24",
+        "source": "portal",
+        "tags": [
+            "power_system",
+            "enclosure",
+            "high_voltage",
+            "thermal"
+        ],
+        "metadata": {
+            "project_type": "fabrication",
+            "material": "galvanized_steel",
+            "quantity": 150,
+            "tolerance": "±0.3mm",
+            "surface_finish": "powder_coated",
+            "voltage_rating": "10kV"
+        },
+        "created_at": "2025-01-27T08:00:00.000Z",
+        "updated_at": "2025-01-27T08:00:00.000Z",
+        "created_by": "550e8400-e29b-41d4-a716-446655440012",
+        "assigned_to": "550e8400-e29b-41d4-a716-446655440009"
+    },
+    {
+        "id": "550e8400-e29b-41d4-a716-446655440306",
+        "organization_id": "550e8400-e29b-41d4-a716-446655440001",
+        "project_id": "P-25012706",
+        "title": "Electronics Chassis Assembly",
+        "description": "Electronics chassis assembly for Samsung Vietnam, including PCB mounting and cooling system",
+        "customer_id": "550e8400-e29b-41d4-a716-446655440104",
+        "current_stage_id": "550e8400-e29b-41d4-a716-446655440204",
+        "status": "active",
+        "priority_score": 75,
+        "priority_level": "medium",
+        "estimated_value": 55000000,
+        "estimated_delivery_date": "2025-03-17",
+        "source": "portal",
+        "tags": [
+            "electronics",
+            "chassis",
+            "pcb",
+            "cooling"
+        ],
+        "metadata": {
+            "project_type": "fabrication",
+            "material": "aluminum",
+            "quantity": 300,
+            "tolerance": "±0.2mm",
+            "surface_finish": "anodized",
+            "thermal_management": "required"
+        },
+        "created_at": "2025-01-27T08:00:00.000Z",
+        "updated_at": "2025-01-27T08:00:00.000Z",
+        "created_by": "550e8400-e29b-41d4-a716-446655440012",
+        "assigned_to": "550e8400-e29b-41d4-a716-446655440007"
+    },
+    {
+        "id": "550e8400-e29b-41d4-a716-446655440307",
+        "organization_id": "550e8400-e29b-41d4-a716-446655440001",
+        "project_id": "P-25012707",
+        "title": "Display Mounting Brackets",
+        "description": "Display mounting brackets for LG Vietnam, adjustable mounting system with cable management",
+        "customer_id": "550e8400-e29b-41d4-a716-446655440104",
+        "current_stage_id": "550e8400-e29b-41d4-a716-446655440201",
+        "status": "on_hold",
+        "priority_score": 60,
+        "priority_level": "low",
+        "estimated_value": 32000000,
+        "estimated_delivery_date": "2025-02-24",
+        "source": "portal",
+        "tags": [
+            "display",
+            "mounting",
+            "brackets",
+            "adjustable"
+        ],
+        "metadata": {
+            "project_type": "fabrication",
+            "material": "steel",
+            "quantity": 400,
+            "tolerance": "±0.5mm",
+            "surface_finish": "painted",
+            "adjustable": true
+        },
+        "created_at": "2025-01-27T08:00:00.000Z",
+        "updated_at": "2025-01-27T08:00:00.000Z",
+        "created_by": "550e8400-e29b-41d4-a716-446655440012",
+        "assigned_to": "550e8400-e29b-41d4-a716-446655440006"
+    },
+    {
+        "id": "550e8400-e29b-41d4-a716-446655440308",
+        "organization_id": "550e8400-e29b-41d4-a716-446655440001",
+        "project_id": "P-25012708",
+        "title": "Aerospace Component Fixture",
+        "description": "Aerospace component fixture for Airbus Vietnam, precision tooling for aircraft parts assembly",
+        "customer_id": "550e8400-e29b-41d4-a716-446655440103",
+        "current_stage_id": "550e8400-e29b-41d4-a716-446655440202",
+        "status": "active",
+        "priority_score": 90,
+        "priority_level": "high",
+        "estimated_value": 95000000,
+        "estimated_delivery_date": "2025-04-07",
+        "source": "portal",
+        "tags": [
+            "aerospace",
+            "fixture",
+            "tooling",
+            "precision"
+        ],
+        "metadata": {
+            "project_type": "fabrication",
+            "material": "tool_steel",
+            "quantity": 50,
+            "tolerance": "±0.02mm",
+            "surface_finish": "hardened",
+            "certification": "AS9100"
+        },
+        "created_at": "2025-01-27T08:00:00.000Z",
+        "updated_at": "2025-01-27T08:00:00.000Z",
+        "created_by": "550e8400-e29b-41d4-a716-446655440012",
+        "assigned_to": "550e8400-e29b-41d4-a716-446655440005"
+    },
+    {
+        "id": "550e8400-e29b-41d4-a716-446655440309",
+        "organization_id": "550e8400-e29b-41d4-a716-446655440001",
+        "project_id": "P-25012709",
+        "title": "Automotive Suspension Parts",
+        "description": "Automotive suspension parts for Toyota Vietnam, including control arms and mounting brackets",
+        "customer_id": "550e8400-e29b-41d4-a716-446655440101",
+        "current_stage_id": "550e8400-e29b-41d4-a716-446655440203",
+        "status": "active",
+        "priority_score": 85,
+        "priority_level": "high",
+        "estimated_value": 68000000,
+        "estimated_delivery_date": "2025-03-31",
+        "source": "portal",
+        "tags": [
+            "automotive",
+            "suspension",
+            "control_arms",
+            "brackets"
+        ],
+        "metadata": {
+            "project_type": "fabrication",
+            "material": "forged_steel",
+            "quantity": 800,
+            "tolerance": "±0.1mm",
+            "surface_finish": "painted",
+            "fatigue_resistance": "required"
+        },
+        "created_at": "2025-01-27T08:00:00.000Z",
+        "updated_at": "2025-01-27T08:00:00.000Z",
+        "created_by": "550e8400-e29b-41d4-a716-446655440012",
+        "assigned_to": "550e8400-e29b-41d4-a716-446655440006"
+    },
+    {
+        "id": "550e8400-e29b-41d4-a716-446655440310",
+        "organization_id": "550e8400-e29b-41d4-a716-446655440001",
+        "project_id": "P-25012710",
+        "title": "Industrial Equipment Housing",
+        "description": "Industrial equipment housing for Siemens Vietnam, modular design with access panels",
+        "customer_id": "550e8400-e29b-41d4-a716-446655440105",
+        "current_stage_id": "550e8400-e29b-41d4-a716-446655440207",
+        "status": "active",
+        "priority_score": 70,
+        "priority_level": "medium",
+        "estimated_value": 42000000,
+        "estimated_delivery_date": "2025-03-10",
+        "source": "portal",
+        "tags": [
+            "industrial",
+            "equipment",
+            "housing",
+            "modular"
+        ],
+        "metadata": {
+            "project_type": "fabrication",
+            "material": "galvanized_steel",
+            "quantity": 100,
+            "tolerance": "±0.3mm",
+            "surface_finish": "powder_coated",
+            "modular": true
+        },
+        "created_at": "2025-01-27T08:00:00.000Z",
+        "updated_at": "2025-01-27T08:00:00.000Z",
+        "created_by": "550e8400-e29b-41d4-a716-446655440012",
+        "assigned_to": "550e8400-e29b-41d4-a716-446655440009"
+    },
+    {
+        "id": "550e8400-e29b-41d4-a716-446655440311",
+        "organization_id": "550e8400-e29b-41d4-a716-446655440001",
+        "project_id": "P-25012711",
+        "title": "Mass Production Assembly Line",
+        "description": "Mass production assembly line for Samsung Vietnam, automated assembly with quality control stations",
+        "customer_id": "550e8400-e29b-41d4-a716-446655440104",
+        "current_stage_id": "550e8400-e29b-41d4-a716-446655440206",
+        "status": "active",
+        "priority_score": 95,
+        "priority_level": "urgent",
+        "estimated_value": 250000000,
+        "estimated_delivery_date": "2025-05-19",
+        "source": "portal",
+        "tags": [
+            "assembly_line",
+            "automation",
+            "quality_control",
+            "mass_production"
+        ],
+        "metadata": {
+            "project_type": "manufacturing",
+            "capacity": "1000_units_per_hour",
+            "automation_level": "high",
+            "quality_stations": 5,
+            "maintenance_access": "required"
+        },
+        "created_at": "2025-01-27T08:00:00.000Z",
+        "updated_at": "2025-01-27T08:00:00.000Z",
+        "created_by": "550e8400-e29b-41d4-a716-446655440012",
+        "assigned_to": "550e8400-e29b-41d4-a716-446655440009"
+    },
+    {
+        "id": "550e8400-e29b-41d4-a716-446655440312",
+        "organization_id": "550e8400-e29b-41d4-a716-446655440001",
+        "project_id": "P-25012712",
+        "title": "Automotive Component Assembly",
+        "description": "Automotive component assembly for Honda Vietnam, engine components with testing and validation",
+        "customer_id": "550e8400-e29b-41d4-a716-446655440102",
+        "current_stage_id": "550e8400-e29b-41d4-a716-446655440207",
+        "status": "active",
+        "priority_score": 85,
+        "priority_level": "high",
+        "estimated_value": 180000000,
+        "estimated_delivery_date": "2025-04-21",
+        "source": "portal",
+        "tags": [
+            "automotive",
+            "engine",
+            "assembly",
+            "testing"
+        ],
+        "metadata": {
+            "project_type": "manufacturing",
+            "components": [
+                "pistons",
+                "connecting_rods",
+                "crankshaft"
+            ],
+            "testing_required": true,
+            "quality_standards": "automotive_grade",
+            "batch_size": 500
+        },
+        "created_at": "2025-01-27T08:00:00.000Z",
+        "updated_at": "2025-01-27T08:00:00.000Z",
+        "created_by": "550e8400-e29b-41d4-a716-446655440012",
+        "assigned_to": "550e8400-e29b-41d4-a716-446655440010"
+    },
+    {
+        "id": "550e8400-e29b-41d4-a716-446655440313",
+        "organization_id": "550e8400-e29b-41d4-a716-446655440001",
+        "project_id": "P-25012713",
+        "title": "Electronics Manufacturing Batch",
+        "description": "Electronics manufacturing batch for LG Vietnam, PCB assembly with surface mount technology",
+        "customer_id": "550e8400-e29b-41d4-a716-446655440104",
+        "current_stage_id": "550e8400-e29b-41d4-a716-446655440202",
+        "status": "delayed",
+        "priority_score": 75,
+        "priority_level": "medium",
+        "estimated_value": 320000000,
+        "estimated_delivery_date": "2025-06-16",
+        "source": "portal",
+        "tags": [
+            "electronics",
+            "pcb",
+            "smt",
+            "assembly"
+        ],
+        "metadata": {
+            "project_type": "manufacturing",
+            "pcb_layers": 6,
+            "component_count": 500,
+            "smt_technology": "required",
+            "testing": "automated",
+            "batch_size": 1000
+        },
+        "created_at": "2025-01-27T08:00:00.000Z",
+        "updated_at": "2025-01-27T08:00:00.000Z",
+        "created_by": "550e8400-e29b-41d4-a716-446655440012",
+        "assigned_to": "550e8400-e29b-41d4-a716-446655440007"
+    },
+    {
+        "id": "550e8400-e29b-41d4-a716-446655440314",
+        "organization_id": "550e8400-e29b-41d4-a716-446655440001",
+        "project_id": "P-25012714",
+        "title": "Industrial Equipment Assembly",
+        "description": "Industrial equipment assembly for ABB Vietnam, power distribution systems with safety features",
+        "customer_id": "550e8400-e29b-41d4-a716-446655440105",
+        "current_stage_id": "550e8400-e29b-41d4-a716-446655440205",
+        "status": "active",
+        "priority_score": 90,
+        "priority_level": "high",
+        "estimated_value": 450000000,
+        "estimated_delivery_date": "2025-07-07",
+        "source": "portal",
+        "tags": [
+            "industrial",
+            "power_distribution",
+            "assembly",
+            "safety"
+        ],
+        "metadata": {
+            "project_type": "manufacturing",
+            "voltage_rating": "400V",
+            "current_rating": "1000A",
+            "safety_features": [
+                "overcurrent",
+                "ground_fault",
+                "arc_flash"
+            ],
+            "testing": "comprehensive",
+            "batch_size": 50
+        },
+        "created_at": "2025-01-27T08:00:00.000Z",
+        "updated_at": "2025-01-27T08:00:00.000Z",
+        "created_by": "550e8400-e29b-41d4-a716-446655440012",
+        "assigned_to": "550e8400-e29b-41d4-a716-446655440009"
+    },
+    {
+        "id": "550e8400-e29b-41d4-a716-446655440315",
+        "organization_id": "550e8400-e29b-41d4-a716-446655440001",
+        "project_id": "P-25012715",
+        "title": "Aerospace Component Production",
+        "description": "Aerospace component production for Boeing Vietnam, landing gear components with certification",
+        "customer_id": "550e8400-e29b-41d4-a716-446655440103",
+        "current_stage_id": "550e8400-e29b-41d4-a716-446655440203",
+        "status": "active",
+        "priority_score": 95,
+        "priority_level": "urgent",
+        "estimated_value": 680000000,
+        "estimated_delivery_date": "2025-09-08",
+        "source": "portal",
+        "tags": [
+            "aerospace",
+            "landing_gear",
+            "production",
+            "certification"
+        ],
+        "metadata": {
+            "project_type": "manufacturing",
+            "material": "titanium_alloy",
+            "certification": "AS9100",
+            "testing": "destructive_and_non_destructive",
+            "quality_standards": "aerospace_grade",
+            "batch_size": 25
+        },
+        "created_at": "2025-01-27T08:00:00.000Z",
+        "updated_at": "2025-01-27T08:00:00.000Z",
+        "created_by": "550e8400-e29b-41d4-a716-446655440012",
+        "assigned_to": "550e8400-e29b-41d4-a716-446655440005"
+    },
+    {
+        "id": "550e8400-e29b-41d4-a716-446655440316",
+        "organization_id": "550e8400-e29b-41d4-a716-446655440001",
+        "project_id": "P-25012716",
+        "title": "Complete MES System Integration",
+        "description": "Complete Manufacturing Execution System integration for Factory Pulse internal use, including hardware and software",
+        "customer_id": null,
+        "current_stage_id": "550e8400-e29b-41d4-a716-446655440207",
+        "status": "active",
+        "priority_score": 90,
+        "priority_level": "high",
+        "estimated_value": 1200000000,
+        "estimated_delivery_date": "2025-11-03",
+        "source": "manual",
+        "tags": [
+            "mes",
+            "system_integration",
+            "hardware",
+            "software"
+        ],
+        "metadata": {
+            "project_type": "system_build",
+            "components": [
+                "hardware",
+                "software",
+                "networking",
+                "database"
+            ],
+            "integration_level": "complete",
+            "testing": "comprehensive",
+            "documentation": "required"
+        },
+        "created_at": "2025-01-27T08:00:00.000Z",
+        "updated_at": "2025-01-27T08:00:00.000Z",
+        "created_by": "550e8400-e29b-41d4-a716-446655440002",
+        "assigned_to": "550e8400-e29b-41d4-a716-446655440015"
+    },
+    {
+        "id": "550e8400-e29b-41d4-a716-446655440317",
+        "organization_id": "550e8400-e29b-41d4-a716-446655440001",
+        "project_id": "P-25012717",
+        "title": "Quality Control System Assembly",
+        "description": "Quality Control System assembly for Factory Pulse internal use, automated inspection and testing",
+        "customer_id": null,
+        "current_stage_id": "550e8400-e29b-41d4-a716-446655440202",
+        "status": "active",
+        "priority_score": 85,
+        "priority_level": "high",
+        "estimated_value": 850000000,
+        "estimated_delivery_date": "2025-08-25",
+        "source": "manual",
+        "tags": [
+            "quality_control",
+            "automation",
+            "inspection",
+            "testing"
+        ],
+        "metadata": {
+            "project_type": "system_build",
+            "components": [
+                "vision_system",
+                "testing_equipment",
+                "automation",
+                "software"
+            ],
+            "inspection_capabilities": [
+                "dimensional",
+                "surface",
+                "material"
+            ],
+            "automation_level": "high",
+            "testing": "comprehensive"
+        },
+        "created_at": "2025-01-27T08:00:00.000Z",
+        "updated_at": "2025-01-27T08:00:00.000Z",
+        "created_by": "550e8400-e29b-41d4-a716-446655440004",
+        "assigned_to": "550e8400-e29b-41d4-a716-446655440008"
+    }
+]

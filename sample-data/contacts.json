@@ -1,0 +1,334 @@
+[
+    {
+        "id": "550e8400-e29b-41d4-a716-446655440101",
+        "organization_id": "550e8400-e29b-41d4-a716-446655440001",
+        "type": "customer",
+        "company_name": "Toyota Vietnam",
+        "contact_name": "Nguyễn Văn An",
+        "email": "procurement@toyota.vn",
+        "phone": "+84-28-7300-1001",
+        "address": "123 Đường Võ Văn Ngân, Quận Thủ Đức",
+        "city": "Ho Chi Minh City",
+        "state": "Ho Chi Minh",
+        "country": "Vietnam",
+        "postal_code": "70000",
+        "website": "https://www.toyota.com.vn",
+        "tax_id": "0123456789",
+        "payment_terms": "Net 30",
+        "credit_limit": 500000000,
+        "is_active": true,
+        "notes": "Major automotive manufacturer, high volume orders",
+        "metadata": {
+            "industry": "automotive",
+            "annual_revenue": "5000000000000",
+            "employee_count": 5000,
+            "preferred_currency": "VND"
+        },
+        "ai_category": {
+            "industry": "automotive",
+            "tier": "premium"
+        },
+        "ai_capabilities": [
+            "high_volume",
+            "quality_focused",
+            "just_in_time"
+        ],
+        "ai_risk_score": 15.5,
+        "ai_last_analyzed": "2025-01-27T08:00:00.000Z",
+        "created_at": "2025-01-27T08:00:00.000Z",
+        "updated_at": "2025-01-27T08:00:00.000Z",
+        "created_by": "550e8400-e29b-41d4-a716-446655440012"
+    },
+    {
+        "id": "550e8400-e29b-41d4-a716-446655440102",
+        "organization_id": "550e8400-e29b-41d4-a716-446655440001",
+        "type": "customer",
+        "company_name": "Honda Vietnam",
+        "contact_name": "Trần Thị Bình",
+        "email": "purchasing@honda.vn",
+        "phone": "+84-28-7300-1002",
+        "address": "456 Đường Lê Văn Việt, Quận 9",
+        "city": "Ho Chi Minh City",
+        "state": "Ho Chi Minh",
+        "country": "Vietnam",
+        "postal_code": "70000",
+        "website": "https://www.honda.com.vn",
+        "tax_id": "0123456790",
+        "payment_terms": "Net 45",
+        "credit_limit": 300000000,
+        "is_active": true,
+        "notes": "Motorcycle and automotive parts supplier",
+        "metadata": {
+            "industry": "automotive",
+            "annual_revenue": "3000000000000",
+            "employee_count": 3000,
+            "preferred_currency": "VND"
+        },
+        "ai_category": {
+            "industry": "automotive",
+            "tier": "premium"
+        },
+        "ai_capabilities": [
+            "motorcycle_parts",
+            "automotive_components",
+            "quality_standards"
+        ],
+        "ai_risk_score": 18.2,
+        "ai_last_analyzed": "2025-01-27T08:00:00.000Z",
+        "created_at": "2025-01-27T08:00:00.000Z",
+        "updated_at": "2025-01-27T08:00:00.000Z",
+        "created_by": "550e8400-e29b-41d4-a716-446655440012"
+    },
+    {
+        "id": "550e8400-e29b-41d4-a716-446655440103",
+        "organization_id": "550e8400-e29b-41d4-a716-446655440001",
+        "type": "customer",
+        "company_name": "Boeing Vietnam",
+        "contact_name": "Lê Văn Cường",
+        "email": "supply.chain@boeing.vn",
+        "phone": "+84-28-7300-1003",
+        "address": "789 Đường Mai Chí Thọ, Quận 2",
+        "city": "Ho Chi Minh City",
+        "state": "Ho Chi Minh",
+        "country": "Vietnam",
+        "postal_code": "70000",
+        "website": "https://www.boeing.com.vn",
+        "tax_id": "0123456791",
+        "payment_terms": "Net 60",
+        "credit_limit": 1000000000,
+        "is_active": true,
+        "notes": "Aerospace components, high precision requirements",
+        "metadata": {
+            "industry": "aerospace",
+            "annual_revenue": "10000000000000",
+            "employee_count": 8000,
+            "preferred_currency": "USD"
+        },
+        "ai_category": {
+            "industry": "aerospace",
+            "tier": "premium"
+        },
+        "ai_capabilities": [
+            "aerospace_grade",
+            "high_precision",
+            "certified_materials"
+        ],
+        "ai_risk_score": 12.8,
+        "ai_last_analyzed": "2025-01-27T08:00:00.000Z",
+        "created_at": "2025-01-27T08:00:00.000Z",
+        "updated_at": "2025-01-27T08:00:00.000Z",
+        "created_by": "550e8400-e29b-41d4-a716-446655440012"
+    },
+    {
+        "id": "550e8400-e29b-41d4-a716-446655440104",
+        "organization_id": "550e8400-e29b-41d4-a716-446655440001",
+        "type": "customer",
+        "company_name": "Samsung Vietnam",
+        "contact_name": "Phạm Thị Dung",
+        "email": "procurement@samsung.vn",
+        "phone": "+84-28-7300-1004",
+        "address": "321 Đường Nguyễn Thị Thập, Quận 7",
+        "city": "Ho Chi Minh City",
+        "state": "Ho Chi Minh",
+        "country": "Vietnam",
+        "postal_code": "70000",
+        "website": "https://www.samsung.com.vn",
+        "tax_id": "0123456792",
+        "payment_terms": "Net 30",
+        "credit_limit": 800000000,
+        "is_active": true,
+        "notes": "Electronics manufacturing, high volume production",
+        "metadata": {
+            "industry": "electronics",
+            "annual_revenue": "8000000000000",
+            "employee_count": 10000,
+            "preferred_currency": "VND"
+        },
+        "ai_category": {
+            "industry": "electronics",
+            "tier": "premium"
+        },
+        "ai_capabilities": [
+            "electronics_manufacturing",
+            "high_volume",
+            "quality_control"
+        ],
+        "ai_risk_score": 16.5,
+        "ai_last_analyzed": "2025-01-27T08:00:00.000Z",
+        "created_at": "2025-01-27T08:00:00.000Z",
+        "updated_at": "2025-01-27T08:00:00.000Z",
+        "created_by": "550e8400-e29b-41d4-a716-446655440012"
+    },
+    {
+        "id": "550e8400-e29b-41d4-a716-446655440105",
+        "organization_id": "550e8400-e29b-41d4-a716-446655440001",
+        "type": "customer",
+        "company_name": "Siemens Vietnam",
+        "contact_name": "Hoàng Văn Em",
+        "email": "purchasing@siemens.vn",
+        "phone": "+84-28-7300-1005",
+        "address": "654 Đường Võ Trường Toản, Quận 1",
+        "city": "Ho Chi Minh City",
+        "state": "Ho Chi Minh",
+        "country": "Vietnam",
+        "postal_code": "70000",
+        "website": "https://www.siemens.com.vn",
+        "tax_id": "0123456793",
+        "payment_terms": "Net 45",
+        "credit_limit": 400000000,
+        "is_active": true,
+        "notes": "Industrial equipment and automation systems",
+        "metadata": {
+            "industry": "industrial",
+            "annual_revenue": "4000000000000",
+            "employee_count": 2000,
+            "preferred_currency": "EUR"
+        },
+        "ai_category": {
+            "industry": "industrial",
+            "tier": "premium"
+        },
+        "ai_capabilities": [
+            "industrial_automation",
+            "control_systems",
+            "quality_standards"
+        ],
+        "ai_risk_score": 19.1,
+        "ai_last_analyzed": "2025-01-27T08:00:00.000Z",
+        "created_at": "2025-01-27T08:00:00.000Z",
+        "updated_at": "2025-01-27T08:00:00.000Z",
+        "created_by": "550e8400-e29b-41d4-a716-446655440012"
+    },
+    {
+        "id": "550e8400-e29b-41d4-a716-446655440106",
+        "organization_id": "550e8400-e29b-41d4-a716-446655440001",
+        "type": "supplier",
+        "company_name": "Precision Machining Co.",
+        "contact_name": "Vũ Văn Phúc",
+        "email": "sales@precisionmachining.vn",
+        "phone": "+84-28-7300-2001",
+        "address": "123 Đường Tân Phú, Quận 7",
+        "city": "Ho Chi Minh City",
+        "state": "Ho Chi Minh",
+        "country": "Vietnam",
+        "postal_code": "70000",
+        "website": "https://www.precisionmachining.vn",
+        "tax_id": "0987654321",
+        "payment_terms": "Net 30",
+        "credit_limit": 100000000,
+        "is_active": true,
+        "notes": "High precision CNC machining services",
+        "metadata": {
+            "industry": "machining",
+            "annual_revenue": "50000000000",
+            "employee_count": 150,
+            "specialties": [
+                "cnc_machining",
+                "precision_parts",
+                "prototyping"
+            ]
+        },
+        "ai_category": {
+            "industry": "machining",
+            "tier": "premium"
+        },
+        "ai_capabilities": [
+            "cnc_machining",
+            "precision_engineering",
+            "prototyping"
+        ],
+        "ai_risk_score": 22.5,
+        "ai_last_analyzed": "2025-01-27T08:00:00.000Z",
+        "created_at": "2025-01-27T08:00:00.000Z",
+        "updated_at": "2025-01-27T08:00:00.000Z",
+        "created_by": "550e8400-e29b-41d4-a716-446655440013"
+    },
+    {
+        "id": "550e8400-e29b-41d4-a716-446655440107",
+        "organization_id": "550e8400-e29b-41d4-a716-446655440001",
+        "type": "supplier",
+        "company_name": "Metal Fabrication Ltd.",
+        "contact_name": "Đặng Thị Giang",
+        "email": "info@metalfab.vn",
+        "phone": "+84-28-7300-2002",
+        "address": "456 Đường Bình Thới, Quận 11",
+        "city": "Ho Chi Minh City",
+        "state": "Ho Chi Minh",
+        "country": "Vietnam",
+        "postal_code": "70000",
+        "website": "https://www.metalfab.vn",
+        "tax_id": "0987654322",
+        "payment_terms": "Net 30",
+        "credit_limit": 150000000,
+        "is_active": true,
+        "notes": "Sheet metal fabrication and welding services",
+        "metadata": {
+            "industry": "fabrication",
+            "annual_revenue": "80000000000",
+            "employee_count": 200,
+            "specialties": [
+                "sheet_metal",
+                "welding",
+                "fabrication"
+            ]
+        },
+        "ai_category": {
+            "industry": "fabrication",
+            "tier": "standard"
+        },
+        "ai_capabilities": [
+            "sheet_metal",
+            "welding",
+            "metal_fabrication"
+        ],
+        "ai_risk_score": 25.8,
+        "ai_last_analyzed": "2025-01-27T08:00:00.000Z",
+        "created_at": "2025-01-27T08:00:00.000Z",
+        "updated_at": "2025-01-27T08:00:00.000Z",
+        "created_by": "550e8400-e29b-41d4-a716-446655440013"
+    },
+    {
+        "id": "550e8400-e29b-41d4-a716-446655440108",
+        "organization_id": "550e8400-e29b-41d4-a716-446655440001",
+        "type": "supplier",
+        "company_name": "Assembly Solutions",
+        "contact_name": "Lý Văn Hùng",
+        "email": "contact@assemblysolutions.vn",
+        "phone": "+84-28-7300-2003",
+        "address": "789 Đường Lý Thường Kiệt, Quận 10",
+        "city": "Ho Chi Minh City",
+        "state": "Ho Chi Minh",
+        "country": "Vietnam",
+        "postal_code": "70000",
+        "website": "https://www.assemblysolutions.vn",
+        "tax_id": "0987654323",
+        "payment_terms": "Net 30",
+        "credit_limit": 80000000,
+        "is_active": true,
+        "notes": "Component assembly and testing services",
+        "metadata": {
+            "industry": "assembly",
+            "annual_revenue": "40000000000",
+            "employee_count": 120,
+            "specialties": [
+                "component_assembly",
+                "testing",
+                "quality_control"
+            ]
+        },
+        "ai_category": {
+            "industry": "assembly",
+            "tier": "standard"
+        },
+        "ai_capabilities": [
+            "component_assembly",
+            "testing",
+            "quality_control"
+        ],
+        "ai_risk_score": 28.3,
+        "ai_last_analyzed": "2025-01-27T08:00:00.000Z",
+        "created_at": "2025-01-27T08:00:00.000Z",
+        "updated_at": "2025-01-27T08:00:00.000Z",
+        "created_by": "550e8400-e29b-41d4-a716-446655440013"
+    }
+]
