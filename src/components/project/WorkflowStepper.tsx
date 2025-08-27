@@ -162,7 +162,27 @@ export function WorkflowStepper({ project }: WorkflowStepperProps) {
         });
       }
 
-      // Check if manager approval is required
+      // Check if bypass is required (stage skipping or unauthorized transitions)
+      if (validationResult.bypassRequired) {
+        if (canBypass) {
+          // Show bypass dialog
+          setBypassDialog({
+            isOpen: true,
+            targetStage: stage,
+            warnings: validationResult.warnings
+          });
+          return;
+        } else {
+          toast({
+            variant: "destructive",
+            title: "Manager Approval Required",
+            description: validationResult.bypassReason || "This stage change requires manager approval. Please contact your manager.",
+          });
+          return;
+        }
+      }
+
+      // Check if manager approval is required for exit criteria
       if (validationResult.requiresManagerApproval) {
         if (canBypass) {
           // Show bypass dialog

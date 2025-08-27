@@ -140,7 +140,7 @@ export const ROLE_PERMISSIONS: Record<UserRole, Permission[]> = {
         { resource: 'supplier', actions: ['read', 'create', 'update'] },
         { resource: 'dashboard', actions: ['read'] },
         { resource: 'profile', actions: ['read_own', 'update_own'] },
-        { resource: 'workflow', actions: ['read', 'update'] },
+        { resource: 'workflow', actions: ['read', 'update', 'bypass'] },
         { resource: 'notifications', actions: ['read', 'create'] }
     ],
     [UserRole.PROCUREMENT]: [
@@ -189,7 +189,7 @@ export const ROLE_PERMISSIONS: Record<UserRole, Permission[]> = {
         { resource: 'profile', actions: ['read_own', 'update_own', 'read_all'] },
         { resource: 'analytics', actions: ['read', 'export'] },
         { resource: 'audit', actions: ['read', 'export'] },
-        { resource: 'workflow', actions: ['read', 'create', 'update', 'delete'] },
+        { resource: 'workflow', actions: ['read', 'create', 'update', 'delete', 'bypass'] },
         { resource: 'system_config', actions: ['read', 'update'] }
     ]
 };

@@ -52,7 +52,7 @@ This file contains important changes and updates made to the project.
    - **Maintained functionality**: All auto-advance features work correctly when project is loaded
    - **Clean architecture**: Separated concerns between project loading and auto-advance logic
 
-2. **Fixed Critical Console Errors and Performance Issues**: 
+3. **Fixed Critical Console Errors and Performance Issues**: 
    - **Resolved Rules of Hooks violation** in ProjectDetail component by ensuring useWorkflowAutoAdvance hook is always called at top level
    - **Fixed React queue error** by adding proper guards in useWorkflowAutoAdvance hook for null/empty projects
    - **Resolved ref forwarding issue** with ProjectCardWrapper by wrapping component with forwardRef for framer-motion compatibility
@@ -65,7 +65,7 @@ This file contains important changes and updates made to the project.
    - **Maintained all existing functionality** while fixing the architectural issues
    - **All components now follow React best practices** and Rules of Hooks
 
-2. **Fixed Rules of Hooks Violations in Project Components**: 
+4. **Fixed Rules of Hooks Violations in Project Components**: 
    - **Resolved critical React Rules of Hooks violations** that were preventing project pages from loading
    - **Fixed useUserDisplayName hook usage** in multiple components by moving hook calls to top level
    - **Updated ProjectDetail.tsx** to properly use useUsers hook for fetching reviewer display names
@@ -78,6 +78,16 @@ This file contains important changes and updates made to the project.
    - **Project pages can now load successfully** without "useUsers is not defined" errors
    - **Maintained all existing functionality** while fixing the architectural issues
    - **Improved performance** by batching user display name lookups using useUsers hook
+
+5. **Enhanced Workflow Validation and Bypass System**: 
+   - **Fixed workflow stage skipping issue**: Implemented comprehensive validation to prevent unauthorized stage transitions
+   - **Added bypass tracking fields**: Enhanced WorkflowValidationResult interface with bypassRequired, bypassReason, and skippedStages
+   - **Implemented stage transition validation**: Added logic to detect and prevent skipping from technical_review directly to quoted stage
+   - **Enhanced bypass permissions**: Added 'workflow:bypass' permission to Management and Procurement Owner roles
+   - **Updated WorkflowStepper component**: Added proper handling for bypassRequired cases with appropriate user feedback
+   - **Improved bypass dialog integration**: Enhanced bypass dialog to show specific bypass reasons and validation warnings
+   - **Added comprehensive stage validation**: Implemented validation for all stage transitions to prevent unauthorized bypasses
+   - **Maintained existing functionality**: All existing workflow features continue to work while adding new security measures
 
 - Date: 2025-08-26
 - What we completed / changed:

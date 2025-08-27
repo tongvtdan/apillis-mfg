@@ -9,6 +9,9 @@ export interface WorkflowValidationResult {
     canAutoAdvance: boolean;
     requiresManagerApproval: boolean;
     autoAdvanceReason?: string;
+    bypassRequired?: boolean;
+    bypassReason?: string;
+    skippedStages?: ProjectStatus[];
 }
 
 export interface WorkflowBypassRequest {
@@ -109,6 +112,10 @@ export class WorkflowValidator {
                     if (!project.description) {
                         result.warnings.push("Project description is recommended");
                     }
+                } else {
+                    // Any other transition from inquiry_received requires bypass
+                    result.bypassRequired = true;
+                    result.bypassReason = `Direct transition from ${this.getStageName(project.status)} to ${this.getStageName(newStatus)} requires manager approval.`;
                 }
                 break;
 
@@ -118,6 +125,15 @@ export class WorkflowValidator {
                         result.requiresManagerApproval = true;
                         result.warnings.push("Technical review criteria not fully met. Manager approval required or complete all reviews.");
                     }
+                } else if (newStatus === 'quoted') {
+                    // Skipping supplier_rfq_sent stage requires bypass
+                    result.bypassRequired = true;
+                    result.bypassReason = `Skipping Supplier RFQ stage requires manager approval.`;
+                    result.warnings.push("Moving directly to Quoted stage skips supplier RFQ process.");
+                } else {
+                    // Any other transition requires bypass
+                    result.bypassRequired = true;
+                    result.bypassReason = `Direct transition from ${this.getStageName(project.status)} to ${this.getStageName(newStatus)} requires manager approval.`;
                 }
                 break;
 
@@ -135,6 +151,10 @@ export class WorkflowValidator {
                         result.requiresManagerApproval = true;
                         result.warnings.push("No supplier quotes found. Manager approval required to proceed.");
                     }
+                } else {
+                    // Any other transition requires bypass
+                    result.bypassRequired = true;
+                    result.bypassReason = `Direct transition from ${this.getStageName(project.status)} to ${this.getStageName(newStatus)} requires manager approval.`;
                 }
                 break;
 
@@ -144,6 +164,10 @@ export class WorkflowValidator {
                         result.requiresManagerApproval = true;
                         result.warnings.push("Quote value not set. Manager approval required.");
                     }
+                } else {
+                    // Any other transition requires bypass
+                    result.bypassRequired = true;
+                    result.bypassReason = `Direct transition from ${this.getStageName(project.status)} to ${this.getStageName(newStatus)} requires manager approval.`;
                 }
                 break;
 
@@ -154,6 +178,10 @@ export class WorkflowValidator {
                     if (orderConfirmedCriteria.length > 0) {
                         result.warnings.push("Ensure internal sales order is created");
                     }
+                } else {
+                    // Any other transition requires bypass
+                    result.bypassRequired = true;
+                    result.bypassReason = `Direct transition from ${this.getStageName(project.status)} to ${this.getStageName(newStatus)} requires manager approval.`;
                 }
                 break;
 
@@ -163,6 +191,10 @@ export class WorkflowValidator {
                     if (procurementCriteria.length > 0) {
                         result.warnings.push("Ensure all procurement and planning tasks are completed");
                     }
+                } else {
+                    // Any other transition requires bypass
+                    result.bypassRequired = true;
+                    result.bypassReason = `Direct transition from ${this.getStageName(project.status)} to ${this.getStageName(newStatus)} requires manager approval.`;
                 }
                 break;
 
@@ -172,6 +204,10 @@ export class WorkflowValidator {
                     if (productionCriteria.length > 0) {
                         result.warnings.push("Ensure all production tasks are completed and product is shipped");
                     }
+                } else {
+                    // Any other transition requires bypass
+                    result.bypassRequired = true;
+                    result.bypassReason = `Direct transition from ${this.getStageName(project.status)} to ${this.getStageName(newStatus)} requires manager approval.`;
                 }
                 break;
         }
