@@ -56,7 +56,9 @@ CREATE TABLE users (
     department VARCHAR(100),
     phone VARCHAR(50),
     avatar_url TEXT,
-    is_active BOOLEAN DEFAULT true,
+    status VARCHAR(20) DEFAULT 'active' 
+      CHECK (status IN ('active', 'dismiss')),
+    description TEXT,
     last_login_at TIMESTAMPTZ,
     preferences JSONB DEFAULT '{}',
     created_at TIMESTAMPTZ DEFAULT NOW(),

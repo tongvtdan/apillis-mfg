@@ -21,6 +21,7 @@ import Customers from "./pages/Customers";
 import Suppliers from "./pages/Suppliers";
 import Reports from "./pages/Reports";
 import ProjectDetail from "./pages/ProjectDetail";
+import { RFQDetail } from "./pages/RFQDetail";
 import Settings from "./pages/Settings";
 
 import { applyAdaptiveTheme } from "@/lib/theme";
