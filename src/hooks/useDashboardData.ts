@@ -6,10 +6,6 @@ export interface DashboardSummary {
     total: number;
     by_status: Record<string, number>;
   };
-  rfqs: {
-    total: number;
-    by_status: Record<string, number>;
-  };
   recent_projects: Array<{
     id: string;
     project_id: string;
@@ -18,15 +14,6 @@ export interface DashboardSummary {
     priority: string;
     created_at: string;
     customer_name?: string;
-  }>;
-  recent_rfqs: Array<{
-    id: string;
-    rfq_number: string;
-    project_name: string;
-    company_name: string;
-    status: string;
-    priority: string;
-    created_at: string;
   }>;
   generated_at: number;
 }
@@ -61,20 +48,10 @@ export function useProjectsCount() {
   };
 }
 
-export function useRFQsCount() {
-  const { data } = useDashboardData();
-  return {
-    total: data?.rfqs?.total ?? 0,
-    byStatus: data?.rfqs?.by_status ?? {},
-    isLoading: !data
-  };
-}
-
 export function useRecentActivity() {
-  const { data } = useDashboardData();
+  const { data, isLoading } = useDashboardData();
   return {
     projects: data?.recent_projects ?? [],
-    rfqs: data?.recent_rfqs ?? [],
-    isLoading: !data
+    isLoading,
   };
 }

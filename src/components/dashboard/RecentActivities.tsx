@@ -13,30 +13,19 @@ import {
 } from "lucide-react";
 
 export function RecentActivities() {
-  const { projects, rfqs, isLoading } = useRecentActivity();
+  const { projects, isLoading } = useRecentActivity();
 
-  // Combine and sort recent activities
-  const allActivities = [
-    ...projects.map(project => ({
-      id: `project-${project.id}`,
-      type: 'project' as const,
-      title: project.title,
-      subtitle: `Project ${project.project_id}`,
-      timestamp: project.created_at,
-      status: project.status,
-      customer: project.customer_name
-    })),
-    ...rfqs.map(rfq => ({
-      id: `rfq-${rfq.id}`,
-      type: 'rfq' as const,
-      title: rfq.project_name,
-      subtitle: `RFQ ${rfq.rfq_number}`,
-      timestamp: rfq.created_at,
-      status: rfq.status,
-      customer: rfq.company_name
-    }))
-  ].sort((a, b) => new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime())
-    .slice(0, 10);
+  // Map projects to activities
+  const allActivities = projects.map(project => ({
+    id: project.id,
+    type: 'project' as const,
+    title: project.title,
+    subtitle: `Project ${project.project_id}`,
+    status: project.status,
+    priority: project.priority,
+    created_at: project.created_at,
+    customer_name: project.customer_name
+  })).sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime());
 
   const getActivityIcon = (status: string) => {
     switch (status) {
@@ -193,8 +182,11 @@ export function RecentActivities() {
                   </div>
                 </div>
                 <p className="text-xs text-muted-foreground">
-                  {formatDistanceToNow(new Date(activity.timestamp), { addSuffix: true })}
+                  {formatDistanceToNow(new Date(activity.created_at), { addSuffix: true })}
                 </p>
+                <div className="flex items-center justify-between mt-1">
+                  <span className="text-muted-foreground">{activity.customer_name}</span>
+                </div>
               </div>
             </div>
           );
