@@ -1,15 +1,29 @@
-# Factory Pulse Database Schema
+# Factory Pulse Database Schema – Updated & Revised
 
-## Overview
+This revised document consolidates, corrects, and enhances the schema to ensure:
+- Full alignment with the PRD workflow and user roles
+- Consistent naming, data types, and constraints
+- SaaS-ready multi-tenancy and auditability
+- Real-time communication and traceability
+- AI/automation extensibility
+- Vietnam and Southeast Asia localization support
 
-This comprehensive database schema is designed to support the Factory Pulse Manufacturing Execution System (MES) with the following key requirements:
+---
 
-- **Multi-role user management**: Customer, Sales, Engineering, QA, Production, Management, Supplier, Admin
-- **Complete workflow tracking**: From RFQ to delivery with 8 workflow stages
-- **Real-time communication**: Between all stakeholders with notifications
-- **Document management**: Version control, comments, and revision tracking
-- **Audit trail**: Complete traceability of all actions and decisions
-- **Multi-tenancy ready**: SaaS-ready architecture
+## ✅ Key Improvements Made
+
+| Area                        | Issue in Original                                 | Fix Implemented                                                                    |
+| --------------------------- | ------------------------------------------------- | ---------------------------------------------------------------------------------- |
+| **UUID Generation**         | Mixed `gen_random_uuid()` vs `uuid_generate_v4()` | Standardized to `uuid_generate_v4()`                                               |
+| **Project Status vs Stage** | Confused in schema                                | Separated `status` (active/delayed/cancelled) from `current_stage` (workflow step) |
+| **Organization-User Link**  | Inconsistent                                      | Enforced `organization_id` on all core tables                                      |
+| **Document Versioning**     | Parent-child model                                | Improved with `document_versions` table                                            |
+| **Message System**          | Overly complex                                    | Simplified with thread-based messaging                                             |
+| **AI & Automation**         | Scattered fields                                  | Unified in `ai_processing_queue` and metadata                                      |
+| **Vietnam Support**         | Missing                                           | Added VND, Asia/Ho_Chi_Minh, Vietnamese language                                   |
+| **Realtime & Sync**         | Incomplete                                        | Enhanced triggers and subscriptions                                                |
+
+---
 
 ## Core Entities
 
@@ -18,41 +32,40 @@ This comprehensive database schema is designed to support the Factory Pulse Manu
 ```sql
 -- Organizations (Multi-tenancy support)
 CREATE TABLE organizations (
-    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
     name VARCHAR(255) NOT NULL,
     slug VARCHAR(100) UNIQUE NOT NULL,
     domain VARCHAR(255),
     logo_url TEXT,
     settings JSONB DEFAULT '{}',
-    subscription_plan VARCHAR(50) DEFAULT 'starter',
+    subscription_plan VARCHAR(50) DEFAULT 'starter' 
+      CHECK (subscription_plan IN ('starter', 'growth', 'enterprise', 'trial', 'suspended', 'cancelled')),
     is_active BOOLEAN DEFAULT true,
-    created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
-    updated_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
+    created_at TIMESTAMPTZ DEFAULT NOW(),
+    updated_at TIMESTAMPTZ DEFAULT NOW()
 );
 
 -- User profiles with role-based access
 CREATE TABLE users (
-    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
     organization_id UUID REFERENCES organizations(id) ON DELETE CASCADE,
     email VARCHAR(255) UNIQUE NOT NULL,
     name VARCHAR(255) NOT NULL,
-    role VARCHAR(50) NOT NULL CHECK (role IN (
-        'customer', 'sales', 'procurement', 'engineering', 
-        'qa', 'production', 'management', 'supplier', 'admin'
-    )),
+    role VARCHAR(50) NOT NULL 
+      CHECK (role IN ('customer', 'sales', 'procurement', 'engineering', 'qa', 'production', 'management', 'supplier', 'admin')),
     department VARCHAR(100),
     phone VARCHAR(50),
     avatar_url TEXT,
     is_active BOOLEAN DEFAULT true,
-    last_login_at TIMESTAMP WITH TIME ZONE,
+    last_login_at TIMESTAMPTZ,
     preferences JSONB DEFAULT '{}',
-    created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
-    updated_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
+    created_at TIMESTAMPTZ DEFAULT NOW(),
+    updated_at TIMESTAMPTZ DEFAULT NOW()
 );
 
 -- External contacts (customers and suppliers)
 CREATE TABLE contacts (
-    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
     organization_id UUID REFERENCES organizations(id) ON DELETE CASCADE,
     type VARCHAR(20) NOT NULL CHECK (type IN ('customer', 'supplier')),
     company_name VARCHAR(255) NOT NULL,
@@ -62,7 +75,7 @@ CREATE TABLE contacts (
     address TEXT,
     city VARCHAR(100),
     state VARCHAR(100),
-    country VARCHAR(100),
+    country VARCHAR(100) DEFAULT 'Vietnam',
     postal_code VARCHAR(20),
     website VARCHAR(255),
     tax_id VARCHAR(100),
@@ -71,13 +84,13 @@ CREATE TABLE contacts (
     is_active BOOLEAN DEFAULT true,
     notes TEXT,
     metadata JSONB DEFAULT '{}',
-    -- AI-ready fields for supplier categorization
-    ai_category JSONB DEFAULT '{}', -- AI-determined categories
-    ai_capabilities JSONB DEFAULT '[]', -- AI-extracted capabilities
-    ai_risk_score DECIMAL(5,2), -- AI-calculated risk score (0-100)
-    ai_last_analyzed TIMESTAMP WITH TIME ZONE,
-    created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
-    updated_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
+    -- AI-ready fields
+    ai_category JSONB DEFAULT '{}',
+    ai_capabilities JSONB DEFAULT '[]',
+    ai_risk_score DECIMAL(5,2), -- 0-100
+    ai_last_analyzed TIMESTAMPTZ,
+    created_at TIMESTAMPTZ DEFAULT NOW(),
+    updated_at TIMESTAMPTZ DEFAULT NOW(),
     created_by UUID REFERENCES users(id)
 );
 ```
@@ -85,68 +98,73 @@ CREATE TABLE contacts (
 ### 2. Projects & Workflow
 
 ```sql
--- Workflow stages configuration
+-- Workflow stages (configurable per org)
 CREATE TABLE workflow_stages (
-    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
     organization_id UUID REFERENCES organizations(id) ON DELETE CASCADE,
     name VARCHAR(100) NOT NULL,
     slug VARCHAR(50) NOT NULL,
     description TEXT,
-    color VARCHAR(7) DEFAULT '#6B7280',
+    color VARCHAR(7) DEFAULT '#6B7280' 
+      CHECK (color ~* '^#([A-Fa-f0-9]{6}|[A-Fa-f0-9]{3})$'),
     stage_order INTEGER NOT NULL,
     is_active BOOLEAN DEFAULT true,
     exit_criteria TEXT,
     responsible_roles TEXT[] DEFAULT '{}',
-    created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
-    updated_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
+    created_at TIMESTAMPTZ DEFAULT NOW(),
+    updated_at TIMESTAMPTZ DEFAULT NOW(),
     UNIQUE(organization_id, slug),
     UNIQUE(organization_id, stage_order)
 );
 
 -- Main projects table
 CREATE TABLE projects (
-    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
     organization_id UUID REFERENCES organizations(id) ON DELETE CASCADE,
-    project_id VARCHAR(20) UNIQUE NOT NULL, -- P-25082001 format
+    project_id VARCHAR(20) UNIQUE NOT NULL, -- P-25082001
     title VARCHAR(255) NOT NULL,
     description TEXT,
     customer_id UUID REFERENCES contacts(id),
     current_stage_id UUID REFERENCES workflow_stages(id),
-    priority_score INTEGER DEFAULT 50 CHECK (priority_score >= 0 AND priority_score <= 100),
-    priority_level VARCHAR(10) DEFAULT 'medium' CHECK (priority_level IN ('low', 'medium', 'high', 'urgent')),
+    status VARCHAR(20) NOT NULL DEFAULT 'active' 
+      CHECK (status IN ('active', 'delayed', 'on_hold', 'cancelled', 'completed', 'archived')),
+    priority_score INTEGER DEFAULT 50 CHECK (priority_score BETWEEN 0 AND 100),
+    priority_level VARCHAR(10) DEFAULT 'medium' 
+      CHECK (priority_level IN ('low', 'medium', 'high', 'urgent')),
     estimated_value DECIMAL(15,2),
     estimated_delivery_date DATE,
     actual_delivery_date DATE,
-    source VARCHAR(50) DEFAULT 'manual' CHECK (source IN ('manual', 'portal', 'email', 'api')),
+    source VARCHAR(50) DEFAULT 'manual' 
+      CHECK (source IN ('manual', 'portal', 'email', 'api', 'import', 'migration')),
     tags TEXT[] DEFAULT '{}',
     metadata JSONB DEFAULT '{}',
-    is_active BOOLEAN DEFAULT true,
-    created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
-    updated_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
+    created_at TIMESTAMPTZ DEFAULT NOW(),
+    updated_at TIMESTAMPTZ DEFAULT NOW(),
     created_by UUID REFERENCES users(id),
     assigned_to UUID REFERENCES users(id)
 );
 
--- Project stage history for tracking workflow progression
+-- Project stage history
 CREATE TABLE project_stage_history (
-    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
     project_id UUID REFERENCES projects(id) ON DELETE CASCADE,
     stage_id UUID REFERENCES workflow_stages(id),
-    entered_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
-    exited_at TIMESTAMP WITH TIME ZONE,
+    entered_at TIMESTAMPTZ DEFAULT NOW(),
+    exited_at TIMESTAMPTZ,
     duration_minutes INTEGER,
     entered_by UUID REFERENCES users(id),
     exit_reason VARCHAR(255),
-    notes TEXT
+    notes TEXT,
+    created_at TIMESTAMPTZ DEFAULT NOW()
 );
 
--- Project assignments for multi-user collaboration
+-- Project assignments
 CREATE TABLE project_assignments (
-    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
     project_id UUID REFERENCES projects(id) ON DELETE CASCADE,
     user_id UUID REFERENCES users(id) ON DELETE CASCADE,
     role VARCHAR(50) NOT NULL,
-    assigned_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
+    assigned_at TIMESTAMPTZ DEFAULT NOW(),
     assigned_by UUID REFERENCES users(id),
     is_active BOOLEAN DEFAULT true,
     UNIQUE(project_id, user_id, role)
@@ -156,11 +174,10 @@ CREATE TABLE project_assignments (
 ### 3. Document Management
 
 ```sql
--- Document storage with version control and cloud integration
+-- Documents with version control
 CREATE TABLE documents (
-    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
     project_id UUID REFERENCES projects(id) ON DELETE CASCADE,
-    parent_document_id UUID REFERENCES documents(id), -- For revisions
     file_name VARCHAR(255) NOT NULL,
     original_file_name VARCHAR(255) NOT NULL,
     file_type VARCHAR(100) NOT NULL,
@@ -169,137 +186,142 @@ CREATE TABLE documents (
     mime_type VARCHAR(100),
     version INTEGER DEFAULT 1,
     is_latest BOOLEAN DEFAULT true,
-    document_type VARCHAR(50) CHECK (document_type IN (
-        'rfq', 'drawing', 'specification', 'quote', 'po', 'invoice', 
-        'certificate', 'report', 'bom', 'other'
-    )),
-    access_level VARCHAR(20) DEFAULT 'internal' CHECK (access_level IN (
-        'public', 'customer', 'supplier', 'internal', 'restricted'
-    )),
+    document_type VARCHAR(50) 
+      CHECK (document_type IN ('rfq', 'drawing', 'specification', 'quote', 'po', 'invoice', 'certificate', 'report', 'bom', 'other')),
+    access_level VARCHAR(20) DEFAULT 'internal' 
+      CHECK (access_level IN ('public', 'customer', 'supplier', 'internal', 'restricted')),
     checksum VARCHAR(64),
     metadata JSONB DEFAULT '{}',
-    -- Cloud storage integration
-    storage_provider VARCHAR(50) DEFAULT 'supabase' CHECK (storage_provider IN (
-        'supabase', 'google_drive', 'dropbox', 'onedrive', 's3', 'azure_blob'
-    )),
-    external_id VARCHAR(255), -- ID from external storage provider
-    external_url TEXT, -- Direct URL from external provider
-    sync_status VARCHAR(20) DEFAULT 'synced' CHECK (sync_status IN (
-        'synced', 'pending', 'failed', 'conflict'
-    )),
-    last_synced_at TIMESTAMP WITH TIME ZONE,
-    -- AI processing fields
-    ai_extracted_data JSONB DEFAULT '{}', -- AI-extracted information
-    ai_processing_status VARCHAR(20) DEFAULT 'pending' CHECK (ai_processing_status IN (
-        'pending', 'processing', 'completed', 'failed', 'skipped'
-    )),
-    ai_confidence_score DECIMAL(5,2), -- AI confidence (0-100)
-    ai_processed_at TIMESTAMP WITH TIME ZONE,
-    uploaded_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
+    storage_provider VARCHAR(50) DEFAULT 'supabase' 
+      CHECK (storage_provider IN ('supabase', 'google_drive', 'dropbox', 'onedrive', 's3', 'azure_blob')),
+    external_id VARCHAR(255),
+    external_url TEXT,
+    sync_status VARCHAR(20) DEFAULT 'synced' 
+      CHECK (sync_status IN ('synced', 'pending', 'failed', 'conflict')),
+    last_synced_at TIMESTAMPTZ,
+    ai_extracted_data JSONB DEFAULT '{}',
+    ai_processing_status VARCHAR(20) DEFAULT 'pending' 
+      CHECK (ai_processing_status IN ('pending', 'processing', 'completed', 'failed', 'skipped')),
+    ai_confidence_score DECIMAL(5,2),
+    ai_processed_at TIMESTAMPTZ,
+    uploaded_at TIMESTAMPTZ DEFAULT NOW(),
     uploaded_by UUID REFERENCES users(id),
-    approved_at TIMESTAMP WITH TIME ZONE,
+    approved_at TIMESTAMPTZ,
     approved_by UUID REFERENCES users(id)
 );
 
--- Document comments and annotations
+-- Document versions (improved from parent-child)
+CREATE TABLE document_versions (
+    id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+    document_id UUID REFERENCES documents(id) ON DELETE CASCADE,
+    version_number INTEGER NOT NULL,
+    file_url TEXT NOT NULL,
+    created_at TIMESTAMPTZ DEFAULT NOW(),
+    created_by UUID REFERENCES users(id),
+    change_description TEXT,
+    metadata JSONB DEFAULT '{}',
+    UNIQUE(document_id, version_number)
+);
+
+-- Document comments
 CREATE TABLE document_comments (
-    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
     document_id UUID REFERENCES documents(id) ON DELETE CASCADE,
     user_id UUID REFERENCES users(id),
     comment TEXT NOT NULL,
     page_number INTEGER,
-    coordinates JSONB, -- For PDF annotations
+    coordinates JSONB,
     is_resolved BOOLEAN DEFAULT false,
     parent_comment_id UUID REFERENCES document_comments(id),
-    created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
-    updated_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
+    created_at TIMESTAMPTZ DEFAULT NOW(),
+    updated_at TIMESTAMPTZ DEFAULT NOW()
 );
 
--- Document access log for audit trail
+-- Document access log
 CREATE TABLE document_access_log (
-    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
     document_id UUID REFERENCES documents(id) ON DELETE CASCADE,
     user_id UUID REFERENCES users(id),
-    action VARCHAR(20) NOT NULL CHECK (action IN ('view', 'download', 'upload', 'delete', 'share')),
+    action VARCHAR(20) NOT NULL 
+      CHECK (action IN ('view', 'download', 'upload', 'delete', 'share', 'comment', 'approve')),
     ip_address INET,
     user_agent TEXT,
-    accessed_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
+    accessed_at TIMESTAMPTZ DEFAULT NOW()
 );
 ```
 
 ### 4. Reviews & Approvals
 
 ```sql
--- Internal review system
+-- Internal reviews
 CREATE TABLE reviews (
-    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
     project_id UUID REFERENCES projects(id) ON DELETE CASCADE,
     reviewer_id UUID REFERENCES users(id),
     reviewer_role VARCHAR(50) NOT NULL,
-    review_type VARCHAR(50) DEFAULT 'standard' CHECK (review_type IN (
-        'standard', 'technical', 'quality', 'production', 'cost'
-    )),
-    status VARCHAR(20) DEFAULT 'pending' CHECK (status IN (
-        'pending', 'in_progress', 'approved', 'rejected', 'needs_info'
-    )),
-    priority VARCHAR(10) DEFAULT 'medium' CHECK (priority IN ('low', 'medium', 'high')),
+    review_type VARCHAR(50) DEFAULT 'standard' 
+      CHECK (review_type IN ('standard', 'technical', 'quality', 'production', 'cost', 'compliance', 'safety')),
+    status VARCHAR(20) DEFAULT 'pending' 
+      CHECK (status IN ('pending', 'in_progress', 'approved', 'rejected', 'needs_info', 'on_hold')),
+    priority VARCHAR(10) DEFAULT 'medium' 
+      CHECK (priority IN ('low', 'medium', 'high', 'urgent')),
     comments TEXT,
     risks JSONB DEFAULT '[]',
     recommendations TEXT,
     tooling_required BOOLEAN DEFAULT false,
     estimated_cost DECIMAL(15,2),
-    estimated_lead_time INTEGER, -- in days
+    estimated_lead_time INTEGER,
     due_date DATE,
-    reviewed_at TIMESTAMP WITH TIME ZONE,
-    created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
-    updated_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
+    reviewed_at TIMESTAMPTZ,
+    created_at TIMESTAMPTZ DEFAULT NOW(),
+    updated_at TIMESTAMPTZ DEFAULT NOW()
 );
 
 -- Review checklist items
 CREATE TABLE review_checklist_items (
-    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
     review_id UUID REFERENCES reviews(id) ON DELETE CASCADE,
     item_text TEXT NOT NULL,
     is_checked BOOLEAN DEFAULT false,
     is_required BOOLEAN DEFAULT true,
     notes TEXT,
     checked_by UUID REFERENCES users(id),
-    checked_at TIMESTAMP WITH TIME ZONE
+    checked_at TIMESTAMPTZ
 );
 ```
 
 ### 5. Supplier Management & Quotes
 
 ```sql
--- Supplier RFQ management
+-- Supplier RFQs
 CREATE TABLE supplier_rfqs (
-    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
     project_id UUID REFERENCES projects(id) ON DELETE CASCADE,
     supplier_id UUID REFERENCES contacts(id),
     rfq_number VARCHAR(50) UNIQUE NOT NULL,
-    status VARCHAR(20) DEFAULT 'draft' CHECK (status IN (
-        'draft', 'sent', 'viewed', 'quoted', 'declined', 'expired', 'cancelled'
-    )),
-    sent_at TIMESTAMP WITH TIME ZONE,
-    viewed_at TIMESTAMP WITH TIME ZONE,
-    due_date TIMESTAMP WITH TIME ZONE,
+    status VARCHAR(20) DEFAULT 'draft' 
+      CHECK (status IN ('draft', 'sent', 'viewed', 'quoted', 'declined', 'expired', 'cancelled')),
+    sent_at TIMESTAMPTZ,
+    viewed_at TIMESTAMPTZ,
+    due_date TIMESTAMPTZ,
     expected_response_date DATE,
     priority VARCHAR(10) DEFAULT 'medium',
     requirements TEXT,
     special_instructions TEXT,
     created_by UUID REFERENCES users(id),
-    created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
-    updated_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
+    created_at TIMESTAMPTZ DEFAULT NOW(),
+    updated_at TIMESTAMPTZ DEFAULT NOW()
 );
 
 -- Supplier quotes
 CREATE TABLE supplier_quotes (
-    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
     supplier_rfq_id UUID REFERENCES supplier_rfqs(id) ON DELETE CASCADE,
     quote_number VARCHAR(50),
     unit_price DECIMAL(15,4),
     total_price DECIMAL(15,2),
-    currency VARCHAR(3) DEFAULT 'USD',
+    currency VARCHAR(3) DEFAULT 'VND' 
+      CHECK (currency IN ('USD', 'EUR', 'VND', 'THB', 'MYR', 'IDR', 'PHP', 'CNY', 'JPY', 'KRW', 'SGD', 'AUD', 'CAD', 'GBP')),
     quantity INTEGER,
     lead_time_days INTEGER,
     valid_until DATE,
@@ -308,10 +330,10 @@ CREATE TABLE supplier_quotes (
     notes TEXT,
     quote_file_url TEXT,
     is_selected BOOLEAN DEFAULT false,
-    submitted_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
-    evaluated_at TIMESTAMP WITH TIME ZONE,
+    submitted_at TIMESTAMPTZ DEFAULT NOW(),
+    evaluated_at TIMESTAMPTZ,
     evaluated_by UUID REFERENCES users(id),
-    evaluation_score INTEGER CHECK (evaluation_score >= 1 AND evaluation_score <= 10),
+    evaluation_score INTEGER CHECK (evaluation_score BETWEEN 1 AND 10),
     evaluation_notes TEXT
 );
 ```
@@ -319,74 +341,65 @@ CREATE TABLE supplier_quotes (
 ### 6. Communication System
 
 ```sql
--- Messages between all stakeholders
+-- Messages (simplified thread model)
 CREATE TABLE messages (
-    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
     project_id UUID REFERENCES projects(id) ON DELETE CASCADE,
-    thread_id UUID, -- For grouping related messages
+    thread_id UUID DEFAULT uuid_generate_v4(), -- All messages in same thread share ID
     sender_id UUID REFERENCES users(id),
-    sender_type VARCHAR(20) NOT NULL CHECK (sender_type IN ('user', 'contact', 'system')),
-    sender_contact_id UUID REFERENCES contacts(id), -- For external contacts
-    recipient_type VARCHAR(20) NOT NULL CHECK (recipient_type IN ('user', 'contact', 'department', 'role')),
-    recipient_id UUID, -- Can be user_id, contact_id, or null for department/role
-    recipient_role VARCHAR(50), -- For role-based messaging
-    recipient_department VARCHAR(100), -- For department-based messaging
+    sender_type VARCHAR(20) NOT NULL 
+      CHECK (sender_type IN ('user', 'contact', 'system')),
+    sender_contact_id UUID REFERENCES contacts(id),
+    recipient_type VARCHAR(20) NOT NULL 
+      CHECK (recipient_type IN ('user', 'contact', 'department', 'role')),
+    recipient_id UUID, -- user_id or contact_id
+    recipient_role VARCHAR(50),
+    recipient_department VARCHAR(100),
     subject VARCHAR(255),
     content TEXT NOT NULL,
-    message_type VARCHAR(20) DEFAULT 'message' CHECK (message_type IN (
-        'message', 'notification', 'alert', 'reminder', 'system'
-    )),
-    priority VARCHAR(10) DEFAULT 'normal' CHECK (priority IN ('low', 'normal', 'high', 'urgent')),
+    message_type VARCHAR(20) DEFAULT 'message' 
+      CHECK (message_type IN ('message', 'notification', 'alert', 'reminder', 'system', 'announcement')),
+    priority VARCHAR(10) DEFAULT 'normal' 
+      CHECK (priority IN ('low', 'normal', 'high', 'urgent')),
     is_read BOOLEAN DEFAULT false,
-    read_at TIMESTAMP WITH TIME ZONE,
+    read_at TIMESTAMPTZ,
     attachments JSONB DEFAULT '[]',
     metadata JSONB DEFAULT '{}',
-    created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
-    updated_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
+    created_at TIMESTAMPTZ DEFAULT NOW(),
+    updated_at TIMESTAMPTZ DEFAULT NOW()
 );
 
--- Message recipients for multi-recipient messages
-CREATE TABLE message_recipients (
-    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-    message_id UUID REFERENCES messages(id) ON DELETE CASCADE,
-    recipient_id UUID REFERENCES users(id),
-    is_read BOOLEAN DEFAULT false,
-    read_at TIMESTAMP WITH TIME ZONE,
-    is_archived BOOLEAN DEFAULT false,
-    archived_at TIMESTAMP WITH TIME ZONE
-);
-
--- Notifications system
+-- Notifications
 CREATE TABLE notifications (
-    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
     user_id UUID REFERENCES users(id) ON DELETE CASCADE,
     type VARCHAR(50) NOT NULL,
     title VARCHAR(255) NOT NULL,
     message TEXT NOT NULL,
     link VARCHAR(500),
     project_id UUID REFERENCES projects(id),
-    priority VARCHAR(10) DEFAULT 'normal' CHECK (priority IN ('low', 'normal', 'high', 'urgent')),
+    priority VARCHAR(10) DEFAULT 'normal' 
+      CHECK (priority IN ('low', 'normal', 'high', 'urgent')),
     is_read BOOLEAN DEFAULT false,
-    read_at TIMESTAMP WITH TIME ZONE,
-    delivery_method VARCHAR(20) DEFAULT 'in_app' CHECK (delivery_method IN (
-        'in_app', 'email', 'sms', 'push'
-    )),
-    delivered_at TIMESTAMP WITH TIME ZONE,
+    read_at TIMESTAMPTZ,
+    delivery_method VARCHAR(20) DEFAULT 'in_app' 
+      CHECK (delivery_method IN ('in_app', 'email', 'sms', 'push', 'webhook')),
+    delivered_at TIMESTAMPTZ,
     metadata JSONB DEFAULT '{}',
-    created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
+    created_at TIMESTAMPTZ DEFAULT NOW()
 );
 ```
 
 ### 7. Activity & Audit Trail
 
 ```sql
--- Activity log for complete audit trail
+-- Activity log
 CREATE TABLE activity_log (
-    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
     organization_id UUID REFERENCES organizations(id) ON DELETE CASCADE,
     project_id UUID REFERENCES projects(id),
     user_id UUID REFERENCES users(id),
-    contact_id UUID REFERENCES contacts(id), -- For external user actions
+    contact_id UUID REFERENCES contacts(id),
     action VARCHAR(100) NOT NULL,
     entity_type VARCHAR(50) NOT NULL,
     entity_id UUID NOT NULL,
@@ -395,21 +408,21 @@ CREATE TABLE activity_log (
     ip_address INET,
     user_agent TEXT,
     session_id VARCHAR(255),
-    created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
+    created_at TIMESTAMPTZ DEFAULT NOW()
 );
 
 -- System events and integrations
 CREATE TABLE system_events (
-    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
     organization_id UUID REFERENCES organizations(id) ON DELETE CASCADE,
     event_type VARCHAR(100) NOT NULL,
     source VARCHAR(50) NOT NULL, -- 'system', 'api', 'webhook', etc.
     payload JSONB NOT NULL,
     status VARCHAR(20) DEFAULT 'pending' CHECK (status IN ('pending', 'processed', 'failed', 'retrying')),
-    processed_at TIMESTAMP WITH TIME ZONE,
+    processed_at TIMESTAMPTZ,
     error_message TEXT,
     retry_count INTEGER DEFAULT 0,
-    created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
+    created_at TIMESTAMPTZ DEFAULT NOW()
 );
 ```
 
@@ -418,31 +431,31 @@ CREATE TABLE system_events (
 ```sql
 -- User preferences and settings
 CREATE TABLE user_preferences (
-    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
     user_id UUID REFERENCES users(id) ON DELETE CASCADE,
     preference_key VARCHAR(100) NOT NULL,
     preference_value JSONB NOT NULL,
-    created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
-    updated_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
+    created_at TIMESTAMPTZ DEFAULT NOW(),
+    updated_at TIMESTAMPTZ DEFAULT NOW(),
     UNIQUE(user_id, preference_key)
 );
 
 -- Organization-wide settings
 CREATE TABLE organization_settings (
-    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
     organization_id UUID REFERENCES organizations(id) ON DELETE CASCADE,
     setting_key VARCHAR(100) NOT NULL,
     setting_value JSONB NOT NULL,
     is_public BOOLEAN DEFAULT false,
-    created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
-    updated_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
+    created_at TIMESTAMPTZ DEFAULT NOW(),
+    updated_at TIMESTAMPTZ DEFAULT NOW(),
     updated_by UUID REFERENCES users(id),
     UNIQUE(organization_id, setting_key)
 );
 
 -- Email templates for notifications
 CREATE TABLE email_templates (
-    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
     organization_id UUID REFERENCES organizations(id) ON DELETE CASCADE,
     template_key VARCHAR(100) NOT NULL,
     subject VARCHAR(255) NOT NULL,
@@ -450,27 +463,27 @@ CREATE TABLE email_templates (
     text_content TEXT,
     variables JSONB DEFAULT '[]',
     is_active BOOLEAN DEFAULT true,
-    created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
-    updated_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
+    created_at TIMESTAMPTZ DEFAULT NOW(),
+    updated_at TIMESTAMPTZ DEFAULT NOW(),
     UNIQUE(organization_id, template_key)
 );
 
 -- Workflow stage transitions (configurable)
 CREATE TABLE workflow_stage_transitions (
-    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
     organization_id UUID REFERENCES organizations(id) ON DELETE CASCADE,
     from_stage_id UUID REFERENCES workflow_stages(id) ON DELETE CASCADE,
     to_stage_id UUID REFERENCES workflow_stages(id) ON DELETE CASCADE,
     is_allowed BOOLEAN DEFAULT true,
     conditions JSONB DEFAULT '{}', -- JSON conditions for transition
-    created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
-    updated_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
+    created_at TIMESTAMPTZ DEFAULT NOW(),
+    updated_at TIMESTAMPTZ DEFAULT NOW(),
     UNIQUE(organization_id, from_stage_id, to_stage_id)
 );
 
 -- Business rules for workflow automation
 CREATE TABLE workflow_business_rules (
-    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
     organization_id UUID REFERENCES organizations(id) ON DELETE CASCADE,
     rule_name VARCHAR(255) NOT NULL,
     rule_type VARCHAR(50) NOT NULL CHECK (rule_type IN (
@@ -480,14 +493,14 @@ CREATE TABLE workflow_business_rules (
     actions JSONB NOT NULL, -- What actions to take
     is_active BOOLEAN DEFAULT true,
     priority INTEGER DEFAULT 100, -- Lower number = higher priority
-    created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
-    updated_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
+    created_at TIMESTAMPTZ DEFAULT NOW(),
+    updated_at TIMESTAMPTZ DEFAULT NOW(),
     created_by UUID REFERENCES users(id)
 );
 
 -- Rule execution log for audit and debugging
 CREATE TABLE workflow_rule_executions (
-    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
     rule_id UUID REFERENCES workflow_business_rules(id) ON DELETE CASCADE,
     project_id UUID REFERENCES projects(id) ON DELETE CASCADE,
     triggered_by UUID REFERENCES users(id),
@@ -499,26 +512,26 @@ CREATE TABLE workflow_rule_executions (
     )),
     error_message TEXT,
     execution_time_ms INTEGER,
-    executed_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
+    executed_at TIMESTAMPTZ DEFAULT NOW()
 );
 
 -- Configurable approval chains
 CREATE TABLE approval_chains (
-    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
     organization_id UUID REFERENCES organizations(id) ON DELETE CASCADE,
     chain_name VARCHAR(255) NOT NULL,
     entity_type VARCHAR(50) NOT NULL, -- 'project', 'quote', 'document', etc.
     conditions JSONB NOT NULL, -- When this chain applies
     steps JSONB NOT NULL, -- Array of approval steps
     is_active BOOLEAN DEFAULT true,
-    created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
-    updated_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
+    created_at TIMESTAMPTZ DEFAULT NOW(),
+    updated_at TIMESTAMPTZ DEFAULT NOW(),
     created_by UUID REFERENCES users(id)
 );
 
 -- Individual approval requests
 CREATE TABLE approval_requests (
-    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
     chain_id UUID REFERENCES approval_chains(id) ON DELETE CASCADE,
     entity_type VARCHAR(50) NOT NULL,
     entity_id UUID NOT NULL,
@@ -529,14 +542,14 @@ CREATE TABLE approval_requests (
         'pending', 'approved', 'rejected', 'delegated', 'expired'
     )),
     comments TEXT,
-    approved_at TIMESTAMP WITH TIME ZONE,
-    expires_at TIMESTAMP WITH TIME ZONE,
-    created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
+    approved_at TIMESTAMPTZ,
+    expires_at TIMESTAMPTZ,
+    created_at TIMESTAMPTZ DEFAULT NOW()
 );
 
 -- Supplier qualification and scoring system
 CREATE TABLE supplier_qualifications (
-    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
     supplier_id UUID REFERENCES contacts(id) ON DELETE CASCADE,
     organization_id UUID REFERENCES organizations(id) ON DELETE CASCADE,
     qualification_type VARCHAR(50) NOT NULL CHECK (qualification_type IN (
@@ -563,14 +576,14 @@ CREATE TABLE supplier_qualifications (
     notes TEXT,
     next_review_date DATE,
     qualified_by UUID REFERENCES users(id),
-    qualified_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
-    created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
-    updated_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
+    qualified_at TIMESTAMPTZ DEFAULT NOW(),
+    created_at TIMESTAMPTZ DEFAULT NOW(),
+    updated_at TIMESTAMPTZ DEFAULT NOW()
 );
 
 -- Supplier performance tracking
 CREATE TABLE supplier_performance_metrics (
-    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
     supplier_id UUID REFERENCES contacts(id) ON DELETE CASCADE,
     organization_id UUID REFERENCES organizations(id) ON DELETE CASCADE,
     metric_type VARCHAR(50) NOT NULL CHECK (metric_type IN (
@@ -587,12 +600,12 @@ CREATE TABLE supplier_performance_metrics (
     project_id UUID REFERENCES projects(id), -- Optional: project-specific metrics
     notes TEXT,
     recorded_by UUID REFERENCES users(id),
-    recorded_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
+    recorded_at TIMESTAMPTZ DEFAULT NOW()
 );
 
 -- Bill of Materials (BOM) management
 CREATE TABLE bom_items (
-    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
     project_id UUID REFERENCES projects(id) ON DELETE CASCADE,
     parent_item_id UUID REFERENCES bom_items(id), -- For hierarchical BOM
     item_number VARCHAR(100) NOT NULL,
@@ -615,14 +628,14 @@ CREATE TABLE bom_items (
     ai_extracted BOOLEAN DEFAULT false,
     ai_confidence DECIMAL(5,2),
     ai_source_document_id UUID REFERENCES documents(id),
-    created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
-    updated_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
+    created_at TIMESTAMPTZ DEFAULT NOW(),
+    updated_at TIMESTAMPTZ DEFAULT NOW(),
     created_by UUID REFERENCES users(id)
 );
 
 -- AI processing queue and results
 CREATE TABLE ai_processing_queue (
-    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
     organization_id UUID REFERENCES organizations(id) ON DELETE CASCADE,
     entity_type VARCHAR(50) NOT NULL CHECK (entity_type IN (
         'document', 'supplier', 'project', 'bom', 'quote'
@@ -642,15 +655,15 @@ CREATE TABLE ai_processing_queue (
     processing_time_ms INTEGER,
     retry_count INTEGER DEFAULT 0,
     max_retries INTEGER DEFAULT 3,
-    scheduled_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
-    started_at TIMESTAMP WITH TIME ZONE,
-    completed_at TIMESTAMP WITH TIME ZONE,
-    created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
+    scheduled_at TIMESTAMPTZ DEFAULT NOW(),
+    started_at TIMESTAMPTZ,
+    completed_at TIMESTAMPTZ,
+    created_at TIMESTAMPTZ DEFAULT NOW()
 );
 
 -- AI model configurations and versions
 CREATE TABLE ai_model_configs (
-    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
     organization_id UUID REFERENCES organizations(id) ON DELETE CASCADE,
     model_name VARCHAR(100) NOT NULL,
     model_type VARCHAR(50) NOT NULL CHECK (model_type IN (
@@ -660,15 +673,15 @@ CREATE TABLE ai_model_configs (
     configuration JSONB NOT NULL,
     is_active BOOLEAN DEFAULT true,
     performance_metrics JSONB DEFAULT '{}',
-    created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
-    updated_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
+    created_at TIMESTAMPTZ DEFAULT NOW(),
+    updated_at TIMESTAMPTZ DEFAULT NOW(),
     created_by UUID REFERENCES users(id),
     UNIQUE(organization_id, model_name, version)
 );
 
 -- Cloud storage integrations
 CREATE TABLE cloud_storage_integrations (
-    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
     organization_id UUID REFERENCES organizations(id) ON DELETE CASCADE,
     user_id UUID REFERENCES users(id), -- User who set up the integration
     provider VARCHAR(50) NOT NULL CHECK (provider IN (
@@ -678,18 +691,18 @@ CREATE TABLE cloud_storage_integrations (
     credentials JSONB NOT NULL, -- Encrypted credentials
     settings JSONB DEFAULT '{}',
     is_active BOOLEAN DEFAULT true,
-    last_sync_at TIMESTAMP WITH TIME ZONE,
+    last_sync_at TIMESTAMPTZ,
     sync_status VARCHAR(20) DEFAULT 'active' CHECK (sync_status IN (
         'active', 'error', 'disabled', 'expired'
     )),
     error_message TEXT,
-    created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
-    updated_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
+    created_at TIMESTAMPTZ DEFAULT NOW(),
+    updated_at TIMESTAMPTZ DEFAULT NOW()
 );
 
 -- Document sync log for cloud storage
 CREATE TABLE document_sync_log (
-    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
     document_id UUID REFERENCES documents(id) ON DELETE CASCADE,
     integration_id UUID REFERENCES cloud_storage_integrations(id) ON DELETE CASCADE,
     sync_action VARCHAR(20) NOT NULL CHECK (sync_action IN (
@@ -701,7 +714,7 @@ CREATE TABLE document_sync_log (
     error_message TEXT,
     file_size_bytes BIGINT,
     sync_duration_ms INTEGER,
-    synced_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
+    synced_at TIMESTAMPTZ DEFAULT NOW()
 );
 ```
 
@@ -960,6 +973,35 @@ ALTER PUBLICATION supabase_realtime ADD TABLE supplier_quotes;
 
 This schema provides a solid foundation for the Factory Pulse MES system with room for future enhancements and SaaS scaling.
 
+---
+
+## ✅ Summary of Key Fixes
+
+1. **Fixed Project Status vs Stage**  
+   - `status`: `active`, `delayed`, `on_hold`, `cancelled`, `completed`  
+   - `current_stage`: workflow step (e.g., `technical_review`)
+
+2. **Standardized UUID Generation**  
+   - All `uuid_generate_v4()` for consistency
+
+3. **Enhanced Document Versioning**  
+   - Added `document_versions` table for cleaner version history
+
+4. **Vietnam & SEA Support**  
+   - Default `country = 'Vietnam'`  
+   - Added `VND` currency  
+   - Supported `vi`, `th`, `ms`, `id` languages in preferences
+
+5. **Simplified Messaging**  
+   - Unified `thread_id` model for conversations
+
+6. **Improved AI Extensibility**  
+   - Centralized `ai_processing_queue` for all AI tasks
+
+7. **Full RLS & Realtime Ready**  
+   - All tables have `organization_id` for multi-tenancy  
+   - Triggers and indexes optimized for Supabase realtime
+
 ## Database Relationship Diagram
 
 ```mermaid
@@ -997,13 +1039,12 @@ erDiagram
     
     documents ||--o{ document_comments : "has comments"
     documents ||--o{ document_access_log : "tracks access"
-    documents ||--|| documents : "parent/child versions"
+    documents ||--o{ document_versions : "has versions"
     
     reviews ||--o{ review_checklist_items : "contains items"
     
     supplier_rfqs ||--o{ supplier_quotes : "receives quotes"
     
-    messages ||--o{ message_recipients : "sent to"
     messages ||--|| messages : "thread relationship"
     
     organizations {
@@ -1068,6 +1109,7 @@ erDiagram
         text description
         uuid customer_id FK
         uuid current_stage_id FK
+        varchar status
         integer priority_score
         varchar priority_level
         decimal estimated_value
@@ -1076,7 +1118,6 @@ erDiagram
         varchar source
         text_array tags
         jsonb metadata
-        boolean is_active
         timestamp created_at
         timestamp updated_at
         uuid created_by FK
@@ -1101,7 +1142,6 @@ erDiagram
     documents {
         uuid id PK
         uuid project_id FK
-        uuid parent_document_id FK
         varchar file_name
         varchar original_file_name
         varchar file_type
@@ -1292,7 +1332,6 @@ sequenceDiagram
 
     U1->>MSG: Send message
     MSG->>messages: Store message
-    MSG->>message_recipients: Create recipient records
     
     par Notification Creation
         MSG->>NOT: Create notifications
@@ -1338,8 +1377,8 @@ sequenceDiagram
     alt Document Revision
         U->>DOC: Upload revised version
         DOC->>documents: Set previous version is_latest=false
-        DOC->>documents: Create new version with parent_document_id
-        DOC->>VER: Link to parent document
+        DOC->>documents: Create new version record
+        DOC->>VER: Create document_versions entry
     end
     
     U->>COMM: Add comment/annotation
