@@ -12,6 +12,7 @@ import { useAuth } from '@/contexts/AuthContext';
 import { useToast } from '@/hooks/use-toast';
 import { WorkflowValidator, WorkflowValidationResult } from '@/lib/workflow-validator';
 import { cacheService } from '@/services/cacheService';
+import { realtimeManager } from '@/lib/realtime-manager';
 
 // Database now uses new status values directly - no mapping needed
 
@@ -22,7 +23,6 @@ export function useProjects() {
   const { user } = useAuth();
   const { toast } = useToast();
   const realtimeChannelRef = useRef<any>(null);
-  const globalChannelRef = useRef<any>(null);
 
   const fetchProjects = async (forceRefresh = false) => {
     if (!user) {
@@ -97,59 +97,21 @@ export function useProjects() {
         (payload) => {
           console.log('🔔 Selective real-time update received:', {
             projectId: payload.new.id,
+            oldStatus: payload.old?.status,
             newStatus: payload.new.status
           });
 
-          // Update only the specific project
+          // Update the specific project in our state
           setProjects(prev => {
             const updatedProjects = prev.map(project =>
               project.id === payload.new.id
-                ? {
-                  ...project,
-                  ...payload.new,
-                  status: (payload.new as any).status,
-                  updated_at: new Date().toISOString()
-                }
+                ? { ...project, ...payload.new }
                 : project
             );
 
-            // Update cache with the full projects list
+            // Update cache
             cacheService.setProjects(updatedProjects);
             return updatedProjects;
-          });
-        }
-      )
-      .on(
-        'postgres_changes',
-        {
-          event: 'INSERT',
-          schema: 'public',
-          table: 'projects'
-        },
-        (payload) => {
-          console.log('🔔 New project created:', payload.new);
-          const newProject = payload.new as Project;
-
-          setProjects(prev => {
-            const updatedProjects = [newProject, ...prev];
-            cacheService.setProjects(updatedProjects);
-            return updatedProjects;
-          });
-        }
-      )
-      .on(
-        'postgres_changes',
-        {
-          event: 'DELETE',
-          schema: 'public',
-          table: 'projects'
-        },
-        (payload) => {
-          console.log('🔔 Project deleted:', payload.old);
-          setProjects(prev => {
-            const filteredProjects = prev.filter(project => project.id !== payload.old.id);
-            cacheService.setProjects(filteredProjects);
-            return filteredProjects;
           });
         }
       )
@@ -157,438 +119,6 @@ export function useProjects() {
 
     return realtimeChannelRef.current;
   }, []);
-
-  // Global real-time subscription for all project updates (needed for stage changes)
-  const subscribeToGlobalProjectUpdates = useCallback(() => {
-    console.log('🔔 Setting up global real-time subscription for all project updates');
-
-    // Add debouncing to prevent rapid successive updates
-    let updateTimeout: NodeJS.Timeout | null = null;
-    let pendingUpdates = new Map<string, any>();
-
-    const globalChannel = supabase
-      .channel('global-project-updates')
-      .on(
-        'postgres_changes',
-        {
-          event: 'UPDATE',
-          schema: 'public',
-          table: 'projects'
-        },
-        (payload) => {
-          console.log('🔔 Global real-time update received:', {
-            projectId: payload.new.id,
-            oldStatus: payload.old?.status,
-            newStatus: payload.new.status,
-            // Status is already in new format
-            fullPayload: payload
-          });
-
-          // Store the update in pending updates
-          pendingUpdates.set(payload.new.id, payload);
-
-          // Clear existing timeout
-          if (updateTimeout) {
-            clearTimeout(updateTimeout);
-          }
-
-          // Debounce updates to prevent flickering
-          updateTimeout = setTimeout(() => {
-            console.log('🔔 Processing debounced updates:', Array.from(pendingUpdates.keys()));
-
-            // Process all pending updates at once
-            setProjects(prev => {
-              let updatedProjects = [...prev];
-              let hasChanges = false;
-
-              pendingUpdates.forEach((payload, projectId) => {
-                const projectIndex = updatedProjects.findIndex(p => p.id === projectId);
-                if (projectIndex !== -1) {
-                  const currentProject = updatedProjects[projectIndex];
-                  const payloadTimestamp = new Date((payload.new as any).updated_at || payload.new.updated_at).getTime();
-                  const currentTimestamp = new Date(currentProject.updated_at).getTime();
-
-                  // Prevent stale updates from overwriting fresh data
-                  if (payloadTimestamp <= currentTimestamp) {
-                    console.log('⚠️ Global real-time: Ignoring stale update:', {
-                      projectId: payload.new.id,
-                      payloadTimestamp: new Date(payloadTimestamp).toISOString(),
-                      currentTimestamp: new Date(currentTimestamp).toISOString(),
-                      reason: 'Payload timestamp is older than or equal to current timestamp'
-                    });
-                    return; // Skip this update
-                  }
-
-                  console.log('✅ Global real-time: Updating existing project in state:', {
-                    projectId: payload.new.id,
-                    oldStatus: currentProject.status,
-                    newStatus: payload.new.status,
-                    oldUpdatedAt: currentProject.updated_at,
-                    newUpdatedAt: (payload.new as any).updated_at,
-                    payloadUpdatedAt: payload.new.updated_at,
-                    timestampValidation: 'passed'
-                  });
-
-                  // Project exists in our list, update it
-                  updatedProjects[projectIndex] = {
-                    ...updatedProjects[projectIndex],
-                    ...payload.new,
-                    status: (payload.new as any).status,
-                    updated_at: (payload.new as any).updated_at || new Date().toISOString()
-                  };
-                  hasChanges = true;
-                } else {
-                  console.log('⚠️ Global real-time: Project not found in local state:', {
-                    projectId: payload.new.id,
-                    availableProjectIds: updatedProjects.map(p => p.id)
-                  });
-                }
-              });
-
-              // Clear pending updates
-              pendingUpdates.clear();
-
-              // Only update if there are actual changes
-              if (hasChanges) {
-                // Update cache with the full projects list
-                cacheService.setProjects(updatedProjects);
-                return updatedProjects;
-              }
-
-              return prev;
-            });
-          }, 100); // 100ms debounce delay
-        }
-      )
-      .on(
-        'postgres_changes',
-        {
-          event: 'INSERT',
-          schema: 'public',
-          table: 'projects'
-        },
-        (payload) => {
-          console.log('🔔 Global new project created:', payload.new);
-          const newProject = payload.new as Project;
-
-          setProjects(prev => {
-            const updatedProjects = [newProject, ...prev];
-            cacheService.setProjects(updatedProjects);
-            return updatedProjects;
-          });
-        }
-      )
-      .on(
-        'postgres_changes',
-        {
-          event: 'DELETE',
-          schema: 'public',
-          table: 'projects'
-        },
-        (payload) => {
-          console.log('🔔 Global project deleted:', payload.old);
-          setProjects(prev => {
-            const filteredProjects = prev.filter(project => project.id !== payload.old.id);
-            cacheService.setProjects(filteredProjects);
-            return filteredProjects;
-          });
-        }
-      )
-      .subscribe();
-
-    globalChannelRef.current = globalChannel;
-    return globalChannel;
-  }, []);
-
-  const updateProjectStatus = async (projectId: string, newStatus: ProjectStatus) => {
-    try {
-      // Find the current project to get the old status
-      const currentProject = projects.find(project => project.id === projectId);
-      if (!currentProject) {
-        toast({
-          variant: "destructive",
-          title: "Error",
-          description: "Project not found",
-        });
-        return false;
-      }
-
-      // Validate the status change using workflow validator
-      const validationResult = await WorkflowValidator.validateStatusChange(currentProject, newStatus);
-
-      if (!validationResult.isValid) {
-        toast({
-          variant: "destructive",
-          title: "Validation Error",
-          description: validationResult.errors.join(", "),
-        });
-        return false;
-      }
-
-      const oldStatus = currentProject.status;
-
-      const { error } = await supabase
-        .from('projects')
-        .update({
-          status: newStatus,
-          updated_at: new Date().toISOString()
-        })
-        .eq('id', projectId);
-
-      if (error) {
-        toast({
-          variant: "destructive",
-          title: "Error",
-          description: "Failed to update project status",
-        });
-        return false;
-      }
-
-      // Format status names for display
-      const formatStatusName = (status: ProjectStatus) => {
-        const statusMap = {
-          inquiry_received: "Inquiry Received",
-          technical_review: "Technical Review",
-          supplier_rfq_sent: "Supplier RFQ Sent",
-          quoted: "Quoted",
-          order_confirmed: "Order Confirmed",
-          procurement_planning: "Procurement & Planning",
-          in_production: "In Production",
-          shipped_closed: "Shipped & Closed"
-        };
-        return statusMap[status] || status;
-      };
-
-      // Show warnings if any
-      if (validationResult.warnings.length > 0) {
-        toast({
-          variant: "warning",
-          title: "Status Updated with Warnings",
-          description: `From ${formatStatusName(oldStatus)} to ${formatStatusName(newStatus)}. Warnings: ${validationResult.warnings.join(", ")}`,
-        });
-      } else {
-        toast({
-          title: "Status Updated",
-          description: `From ${formatStatusName(oldStatus)} to ${formatStatusName(newStatus)}`,
-        });
-      }
-
-      return true;
-    } catch (err) {
-      console.error('Error updating project status:', err);
-      toast({
-        variant: "destructive",
-        title: "Error",
-        description: "Failed to update project status",
-      });
-      return false;
-    }
-  };
-
-  // Optimistic update function for drag and drop
-  const updateProjectStatusOptimistic = async (projectId: string, newStatus: ProjectStatus) => {
-    const currentProject = projects.find(project => project.id === projectId);
-    if (!currentProject) return false;
-
-    // Validate the status change using workflow validator
-    const validationResult = await WorkflowValidator.validateStatusChange(currentProject, newStatus);
-
-    if (!validationResult.isValid) {
-      toast({
-        variant: "destructive",
-        title: "Validation Error",
-        description: validationResult.errors.join(", "),
-      });
-      return false;
-    }
-
-    const oldStatus = currentProject.status;
-
-    // Optimistically update local state immediately
-    const optimisticTimestamp = new Date(Date.now() + 1).toISOString(); // Add 1ms to ensure different timestamp
-    const updatedProjects = projects.map(project =>
-      project.id === projectId
-        ? { ...project, status: newStatus, updated_at: optimisticTimestamp }
-        : project
-    );
-
-    setProjects(updatedProjects);
-
-    // Immediately write to cache for instant UI updates
-    cacheService.setProjects(updatedProjects);
-
-    // Also update the specific project in cache for better consistency
-    cacheService.updateProject(projectId, { status: newStatus, updated_at: optimisticTimestamp });
-
-    try {
-      const { error, data } = await supabase
-        .from('projects')
-        .update({
-          status: newStatus,
-          updated_at: new Date().toISOString()
-        })
-        .eq('id', projectId)
-        .select('id, status');
-
-      if (error) {
-        console.error('❌ Database update failed:', error);
-
-        // Revert optimistic update on error
-        const revertedProjects = projects.map(project =>
-          project.id === projectId
-            ? { ...project, status: oldStatus, updated_at: new Date().toISOString() }
-            : project
-        );
-        setProjects(revertedProjects);
-        cacheService.setProjects(revertedProjects);
-
-        toast({
-          variant: "destructive",
-          title: "Database Error",
-          description: `Failed to update project status: ${error.message}`,
-        });
-        return false;
-      }
-
-      // Log successful update for debugging
-      console.log('✅ Database update successful, real-time subscription should handle UI updates');
-      console.log('🔔 Global real-time channel status:', !!globalChannelRef.current);
-
-      // Format status names for display
-      const formatStatusName = (status: ProjectStatus) => {
-        const statusMap = {
-          inquiry_received: "Inquiry Received",
-          technical_review: "Technical Review",
-          supplier_rfq_sent: "Supplier RFQ Sent",
-          quoted: "Quoted",
-          order_confirmed: "Order Confirmed",
-          procurement_planning: "Procurement & Planning",
-          in_production: "In Production",
-          shipped_closed: "Shipped & Closed"
-        };
-        return statusMap[status] || status;
-      };
-
-      // Show warnings if any
-      if (validationResult.warnings.length > 0) {
-        toast({
-          variant: "warning",
-          title: "Status Updated with Warnings",
-          description: `From ${formatStatusName(oldStatus)} to ${formatStatusName(newStatus)}. Warnings: ${validationResult.warnings.join(", ")}`,
-        });
-      } else {
-        toast({
-          title: "Status Updated",
-          description: `From ${formatStatusName(oldStatus)} to ${formatStatusName(newStatus)}`,
-        });
-      }
-
-      return true;
-    } catch (err) {
-      console.error('Error updating project status:', err);
-
-      // Revert optimistic update on error
-      setProjects(prev => prev.map(project =>
-        project.id === projectId
-          ? { ...project, status: oldStatus, updated_at: new Date().toISOString() }
-          : project
-      ));
-
-      toast({
-        variant: "destructive",
-        title: "Error",
-        description: "Failed to update project status",
-      });
-      return false;
-    }
-  };
-
-  // Create a new project
-  const createProject = async (projectData: Partial<Project>) => {
-    try {
-      // Clean the data - remove fields that shouldn't be in the insert
-      const cleanData = {
-        title: projectData.title!,
-        description: projectData.description,
-        customer_id: projectData.customer_id,
-        status: projectData.status || 'inquiry_received',
-        priority: projectData.priority || 'medium',
-        priority_score: projectData.priority_score,
-        assignee_id: projectData.assignee_id,
-        estimated_value: projectData.estimated_value,
-        due_date: projectData.due_date,
-        contact_name: projectData.contact_name,
-        contact_email: projectData.contact_email,
-        contact_phone: projectData.contact_phone,
-        tags: projectData.tags,
-        notes: projectData.notes,
-        created_by: user?.id
-      };
-
-      const { data, error } = await supabase
-        .from('projects')
-        .insert([cleanData as any])
-        .select(`
-          *,
-          customer:customers(*)
-        `)
-        .single();
-
-      if (error) {
-        console.error('Error creating project:', error);
-        throw error;
-      }
-
-      setProjects(prev => [{ ...data, status: data.status } as Project, ...prev]);
-      return data;
-    } catch (err) {
-      console.error('Error in createProject:', err);
-      throw err;
-    }
-  };
-
-  // Create or get customer
-  const createOrGetCustomer = async (customerData: Partial<Customer>): Promise<Customer> => {
-    try {
-      // First, try to find existing customer by email or company
-      if (customerData.email || customerData.company) {
-        const { data: existingCustomer } = await supabase
-          .from('customers')
-          .select('*')
-          .or(`email.eq.${customerData.email},company.eq.${customerData.company}`)
-          .maybeSingle();
-
-        if (existingCustomer) {
-          return existingCustomer;
-        }
-      }
-
-      // Create new customer - ensure name is provided
-      const cleanCustomerData = {
-        name: customerData.name || customerData.company || 'Unknown',
-        company: customerData.company,
-        email: customerData.email,
-        phone: customerData.phone,
-        address: customerData.address,
-        country: customerData.country
-      };
-
-      const { data, error } = await supabase
-        .from('customers')
-        .insert([cleanCustomerData])
-        .select('*')
-        .single();
-
-      if (error) {
-        throw error;
-      }
-
-      return data;
-    } catch (err) {
-      console.error('Error creating customer:', err);
-      throw err;
-    }
-  };
 
   // Set up real-time subscription - only for project detail pages
   useEffect(() => {
@@ -599,34 +129,38 @@ export function useProjects() {
       window.location.pathname.includes('/project/') ||
       window.location.pathname === '/projects';
 
-    console.log('🔔 useProjects: Real-time subscription check:', {
-      currentPath: window.location.pathname,
-      shouldSubscribe: shouldSubscribeToRealtime,
-      hasGlobalChannel: !!globalChannelRef.current
-    });
+    // Reduce logging frequency to prevent console spam
+    const shouldLog = Math.random() < 0.1; // Only log 10% of the time
+
+    if (shouldLog) {
+      console.log('🔔 useProjects: Real-time subscription check:', {
+        currentPath: window.location.pathname,
+        shouldSubscribe: shouldSubscribeToRealtime,
+        realtimeManagerStatus: realtimeManager.getStatus()
+      });
+    }
 
     if (!shouldSubscribeToRealtime) {
-      console.log('🔔 useProjects: Skipping real-time subscription for route:', window.location.pathname);
+      if (shouldLog) {
+        console.log('🔔 useProjects: Skipping real-time subscription for route:', window.location.pathname);
+      }
       return;
     }
 
-    // Prevent infinite re-subscription loops
-    if (globalChannelRef.current) {
-      console.log('🔔 useProjects: Global channel already exists, skipping subscription setup');
-      return;
-    }
-
-    console.log('🔔 useProjects: Setting up global real-time subscription for route:', window.location.pathname);
-
-    // Set up global subscription for all project updates (simplified approach)
-    subscribeToGlobalProjectUpdates();
+    // Subscribe to the global real-time manager
+    const unsubscribe = realtimeManager.subscribe(() => {
+      // When we receive a notification, refetch projects to get the latest data
+      if (shouldLog) {
+        console.log('🔔 useProjects: Received real-time update notification, refetching projects');
+      }
+      fetchProjects();
+    });
 
     return () => {
-      if (globalChannelRef.current) {
-        console.log('🔔 useProjects: Cleaning up global real-time subscription');
-        supabase.removeChannel(globalChannelRef.current);
-        globalChannelRef.current = null;
+      if (shouldLog) {
+        console.log('🔔 useProjects: Unsubscribing from real-time manager');
       }
+      unsubscribe();
     };
   }, [user]); // Remove projects.length dependency to prevent infinite loops
 
@@ -697,225 +231,256 @@ export function useProjects() {
         console.error(`  - Requested ID: ${id}`);
         console.error(`  - Available projects: ${allProjects?.length || 0}`);
         console.error(`  - Database appears to be: ${allProjects?.length === 0 ? 'EMPTY' : 'POPULATED'}`);
-
-        if (allProjects?.length === 0) {
-          throw new Error('Database is empty. Please run the sample data migration or seed the database.');
-        } else {
-          throw new Error(`Project with ID "${id}" not found. Available projects: ${allProjects?.map(p => p.project_id).join(', ')}`);
-        }
+        throw new Error(`Project not found: ${id}`);
       }
 
-      console.log('✅ Project successfully fetched:', {
+      console.log('✅ Project found:', {
         id: data.id,
         project_id: data.project_id,
-        title: data.title,
         status: data.status,
-        customer: data.customer?.name || 'No customer'
+        customer: data.customer
       });
 
-      return { ...data, status: data.status } as Project;
+      return data;
     } catch (err) {
-      console.error('💥 Critical error in getProjectById:', err);
+      console.error('Error fetching project by ID:', err);
       throw err;
     }
   };
 
-  // Enhanced functions for supplier quote integration
-  const getProjectQuotes = async (projectId: string): Promise<SupplierQuote[]> => {
+  const updateProjectStatus = async (projectId: string, newStatus: ProjectStatus) => {
     try {
-      // Return empty array for now - would integrate with actual supplier_quotes table
-      return [];
-    } catch (err) {
-      console.error('Error fetching project quotes:', err);
-      return [];
-    }
-  };
+      // Find the current project to get the old status
+      const currentProject = projects.find(project => project.id === projectId);
+      if (!currentProject) {
+        toast({
+          variant: "destructive",
+          title: "Error",
+          description: "Project not found",
+        });
+        return false;
+      }
 
-  const getQuoteReadinessScore = async (projectId: string): Promise<QuoteReadinessIndicator | null> => {
-    try {
-      // Return null for now - would integrate with actual quote readiness calculation
-      return null;
-    } catch (err) {
-      console.error('Error getting quote readiness score:', err);
-      return null;
-    }
-  };
+      // Validate the status change using workflow validator
+      const validationResult = await WorkflowValidator.validateStatusChange(currentProject, newStatus);
 
-  const getProjectAnalytics = async (projectId: string): Promise<ProjectWorkflowAnalytics[]> => {
-    try {
-      // Return empty array for now - would integrate with actual analytics table
-      return [];
-    } catch (err) {
-      console.error('Error fetching project analytics:', err);
-      return [];
-    }
-  };
+      if (!validationResult.isValid) {
+        toast({
+          variant: "destructive",
+          title: "Validation Error",
+          description: validationResult.errors.join(", "),
+        });
+        return false;
+      }
 
-  const getBottleneckAnalysis = async (): Promise<BottleneckAlert[]> => {
-    try {
-      // Return mock data for now - would integrate with actual bottleneck detection
-      return [];
-    } catch (err) {
-      console.error('Error detecting bottlenecks:', err);
-      return [];
-    }
-  };
+      const oldStatus = currentProject.status;
 
-  const getProjectTimeline = async (projectId: string): Promise<ProjectWorkflowAnalytics[]> => {
-    return getProjectAnalytics(projectId);
-  };
-
-  const getCriticalPath = async (projectId: string): Promise<string[]> => {
-    try {
-      const analytics = await getProjectAnalytics(projectId);
-
-      // Identify stages that took longer than SLA
-      const criticalStages = analytics
-        .filter(stage => stage.sla_exceeded || stage.is_bottleneck)
-        .map(stage => stage.stage_name);
-
-      return criticalStages;
-    } catch (err) {
-      console.error('Error getting critical path:', err);
-      return [];
-    }
-  };
-
-  const getProjectsWithQuoteReadiness = async (): Promise<(Project & { quote_readiness?: QuoteReadinessIndicator })[]> => {
-    try {
-      const projectsWithQuotes = await Promise.all(
-        projects.map(async (project) => {
-          const quoteReadiness = await getQuoteReadinessScore(project.id);
-          return {
-            ...project,
-            quote_readiness: quoteReadiness
-          };
+      const { error } = await supabase
+        .from('projects')
+        .update({
+          status: newStatus,
+          updated_at: new Date().toISOString()
         })
+        .eq('id', projectId);
+
+      if (error) {
+        toast({
+          variant: "destructive",
+          title: "Error",
+          description: "Failed to update project status",
+        });
+        return false;
+      }
+
+      // Log successful update for debugging
+      console.log('✅ Database update successful, real-time subscription should handle UI updates');
+      console.log('🔔 Global real-time channel status:', realtimeManager.getStatus());
+
+      // Format status names for display
+      const formatStatusName = (status: ProjectStatus) => {
+        const statusMap = {
+          inquiry_received: "Inquiry Received",
+          technical_review: "Technical Review",
+          supplier_rfq_sent: "Supplier RFQ Sent",
+          quoted: "Quoted",
+          order_confirmed: "Order Confirmed",
+          procurement_planning: "Procurement & Planning",
+          in_production: "In Production",
+          shipped_closed: "Shipped & Closed"
+        };
+        return statusMap[status] || status;
+      };
+
+      // Show warnings if any
+      if (validationResult.warnings.length > 0) {
+        toast({
+          variant: "warning",
+          title: "Status Updated with Warnings",
+          description: `From ${formatStatusName(oldStatus)} to ${formatStatusName(newStatus)}. Warnings: ${validationResult.warnings.join(", ")}`,
+        });
+      } else {
+        toast({
+          title: "Status Updated",
+          description: `From ${formatStatusName(oldStatus)} to ${formatStatusName(newStatus)}`,
+        });
+      }
+
+      return true;
+    } catch (err) {
+      console.error('Error updating project status:', err);
+      toast({
+        variant: "destructive",
+        title: "Error",
+        description: "An unexpected error occurred while updating the project.",
+      });
+      return false;
+    }
+  };
+
+  // Optimistic update for immediate UI feedback
+  const updateProjectStatusOptimistic = useCallback(async (projectId: string, newStatus: ProjectStatus) => {
+    try {
+      // Find the current project to get the old status
+      const currentProject = projects.find(project => project.id === projectId);
+      if (!currentProject) {
+        console.error('Project not found for optimistic update:', projectId);
+        return false;
+      }
+
+      // Validate the status change using workflow validator
+      const validationResult = await WorkflowValidator.validateStatusChange(currentProject, newStatus);
+
+      if (!validationResult.isValid) {
+        console.error('Validation failed for optimistic update:', validationResult.errors);
+        return false;
+      }
+
+      const oldStatus = currentProject.status;
+
+      // Optimistically update the UI first
+      setProjects(prev =>
+        prev.map(project =>
+          project.id === projectId
+            ? { ...project, status: newStatus, updated_at: new Date().toISOString() }
+            : project
+        )
       );
 
-      return projectsWithQuotes;
-    } catch (err) {
-      console.error('Error getting projects with quote readiness:', err);
-      return projects;
-    }
-  };
+      // Update cache immediately for instant feedback
+      const updatedProjects = projects.map(project =>
+        project.id === projectId
+          ? { ...project, status: newStatus, updated_at: new Date().toISOString() }
+          : project
+      );
+      cacheService.setProjects(updatedProjects);
 
-  const getAnalyticsSummary = async (): Promise<AnalyticsMetrics | null> => {
+      // Perform the actual database update
+      const result = await updateProjectStatus(projectId, newStatus);
+
+      if (!result) {
+        // Revert optimistic update on failure
+        setProjects(prev =>
+          prev.map(project =>
+            project.id === projectId
+              ? { ...project, status: oldStatus, updated_at: currentProject.updated_at }
+              : project
+          )
+        );
+
+        // Revert cache
+        const revertedProjects = projects.map(project =>
+          project.id === projectId
+            ? { ...project, status: oldStatus, updated_at: currentProject.updated_at }
+            : project
+        );
+        cacheService.setProjects(revertedProjects);
+      }
+
+      return result;
+    } catch (error) {
+      console.error('Error in optimistic update:', error);
+      return false;
+    }
+  }, [projects, updateProjectStatus]);
+
+  // Create new project
+  const createProject = async (projectData: Partial<Project>) => {
     try {
-      // Return null for now - would integrate with actual analytics
-      return null;
+      const { data, error } = await supabase
+        .from('projects')
+        .insert([projectData])
+        .select()
+        .single();
+
+      if (error) {
+        throw error;
+      }
+
+      return data;
     } catch (err) {
-      console.error('Error getting analytics summary:', err);
-      return null;
+      console.error('Error creating project:', err);
+      throw err;
     }
   };
 
-  const refreshAnalytics = async (): Promise<void> => {
+  // Create or get customer
+  const createOrGetCustomer = async (customerData: Partial<Customer>) => {
     try {
-      // Mock implementation for now
-      console.log('Analytics refresh requested');
+      // First try to find existing customer
+      const { data: existingCustomer, error: findError } = await supabase
+        .from('customers')
+        .select('*')
+        .eq('email', customerData.email)
+        .single();
+
+      if (existingCustomer) {
+        return existingCustomer;
+      }
+
+      // Create new customer if not found
+      const { data: newCustomer, error: createError } = await supabase
+        .from('customers')
+        .insert([customerData])
+        .select()
+        .single();
+
+      if (createError) {
+        throw createError;
+      }
+
+      return newCustomer;
     } catch (err) {
-      console.error('Error refreshing analytics:', err);
+      console.error('Error creating customer:', err);
+      throw err;
     }
   };
 
-  // Test function to verify real-time subscription is working
-  const testRealtimeSubscription = () => {
+  // Test real-time subscription status
+  const testSupabaseRealtime = useCallback(async () => {
     console.log('🧪 Testing real-time subscription status:', {
       selectiveChannel: !!realtimeChannelRef.current,
-      globalChannel: !!globalChannelRef.current,
+      realtimeManager: realtimeManager.getStatus(),
       currentProjects: projects.length
     });
-  };
+  }, [projects.length]);
 
-  // Test function to manually trigger a state update
-  const testManualStateUpdate = () => {
-    console.log('🧪 Testing manual state update...');
-    const testProject = projects[0];
-    if (testProject) {
-      console.log('🧪 Manually updating project:', testProject.id, 'from', testProject.status);
-      setProjects(prev => prev.map(p =>
-        p.id === testProject.id
-          ? { ...p, status: 'technical_review' as ProjectStatus, updated_at: new Date().toISOString() }
-          : p
-      ));
-      console.log('🧪 Manual state update completed');
-    }
-  };
-
-  // Test function to verify Supabase real-time configuration
-  const testSupabaseRealtime = async () => {
-    console.log('🧪 Testing Supabase real-time configuration...');
-
-    try {
-      // Test if we can create a simple subscription
-      const testChannel = supabase
-        .channel('test-realtime')
-        .on(
-          'postgres_changes',
-          {
-            event: '*',
-            schema: 'public',
-            table: 'projects'
-          },
-          (payload) => {
-            console.log('🧪 Test real-time payload received:', payload);
-          }
-        )
-        .subscribe((status) => {
-          console.log('🧪 Test subscription status:', status);
-          if (status === 'SUBSCRIBED') {
-            console.log('✅ Supabase real-time is working for projects table');
-          } else {
-            console.error('❌ Supabase real-time failed for projects table:', status);
-          }
-        });
-
-      // Clean up test channel after 5 seconds
-      setTimeout(() => {
-        supabase.removeChannel(testChannel);
-        console.log('🧪 Test channel cleaned up');
-      }, 5000);
-
-    } catch (error) {
-      console.error('🧪 Error testing Supabase real-time:', error);
-    }
-  };
+  // Refetch projects
+  const refetch = useCallback(() => {
+    fetchProjects(true);
+  }, []);
 
   return {
     projects,
     loading,
     error,
-    refetch: fetchProjects,
+    fetchProjects,
     updateProjectStatus,
     updateProjectStatusOptimistic,
     createProject,
     createOrGetCustomer,
     getProjectById,
-    subscribeToProjectUpdates, // Export for external use
-    subscribeToGlobalProjectUpdates, // Export for external use
-
-    // New supplier quote integration
-    getProjectQuotes,
-    getQuoteReadinessScore,
-
-    // Enhanced analytics
-    getProjectAnalytics,
-    getBottleneckAnalysis,
-    getAnalyticsSummary,
-    refreshAnalytics,
-
-    // Workflow optimization
-    getProjectTimeline,
-    getCriticalPath,
-    getProjectsWithQuoteReadiness,
-
-    // Debug functions
-    testRealtimeSubscription,
-    testManualStateUpdate,
-    testSupabaseRealtime
+    subscribeToProjectUpdates,
+    testSupabaseRealtime,
+    refetch
   };
 }
-
-// Legacy compatibility - gradually phase out
-export const useRFQs = useProjects;

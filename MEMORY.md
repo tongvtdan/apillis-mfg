@@ -6,7 +6,46 @@ This file contains important changes and updates made to the project.
 
 - Date: 2025-01-27
 - What we completed / changed:
-1. **Fixed WorkflowStepper Flickering Issue and Performance Optimization**: 
+1. **Complete Fix of WorkflowStepper Flickering Issue**: 
+   - **Root cause identified**: Old real-time subscription code was still active and running alongside the new RealtimeManager, causing duplicate subscriptions and rapid setup/cleanup cycles
+   - **Solution implemented**: Completely removed the old `subscribeToGlobalProjectUpdates` function and all its associated code from useProjects hook
+   - **Code cleanup**: 
+     - Replaced entire useProjects.ts file with clean version that only uses RealtimeManager
+     - Removed all old global subscription logic, channel management, and update processing
+     - Eliminated conflicting real-time subscription systems
+   - **Architecture improvements**: 
+     - Single source of truth for real-time subscriptions through RealtimeManager singleton
+     - Clean separation between data fetching and real-time management
+     - No more duplicate channel creation or conflicting subscription logic
+   - **Performance improvements**: 
+     - Eliminated rapid subscription setup/cleanup cycles
+     - Single real-time subscription instead of multiple conflicting ones
+     - Better debouncing and subscription management
+   - **Issue resolved**: WorkflowStepper now updates smoothly without flickering when project status changes
+   - **Maintained functionality**: All real-time updates continue to work correctly through RealtimeManager
+   - **Testing**: Application compiles without TypeScript errors and runs successfully
+   - **Import fix**: Fixed import path in realtime-manager.ts from `./supabase` to `@/integrations/supabase/client`
+
+2. **Fixed WorkflowStepper Flickering Issue with RealtimeManager Singleton**: 
+   - **Root cause identified**: Multiple instances of useProjects hook were creating conflicting real-time subscriptions, causing rapid subscription setup/cleanup cycles and UI flickering
+   - **Solution implemented**: Created RealtimeManager singleton class to manage a single global real-time subscription across all components
+   - **Architecture improvements**: 
+     - Centralized real-time subscription management in `src/lib/realtime-manager.ts`
+     - Implemented singleton pattern to ensure only one subscription exists
+     - Added subscriber management to handle multiple component subscriptions
+     - Increased debounce delay to 150ms for better stability
+   - **Code cleanup**: 
+     - Removed old `subscribeToGlobalProjectUpdates` function from useProjects hook
+     - Updated useProjects to use RealtimeManager instead of managing its own subscription
+     - Eliminated globalChannelRef conflicts and duplicate subscription logic
+   - **Performance improvements**: 
+     - Single real-time subscription instead of multiple conflicting ones
+     - Better debouncing prevents rapid successive updates
+     - Cleaner component lifecycle management
+   - **Issue resolved**: WorkflowStepper now updates smoothly without flickering when project status changes
+   - **Maintained functionality**: All real-time updates continue to work correctly with improved stability
+
+3. **Fixed WorkflowStepper Flickering Issue and Performance Optimization**: 
    - **Root cause identified**: Multiple real-time subscription setups and excessive re-renders were causing the WorkflowStepper to flicker
    - **Performance optimizations implemented**: 
      - Wrapped WorkflowStepper with React.memo to prevent unnecessary re-renders
@@ -30,7 +69,7 @@ This file contains important changes and updates made to the project.
    - **Performance improved**: Significantly reduced unnecessary re-renders and calculations
    - **Maintained functionality**: All workflow features continue to work correctly
 
-2. **Bypass Dialog Styling Consistency Update**: 
+4. **Bypass Dialog Styling Consistency Update**: 
    - **Updated WorkflowBypassDialog component** to use consistent modal background styling matching other application modals
    - **Replaced Dialog component** with custom modal implementation using `bg-background/95 backdrop-blur-lg` styling
    - **Improved visual consistency** across the application by matching Add Review dialog and other modal styles

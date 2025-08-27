@@ -213,43 +213,71 @@ export function useWorkflowAutoAdvance(project: Project) {
                         }
                     } else if (project.status === 'supplier_rfq_sent') {
                         // Handle supplier_rfq_sent stage - check if quotes are received
-                        console.log('🔄 Auto-advance check for supplier_rfq_sent stage');
+                        // Reduce logging frequency to prevent spam
+                        if (Date.now() - lastMainCheck.current > 30000) { // Only log every 30 seconds
+                            console.log('🔄 Auto-advance check for supplier_rfq_sent stage');
+                            lastMainCheck.current = Date.now();
+                        }
                         setAutoAdvanceAvailable(false);
                         setNextStage(null);
                         setAutoAdvanceReason('Waiting for supplier quotes to be received and evaluated.');
                     } else if (project.status === 'quoted') {
                         // Handle quoted stage - check if order is confirmed
-                        console.log('🔄 Auto-advance check for quoted stage');
+                        // Reduce logging frequency to prevent spam
+                        if (Date.now() - lastMainCheck.current > 30000) { // Only log every 30 seconds
+                            console.log('🔄 Auto-advance check for quoted stage');
+                            lastMainCheck.current = Date.now();
+                        }
                         setAutoAdvanceAvailable(false);
                         setNextStage(null);
                         setAutoAdvanceReason('Waiting for order confirmation from customer.');
                     } else if (project.status === 'order_confirmed') {
                         // Handle order_confirmed stage - check if procurement planning is complete
-                        console.log('🔄 Auto-advance check for order_confirmed stage');
+                        // Reduce logging frequency to prevent spam
+                        if (Date.now() - lastMainCheck.current > 30000) { // Only log every 30 seconds
+                            console.log('🔄 Auto-advance check for order_confirmed stage');
+                            lastMainCheck.current = Date.now();
+                        }
                         setAutoAdvanceAvailable(false);
                         setNextStage(null);
                         setAutoAdvanceReason('Waiting for procurement planning to complete.');
                     } else if (project.status === 'procurement_planning') {
                         // Handle procurement_planning stage - check if ready for production
-                        console.log('🔄 Auto-advance check for procurement_planning stage');
+                        // Reduce logging frequency to prevent spam
+                        if (Date.now() - lastMainCheck.current > 30000) { // Only log every 30 seconds
+                            console.log('🔄 Auto-advance check for procurement_planning stage');
+                            lastMainCheck.current = Date.now();
+                        }
                         setAutoAdvanceAvailable(false);
                         setNextStage(null);
                         setAutoAdvanceReason('Waiting for procurement planning to complete before starting production.');
                     } else if (project.status === 'in_production') {
                         // Handle in_production stage - check if production is complete
-                        console.log('🔄 Auto-advance check for in_production stage');
+                        // Reduce logging frequency to prevent spam
+                        if (Date.now() - lastMainCheck.current > 30000) { // Only log every 30 seconds
+                            console.log('🔄 Auto-advance check for in_production stage');
+                            lastMainCheck.current = Date.now();
+                        }
                         setAutoAdvanceAvailable(false);
                         setNextStage(null);
                         setAutoAdvanceReason('Production in progress. Waiting for completion before shipping.');
                     } else if (project.status === 'inquiry_received') {
                         // Handle inquiry_received stage - check if technical review is ready
-                        console.log('🔄 Auto-advance check for inquiry_received stage');
+                        // Reduce logging frequency to prevent spam
+                        if (Date.now() - lastMainCheck.current > 30000) { // Only log every 30 seconds
+                            console.log('🔄 Auto-advance check for inquiry_received stage');
+                            lastMainCheck.current = Date.now();
+                        }
                         setAutoAdvanceAvailable(false);
                         setNextStage(null);
                         setAutoAdvanceReason('Inquiry received. Waiting for technical review to begin.');
                     } else {
                         // Use default workflow validator for other stages (fallback)
-                        console.log('🔄 Auto-advance check: Using default workflow validator for stage:', project.status);
+                        // Reduce logging frequency to prevent spam
+                        if (Date.now() - lastMainCheck.current > 30000) { // Only log every 30 seconds
+                            console.log('🔄 Auto-advance check: Using default workflow validator for stage:', project.status);
+                            lastMainCheck.current = Date.now();
+                        }
                         const result = await WorkflowValidator.checkAndAutoAdvance(project);
                         setAutoAdvanceAvailable(result.shouldAdvance);
                         setNextStage(result.nextStage);
