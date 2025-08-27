@@ -235,22 +235,6 @@ export const WorkflowStepper = React.memo(({ project }: WorkflowStepperProps) =>
       });
       lastStageCalculationsLogged.current = currentStatus;
     }
-<<<<<<< HEAD
-  }, [stageCalculations]);
-
-  // Debug logging to help identify status mapping issues - only log once per status
-  useEffect(() => {
-    const currentStage = project?.current_stage || project?.status;
-    if (currentStage && !stageConfig[currentStage]) {
-      console.warn(`🚨 WorkflowStepper: Unknown project stage "${currentStage}" not found in stageConfig`);
-      console.warn(`🚨 Available stages:`, Object.keys(stageConfig));
-    }
-  }, [project?.current_stage, project?.status]);
-
-  const handleStageClick = useCallback(async (stage: ProjectStatus) => {
-    const currentStage = project.current_stage || project.status;
-    if (stage === currentStage) return;
-=======
   }, [project.current_stage, stageCalculations]);
 
   // Debug logging to help identify status mapping issues - only log once per status
@@ -263,7 +247,6 @@ export const WorkflowStepper = React.memo(({ project }: WorkflowStepperProps) =>
 
   const handleStageClick = useCallback(async (stage: ProjectStage) => {
     if (stage === project.current_stage) return;
->>>>>>> 30d8ef01c232710fe654cd3acd26cb63851f3828
 
     try {
       // Check if user can bypass workflow
