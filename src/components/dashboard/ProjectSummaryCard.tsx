@@ -70,10 +70,7 @@ export function ProjectSummaryCard({ project, showUrgencyIndicators = false }: P
       reasons.push(`${project.days_in_stage} days overdue`);
     }
 
-<<<<<<< HEAD
-=======
     // Check current stage status for urgency indicators
->>>>>>> 1752392598538993a090e2df9e9e3e55519a1e59
     if (project.current_stage === 'quoted') {
       reasons.push('Awaiting customer decision');
     } else if (project.current_stage === 'technical_review') {

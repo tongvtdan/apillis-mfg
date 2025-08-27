@@ -5,7 +5,7 @@ import { Routes, Route } from "react-router-dom";
 import { AppLayout } from "@/components/layout/AppLayout";
 import { AuthProvider } from "@/contexts/AuthContext";
 import { ProtectedRoute } from "@/components/auth/ProtectedRoute";
-import React, { useEffect } from "react";
+import { useEffect } from "react";
 import Index from "./pages/Index";
 import Dashboard from "./pages/Dashboard";
 
@@ -21,7 +21,7 @@ import Customers from "./pages/Customers";
 import Suppliers from "./pages/Suppliers";
 import Reports from "./pages/Reports";
 import ProjectDetail from "./pages/ProjectDetail";
-import { RFQDetail } from "./pages/RFQDetail";
+import NewRFQ from "./pages/NewRFQ";
 import Settings from "./pages/Settings";
 
 import { applyAdaptiveTheme } from "@/lib/theme";
@@ -108,6 +108,16 @@ const App = () => {
           <Route path="/settings" element={
             <ProtectedRoute>
               <AppLayout><Settings /></AppLayout>
+            </ProtectedRoute>
+          } />
+          <Route path="/rfq/submit" element={
+            <ProtectedRoute>
+              <AppLayout><NewRFQ /></AppLayout>
+            </ProtectedRoute>
+          } />
+          <Route path="/rfq/new" element={
+            <ProtectedRoute>
+              <AppLayout><NewRFQ /></AppLayout>
             </ProtectedRoute>
           } />
 
