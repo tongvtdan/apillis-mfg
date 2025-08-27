@@ -1,6 +1,6 @@
 import { useState, useEffect, useCallback, useRef } from 'react';
 import { supabase } from '@/integrations/supabase/client';
-import { Project, ProjectStatus, Customer } from '@/types/project';
+import { Project, ProjectStage, ProjectStatus, Customer } from '@/types/project';
 import {
     SupplierQuote,
     QuoteReadinessIndicator,
@@ -237,9 +237,9 @@ export function useProjects() {
         }
     };
 
-    const updateProjectStatus = async (projectId: string, newStatus: ProjectStatus) => {
+    const updateProjectStatus = async (projectId: string, newStage: ProjectStage) => {
         try {
-            // Find the current project to get the old status
+            // Find the current project to get the old stage
             const currentProject = projects.find(project => project.id === projectId);
             if (!currentProject) {
                 toast({
@@ -251,7 +251,7 @@ export function useProjects() {
             }
 
             // Validate the status change using workflow validator
-            const validationResult = await WorkflowValidator.validateStatusChange(currentProject, newStatus);
+            const validationResult = await WorkflowValidator.validateStatusChange(currentProject, newStage);
 
             if (!validationResult.isValid) {
                 toast({
@@ -262,12 +262,12 @@ export function useProjects() {
                 return false;
             }
 
-            const oldStatus = currentProject.status;
+            const oldStage = currentProject.current_stage;
 
             const { error } = await supabase
                 .from('projects')
                 .update({
-                    status: newStatus,
+                    current_stage: newStage,
                     updated_at: new Date().toISOString()
                 })
                 .eq('id', projectId);
@@ -276,7 +276,7 @@ export function useProjects() {
                 toast({
                     variant: "destructive",
                     title: "Error",
-                    description: "Failed to update project status",
+                    description: "Failed to update project stage",
                 });
                 return false;
             }
@@ -285,9 +285,9 @@ export function useProjects() {
             console.log('✅ Database update successful, real-time subscription should handle UI updates');
             console.log('🔔 Global real-time channel status:', realtimeManager.getStatus());
 
-            // Format status names for display
-            const formatStatusName = (status: ProjectStatus) => {
-                const statusMap = {
+            // Format stage names for display
+            const formatStageName = (stage: ProjectStage) => {
+                const stageMap = {
                     inquiry_received: "Inquiry Received",
                     technical_review: "Technical Review",
                     supplier_rfq_sent: "Supplier RFQ Sent",
@@ -297,26 +297,26 @@ export function useProjects() {
                     in_production: "In Production",
                     shipped_closed: "Shipped & Closed"
                 };
-                return statusMap[status] || status;
+                return stageMap[stage] || stage;
             };
 
             // Show warnings if any
             if (validationResult.warnings.length > 0) {
                 toast({
                     variant: "warning",
-                    title: "Status Updated with Warnings",
-                    description: `From ${formatStatusName(oldStatus)} to ${formatStatusName(newStatus)}. Warnings: ${validationResult.warnings.join(", ")}`,
+                    title: "Stage Updated with Warnings",
+                    description: `From ${formatStageName(oldStage)} to ${formatStageName(newStage)}. Warnings: ${validationResult.warnings.join(", ")}`,
                 });
             } else {
                 toast({
-                    title: "Status Updated",
-                    description: `From ${formatStatusName(oldStatus)} to ${formatStatusName(newStatus)}`,
+                    title: "Stage Updated",
+                    description: `From ${formatStageName(oldStage)} to ${formatStageName(newStage)}`,
                 });
             }
 
             return true;
         } catch (err) {
-            console.error('Error updating project status:', err);
+            console.error('Error updating project stage:', err);
             toast({
                 variant: "destructive",
                 title: "Error",
@@ -327,9 +327,9 @@ export function useProjects() {
     };
 
     // Optimistic update for immediate UI feedback
-    const updateProjectStatusOptimistic = useCallback(async (projectId: string, newStatus: ProjectStatus) => {
+    const updateProjectStatusOptimistic = useCallback(async (projectId: string, newStage: ProjectStage) => {
         try {
-            // Find the current project to get the old status
+            // Find the current project to get the old stage
             const currentProject = projects.find(project => project.id === projectId);
             if (!currentProject) {
                 console.error('Project not found for optimistic update:', projectId);
@@ -337,20 +337,20 @@ export function useProjects() {
             }
 
             // Validate the status change using workflow validator
-            const validationResult = await WorkflowValidator.validateStatusChange(currentProject, newStatus);
+            const validationResult = await WorkflowValidator.validateStatusChange(currentProject, newStage);
 
             if (!validationResult.isValid) {
                 console.error('Validation failed for optimistic update:', validationResult.errors);
                 return false;
             }
 
-            const oldStatus = currentProject.status;
+            const oldStage = currentProject.current_stage;
 
             // Optimistically update the UI first
             setProjects(prev =>
                 prev.map(project =>
                     project.id === projectId
-                        ? { ...project, status: newStatus, updated_at: new Date().toISOString() }
+                        ? { ...project, current_stage: newStage, updated_at: new Date().toISOString() }
                         : project
                 )
             );
@@ -358,20 +358,20 @@ export function useProjects() {
             // Update cache immediately for instant feedback
             const updatedProjects = projects.map(project =>
                 project.id === projectId
-                    ? { ...project, status: newStatus, updated_at: new Date().toISOString() }
+                    ? { ...project, current_stage: newStage, updated_at: new Date().toISOString() }
                     : project
             );
             cacheService.setProjects(updatedProjects);
 
             // Perform the actual database update
-            const result = await updateProjectStatus(projectId, newStatus);
+            const result = await updateProjectStatus(projectId, newStage);
 
             if (!result) {
                 // Revert optimistic update on failure
                 setProjects(prev =>
                     prev.map(project =>
                         project.id === projectId
-                            ? { ...project, status: oldStatus, updated_at: currentProject.updated_at }
+                            ? { ...project, current_stage: oldStage, updated_at: currentProject.updated_at }
                             : project
                     )
                 );
@@ -379,7 +379,7 @@ export function useProjects() {
                 // Revert cache
                 const revertedProjects = projects.map(project =>
                     project.id === projectId
-                        ? { ...project, status: oldStatus, updated_at: currentProject.updated_at }
+                        ? { ...project, current_stage: oldStage, updated_at: currentProject.updated_at }
                         : project
                 );
                 cacheService.setProjects(revertedProjects);
@@ -463,8 +463,8 @@ export function useProjects() {
         loading,
         error,
         fetchProjects,
-        updateProjectStatus,
-        updateProjectStatusOptimistic,
+        updateProjectStage: updateProjectStatus,
+        updateProjectStageOptimistic: updateProjectStatusOptimistic,
         createProject,
         createOrGetCustomer,
         getProjectById,

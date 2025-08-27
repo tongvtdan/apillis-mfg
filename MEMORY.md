@@ -4,8 +4,25 @@ This file contains important changes and updates made to the project.
 
 ## Latest Changes Summary
 
-- Date: 2025-01-27
-- What we completed / changed:
+ - Date: 2025-01-27
+ - What we completed / changed:
+1. **Database Structure Overhaul - Projects Table Redesign**: 
+   - **Migrated database from single `status` field to dual field structure**: Split into `current_stage` (workflow) and `status` (lifecycle) fields
+   - **Added new fields to projects table**: 
+     - `current_stage` (ProjectStage): Workflow stages like inquiry_received, technical_review, etc.
+     - `status` (ProjectStatus): Lifecycle status like active, delayed, on_hold, cancelled, completed, archived
+     - `estimated_completion` (TIMESTAMPTZ): Planned completion date
+     - `actual_completion` (TIMESTAMPTZ): Actual completion date  
+     - `metadata` (JSONB): Flexible metadata storage with default empty object
+   - **Renamed database enum**: Changed `project_status` enum to `project_stage` for clarity
+   - **Updated TypeScript types**: Completely restructured Project interface to match new database schema
+   - **Fixed workflow validator**: Updated WorkflowValidator to use `current_stage` instead of legacy `status` field
+   - **Enhanced type system**: Added new ProjectStage and ProjectStatus types with proper separation
+   - **In progress**: Updating all components to use `current_stage` vs `status` appropriately
+   - **Status**: Database migration successful, types updated, fixing remaining component references
+
+ - Date: 2025-01-27
+ - What we completed / changed:
 1. **Complete Fix of WorkflowStepper Flickering Issue**: 
    - **Root cause identified**: Old real-time subscription code was still active and running alongside the new RealtimeManager, causing duplicate subscriptions and rapid setup/cleanup cycles
    - **Solution implemented**: Completely removed the old `subscribeToGlobalProjectUpdates` function and all its associated code from useProjects hook

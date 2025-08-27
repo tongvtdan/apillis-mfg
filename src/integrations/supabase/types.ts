@@ -647,19 +647,23 @@ export type Database = {
       }
       projects: {
         Row: {
+          actual_completion: string | null
           assignee_id: string | null
           contact_email: string | null
           contact_name: string | null
           contact_phone: string | null
           created_at: string
           created_by: string | null
+          current_stage: Database["public"]["Enums"]["project_stage"] | null
           customer_id: string | null
           days_in_stage: number | null
           description: string | null
           due_date: string | null
           engineering_reviewer_id: string | null
+          estimated_completion: string | null
           estimated_value: number | null
           id: string
+          metadata: Json | null
           notes: string | null
           priority: Database["public"]["Enums"]["project_priority"]
           priority_score: number | null
@@ -669,7 +673,7 @@ export type Database = {
           qa_reviewer_id: string | null
           review_summary: Json | null
           stage_entered_at: string | null
-          status: Database["public"]["Enums"]["project_status"]
+          status: Database["public"]["Enums"]["project_lifecycle_status"] | null
           supplier_id: string | null
           tags: string[] | null
           title: string
@@ -677,19 +681,23 @@ export type Database = {
           updated_by: string | null
         }
         Insert: {
+          actual_completion?: string | null
           assignee_id?: string | null
           contact_email?: string | null
           contact_name?: string | null
           contact_phone?: string | null
           created_at?: string
           created_by?: string | null
+          current_stage?: Database["public"]["Enums"]["project_stage"] | null
           customer_id?: string | null
           days_in_stage?: number | null
           description?: string | null
           due_date?: string | null
           engineering_reviewer_id?: string | null
+          estimated_completion?: string | null
           estimated_value?: number | null
           id?: string
+          metadata?: Json | null
           notes?: string | null
           priority?: Database["public"]["Enums"]["project_priority"]
           priority_score?: number | null
@@ -699,7 +707,9 @@ export type Database = {
           qa_reviewer_id?: string | null
           review_summary?: Json | null
           stage_entered_at?: string | null
-          status?: Database["public"]["Enums"]["project_status"]
+          status?:
+            | Database["public"]["Enums"]["project_lifecycle_status"]
+            | null
           supplier_id?: string | null
           tags?: string[] | null
           title: string
@@ -707,19 +717,23 @@ export type Database = {
           updated_by?: string | null
         }
         Update: {
+          actual_completion?: string | null
           assignee_id?: string | null
           contact_email?: string | null
           contact_name?: string | null
           contact_phone?: string | null
           created_at?: string
           created_by?: string | null
+          current_stage?: Database["public"]["Enums"]["project_stage"] | null
           customer_id?: string | null
           days_in_stage?: number | null
           description?: string | null
           due_date?: string | null
           engineering_reviewer_id?: string | null
+          estimated_completion?: string | null
           estimated_value?: number | null
           id?: string
+          metadata?: Json | null
           notes?: string | null
           priority?: Database["public"]["Enums"]["project_priority"]
           priority_score?: number | null
@@ -729,7 +743,9 @@ export type Database = {
           qa_reviewer_id?: string | null
           review_summary?: Json | null
           stage_entered_at?: string | null
-          status?: Database["public"]["Enums"]["project_status"]
+          status?:
+            | Database["public"]["Enums"]["project_lifecycle_status"]
+            | null
           supplier_id?: string | null
           tags?: string[] | null
           title?: string
@@ -1544,8 +1560,15 @@ export type Database = {
         | "account_locked"
         | "account_unlocked"
         | "profile_update"
+      project_lifecycle_status:
+        | "active"
+        | "delayed"
+        | "on_hold"
+        | "cancelled"
+        | "completed"
+        | "archived"
       project_priority: "low" | "medium" | "high" | "urgent"
-      project_status:
+      project_stage:
         | "inquiry"
         | "review"
         | "quoted"
@@ -1729,8 +1752,16 @@ export const Constants = {
         "account_unlocked",
         "profile_update",
       ],
+      project_lifecycle_status: [
+        "active",
+        "delayed",
+        "on_hold",
+        "cancelled",
+        "completed",
+        "archived",
+      ],
       project_priority: ["low", "medium", "high", "urgent"],
-      project_status: [
+      project_stage: [
         "inquiry",
         "review",
         "quoted",

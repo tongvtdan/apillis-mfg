@@ -1,4 +1,4 @@
-import { Project, ProjectStatus } from "@/types/project";
+import { Project, ProjectStage } from "@/types/project";
 import { SupplierQuote } from "@/types/supplier";
 import { UserRole } from "@/types/auth";
 
@@ -11,7 +11,7 @@ export interface WorkflowValidationResult {
     autoAdvanceReason?: string;
     bypassRequired?: boolean;
     bypassReason?: string;
-    skippedStages?: ProjectStatus[];
+    skippedStages?: ProjectStage[];
 }
 
 export interface WorkflowBypassRequest {
@@ -70,7 +70,7 @@ export const DEFAULT_EXIT_CRITERIA: ExitCriteria = {
 export class WorkflowValidator {
     static async validateStatusChange(
         project: Project,
-        newStatus: ProjectStatus,
+        newStage: ProjectStage,
         supplierQuotes?: SupplierQuote[]
     ): Promise<WorkflowValidationResult> {
         const result: WorkflowValidationResult = {
@@ -82,29 +82,29 @@ export class WorkflowValidator {
         };
 
         // Check if the status change is valid (can't go backwards except for specific cases)
-        const currentStageIndex = this.getStageIndex(project.status);
-        const newStageIndex = this.getStageIndex(newStatus);
+        const currentStageIndex = this.getStageIndex(project.current_stage);
+        const newStageIndex = this.getStageIndex(newStage);
 
         // Prevent moving backwards in workflow unless specifically allowed
-        if (newStageIndex < currentStageIndex && !this.isBackwardMovementAllowed(project.status, newStatus)) {
+        if (newStageIndex < currentStageIndex && !this.isBackwardMovementAllowed(project.current_stage, newStage)) {
             result.isValid = false;
-            result.errors.push(`Cannot move project backwards from ${this.getStageName(project.status)} to ${this.getStageName(newStatus)}`);
+            result.errors.push(`Cannot move project backwards from ${this.getStageName(project.current_stage)} to ${this.getStageName(newStage)}`);
             return result;
         }
 
         // Check if current stage exit criteria are met for auto-advance
-        const currentStageComplete = this.isStageComplete(project, project.status);
+        const currentStageComplete = this.isStageComplete(project, project.current_stage);
         const isNextStage = newStageIndex === currentStageIndex + 1;
 
         if (currentStageComplete && isNextStage) {
             result.canAutoAdvance = true;
-            result.autoAdvanceReason = `All exit criteria for ${this.getStageName(project.status)} are met. Project can automatically advance to ${this.getStageName(newStatus)}.`;
+            result.autoAdvanceReason = `All exit criteria for ${this.getStageName(project.current_stage)} are met. Project can automatically advance to ${this.getStageName(newStage)}.`;
         }
 
-        // Validate exit criteria based on current status
-        switch (project.status) {
+        // Validate exit criteria based on current stage
+        switch (project.current_stage) {
             case 'inquiry_received':
-                if (newStatus === 'technical_review') {
+                if (newStage === 'technical_review') {
                     // Check that required fields are filled
                     if (!project.customer_id) {
                         result.errors.push("Customer information is required");
@@ -115,7 +115,7 @@ export class WorkflowValidator {
                 } else {
                     // Any other transition from inquiry_received requires bypass
                     result.bypassRequired = true;
-                    result.bypassReason = `Direct transition from ${this.getStageName(project.status)} to ${this.getStageName(newStatus)} requires manager approval.`;
+                    result.bypassReason = `Direct transition from ${this.getStageName(project.current_stage)} to ${this.getStageName(newStage)} requires manager approval.`;
                 }
                 break;
 
@@ -217,8 +217,8 @@ export class WorkflowValidator {
         return result;
     }
 
-    static getStageIndex(status: ProjectStatus): number {
-        const stages: ProjectStatus[] = [
+    static getStageIndex(stage: ProjectStage): number {
+        const stages: ProjectStage[] = [
             'inquiry_received',
             'technical_review',
             'supplier_rfq_sent',
@@ -228,11 +228,11 @@ export class WorkflowValidator {
             'in_production',
             'shipped_closed'
         ];
-        return stages.indexOf(status);
+        return stages.indexOf(stage);
     }
 
-    static getStageName(status: ProjectStatus): string {
-        const stageNames: Record<ProjectStatus, string> = {
+    static getStageName(stage: ProjectStage): string {
+        const stageNames: Record<ProjectStage, string> = {
             inquiry_received: "Inquiry Received",
             technical_review: "Technical Review",
             supplier_rfq_sent: "Supplier RFQ Sent",
@@ -242,7 +242,7 @@ export class WorkflowValidator {
             in_production: "In Production",
             shipped_closed: "Shipped & Closed"
         };
-        return stageNames[status] || status;
+        return stageNames[stage] || stage;
     }
 
     static isBackwardMovementAllowed(currentStatus: ProjectStatus, newStatus: ProjectStatus): boolean {

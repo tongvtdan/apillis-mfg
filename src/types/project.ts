@@ -1,4 +1,5 @@
-export type ProjectStatus = 'inquiry_received' | 'technical_review' | 'supplier_rfq_sent' | 'quoted' | 'order_confirmed' | 'procurement_planning' | 'in_production' | 'shipped_closed';
+export type ProjectStage = 'inquiry_received' | 'technical_review' | 'supplier_rfq_sent' | 'quoted' | 'order_confirmed' | 'procurement_planning' | 'in_production' | 'shipped_closed';
+export type ProjectStatus = 'active' | 'delayed' | 'on_hold' | 'cancelled' | 'completed' | 'archived';
 export type ProjectPriority = 'low' | 'medium' | 'high' | 'urgent';
 export type ProjectType = 'system_build' | 'fabrication' | 'manufacturing';
 
@@ -21,6 +22,8 @@ export interface Project {
   description?: string;
   customer_id?: string;
   customer?: Customer;
+  current_stage: ProjectStage;
+  stage_entered_at: string;
   status: ProjectStatus;
   priority: ProjectPriority;
   priority_score?: number;
@@ -28,12 +31,13 @@ export interface Project {
   assignee_id?: string;
   estimated_value?: number;
   due_date?: string;
+  estimated_completion?: string;
+  actual_completion?: string;
   created_at: string;
   updated_at: string;
   created_by?: string;
   updated_by?: string;
   days_in_stage: number;
-  stage_entered_at: string;
   engineering_reviewer_id?: string;
   qa_reviewer_id?: string;
   production_reviewer_id?: string;
@@ -43,6 +47,7 @@ export interface Project {
   contact_phone?: string;
   tags?: string[];
   notes?: string;
+  metadata?: Record<string, any>;
 }
 
 export interface ProjectDocument {
@@ -99,8 +104,8 @@ export interface ProjectActivity {
   created_by?: string;
 }
 
-export interface ProjectStage {
-  id: ProjectStatus;
+export interface ProjectStageInfo {
+  id: ProjectStage;
   name: string;
   color: string;
   count: number;
@@ -125,7 +130,7 @@ export interface ProjectMetric {
   created_at: string;
 }
 
-export const PROJECT_STAGES: ProjectStage[] = [
+export const PROJECT_STAGES: ProjectStageInfo[] = [
   { id: "inquiry_received", name: "Inquiry Received", color: "bg-blue-100 text-blue-800", count: 0 },
   { id: "technical_review", name: "Technical Review", color: "bg-orange-100 text-orange-800", count: 0 },
   { id: "supplier_rfq_sent", name: "Supplier RFQ Sent", color: "bg-indigo-100 text-indigo-800", count: 0 },
@@ -135,6 +140,17 @@ export const PROJECT_STAGES: ProjectStage[] = [
   { id: "in_production", name: "In Production", color: "bg-teal-100 text-teal-800", count: 0 },
   { id: "shipped_closed", name: "Shipped & Closed", color: "bg-gray-100 text-gray-800", count: 0 }
 ];
+
+export const STAGE_COLORS: Record<ProjectStage, string> = {
+  inquiry_received: 'bg-blue-100 text-blue-800',
+  technical_review: 'bg-orange-100 text-orange-800',
+  supplier_rfq_sent: 'bg-indigo-100 text-indigo-800',
+  quoted: 'bg-green-100 text-green-800',
+  order_confirmed: 'bg-purple-100 text-purple-800',
+  procurement_planning: 'bg-yellow-100 text-yellow-800',
+  in_production: 'bg-teal-100 text-teal-800',
+  shipped_closed: 'bg-gray-100 text-gray-800'
+};
 
 export const PRIORITY_COLORS: Record<ProjectPriority, string> = {
   urgent: 'bg-red-100 text-red-800 border-red-200',
@@ -162,12 +178,12 @@ export const PROJECT_TYPE_COLORS: Record<ProjectType, string> = {
 };
 
 // Legacy RFQ compatibility - gradually phase out
-export type RFQStatus = ProjectStatus;
+export type RFQStatus = ProjectStage;
 export type RFQPriority = ProjectPriority;
 export type RFQType = ProjectType;
 export type RFQ = Project;
 export type RFQAttachment = ProjectDocument;
 export type RFQActivity = ProjectActivity;
-export type RFQStage = ProjectStage;
+export type RFQStage = ProjectStageInfo;
 
 export const RFQ_STAGES = PROJECT_STAGES;
