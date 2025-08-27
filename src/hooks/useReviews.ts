@@ -1,58 +1,77 @@
 import { useState, useEffect } from 'react';
 import { supabase } from '@/integrations/supabase/client';
-import { InternalReview, RFQRisk, RFQClarification, ReviewSubmission, Department } from '@/types/review';
 import { useAuth } from '@/contexts/AuthContext';
 import { useToast } from '@/hooks/use-toast';
 
-export function useReviews(rfqId: string) {
-  const [reviews, setReviews] = useState<InternalReview[]>([]);
-  const [risks, setRisks] = useState<RFQRisk[]>([]);
-  const [clarifications, setClarifications] = useState<RFQClarification[]>([]);
+// Types for reviews system
+export interface Review {
+  id: string;
+  project_id: string;
+  reviewer_id: string;
+  reviewer_role: string;
+  review_type: 'standard' | 'technical' | 'quality' | 'production' | 'cost' | 'compliance' | 'safety';
+  status: 'pending' | 'in_progress' | 'approved' | 'rejected' | 'needs_info' | 'on_hold';
+  priority: 'low' | 'medium' | 'high' | 'urgent';
+  comments?: string;
+  risks: any[];
+  recommendations?: string;
+  tooling_required: boolean;
+  estimated_cost?: number;
+  estimated_lead_time?: number;
+  due_date?: string;
+  reviewed_at?: string;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface ReviewChecklistItem {
+  id: string;
+  review_id: string;
+  item_text: string;
+  is_checked: boolean;
+  is_required: boolean;
+  notes?: string;
+  checked_by?: string;
+  checked_at?: string;
+}
+
+export function useReviews(projectId: string) {
+  const [reviews, setReviews] = useState<Review[]>([]);
+  const [checklistItems, setChecklistItems] = useState<ReviewChecklistItem[]>([]);
   const [loading, setLoading] = useState(true);
   const { user } = useAuth();
   const { toast } = useToast();
 
   // Fetch all review data
-  const fetchReviewData = async () => {
-    if (!rfqId) return;
+  const fetchReviews = async () => {
+    if (!projectId) return;
 
     try {
-      const [reviewsRes, risksRes, clarificationsRes] = await Promise.all([
+      const [reviewsRes, checklistRes] = await Promise.all([
         supabase
-          .from('rfq_internal_reviews')
+          .from('reviews')
           .select('*')
-          .eq('rfq_id', rfqId)
-          .order('created_at', { ascending: true }),
-        
-        supabase
-          .from('rfq_risks')
-          .select('*')
-          .eq('rfq_id', rfqId)
+          .eq('project_id', projectId)
           .order('created_at', { ascending: false }),
         
         supabase
-          .from('rfq_clarifications')
+          .from('review_checklist_items')
           .select('*')
-          .eq('rfq_id', rfqId)
-          .order('created_at', { ascending: false })
+          .eq('review_id', projectId)
+          .order('item_text', { ascending: true })
       ]);
 
       if (reviewsRes.error) throw reviewsRes.error;
-      if (risksRes.error) throw risksRes.error;
-      if (clarificationsRes.error) throw clarificationsRes.error;
+      if (checklistRes.error) throw checklistRes.error;
 
-      setReviews((reviewsRes.data || []).filter(r => ['Engineering', 'QA', 'Production'].includes(r.department)) as InternalReview[]);
-      setRisks(risksRes.data || []);
-      setClarifications((clarificationsRes.data || []).map(c => ({
-        ...c,
-        status: c.status as any
-      })) as RFQClarification[]);
+      setReviews(reviewsRes.data || []);
+      setChecklistItems(checklistRes.data || []);
     } catch (error) {
-      console.error('Error fetching review data:', error);
+      console.error('Error fetching reviews:', error);
       toast({
         variant: 'destructive',
         title: 'Error',
-        description: 'Failed to load review data.'
+        description: 'Failed to load reviews.'
       });
     } finally {
       setLoading(false);
@@ -60,146 +79,120 @@ export function useReviews(rfqId: string) {
   };
 
   useEffect(() => {
-    fetchReviewData();
-  }, [rfqId]);
+    fetchReviews();
+  }, [projectId]);
 
-  // Submit review
-  const submitReview = async (department: Department, submission: ReviewSubmission) => {
-    if (!user) return;
-
-    try {
-      // Check if review already exists
-      const existingReview = reviews.find(r => r.department === department);
-      
-      if (existingReview) {
-        // Update existing review
-        const { error: updateError } = await supabase
-          .from('rfq_internal_reviews')
-          .update({
-            status: submission.status,
-            feedback: submission.feedback,
-            suggestions: submission.suggestions,
-            submitted_at: new Date().toISOString(),
-            submitted_by: user.id
-          })
-          .eq('id', existingReview.id);
-
-        if (updateError) throw updateError;
-      } else {
-        // Create new review
-        const { error: insertError } = await supabase
-          .from('rfq_internal_reviews')
-          .insert({
-            rfq_id: rfqId,
-            department,
-            reviewer_id: user.id,
-            status: submission.status,
-            feedback: submission.feedback,
-            suggestions: submission.suggestions,
-            submitted_at: new Date().toISOString(),
-            submitted_by: user.id
-          });
-
-        if (insertError) throw insertError;
-      }
-
-      // Submit risks if any
-      if (submission.risks.length > 0) {
-        const { error: risksError } = await supabase
-          .from('rfq_risks')
-          .insert(
-            submission.risks.map(risk => ({
-              rfq_id: rfqId,
-              description: risk.description,
-              category: risk.category,
-              severity: risk.severity,
-              mitigation_plan: risk.mitigation_plan,
-              created_by: user.id
-            }))
-          );
-
-        if (risksError) throw risksError;
-      }
-
-      // Refresh data
-      await fetchReviewData();
-
-      toast({
-        title: 'Review Submitted',
-        description: `Your ${department} review has been submitted successfully.`
-      });
-
-      return true;
-    } catch (error) {
-      console.error('Error submitting review:', error);
-      toast({
-        variant: 'destructive',
-        title: 'Error',
-        description: 'Failed to submit review. Please try again.'
-      });
-      return false;
-    }
-  };
-
-  // Submit clarification request
-  const submitClarification = async (description: string) => {
-    if (!user) return;
+  // Create a new review
+  const createReview = async (reviewData: Partial<Review>) => {
+    if (!user) return null;
 
     try {
-      const { error } = await supabase
-        .from('rfq_clarifications')
+      const { data, error } = await supabase
+        .from('reviews')
         .insert({
-          rfq_id: rfqId,
-          requested_by: user.id,
-          description,
-          status: 'open'
-        });
+          project_id: projectId,
+          reviewer_id: user.id,
+          ...reviewData
+        })
+        .select()
+        .single();
 
       if (error) throw error;
 
-      await fetchReviewData();
-
       toast({
-        title: 'Clarification Requested',
-        description: 'Your clarification request has been submitted.'
+        title: 'Success',
+        description: 'Review created successfully.'
       });
 
-      return true;
+      await fetchReviews();
+      return data;
     } catch (error) {
-      console.error('Error submitting clarification:', error);
+      console.error('Error creating review:', error);
       toast({
         variant: 'destructive',
         title: 'Error',
-        description: 'Failed to submit clarification request.'
+        description: 'Failed to create review.'
+      });
+      return null;
+    }
+  };
+
+  // Update a review
+  const updateReview = async (reviewId: string, updates: Partial<Review>) => {
+    try {
+      const { error } = await supabase
+        .from('reviews')
+        .update({
+          ...updates,
+          updated_at: new Date().toISOString()
+        })
+        .eq('id', reviewId);
+
+      if (error) throw error;
+
+      toast({
+        title: 'Success',
+        description: 'Review updated successfully.'
+      });
+
+      await fetchReviews();
+      return true;
+    } catch (error) {
+      console.error('Error updating review:', error);
+      toast({
+        variant: 'destructive',
+        title: 'Error',
+        description: 'Failed to update review.'
       });
       return false;
     }
   };
 
-  // Assign reviewer
-  const assignReviewer = async (department: Department, reviewerId: string) => {
+  // Create checklist item
+  const createChecklistItem = async (reviewId: string, itemData: Partial<ReviewChecklistItem>) => {
     try {
-      const fieldName = `${department.toLowerCase()}_reviewer_id` as const;
-      
-      const { error } = await supabase
-        .from('rfqs')
-        .update({ [fieldName]: reviewerId })
-        .eq('id', rfqId);
+      const { data, error } = await supabase
+        .from('review_checklist_items')
+        .insert({
+          review_id: reviewId,
+          ...itemData
+        })
+        .select()
+        .single();
 
       if (error) throw error;
 
-      toast({
-        title: 'Reviewer Assigned',
-        description: `Reviewer assigned to ${department} review.`
-      });
-
-      return true;
+      await fetchReviews();
+      return data;
     } catch (error) {
-      console.error('Error assigning reviewer:', error);
+      console.error('Error creating checklist item:', error);
       toast({
         variant: 'destructive',
         title: 'Error',
-        description: 'Failed to assign reviewer.'
+        description: 'Failed to create checklist item.'
+      });
+      return null;
+    }
+  };
+
+  // Update checklist item
+  const updateChecklistItem = async (itemId: string, updates: Partial<ReviewChecklistItem>) => {
+    try {
+      const { error } = await supabase
+        .from('review_checklist_items')
+        .update(updates)
+        .eq('id', itemId);
+
+      if (error) throw error;
+
+      await fetchReviews();
+      return true;
+    } catch (error) {
+      console.error('Error updating checklist item:', error);
+      toast({
+        variant: 'destructive',
+        title: 'Error',
+        description: 'Failed to update checklist item.'
       });
       return false;
     }
@@ -207,12 +200,12 @@ export function useReviews(rfqId: string) {
 
   return {
     reviews,
-    risks,
-    clarifications,
+    checklistItems,
     loading,
-    submitReview,
-    submitClarification,
-    assignReviewer,
-    refreshData: fetchReviewData
+    createReview,
+    updateReview,
+    createChecklistItem,
+    updateChecklistItem,
+    refetch: fetchReviews
   };
 }

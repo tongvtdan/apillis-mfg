@@ -13,7 +13,8 @@ import {
     FileText,
     MessageSquare,
     TrendingUp,
-    MapPin
+    MapPin,
+    Eye
 } from "lucide-react";
 import { Project, PROJECT_STAGES, PRIORITY_COLORS } from "@/types/project";
 import { useNavigate } from "react-router-dom";

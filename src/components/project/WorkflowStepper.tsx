@@ -123,7 +123,13 @@ export const WorkflowStepper = React.memo(({ project }: WorkflowStepperProps) =>
 
   // Memoize stage calculations to prevent unnecessary recalculations
   const stageCalculations = useMemo(() => {
+<<<<<<< HEAD
     const currentIndex = allStages.indexOf(project.current_stage);
+=======
+    // Use current_stage with fallback to status for backward compatibility
+    const currentStage = project.current_stage || project.status;
+    const currentIndex = allStages.indexOf(currentStage as any);
+>>>>>>> 1752392598538993a090e2df9e9e3e55519a1e59
     const progressPercentage = currentIndex >= 0 ? Math.round((currentIndex / (allStages.length - 1)) * 100) : 0;
 
     return {
@@ -132,7 +138,11 @@ export const WorkflowStepper = React.memo(({ project }: WorkflowStepperProps) =>
       totalStages: allStages.length,
       currentStage
     };
+<<<<<<< HEAD
   }, [project.current_stage]);
+=======
+  }, [project.current_stage, project.status]);
+>>>>>>> 1752392598538993a090e2df9e9e3e55519a1e59
 
   // Memoize stage status functions to prevent recreation on every render
   const getStageStatus = useCallback((stage: ProjectStage) => {
@@ -185,7 +195,11 @@ export const WorkflowStepper = React.memo(({ project }: WorkflowStepperProps) =>
 
   // Debug logging for project changes - only log when status actually changes
   useEffect(() => {
+<<<<<<< HEAD
     const currentStatus = project.current_stage;
+=======
+    const currentStatus = project.current_stage || project.status;
+>>>>>>> 1752392598538993a090e2df9e9e3e55519a1e59
     const currentUpdatedAt = project.updated_at;
 
     if (lastStatusLogged.current !== currentStatus || lastUpdatedAtLogged.current !== currentUpdatedAt) {
@@ -198,7 +212,11 @@ export const WorkflowStepper = React.memo(({ project }: WorkflowStepperProps) =>
       lastStatusLogged.current = currentStatus;
       lastUpdatedAtLogged.current = currentUpdatedAt;
     }
+<<<<<<< HEAD
   }, [project.id, project.current_stage, project.updated_at]);
+=======
+  }, [project.id, project.current_stage, project.status, project.updated_at]);
+>>>>>>> 1752392598538993a090e2df9e9e3e55519a1e59
 
   // Debug logging for stage calculations - only log when calculations change
   useEffect(() => {
@@ -217,11 +235,20 @@ export const WorkflowStepper = React.memo(({ project }: WorkflowStepperProps) =>
 
   // Debug logging to help identify status mapping issues - only log once per status
   useEffect(() => {
+<<<<<<< HEAD
     if (project?.current_stage && !stageConfig[project.current_stage]) {
       console.warn(`🚨 WorkflowStepper: Unknown project stage "${project.current_stage}" not found in stageConfig`);
       console.warn(`🚨 Available stages:`, Object.keys(stageConfig));
     }
   }, [project?.current_stage]);
+=======
+    const currentStage = project?.current_stage || project?.status;
+    if (currentStage && !stageConfig[currentStage]) {
+      console.warn(`🚨 WorkflowStepper: Unknown project stage "${currentStage}" not found in stageConfig`);
+      console.warn(`🚨 Available stages:`, Object.keys(stageConfig));
+    }
+  }, [project?.current_stage, project?.status]);
+>>>>>>> 1752392598538993a090e2df9e9e3e55519a1e59
 
   const handleStageClick = useCallback(async (stage: ProjectStage) => {
     if (stage === project.current_stage) return;

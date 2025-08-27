@@ -49,7 +49,7 @@ export function AppHeader() {
             <div className="relative w-64 md:w-96">
               <Search className="absolute left-2 top-2.5 h-4 w-4 text-muted-foreground" />
               <Input
-                placeholder="Search RFQs, customers, or documents..."
+                placeholder="Search projects, customers, or documents..."
                 className="pl-8"
               />
             </div>
@@ -59,7 +59,7 @@ export function AppHeader() {
         <div className="flex items-center space-x-4">
           {isProjectsPage && (
             <Button asChild size="sm" className="bg-primary hover:bg-primary/90 text-primary-foreground">
-              <Link to="/rfq/new">
+              <Link to="/projects">
                 <Plus className="mr-2 h-4 w-4" />
                 New Project
               </Link>

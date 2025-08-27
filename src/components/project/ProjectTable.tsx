@@ -69,7 +69,7 @@ export function ProjectTable({ projects, updateProjectStatusOptimistic: external
     console.log(`📊 Current project status: ${project.status}, target: ${newStatus}`);
 
     // Validate the stage change using workflow validator
-    const validationResult = await WorkflowValidator.validateStatusChange(project, newStatus);
+    const validationResult = await WorkflowValidator.validateStatusChange(project, newStatus as any);
 
     if (!validationResult.isValid) {
       // Show validation errors via toast (handled by the hook)
