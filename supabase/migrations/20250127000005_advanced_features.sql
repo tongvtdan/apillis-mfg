@@ -374,3 +374,124 @@ ALTER TABLE ai_processing_queue ENABLE ROW LEVEL SECURITY;
 ALTER TABLE ai_model_configs ENABLE ROW LEVEL SECURITY;
 ALTER TABLE cloud_storage_integrations ENABLE ROW LEVEL SECURITY;
 ALTER TABLE document_sync_log ENABLE ROW LEVEL SECURITY;
+
+-- ============================================================================
+-- STEP 18: Create RLS policies for activity_log table
+-- ============================================================================
+-- Users can view their own activity logs
+CREATE POLICY "Users can view their own activity logs" ON activity_log
+FOR SELECT
+TO public
+USING (
+  -- Users can view their own logs
+  user_id = auth.uid()
+  OR
+  -- Admin users can view all logs (using the function)
+  is_user_admin()
+  OR
+  -- Service role can view all logs
+  auth.role() = 'service_role'
+);
+
+-- Users can insert their own activity logs
+CREATE POLICY "Users can insert their own activity logs" ON activity_log
+FOR INSERT
+TO public
+WITH CHECK (
+  -- Users can insert logs for themselves
+  user_id = auth.uid()
+  OR
+  -- Admin users can insert logs for any user
+  is_user_admin()
+  OR
+  -- Service role can insert any logs
+  auth.role() = 'service_role'
+);
+
+-- Users can update their own activity logs
+CREATE POLICY "Users can update their own activity logs" ON activity_log
+FOR UPDATE
+TO public
+USING (
+  -- Users can update their own logs
+  user_id = auth.uid()
+  OR
+  -- Admin users can update any logs
+  is_user_admin()
+  OR
+  -- Service role can update any logs
+  auth.role() = 'service_role'
+);
+
+-- Users can delete their own activity logs
+CREATE POLICY "Users can delete their own activity logs" ON activity_log
+FOR DELETE
+TO public
+USING (
+  -- Users can delete their own logs
+  user_id = auth.uid()
+  OR
+  -- Admin users can delete any logs
+  is_user_admin()
+  OR
+  -- Service role can delete any logs
+  auth.role() = 'service_role'
+);
+
+-- ============================================================================
+-- STEP 19: Create dashboard functions
+-- ============================================================================
+-- Create the get_dashboard_summary function
+CREATE OR REPLACE FUNCTION get_dashboard_summary()
+RETURNS JSON AS $$
+DECLARE
+  result JSON;
+BEGIN
+  -- Get projects summary
+  SELECT json_build_object(
+    'projects', json_build_object(
+      'total', (SELECT COUNT(*) FROM projects),
+      'by_status', (
+        SELECT json_object_agg(status, count)
+        FROM (
+          SELECT status, COUNT(*) as count
+          FROM projects
+          GROUP BY status
+        ) status_counts
+      )
+    ),
+    'recent_projects', (
+      SELECT json_agg(
+        json_build_object(
+          'id', p.id,
+          'project_id', p.project_id,
+          'title', p.title,
+          'status', p.status,
+          'priority', p.priority_level,
+          'created_at', p.created_at,
+          'customer_name', p.customer_name
+        )
+      )
+      FROM (
+        SELECT p.id, p.project_id, p.title, p.status, p.priority_level, p.created_at, c.company_name as customer_name
+        FROM projects p
+        LEFT JOIN contacts c ON p.customer_id = c.id
+        ORDER BY p.created_at DESC
+        LIMIT 5
+      ) p
+    ),
+    'generated_at', extract(epoch from now())
+  ) INTO result;
+  
+  RETURN result;
+END;
+$$ LANGUAGE plpgsql SECURITY DEFINER;
+
+-- Grant execute permission to authenticated users
+GRANT EXECUTE ON FUNCTION get_dashboard_summary() TO authenticated;
+
+-- ============================================================================
+-- STEP 20: Add comments for documentation
+-- ============================================================================
+COMMENT ON TABLE activity_log IS 'Activity log table with RLS policies for user access control';
+COMMENT ON FUNCTION get_dashboard_summary() IS 'Returns dashboard summary data including project counts and recent projects';

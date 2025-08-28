@@ -149,16 +149,107 @@ BEGIN
 END $$;
 
 -- ============================================================================
--- STEP 2: Clean up temporary function
+-- STEP 2: Create user mapping table and trigger function
+-- ============================================================================
+-- Create mapping table to link emails with auth user IDs
+CREATE TABLE IF NOT EXISTS email_to_user_id_mapping (
+    email TEXT PRIMARY KEY,
+    user_id UUID NOT NULL REFERENCES auth.users(id),
+    created_at TIMESTAMPTZ DEFAULT NOW()
+);
+
+-- Insert mapping for existing auth users
+INSERT INTO email_to_user_id_mapping (email, user_id)
+SELECT 
+    email,
+    id as user_id
+FROM auth.users 
+WHERE email IN (
+    'ceo@factorypulse.vn',
+    'operations@factorypulse.vn',
+    'quality@factorypulse.vn',
+    'procurement@factorypulse.vn',
+    'engineering@factorypulse.vn',
+    'qa@factorypulse.vn',
+    'production@factorypulse.vn',
+    'sales@factorypulse.vn',
+    'supplier@factorypulse.vn',
+    'customer@factorypulse.vn',
+    'admin@factorypulse.vn',
+    'support@factorypulse.vn'
+)
+ON CONFLICT (email) DO UPDATE SET 
+    user_id = EXCLUDED.user_id,
+    created_at = NOW();
+
+-- Update users table with the correct auth user IDs
+UPDATE users 
+SET user_id = mapping.user_id
+FROM email_to_user_id_mapping mapping
+WHERE users.email = mapping.email;
+
+-- Create function to automatically create user profile when auth user is created
+CREATE OR REPLACE FUNCTION public.handle_new_user()
+RETURNS TRIGGER AS $$
+DECLARE
+    org_id UUID;
+BEGIN
+    -- Get the default organization
+    SELECT id INTO org_id FROM public.organizations WHERE slug = 'factory-pulse-vietnam' LIMIT 1;
+    
+    -- Insert new user into users table
+    INSERT INTO public.users (
+        id,
+        user_id,
+        organization_id,
+        email,
+        name,
+        role,
+        status,
+        created_at,
+        updated_at
+    ) VALUES (
+        gen_random_uuid(), -- Generate new UUID for custom users table
+        NEW.id, -- Use auth user ID for linking
+        org_id,
+        NEW.email,
+        COALESCE(NEW.raw_user_meta_data->>'name', NEW.email),
+        'customer', -- Default role for new users
+        'active',
+        NOW(),
+        NOW()
+    );
+    
+    RETURN NEW;
+END;
+$$ LANGUAGE plpgsql SECURITY DEFINER;
+
+-- ============================================================================
+-- STEP 3: Clean up temporary function
 -- ============================================================================
 DROP FUNCTION IF EXISTS create_auth_user_for_existing_user(UUID, TEXT, TEXT);
 
 -- ============================================================================
--- STEP 3: Verify auth users were created
+-- STEP 4: Add organization_id to admin users if missing
 -- ============================================================================
--- This will show the count of auth users created
+UPDATE users 
+SET organization_id = (
+  SELECT id FROM organizations WHERE slug = 'factory-pulse-vietnam' LIMIT 1
+)
+WHERE organization_id IS NULL 
+AND role = 'admin';
+
+-- ============================================================================
+-- STEP 5: Verify auth users were created and mapped
+-- ============================================================================
+-- This will show the count of auth users created and mapped
 SELECT 
-  'Auth users created' as status,
-  COUNT(*) as count 
-FROM auth.users 
-WHERE email IN (SELECT email FROM users);
+    'Auth users created and mapped' as status,
+    COUNT(*) as total_users,
+    COUNT(user_id) as linked_users,
+    COUNT(*) - COUNT(user_id) as unlinked_users
+FROM users;
+
+-- Add comments for documentation
+COMMENT ON TABLE email_to_user_id_mapping IS 'Mapping table linking email addresses to Supabase Auth user IDs';
+COMMENT ON FUNCTION public.handle_new_user() IS 'Automatically creates user profile when auth user is created';

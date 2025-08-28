@@ -137,8 +137,83 @@ VALUES
 ON CONFLICT (email) DO NOTHING;
 
 -- ============================================================================
--- STEP 7: Enable Row Level Security
+-- STEP 7: Add user_id column for Supabase Auth integration
+-- ============================================================================
+ALTER TABLE users ADD COLUMN user_id UUID REFERENCES auth.users(id);
+
+-- ============================================================================
+-- STEP 8: Create admin role checking function (avoids RLS recursion)
+-- ============================================================================
+CREATE OR REPLACE FUNCTION is_user_admin(user_uuid UUID DEFAULT auth.uid())
+RETURNS BOOLEAN AS $$
+BEGIN
+  -- Check if user has admin role in users table
+  -- Use a direct query with bypass to avoid RLS recursion
+  RETURN EXISTS (
+    SELECT 1 FROM users 
+    WHERE user_id = user_uuid 
+    AND role = 'admin'
+  );
+EXCEPTION
+  WHEN OTHERS THEN
+    -- If there's any error, return false to be safe
+    RETURN FALSE;
+END;
+$$ LANGUAGE plpgsql SECURITY DEFINER;
+
+-- Grant necessary permissions to the function
+GRANT EXECUTE ON FUNCTION is_user_admin(UUID) TO public;
+
+-- ============================================================================
+-- STEP 9: Enable Row Level Security
 -- ============================================================================
 ALTER TABLE organizations ENABLE ROW LEVEL SECURITY;
 ALTER TABLE users ENABLE ROW LEVEL SECURITY;
 ALTER TABLE contacts ENABLE ROW LEVEL SECURITY;
+
+-- ============================================================================
+-- STEP 10: Create RLS policies for users table
+-- ============================================================================
+-- Users can view their own profile
+CREATE POLICY "Users can view their own profile" ON users
+FOR SELECT
+TO public
+USING (auth.uid() = user_id);
+
+-- Users can update their own profile
+CREATE POLICY "Users can update their own profile" ON users
+FOR UPDATE
+TO public
+USING (auth.uid() = user_id);
+
+-- Users can insert their own profile
+CREATE POLICY "Users can insert their own profile" ON users
+FOR INSERT
+TO public
+WITH CHECK (auth.uid() = user_id);
+
+-- Admin users can view all profiles (using the function)
+CREATE POLICY "Admin users can view all profiles" ON users
+FOR SELECT
+TO public
+USING (
+  is_user_admin() 
+  OR 
+  auth.role() = 'service_role'
+);
+
+-- Admin users can update all profiles (using the function)
+CREATE POLICY "Admin users can update all profiles" ON users
+FOR UPDATE
+TO public
+USING (
+  is_user_admin() 
+  OR 
+  auth.role() = 'service_role'
+);
+
+-- ============================================================================
+-- STEP 11: Add comments for documentation
+-- ============================================================================
+COMMENT ON FUNCTION is_user_admin(UUID) IS 'Function to check if user is admin without causing RLS recursion';
+COMMENT ON TABLE users IS 'Users table with proper RLS policies and Supabase Auth integration';
