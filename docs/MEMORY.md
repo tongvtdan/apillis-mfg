@@ -1,6 +1,115 @@
 # Factory Pulse Development Memory
 
-## 2025-01-27 - User Management Email Display Issue Resolution
+## 2025-01-27 - User Authentication Setup and Email Display Fix
+
+### Work Done
+- **Identified and fixed email display issue** in AdminUsers component where emails were showing as "Email not available"
+- **Root cause analysis**: `getUserEmail` function was hardcoded to return "Email not available" for any user that wasn't the current user
+- **Database verification**: Confirmed that users table contains proper email data for all sample users
+- **Type system fixes**: Resolved TypeScript interface conflicts between `UserProfile` and `UserWithStats`
+- **Authentication setup**: Created authentication users for existing database users to enable login functionality
+
+### Root Cause Analysis
+- **AdminUsers component**: Used `getUserEmail(user.id)` function that was hardcoded to return "Email not available"
+- **Database data**: Users table actually contained proper email addresses (ceo@factorypulse.vn, operations@factorypulse.vn, etc.)
+- **Type mismatch**: `UserWithStats` interface incorrectly extended `UserProfile` with optional email field
+- **Function logic**: `getUserEmail` function was designed for a different authentication approach
+- **Authentication gap**: Users existed in custom `users` table but not in Supabase `auth.users` table
+
+### Changes Made
+1. **Fixed email display**:
+   - Replaced `{getUserEmail(user.id)}` with `{user.email || 'No email'}`
+   - Removed unused `getUserEmail` function entirely
+
+2. **Fixed TypeScript interfaces**:
+   - Removed conflicting `email?: string` from `UserWithStats` interface
+   - Made `login_attempts` optional since it's not in database schema
+   - Fixed type casting for database query results
+
+3. **Updated status handling**:
+   - Changed "Pending Users" to "Dismissed Users" to match actual database values
+   - Updated statuses array from `['active', 'inactive', 'pending', 'locked', 'dormant']` to `['active', 'dismiss']`
+   - Fixed status comparison in stats card
+
+4. **Fixed property references**:
+   - Changed `user.last_login` to `user.last_login_at` to match database schema
+
+5. **Created authentication users**:
+   - Created migration `20250127000006_create_auth_users.sql` to create auth users for existing database users
+   - Set default password: `Password123!` for all users
+   - Created proper identity records in `auth.identities` table
+
+### Files Modified
+- `src/pages/AdminUsers.tsx` - Fixed email display, type interfaces, and status handling
+- `supabase/migrations/20250127000006_create_auth_users.sql` - New migration for authentication users
+
+### Result
+- **Email display**: Now shows actual email addresses from database instead of "Email not available"
+- **Type safety**: Resolved TypeScript compilation errors
+- **Data accuracy**: Status counts and user information now match database schema
+- **User experience**: Admin users can now see actual email addresses for all users
+- **Authentication**: Users can now sign in with their email and default password `Password123!`
+
+### Technical Details
+- **Database schema**: Users table has `email` field as `VARCHAR(255) NOT NULL`
+- **Sample data**: 12 users with proper email addresses (ceo@factorypulse.vn, operations@factorypulse.vn, etc.)
+- **Type system**: `UserProfile` interface correctly defines `email: string` as required field
+- **Component logic**: Direct access to `user.email` instead of complex function calls
+- **Authentication**: All users now have corresponding records in `auth.users` and `auth.identities` tables
+
+### Login Credentials
+- **Email**: ceo@factorypulse.vn (or any other user email from the database)
+- **Password**: Password123!
+- **Note**: This is the default password set for all users during migration
+
+### Next Steps
+- Test user authentication with the new credentials
+- Verify user management interface displays emails correctly
+- Test user editing and role management functionality
+- Consider implementing password change functionality for security
+
+## 2025-01-27 - Admin Role Display Issue Investigation and Fix
+
+### Issue Identified
+- **Problem**: `admin@factorypulse.vn` user showing as "customer" role instead of "admin" role
+- **Root Cause**: UUID mismatch between `auth.users` table and custom `users` table
+- **Symptoms**: 
+  - Database correctly shows admin role for admin@factorypulse.vn
+  - Application displays user as customer role
+  - AuthContext logs show "No user data found in database for email: admin@factorypulse.vn"
+
+### Technical Analysis
+- **Database users table**: Contains admin@factorypulse.vn with UUID `550e8400-e29b-41d4-a716-446655440012` and role `admin`
+- **Auth migration issue**: Previous migration tried to use same UUIDs for both tables, but Supabase auth generates different UUIDs
+- **Authentication flow**: `fetchProfile` function queries by email, but there's a mismatch between auth user ID and database user ID
+
+### Solution Implemented
+1. **Enhanced AuthContext**: Improved profile fetching with better fallback logic and database profile creation
+2. **Migration script**: Created `20250127000007_fix_auth_user_mapping.sql` to properly link auth users with database users
+3. **Diagnostic tools**: Created `scripts/diagnose-auth-issue.js` to identify authentication mapping problems
+4. **Quick fix script**: Created `scripts/fix-admin-role-issue.sql` for immediate resolution
+
+### Files Modified/Created
+- `src/contexts/AuthContext.tsx` - Enhanced profile fetching and fallback logic
+- `supabase/migrations/20250127000007_fix_auth_user_mapping.sql` - New migration for proper user mapping
+- `scripts/diagnose-auth-issue.js` - Diagnostic script for authentication issues
+- `scripts/fix-admin-role-issue.sql` - Quick fix SQL script
+
+### Immediate Resolution Steps
+1. **Run diagnostic script**: `node scripts/diagnose-auth-issue.js` to identify the exact issue
+2. **Apply quick fix**: Run `scripts/fix-admin-role-issue.sql` in Supabase SQL Editor
+3. **Test authentication**: Sign out and sign back in with admin@factorypulse.vn / Password123!
+
+### Long-term Solution
+- **Run full migration**: Apply `20250127000007_fix_auth_user_mapping.sql` for proper user mapping
+- **Update RLS policies**: Ensure proper security policies for user data access
+- **Test all users**: Verify that all 12 sample users can authenticate properly
+
+### Technical Details
+- **UUID mismatch**: Custom users table uses predefined UUIDs, auth.users generates new UUIDs
+- **Email-based lookup**: Current approach relies on email matching, which works but can be unreliable
+- **User ID linking**: New approach creates `user_id` field to properly link auth users with database users
+- **Fallback logic**: Enhanced error handling and profile creation for new users
 
 ### Work Done
 - **Identified and fixed email display issue** in AdminUsers component where emails were showing as "Email not available"

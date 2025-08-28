@@ -6,6 +6,7 @@ import { useToast } from '@/components/ui/use-toast';
 // Updated UserProfile interface to match the actual users table schema
 export interface UserProfile {
   id: string;
+  user_id?: string; // Links to auth.users.id
   organization_id: string;
   email: string;
   name: string;
@@ -64,33 +65,42 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       // Get the user's ID from the auth session
       const { data: { user: authUser } } = await supabase.auth.getUser();
 
-      if (!authUser?.email) {
-        console.error('No user email found in auth user');
+      if (!authUser?.id) {
+        console.error('No user ID found in auth user');
+        setProfile(null);
         return;
       }
 
-      // Try to fetch user profile from users table by email first (more reliable for existing users)
-      console.log('Searching for user with email:', authUser.email);
+      // Additional check: ensure we have a valid session
+      const { data: { session } } = await supabase.auth.getSession();
+      if (!session?.access_token) {
+        console.error('No valid session found');
+        setProfile(null);
+        return;
+      }
+
+      // Query user profile by user_id (which links to auth.users.id) - this avoids RLS recursion
+      console.log('Searching for user with user_id:', authUser.id);
       let { data, error } = await supabase
         .from('users')
         .select('*')
-        .eq('email', authUser.email)
+        .eq('user_id', authUser.id)
         .maybeSingle();
 
-      console.log('Database query by email result:', { data, error });
+      console.log('Database query by user_id result:', { data, error });
 
-      // If email query fails, try by ID as fallback
+      // If user_id query fails, try by email as fallback (for backward compatibility)
       if (!data && !error) {
-        console.log('Email query returned no data, trying ID query...');
-        const idQuery = await supabase
+        console.log('user_id query returned no data, trying email query...');
+        const emailQuery = await supabase
           .from('users')
           .select('*')
-          .eq('id', authUser.id)
+          .eq('email', authUser.email)
           .maybeSingle();
 
-        data = idQuery.data;
-        error = idQuery.error;
-        console.log('Database query by ID result:', { data, error });
+        data = emailQuery.data;
+        error = emailQuery.error;
+        console.log('Database query by email result:', { data, error });
       }
 
       if (error) {
@@ -102,28 +112,80 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       if (data) {
         console.log('Profile fetched successfully:', data);
         // Ensure the role and status are properly typed
-        const typedData = {
+        const typedData: UserProfile = {
           ...data,
           role: data.role as 'customer' | 'sales' | 'procurement' | 'engineering' | 'qa' | 'production' | 'management' | 'supplier' | 'admin',
-          status: data.status as 'active' | 'dismiss'
+          status: data.status as 'active' | 'dismiss',
+          preferences: typeof data.preferences === 'object' && data.preferences !== null ? data.preferences as Record<string, any> : {}
         };
+        console.log('Setting profile state with:', typedData);
         setProfile(typedData);
+        console.log('Profile state set successfully');
       } else {
         console.log('No user data found in database for email:', authUser.email);
 
-        // Fallback: Create profile from auth user metadata if database query fails
+        // Check if this is a new user that needs a profile created
         if (authUser.email && authUser.id) {
           console.log('Creating profile from auth user metadata...');
+
+          // Try to create a new profile in the database first
+          try {
+            // Get the default organization
+            const { data: orgData } = await supabase
+              .from('organizations')
+              .select('id')
+              .eq('slug', 'factory-pulse-vietnam')
+              .maybeSingle();
+
+            if (orgData) {
+              // Create new user profile in database
+              const { data: newProfile, error: createError } = await supabase
+                .from('users')
+                .insert({
+                  user_id: authUser.id, // Link to auth.users.id
+                  organization_id: orgData.id,
+                  email: authUser.email,
+                  name: authUser.user_metadata?.name || authUser.email.split('@')[0],
+                  role: 'customer', // Default role for new users
+                  department: '',
+                  status: 'active',
+                  created_at: new Date().toISOString(),
+                  updated_at: new Date().toISOString(),
+                })
+                .select()
+                .single();
+
+              if (newProfile && !createError) {
+                console.log('New profile created in database:', newProfile);
+                // Ensure proper typing for the new profile
+                const typedNewProfile: UserProfile = {
+                  ...newProfile,
+                  role: newProfile.role as 'customer' | 'sales' | 'procurement' | 'engineering' | 'qa' | 'production' | 'management' | 'supplier' | 'admin',
+                  status: newProfile.status as 'active' | 'dismiss',
+                  preferences: typeof newProfile.preferences === 'object' ? newProfile.preferences as Record<string, any> : {}
+                };
+                setProfile(typedNewProfile);
+                return;
+              } else {
+                console.error('Error creating profile in database:', createError);
+              }
+            }
+          } catch (createError) {
+            console.error('Failed to create profile in database:', createError);
+          }
+
+          // Fallback: Create profile from auth user metadata if database creation fails
+          console.log('Creating fallback profile from auth user metadata...');
 
           // Map auth user data to profile format
           const fallbackProfile: UserProfile = {
             id: authUser.id,
-            organization_id: authUser.user_metadata?.organization_id || '',
+            organization_id: '',
             email: authUser.email,
-            name: authUser.user_metadata?.name || 'User',
-            role: authUser.app_metadata?.role || 'customer',
-            department: authUser.app_metadata?.department || '',
-            phone: authUser.user_metadata?.phone || '',
+            name: authUser.user_metadata?.name || authUser.email.split('@')[0],
+            role: 'customer', // Default role for new users
+            department: '',
+            phone: '',
             avatar_url: undefined,
             status: 'active',
             description: undefined,
@@ -138,10 +200,6 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
           console.log('Fallback profile created:', fallbackProfile);
           setProfile(fallbackProfile);
-
-          // Database creation is disabled until migrations are run
-          // TODO: Run supabase db reset to create tables and insert sample data
-          console.log('Skipping database profile creation - run migrations first');
         }
       }
     } catch (error) {
@@ -182,7 +240,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       const { error: userError } = await supabase
         .from('users')
         .insert({
-          id: userId, // Use the auth user ID directly
+          user_id: userId, // Link to auth.users.id
           organization_id: organization.id,
           email: email,
           name: displayName,
@@ -231,11 +289,13 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     // Set up auth state listener FIRST
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
       async (event, session) => {
+        console.log('Auth state change event:', event, 'Session:', session);
         setSession(session);
         setUser(session?.user ?? null);
 
         // Defer profile fetching to avoid blocking auth state changes
         if (session?.user) {
+          console.log('User authenticated, fetching profile for:', session.user.id);
           setTimeout(() => {
             fetchProfile(session.user.id);
           }, 0);
@@ -247,6 +307,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
             }, 0);
           }
         } else {
+          console.log('No session, clearing profile');
           setProfile(null);
           // Log logout
           if (event === 'SIGNED_OUT') {
@@ -265,8 +326,12 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       setSession(session);
       setUser(session?.user ?? null);
 
-      if (session?.user) {
+      if (session?.user && session?.access_token) {
+        // Only fetch profile if we have a valid session with access token
         fetchProfile(session.user.id);
+      } else {
+        // Clear profile if no valid session
+        setProfile(null);
       }
       setLoading(false);
     });
@@ -276,24 +341,30 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
   const signIn = async (email: string, password: string) => {
     setLoading(true);
+    console.log('SignIn called with email:', email);
     try {
-      const { error } = await supabase.auth.signInWithPassword({
+      const { data, error } = await supabase.auth.signInWithPassword({
         email,
         password,
       });
 
+      console.log('SignIn result:', { data, error });
+
       if (error) {
+        console.error('SignIn error:', error);
         // Handle failed login
         await handleFailedLogin(email);
         await logAuditEvent('login_failure', false, { error: error.message });
         throw error;
       }
 
+      console.log('SignIn successful, user:', data.user);
       toast({
         title: "Welcome back!",
         description: "You have been successfully signed in.",
       });
     } catch (error) {
+      console.error('SignIn exception:', error);
       throw error;
     } finally {
       setLoading(false);

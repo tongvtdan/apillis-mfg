@@ -1,84 +1,42 @@
-# Factory Pulse User Accounts - Creation Summary
 
-## Migration Completed Successfully ✅
 
-The Factory Pulse user accounts have been successfully created in your Supabase database with both authentication and user profile data.
+## **Complete User Accounts List - All Details**
 
-## What Was Created
+| **Email**                     | **Name**         | **Role**        | **Department**     | **Status** | **UUID**                               | **Created**         |
+| ----------------------------- | ---------------- | --------------- | ------------------ | ---------- | -------------------------------------- | ------------------- |
+| `admin@factorypulse.vn`       | Lê Văn Sơn       | **admin**       | IT                 | active     | `550e8400-e29b-41d4-a716-446655440012` | 2025-08-28 10:23:20 |
+| `ceo@factorypulse.vn`         | Nguyễn Văn Minh  | **management**  | Executive          | active     | `550e8400-e29b-41d4-a716-446655440002` | 2025-08-28 10:23:20 |
+| `customer@factorypulse.vn`    | Trần Thị Kim     | **customer**    | Customer Relations | active     | `550e8400-e29b-41d4-a716-446655440011` | 2025-08-28 10:23:20 |
+| `engineering@factorypulse.vn` | Nguyễn Thị Lan   | **engineering** | Engineering        | active     | `550e8400-e29b-41d4-a716-446655440006` | 2025-08-28 10:23:20 |
+| `operations@factorypulse.vn`  | Trần Thị Hương   | **management**  | Operations         | active     | `550e8400-e29b-41d4-a716-446655440003` | 2025-08-28 10:23:20 |
+| `procurement@factorypulse.vn` | Phạm Văn Hùng    | **procurement** | Procurement        | active     | `550e8400-e29b-41d4-a716-446655440005` | 2025-08-28 10:23:20 |
+| `production@factorypulse.vn`  | Lê Thị Mai       | **production**  | Production         | active     | `550e8400-e29b-41d4-a716-446655440008` | 2025-08-28 10:23:20 |
+| `qa@factorypulse.vn`          | Trần Văn Dũng    | **qa**          | Quality Assurance  | active     | `550e8400-e29b-41d4-a716-446655440007` | 2025-08-28 10:23:20 |
+| `quality@factorypulse.vn`     | Lê Văn Tuấn      | **management**  | Quality            | active     | `550e8400-e29b-41d4-a716-446655440004` | 2025-08-28 10:23:20 |
+| `sales@factorypulse.vn`       | Võ Văn Nam       | **sales**       | Sales              | active     | `550e8400-e29b-41d4-a716-446655440009` | 2025-08-28 10:23:20 |
+| `supplier@factorypulse.vn`    | Nguyễn Văn Thành | **supplier**    | Procurement        | active     | `550e8400-e29b-41d4-a716-446655440010` | 2025-08-28 10:23:20 |
+| `support@factorypulse.vn`     | Phạm Thị Nga     | **customer**    | Support            | active     | `550e8400-e29b-41d4-a716-446655440013` | 2025-08-28 10:23:20 |
 
-### 16 Total User Accounts
+### **Login Credentials**
+- **Email**: Any of the emails listed above
+- **Password**: `Password123!` (same for all users)
 
-Password for all accounts: FactoryPulse2024!
+### **Role Distribution**
+- **admin**: 1 user (admin@factorypulse.vn)
+- **management**: 3 users (ceo, operations, quality)
+- **engineering**: 1 user
+- **qa**: 1 user
+- **production**: 1 user
+- **procurement**: 1 user
+- **sales**: 1 user
+- **supplier**: 1 user
+- **customer**: 2 users (customer, support)
 
-#### Internal Staff (12 Vietnamese Employees)
+### **About the "admin role showing as customer" Issue**
+The database correctly shows `admin@factorypulse.vn` with role `admin`. If the application is displaying it as `customer`, this suggests:
 
-**Sales Department (2 users)**
-- `nguyen.huong@factoryplus.com` - Nguyễn Thị Hương (EMP-SAL-001) - Sales Representative
-- `tran.minh@factoryplus.com` - Trần Văn Minh (EMP-SAL-002) - Sales Manager
+1. **You might be signed in as a different account** (like `customer@factorypulse.vn` or `support@factorypulse.vn`)
+2. **There could be a bug in the profile display logic**
+3. **The session might be using cached or incorrect data**
 
-**Procurement Department (2 users)**
-- `le.duc@factoryplus.com` - Lê Văn Đức (EMP-PRO-001) - Procurement Specialist  
-- `pham.lan@factoryplus.com` - Phạm Thị Lan (EMP-PRO-002) - Procurement Manager
-
-**Engineering Department (2 users)**
-- `hoang.tuan@factoryplus.com` - Hoàng Văn Tuấn (EMP-ENG-001) - Design Engineer
-- `vo.mai@factoryplus.com` - Võ Thị Mai (EMP-ENG-002) - Engineering Manager
-
-**Quality Assurance Department (2 users)**
-- `dang.linh@factoryplus.com` - Đặng Thị Linh (EMP-QA-001) - Quality Inspector
-- `bui.hung@factoryplus.com` - Bùi Văn Hùng (EMP-QA-002) - QA Manager
-
-**Production Department (2 users)**
-- `ngo.thanh@factoryplus.com` - Ngô Văn Thành (EMP-PRD-001) - Production Operator
-- `ly.hoa@factoryplus.com` - Lý Thị Hoa (EMP-PRD-002) - Production Manager
-
-**Management (2 users)**
-- `dinh.khoa@factoryplus.com` - Đinh Văn Khoa (EMP-MGT-001) - Operations Director
-- `cao.nga@factoryplus.com` - Cao Thị Nga (EMP-EXE-001) - General Manager
-
-#### External Partners (4 users)
-
-**VietTech Manufacturing - Supplier (2 users)**
-- `vu.tam@viettech.com.vn` - Vũ Minh Tâm (SUP-VT-001) - Sales Representative
-- `do.xuan@viettech.com.vn` - Đỗ Thị Xuân (SUP-VT-002) - Account Manager
-
-**AutoTech Solutions - Customer (2 users)**
-- `michael.johnson@autotech.com` - Michael Johnson (CUS-AT-001) - Procurement Specialist
-- `rachel.green@autotech.com` - Rachel Green (CUS-AT-002) - Purchasing Manager
-
-## Authentication Details
-
-- **Password for all accounts**: `FactoryPulse2024!`
-- **Authentication**: Full Supabase Auth integration
-- **Organization**: Factory Pulse (slug: `factory-pulse`)
-
-## Database Structure
-
-Each user has:
-- Unique UUID ID (linked to Supabase Auth)
-- Employee ID (for internal staff) or Partner ID (for external)
-- Full Vietnamese names with proper diacritics
-- Role-based access control
-- Department assignment
-- Phone numbers (Vietnamese +84 format, US +1 format)
-- Detailed job descriptions
-- Active status
-
-## Verification
-
-To verify the users were created successfully, run the SQL in `database/verify-users.sql` in your Supabase SQL Editor.
-
-## Next Steps
-
-1. **Test Login**: Try logging in with any of the created accounts using the password `FactoryPulse2024!`
-2. **Role-Based Access**: Implement role-based permissions in your application
-3. **User Profiles**: Add additional profile fields as needed
-4. **Password Reset**: Users can reset their passwords through Supabase Auth
-
-## Files Created/Updated
-
-- ✅ `supabase/migrations/20250827132000_factory_pulse_auth_accounts.sql` - Applied successfully
-- ✅ `database/verify-users.sql` - Verification queries
-- ✅ `docs/Factory-Pulse-Users-Summary.md` - This summary document
-
-The Factory Pulse manufacturing system now has a complete user base ready for testing and development!
+To resolve this, try signing out completely and signing in again with `admin@factorypulse.vn` and password `Password123!`.
