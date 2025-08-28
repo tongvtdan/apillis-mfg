@@ -29,6 +29,12 @@ This revised document consolidates, corrects, and enhances the schema to ensure:
 
 ### 1. Organizations & Users
 
+**Multi-Tenant Architecture**: The system supports multiple organizations where:
+- **Factory Pulse Vietnam** is the main organization containing internal users (employees, management, etc.)
+- **Customer Organizations** represent external companies that purchase from Factory Pulse
+- **Supplier Organizations** represent external companies that supply materials/services to Factory Pulse
+- Each organization has its own settings, preferences, and data isolation
+
 ```sql
 -- Organizations (Multi-tenancy support)
 CREATE TABLE organizations (
@@ -71,6 +77,8 @@ CREATE TABLE users (
 );
 
 -- External contacts (customers and suppliers)
+-- Note: Each contact references their own organization, not Factory Pulse's organization
+-- This enables proper multi-tenant separation between external companies and Factory Pulse
 CREATE TABLE contacts (
     id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
     organization_id UUID REFERENCES organizations(id) ON DELETE CASCADE,
@@ -137,14 +145,18 @@ CREATE TABLE projects (
       CHECK (status IN ('active', 'delayed', 'on_hold', 'cancelled', 'completed', 'archived')),
     priority_score INTEGER DEFAULT 50 CHECK (priority_score BETWEEN 0 AND 100),
     priority_level VARCHAR(10) DEFAULT 'medium' 
-      CHECK (priority_level IN ('low', 'medium', 'high', 'urgent')),
+      CHECK (priority_level IN ('low', 'medium', 'high', 'urgent', 'critical')),
     estimated_value DECIMAL(15,2),
-    estimated_delivery_date DATE,
-    actual_delivery_date DATE,
-    source VARCHAR(50) DEFAULT 'manual' 
+    estimated_delivery_date TIMESTAMPTZ,
+    actual_delivery_date TIMESTAMPTZ,
+    source VARCHAR(20) DEFAULT 'manual' 
       CHECK (source IN ('manual', 'portal', 'email', 'api', 'import', 'migration')),
     tags TEXT[] DEFAULT '{}',
     metadata JSONB DEFAULT '{}',
+    stage_entered_at TIMESTAMPTZ DEFAULT NOW(),
+    project_type VARCHAR(50) 
+      CHECK (project_type IN ('system_build', 'fabrication', 'manufacturing')),
+    notes TEXT,
     created_at TIMESTAMPTZ DEFAULT NOW(),
     updated_at TIMESTAMPTZ DEFAULT NOW(),
     created_by UUID REFERENCES users(id),

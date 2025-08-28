@@ -2,6 +2,46 @@
 
 ## Recent Changes
 
+- Date: 2025-01-27  
+- What we completed / changed:
+1. **Multi-Tenant Organization Structure Fixed - Customer/Supplier Organization Mismatch Resolved**: 
+   - **Objective**: Fix incorrect organization assignments where customers and suppliers were all assigned to Factory Pulse Vietnam organization instead of having their own separate organizations
+   - **Issues identified**: All 20 contacts (8 customers, 12 suppliers) were incorrectly assigned to `organization_id: "550e8400-e29b-41d4-a716-446655440001"` (Factory Pulse Vietnam)
+   - **Root cause**: Data structure treated external companies as contacts within Factory Pulse's organization, which doesn't make business sense for external business relationships
+   - **Solution implemented**: 
+     - Created 25 separate organizations for major customers and suppliers
+     - Updated all customer contacts to reference their respective organizations
+     - Updated all supplier contacts to reference their respective organizations
+     - Maintained Factory Pulse Vietnam as the main organization for internal users
+   - **Organizations created**:
+     - **Customers**: Toyota Vietnam, Honda Vietnam, Boeing Vietnam, Samsung Vietnam, Siemens Vietnam, LG Vietnam, Airbus Vietnam, ABB Vietnam
+     - **Suppliers**: Precision Machining, Metal Fabrication, Assembly Solutions, Surface Finishing Pro, Electronics Assembly, Quality Control Services, Logistics Solutions, Material Supply, Tooling Solutions, Packaging Services, Calibration Lab, Training Institute
+   - **Data structure now correct**: Each external company has its own organization, enabling proper multi-tenant architecture
+   - **Business logic improved**: External companies are now properly separated from Factory Pulse's internal organization
+   - **Files updated**: 
+     - `sample-data/organizations.json` - Added 24 new organizations
+     - `sample-data/contacts.json` - Updated all 20 contacts with correct organization_id references
+   - **Status**: ✅ All customer and supplier organization mismatches resolved, proper multi-tenant structure established
+
+2. **Projects Table Field Alignment - Database Schema Fixed**: 
+   - **Objective**: Align local Supabase database projects table with codebase expectations to eliminate field mismatches
+   - **Issues identified**: Several critical fields were missing from the local database that the codebase expected:
+     - `estimated_value` - Used extensively for project budgeting and financial calculations
+     - `tags` - Used for project categorization and filtering throughout the UI
+     - `metadata` - Used for flexible additional project data storage
+     - `stage_entered_at` - Used for tracking when projects entered their current stage
+     - `project_type` - Used for project categorization (system_build, fabrication, manufacturing)
+     - `notes` - Used for project-specific notes and comments
+   - **Migrations created and applied**:
+     - `20250127000007_add_missing_project_fields.sql` - Added estimated_value, tags, metadata fields
+     - `20250127000008_add_stage_entered_at_field.sql` - Added stage_entered_at field
+     - `20250127000009_add_project_type_field.sql` - Added project_type field with constraints
+     - `20250127000010_add_notes_field.sql` - Added notes field
+   - **Database schema now fully aligned** with TypeScript interfaces and codebase expectations
+   - **Performance improvements**: Added appropriate indexes for new fields (GIN index for tags, metadata)
+   - **Data integrity**: Added proper constraints and validation for project_type field
+   - **Status**: ✅ All field mismatches resolved, database schema fully aligned with codebase
+
 - Date: 2025-08-28  
 - What we completed / changed:
 1. **Successfully Executed Users Table Migration**: 

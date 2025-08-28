@@ -1,7 +1,7 @@
 [
     {
         "id": "550e8400-e29b-41d4-a716-446655440101",
-        "organization_id": "550e8400-e29b-41d4-a716-446655440001",
+        "organization_id": "550e8400-e29b-41d4-a716-446655440002",
         "type": "customer",
         "company_name": "Toyota Vietnam",
         "contact_name": "Nguyễn Văn An",
@@ -41,7 +41,7 @@
     },
     {
         "id": "550e8400-e29b-41d4-a716-446655440102",
-        "organization_id": "550e8400-e29b-41d4-a716-446655440001",
+        "organization_id": "550e8400-e29b-41d4-a716-446655440003",
         "type": "customer",
         "company_name": "Honda Vietnam",
         "contact_name": "Trần Thị Bình",
@@ -81,7 +81,7 @@
     },
     {
         "id": "550e8400-e29b-41d4-a716-446655440103",
-        "organization_id": "550e8400-e29b-41d4-a716-446655440001",
+        "organization_id": "550e8400-e29b-41d4-a716-446655440004",
         "type": "customer",
         "company_name": "Boeing Vietnam",
         "contact_name": "Lê Văn Cường",
@@ -121,7 +121,7 @@
     },
     {
         "id": "550e8400-e29b-41d4-a716-446655440104",
-        "organization_id": "550e8400-e29b-41d4-a716-446655440001",
+        "organization_id": "550e8400-e29b-41d4-a716-446655440005",
         "type": "customer",
         "company_name": "Samsung Vietnam",
         "contact_name": "Phạm Thị Dung",
@@ -161,7 +161,7 @@
     },
     {
         "id": "550e8400-e29b-41d4-a716-446655440105",
-        "organization_id": "550e8400-e29b-41d4-a716-446655440001",
+        "organization_id": "550e8400-e29b-41d4-a716-446655440011",
         "type": "customer",
         "company_name": "Siemens Vietnam",
         "contact_name": "Hoàng Văn Em",
@@ -201,7 +201,7 @@
     },
     {
         "id": "550e8400-e29b-41d4-a716-446655440106",
-        "organization_id": "550e8400-e29b-41d4-a716-446655440001",
+        "organization_id": "550e8400-e29b-41d4-a716-446655440006",
         "type": "customer",
         "company_name": "LG Vietnam",
         "contact_name": "Ngô Thị Phương",
@@ -241,7 +241,7 @@
     },
     {
         "id": "550e8400-e29b-41d4-a716-446655440107",
-        "organization_id": "550e8400-e29b-41d4-a716-446655440001",
+        "organization_id": "550e8400-e29b-41d4-a716-446655440012",
         "type": "customer",
         "company_name": "Airbus Vietnam",
         "contact_name": "Võ Văn Minh",
@@ -281,7 +281,7 @@
     },
     {
         "id": "550e8400-e29b-41d4-a716-446655440108",
-        "organization_id": "550e8400-e29b-41d4-a716-446655440001",
+        "organization_id": "550e8400-e29b-41d4-a716-446655440013",
         "type": "customer",
         "company_name": "ABB Vietnam",
         "contact_name": "Trịnh Thị Lan",
@@ -321,7 +321,7 @@
     },
     {
         "id": "550e8400-e29b-41d4-a716-446655440109",
-        "organization_id": "550e8400-e29b-41d4-a716-446655440001",
+        "organization_id": "550e8400-e29b-41d4-a716-446655440014",
         "type": "supplier",
         "company_name": "Precision Machining Co.",
         "contact_name": "Vũ Văn Phúc",
@@ -365,7 +365,7 @@
     },
     {
         "id": "550e8400-e29b-41d4-a716-446655440110",
-        "organization_id": "550e8400-e29b-41d4-a716-446655440001",
+        "organization_id": "550e8400-e29b-41d4-a716-446655440015",
         "type": "supplier",
         "company_name": "Metal Fabrication Ltd.",
         "contact_name": "Đặng Thị Giang",
@@ -409,7 +409,7 @@
     },
     {
         "id": "550e8400-e29b-41d4-a716-446655440111",
-        "organization_id": "550e8400-e29b-41d4-a716-446655440001",
+        "organization_id": "550e8400-e29b-41d4-a716-446655440016",
         "type": "supplier",
         "company_name": "Assembly Solutions",
         "contact_name": "Lý Văn Hùng",
@@ -453,7 +453,7 @@
     },
     {
         "id": "550e8400-e29b-41d4-a716-446655440112",
-        "organization_id": "550e8400-e29b-41d4-a716-446655440001",
+        "organization_id": "550e8400-e29b-41d4-a716-446655440017",
         "type": "supplier",
         "company_name": "Surface Finishing Pro",
         "contact_name": "Nguyễn Thị Mai",
@@ -497,7 +497,7 @@
     },
     {
         "id": "550e8400-e29b-41d4-a716-446655440113",
-        "organization_id": "550e8400-e29b-41d4-a716-446655440001",
+        "organization_id": "550e8400-e29b-41d4-a716-446655440018",
         "type": "supplier",
         "company_name": "Electronics Assembly Co.",
         "contact_name": "Trần Văn Sơn",
@@ -541,7 +541,7 @@
     },
     {
         "id": "550e8400-e29b-41d4-a716-446655440114",
-        "organization_id": "550e8400-e29b-41d4-a716-446655440001",
+        "organization_id": "550e8400-e29b-41d4-a716-446655440019",
         "type": "supplier",
         "company_name": "Quality Control Services",
         "contact_name": "Lê Thị Hương",
@@ -585,7 +585,7 @@
     },
     {
         "id": "550e8400-e29b-41d4-a716-446655440115",
-        "organization_id": "550e8400-e29b-41d4-a716-446655440001",
+        "organization_id": "550e8400-e29b-41d4-a716-446655440020",
         "type": "supplier",
         "company_name": "Logistics Solutions",
         "contact_name": "Phạm Văn Dũng",
@@ -629,7 +629,7 @@
     },
     {
         "id": "550e8400-e29b-41d4-a716-446655440116",
-        "organization_id": "550e8400-e29b-41d4-a716-446655440001",
+        "organization_id": "550e8400-e29b-41d4-a716-446655440021",
         "type": "supplier",
         "company_name": "Material Supply Co.",
         "contact_name": "Hoàng Thị Linh",
@@ -673,7 +673,7 @@
     },
     {
         "id": "550e8400-e29b-41d4-a716-446655440117",
-        "organization_id": "550e8400-e29b-41d4-a716-446655440001",
+        "organization_id": "550e8400-e29b-41d4-a716-446655440022",
         "type": "supplier",
         "company_name": "Tooling Solutions",
         "contact_name": "Vũ Thị Thanh",
@@ -717,7 +717,7 @@
     },
     {
         "id": "550e8400-e29b-41d4-a716-446655440118",
-        "organization_id": "550e8400-e29b-41d4-a716-446655440001",
+        "organization_id": "550e8400-e29b-41d4-a716-446655440023",
         "type": "supplier",
         "company_name": "Packaging Services",
         "contact_name": "Ngô Văn Tài",
@@ -761,7 +761,7 @@
     },
     {
         "id": "550e8400-e29b-41d4-a716-446655440119",
-        "organization_id": "550e8400-e29b-41d4-a716-446655440001",
+        "organization_id": "550e8400-e29b-41d4-a716-446655440024",
         "type": "supplier",
         "company_name": "Calibration Lab",
         "contact_name": "Trịnh Văn Nam",
@@ -805,7 +805,7 @@
     },
     {
         "id": "550e8400-e29b-41d4-a716-446655440120",
-        "organization_id": "550e8400-e29b-41d4-a716-446655440001",
+        "organization_id": "550e8400-e29b-41d4-a716-446655440025",
         "type": "supplier",
         "company_name": "Training Institute",
         "contact_name": "Lê Thị Kim",
