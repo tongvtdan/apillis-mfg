@@ -8,7 +8,7 @@ import { Checkbox } from '@/components/ui/checkbox';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Alert, AlertDescription } from '@/components/ui/alert';
-import { Loader2, Factory, AlertCircle, CheckCircle } from 'lucide-react';
+import { Loader2, Factory, AlertCircle, CheckCircle, Eye, EyeOff } from 'lucide-react';
 import { validateLoginForm, validateRegistrationForm } from '@/lib/auth-validation';
 import {
   extractDomain,
@@ -27,6 +27,7 @@ export default function Auth() {
   const { signIn, signUp, resetPassword, user, loading } = useAuth();
   const location = useLocation();
   const [isLoading, setIsLoading] = useState(false);
+  const [showPassword, setShowPassword] = useState(false);
 
   // Form states
   const [signInData, setSignInData] = useState({
@@ -66,27 +67,40 @@ export default function Auth() {
     setRememberPassword(savedRememberPassword);
   }, []);
 
-  // Handle domain input change with smart parsing
+  // Handle domain input change with smart parsing and immediate save
   const handleDomainChange = (value: string) => {
+    let cleanDomain = value;
+    
     // If user pastes a full email, extract the domain
     if (value.includes('@')) {
-      const extractedDomain = extractDomain(value);
-      setSignInData(prev => ({ ...prev, domain: extractedDomain }));
+      cleanDomain = extractDomain(value);
     } else {
       // Remove http://, https://, www. prefixes if user types them
-      const cleanDomain = value.replace(/^(https?:\/\/)?(www\.)?/, '');
-      setSignInData(prev => ({ ...prev, domain: cleanDomain }));
+      cleanDomain = value.replace(/^(https?:\/\/)?(www\.)?/, '');
+    }
+    
+    setSignInData(prev => ({ ...prev, domain: cleanDomain }));
+    
+    // Save domain immediately for persistence
+    if (cleanDomain) {
+      saveDomain(cleanDomain);
     }
   };
 
-  // Handle username input change with smart parsing
+  // Handle username input change with smart parsing and immediate save
   const handleUsernameChange = (value: string) => {
+    let cleanUsername = value;
+    
     // If user pastes a full email, extract the username
     if (value.includes('@')) {
-      const username = value.split('@')[0];
-      setSignInData(prev => ({ ...prev, username }));
-    } else {
-      setSignInData(prev => ({ ...prev, username: value }));
+      cleanUsername = value.split('@')[0];
+    }
+    
+    setSignInData(prev => ({ ...prev, username: cleanUsername }));
+    
+    // Save username immediately for persistence
+    if (cleanUsername) {
+      saveUsername(cleanUsername);
     }
   };
 
@@ -222,18 +236,6 @@ export default function Auth() {
               <TabsContent value="signin" className="space-y-4">
                 <form onSubmit={handleSignIn} className="space-y-4">
                   <div className="space-y-2">
-                    <Label htmlFor="signin-username">Username</Label>
-                    <Input
-                      id="signin-username"
-                      type="text"
-                      placeholder="Enter your username"
-                      value={signInData.username}
-                      onChange={(e) => handleUsernameChange(e.target.value)}
-                      className="border-base-300 focus:border-primary transition-colors"
-                      required
-                    />
-                  </div>
-                  <div className="space-y-2">
                     <Label htmlFor="signin-domain">Domain</Label>
                     <Input
                       id="signin-domain"
@@ -241,6 +243,18 @@ export default function Auth() {
                       placeholder="Enter your domain (e.g., factorypulse.vn)"
                       value={signInData.domain}
                       onChange={(e) => handleDomainChange(e.target.value)}
+                      className="border-base-300 focus:border-primary transition-colors"
+                      required
+                    />
+                  </div>
+                  <div className="space-y-2">
+                    <Label htmlFor="signin-username">Username</Label>
+                    <Input
+                      id="signin-username"
+                      type="text"
+                      placeholder="Enter your username"
+                      value={signInData.username}
+                      onChange={(e) => handleUsernameChange(e.target.value)}
                       className="border-base-300 focus:border-primary transition-colors"
                       required
                     />
@@ -257,15 +271,26 @@ export default function Auth() {
 
                   <div className="space-y-2">
                     <Label htmlFor="signin-password">Password</Label>
-                    <Input
-                      id="signin-password"
-                      type="password"
-                      placeholder="Enter your password"
-                      value={signInData.password}
-                      onChange={(e) => setSignInData(prev => ({ ...prev, password: e.target.value }))}
-                      className="border-base-300 focus:border-primary transition-colors"
-                      required
-                    />
+                    <div className="relative">
+                      <Input
+                        id="signin-password"
+                        type={showPassword ? "text" : "password"}
+                        placeholder="Enter your password"
+                        value={signInData.password}
+                        onChange={(e) => setSignInData(prev => ({ ...prev, password: e.target.value }))}
+                        className="border-base-300 focus:border-primary transition-colors pr-10"
+                        required
+                      />
+                      <Button
+                        type="button"
+                        variant="ghost"
+                        size="sm"
+                        className="absolute right-1 top-1/2 -translate-y-1/2 h-8 w-8 p-0 hover:bg-transparent"
+                        onClick={() => setShowPassword(!showPassword)}
+                      >
+                        {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+                      </Button>
+                    </div>
                   </div>
 
                   <div className="flex items-center space-x-2">

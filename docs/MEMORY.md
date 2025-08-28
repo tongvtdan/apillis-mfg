@@ -427,6 +427,101 @@
 
 ---
 
+## 2025-01-27 - Sign-In Page Improvements: Domain Input & Remember Password
+
+### Work Done
+- **Enhanced sign-in form** with separate username and domain inputs for better user experience
+- **Added domain persistence** - users can now enter domain once and it's remembered for future logins
+- **Implemented remember password functionality** - checkbox to save password in localStorage for convenience
+- **Smart input parsing** - automatically extracts username and domain if users paste full email addresses
+- **Visual feedback** - shows constructed email address for verification before submission
+- **LocalStorage management** - automatic cleanup of saved credentials on sign out for security
+- **Added show password toggle** - eye icon to reveal/hide password for better user experience
+- **Reordered form fields** - domain field now appears first, followed by username for logical flow
+- **Fixed persistence issues** - domain and username are now saved immediately when changed, not just on login
+
+### New Features Implemented
+1. **Domain Input Field**:
+   - Separate input for domain (e.g., factorypulse.vn)
+   - Automatically removes http://, https://, www. prefixes
+   - Persisted in localStorage for future logins
+   - Smart parsing when users paste full email addresses
+   - **Now appears first in the form for better UX**
+
+2. **Username Input Field**:
+   - Separate input for username (e.g., admin)
+   - Extracts username if full email is pasted
+   - Persisted in localStorage for convenience
+   - **Now appears second, after domain field**
+
+3. **Remember Password Checkbox**:
+   - Checkbox to remember password for future logins
+   - Password stored securely in localStorage
+   - Automatically cleared on sign out for security
+
+4. **Show Password Toggle**:
+   - Eye icon button to reveal/hide password
+   - Positioned inside the password input field
+   - Toggles between password and text input types
+   - Improves user experience for password verification
+
+5. **Smart Email Construction**:
+   - Real-time display of constructed email address
+   - Validation that both username and domain are provided
+   - Visual feedback showing what email will be used for login
+
+6. **Enhanced Persistence**:
+   - Domain and username saved immediately when changed
+   - No need to wait for successful login to persist preferences
+   - Better user experience with instant feedback
+
+### Technical Implementation
+- **New utility file**: `src/lib/auth-utils.ts` with domain parsing and localStorage management functions
+- **Updated Auth component**: `src/pages/Auth.tsx` with new form structure, field reordering, and show password toggle
+- **Enhanced AuthContext**: `src/contexts/AuthContext.tsx` to clear saved credentials on sign out
+- **LocalStorage keys**: Organized storage with clear naming conventions for auth preferences
+- **Immediate persistence**: Domain and username saved as user types, not just on form submission
+
+### User Experience Improvements
+- **Faster login**: Users don't need to retype domain for each login
+- **Convenience**: Remember password option for trusted devices
+- **Clarity**: Visual confirmation of email being used for login
+- **Flexibility**: Can paste full email or enter username/domain separately
+- **Security**: Automatic cleanup of saved credentials on sign out
+- **Password visibility**: Toggle to show/hide password for verification
+- **Logical field order**: Domain first, then username for natural email construction flow
+- **Instant persistence**: No need to complete login to save preferences
+
+### Files Modified/Created
+- `src/lib/auth-utils.ts` - New utility functions for authentication helpers
+- `src/pages/Auth.tsx` - Updated sign-in form with new fields, reordered layout, and show password toggle
+- `src/contexts/AuthContext.tsx` - Enhanced to clear saved credentials on sign out
+
+### Security Features
+- **Password storage**: Only stored when user explicitly checks "Remember me"
+- **All saved credentials automatically cleared on sign out
+- **Local storage only** - no server-side storage of sensitive data
+- **User control over password storage preferences**
+- **Password visibility toggle** - user can verify password without compromising security
+
+### UI/UX Enhancements
+- **Field reordering**: Domain → Username → Password for logical flow
+- **Show password toggle**: Eye icon button integrated into password field
+- **Immediate feedback**: Domain and username saved as user types
+- **Better visual hierarchy**: Clear separation between domain and username inputs
+- **Responsive design**: Password toggle button properly positioned within input field
+
+### Next Steps
+- Test the new sign-in flow with existing users
+- Verify localStorage persistence across browser sessions
+- Test domain parsing with various email formats
+- Consider adding domain validation (e.g., valid TLD checking)
+- Monitor user adoption and feedback on the new interface
+- Test show password toggle functionality across different browsers
+- Verify field reordering improves user experience
+
+---
+
 ## 2025-01-27 - RLS Policy Setup and Authentication Issue Resolution
 
 ### Work Done
