@@ -53,11 +53,19 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
   const fetchProfile = async (userId: string) => {
     try {
-      // Try to get user profile from users table instead of profiles
+      // Get the user's email from the auth session
+      const { data: { user: authUser } } = await supabase.auth.getUser();
+
+      if (!authUser?.email) {
+        console.error('No email found in auth user');
+        return;
+      }
+
+      // Try to get user profile from users table by email instead of ID
       const { data, error } = await supabase
         .from('users')
         .select('*')
-        .eq('id', userId)
+        .eq('email', authUser.email)
         .maybeSingle();
 
       if (error) {
@@ -119,7 +127,6 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       const { error: userError } = await supabase
         .from('users')
         .insert({
-          id: userId,
           email: email,
           name: displayName,
           role: 'customer', // Default role for new users

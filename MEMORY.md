@@ -2,9 +2,20 @@
 
 ## Recent Changes
 
-- Date: 2025-01-27  
+- Date: 2025-08-28  
 - What we completed / changed:
-1. **User Avatar Dropdown Menu Background Styling Consistency**: 
+1. **Fixed Admin Tab Visibility Issue in Settings Page**: 
+   - **Issue identified**: Admin tab was not showing for CEO/management users due to user profile lookup failure
+   - **Root cause**: AuthContext was querying users table by Supabase auth user ID instead of email, causing profile lookup to fail
+   - **Solution implemented**: Updated AuthContext to query users table by email instead of user ID for profile fetching
+   - **Changes made**: 
+     - Modified `fetchProfile` function in AuthContext to use `authUser.email` instead of `userId` for database query
+     - Updated `createUserProfile` function to remove hardcoded ID assignment
+     - Added proper loading and authentication state handling in Settings page
+   - **Result**: Admin tab now properly displays for users with "management" role, enabling access to user management and system administration features
+   - **Components affected**: AuthContext.tsx, Settings.tsx
+
+2. **User Avatar Dropdown Menu Background Styling Consistency**: 
    - **Issue identified**: User Avatar button popup menu had transparent background, making it difficult to read content
    - **Solution implemented**: Updated all dropdown menu components to use the same background styling as Toast notifications
    - **Styling changes applied**: 

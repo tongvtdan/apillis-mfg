@@ -13,10 +13,40 @@ import {
 } from "lucide-react";
 
 export default function Settings() {
-    const { profile } = useAuth();
+    const { profile, user, loading } = useAuth();
     const [activeTab, setActiveTab] = useState("general");
 
-    const isManagement = profile?.role === "Management";
+    const isManagement = profile?.role === "management";
+
+
+
+    // Show loading state while profile is being fetched
+    if (loading) {
+        return (
+            <div className="space-y-6 p-6 bg-base-100 text-base-content min-h-screen">
+                <div className="flex items-center justify-center min-h-[400px]">
+                    <div className="text-center">
+                        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary mx-auto mb-4"></div>
+                        <p className="text-base-content/70">Loading settings...</p>
+                    </div>
+                </div>
+            </div>
+        );
+    }
+
+    // Show error state if no user is authenticated
+    if (!user) {
+        return (
+            <div className="space-y-6 p-6 bg-base-100 text-base-content min-h-screen">
+                <div className="flex items-center justify-center min-h-[400px]">
+                    <div className="text-center">
+                        <h1 className="text-2xl font-bold mb-2">Authentication Required</h1>
+                        <p className="text-base-content/70">Please log in to access settings.</p>
+                    </div>
+                </div>
+            </div>
+        );
+    }
 
     return (
         <div className="space-y-6 p-6 bg-base-100 text-base-content min-h-screen">
@@ -29,6 +59,8 @@ export default function Settings() {
                 <p className="text-base-content/70 mt-1">
                     Manage your application preferences and system configuration.
                 </p>
+
+
             </div>
 
             <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-6">
@@ -84,7 +116,7 @@ export default function Settings() {
                                 </div>
                                 <div>
                                     <label className="text-sm font-medium">Status</label>
-                                    <Badge variant={profile?.status === "Active" ? "default" : "secondary"}>
+                                    <Badge variant={profile?.status === "active" ? "default" : "secondary"}>
                                         {profile?.status || "Unknown"}
                                     </Badge>
                                 </div>

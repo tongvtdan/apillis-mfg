@@ -23,6 +23,7 @@ import Reports from "./pages/Reports";
 import ProjectDetail from "./pages/ProjectDetail";
 import NewRFQ from "./pages/NewRFQ";
 import Settings from "./pages/Settings";
+import Profile from "./pages/Profile";
 
 import { applyAdaptiveTheme } from "@/lib/theme";
 
@@ -108,6 +109,11 @@ const App = () => {
           <Route path="/settings" element={
             <ProtectedRoute>
               <AppLayout><Settings /></AppLayout>
+            </ProtectedRoute>
+          } />
+          <Route path="/profile" element={
+            <ProtectedRoute>
+              <AppLayout><Profile /></AppLayout>
             </ProtectedRoute>
           } />
           <Route path="/rfq/submit" element={
