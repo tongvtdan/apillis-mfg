@@ -106,21 +106,44 @@ export function getMinimumRoleForPermission(resource: string, action: string): U
 }
 
 /**
- * Check if one role has higher privileges than another
- * Based on the hierarchy: Admin > Management > Procurement Owner > Engineering/QA/Production > Supplier > Customer
+ * Get the hierarchy level of a user role
+ * Based on the hierarchy: Admin > Management > Sales > Procurement > Engineering > QA > Production > Supplier > Customer
  */
-export function isHigherRole(role1: UserRole, role2: UserRole): boolean {
+export function getRoleHierarchyLevel(role: UserRole): number {
     const roleHierarchy: Record<UserRole, number> = {
-        [UserRole.ADMIN]: 6,
-        [UserRole.MANAGEMENT]: 5,
-        [UserRole.PROCUREMENT_OWNER]: 4,
-        [UserRole.PROCUREMENT]: 4,
-        [UserRole.ENGINEERING]: 3,
-        [UserRole.QA]: 3,
+        [UserRole.ADMIN]: 9,
+        [UserRole.MANAGEMENT]: 8,
+        [UserRole.SALES]: 7,
+        [UserRole.PROCUREMENT]: 6,
+        [UserRole.ENGINEERING]: 5,
+        [UserRole.QA]: 4,
         [UserRole.PRODUCTION]: 3,
         [UserRole.SUPPLIER]: 2,
         [UserRole.CUSTOMER]: 1
     };
 
-    return roleHierarchy[role1] > roleHierarchy[role2];
+    return roleHierarchy[role] || 0;
+}
+
+/**
+ * Check if one role has higher privileges than another
+ * Based on the hierarchy: Admin > Management > Sales > Procurement > Engineering > QA > Production > Supplier > Customer
+ */
+export function isHigherRole(role1: UserRole, role2: UserRole): boolean {
+    return getRoleHierarchyLevel(role1) > getRoleHierarchyLevel(role2);
+}
+
+/**
+ * Check if one role has equal or higher privileges than another
+ */
+export function isEqualOrHigherRole(role1: UserRole, role2: UserRole): boolean {
+    return getRoleHierarchyLevel(role1) >= getRoleHierarchyLevel(role2);
+}
+
+/**
+ * Get all roles that have equal or higher privileges than the specified role
+ */
+export function getEqualOrHigherRoles(role: UserRole): UserRole[] {
+    const targetLevel = getRoleHierarchyLevel(role);
+    return Object.values(UserRole).filter(r => getRoleHierarchyLevel(r) >= targetLevel);
 }
