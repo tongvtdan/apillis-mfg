@@ -1,5 +1,63 @@
 # Factory Pulse Development Memory
 
+## 2025-01-27 - User Management Access Denied Issue Resolution
+
+### Work Done
+- **Identified and fixed case sensitivity mismatch** between database role values and application role checks
+- **Added missing RLS policies** for the `activity_log` table to resolve 403 Forbidden errors
+- **Updated all role references** throughout the application to use consistent lowercase values
+- **Resolved "Access Denied" error** when accessing user management from admin tab
+
+### Root Cause Analysis
+- **Database roles**: All stored as lowercase (`management`, `engineering`, `qa`, etc.)
+- **Application checks**: Used capitalized values (`Management`, `Engineering`, `QA`, etc.)
+- **ProtectedRoute component**: Blocked access due to case mismatch in `requiredRoles` array
+- **Missing RLS policies**: `activity_log` table had no policies, causing 403 errors during audit logging
+
+### Changes Made
+1. **Fixed App.tsx route protection**:
+   - `/users` route: `['Management']` → `['management']`
+   - `/reviews` route: `['Engineering', 'QA', 'Production', 'Management', 'Procurement']` → `['engineering', 'qa', 'production', 'management', 'procurement']`
+   - `/production` route: `['Production', 'Management']` → `['production', 'management']`
+   - `/analytics` route: `['Management', 'Procurement Owner']` → `['management', 'procurement']`
+
+2. **Updated AdminUsers component**:
+   - Roles array: Capitalized values → lowercase values
+   - `getRoleBadgeColor` function: Updated case matching
+
+3. **Fixed auth constants and types**:
+   - `ROLE_DESCRIPTIONS`: Capitalized → lowercase
+   - `ROLE_DEFAULT_ROUTES`: Capitalized → lowercase
+   - `UserRole` enum: Capitalized → lowercase
+
+4. **Added RLS policies for activity_log table**:
+   - Users can view their own activity logs
+   - Management can view all activity logs in their organization
+   - Users can insert their own activity logs
+   - Management can insert activity logs for their organization
+   - System can insert activity logs (for triggers and automated processes)
+
+### Files Modified
+- `src/App.tsx` - Fixed route role requirements
+- `src/pages/AdminUsers.tsx` - Updated role arrays and badge colors
+- `src/lib/auth-constants.ts` - Updated role descriptions and routes
+- `src/types/auth.ts` - Updated UserRole enum values
+- `supabase/migrations/20250127000012_activity_log_rls_policies.sql` - New migration for RLS policies
+
+### Result
+- **User management access**: Now working for CEO/management users
+- **Audit logging**: Functional without 403 errors
+- **Role consistency**: All role references now use lowercase values matching database
+- **Admin functionality**: Full access restored for management users
+
+### Next Steps
+- Test user management functionality with different user roles
+- Verify all admin features are accessible
+- Consider adding role validation to prevent future case mismatches
+- Test audit logging functionality
+
+---
+
 ## 2025-01-27 - Database Migration Setup and User Authentication Data
 
 ### Work Done

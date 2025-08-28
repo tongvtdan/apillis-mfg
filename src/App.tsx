@@ -27,6 +27,16 @@ import Profile from "./pages/Profile";
 
 import { applyAdaptiveTheme } from "@/lib/theme";
 
+// Temporary debug - remove this later
+console.log('🔍 Environment Variables Debug:');
+console.log('VITE_SUPABASE_URL:', import.meta.env.VITE_SUPABASE_URL);
+console.log('VITE_SUPABASE_ANON_KEY:', import.meta.env.VITE_SUPABASE_ANON_KEY);
+console.log('SUPABASE_URL (fallback):', import.meta.env.SUPABASE_URL);
+console.log('All VITE_ variables:', Object.keys(import.meta.env).filter(key => key.startsWith('VITE_')));
+console.log('NODE_ENV:', import.meta.env.NODE_ENV);
+console.log('MODE:', import.meta.env.MODE);
+console.log('BASE_URL:', import.meta.env.BASE_URL);
+
 const App = () => {
   // Apply adaptive theme on initial render
   useEffect(() => {
@@ -82,7 +92,7 @@ const App = () => {
             </ProtectedRoute>
           } />
           <Route path="/reviews" element={
-            <ProtectedRoute requiredRoles={['Engineering', 'QA', 'Production', 'Management', 'Procurement']}>
+            <ProtectedRoute requiredRoles={['engineering', 'qa', 'production', 'management', 'procurement']}>
               <AppLayout><div className="p-6">Reviews - Coming Soon</div></AppLayout>
             </ProtectedRoute>
           } />
@@ -92,17 +102,17 @@ const App = () => {
             </ProtectedRoute>
           } />
           <Route path="/production" element={
-            <ProtectedRoute requiredRoles={['Production', 'Management']}>
+            <ProtectedRoute requiredRoles={['production', 'management']}>
               <AppLayout><div className="p-6">Production - Coming Soon</div></AppLayout>
             </ProtectedRoute>
           } />
           <Route path="/analytics" element={
-            <ProtectedRoute requiredRoles={['Management', 'Procurement Owner']}>
+            <ProtectedRoute requiredRoles={['management', 'procurement']}>
               <AppLayout><div className="p-6">Analytics - Coming Soon</div></AppLayout>
             </ProtectedRoute>
           } />
           <Route path="/users" element={
-            <ProtectedRoute requiredRoles={['Management']}>
+            <ProtectedRoute requiredRoles={['management']}>
               <AppLayout><AdminUsers /></AppLayout>
             </ProtectedRoute>
           } />

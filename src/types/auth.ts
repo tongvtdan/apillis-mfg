@@ -3,14 +3,14 @@ export type DatabaseTimestamp = string; // ISO 8601 timestamp string
 
 // User roles enum
 export enum UserRole {
-    CUSTOMER = 'Customer',
-    PROCUREMENT_OWNER = 'Procurement Owner',
-    PROCUREMENT = 'Procurement',
-    ENGINEERING = 'Engineering',
-    QA = 'QA',
-    PRODUCTION = 'Production',
-    SUPPLIER = 'Supplier',
-    MANAGEMENT = 'Management'
+    CUSTOMER = 'customer',
+    PROCUREMENT_OWNER = 'procurement',
+    PROCUREMENT = 'procurement',
+    ENGINEERING = 'engineering',
+    QA = 'qa',
+    PRODUCTION = 'production',
+    SUPPLIER = 'supplier',
+    MANAGEMENT = 'management'
 }
 
 // User status enum

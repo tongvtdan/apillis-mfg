@@ -63,26 +63,26 @@ export const PASSWORD_PATTERNS = {
  * Role display names and descriptions
  */
 export const ROLE_DESCRIPTIONS = {
-    Customer: 'External customers who submit RFQs and track their progress',
-    'Procurement Owner': 'Internal staff who manage RFQ workflows and supplier relationships',
-    Engineering: 'Technical staff who review and provide engineering input on RFQs',
-    QA: 'Quality assurance staff who review and approve technical specifications',
-    Production: 'Production staff who handle manufacturing scheduling and capacity planning',
-    Supplier: 'External suppliers who respond to RFQs and provide quotations',
-    Management: 'Senior management with full system access and administrative privileges',
+    customer: 'External customers who submit RFQs and track their progress',
+    procurement: 'Internal staff who manage RFQ workflows and supplier relationships',
+    engineering: 'Technical staff who review and provide engineering input on RFQs',
+    qa: 'Quality assurance staff who review and approve technical specifications',
+    production: 'Production staff who handle manufacturing scheduling and capacity planning',
+    supplier: 'External suppliers who respond to RFQs and provide quotations',
+    management: 'Senior management with full system access and administrative privileges',
 } as const;
 
 /**
  * Navigation routes based on user roles
  */
 export const ROLE_DEFAULT_ROUTES = {
-    Customer: '/dashboard',
-    'Procurement Owner': '/dashboard',
-    Engineering: '/dashboard',
-    QA: '/dashboard',
-    Production: '/dashboard',
-    Supplier: '/dashboard',
-    Management: '/admin/dashboard',
+    customer: '/dashboard',
+    procurement: '/dashboard',
+    engineering: '/dashboard',
+    qa: '/dashboard',
+    production: '/dashboard',
+    supplier: '/dashboard',
+    management: '/admin/dashboard',
 } as const;
 
 /**

@@ -135,15 +135,14 @@ export default function AdminUsers() {
       }
 
       // Log the role change
-      await supabase.from('audit_logs').insert({
-        event_type: 'role_change',
-        user_id: userId,
-        actor_id: profile?.id,
-        success: true,
-        details: {
-          old_role: users.find(u => u.id === userId)?.role,
-          new_role: newRole
-        }
+      await supabase.from('activity_log').insert({
+        action: 'role_change',
+        user_id: profile?.id,
+        organization_id: profile?.organization_id,
+        entity_type: 'user',
+        entity_id: userId,
+        old_values: { role: users.find(u => u.id === userId)?.role },
+        new_values: { role: newRole }
       });
 
       toast({
@@ -185,15 +184,14 @@ export default function AdminUsers() {
       }
 
       // Log the status change
-      await supabase.from('audit_logs').insert({
-        event_type: newStatus === 'active' ? 'account_unlocked' : 'account_locked',
-        user_id: userId,
-        actor_id: profile?.id,
-        success: true,
-        details: {
-          old_status: users.find(u => u.id === userId)?.status,
-          new_status: newStatus
-        }
+      await supabase.from('activity_log').insert({
+        action: newStatus === 'active' ? 'account_unlocked' : 'account_locked',
+        user_id: profile?.id,
+        organization_id: profile?.organization_id,
+        entity_type: 'user',
+        entity_id: userId,
+        old_values: { status: users.find(u => u.id === userId)?.status },
+        new_values: { status: newStatus }
       });
 
       toast({
@@ -225,13 +223,13 @@ export default function AdminUsers() {
 
   const getRoleBadgeColor = (role: string) => {
     switch (role) {
-      case 'Management': return 'bg-purple-100 text-purple-800 dark:bg-purple-900/30 dark:text-purple-300';
-      case 'Procurement Owner': return 'bg-blue-100 text-blue-800 dark:bg-blue-900/30 dark:text-blue-300';
-      case 'Engineering': return 'bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-300';
-      case 'QA': return 'bg-yellow-100 text-yellow-800 dark:bg-yellow-900/30 dark:text-yellow-300';
-      case 'Production': return 'bg-orange-100 text-orange-800 dark:bg-orange-900/30 dark:text-orange-300';
-      case 'Supplier': return 'bg-indigo-100 text-indigo-800 dark:bg-indigo-900/30 dark:text-indigo-300';
-      case 'Customer': return 'bg-gray-100 text-gray-800 dark:bg-gray-900/30 dark:text-gray-300';
+      case 'management': return 'bg-purple-100 text-purple-800 dark:bg-purple-900/30 dark:text-purple-300';
+      case 'procurement': return 'bg-blue-100 text-blue-800 dark:bg-blue-900/30 dark:text-blue-300';
+      case 'engineering': return 'bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-300';
+      case 'qa': return 'bg-yellow-100 text-yellow-800 dark:bg-yellow-900/30 dark:text-yellow-300';
+      case 'production': return 'bg-orange-100 text-orange-800 dark:bg-orange-900/30 dark:text-orange-300';
+      case 'supplier': return 'bg-indigo-100 text-indigo-800 dark:bg-indigo-900/30 dark:text-indigo-300';
+      case 'customer': return 'bg-gray-100 text-gray-800 dark:bg-gray-900/30 dark:text-gray-300';
       default: return 'bg-gray-100 text-gray-800 dark:bg-gray-900/30 dark:text-gray-300';
     }
   };
@@ -274,7 +272,7 @@ export default function AdminUsers() {
     filterUsers();
   }, [searchQuery, roleFilter, statusFilter, users]);
 
-  const roles = ['Customer', 'Procurement Owner', 'Engineering', 'QA', 'Production', 'Supplier', 'Management'];
+  const roles = ['customer', 'procurement', 'engineering', 'qa', 'production', 'supplier', 'management'];
   const statuses = ['active', 'inactive', 'pending', 'locked', 'dormant'];
 
   return (

@@ -210,13 +210,15 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     try {
       const userAgent = navigator.userAgent;
 
-      // Use audit_logs table instead of activity_log
-      await supabase.from('audit_logs').insert({
-        event_type: eventType,
+      // Use activity_log table
+      await supabase.from('activity_log').insert({
+        action: eventType,
         user_id: user?.id || null,
-        success: success,
-        details: { success, details: details || {} },
-        timestamp: new Date().toISOString(),
+        organization_id: user?.organization_id || null,
+        entity_type: 'user',
+        entity_id: user?.id || null,
+        old_values: null,
+        new_values: { success, details: details || {} },
         user_agent: userAgent,
         session_id: session?.access_token || null
       });

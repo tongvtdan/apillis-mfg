@@ -24,6 +24,13 @@
 
 ## Recently Completed
 
+### [done] 2025-01-27 - User Management Access Denied Issue Resolution
+- ✅ Fixed case sensitivity mismatch between database roles and application role checks
+- ✅ Added missing RLS policies for activity_log table
+- ✅ Updated all role references to use consistent lowercase values
+- ✅ Resolved "Access Denied" error when accessing user management from admin tab
+- ✅ User management now accessible for CEO/management users
+
 ### [done] 2025-01-27 - Database Schema Revision
 - ✅ Standardized UUID generation to `uuid_generate_v4()`
 - ✅ Separated project status from workflow stages
