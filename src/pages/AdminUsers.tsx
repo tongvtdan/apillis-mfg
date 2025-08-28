@@ -48,8 +48,7 @@ import { UserProfile } from '@/contexts/AuthContext';
 import { ROLE_DESCRIPTIONS } from '@/lib/auth-constants';
 
 interface UserWithStats extends UserProfile {
-  email?: string;
-  login_attempts: number;
+  login_attempts?: number;
   locked_until?: string;
   password_last_changed?: string;
 }
@@ -89,8 +88,8 @@ export default function AdminUsers() {
         return;
       }
 
-      setUsers(usersData || []);
-      setFilteredUsers(usersData || []);
+      setUsers((usersData || []) as UserWithStats[]);
+      setFilteredUsers((usersData || []) as UserWithStats[]);
     } catch (error) {
       console.error('Error fetching users:', error);
     } finally {
@@ -250,17 +249,7 @@ export default function AdminUsers() {
     });
   };
 
-  // Get email for a user from the auth data
-  const getUserEmail = (userId: string) => {
-    // For the current user, we can use the auth context
-    if (user && user.id === userId) {
-      return user.email || 'No email';
-    }
 
-    // For other users, we'd typically use an admin API or database view
-    // but this requires server-side implementation
-    return 'Email not available';
-  };
 
   useEffect(() => {
     if (canAccess) {
@@ -273,7 +262,7 @@ export default function AdminUsers() {
   }, [searchQuery, roleFilter, statusFilter, users]);
 
   const roles = ['customer', 'procurement', 'engineering', 'qa', 'production', 'supplier', 'management'];
-  const statuses = ['active', 'inactive', 'pending', 'locked', 'dormant'];
+  const statuses = ['active', 'dismiss'];
 
   return (
     <div className="space-y-6 p-6 bg-base-100 text-base-content min-h-screen">
@@ -344,9 +333,9 @@ export default function AdminUsers() {
           <CardContent className="p-4">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-sm font-medium text-base-content/70">Pending Users</p>
+                <p className="text-sm font-medium text-base-content/70">Dismissed Users</p>
                 <p className="text-2xl font-bold text-yellow-600">
-                  {users.filter(u => u.status === 'pending').length}
+                  {users.filter(u => u.status === 'dismiss').length}
                 </p>
               </div>
               <Calendar className="h-8 w-8 text-yellow-600" />
@@ -438,7 +427,7 @@ export default function AdminUsers() {
                         <div>
                           <div className="font-medium">{user.name}</div>
                           <div className="text-sm text-base-content/70">
-                            {getUserEmail(user.id)}
+                            {user.email || 'No email'}
                           </div>
                           {user.login_attempts > 0 && (
                             <div className="text-xs text-red-600">
@@ -458,7 +447,7 @@ export default function AdminUsers() {
                         </Badge>
                       </TableCell>
                       <TableCell>{user.department || '-'}</TableCell>
-                      <TableCell>{formatDate(user.last_login)}</TableCell>
+                      <TableCell>{formatDate(user.last_login_at)}</TableCell>
                       <TableCell>{formatDate(user.created_at)}</TableCell>
                       <TableCell>
                         <div className="flex items-center gap-2">

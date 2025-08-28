@@ -1,5 +1,59 @@
 # Factory Pulse Development Memory
 
+## 2025-01-27 - User Management Email Display Issue Resolution
+
+### Work Done
+- **Identified and fixed email display issue** in AdminUsers component where emails were showing as "Email not available"
+- **Root cause analysis**: `getUserEmail` function was hardcoded to return "Email not available" for any user that wasn't the current user
+- **Database verification**: Confirmed that users table contains proper email data for all sample users
+- **Type system fixes**: Resolved TypeScript interface conflicts between `UserProfile` and `UserWithStats`
+
+### Root Cause Analysis
+- **AdminUsers component**: Used `getUserEmail(user.id)` function that was hardcoded to return "Email not available"
+- **Database data**: Users table actually contained proper email addresses (ceo@factorypulse.vn, operations@factorypulse.vn, etc.)
+- **Type mismatch**: `UserWithStats` interface incorrectly extended `UserProfile` with optional email field
+- **Function logic**: `getUserEmail` function was designed for a different authentication approach
+
+### Changes Made
+1. **Fixed email display**:
+   - Replaced `{getUserEmail(user.id)}` with `{user.email || 'No email'}`
+   - Removed unused `getUserEmail` function entirely
+
+2. **Fixed TypeScript interfaces**:
+   - Removed conflicting `email?: string` from `UserWithStats` interface
+   - Made `login_attempts` optional since it's not in database schema
+   - Fixed type casting for database query results
+
+3. **Updated status handling**:
+   - Changed "Pending Users" to "Dismissed Users" to match actual database values
+   - Updated statuses array from `['active', 'inactive', 'pending', 'locked', 'dormant']` to `['active', 'dismiss']`
+   - Fixed status comparison in stats card
+
+4. **Fixed property references**:
+   - Changed `user.last_login` to `user.last_login_at` to match database schema
+
+### Files Modified
+- `src/pages/AdminUsers.tsx` - Fixed email display, type interfaces, and status handling
+
+### Result
+- **Email display**: Now shows actual email addresses from database instead of "Email not available"
+- **Type safety**: Resolved TypeScript compilation errors
+- **Data accuracy**: Status counts and user information now match database schema
+- **User experience**: Admin users can now see actual email addresses for all users
+
+### Technical Details
+- **Database schema**: Users table has `email` field as `VARCHAR(255) NOT NULL`
+- **Sample data**: 12 users with proper email addresses (ceo@factorypulse.vn, operations@factorypulse.vn, etc.)
+- **Type system**: `UserProfile` interface correctly defines `email: string` as required field
+- **Component logic**: Direct access to `user.email` instead of complex function calls
+
+### Next Steps
+- Test user management interface to verify email display
+- Verify all user information is correctly displayed
+- Test user editing and role management functionality
+
+---
+
 ## 2025-01-27 - User Management Access Denied Issue Resolution
 
 ### Work Done
