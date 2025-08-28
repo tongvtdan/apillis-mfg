@@ -1,14 +1,27 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useAuth } from '@/contexts/AuthContext';
 import { Navigate, useLocation } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
+import { Checkbox } from '@/components/ui/checkbox';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { Loader2, Factory, AlertCircle, CheckCircle } from 'lucide-react';
 import { validateLoginForm, validateRegistrationForm } from '@/lib/auth-validation';
+import {
+  extractDomain,
+  buildEmail,
+  saveDomain,
+  getSavedDomain,
+  saveUsername,
+  getSavedUsername,
+  saveRememberPassword,
+  getRememberPassword,
+  savePassword,
+  getSavedPassword
+} from '@/lib/auth-utils';
 
 export default function Auth() {
   const { signIn, signUp, resetPassword, user, loading } = useAuth();
@@ -16,7 +29,12 @@ export default function Auth() {
   const [isLoading, setIsLoading] = useState(false);
 
   // Form states
-  const [signInData, setSignInData] = useState({ email: '', password: '' });
+  const [signInData, setSignInData] = useState({
+    username: '',
+    domain: '',
+    password: ''
+  });
+  const [rememberPassword, setRememberPassword] = useState(false);
   const [signUpData, setSignUpData] = useState({
     email: '',
     password: '',
@@ -32,6 +50,52 @@ export default function Auth() {
 
   const from = location.state?.from?.pathname || '/dashboard';
 
+  // Load saved authentication data on component mount
+  useEffect(() => {
+    const savedDomain = getSavedDomain();
+    const savedUsername = getSavedUsername();
+    const savedRememberPassword = getRememberPassword();
+    const savedPassword = getSavedPassword();
+
+    setSignInData(prev => ({
+      ...prev,
+      domain: savedDomain,
+      username: savedUsername,
+      password: savedPassword
+    }));
+    setRememberPassword(savedRememberPassword);
+  }, []);
+
+  // Handle domain input change with smart parsing
+  const handleDomainChange = (value: string) => {
+    // If user pastes a full email, extract the domain
+    if (value.includes('@')) {
+      const extractedDomain = extractDomain(value);
+      setSignInData(prev => ({ ...prev, domain: extractedDomain }));
+    } else {
+      // Remove http://, https://, www. prefixes if user types them
+      const cleanDomain = value.replace(/^(https?:\/\/)?(www\.)?/, '');
+      setSignInData(prev => ({ ...prev, domain: cleanDomain }));
+    }
+  };
+
+  // Handle username input change with smart parsing
+  const handleUsernameChange = (value: string) => {
+    // If user pastes a full email, extract the username
+    if (value.includes('@')) {
+      const username = value.split('@')[0];
+      setSignInData(prev => ({ ...prev, username }));
+    } else {
+      setSignInData(prev => ({ ...prev, username: value }));
+    }
+  };
+
+  // Get the full email for display
+  const getFullEmail = () => {
+    if (!signInData.username || !signInData.domain) return '';
+    return buildEmail(signInData.username, signInData.domain);
+  };
+
   if (user && !loading) {
     return <Navigate to={from} replace />;
   }
@@ -40,8 +104,16 @@ export default function Auth() {
     e.preventDefault();
     setErrors([]);
 
+    // Build full email from username and domain
+    const fullEmail = getFullEmail();
+
+    if (!fullEmail) {
+      setErrors(['Please enter both username and domain']);
+      return;
+    }
+
     // Validate form
-    const validation = validateLoginForm(signInData);
+    const validation = validateLoginForm({ email: fullEmail, password: signInData.password });
     if (!validation.isValid) {
       setErrors(validation.errors);
       return;
@@ -49,7 +121,18 @@ export default function Auth() {
 
     setIsLoading(true);
     try {
-      await signIn(signInData.email, signInData.password);
+      await signIn(fullEmail, signInData.password);
+
+      // Save authentication preferences on successful login
+      if (signInData.domain) {
+        saveDomain(signInData.domain);
+      }
+      if (signInData.username) {
+        saveUsername(signInData.username);
+      }
+      saveRememberPassword(rememberPassword);
+      savePassword(signInData.password, rememberPassword);
+
     } catch (error) {
       console.error('Sign in error:', error);
     } finally {
@@ -139,17 +222,39 @@ export default function Auth() {
               <TabsContent value="signin" className="space-y-4">
                 <form onSubmit={handleSignIn} className="space-y-4">
                   <div className="space-y-2">
-                    <Label htmlFor="signin-email">Email</Label>
+                    <Label htmlFor="signin-username">Username</Label>
                     <Input
-                      id="signin-email"
-                      type="email"
-                      placeholder="Enter your email"
-                      value={signInData.email}
-                      onChange={(e) => setSignInData(prev => ({ ...prev, email: e.target.value }))}
+                      id="signin-username"
+                      type="text"
+                      placeholder="Enter your username"
+                      value={signInData.username}
+                      onChange={(e) => handleUsernameChange(e.target.value)}
                       className="border-base-300 focus:border-primary transition-colors"
                       required
                     />
                   </div>
+                  <div className="space-y-2">
+                    <Label htmlFor="signin-domain">Domain</Label>
+                    <Input
+                      id="signin-domain"
+                      type="text"
+                      placeholder="Enter your domain (e.g., factorypulse.vn)"
+                      value={signInData.domain}
+                      onChange={(e) => handleDomainChange(e.target.value)}
+                      className="border-base-300 focus:border-primary transition-colors"
+                      required
+                    />
+                  </div>
+
+                  {/* Show constructed email for verification */}
+                  {getFullEmail() && (
+                    <div className="p-3 bg-muted/50 rounded-md border">
+                      <p className="text-sm text-muted-foreground">
+                        Signing in as: <span className="font-medium text-foreground">{getFullEmail()}</span>
+                      </p>
+                    </div>
+                  )}
+
                   <div className="space-y-2">
                     <Label htmlFor="signin-password">Password</Label>
                     <Input
@@ -162,6 +267,18 @@ export default function Auth() {
                       required
                     />
                   </div>
+
+                  <div className="flex items-center space-x-2">
+                    <Checkbox
+                      id="remember-password"
+                      checked={rememberPassword}
+                      onCheckedChange={(checked) => setRememberPassword(checked as boolean)}
+                    />
+                    <Label htmlFor="remember-password" className="text-sm text-muted-foreground">
+                      Remember me
+                    </Label>
+                  </div>
+
                   <Button type="submit" className="auth-button" disabled={isLoading}>
                     {isLoading ? <Loader2 className="h-4 w-4 animate-spin mr-2" /> : null}
                     Sign In

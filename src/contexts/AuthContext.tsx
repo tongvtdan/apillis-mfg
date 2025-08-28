@@ -2,6 +2,7 @@ import React, { createContext, useContext, useEffect, useState } from 'react';
 import { User, Session } from '@supabase/supabase-js';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/components/ui/use-toast';
+import { clearSavedAuthData } from '@/lib/auth-utils';
 
 // Updated UserProfile interface to match the actual users table schema
 export interface UserProfile {
@@ -272,7 +273,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       await supabase.from('activity_log').insert({
         action: eventType,
         user_id: user?.id || null,
-        organization_id: user?.organization_id || null,
+        organization_id: profile?.organization_id || null,
         entity_type: 'user',
         entity_id: user?.id || null,
         old_values: null,
@@ -430,6 +431,9 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         });
         throw error;
       }
+
+      // Clear saved authentication data from localStorage
+      clearSavedAuthData();
 
       toast({
         title: "Signed Out",
