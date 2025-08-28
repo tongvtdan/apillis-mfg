@@ -67,10 +67,10 @@ export default function Auth() {
     setRememberPassword(savedRememberPassword);
   }, []);
 
-  // Handle domain input change with smart parsing and immediate save
+  // Handle domain input change with smart parsing
   const handleDomainChange = (value: string) => {
     let cleanDomain = value;
-    
+
     // If user pastes a full email, extract the domain
     if (value.includes('@')) {
       cleanDomain = extractDomain(value);
@@ -78,30 +78,20 @@ export default function Auth() {
       // Remove http://, https://, www. prefixes if user types them
       cleanDomain = value.replace(/^(https?:\/\/)?(www\.)?/, '');
     }
-    
+
     setSignInData(prev => ({ ...prev, domain: cleanDomain }));
-    
-    // Save domain immediately for persistence
-    if (cleanDomain) {
-      saveDomain(cleanDomain);
-    }
   };
 
-  // Handle username input change with smart parsing and immediate save
+  // Handle username input change with smart parsing
   const handleUsernameChange = (value: string) => {
     let cleanUsername = value;
-    
+
     // If user pastes a full email, extract the username
     if (value.includes('@')) {
       cleanUsername = value.split('@')[0];
     }
-    
+
     setSignInData(prev => ({ ...prev, username: cleanUsername }));
-    
-    // Save username immediately for persistence
-    if (cleanUsername) {
-      saveUsername(cleanUsername);
-    }
   };
 
   // Get the full email for display
@@ -135,20 +125,39 @@ export default function Auth() {
 
     setIsLoading(true);
     try {
+      console.log('🔐 Starting sign in process...');
+      console.log('  Email:', fullEmail);
+      console.log('  Remember password:', rememberPassword);
+
       await signIn(fullEmail, signInData.password);
+
+      console.log('✅ Sign in successful, now saving preferences...');
+      console.log('  Domain:', signInData.domain);
+      console.log('  Username:', signInData.username);
+      console.log('  Remember password:', rememberPassword);
 
       // Save authentication preferences on successful login
       if (signInData.domain) {
         saveDomain(signInData.domain);
+        console.log('✅ Domain saved to localStorage');
       }
       if (signInData.username) {
         saveUsername(signInData.username);
+        console.log('✅ Username saved to localStorage');
       }
+
       saveRememberPassword(rememberPassword);
+      console.log('✅ Remember password preference saved:', rememberPassword);
+
       savePassword(signInData.password, rememberPassword);
+      if (rememberPassword) {
+        console.log('✅ Password saved to localStorage (remember me enabled)');
+      } else {
+        console.log('🗑️ Password not saved (remember me disabled)');
+      }
 
     } catch (error) {
-      console.error('Sign in error:', error);
+      console.error('❌ Sign in error:', error);
     } finally {
       setIsLoading(false);
     }

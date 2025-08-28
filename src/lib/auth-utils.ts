@@ -43,11 +43,11 @@ const AUTH_STORAGE_KEYS = {
  */
 export function saveDomain(domain: string): void {
   try {
-    console.log('🔐 Saving domain to localStorage:', domain);
+    console.log('🔐 saveDomain called with:', domain);
     localStorage.setItem(AUTH_STORAGE_KEYS.DOMAIN, domain);
-    console.log('✅ Domain saved successfully');
+    console.log('✅ Domain saved to localStorage');
   } catch (error) {
-    console.warn('❌ Failed to save domain to localStorage:', error);
+    console.warn('Failed to save domain to localStorage:', error);
   }
 }
 
@@ -56,11 +56,9 @@ export function saveDomain(domain: string): void {
  */
 export function getSavedDomain(): string {
   try {
-    const domain = localStorage.getItem(AUTH_STORAGE_KEYS.DOMAIN) || '';
-    console.log('🔍 Retrieved domain from localStorage:', domain);
-    return domain;
+    return localStorage.getItem(AUTH_STORAGE_KEYS.DOMAIN) || '';
   } catch (error) {
-    console.warn('❌ Failed to get domain from localStorage:', error);
+    console.warn('Failed to get domain from localStorage:', error);
     return '';
   }
 }
@@ -70,11 +68,11 @@ export function getSavedDomain(): string {
  */
 export function saveUsername(username: string): void {
   try {
-    console.log('🔐 Saving username to localStorage:', username);
+    console.log('🔐 saveUsername called with:', username);
     localStorage.setItem(AUTH_STORAGE_KEYS.USERNAME, username);
-    console.log('✅ Username saved successfully');
+    console.log('✅ Username saved to localStorage');
   } catch (error) {
-    console.warn('❌ Failed to save username to localStorage:', error);
+    console.warn('Failed to save username to localStorage:', error);
   }
 }
 
@@ -83,11 +81,9 @@ export function saveUsername(username: string): void {
  */
 export function getSavedUsername(): string {
   try {
-    const username = localStorage.getItem(AUTH_STORAGE_KEYS.USERNAME) || '';
-    console.log('🔍 Retrieved username from localStorage:', username);
-    return username;
+    return localStorage.getItem(AUTH_STORAGE_KEYS.USERNAME) || '';
   } catch (error) {
-    console.warn('❌ Failed to get username from localStorage:', error);
+    console.warn('Failed to get username from localStorage:', error);
     return '';
   }
 }
@@ -97,11 +93,11 @@ export function getSavedUsername(): string {
  */
 export function saveRememberPassword(remember: boolean): void {
   try {
-    console.log('🔐 Saving remember password preference:', remember);
+    console.log('🔐 saveRememberPassword called with:', remember);
     localStorage.setItem(AUTH_STORAGE_KEYS.REMEMBER_PASSWORD, remember.toString());
-    console.log('✅ Remember password preference saved successfully');
+    console.log('✅ Remember password preference saved to localStorage');
   } catch (error) {
-    console.warn('❌ Failed to save remember password preference:', error);
+    console.warn('Failed to save remember password preference:', error);
   }
 }
 
@@ -110,11 +106,9 @@ export function saveRememberPassword(remember: boolean): void {
  */
 export function getRememberPassword(): boolean {
   try {
-    const remember = localStorage.getItem(AUTH_STORAGE_KEYS.REMEMBER_PASSWORD) === 'true';
-    console.log('🔍 Retrieved remember password preference:', remember);
-    return remember;
+    return localStorage.getItem(AUTH_STORAGE_KEYS.REMEMBER_PASSWORD) === 'true';
   } catch (error) {
-    console.warn('❌ Failed to get remember password preference:', error);
+    console.warn('Failed to get remember password preference:', error);
     return false;
   }
 }
@@ -124,17 +118,16 @@ export function getRememberPassword(): boolean {
  */
 export function savePassword(password: string, remember: boolean): void {
   try {
+    console.log('🔐 savePassword called:', { remember, hasPassword: !!password });
     if (remember) {
-      console.log('🔐 Saving password to localStorage (remember enabled)');
       localStorage.setItem(AUTH_STORAGE_KEYS.SAVED_PASSWORD, password);
-      console.log('✅ Password saved successfully');
+      console.log('✅ Password saved to localStorage');
     } else {
-      console.log('🗑️ Removing password from localStorage (remember disabled)');
       localStorage.removeItem(AUTH_STORAGE_KEYS.SAVED_PASSWORD);
-      console.log('✅ Password removed successfully');
+      console.log('🗑️ Password removed from localStorage');
     }
   } catch (error) {
-    console.warn('❌ Failed to save/remove password from localStorage:', error);
+    console.warn('Failed to save/remove password from localStorage:', error);
   }
 }
 
@@ -143,11 +136,9 @@ export function savePassword(password: string, remember: boolean): void {
  */
 export function getSavedPassword(): string {
   try {
-    const password = localStorage.getItem(AUTH_STORAGE_KEYS.SAVED_PASSWORD) || '';
-    console.log('🔍 Retrieved password from localStorage:', password ? '***' : '(empty)');
-    return password;
+    return localStorage.getItem(AUTH_STORAGE_KEYS.SAVED_PASSWORD) || '';
   } catch (error) {
-    console.warn('❌ Failed to get password from localStorage:', error);
+    console.warn('Failed to get password from localStorage:', error);
     return '';
   }
 }
