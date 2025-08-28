@@ -13,236 +13,211 @@ import { ProjectWorkflowAnalytics } from "@/components/project/ProjectWorkflowAn
 import { EnhancedProjectSummary } from "@/components/project/EnhancedProjectSummary";
 import { useSearchParams } from "react-router-dom";
 
+// This component displays the projects management interface
+// It uses the authenticated user's data from the AuthContext to fetch and manage projects
+// The user profile data is fetched from the public.users table and connected to the auth.users table
+// through the user ID which is consistent between both tables after the migration
 export default function Projects() {
-  const { projects, loading, updateProjectStatus, updateProjectStatusOptimistic, refetch, testRealtimeSubscription, testManualStateUpdate, testSupabaseRealtime } = useProjects();
-  const [searchParams, setSearchParams] = useSearchParams();
+    const { projects, loading, updateProjectStage, updateProjectStatusOptimistic, refetch, getBottleneckAnalysis } = useProjects();
+    const [searchParams, setSearchParams] = useSearchParams();
 
-  const [selectedStage, setSelectedStage] = React.useState<ProjectStatus | null>(() => {
-    // Try to restore from localStorage, default to 'inquiry_received' if none found
-    const saved = localStorage.getItem('projects-selected-stage');
-    return saved ? (saved as ProjectStatus) : 'inquiry_received';
-  });
-
-  const [selectedProjectType, setSelectedProjectType] = React.useState<ProjectType | 'all'>('all');
-  const [selectedProject, setSelectedProject] = React.useState<Project | null>(null);
-
-  // Get default tab from URL params or localStorage
-  const getDefaultTab = () => {
-    const tabParam = searchParams.get('tab');
-    if (tabParam === 'calendar' || tabParam === 'table' || tabParam === 'flowchart' || tabParam === 'analytics') {
-      return tabParam;
-    }
-    // Try to restore from localStorage, default to 'flowchart'
-    const saved = localStorage.getItem('projects-selected-tab');
-    return saved ? (saved as string) : 'flowchart';
-  };
-
-  const defaultTab = getDefaultTab();
-
-  // Save selected tab to localStorage and URL params
-  const handleTabChange = (value: string) => {
-    localStorage.setItem('projects-selected-tab', value);
-    setSearchParams(prev => {
-      const newParams = new URLSearchParams(prev);
-      newParams.set('tab', value);
-      return newParams;
+    const [selectedStage, setSelectedStage] = React.useState<ProjectStatus | null>(() => {
+        // Try to restore from localStorage, default to 'inquiry_received' if none found
+        const saved = localStorage.getItem('projects-selected-stage');
+        return saved ? (saved as ProjectStatus) : 'inquiry_received';
     });
-  };
 
-  // Save selected stage to localStorage whenever it changes
-  const handleStageSelect = React.useCallback((stage: ProjectStatus | null) => {
-    setSelectedStage(stage);
-    if (stage) {
-      localStorage.setItem('projects-selected-stage', stage);
-    } else {
-      localStorage.removeItem('projects-selected-stage');
-    }
-  }, []);
+    const [selectedProjectType, setSelectedProjectType] = React.useState<ProjectType | 'all'>('all');
+    const [selectedProject, setSelectedProject] = React.useState<Project | null>(null);
 
-  const activeProjects = projects.filter(p => p.status !== 'shipped_closed');
-
-  // Calculate stage counts
-  const stageCounts = React.useMemo(() => {
-    const counts: Record<ProjectStatus, number> = {
-      inquiry_received: 0,
-      technical_review: 0,
-      supplier_rfq_sent: 0,
-      quoted: 0,
-      order_confirmed: 0,
-      procurement_planning: 0,
-      in_production: 0,
-      shipped_closed: 0
+    // Get default tab from URL params or localStorage
+    const getDefaultTab = () => {
+        const tabParam = searchParams.get('tab');
+        if (tabParam === 'calendar' || tabParam === 'table' || tabParam === 'flowchart' || tabParam === 'analytics') {
+            return tabParam;
+        }
+        // Try to restore from localStorage, default to 'flowchart'
+        const saved = localStorage.getItem('projects-selected-tab');
+        return saved ? (saved as string) : 'flowchart';
     };
 
-    projects.forEach(project => {
-      const currentStage = project.current_stage || project.status;
-      if (counts.hasOwnProperty(currentStage)) {
-        counts[currentStage as ProjectStatus] = (counts[currentStage as ProjectStatus] || 0) + 1;
-      }
-    });
+    const defaultTab = getDefaultTab();
 
-    return counts;
-  }, [projects]);
+    // Save selected tab to localStorage and URL params
+    const handleTabChange = (value: string) => {
+        localStorage.setItem('projects-selected-tab', value);
+        setSearchParams(prev => {
+            const newParams = new URLSearchParams(prev);
+            newParams.set('tab', value);
+            return newParams;
+        });
+    };
 
-  // Get projects for selected stage with type filtering
-  const selectedStageProjects = React.useMemo(() => {
-    if (!selectedStage) return [];
-    let filtered = projects.filter(p => (p.current_stage || p.status) === selectedStage);
+    // Save selected stage to localStorage whenever it changes
+    const handleStageSelect = React.useCallback((stage: ProjectStatus | null) => {
+        setSelectedStage(stage);
+        if (stage) {
+            localStorage.setItem('projects-selected-stage', stage);
+        } else {
+            localStorage.removeItem('projects-selected-stage');
+        }
+    }, []);
 
-    // Apply project type filter
-    if (selectedProjectType !== 'all') {
-      filtered = filtered.filter(p => p.project_type === selectedProjectType);
+    const activeProjects = projects.filter(p => p.status !== 'shipped_closed');
+
+    // Calculate stage counts
+    const stageCounts = React.useMemo(() => {
+        const counts: Record<ProjectStatus, number> = {
+            inquiry_received: 0,
+            technical_review: 0,
+            supplier_rfq_sent: 0,
+            quoted: 0,
+            order_confirmed: 0,
+            procurement_planning: 0,
+            in_production: 0,
+            shipped_closed: 0
+        };
+
+        projects.forEach(project => {
+            const currentStage = project.current_stage || project.status;
+            if (currentStage in counts) {
+                counts[currentStage as ProjectStatus] = (counts[currentStage as ProjectStatus] || 0) + 1;
+            }
+        });
+
+        return counts;
+    }, [projects]);
+
+    // Get projects for selected stage with type filtering
+    const selectedStageProjects = React.useMemo(() => {
+        if (!selectedStage) return [];
+        let filtered = projects.filter(p => (p.current_stage || p.status) === selectedStage);
+
+        // Apply project type filter
+        if (selectedProjectType !== 'all') {
+            filtered = filtered.filter(p => p.project_type === selectedProjectType);
+        }
+
+        return filtered;
+    }, [projects, selectedStage, selectedProjectType]);
+
+    if (loading) {
+        return (
+            <div className="p-6">
+                <div className="mb-6">
+                    <h1 className="text-2xl font-bold">Projects</h1>
+                    <p className="text-muted-foreground">Manage all your projects and their workflow stages</p>
+                </div>
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                    {[1, 2, 3, 4, 5, 6].map((i) => (
+                        <div key={i} className="animate-pulse">
+                            <div className="bg-muted rounded-lg h-96"></div>
+                        </div>
+                    ))}
+                </div>
+            </div>
+        );
     }
 
-    return filtered;
-  }, [projects, selectedStage, selectedProjectType]);
-
-  if (loading) {
     return (
-      <div className="p-6">
-        <div className="mb-6">
-          <h1 className="text-2xl font-bold">Projects</h1>
-          <p className="text-muted-foreground">Manage all your projects and their workflow stages</p>
+        <div className="p-6 bg-base-100 text-base-content min-h-screen">
+            <Tabs value={defaultTab} onValueChange={handleTabChange} className="w-full relative">
+                <div className="mb-6 flex justify-between items-center">
+                    <div>
+                        <h1 className="text-2xl font-bold text-base-content">Factory Pulse - Project Flow</h1>
+                        <p className="text-base-content/70">Track and manage your manufacturing projects from idea to delivery</p>
+
+                    </div>
+                    <div className="flex items-center gap-4">
+                        <TabsList className="auth-tabs-list grid-cols-4 w-[600px]">
+                            <TabsTrigger value="flowchart" className="auth-tab-trigger">
+                                Kanban Flow
+                            </TabsTrigger>
+                            <TabsTrigger value="table" className="auth-tab-trigger">
+                                Table
+                            </TabsTrigger>
+                            <TabsTrigger value="analytics" className="auth-tab-trigger">
+                                Analytics
+                            </TabsTrigger>
+                            <TabsTrigger value="calendar" className="auth-tab-trigger">
+                                Calendar
+                            </TabsTrigger>
+                        </TabsList>
+
+                        {/* Manual refresh button */}
+                        <Button
+                            variant="outline"
+                            size="sm"
+                            onClick={() => refetch(true)}
+                            className="text-xs"
+                        >
+                            🔄 Refresh
+                        </Button>
+
+                        {/* Project Type Filter */}
+                        <div className="flex items-center space-x-3">
+                            <span className="text-sm text-base-content/70">Filter by type:</span>
+                            <Select value={selectedProjectType} onValueChange={(value) => setSelectedProjectType(value as ProjectType | 'all')}>
+                                <SelectTrigger className="w-[180px]">
+                                    <SelectValue placeholder="All project types" />
+                                </SelectTrigger>
+                                <SelectContent>
+                                    <SelectItem value="all">All Types ({activeProjects.length})</SelectItem>
+                                    <SelectItem value="system_build">
+                                        {PROJECT_TYPE_LABELS.system_build} ({activeProjects.filter(p => p.project_type === 'system_build').length})
+                                    </SelectItem>
+                                    <SelectItem value="fabrication">
+                                        {PROJECT_TYPE_LABELS.fabrication} ({activeProjects.filter(p => p.project_type === 'fabrication').length})
+                                    </SelectItem>
+                                    <SelectItem value="manufacturing">
+                                        {PROJECT_TYPE_LABELS.manufacturing} ({activeProjects.filter(p => p.project_type === 'manufacturing').length})
+                                    </SelectItem>
+                                </SelectContent>
+                            </Select>
+                        </div>
+                    </div>
+                </div>
+
+                <TabsContent value="flowchart" className="mt-4 space-y-6">
+                    <WorkflowFlowchart
+                        selectedProject={selectedProject}
+                        onProjectSelect={setSelectedProject}
+                        onStageSelect={handleStageSelect} // Pass the stage selection handler
+                        selectedStage={selectedStage} // Pass the selected stage
+                        projectTypeFilter={selectedProjectType} // Pass the project type filter
+                        projects={projects} // Pass all projects
+                        updateProjectStatusOptimistic={updateProjectStatusOptimistic} // Pass the optimistic update function
+                        refetch={() => refetch(true)} // Pass the refetch function
+                    />
+                </TabsContent>
+
+                <TabsContent value="table" className="mt-4 space-y-6">
+                    <div className="bg-base-100 rounded-lg p-6 border border-base-300">
+                        <div className="mb-4">
+                            <h3 className="text-lg font-semibold text-base-content">Project Table View</h3>
+                            <p className="text-sm text-base-content/70 mt-1">
+                                {selectedProjectType === 'all'
+                                    ? `Showing ${activeProjects.length} projects`
+                                    : `Showing ${activeProjects.filter(p => p.project_type === selectedProjectType).length} ${PROJECT_TYPE_LABELS[selectedProjectType]} projects`
+                                }
+                            </p>
+                        </div>
+                        <ProjectTable 
+                            projects={activeProjects} 
+                            onProjectSelect={setSelectedProject}
+                            projectTypeFilter={selectedProjectType}
+                        />
+                    </div>
+                </TabsContent>
+
+                <TabsContent value="analytics" className="mt-4 space-y-6">
+                    <ProjectWorkflowAnalytics />
+                </TabsContent>
+
+                <TabsContent value="calendar" className="mt-4 space-y-6">
+                    <ProjectCalendar projects={projects} />
+                </TabsContent>
+            </Tabs>
         </div>
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-          {[1, 2, 3, 4, 5, 6].map((i) => (
-            <div key={i} className="animate-pulse">
-              <div className="bg-muted rounded-lg h-96"></div>
-            </div>
-          ))}
-        </div>
-      </div>
     );
-  }
-
-  return (
-    <div className="p-6 bg-base-100 text-base-content min-h-screen">
-      <Tabs value={defaultTab} onValueChange={handleTabChange} className="w-full relative">
-        <div className="mb-6 flex justify-between items-center">
-          <div>
-            <h1 className="text-2xl font-bold text-base-content">Factory Pulse - Project Flow</h1>
-            <p className="text-base-content/70">Track and manage your manufacturing projects from idea to delivery</p>
-
-          </div>
-          <div className="flex items-center gap-4">
-            <TabsList className="auth-tabs-list grid-cols-4 w-[600px]">
-              <TabsTrigger value="flowchart" className="auth-tab-trigger">
-                Kanban Flow
-              </TabsTrigger>
-              <TabsTrigger value="table" className="auth-tab-trigger">
-                Table
-              </TabsTrigger>
-              <TabsTrigger value="analytics" className="auth-tab-trigger">
-                Analytics
-              </TabsTrigger>
-              <TabsTrigger value="calendar" className="auth-tab-trigger">
-                Calendar
-              </TabsTrigger>
-            </TabsList>
-
-            {/* Manual refresh button */}
-            <Button
-              variant="outline"
-              size="sm"
-              onClick={() => refetch(true)}
-              className="text-xs"
-            >
-              🔄 Refresh
-            </Button>
-
-            {/* Project Type Filter */}
-            <div className="flex items-center space-x-3">
-              <span className="text-sm text-base-content/70">Filter by type:</span>
-              <Select value={selectedProjectType} onValueChange={(value) => setSelectedProjectType(value as ProjectType | 'all')}>
-                <SelectTrigger className="w-[180px]">
-                  <SelectValue placeholder="All project types" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="all">All Types ({activeProjects.length})</SelectItem>
-                  <SelectItem value="system_build">
-                    {PROJECT_TYPE_LABELS.system_build} ({activeProjects.filter(p => p.project_type === 'system_build').length})
-                  </SelectItem>
-                  <SelectItem value="fabrication">
-                    {PROJECT_TYPE_LABELS.fabrication} ({activeProjects.filter(p => p.project_type === 'fabrication').length})
-                  </SelectItem>
-                  <SelectItem value="manufacturing">
-                    {PROJECT_TYPE_LABELS.manufacturing} ({activeProjects.filter(p => p.project_type === 'manufacturing').length})
-                  </SelectItem>
-                </SelectContent>
-              </Select>
-            </div>
-          </div>
-        </div>
-
-        <TabsContent value="flowchart" className="mt-4 space-y-6">
-          <WorkflowFlowchart
-            selectedProject={selectedProject}
-            onProjectSelect={setSelectedProject}
-            onStageSelect={handleStageSelect} // Pass the stage selection handler
-            selectedStage={selectedStage} // Pass the selected stage
-            projectTypeFilter={selectedProjectType} // Pass the project type filter
-            projects={projects} // Pass all projects
-            updateProjectStatusOptimistic={updateProjectStatusOptimistic} // Pass the optimistic update function
-            refetch={refetch} // Pass the refetch function
-          />
-        </TabsContent>
-
-        <TabsContent value="table" className="mt-4 space-y-6">
-          <div className="bg-base-100 rounded-lg p-6 border border-base-300">
-            <div className="mb-4">
-              <h3 className="text-lg font-semibold text-base-content">Project Table View</h3>
-              <p className="text-sm text-base-content/70 mt-1">
-                {selectedProjectType === 'all'
-                  ? `Showing ${activeProjects.length} projects`
-                  : `Showing ${activeProjects.filter(p => p.project_type === selectedProjectType).length} ${PROJECT_TYPE_LABELS[selectedProjectType]} projects`
-                }
-              </p>
-            </div>
-          </div>
-
-          <ProjectTable
-            projects={
-              selectedProjectType === 'all'
-                ? activeProjects
-                : activeProjects.filter(p => p.project_type === selectedProjectType)
-            }
-            updateProjectStatusOptimistic={updateProjectStatusOptimistic}
-            refetch={refetch}
-          />
-        </TabsContent>
-
-        <TabsContent value="analytics" className="mt-4 space-y-6">
-          <div className="bg-base-100 rounded-lg p-6 border border-base-300">
-            <div className="mb-4">
-              <h3 className="text-lg font-semibold text-base-content">Project Workflow Analytics</h3>
-              <p className="text-sm text-base-content/70 mt-1">
-                Comprehensive analytics and insights for your project workflow performance
-              </p>
-            </div>
-          </div>
-
-          <ProjectWorkflowAnalytics
-            projects={
-              selectedProjectType === 'all'
-                ? projects
-                : projects.filter(p => p.project_type === selectedProjectType)
-            }
-          />
-        </TabsContent>
-
-        <TabsContent value="calendar" className="mt-4 space-y-6">
-          <ProjectCalendar
-            projects={activeProjects}
-            projectTypeFilter={selectedProjectType}
-          />
-        </TabsContent>
-
-        {activeProjects.length === 0 && (
-          <div className="text-center py-12">
-            <p className="text-base-content/70">No active projects found</p>
-          </div>
-        )}
-      </Tabs>
-    </div>
-  );
 }

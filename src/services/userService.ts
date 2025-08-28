@@ -19,9 +19,9 @@ class UserService {
 
         try {
             const { data, error } = await supabase
-                .from('profiles')
-                .select('id, user_id, display_name, role, department')
-                .eq('user_id', userId)
+                .from('users')
+                .select('id, name, role, department')
+                .eq('id', userId)
                 .maybeSingle();
 
             if (error) {
@@ -31,8 +31,8 @@ class UserService {
 
             if (data) {
                 const userLookup: UserLookup = {
-                    id: data.user_id,
-                    display_name: data.display_name,
+                    id: data.id,
+                    display_name: data.name,
                     role: data.role,
                     department: data.department
                 };
@@ -66,9 +66,9 @@ class UserService {
         if (uncachedIds.length > 0) {
             try {
                 const { data, error } = await supabase
-                    .from('profiles')
-                    .select('id, user_id, display_name, role, department')
-                    .in('user_id', uncachedIds);
+                    .from('users')
+                    .select('id, name, role, department')
+                    .in('id', uncachedIds);
 
                 if (error) {
                     console.error('Error fetching users:', error);
@@ -76,17 +76,17 @@ class UserService {
                 }
 
                 if (data) {
-                    for (const profile of data) {
+                    for (const user of data) {
                         const userLookup: UserLookup = {
-                            id: profile.user_id,
-                            display_name: profile.display_name,
-                            role: profile.role,
-                            department: profile.department
+                            id: user.id,
+                            display_name: user.name,
+                            role: user.role,
+                            department: user.department
                         };
 
                         // Cache and add to result
-                        this.userCache.set(profile.user_id, userLookup);
-                        result.set(profile.user_id, userLookup);
+                        this.userCache.set(user.id, userLookup);
+                        result.set(user.id, userLookup);
                     }
                 }
             } catch (error) {

@@ -73,27 +73,24 @@ export default function AdminUsers() {
     try {
       setLoading(true);
 
-      // First, fetch profiles
-      const { data: profilesData, error: profilesError } = await supabase
-        .from('profiles')
+      // Fetch users from the users table
+      const { data: usersData, error: usersError } = await supabase
+        .from('users')
         .select('*')
         .order('created_at', { ascending: false });
 
-      if (profilesError) {
-        console.error('Error fetching profiles:', profilesError);
+      if (usersError) {
+        console.error('Error fetching users:', usersError);
         toast({
           variant: "destructive",
           title: "Error",
-          description: "Failed to fetch user profiles."
+          description: "Failed to fetch users."
         });
         return;
       }
 
-      // For now, set the profiles without email
-      // In a real implementation, we'd need to join with auth.users or use auth admin APIs
-      // which might require server-side implementation
-      setUsers(profilesData || []);
-      setFilteredUsers(profilesData || []);
+      setUsers(usersData || []);
+      setFilteredUsers(usersData || []);
     } catch (error) {
       console.error('Error fetching users:', error);
     } finally {
@@ -106,7 +103,7 @@ export default function AdminUsers() {
 
     if (searchQuery) {
       filtered = filtered.filter(user =>
-        user.display_name?.toLowerCase().includes(searchQuery.toLowerCase()) ||
+        user.name?.toLowerCase().includes(searchQuery.toLowerCase()) ||
         user.email?.toLowerCase().includes(searchQuery.toLowerCase()) ||
         user.department?.toLowerCase().includes(searchQuery.toLowerCase())
       );
@@ -126,13 +123,12 @@ export default function AdminUsers() {
   const updateUserRole = async (userId: string, newRole: string) => {
     try {
       const { error } = await supabase
-        .from('profiles')
+        .from('users')
         .update({
-          role: newRole as UserProfile['role'],
-          updated_at: new Date().toISOString(),
-          updated_by: profile?.user_id
+          role: newRole,
+          updated_at: new Date().toISOString()
         })
-        .eq('user_id', userId);
+        .eq('id', userId);
 
       if (error) {
         throw error;
@@ -142,10 +138,10 @@ export default function AdminUsers() {
       await supabase.from('audit_logs').insert({
         event_type: 'role_change',
         user_id: userId,
-        actor_id: profile?.user_id,
+        actor_id: profile?.id,
         success: true,
         details: {
-          old_role: users.find(u => u.user_id === userId)?.role,
+          old_role: users.find(u => u.id === userId)?.role,
           new_role: newRole
         }
       });
@@ -170,20 +166,19 @@ export default function AdminUsers() {
     try {
       const updateData: any = {
         status: newStatus,
-        updated_at: new Date().toISOString(),
-        updated_by: profile?.user_id
+        updated_at: new Date().toISOString()
       };
 
       // If unlocking, clear lockout fields
-      if (newStatus === 'Active') {
+      if (newStatus === 'active') {
         updateData.locked_until = null;
         updateData.login_attempts = 0;
       }
 
       const { error } = await supabase
-        .from('profiles')
+        .from('users')
         .update(updateData)
-        .eq('user_id', userId);
+        .eq('id', userId);
 
       if (error) {
         throw error;
@@ -191,12 +186,12 @@ export default function AdminUsers() {
 
       // Log the status change
       await supabase.from('audit_logs').insert({
-        event_type: newStatus === 'Active' ? 'account_unlocked' : 'account_locked',
+        event_type: newStatus === 'active' ? 'account_unlocked' : 'account_locked',
         user_id: userId,
-        actor_id: profile?.user_id,
+        actor_id: profile?.id,
         success: true,
         details: {
-          old_status: users.find(u => u.user_id === userId)?.status,
+          old_status: users.find(u => u.id === userId)?.status,
           new_status: newStatus
         }
       });
@@ -219,11 +214,11 @@ export default function AdminUsers() {
 
   const getStatusBadgeVariant = (status: string) => {
     switch (status) {
-      case 'Active': return 'default';
-      case 'Inactive': return 'secondary';
-      case 'Locked': return 'destructive';
-      case 'Pending': return 'outline';
-      case 'Dormant': return 'secondary';
+      case 'active': return 'default';
+      case 'inactive': return 'secondary';
+      case 'locked': return 'destructive';
+      case 'pending': return 'outline';
+      case 'dormant': return 'secondary';
       default: return 'secondary';
     }
   };
@@ -280,7 +275,7 @@ export default function AdminUsers() {
   }, [searchQuery, roleFilter, statusFilter, users]);
 
   const roles = ['Customer', 'Procurement Owner', 'Engineering', 'QA', 'Production', 'Supplier', 'Management'];
-  const statuses = ['Active', 'Inactive', 'Pending', 'Locked', 'Dormant'];
+  const statuses = ['active', 'inactive', 'pending', 'locked', 'dormant'];
 
   return (
     <div className="space-y-6 p-6 bg-base-100 text-base-content min-h-screen">
@@ -325,7 +320,7 @@ export default function AdminUsers() {
               <div>
                 <p className="text-sm font-medium text-base-content/70">Active Users</p>
                 <p className="text-2xl font-bold text-green-600">
-                  {users.filter(u => u.status === 'Active').length}
+                  {users.filter(u => u.status === 'active').length}
                 </p>
               </div>
               <Activity className="h-8 w-8 text-green-600" />
@@ -353,7 +348,7 @@ export default function AdminUsers() {
               <div>
                 <p className="text-sm font-medium text-base-content/70">Pending Users</p>
                 <p className="text-2xl font-bold text-yellow-600">
-                  {users.filter(u => u.status === 'Pending').length}
+                  {users.filter(u => u.status === 'pending').length}
                 </p>
               </div>
               <Calendar className="h-8 w-8 text-yellow-600" />
@@ -443,9 +438,9 @@ export default function AdminUsers() {
                     <TableRow key={user.id}>
                       <TableCell>
                         <div>
-                          <div className="font-medium">{user.display_name}</div>
+                          <div className="font-medium">{user.name}</div>
                           <div className="text-sm text-base-content/70">
-                            {getUserEmail(user.user_id)}
+                            {getUserEmail(user.id)}
                           </div>
                           {user.login_attempts > 0 && (
                             <div className="text-xs text-red-600">
@@ -480,7 +475,7 @@ export default function AdminUsers() {
                             </DialogTrigger>
                             <DialogContent className="modal-dialog">
                               <DialogHeader className="modal-dialog-header">
-                                <DialogTitle className="modal-dialog-title">Edit User: {user.display_name}</DialogTitle>
+                                <DialogTitle className="modal-dialog-title">Edit User: {user.name}</DialogTitle>
                                 <DialogDescription className="modal-dialog-description">
                                   Update user role and status
                                 </DialogDescription>
@@ -534,10 +529,10 @@ export default function AdminUsers() {
                                 <Button variant="accent" className="modal-button-primary" onClick={() => {
                                   if (selectedUser) {
                                     if (selectedUser.role !== user.role) {
-                                      updateUserRole(user.user_id, selectedUser.role);
+                                      updateUserRole(user.id, selectedUser.role);
                                     }
                                     if (selectedUser.status !== user.status) {
-                                      updateUserStatus(user.user_id, selectedUser.status);
+                                      updateUserStatus(user.id, selectedUser.status);
                                     }
                                   }
                                   setEditDialogOpen(false);
@@ -552,7 +547,7 @@ export default function AdminUsers() {
                             <Button
                               variant="ghost"
                               size="sm"
-                              onClick={() => updateUserStatus(user.user_id, 'Active')}
+                              onClick={() => updateUserStatus(user.id, 'active')}
                             >
                               <Unlock className="h-4 w-4" />
                             </Button>
@@ -560,7 +555,7 @@ export default function AdminUsers() {
                             <Button
                               variant="ghost"
                               size="sm"
-                              onClick={() => updateUserStatus(user.user_id, 'Locked')}
+                              onClick={() => updateUserStatus(user.id, 'locked')}
                             >
                               <Lock className="h-4 w-4" />
                             </Button>

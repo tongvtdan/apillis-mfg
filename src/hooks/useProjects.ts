@@ -56,15 +56,16 @@ export function useProjects() {
       if (fetchError) {
         console.error('Error fetching projects:', fetchError);
         setError(fetchError.message);
+        setLoading(false);
         return;
       }
 
-      // Database now uses new status values directly - cast to Project type
-      const mappedProjects = (data || []) as Project[];
+      // Set projects data directly
+      const mappedProjects = (data || []);
+      setProjects(mappedProjects as Project[]);
 
       // Cache the data
-      cacheService.setProjects(mappedProjects);
-      setProjects(mappedProjects);
+      cacheService.setProjects(mappedProjects as Project[]);
     } catch (err) {
       console.error('Error in fetchProjects:', err);
       setError('Failed to fetch projects');
@@ -165,7 +166,7 @@ export function useProjects() {
   }, [user]); // Remove projects.length dependency to prevent infinite loops
 
   // Get project by ID
-  const getProjectById = async (id: string): Promise<Project> => {
+  const getProjectById = async (id: string): Promise<Project | null> => {
     console.log('🔍 Fetching project with ID:', id);
 
     try {
@@ -198,196 +199,211 @@ export function useProjects() {
         .single();
 
       if (error) {
-        console.log(`⚠️ Direct ID lookup failed: ${error.message} (Code: ${error.code})`);
+        console.error('❌ Error fetching project by ID:', error);
+        // Try alternative approach with project_id field
+        const { data: altData, error: altError } = await supabase
+          .from('projects')
+          .select(`
+            *,
+            customer:contacts(*)
+          `)
+          .eq('project_id', id)
+          .single();
+
+        if (altError) {
+          console.error('❌ Error fetching project by project_id:', altError);
+          // Return null if both approaches fail
+          return null;
+        }
+
+        data = altData;
+        error = altError;
       }
 
-      // If not found, try to find by matching ID regardless of format
-      if (error || !data) {
-        console.log('🔄 Trying alternative matching methods...');
-
-        // Find project by ID case-insensitive
-        data = allProjects?.find(p => {
-          const normalizedId = (p.id || '').toLowerCase().replace(/-/g, '');
-          const normalizedSearchId = (id || '').toLowerCase().replace(/-/g, '');
-          const matches = normalizedId === normalizedSearchId;
-          if (matches) {
-            console.log(`✅ Found match: ${p.id} matches ${id}`);
-          }
-          return matches;
-        });
-
-        if (!data) {
-          console.log('🎯 Trying to find sample project P-25082301...');
-          // Check if we have sample projects defined
-          data = allProjects?.find(p => p.project_id === 'P-25082301');
-          if (data) {
-            console.log(`✅ Using sample project: ${data.id} (${data.project_id})`);
-          }
-        }
+      if (error) {
+        console.error('❌ Error fetching project:', error);
+        return null;
       }
 
       if (!data) {
-        console.error('❌ Project resolution failed:');
-        console.error(`  - Requested ID: ${id}`);
-        console.error(`  - Available projects: ${allProjects?.length || 0}`);
-        console.error(`  - Database appears to be: ${allProjects?.length === 0 ? 'EMPTY' : 'POPULATED'}`);
-        throw new Error(`Project not found: ${id}`);
+        console.log('❌ No project found with ID:', id);
+        return null;
       }
 
-      console.log('✅ Project found:', {
-        id: data.id,
-        project_id: data.project_id,
-        status: data.status,
-        customer: data.customer
-      });
-
-      return data;
+      console.log('✅ Successfully fetched project:', data.project_id);
+      return data as Project;
     } catch (err) {
-      console.error('Error fetching project by ID:', err);
-      throw err;
+      console.error('❌ Unexpected error in getProjectById:', err);
+      return null;
     }
   };
 
-  // Update project stage (for workflow management)
-  const updateProjectStage = async (projectId: string, newStage: ProjectStage) => {
+  // Update project status with validation
+  const updateProjectStatus = async (projectId: string, newStatus: ProjectStatus): Promise<boolean> => {
     try {
-      // Find the current project
-      const currentProject = projects.find(project => project.id === projectId);
-      if (!currentProject) {
+      // Validate the workflow transition
+      const validationResult = WorkflowValidator.validateTransition(projectId, newStatus);
+      if (!validationResult.isValid) {
         toast({
           variant: "destructive",
-          title: "Error",
-          description: "Project not found",
+          title: "Invalid Workflow Transition",
+          description: validationResult.message || "This workflow transition is not allowed.",
         });
         return false;
       }
 
-      const oldStage = currentProject.current_stage;
-
+      // Update the project status
       const { error } = await supabase
         .from('projects')
-        .update({
-          current_stage: newStage,
+        .update({ 
+          status: newStatus,
           updated_at: new Date().toISOString()
         })
         .eq('id', projectId);
 
       if (error) {
+        console.error('Error updating project status:', error);
         toast({
           variant: "destructive",
-          title: "Error",
-          description: "Failed to update project stage",
+          title: "Update Failed",
+          description: "Failed to update project status. Please try again.",
         });
         return false;
       }
 
-      // Log successful update for debugging
-      console.log('✅ Database stage update successful, real-time subscription should handle UI updates');
+      // Update local state optimistically
+      setProjects(prev => 
+        prev.map(project => 
+          project.id === projectId 
+            ? { ...project, status: newStatus, updated_at: new Date().toISOString() } 
+            : project
+        )
+      );
 
-      // Format stage names for display
-      const formatStageName = (stage: ProjectStage) => {
-        const stageMap: Record<ProjectStage, string> = {
-          inquiry_received: "Inquiry Received",
-          technical_review: "Technical Review",
-          supplier_rfq_sent: "Supplier RFQ Sent",
-          quoted: "Quoted",
-          order_confirmed: "Order Confirmed",
-          procurement_planning: "Procurement & Planning",
-          in_production: "In Production",
-          shipped_closed: "Shipped & Closed"
-        };
-        return stageMap[stage] || stage;
-      };
+      // Notify real-time subscribers
+      realtimeManager.notifyUpdate();
 
       toast({
-        title: "Stage Updated",
-        description: `From ${formatStageName(oldStage)} to ${formatStageName(newStage)}`,
+        title: "Status Updated",
+        description: "Project status has been successfully updated.",
       });
 
       return true;
-    } catch (err) {
-      console.error('Error updating project stage:', err);
+    } catch (error) {
+      console.error('Error updating project status:', error);
       toast({
         variant: "destructive",
-        title: "Error",
-        description: "An unexpected error occurred while updating the project stage.",
+        title: "Update Failed",
+        description: "An unexpected error occurred while updating the project status.",
       });
       return false;
     }
   };
 
-  // Optimistic update for immediate UI feedback
-  const updateProjectStatusOptimistic = useCallback(async (projectId: string, newStatus: ProjectStatus) => {
-    // This function is kept for backward compatibility but now focuses on status updates
-    // Stage updates should use updateProjectStage instead
-    return false; // Disable for now as we're moving to stage-based workflow
-  }, []);
-
-  // Create new project
-  const createProject = async (projectData: Partial<Project>) => {
+  // Update project stage with validation
+  const updateProjectStage = async (projectId: string, newStage: ProjectStage): Promise<WorkflowValidationResult> => {
     try {
-      const { data, error } = await supabase
+      // Validate the workflow transition
+      const validationResult = WorkflowValidator.validateTransition(projectId, newStage);
+      if (!validationResult.isValid) {
+        toast({
+          variant: "destructive",
+          title: "Invalid Workflow Transition",
+          description: validationResult.message || "This workflow transition is not allowed.",
+        });
+        return validationResult;
+      }
+
+      // Update the project stage
+      const { error } = await supabase
         .from('projects')
-        .insert([projectData])
-        .select()
-        .single();
+        .update({ 
+          current_stage: newStage,
+          stage_entered_at: new Date().toISOString(),
+          updated_at: new Date().toISOString()
+        })
+        .eq('id', projectId);
 
       if (error) {
-        throw error;
+        console.error('Error updating project stage:', error);
+        toast({
+          variant: "destructive",
+          title: "Update Failed",
+          description: "Failed to update project stage. Please try again.",
+        });
+        return {
+          isValid: false,
+          message: "Failed to update project stage in database"
+        };
       }
 
-      return data;
-    } catch (err) {
-      console.error('Error creating project:', err);
-      throw err;
+      // Update local state optimistically
+      setProjects(prev => 
+        prev.map(project => 
+          project.id === projectId 
+            ? { 
+                ...project, 
+                current_stage: newStage, 
+                stage_entered_at: new Date().toISOString(),
+                updated_at: new Date().toISOString() 
+              } 
+            : project
+        )
+      );
+
+      // Notify real-time subscribers
+      realtimeManager.notifyUpdate();
+
+      toast({
+        title: "Stage Updated",
+        description: "Project stage has been successfully updated.",
+      });
+
+      return {
+        isValid: true,
+        message: "Project stage updated successfully"
+      };
+    } catch (error) {
+      console.error('Error updating project stage:', error);
+      toast({
+        variant: "destructive",
+        title: "Update Failed",
+        description: "An unexpected error occurred while updating the project stage.",
+      });
+      return {
+        isValid: false,
+        message: "An unexpected error occurred"
+      };
     }
   };
 
-  // Create or get customer
-  const createOrGetCustomer = async (customerData: Partial<Customer>) => {
-    try {
-      // First try to find existing customer
-      const { data: existingCustomer, error: findError } = await supabase
-        .from('customers')
-        .select('*')
-        .eq('email', customerData.email)
-        .single();
-
-      if (existingCustomer) {
-        return existingCustomer;
-      }
-
-      // Create new customer if not found
-      const { data: newCustomer, error: createError } = await supabase
-        .from('customers')
-        .insert([customerData])
-        .select()
-        .single();
-
-      if (createError) {
-        throw createError;
-      }
-
-      return newCustomer;
-    } catch (err) {
-      console.error('Error creating customer:', err);
-      throw err;
-    }
+  // Optimistic update for project status (for UI updates before database confirmation)
+  const updateProjectStatusOptimistic = (projectId: string, newStatus: ProjectStatus) => {
+    setProjects(prev => 
+      prev.map(project => 
+        project.id === projectId 
+          ? { ...project, status: newStatus } 
+          : project
+      )
+    );
   };
 
-  // Test real-time subscription status
-  const testSupabaseRealtime = useCallback(async () => {
-    console.log('🧪 Testing real-time subscription status:', {
-      selectiveChannel: !!realtimeChannelRef.current,
-      realtimeManager: realtimeManager.getStatus(),
-      currentProjects: projects.length
-    });
-  }, [projects.length]);
-
-  // Refetch projects
-  const refetch = useCallback(() => {
-    fetchProjects(true);
+  // Manual refetch function
+  const refetch = useCallback(async (forceRefresh = false) => {
+    await fetchProjects(forceRefresh);
   }, []);
+
+  // Get bottleneck analysis for projects
+  const getBottleneckAnalysis = async (): Promise<BottleneckAlert[]> => {
+    try {
+      // This would typically call an API endpoint or perform complex analysis
+      // For now, we'll return an empty array as a placeholder
+      return [];
+    } catch (error) {
+      console.error('Error getting bottleneck analysis:', error);
+      return [];
+    }
+  };
 
   return {
     projects,
@@ -396,60 +412,8 @@ export function useProjects() {
     fetchProjects,
     updateProjectStage,
     updateProjectStatusOptimistic,
-    createProject,
-    createOrGetCustomer,
-    getProjectById,
-    subscribeToProjectUpdates,
-    testSupabaseRealtime,
     refetch,
-    getBottleneckAnalysis: async () => {
-      console.log('📊 Getting bottleneck analysis...');
-
-      // Define bottleneck detection thresholds
-      const stageThresholds = {
-        'inquiry_received': 3, // 3+ days
-        'technical_review': 5, // 5+ days  
-        'supplier_rfq_sent': 7, // 7+ days
-        'quoted': 2, // 2+ days
-        'order_confirmed': 1, // 1+ day
-        'procurement_planning': 5, // 5+ days
-        'in_production': 14, // 14+ days (production can be longer)
-        'shipped_closed': 1 // 1+ day
-      };
-
-      const bottleneckAlerts: BottleneckAlert[] = [];
-
-      // Check each stage for bottlenecks
-      projects.forEach(project => {
-        const threshold = stageThresholds[project.current_stage as keyof typeof stageThresholds] || 3;
-
-        if (project.status === 'active' && project.days_in_stage >= threshold) {
-          const thresholdHours = threshold * 24;
-          const hoursInStage = project.days_in_stage * 24;
-          const severity: 'critical' | 'warning' | 'info' =
-            hoursInStage > (thresholdHours * 3) ? 'critical' :
-              hoursInStage > (thresholdHours * 2) ? 'warning' : 'info';
-
-          bottleneckAlerts.push({
-            type: '🔥 Bottlenecks Detected',
-            project_id: project.id,
-            project_title: project.title,
-            current_stage: project.current_stage,
-            hours_in_stage: hoursInStage,
-            sla_hours: thresholdHours,
-            severity,
-            issues: [`Project has been in ${project.current_stage} for ${project.days_in_stage} days`],
-            recommended_actions: [
-              `Review project status with assignee`,
-              `Check for blockers or dependencies`,
-              `Consider escalating to management`
-            ],
-            affected_projects: [project.id]
-          });
-        }
-      });
-
-      return bottleneckAlerts;
-    }
+    getProjectById,
+    getBottleneckAnalysis
   };
 }

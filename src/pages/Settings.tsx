@@ -12,11 +12,17 @@ import {
     Info,
 } from "lucide-react";
 
+// This component displays user settings and profile information
+// It uses the authenticated user's profile data from the AuthContext
+// The profile data is fetched from the public.users table and connected to the auth.users table
+// through the user ID which is consistent between both tables after the migration
 export default function Settings() {
     const { profile, user, loading } = useAuth();
     const [activeTab, setActiveTab] = useState("general");
 
     const isManagement = profile?.role === "management";
+
+
 
 
 

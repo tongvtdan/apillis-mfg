@@ -3,15 +3,23 @@ import { User, Session } from '@supabase/supabase-js';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/components/ui/use-toast';
 
+// Updated UserProfile interface to match the actual users table schema
 export interface UserProfile {
   id: string;
-  user_id: string;
-  display_name: string;
-  role: 'customer' | 'procurement' | 'engineering' | 'qa' | 'production' | 'supplier' | 'management' | 'sales' | 'admin';
-  status: 'active' | 'inactive' | 'pending' | 'locked' | 'dormant';
+  organization_id: string;
+  email: string;
+  name: string;
+  role: 'customer' | 'sales' | 'procurement' | 'engineering' | 'qa' | 'production' | 'management' | 'supplier' | 'admin';
   department?: string;
   phone?: string;
-  last_login?: string;
+  avatar_url?: string;
+  status: 'active' | 'dismiss';
+  description?: string;
+  employee_id?: string;
+  direct_manager_id?: string;
+  direct_reports?: string[];
+  last_login_at?: string;
+  preferences?: Record<string, any>;
   created_at: string;
   updated_at: string;
 }
@@ -53,19 +61,20 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
   const fetchProfile = async (userId: string) => {
     try {
-      // Get the user's email from the auth session
+      // Get the user's ID from the auth session
       const { data: { user: authUser } } = await supabase.auth.getUser();
 
-      if (!authUser?.email) {
-        console.error('No email found in auth user');
+      if (!authUser?.id) {
+        console.error('No user ID found in auth user');
         return;
       }
 
-      // Try to get user profile from users table by email instead of ID
+      // Directly fetch user profile from users table by ID
+      // Since the migration was completed, auth users.id should match public users.id
       const { data, error } = await supabase
         .from('users')
         .select('*')
-        .eq('email', authUser.email)
+        .eq('id', authUser.id)
         .maybeSingle();
 
       if (error) {
@@ -73,21 +82,11 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         return;
       }
 
-      // Map user data to profile format if user exists
+      // Set profile data directly since it matches the UserProfile interface
       if (data) {
-        const mappedProfile: UserProfile = {
-          id: data.id,
-          user_id: data.id,
-          display_name: data.name || data.email,
-          role: data.role || 'customer',
-          status: data.status || 'active',
-          department: data.department,
-          phone: data.phone,
-          last_login: data.last_login_at,
-          created_at: data.created_at,
-          updated_at: data.updated_at,
-        };
-        setProfile(mappedProfile);
+        setProfile(data);
+      } else {
+        console.log('No user data found in database for ID:', authUser.id);
       }
     } catch (error) {
       console.error('Error fetching profile:', error);
@@ -100,7 +99,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       let { data: organization } = await supabase
         .from('organizations')
         .select('id')
-        .eq('slug', 'factory-pulse-demo')
+        .eq('slug', 'factory-pulse-vietnam')
         .maybeSingle();
 
       // If no organization exists, create a default one
@@ -108,9 +107,9 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         const { data: newOrg, error: orgError } = await supabase
           .from('organizations')
           .insert({
-            name: 'Factory Pulse Demo',
-            slug: 'factory-pulse-demo',
-            domain: 'demo.factrypulse.com',
+            name: 'Factory Pulse Vietnam Co., Ltd.',
+            slug: 'factory-pulse-vietnam',
+            domain: 'factorypulse.vn',
             is_active: true
           })
           .select('id')
@@ -123,15 +122,16 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         organization = newOrg;
       }
 
-      // Create user profile in users table
+      // Create user profile in users table with the auth user ID
       const { error: userError } = await supabase
         .from('users')
         .insert({
+          id: userId, // Use the auth user ID directly
+          organization_id: organization.id,
           email: email,
           name: displayName,
           role: 'customer', // Default role for new users
-          status: 'active',
-          organization_id: organization.id,
+          status: 'active'
         });
 
       if (userError) {
@@ -154,15 +154,15 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     try {
       const userAgent = navigator.userAgent;
 
-      // Use activity_log table instead of audit_logs
-      await supabase.from('activity_log').insert({
-        action: eventType,
-        entity_type: 'auth',
-        entity_id: user?.id || 'anonymous',
-        user_id: user?.id,
+      // Use audit_logs table instead of activity_log
+      await supabase.from('audit_logs').insert({
+        event_type: eventType,
+        user_id: user?.id || null,
+        success: success,
+        details: { success, details: details || {} },
+        timestamp: new Date().toISOString(),
         user_agent: userAgent,
-        new_values: { success, details: details || {} },
-        session_id: session?.access_token
+        session_id: session?.access_token || null
       });
     } catch (error) {
       console.error('Error logging audit event:', error);
@@ -322,13 +322,20 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       const { error } = await supabase
         .from('users')
         .update({
-          name: updates.display_name,
+          name: updates.name,
           role: updates.role,
           department: updates.department,
           phone: updates.phone,
+          avatar_url: updates.avatar_url,
+          status: updates.status,
+          description: updates.description,
+          employee_id: updates.employee_id,
+          direct_manager_id: updates.direct_manager_id,
+          direct_reports: updates.direct_reports,
+          preferences: updates.preferences,
           updated_at: new Date().toISOString(),
         })
-        .eq('id', user.id);
+        .eq('id', user.id); // Use the auth user ID directly
 
       if (error) {
         console.error('Error updating user profile:', error);
@@ -390,7 +397,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     signUp,
     signOut,
     resetPassword,
-    updateUserProfile,
+    updateUserProfile
   };
 
   return (
