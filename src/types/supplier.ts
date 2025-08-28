@@ -44,7 +44,7 @@ export interface Supplier {
   specialties: SupplierSpecialty[];
   rating: number; // 0.0-5.0
   response_rate: number; // 0.0-100.0 percentage
-  is_active: boolean;
+  is_active: boolean; // Reverted back - suppliers are in contacts table which has is_active boolean
   created_at: string;
   updated_at: string;
   created_by?: string;

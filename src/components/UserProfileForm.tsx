@@ -9,7 +9,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 export function UserProfileForm() {
     const { profile, updateUserProfile, loading } = useAuth();
     const [formData, setFormData] = useState({
-        display_name: profile?.display_name || '',
+        name: profile?.name || '',
         role: profile?.role || 'customer',
         department: profile?.department || '',
         phone: profile?.phone || '',
@@ -109,7 +109,7 @@ export function UserProfileForm() {
                             type="button"
                             variant="outline"
                             onClick={() => setFormData({
-                                display_name: profile?.display_name || '',
+                                name: profile?.name || '',
                                 role: profile?.role || 'customer',
                                 department: profile?.department || '',
                                 phone: profile?.phone || '',

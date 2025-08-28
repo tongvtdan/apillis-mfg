@@ -47,7 +47,7 @@ export interface CommunicationTemplate {
     content: string;
     type: 'email' | 'notification';
     category: 'rfq' | 'status_update' | 'general' | 'reminder';
-    is_active: boolean;
+    is_active: boolean; // Reverted back - this is a different table that should have is_active boolean
     created_at: string;
     updated_at: string;
 }

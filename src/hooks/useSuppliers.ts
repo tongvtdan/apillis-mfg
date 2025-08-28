@@ -15,7 +15,7 @@ export function useSuppliers() {
   const [suppliers, setSuppliers] = useState<Supplier[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  const { user } = useAuth();
+  const { user, profile } = useAuth();
   const { toast } = useToast();
 
   const fetchSuppliers = async () => {
@@ -30,8 +30,10 @@ export function useSuppliers() {
       setError(null);
 
       const { data, error: fetchError } = await supabase
-        .from('suppliers')
+        .from('contacts')
         .select('*')
+        .eq('type', 'supplier')
+        .eq('organization_id', profile?.organization_id)
         .order('updated_at', { ascending: false });
 
       if (fetchError) {
@@ -42,16 +44,16 @@ export function useSuppliers() {
 
       const mapped: Supplier[] = (data || []).map((row: any) => ({
         id: row.id,
-        name: row.name,
-        company: row.company,
+        name: row.contact_name || row.company_name,
+        company: row.company_name,
         email: row.email ?? undefined,
         phone: row.phone ?? undefined,
         address: row.address ?? undefined,
         country: row.country ?? undefined,
-        specialties: (row.capabilities || []) as any,
-        rating: Number(((row.quality_rating ?? 4) + (row.delivery_rating ?? 4) + (row.cost_rating ?? 4)) / 3),
+        specialties: (row.ai_capabilities || []) as any,
+        rating: Number(((row.ai_risk_score ?? 50) / 10) + 2), // Convert 0-100 risk score to 2-7 rating
         response_rate: 0,
-        is_active: (row.status ?? 'active') === 'active',
+        is_active: row.is_active ?? true,
         created_at: row.created_at,
         updated_at: row.updated_at,
         total_quotes_sent: 0,
@@ -72,18 +74,20 @@ export function useSuppliers() {
   const createSupplier = async (supplierData: CreateSupplierRequest): Promise<Supplier> => {
     try {
       const cleanData: any = {
-        name: supplierData.name,
-        company: supplierData.company || supplierData.name,
+        organization_id: profile?.organization_id,
+        type: 'supplier',
+        company_name: supplierData.company || supplierData.name,
+        contact_name: supplierData.name,
         email: supplierData.email,
         phone: supplierData.phone,
         address: supplierData.address,
         country: supplierData.country,
-        capabilities: supplierData.specialties as any,
-        status: 'active',
+        ai_capabilities: supplierData.specialties as any,
+        is_active: true,
       };
 
       const { data, error } = await supabase
-        .from('suppliers')
+        .from('contacts')
         .insert([cleanData])
         .select('*')
         .single();
@@ -96,16 +100,16 @@ export function useSuppliers() {
       // Map to app type and add to local state
       const mapped: Supplier = {
         id: data.id,
-        name: data.name,
-        company: data.company,
+        name: data.contact_name || data.company_name,
+        company: data.company_name,
         email: data.email ?? undefined,
         phone: data.phone ?? undefined,
         address: data.address ?? undefined,
         country: data.country ?? undefined,
-        specialties: (data.capabilities || []) as any,
-        rating: Number(((data.quality_rating ?? 4) + (data.delivery_rating ?? 4) + (data.cost_rating ?? 4)) / 3),
+        specialties: (data.ai_capabilities || []) as any,
+        rating: Number(((data.ai_risk_score ?? 50) / 10) + 2),
         response_rate: 0,
-        is_active: (data.status ?? 'active') === 'active',
+        is_active: data.is_active ?? true,
         created_at: data.created_at,
         updated_at: data.updated_at,
         total_quotes_sent: 0,
@@ -117,7 +121,7 @@ export function useSuppliers() {
 
       toast({
         title: "Supplier Created",
-        description: `${data.name} has been added to your supplier list`,
+        description: `${data.contact_name || data.company_name} has been added to your supplier list`,
       });
 
       return mapped;

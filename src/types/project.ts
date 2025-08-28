@@ -12,8 +12,22 @@ export interface Customer {
   phone?: string;
   address?: string;
   country?: string;
+  postal_code?: string;
+  website?: string;
+  tax_id?: string;
+  payment_terms?: string;
+  credit_limit?: number;
+  is_active: boolean; // Reverted back - customers are in contacts table which has is_active boolean
+  notes?: string;
+  metadata?: Record<string, any>;
+  // AI-ready fields
+  ai_category?: Record<string, any>;
+  ai_capabilities?: any[];
+  ai_risk_score?: number;
+  ai_last_analyzed?: string;
   created_at: string;
   updated_at: string;
+  created_by?: string;
 }
 
 export interface Contact {

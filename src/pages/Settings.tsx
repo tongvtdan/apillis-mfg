@@ -1,5 +1,6 @@
 import { useState } from "react";
 import { useAuth } from "@/contexts/AuthContext";
+import { supabase } from "@/integrations/supabase/client";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Badge } from "@/components/ui/badge";
@@ -88,6 +89,8 @@ export default function Settings() {
 
                 </TabsList>
 
+
+
                 {/* General Settings */}
                 <TabsContent value="general" className="space-y-6">
                     <Card>
@@ -105,7 +108,7 @@ export default function Settings() {
                                 <div>
                                     <label className="text-sm font-medium">Display Name</label>
                                     <p className="text-sm text-base-content/70 mt-1">
-                                        {profile?.display_name || "Not set"}
+                                        {profile?.name || "Not set"}
                                     </p>
                                 </div>
                                 <div>

@@ -78,7 +78,7 @@ export function AppHeader() {
               <Button variant="ghost" size="sm" className="relative h-8 w-8 rounded-full border-2 border-sky-200 hover:border-sky-300 hover:bg-sky-100">
                 <Avatar className="h-8 w-8">
                   <AvatarFallback className="text-xs text-sky-700">
-                    {profile ? getInitials(profile.display_name) : 'U'}
+                    {profile ? getInitials(profile.name) : 'U'}
                   </AvatarFallback>
                 </Avatar>
               </Button>
@@ -87,7 +87,7 @@ export function AppHeader() {
               <DropdownMenuLabel className="font-normal">
                 <div className="flex flex-col space-y-1">
                   <p className="text-sm font-medium leading-none">
-                    {profile?.display_name || 'User'}
+                    {profile?.name || 'User'}
                   </p>
                   <p className="text-xs leading-none text-muted-foreground">
                     {profile?.role || 'Loading...'}

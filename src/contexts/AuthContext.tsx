@@ -64,18 +64,34 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       // Get the user's ID from the auth session
       const { data: { user: authUser } } = await supabase.auth.getUser();
 
-      if (!authUser?.id) {
-        console.error('No user ID found in auth user');
+      if (!authUser?.email) {
+        console.error('No user email found in auth user');
         return;
       }
 
-      // Directly fetch user profile from users table by ID
-      // Since the migration was completed, auth users.id should match public users.id
-      const { data, error } = await supabase
+      // Try to fetch user profile from users table by email first (more reliable for existing users)
+      console.log('Searching for user with email:', authUser.email);
+      let { data, error } = await supabase
         .from('users')
         .select('*')
-        .eq('id', authUser.id)
+        .eq('email', authUser.email)
         .maybeSingle();
+
+      console.log('Database query by email result:', { data, error });
+
+      // If email query fails, try by ID as fallback
+      if (!data && !error) {
+        console.log('Email query returned no data, trying ID query...');
+        const idQuery = await supabase
+          .from('users')
+          .select('*')
+          .eq('id', authUser.id)
+          .maybeSingle();
+
+        data = idQuery.data;
+        error = idQuery.error;
+        console.log('Database query by ID result:', { data, error });
+      }
 
       if (error) {
         console.error('Error fetching profile:', error);
@@ -84,9 +100,49 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
       // Set profile data directly since it matches the UserProfile interface
       if (data) {
-        setProfile(data);
+        console.log('Profile fetched successfully:', data);
+        // Ensure the role and status are properly typed
+        const typedData = {
+          ...data,
+          role: data.role as 'customer' | 'sales' | 'procurement' | 'engineering' | 'qa' | 'production' | 'management' | 'supplier' | 'admin',
+          status: data.status as 'active' | 'dismiss'
+        };
+        setProfile(typedData);
       } else {
-        console.log('No user data found in database for ID:', authUser.id);
+        console.log('No user data found in database for email:', authUser.email);
+
+        // Fallback: Create profile from auth user metadata if database query fails
+        if (authUser.email && authUser.id) {
+          console.log('Creating profile from auth user metadata...');
+
+          // Map auth user data to profile format
+          const fallbackProfile: UserProfile = {
+            id: authUser.id,
+            organization_id: authUser.user_metadata?.organization_id || '',
+            email: authUser.email,
+            name: authUser.user_metadata?.name || 'User',
+            role: authUser.app_metadata?.role || 'customer',
+            department: authUser.app_metadata?.department || '',
+            phone: authUser.user_metadata?.phone || '',
+            avatar_url: undefined,
+            status: 'active',
+            description: undefined,
+            employee_id: undefined,
+            direct_manager_id: undefined,
+            direct_reports: [],
+            last_login_at: authUser.last_sign_in_at || undefined,
+            preferences: {},
+            created_at: authUser.created_at || new Date().toISOString(),
+            updated_at: authUser.updated_at || new Date().toISOString(),
+          };
+
+          console.log('Fallback profile created:', fallbackProfile);
+          setProfile(fallbackProfile);
+
+          // Database creation is disabled until migrations are run
+          // TODO: Run supabase db reset to create tables and insert sample data
+          console.log('Skipping database profile creation - run migrations first');
+        }
       }
     } catch (error) {
       console.error('Error fetching profile:', error);

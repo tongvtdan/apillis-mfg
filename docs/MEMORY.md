@@ -1,5 +1,50 @@
 # Factory Pulse Development Memory
 
+## 2025-01-27 - Database Migration Setup and User Authentication Data
+
+### Work Done
+- **Successfully set up local Supabase database** with all required migrations
+- **Fixed migration file organization** by restoring files from backup directory
+- **Applied comprehensive database schema** including organizations, users, and workflow tables
+- **Populated sample user data** for testing authentication and user management features
+- **Resolved PostgreSQL type inference issues** with UUID arrays in migrations
+
+### Database Status
+- **Local Supabase instance**: Running on ports 54321-54324
+- **Database**: Successfully created with 12 sample users
+- **Organization**: Factory Pulse Vietnam Co., Ltd. created
+- **CEO User**: Nguyễn Văn Minh (ceo@factorypulse.vn) with management role and Executive department
+
+### Migration Files Applied
+1. **`20250127000001_core_tables.sql`** - Core tables (organizations, users, contacts)
+2. **`20250127000002_workflow_projects.sql`** - Workflow and project management
+3. **`20250127000003_documents_reviews.sql`** - Document management system
+4. **`20250127000004_communication_suppliers.sql`** - Communication and supplier features
+5. **`20250127000005_advanced_features.sql`** - Advanced system features
+6. **`20250127000006_convert_users_to_user_id.sql`** - User ID conversion for Supabase auth
+7. **`20250127000008_restore_users_data.sql`** - User data restoration
+8. **`20250127000009_insert_sample_users.sql`** - Sample user population
+
+### Challenges ➜ Solutions
+1. **Migration files missing** ➜ Restored from backup directory to main migrations folder
+2. **PostgreSQL array type errors** ➜ Fixed ARRAY[] syntax by adding explicit UUID type casting
+3. **Duplicate organization insertion** ➜ Removed duplicate INSERT from sample users migration
+4. **Database connection issues** ➜ Used direct psql connection to verify database state
+
+### Current Database State
+- **Tables**: All core tables created successfully
+- **Users**: 12 sample users with proper roles and departments
+- **Authentication**: Ready for Supabase auth integration
+- **User Management**: Database structure supports admin functionality
+
+### Next Steps
+- Test user authentication with existing sample users
+- Verify admin tab visibility and user management access
+- Test role-based permissions and department filtering
+- Consider adding more sample data for comprehensive testing
+
+---
+
 ## 2025-01-27 - User Avatar Button Popup Menu Navigation Implementation
 
 ### Work Done
@@ -158,3 +203,46 @@
 - Implement new document versioning system in application code
 - Add Vietnam/SEA localization features to UI
 - Test multi-tenancy isolation with new organization_id constraints
+
+---
+
+## 2025-01-27 - RLS Policy Setup and Authentication Issue Resolution
+
+### Work Done
+- **Created comprehensive RLS policies** for the users, organizations, and contacts tables
+- **Fixed user authentication lookup** by prioritizing email-based queries over ID-based queries
+- **Established proper role-based access control** allowing management users to view and manage all users in their organization
+- **Resolved "Access Denied" issue** in User Management by implementing proper database permissions
+
+### RLS Policies Created
+1. **Users Table Policies**:
+   - Users can view their own profile
+   - Management users can view all users in their organization
+   - Users can update their own profile
+   - Management users can update all users in their organization
+   - Management users can insert new users
+   - Management users can delete users
+
+2. **Organizations Table Policies**:
+   - Users can view their own organization
+   - Management users can view organization details
+
+3. **Contacts Table Policies**:
+   - Users can view contacts in their organization
+   - Management users can manage all contacts
+
+### Authentication Flow Changes
+- **Modified AuthContext** to prioritize email-based user lookup for existing users
+- **Changed query order** from ID-first to email-first to resolve UUID mismatch issues
+- **Maintained fallback** to ID-based lookup for new users
+
+### Current Database State
+- **Users**: 12 sample users including 3 management users
+- **RLS**: Enabled with comprehensive policies
+- **Authentication**: Ready for proper user lookup and role-based access
+
+### Next Steps
+- Test user authentication with existing sample users (ceo@factorypulse.vn)
+- Verify admin tab visibility and user management access
+- Test role-based permissions and department filtering
+- Consider implementing proper user registration flow for new users

@@ -26,7 +26,7 @@ export default function Profile() {
     const { toast } = useToast();
     const [isEditing, setIsEditing] = useState(false);
     const [formData, setFormData] = useState({
-        display_name: profile?.display_name || '',
+        name: profile?.name || '',
         department: profile?.department || '',
         phone: profile?.phone || '',
     });
@@ -88,7 +88,7 @@ export default function Profile() {
 
     const handleCancel = () => {
         setFormData({
-            display_name: profile?.display_name || '',
+            name: profile?.name || '',
             department: profile?.department || '',
             phone: profile?.phone || '',
         });
@@ -123,11 +123,11 @@ export default function Profile() {
                         <CardHeader className="text-center">
                             <div className="mx-auto mb-4">
                                 <div className="w-24 h-24 rounded-full bg-gradient-to-br from-primary to-primary/70 flex items-center justify-center text-white text-2xl font-bold">
-                                    {profile ? getInitials(profile.display_name) : 'U'}
+                                    {profile ? getInitials(profile.name) : 'U'}
                                 </div>
                             </div>
                             <CardTitle className="text-xl">
-                                {profile?.display_name || 'User'}
+                                {profile?.name || 'User'}
                             </CardTitle>
                             <CardDescription>
                                 {profile?.role || 'Role not assigned'}
@@ -221,17 +221,17 @@ export default function Profile() {
                         <CardContent className="space-y-4">
                             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                                 <div className="space-y-2">
-                                    <Label htmlFor="display_name">Display Name</Label>
+                                    <Label htmlFor="name">Display Name</Label>
                                     {isEditing ? (
                                         <Input
-                                            id="display_name"
-                                            value={formData.display_name}
-                                            onChange={(e) => handleInputChange('display_name', e.target.value)}
+                                            id="name"
+                                            value={formData.name}
+                                            onChange={(e) => handleInputChange('name', e.target.value)}
                                             placeholder="Enter your display name"
                                         />
                                     ) : (
                                         <p className="text-sm text-muted-foreground py-2">
-                                            {profile?.display_name || "Not set"}
+                                            {profile?.name || "Not set"}
                                         </p>
                                     )}
                                 </div>
