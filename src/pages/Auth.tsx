@@ -125,39 +125,21 @@ export default function Auth() {
 
     setIsLoading(true);
     try {
-      console.log('🔐 Starting sign in process...');
-      console.log('  Email:', fullEmail);
-      console.log('  Remember password:', rememberPassword);
-
       await signIn(fullEmail, signInData.password);
-
-      console.log('✅ Sign in successful, now saving preferences...');
-      console.log('  Domain:', signInData.domain);
-      console.log('  Username:', signInData.username);
-      console.log('  Remember password:', rememberPassword);
 
       // Save authentication preferences on successful login
       if (signInData.domain) {
         saveDomain(signInData.domain);
-        console.log('✅ Domain saved to localStorage');
       }
       if (signInData.username) {
         saveUsername(signInData.username);
-        console.log('✅ Username saved to localStorage');
       }
 
       saveRememberPassword(rememberPassword);
-      console.log('✅ Remember password preference saved:', rememberPassword);
-
       savePassword(signInData.password, rememberPassword);
-      if (rememberPassword) {
-        console.log('✅ Password saved to localStorage (remember me enabled)');
-      } else {
-        console.log('🗑️ Password not saved (remember me disabled)');
-      }
 
     } catch (error) {
-      console.error('❌ Sign in error:', error);
+      console.error('Sign in error:', error);
     } finally {
       setIsLoading(false);
     }

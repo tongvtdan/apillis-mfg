@@ -21,7 +21,7 @@ export default function Settings() {
     const { profile, user, loading } = useAuth();
     const [activeTab, setActiveTab] = useState("general");
 
-    const isManagement = profile?.role === "management";
+    const isManagement = profile?.role === "management" || profile?.role === "admin";
 
 
 

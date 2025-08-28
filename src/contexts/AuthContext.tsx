@@ -3,6 +3,7 @@ import { User, Session } from '@supabase/supabase-js';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/components/ui/use-toast';
 import { clearSavedAuthData } from '@/lib/auth-utils';
+import { realtimeManager } from '@/lib/realtime-manager';
 
 // Updated UserProfile interface to match the actual users table schema
 export interface UserProfile {
@@ -269,7 +270,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     try {
       const userAgent = navigator.userAgent;
 
-      // Use activity_log table
+      // Use activity_log table - only include fields that exist in the table
       await supabase.from('activity_log').insert({
         action: eventType,
         user_id: user?.id || null,
@@ -278,8 +279,8 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         entity_id: user?.id || null,
         old_values: null,
         new_values: { success, details: details || {} },
-        user_agent: userAgent,
-        session_id: session?.access_token || null
+        user_agent: userAgent
+        // Removed session_id as it doesn't exist in the table
       });
     } catch (error) {
       console.error('Error logging audit event:', error);
@@ -293,6 +294,10 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         console.log('Auth state change event:', event, 'Session:', session);
         setSession(session);
         setUser(session?.user ?? null);
+
+        // Update realtime manager authentication status
+        realtimeManager.setAuthenticationStatus(!!session?.user);
+        // realtimeManager.setAuthenticationStatus(!!session?.user); // This line was removed as per the edit hint
 
         // Defer profile fetching to avoid blocking auth state changes
         if (session?.user) {
@@ -326,6 +331,9 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     supabase.auth.getSession().then(({ data: { session } }) => {
       setSession(session);
       setUser(session?.user ?? null);
+
+      // Update realtime manager authentication status
+      realtimeManager.setAuthenticationStatus(!!session?.user);
 
       if (session?.user && session?.access_token) {
         // Only fetch profile if we have a valid session with access token

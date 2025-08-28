@@ -10,7 +10,8 @@ export enum UserRole {
     QA = 'qa',
     PRODUCTION = 'production',
     SUPPLIER = 'supplier',
-    MANAGEMENT = 'management'
+    MANAGEMENT = 'management',
+    ADMIN = 'admin'
 }
 
 // User status enum
@@ -191,6 +192,18 @@ export const ROLE_PERMISSIONS: Record<UserRole, Permission[]> = {
         { resource: 'audit', actions: ['read', 'export'] },
         { resource: 'workflow', actions: ['read', 'create', 'update', 'delete', 'bypass'] },
         { resource: 'system_config', actions: ['read', 'update'] }
+    ],
+    [UserRole.ADMIN]: [
+        { resource: 'rfq', actions: ['read', 'approve', 'reject', 'delete'] },
+        { resource: 'users', actions: ['read', 'create', 'update', 'delete', 'manage_roles'] },
+        { resource: 'dashboard', actions: ['read', 'admin', 'system'] },
+        { resource: 'profile', actions: ['read_own', 'update_own', 'read_all', 'update_all'] },
+        { resource: 'analytics', actions: ['read', 'export', 'system'] },
+        { resource: 'audit', actions: ['read', 'export', 'system'] },
+        { resource: 'workflow', actions: ['read', 'create', 'update', 'delete', 'bypass', 'configure'] },
+        { resource: 'system_config', actions: ['read', 'update', 'delete'] },
+        { resource: 'organizations', actions: ['read', 'create', 'update', 'delete'] },
+        { resource: 'database', actions: ['read', 'backup', 'restore'] }
     ]
 };
 

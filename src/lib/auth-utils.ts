@@ -43,9 +43,7 @@ const AUTH_STORAGE_KEYS = {
  */
 export function saveDomain(domain: string): void {
   try {
-    console.log('🔐 saveDomain called with:', domain);
     localStorage.setItem(AUTH_STORAGE_KEYS.DOMAIN, domain);
-    console.log('✅ Domain saved to localStorage');
   } catch (error) {
     console.warn('Failed to save domain to localStorage:', error);
   }
@@ -68,9 +66,7 @@ export function getSavedDomain(): string {
  */
 export function saveUsername(username: string): void {
   try {
-    console.log('🔐 saveUsername called with:', username);
     localStorage.setItem(AUTH_STORAGE_KEYS.USERNAME, username);
-    console.log('✅ Username saved to localStorage');
   } catch (error) {
     console.warn('Failed to save username to localStorage:', error);
   }
@@ -93,9 +89,7 @@ export function getSavedUsername(): string {
  */
 export function saveRememberPassword(remember: boolean): void {
   try {
-    console.log('🔐 saveRememberPassword called with:', remember);
     localStorage.setItem(AUTH_STORAGE_KEYS.REMEMBER_PASSWORD, remember.toString());
-    console.log('✅ Remember password preference saved to localStorage');
   } catch (error) {
     console.warn('Failed to save remember password preference:', error);
   }
@@ -118,13 +112,10 @@ export function getRememberPassword(): boolean {
  */
 export function savePassword(password: string, remember: boolean): void {
   try {
-    console.log('🔐 savePassword called:', { remember, hasPassword: !!password });
     if (remember) {
       localStorage.setItem(AUTH_STORAGE_KEYS.SAVED_PASSWORD, password);
-      console.log('✅ Password saved to localStorage');
     } else {
       localStorage.removeItem(AUTH_STORAGE_KEYS.SAVED_PASSWORD);
-      console.log('🗑️ Password removed from localStorage');
     }
   } catch (error) {
     console.warn('Failed to save/remove password from localStorage:', error);

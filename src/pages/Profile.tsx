@@ -36,7 +36,7 @@ export default function Profile() {
     console.log('Profile component render - Current user state:', user);
     console.log('Profile component render - Loading state:', loading);
 
-    const isManagement = profile?.role === "management";
+    const isManagement = profile?.role === "management" || profile?.role === "admin";
 
     // Show loading state while profile is being fetched
     if (loading) {

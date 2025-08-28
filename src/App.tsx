@@ -92,7 +92,7 @@ const App = () => {
             </ProtectedRoute>
           } />
           <Route path="/reviews" element={
-            <ProtectedRoute requiredRoles={['engineering', 'qa', 'production', 'management', 'procurement']}>
+            <ProtectedRoute requiredRoles={['engineering', 'qa', 'production', 'management', 'admin', 'procurement']}>
               <AppLayout><div className="p-6">Reviews - Coming Soon</div></AppLayout>
             </ProtectedRoute>
           } />
@@ -102,17 +102,17 @@ const App = () => {
             </ProtectedRoute>
           } />
           <Route path="/production" element={
-            <ProtectedRoute requiredRoles={['production', 'management']}>
+            <ProtectedRoute requiredRoles={['production', 'management', 'admin']}>
               <AppLayout><div className="p-6">Production - Coming Soon</div></AppLayout>
             </ProtectedRoute>
           } />
           <Route path="/analytics" element={
-            <ProtectedRoute requiredRoles={['management', 'procurement']}>
+            <ProtectedRoute requiredRoles={['management', 'admin', 'procurement']}>
               <AppLayout><div className="p-6">Analytics - Coming Soon</div></AppLayout>
             </ProtectedRoute>
           } />
           <Route path="/users" element={
-            <ProtectedRoute requiredRoles={['management']}>
+            <ProtectedRoute requiredRoles={['management', 'admin']}>
               <AppLayout><AdminUsers /></AppLayout>
             </ProtectedRoute>
           } />

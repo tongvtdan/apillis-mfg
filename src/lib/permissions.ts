@@ -107,10 +107,11 @@ export function getMinimumRoleForPermission(resource: string, action: string): U
 
 /**
  * Check if one role has higher privileges than another
- * Based on the hierarchy: Management > Procurement Owner > Engineering/QA/Production > Supplier > Customer
+ * Based on the hierarchy: Admin > Management > Procurement Owner > Engineering/QA/Production > Supplier > Customer
  */
 export function isHigherRole(role1: UserRole, role2: UserRole): boolean {
     const roleHierarchy: Record<UserRole, number> = {
+        [UserRole.ADMIN]: 6,
         [UserRole.MANAGEMENT]: 5,
         [UserRole.PROCUREMENT_OWNER]: 4,
         [UserRole.PROCUREMENT]: 4,

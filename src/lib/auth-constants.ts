@@ -70,6 +70,7 @@ export const ROLE_DESCRIPTIONS = {
     production: 'Production staff who handle manufacturing scheduling and capacity planning',
     supplier: 'External suppliers who respond to RFQs and provide quotations',
     management: 'Senior management with full system access and administrative privileges',
+    admin: 'System administrators with full access to all features and system configuration',
 } as const;
 
 /**
@@ -83,6 +84,7 @@ export const ROLE_DEFAULT_ROUTES = {
     production: '/dashboard',
     supplier: '/dashboard',
     management: '/admin/dashboard',
+    admin: '/admin/dashboard',
 } as const;
 
 /**

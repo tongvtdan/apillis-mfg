@@ -10,6 +10,7 @@ class RealtimeManager {
     private isActive: boolean = false;
     private updateTimeout: NodeJS.Timeout | null = null;
     private pendingUpdates = new Map<string, any>();
+    private isAuthenticated: boolean = false;
 
     private constructor() { }
 
@@ -20,11 +21,23 @@ class RealtimeManager {
         return RealtimeManager.instance;
     }
 
+    public setAuthenticationStatus(authenticated: boolean) {
+        this.isAuthenticated = authenticated;
+        
+        if (!authenticated) {
+            // Clean up subscriptions when user logs out
+            this.cleanup();
+        } else if (this.subscribers.size > 0 && !this.isActive) {
+            // Set up subscriptions when user logs in and there are subscribers
+            this.setupGlobalSubscription();
+        }
+    }
+
     public subscribe(callback: (projects: Project[]) => void): () => void {
         this.subscribers.add(callback);
 
-        // If this is the first subscriber, set up the subscription
-        if (this.subscribers.size === 1 && !this.isActive) {
+        // Only set up subscription if user is authenticated and this is the first subscriber
+        if (this.subscribers.size === 1 && !this.isActive && this.isAuthenticated) {
             this.setupGlobalSubscription();
         }
 
@@ -40,8 +53,8 @@ class RealtimeManager {
     }
 
     private setupGlobalSubscription() {
-        if (this.isActive) {
-            console.log('🔔 RealtimeManager: Subscription already active, skipping setup');
+        if (this.isActive || !this.isAuthenticated) {
+            console.log('🔔 RealtimeManager: Subscription already active or user not authenticated, skipping setup');
             return;
         }
 
@@ -107,6 +120,19 @@ class RealtimeManager {
                     this.isActive = true;
                 } else if (status === 'CHANNEL_ERROR') {
                     console.error('❌ RealtimeManager: Subscription error:', status);
+                    this.isActive = false;
+                    
+                    // Retry subscription after a delay if user is still authenticated
+                    if (this.isAuthenticated) {
+                        setTimeout(() => {
+                            if (this.isAuthenticated && this.subscribers.size > 0) {
+                                console.log('🔄 RealtimeManager: Retrying subscription...');
+                                this.setupGlobalSubscription();
+                            }
+                        }, 5000); // Retry after 5 seconds
+                    }
+                } else if (status === 'CLOSED') {
+                    console.log('🔔 RealtimeManager: Subscription closed');
                     this.isActive = false;
                 }
             });

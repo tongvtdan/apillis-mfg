@@ -66,7 +66,7 @@ export default function AdminUsers() {
   const [editDialogOpen, setEditDialogOpen] = useState(false);
 
   // Compute access but do not return before hooks to keep hook order stable
-  const canAccess = profile?.role === 'management';
+  const canAccess = profile?.role === 'management' || profile?.role === 'admin';
 
   const fetchUsers = async () => {
     try {
