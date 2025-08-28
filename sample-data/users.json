@@ -10,6 +10,13 @@
         "avatar_url": "https://storage.googleapis.com/factory-pulse-assets/avatars/ceo.jpg",
         "status": "active",
         "description": "CEO and General Manager with 20+ years in manufacturing",
+        "employee_id": "EMP-NVM-550e",
+        "direct_reports": [
+            "550e8400-e29b-41d4-a716-446655440003",
+            "550e8400-e29b-41d4-a716-446655440004",
+            "550e8400-e29b-41d4-a716-446655440012",
+            "550e8400-e29b-41d4-a716-446655440013"
+        ],
         "last_login_at": "2025-01-27T07:30:00.000Z",
         "preferences": {
             "language": "vi",
@@ -35,6 +42,14 @@
         "avatar_url": "https://storage.googleapis.com/factory-pulse-assets/avatars/operations.jpg",
         "status": "active",
         "description": "Operations Manager overseeing production and quality",
+        "employee_id": "EMP-TTH-550e",
+        "direct_manager_id": "550e8400-e29b-41d4-a716-446655440002",
+        "direct_reports": [
+            "550e8400-e29b-41d4-a716-446655440009",
+            "550e8400-e29b-41d4-a716-446655440010",
+            "550e8400-e29b-41d4-a716-446655440008",
+            "550e8400-e29b-41d4-a716-446655440011"
+        ],
         "last_login_at": "2025-01-27T07:45:00.000Z",
         "preferences": {
             "language": "vi",
@@ -60,6 +75,12 @@
         "avatar_url": "https://storage.googleapis.com/factory-pulse-assets/avatars/quality.jpg",
         "status": "active",
         "description": "Quality Manager ensuring compliance and standards",
+        "employee_id": "EMP-LVT-550e",
+        "direct_manager_id": "550e8400-e29b-41d4-a716-446655440002",
+        "direct_reports": [
+            "550e8400-e29b-41d4-a716-446655440008",
+            "550e8400-e29b-41d4-a716-446655440011"
+        ],
         "last_login_at": "2025-01-27T07:50:00.000Z",
         "preferences": {
             "language": "vi",
@@ -85,6 +106,8 @@
         "avatar_url": "https://storage.googleapis.com/factory-pulse-assets/avatars/senior-engineer.jpg",
         "status": "active",
         "description": "Senior Engineer with expertise in mechanical design",
+        "employee_id": "EMP-PVD-550e",
+        "direct_manager_id": "550e8400-e29b-41d4-a716-446655440006",
         "last_login_at": "2025-01-27T08:00:00.000Z",
         "preferences": {
             "language": "en",
@@ -110,6 +133,12 @@
         "avatar_url": "https://storage.googleapis.com/factory-pulse-assets/avatars/mechanical-engineer.jpg",
         "status": "active",
         "description": "Mechanical Engineer specializing in fabrication",
+        "employee_id": "EMP-HTM-550e",
+        "direct_manager_id": "550e8400-e29b-41d4-a716-446655440003",
+        "direct_reports": [
+            "550e8400-e29b-41d4-a716-446655440005",
+            "550e8400-e29b-41d4-a716-446655440007"
+        ],
         "last_login_at": "2025-01-27T08:05:00.000Z",
         "preferences": {
             "language": "vi",
@@ -135,6 +164,8 @@
         "avatar_url": "https://storage.googleapis.com/factory-pulse-assets/avatars/electrical-engineer.jpg",
         "status": "active",
         "description": "Electrical Engineer for controls and automation",
+        "employee_id": "EMP-VVN-550e",
+        "direct_manager_id": "550e8400-e29b-41d4-a716-446655440006",
         "last_login_at": "2025-01-27T08:10:00.000Z",
         "preferences": {
             "language": "en",
@@ -160,6 +191,8 @@
         "avatar_url": "https://storage.googleapis.com/factory-pulse-assets/avatars/qa-engineer.jpg",
         "status": "active",
         "description": "QA Engineer ensuring product quality standards",
+        "employee_id": "EMP-NTL-550e",
+        "direct_manager_id": "550e8400-e29b-41d4-a716-446655440004",
         "last_login_at": "2025-01-27T08:15:00.000Z",
         "preferences": {
             "language": "vi",
@@ -185,6 +218,11 @@
         "avatar_url": "https://storage.googleapis.com/factory-pulse-assets/avatars/production-supervisor.jpg",
         "status": "active",
         "description": "Production Supervisor managing manufacturing operations",
+        "employee_id": "EMP-DVH-550e",
+        "direct_manager_id": "550e8400-e29b-41d4-a716-446655440003",
+        "direct_reports": [
+            "550e8400-e29b-41d4-a716-446655440010"
+        ],
         "last_login_at": "2025-01-27T08:20:00.000Z",
         "preferences": {
             "language": "vi",
@@ -210,6 +248,8 @@
         "avatar_url": "https://storage.googleapis.com/factory-pulse-assets/avatars/team-lead.jpg",
         "status": "active",
         "description": "Team Lead coordinating assembly operations",
+        "employee_id": "EMP-LVT-550e",
+        "direct_manager_id": "550e8400-e29b-41d4-a716-446655440009",
         "last_login_at": "2025-01-27T08:25:00.000Z",
         "preferences": {
             "language": "vi",
@@ -235,6 +275,8 @@
         "avatar_url": "https://storage.googleapis.com/factory-pulse-assets/avatars/quality-inspector.jpg",
         "status": "active",
         "description": "Quality Inspector performing final quality checks",
+        "employee_id": "EMP-BTH-550e",
+        "direct_manager_id": "550e8400-e29b-41d4-a716-446655440004",
         "last_login_at": "2025-01-27T08:30:00.000Z",
         "preferences": {
             "language": "vi",
@@ -260,6 +302,11 @@
         "avatar_url": "https://storage.googleapis.com/factory-pulse-assets/avatars/sales-manager.jpg",
         "status": "active",
         "description": "Sales Manager managing customer relationships",
+        "employee_id": "EMP-TVS-550e",
+        "direct_manager_id": "550e8400-e29b-41d4-a716-446655440002",
+        "direct_reports": [
+            "550e8400-e29b-41d4-a716-446655440016"
+        ],
         "last_login_at": "2025-01-27T08:35:00.000Z",
         "preferences": {
             "language": "vi",
@@ -285,6 +332,11 @@
         "avatar_url": "https://storage.googleapis.com/factory-pulse-assets/avatars/procurement-specialist.jpg",
         "status": "active",
         "description": "Procurement Specialist managing supplier relationships",
+        "employee_id": "EMP-ĐTN-550e",
+        "direct_manager_id": "550e8400-e29b-41d4-a716-446655440002",
+        "direct_reports": [
+            "550e8400-e29b-41d4-a716-446655440014"
+        ],
         "last_login_at": "2025-01-27T08:40:00.000Z",
         "preferences": {
             "language": "vi",
@@ -310,6 +362,8 @@
         "avatar_url": "https://storage.googleapis.com/factory-pulse-assets/avatars/project-coordinator.jpg",
         "status": "active",
         "description": "Project Coordinator tracking project progress",
+        "employee_id": "EMP-VVP-550e",
+        "direct_manager_id": "550e8400-e29b-41d4-a716-446655440013",
         "last_login_at": "2025-01-27T08:45:00.000Z",
         "preferences": {
             "language": "vi",
@@ -335,6 +389,7 @@
         "avatar_url": "https://storage.googleapis.com/factory-pulse-assets/avatars/system-admin.jpg",
         "status": "active",
         "description": "System Administrator managing technical infrastructure",
+        "employee_id": "EMP-LVA-550e",
         "last_login_at": "2025-01-27T08:50:00.000Z",
         "preferences": {
             "language": "en",
@@ -360,6 +415,8 @@
         "avatar_url": "https://storage.googleapis.com/factory-pulse-assets/avatars/customer-service.jpg",
         "status": "active",
         "description": "Customer Service representative providing support",
+        "employee_id": "EMP-PTT-550e",
+        "direct_manager_id": "550e8400-e29b-41d4-a716-446655440012",
         "last_login_at": "2025-01-27T08:55:00.000Z",
         "preferences": {
             "language": "vi",

@@ -5,6 +5,8 @@
         "slug": "factory-pulse-vietnam",
         "domain": "factorypulse.vn",
         "logo_url": "https://storage.googleapis.com/factory-pulse-assets/logos/fpv-logo.png",
+        "description": "Leading manufacturing company specializing in precision components for automotive and aerospace industries",
+        "industry": "Manufacturing",
         "settings": {
             "timezone": "Asia/Ho_Chi_Minh",
             "default_language": "vi",

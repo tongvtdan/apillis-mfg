@@ -1,0 +1,1744 @@
+[
+    {
+        "id": "550e8400-e29b-41d4-a716-446655440801",
+        "organization_id": "550e8400-e29b-41d4-a716-446655440001",
+        "user_id": "550e8400-e29b-41d4-a716-446655440012",
+        "project_id": "550e8400-e29b-41d4-a716-446655440301",
+        "action": "project_created",
+        "description": "Created new project: Automotive Bracket Assembly",
+        "entity_type": "project",
+        "entity_id": "550e8400-e29b-41d4-a716-446655440301",
+        "changes": {
+            "before": null,
+            "after": {
+                "title": "Automotive Bracket Assembly",
+                "customer_id": "550e8400-e29b-41d4-a716-446655440101",
+                "status": "active"
+            }
+        },
+        "ip_address": "192.168.1.100",
+        "user_agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36",
+        "timestamp": "2025-01-27T08:00:00.000Z",
+        "metadata": {
+            "customer": "Toyota Vietnam",
+            "project_type": "fabrication",
+            "action_category": "creation"
+        }
+    },
+    {
+        "id": "550e8400-e29b-41d4-a716-446655440802",
+        "organization_id": "550e8400-e29b-41d4-a716-446655440001",
+        "user_id": "550e8400-e29b-41d4-a716-446655440012",
+        "project_id": "550e8400-e29b-41d4-a716-446655440302",
+        "action": "project_created",
+        "description": "Created new project: Motorcycle Frame Welding",
+        "entity_type": "project",
+        "entity_id": "550e8400-e29b-41d4-a716-446655440302",
+        "changes": {
+            "before": null,
+            "after": {
+                "title": "Motorcycle Frame Welding",
+                "customer_id": "550e8400-e29b-41d4-a716-446655440102",
+                "status": "active"
+            }
+        },
+        "ip_address": "192.168.1.100",
+        "user_agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36",
+        "timestamp": "2025-01-27T08:15:00.000Z",
+        "metadata": {
+            "customer": "Honda Vietnam",
+            "project_type": "fabrication",
+            "action_category": "creation"
+        }
+    },
+    {
+        "id": "550e8400-e29b-41d4-a716-446655440803",
+        "organization_id": "550e8400-e29b-41d4-a716-446655440001",
+        "user_id": "550e8400-e29b-41d4-a716-446655440012",
+        "project_id": "550e8400-e29b-41d4-a716-446655440303",
+        "action": "project_created",
+        "description": "Created new project: Aircraft Landing Gear Bracket",
+        "entity_type": "project",
+        "entity_id": "550e8400-e29b-41d4-a716-446655440303",
+        "changes": {
+            "before": null,
+            "after": {
+                "title": "Aircraft Landing Gear Bracket",
+                "customer_id": "550e8400-e29b-41d4-a716-446655440103",
+                "status": "active"
+            }
+        },
+        "ip_address": "192.168.1.100",
+        "user_agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36",
+        "timestamp": "2025-01-27T08:30:00.000Z",
+        "metadata": {
+            "customer": "Boeing Vietnam",
+            "project_type": "fabrication",
+            "action_category": "creation"
+        }
+    },
+    {
+        "id": "550e8400-e29b-41d4-a716-446655440804",
+        "organization_id": "550e8400-e29b-41d4-a716-446655440001",
+        "user_id": "550e8400-e29b-41d4-a716-446655440005",
+        "project_id": "550e8400-e29b-41d4-a716-446655440301",
+        "action": "document_uploaded",
+        "description": "Uploaded technical drawing for Automotive Bracket Assembly",
+        "entity_type": "document",
+        "entity_id": "550e8400-e29b-41d4-a716-446655440402",
+        "changes": {
+            "before": null,
+            "after": {
+                "title": "Technical Drawing - Bracket Assembly",
+                "file_type": "dwg",
+                "file_size": 1048576
+            }
+        },
+        "ip_address": "192.168.1.105",
+        "user_agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36",
+        "timestamp": "2025-01-27T09:00:00.000Z",
+        "metadata": {
+            "customer": "Toyota Vietnam",
+            "project_type": "fabrication",
+            "action_category": "document"
+        }
+    },
+    {
+        "id": "550e8400-e29b-41d4-a716-446655440805",
+        "organization_id": "550e8400-e29b-41d4-a716-446655440001",
+        "user_id": "550e8400-e29b-41d4-a716-446655440009",
+        "project_id": "550e8400-e29b-41d4-a716-446655440301",
+        "action": "document_uploaded",
+        "description": "Uploaded BOM for Automotive Bracket Assembly",
+        "entity_type": "document",
+        "entity_id": "550e8400-e29b-41d4-a716-446655440403",
+        "changes": {
+            "before": null,
+            "after": {
+                "title": "BOM - Bracket Components",
+                "file_type": "xlsx",
+                "file_size": 512000
+            }
+        },
+        "ip_address": "192.168.1.109",
+        "user_agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36",
+        "timestamp": "2025-01-27T10:00:00.000Z",
+        "metadata": {
+            "customer": "Toyota Vietnam",
+            "project_type": "fabrication",
+            "action_category": "document"
+        }
+    },
+    {
+        "id": "550e8400-e29b-41d4-a716-446655440806",
+        "organization_id": "550e8400-e29b-41d4-a716-446655440001",
+        "user_id": "550e8400-e29b-41d4-a716-446655440013",
+        "project_id": "550e8400-e29b-41d4-a716-446655440301",
+        "action": "supplier_quote_received",
+        "description": "Received quote from Precision Machining Co. for bracket components",
+        "entity_type": "document",
+        "entity_id": "550e8400-e29b-41d4-a716-446655440404",
+        "changes": {
+            "before": null,
+            "after": {
+                "title": "Supplier Quote - Precision Machining",
+                "supplier": "Precision Machining Co.",
+                "amount": "25000000"
+            }
+        },
+        "ip_address": "192.168.1.113",
+        "user_agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36",
+        "timestamp": "2025-01-27T11:00:00.000Z",
+        "metadata": {
+            "customer": "Toyota Vietnam",
+            "project_type": "fabrication",
+            "action_category": "supplier"
+        }
+    },
+    {
+        "id": "550e8400-e29b-41d4-a716-446655440807",
+        "organization_id": "550e8400-e29b-41d4-a716-446655440001",
+        "user_id": "550e8400-e29b-41d4-a716-446655440006",
+        "project_id": "550e8400-e29b-41d4-a716-446655440302",
+        "action": "design_completed",
+        "description": "Completed welding jig design for motorcycle frame",
+        "entity_type": "project",
+        "entity_id": "550e8400-e29b-41d4-a716-446655440302",
+        "changes": {
+            "before": {
+                "current_stage_id": "550e8400-e29b-41d4-a716-446655440201"
+            },
+            "after": {
+                "current_stage_id": "550e8400-e29b-41d4-a716-446655440202"
+            }
+        },
+        "ip_address": "192.168.1.106",
+        "user_agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36",
+        "timestamp": "2025-01-27T09:30:00.000Z",
+        "metadata": {
+            "customer": "Honda Vietnam",
+            "project_type": "fabrication",
+            "action_category": "design"
+        }
+    },
+    {
+        "id": "550e8400-e29b-41d4-a716-446655440808",
+        "organization_id": "550e8400-e29b-41d4-a716-446655440001",
+        "user_id": "550e8400-e29b-41d4-a716-446655440005",
+        "project_id": "550e8400-e29b-41d4-a716-446655440303",
+        "action": "design_review_completed",
+        "description": "Completed design review for aircraft landing gear bracket",
+        "entity_type": "project",
+        "entity_id": "550e8400-e29b-41d4-a716-446655440303",
+        "changes": {
+            "before": {
+                "current_stage_id": "550e8400-e29b-41d4-a716-446655440202"
+            },
+            "after": {
+                "current_stage_id": "550e8400-e29b-41d4-a716-446655440203"
+            }
+        },
+        "ip_address": "192.168.1.105",
+        "user_agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36",
+        "timestamp": "2025-01-27T16:00:00.000Z",
+        "metadata": {
+            "customer": "Boeing Vietnam",
+            "project_type": "fabrication",
+            "action_category": "review"
+        }
+    },
+    {
+        "id": "550e8400-e29b-41d4-a716-446655440809",
+        "organization_id": "550e8400-e29b-41d4-a716-446655440001",
+        "user_id": "550e8400-e29b-41d4-a716-446655440008",
+        "project_id": "550e8400-e29b-41d4-a716-446655440303",
+        "action": "quality_review_completed",
+        "description": "Completed quality review for aerospace materials",
+        "entity_type": "project",
+        "entity_id": "550e8400-e29b-41d4-a716-446655440303",
+        "changes": {
+            "before": {
+                "status": "design_review"
+            },
+            "after": {
+                "status": "material_confirmed"
+            }
+        },
+        "ip_address": "192.168.1.108",
+        "user_agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36",
+        "timestamp": "2025-01-27T17:00:00.000Z",
+        "metadata": {
+            "customer": "Boeing Vietnam",
+            "project_type": "fabrication",
+            "action_category": "quality"
+        }
+    },
+    {
+        "id": "550e8400-e29b-41d4-a716-446655440810",
+        "organization_id": "550e8400-e29b-41d4-a716-446655440001",
+        "user_id": "550e8400-e29b-41d4-a716-446655440009",
+        "project_id": "550e8400-e29b-41d4-a716-446655440304",
+        "action": "production_setup_started",
+        "description": "Started assembly line setup for electronics housing",
+        "entity_type": "project",
+        "entity_id": "550e8400-e29b-41d4-a716-446655440304",
+        "changes": {
+            "before": {
+                "current_stage_id": "550e8400-e29b-41d4-a716-446655440201"
+            },
+            "after": {
+                "current_stage_id": "550e8400-e29b-41d4-a716-446655440202"
+            }
+        },
+        "ip_address": "192.168.1.109",
+        "user_agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36",
+        "timestamp": "2025-01-27T09:00:00.000Z",
+        "metadata": {
+            "customer": "Samsung Vietnam",
+            "project_type": "manufacturing",
+            "action_category": "production"
+        }
+    },
+    {
+        "id": "550e8400-e29b-41d4-a716-446655440811",
+        "organization_id": "550e8400-e29b-41d4-a716-446655440001",
+        "user_id": "550e8400-e29b-41d4-a716-446655440007",
+        "project_id": "550e8400-e29b-41d4-a716-446655440305",
+        "action": "design_completed",
+        "description": "Completed electrical design for Siemens control panel",
+        "entity_type": "project",
+        "entity_id": "550e8400-e29b-41d4-a716-446655440305",
+        "changes": {
+            "before": {
+                "current_stage_id": "550e8400-e29b-41d4-a716-446655440201"
+            },
+            "after": {
+                "current_stage_id": "550e8400-e29b-41d4-a716-446655440202"
+            }
+        },
+        "ip_address": "192.168.1.107",
+        "user_agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36",
+        "timestamp": "2025-01-27T10:15:00.000Z",
+        "metadata": {
+            "customer": "Siemens Vietnam",
+            "project_type": "manufacturing",
+            "action_category": "design"
+        }
+    },
+    {
+        "id": "550e8400-e29b-41d4-a716-446655440812",
+        "organization_id": "550e8400-e29b-41d4-a716-446655440001",
+        "user_id": "550e8400-e29b-41d4-a716-446655440009",
+        "project_id": "550e8400-e29b-41d4-a716-446655440306",
+        "action": "process_finalized",
+        "description": "Finalized manufacturing process for LG home appliance parts",
+        "entity_type": "project",
+        "entity_id": "550e8400-e29b-41d4-a716-446655440306",
+        "changes": {
+            "before": {
+                "current_stage_id": "550e8400-e29b-41d4-a716-446655440201"
+            },
+            "after": {
+                "current_stage_id": "550e8400-e29b-41d4-a716-446655440202"
+            }
+        },
+        "ip_address": "192.168.1.109",
+        "user_agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36",
+        "timestamp": "2025-01-27T13:00:00.000Z",
+        "metadata": {
+            "customer": "LG Vietnam",
+            "project_type": "manufacturing",
+            "action_category": "process"
+        }
+    },
+    {
+        "id": "550e8400-e29b-41d4-a716-446655440813",
+        "organization_id": "550e8400-e29b-41d4-a716-446655440001",
+        "user_id": "550e8400-e29b-41d4-a716-446655440005",
+        "project_id": "550e8400-e29b-41d4-a716-446655440307",
+        "action": "architecture_approved",
+        "description": "Approved system architecture for Airbus aircraft control systems",
+        "entity_type": "project",
+        "entity_id": "550e8400-e29b-41d4-a716-446655440307",
+        "changes": {
+            "before": {
+                "current_stage_id": "550e8400-e29b-41d4-a716-446655440201"
+            },
+            "after": {
+                "current_stage_id": "550e8400-e29b-41d4-a716-446655440202"
+            }
+        },
+        "ip_address": "192.168.1.105",
+        "user_agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36",
+        "timestamp": "2025-01-27T21:00:00.000Z",
+        "metadata": {
+            "customer": "Airbus Vietnam",
+            "project_type": "system_build",
+            "action_category": "approval"
+        }
+    },
+    {
+        "id": "550e8400-e29b-41d4-a716-446655440814",
+        "organization_id": "550e8400-e29b-41d4-a716-446655440001",
+        "user_id": "550e8400-e29b-41d4-a716-446655440007",
+        "project_id": "550e8400-e29b-41d4-a716-446655440308",
+        "action": "design_review_requested",
+        "description": "Requested design review for ABB power systems",
+        "entity_type": "project",
+        "entity_id": "550e8400-e29b-41d4-a716-446655440308",
+        "changes": {
+            "before": {
+                "status": "design_in_progress"
+            },
+            "after": {
+                "status": "review_requested"
+            }
+        },
+        "ip_address": "192.168.1.107",
+        "user_agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36",
+        "timestamp": "2025-01-27T14:00:00.000Z",
+        "metadata": {
+            "customer": "ABB Vietnam",
+            "project_type": "system_build",
+            "action_category": "review"
+        }
+    },
+    {
+        "id": "550e8400-e29b-41d4-a716-446655440815",
+        "organization_id": "550e8400-e29b-41d4-a716-446655440001",
+        "user_id": "550e8400-e29b-41d4-a716-446655440008",
+        "project_id": "550e8400-e29b-41d4-a716-446655440309",
+        "action": "qc_plan_completed",
+        "description": "Completed quality control plan for Samsung display assembly",
+        "entity_type": "project",
+        "entity_id": "550e8400-e29b-41d4-a716-446655440309",
+        "changes": {
+            "before": {
+                "status": "planning"
+            },
+            "after": {
+                "status": "qc_plan_ready"
+            }
+        },
+        "ip_address": "192.168.1.108",
+        "user_agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36",
+        "timestamp": "2025-01-27T11:15:00.000Z",
+        "metadata": {
+            "customer": "Samsung Vietnam",
+            "project_type": "manufacturing",
+            "action_category": "quality"
+        }
+    },
+    {
+        "id": "550e8400-e29b-41d4-a716-446655440816",
+        "organization_id": "550e8400-e29b-41d4-a716-446655440001",
+        "user_id": "550e8400-e29b-41d4-a716-446655440009",
+        "project_id": "550e8400-e29b-41d4-a716-446655440310",
+        "action": "production_started",
+        "description": "Started production for Honda engine components",
+        "entity_type": "project",
+        "entity_id": "550e8400-e29b-41d4-a716-446655440310",
+        "changes": {
+            "before": {
+                "current_stage_id": "550e8400-e29b-41d4-a716-446655440202"
+            },
+            "after": {
+                "current_stage_id": "550e8400-e29b-41d4-a716-446655440203"
+            }
+        },
+        "ip_address": "192.168.1.109",
+        "user_agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36",
+        "timestamp": "2025-01-27T10:30:00.000Z",
+        "metadata": {
+            "customer": "Honda Vietnam",
+            "project_type": "manufacturing",
+            "action_category": "production"
+        }
+    },
+    {
+        "id": "550e8400-e29b-41d4-a716-446655440817",
+        "organization_id": "550e8400-e29b-41d4-a716-446655440001",
+        "user_id": "550e8400-e29b-41d4-a716-446655440005",
+        "project_id": "550e8400-e29b-41d4-a716-446655440311",
+        "action": "material_confirmed",
+        "description": "Confirmed aluminum material for Boeing avionics housing",
+        "entity_type": "project",
+        "entity_id": "550e8400-e29b-41d4-a716-446655440311",
+        "changes": {
+            "before": {
+                "status": "material_pending"
+            },
+            "after": {
+                "status": "material_confirmed"
+            }
+        },
+        "ip_address": "192.168.1.105",
+        "user_agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36",
+        "timestamp": "2025-01-27T15:30:00.000Z",
+        "metadata": {
+            "customer": "Boeing Vietnam",
+            "project_type": "fabrication",
+            "action_category": "materials"
+        }
+    },
+    {
+        "id": "550e8400-e29b-41d4-a716-446655440818",
+        "organization_id": "550e8400-e29b-41d4-a716-446655440001",
+        "user_id": "550e8400-e29b-41d4-a716-446655440007",
+        "project_id": "550e8400-e29b-41d4-a716-446655440312",
+        "action": "design_completed",
+        "description": "Completed PCB design for Samsung electronic components",
+        "entity_type": "project",
+        "entity_id": "550e8400-e29b-41d4-a716-446655440312",
+        "changes": {
+            "before": {
+                "current_stage_id": "550e8400-e29b-41d4-a716-446655440201"
+            },
+            "after": {
+                "current_stage_id": "550e8400-e29b-41d4-a716-446655440202"
+            }
+        },
+        "ip_address": "192.168.1.107",
+        "user_agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36",
+        "timestamp": "2025-01-27T12:00:00.000Z",
+        "metadata": {
+            "customer": "Samsung Vietnam",
+            "project_type": "manufacturing",
+            "action_category": "design"
+        }
+    },
+    {
+        "id": "550e8400-e29b-41d4-a716-446655440819",
+        "organization_id": "550e8400-e29b-41d4-a716-446655440001",
+        "user_id": "550e8400-e29b-41d4-a716-446655440005",
+        "project_id": "550e8400-e29b-41d4-a716-446655440313",
+        "action": "integration_plan_completed",
+        "description": "Completed system integration plan for LG smart home",
+        "entity_type": "project",
+        "entity_id": "550e8400-e29b-41d4-a716-446655440313",
+        "changes": {
+            "before": {
+                "status": "planning"
+            },
+            "after": {
+                "status": "plan_ready"
+            }
+        },
+        "ip_address": "192.168.1.105",
+        "user_agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36",
+        "timestamp": "2025-01-27T12:15:00.000Z",
+        "metadata": {
+            "customer": "LG Vietnam",
+            "project_type": "system_build",
+            "action_category": "planning"
+        }
+    },
+    {
+        "id": "550e8400-e29b-41d4-a716-446655440820",
+        "organization_id": "550e8400-e29b-41d4-a716-446655440001",
+        "user_id": "550e8400-e29b-41d4-a716-446655440005",
+        "project_id": "550e8400-e29b-41d4-a716-446655440314",
+        "action": "analysis_completed",
+        "description": "Completed structural analysis for Airbus engine mount",
+        "entity_type": "project",
+        "entity_id": "550e8400-e29b-41d4-a716-446655440314",
+        "changes": {
+            "before": {
+                "status": "analysis_in_progress"
+            },
+            "after": {
+                "status": "analysis_complete"
+            }
+        },
+        "ip_address": "192.168.1.105",
+        "user_agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36",
+        "timestamp": "2025-01-27T12:30:00.000Z",
+        "metadata": {
+            "customer": "Airbus Vietnam",
+            "project_type": "fabrication",
+            "action_category": "analysis"
+        }
+    },
+    {
+        "id": "550e8400-e29b-41d4-a716-446655440821",
+        "organization_id": "550e8400-e29b-41d4-a716-446655440001",
+        "user_id": "550e8400-e29b-41d4-a716-446655440009",
+        "project_id": "550e8400-e29b-41d4-a716-446655440315",
+        "action": "layout_approved",
+        "description": "Approved assembly line layout for ABB motor production",
+        "entity_type": "project",
+        "entity_id": "550e8400-e29b-41d4-a716-446655440315",
+        "changes": {
+            "before": {
+                "status": "layout_review"
+            },
+            "after": {
+                "status": "layout_approved"
+            }
+        },
+        "ip_address": "192.168.1.109",
+        "user_agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36",
+        "timestamp": "2025-01-27T14:00:00.000Z",
+        "metadata": {
+            "customer": "ABB Vietnam",
+            "project_type": "manufacturing",
+            "action_category": "approval"
+        }
+    },
+    {
+        "id": "550e8400-e29b-41d4-a716-446655440822",
+        "organization_id": "550e8400-e29b-41d4-a716-446655440001",
+        "user_id": "550e8400-e29b-41d4-a716-446655440005",
+        "project_id": "550e8400-e29b-41d4-a716-446655440316",
+        "action": "design_optimized",
+        "description": "Optimized casting design for Toyota transmission housing",
+        "entity_type": "project",
+        "entity_id": "550e8400-e29b-41d4-a716-446655440316",
+        "changes": {
+            "before": {
+                "status": "design_review"
+            },
+            "after": {
+                "status": "design_optimized"
+            }
+        },
+        "ip_address": "192.168.1.105",
+        "user_agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36",
+        "timestamp": "2025-01-27T13:00:00.000Z",
+        "metadata": {
+            "customer": "Toyota Vietnam",
+            "project_type": "fabrication",
+            "action_category": "design"
+        }
+    },
+    {
+        "id": "550e8400-e29b-41d4-a716-446655440823",
+        "organization_id": "550e8400-e29b-41d4-a716-446655440001",
+        "user_id": "550e8400-e29b-41d4-a716-446655440006",
+        "project_id": "550e8400-e29b-41d4-a716-446655440317",
+        "action": "procedure_finalized",
+        "description": "Finalized welding procedure for Honda chassis assembly",
+        "entity_type": "project",
+        "entity_id": "550e8400-e29b-41d4-a716-446655440317",
+        "changes": {
+            "before": {
+                "status": "procedure_development"
+            },
+            "after": {
+                "status": "procedure_finalized"
+            }
+        },
+        "ip_address": "192.168.1.106",
+        "user_agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36",
+        "timestamp": "2025-01-27T18:30:00.000Z",
+        "metadata": {
+            "customer": "Honda Vietnam",
+            "project_type": "fabrication",
+            "action_category": "procedure"
+        }
+    },
+    {
+        "id": "550e8400-e29b-41d4-a716-446655440824",
+        "organization_id": "550e8400-e29b-41d4-a716-446655440001",
+        "user_id": "550e8400-e29b-41d4-a716-446655440008",
+        "project_id": "550e8400-e29b-41d4-a716-446655440317",
+        "action": "inspection_completed",
+        "description": "Completed quality inspection for Honda chassis assembly",
+        "entity_type": "project",
+        "entity_id": "550e8400-e29b-41d4-a716-446655440317",
+        "changes": {
+            "before": {
+                "status": "quality_inspection"
+            },
+            "after": {
+                "status": "inspection_complete"
+            }
+        },
+        "ip_address": "192.168.1.108",
+        "user_agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36",
+        "timestamp": "2025-01-27T19:00:00.000Z",
+        "metadata": {
+            "customer": "Honda Vietnam",
+            "project_type": "fabrication",
+            "action_category": "quality"
+        }
+    },
+    {
+        "id": "550e8400-e29b-41d4-a716-446655440825",
+        "organization_id": "550e8400-e29b-41d4-a716-446655440001",
+        "user_id": "550e8400-e29b-41d4-a716-446655440011",
+        "project_id": "550e8400-e29b-41d4-a716-446655440301",
+        "action": "safety_review_completed",
+        "description": "Completed safety review for automotive bracket manufacturing",
+        "entity_type": "project",
+        "entity_id": "550e8400-e29b-41d4-a716-446655440301",
+        "changes": {
+            "before": {
+                "status": "safety_review"
+            },
+            "after": {
+                "status": "safety_approved"
+            }
+        },
+        "ip_address": "192.168.1.111",
+        "user_agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36",
+        "timestamp": "2025-01-27T19:30:00.000Z",
+        "metadata": {
+            "customer": "Toyota Vietnam",
+            "project_type": "fabrication",
+            "action_category": "safety"
+        }
+    },
+    {
+        "id": "550e8400-e29b-41d4-a716-446655440826",
+        "organization_id": "550e8400-e29b-41d4-a716-446655440001",
+        "user_id": "550e8400-e29b-41d4-a716-446655440011",
+        "project_id": "550e8400-e29b-41d4-a716-446655440303",
+        "action": "safety_review_completed",
+        "description": "Completed safety review for aerospace manufacturing",
+        "entity_type": "project",
+        "entity_id": "550e8400-e29b-41d4-a716-446655440303",
+        "changes": {
+            "before": {
+                "status": "safety_review"
+            },
+            "after": {
+                "status": "safety_approved"
+            }
+        },
+        "ip_address": "192.168.1.111",
+        "user_agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36",
+        "timestamp": "2025-01-27T20:00:00.000Z",
+        "metadata": {
+            "customer": "Boeing Vietnam",
+            "project_type": "fabrication",
+            "action_category": "safety"
+        }
+    },
+    {
+        "id": "550e8400-e29b-41d4-a716-446655440827",
+        "organization_id": "550e8400-e29b-41d4-a716-446655440001",
+        "user_id": "550e8400-e29b-41d4-a716-446655440010",
+        "project_id": "550e8400-e29b-41d4-a716-446655440304",
+        "action": "quality_review_pending",
+        "description": "Quality review pending for electronics assembly",
+        "entity_type": "project",
+        "entity_id": "550e8400-e29b-41d4-a716-446655440304",
+        "changes": {
+            "before": {
+                "status": "production_setup"
+            },
+            "after": {
+                "status": "quality_review_pending"
+            }
+        },
+        "ip_address": "192.168.1.110",
+        "user_agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36",
+        "timestamp": "2025-01-27T20:30:00.000Z",
+        "metadata": {
+            "customer": "Samsung Vietnam",
+            "project_type": "manufacturing",
+            "action_category": "quality"
+        }
+    },
+    {
+        "id": "550e8400-e29b-41d4-a716-446655440828",
+        "organization_id": "550e8400-e29b-41d4-a716-446655440001",
+        "user_id": "550e8400-e29b-41d4-a716-446655440011",
+        "project_id": "550e8400-e29b-41d4-a716-446655440307",
+        "action": "authority_approval_received",
+        "description": "Received aviation authority approval for aircraft control systems",
+        "entity_type": "project",
+        "entity_id": "550e8400-e29b-41d4-a716-446655440307",
+        "changes": {
+            "before": {
+                "status": "authority_review"
+            },
+            "after": {
+                "status": "authority_approved"
+            }
+        },
+        "ip_address": "192.168.1.111",
+        "user_agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36",
+        "timestamp": "2025-01-27T21:00:00.000Z",
+        "metadata": {
+            "customer": "Airbus Vietnam",
+            "project_type": "system_build",
+            "action_category": "approval"
+        }
+    },
+    {
+        "id": "550e8400-e29b-41d4-a716-446655440829",
+        "organization_id": "550e8400-e29b-41d4-a716-446655440001",
+        "user_id": "550e8400-e29b-41d4-a716-446655440011",
+        "project_id": "550e8400-e29b-41d4-a716-446655440308",
+        "action": "safety_review_completed",
+        "description": "Completed safety review for ABB power systems",
+        "entity_type": "project",
+        "entity_id": "550e8400-e29b-41d4-a716-446655440308",
+        "changes": {
+            "before": {
+                "status": "safety_review"
+            },
+            "after": {
+                "status": "safety_approved"
+            }
+        },
+        "ip_address": "192.168.1.111",
+        "user_agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36",
+        "timestamp": "2025-01-27T21:30:00.000Z",
+        "metadata": {
+            "customer": "ABB Vietnam",
+            "project_type": "system_build",
+            "action_category": "safety"
+        }
+    },
+    {
+        "id": "550e8400-e29b-41d4-a716-446655440830",
+        "organization_id": "550e8400-e29b-41d4-a716-446655440001",
+        "user_id": "550e8400-e29b-41d4-a716-446655440013",
+        "project_id": "550e8400-e29b-41d4-a716-446655440301",
+        "action": "supplier_analysis_completed",
+        "description": "Completed analysis of Precision Machining quote",
+        "entity_type": "project",
+        "entity_id": "550e8400-e29b-41d4-a716-446655440301",
+        "changes": {
+            "before": {
+                "status": "supplier_evaluation"
+            },
+            "after": {
+                "status": "supplier_decision_ready"
+            }
+        },
+        "ip_address": "192.168.1.113",
+        "user_agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36",
+        "timestamp": "2025-01-27T22:00:00.000Z",
+        "metadata": {
+            "customer": "Toyota Vietnam",
+            "project_type": "fabrication",
+            "action_category": "supplier"
+        }
+    },
+    {
+        "id": "550e8400-e29b-41d4-a716-446655440831",
+        "organization_id": "550e8400-e29b-41d4-a716-446655440001",
+        "user_id": "550e8400-e29b-41d4-a716-446655440013",
+        "project_id": "550e8400-e29b-41d4-a716-446655440302",
+        "action": "supplier_quote_received",
+        "description": "Received quote from Advanced Welding Solutions",
+        "entity_type": "project",
+        "entity_id": "550e8400-e29b-41d4-a716-446655440302",
+        "changes": {
+            "before": {
+                "status": "supplier_quotes_pending"
+            },
+            "after": {
+                "status": "quotes_received"
+            }
+        },
+        "ip_address": "192.168.1.113",
+        "user_agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36",
+        "timestamp": "2025-01-27T22:15:00.000Z",
+        "metadata": {
+            "customer": "Honda Vietnam",
+            "project_type": "fabrication",
+            "action_category": "supplier"
+        }
+    },
+    {
+        "id": "550e8400-e29b-41d4-a716-446655440832",
+        "organization_id": "550e8400-e29b-41d4-a716-446655440001",
+        "user_id": "550e8400-e29b-41d4-a716-446655440013",
+        "project_id": "550e8400-e29b-41d4-a716-446655440303",
+        "action": "supplier_quote_received",
+        "description": "Received quote from Precision Machining",
+        "entity_type": "project",
+        "entity_id": "550e8400-e29b-41d4-a716-446655440303",
+        "changes": {
+            "before": {
+                "status": "supplier_quotes_pending"
+            },
+            "after": {
+                "status": "quotes_received"
+            }
+        },
+        "ip_address": "192.168.1.113",
+        "user_agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36",
+        "timestamp": "2025-01-27T22:30:00.000Z",
+        "metadata": {
+            "customer": "Boeing Vietnam",
+            "project_type": "fabrication",
+            "action_category": "supplier"
+        }
+    },
+    {
+        "id": "550e8400-e29b-41d4-a716-446655440833",
+        "organization_id": "550e8400-e29b-41d4-a716-446655440001",
+        "user_id": "550e8400-e29b-41d4-a716-446655440013",
+        "project_id": "550e8400-e29b-41d4-a716-446655440304",
+        "action": "supplier_quote_received",
+        "description": "Received quote from Electronics Assembly Co.",
+        "entity_type": "project",
+        "entity_id": "550e8400-e29b-41d4-a716-446655440304",
+        "changes": {
+            "before": {
+                "status": "supplier_quotes_pending"
+            },
+            "after": {
+                "status": "quotes_received"
+            }
+        },
+        "ip_address": "192.168.1.113",
+        "user_agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36",
+        "timestamp": "2025-01-27T22:45:00.000Z",
+        "metadata": {
+            "customer": "Samsung Vietnam",
+            "project_type": "manufacturing",
+            "action_category": "supplier"
+        }
+    },
+    {
+        "id": "550e8400-e29b-41d4-a716-446655440834",
+        "organization_id": "550e8400-e29b-41d4-a716-446655440001",
+        "user_id": "550e8400-e29b-41d4-a716-446655440013",
+        "project_id": "550e8400-e29b-41d4-a716-446655440305",
+        "action": "supplier_quote_received",
+        "description": "Received quote from Surface Finishing Pro",
+        "entity_type": "project",
+        "entity_id": "550e8400-e29b-41d4-a716-446655440305",
+        "changes": {
+            "before": {
+                "status": "supplier_quotes_pending"
+            },
+            "after": {
+                "status": "quotes_received"
+            }
+        },
+        "ip_address": "192.168.1.113",
+        "user_agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36",
+        "timestamp": "2025-01-27T23:00:00.000Z",
+        "metadata": {
+            "customer": "Siemens Vietnam",
+            "project_type": "manufacturing",
+            "action_category": "supplier"
+        }
+    },
+    {
+        "id": "550e8400-e29b-41d4-a716-446655440835",
+        "organization_id": "550e8400-e29b-41d4-a716-446655440001",
+        "user_id": "550e8400-e29b-41d4-a716-446655440013",
+        "project_id": "550e8400-e29b-41d4-a716-446655440306",
+        "action": "supplier_quote_received",
+        "description": "Received quote from Material Supply Co.",
+        "entity_type": "project",
+        "entity_id": "550e8400-e29b-41d4-a716-446655440306",
+        "changes": {
+            "before": {
+                "status": "supplier_quotes_pending"
+            },
+            "after": {
+                "status": "quotes_received"
+            }
+        },
+        "ip_address": "192.168.1.113",
+        "user_agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36",
+        "timestamp": "2025-01-27T23:15:00.000Z",
+        "metadata": {
+            "customer": "LG Vietnam",
+            "project_type": "manufacturing",
+            "action_category": "supplier"
+        }
+    },
+    {
+        "id": "550e8400-e29b-41d4-a716-446655440836",
+        "organization_id": "550e8400-e29b-41d4-a716-446655440001",
+        "user_id": "550e8400-e29b-41d4-a716-446655440013",
+        "project_id": "550e8400-e29b-41d4-a716-446655440307",
+        "action": "supplier_quote_received",
+        "description": "Received quote from Tooling Solutions",
+        "entity_type": "project",
+        "entity_id": "550e8400-e29b-41d4-a716-446655440307",
+        "changes": {
+            "before": {
+                "status": "supplier_quotes_pending"
+            },
+            "after": {
+                "status": "quotes_received"
+            }
+        },
+        "ip_address": "192.168.1.113",
+        "user_agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36",
+        "timestamp": "2025-01-27T23:30:00.000Z",
+        "metadata": {
+            "customer": "Airbus Vietnam",
+            "project_type": "system_build",
+            "action_category": "supplier"
+        }
+    },
+    {
+        "id": "550e8400-e29b-41d4-a716-446655440837",
+        "organization_id": "550e8400-e29b-41d4-a716-446655440001",
+        "user_id": "550e8400-e29b-41d4-a716-446655440013",
+        "project_id": "550e8400-e29b-41d4-a716-446655440308",
+        "action": "supplier_quote_received",
+        "description": "Received quote from Quality Control Services",
+        "entity_type": "project",
+        "entity_id": "550e8400-e29b-41d4-a716-446655440308",
+        "changes": {
+            "before": {
+                "status": "supplier_quotes_pending"
+            },
+            "after": {
+                "status": "quotes_received"
+            }
+        },
+        "ip_address": "192.168.1.113",
+        "user_agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36",
+        "timestamp": "2025-01-27T23:45:00.000Z",
+        "metadata": {
+            "customer": "ABB Vietnam",
+            "project_type": "system_build",
+            "action_category": "supplier"
+        }
+    },
+    {
+        "id": "550e8400-e29b-41d4-a716-446655440838",
+        "organization_id": "550e8400-e29b-41d4-a716-446655440001",
+        "user_id": "550e8400-e29b-41d4-a716-446655440013",
+        "project_id": "550e8400-e29b-41d4-a716-446655440309",
+        "action": "supplier_quote_received",
+        "description": "Received quote from Calibration Lab",
+        "entity_type": "project",
+        "entity_id": "550e8400-e29b-41d4-a716-446655440309",
+        "changes": {
+            "before": {
+                "status": "supplier_quotes_pending"
+            },
+            "after": {
+                "status": "quotes_received"
+            }
+        },
+        "ip_address": "192.168.1.113",
+        "user_agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36",
+        "timestamp": "2025-01-28T00:00:00.000Z",
+        "metadata": {
+            "customer": "Samsung Vietnam",
+            "project_type": "manufacturing",
+            "action_category": "supplier"
+        }
+    },
+    {
+        "id": "550e8400-e29b-41d4-a716-446655440839",
+        "organization_id": "550e8400-e29b-41d4-a716-446655440001",
+        "user_id": "550e8400-e29b-41d4-a716-446655440013",
+        "project_id": "550e8400-e29b-41d4-a716-446655440310",
+        "action": "supplier_quote_received",
+        "description": "Received quote from Logistics Solutions",
+        "entity_type": "project",
+        "entity_id": "550e8400-e29b-41d4-a716-446655440310",
+        "changes": {
+            "before": {
+                "status": "supplier_quotes_pending"
+            },
+            "after": {
+                "status": "quotes_received"
+            }
+        },
+        "ip_address": "192.168.1.113",
+        "user_agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36",
+        "timestamp": "2025-01-28T00:15:00.000Z",
+        "metadata": {
+            "customer": "Honda Vietnam",
+            "project_type": "manufacturing",
+            "action_category": "supplier"
+        }
+    },
+    {
+        "id": "550e8400-e29b-41d4-a716-446655440840",
+        "organization_id": "550e8400-e29b-41d4-a716-446655440001",
+        "user_id": "550e8400-e29b-41d4-a716-446655440013",
+        "project_id": "550e8400-e29b-41d4-a716-446655440311",
+        "action": "supplier_quote_received",
+        "description": "Received quote from Packaging Services",
+        "entity_type": "project",
+        "entity_id": "550e8400-e29b-41d4-a716-446655440311",
+        "changes": {
+            "before": {
+                "status": "supplier_quotes_pending"
+            },
+            "after": {
+                "status": "quotes_received"
+            }
+        },
+        "ip_address": "192.168.1.113",
+        "user_agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36",
+        "timestamp": "2025-01-28T00:30:00.000Z",
+        "metadata": {
+            "customer": "Boeing Vietnam",
+            "project_type": "fabrication",
+            "action_category": "supplier"
+        }
+    },
+    {
+        "id": "550e8400-e29b-41d4-a716-446655440841",
+        "organization_id": "550e8400-e29b-41d4-a716-446655440001",
+        "user_id": "550e8400-e29b-41d4-a716-446655440013",
+        "project_id": "550e8400-e29b-41d4-a716-446655440312",
+        "action": "supplier_quote_received",
+        "description": "Received quote from Training Institute",
+        "entity_type": "project",
+        "entity_id": "550e8400-e29b-41d4-a716-446655440312",
+        "changes": {
+            "before": {
+                "status": "supplier_quotes_pending"
+            },
+            "after": {
+                "status": "quotes_received"
+            }
+        },
+        "ip_address": "192.168.1.113",
+        "user_agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36",
+        "timestamp": "2025-01-28T00:45:00.000Z",
+        "metadata": {
+            "customer": "Samsung Vietnam",
+            "project_type": "manufacturing",
+            "action_category": "supplier"
+        }
+    },
+    {
+        "id": "550e8400-e29b-41d4-a716-446655440842",
+        "organization_id": "550e8400-e29b-41d4-a716-446655440001",
+        "user_id": "550e8400-e29b-41d4-a716-446655440013",
+        "project_id": "550e8400-e29b-41d4-a716-446655440313",
+        "action": "supplier_quote_received",
+        "description": "Received quote from Electronics Assembly Co.",
+        "entity_type": "project",
+        "entity_id": "550e8400-e29b-41d4-a716-446655440313",
+        "changes": {
+            "before": {
+                "status": "supplier_quotes_pending"
+            },
+            "after": {
+                "status": "quotes_received"
+            }
+        },
+        "ip_address": "192.168.1.113",
+        "user_agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36",
+        "timestamp": "2025-01-28T01:00:00.000Z",
+        "metadata": {
+            "customer": "LG Vietnam",
+            "project_type": "system_build",
+            "action_category": "supplier"
+        }
+    },
+    {
+        "id": "550e8400-e29b-41d4-a716-446655440843",
+        "organization_id": "550e8400-e29b-41d4-a716-446655440001",
+        "user_id": "550e8400-e29b-41d4-a716-446655440013",
+        "project_id": "550e8400-e29b-41d4-a716-446655440314",
+        "action": "supplier_quote_received",
+        "description": "Received quote from Surface Finishing Pro",
+        "entity_type": "project",
+        "entity_id": "550e8400-e29b-41d4-a716-446655440314",
+        "changes": {
+            "before": {
+                "status": "supplier_quotes_pending"
+            },
+            "after": {
+                "status": "quotes_received"
+            }
+        },
+        "ip_address": "192.168.1.113",
+        "user_agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36",
+        "timestamp": "2025-01-28T01:15:00.000Z",
+        "metadata": {
+            "customer": "Airbus Vietnam",
+            "project_type": "fabrication",
+            "action_category": "supplier"
+        }
+    },
+    {
+        "id": "550e8400-e29b-41d4-a716-446655440844",
+        "organization_id": "550e8400-e29b-41d4-a716-446655440001",
+        "user_id": "550e8400-e29b-41d4-a716-446655440013",
+        "project_id": "550e8400-e29b-41d4-a716-446655440315",
+        "action": "supplier_quote_received",
+        "description": "Received quote from Material Supply Co.",
+        "entity_type": "project",
+        "entity_id": "550e8400-e29b-41d4-a716-446655440315",
+        "changes": {
+            "before": {
+                "status": "supplier_quotes_pending"
+            },
+            "after": {
+                "status": "quotes_received"
+            }
+        },
+        "ip_address": "192.168.1.113",
+        "user_agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36",
+        "timestamp": "2025-01-28T01:30:00.000Z",
+        "metadata": {
+            "customer": "ABB Vietnam",
+            "project_type": "manufacturing",
+            "action_category": "supplier"
+        }
+    },
+    {
+        "id": "550e8400-e29b-41d4-a716-446655440845",
+        "organization_id": "550e8400-e29b-41d4-a716-446655440001",
+        "user_id": "550e8400-e29b-41d4-a716-446655440013",
+        "project_id": "550e8400-e29b-41d4-a716-446655440316",
+        "action": "supplier_quote_received",
+        "description": "Received quote from Tooling Solutions",
+        "entity_type": "project",
+        "entity_id": "550e8400-e29b-41d4-a716-446655440316",
+        "changes": {
+            "before": {
+                "status": "supplier_quotes_pending"
+            },
+            "after": {
+                "status": "quotes_received"
+            }
+        },
+        "ip_address": "192.168.1.113",
+        "user_agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36",
+        "timestamp": "2025-01-28T01:45:00.000Z",
+        "metadata": {
+            "customer": "Toyota Vietnam",
+            "project_type": "fabrication",
+            "action_category": "supplier"
+        }
+    },
+    {
+        "id": "550e8400-e29b-41d4-a716-446655440846",
+        "organization_id": "550e8400-e29b-41d4-a716-446655440001",
+        "user_id": "550e8400-e29b-41d4-a716-446655440013",
+        "project_id": "550e8400-e29b-41d4-a716-446655440317",
+        "action": "supplier_quote_received",
+        "description": "Received quote from Quality Control Services",
+        "entity_type": "project",
+        "entity_id": "550e8400-e29b-41d4-a716-446655440317",
+        "changes": {
+            "before": {
+                "status": "supplier_quotes_pending"
+            },
+            "after": {
+                "status": "quotes_received"
+            }
+        },
+        "ip_address": "192.168.1.113",
+        "user_agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36",
+        "timestamp": "2025-01-28T02:00:00.000Z",
+        "metadata": {
+            "customer": "Honda Vietnam",
+            "project_type": "fabrication",
+            "action_category": "supplier"
+        }
+    },
+    {
+        "id": "550e8400-e29b-41d4-a716-446655440847",
+        "organization_id": "550e8400-e29b-41d4-a716-446655440001",
+        "user_id": "550e8400-e29b-41d4-a716-446655440012",
+        "project_id": "550e8400-e29b-41d4-a716-446655440301",
+        "action": "project_completed",
+        "description": "Completed automotive bracket assembly project",
+        "entity_type": "project",
+        "entity_id": "550e8400-e29b-41d4-a716-446655440301",
+        "changes": {
+            "before": {
+                "current_stage_id": "550e8400-e29b-41d4-a716-446655440204"
+            },
+            "after": {
+                "current_stage_id": "550e8400-e29b-41d4-a716-446655440205"
+            }
+        },
+        "ip_address": "192.168.1.112",
+        "user_agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36",
+        "timestamp": "2025-01-28T08:00:00.000Z",
+        "metadata": {
+            "customer": "Toyota Vietnam",
+            "project_type": "fabrication",
+            "action_category": "completion"
+        }
+    },
+    {
+        "id": "550e8400-e29b-41d4-a716-446655440848",
+        "organization_id": "550e8400-e29b-41d4-a716-446655440001",
+        "user_id": "550e8400-e29b-41d4-a716-446655440012",
+        "project_id": "550e8400-e29b-41d4-a716-446655440302",
+        "action": "project_completed",
+        "description": "Completed Honda engine components project",
+        "entity_type": "project",
+        "entity_id": "550e8400-e29b-41d4-a716-446655440302",
+        "changes": {
+            "before": {
+                "current_stage_id": "550e8400-e29b-41d4-a716-446655440204"
+            },
+            "after": {
+                "current_stage_id": "550e8400-e29b-41d4-a716-446655440205"
+            }
+        },
+        "ip_address": "192.168.1.112",
+        "user_agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36",
+        "timestamp": "2025-01-28T08:15:00.000Z",
+        "metadata": {
+            "customer": "Honda Vietnam",
+            "project_type": "fabrication",
+            "action_category": "completion"
+        }
+    },
+    {
+        "id": "550e8400-e29b-41d4-a716-446655440849",
+        "organization_id": "550e8400-e29b-41d4-a716-446655440001",
+        "user_id": "550e8400-e29b-41d4-a716-446655440012",
+        "project_id": "550e8400-e29b-41d4-a716-446655440303",
+        "action": "project_completed",
+        "description": "Completed Boeing avionics housing project",
+        "entity_type": "project",
+        "entity_id": "550e8400-e29b-41d4-a716-446655440303",
+        "changes": {
+            "before": {
+                "current_stage_id": "550e8400-e29b-41d4-a716-446655440204"
+            },
+            "after": {
+                "current_stage_id": "550e8400-e29b-41d4-a716-446655440205"
+            }
+        },
+        "ip_address": "192.168.1.112",
+        "user_agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36",
+        "timestamp": "2025-01-28T08:30:00.000Z",
+        "metadata": {
+            "customer": "Boeing Vietnam",
+            "project_type": "fabrication",
+            "action_category": "completion"
+        }
+    },
+    {
+        "id": "550e8400-e29b-41d4-a716-446655440850",
+        "organization_id": "550e8400-e29b-41d4-a716-446655440001",
+        "user_id": "550e8400-e29b-41d4-a716-446655440012",
+        "project_id": "550e8400-e29b-41d4-a716-446655440304",
+        "action": "project_completed",
+        "description": "Completed Samsung electronics assembly project",
+        "entity_type": "project",
+        "entity_id": "550e8400-e29b-41d4-a716-446655440304",
+        "changes": {
+            "before": {
+                "current_stage_id": "550e8400-e29b-41d4-a716-446655440204"
+            },
+            "after": {
+                "current_stage_id": "550e8400-e29b-41d4-a716-446655440205"
+            }
+        },
+        "ip_address": "192.168.1.112",
+        "user_agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36",
+        "timestamp": "2025-01-28T08:45:00.000Z",
+        "metadata": {
+            "customer": "Samsung Vietnam",
+            "project_type": "manufacturing",
+            "action_category": "completion"
+        }
+    },
+    {
+        "id": "550e8400-e29b-41d4-a716-446655440851",
+        "organization_id": "550e8400-e29b-41d4-a716-446655440001",
+        "user_id": "550e8400-e29b-41d4-a716-446655440012",
+        "project_id": "550e8400-e29b-41d4-a716-446655440305",
+        "action": "project_completed",
+        "description": "Completed Siemens control panel project",
+        "entity_type": "project",
+        "entity_id": "550e8400-e29b-41d4-a716-446655440305",
+        "changes": {
+            "before": {
+                "current_stage_id": "550e8400-e29b-41d4-a716-446655440204"
+            },
+            "after": {
+                "current_stage_id": "550e8400-e29b-41d4-a716-446655440205"
+            }
+        },
+        "ip_address": "192.168.1.112",
+        "user_agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36",
+        "timestamp": "2025-01-28T09:00:00.000Z",
+        "metadata": {
+            "customer": "Siemens Vietnam",
+            "project_type": "manufacturing",
+            "action_category": "completion"
+        }
+    },
+    {
+        "id": "550e8400-e29b-41d4-a716-446655440852",
+        "organization_id": "550e8400-e29b-41d4-a716-446655440001",
+        "user_id": "550e8400-e29b-41d4-a716-446655440012",
+        "project_id": "550e8400-e29b-41d4-a716-446655440306",
+        "action": "project_completed",
+        "description": "Completed LG home appliance parts project",
+        "entity_type": "project",
+        "entity_id": "550e8400-e29b-41d4-a716-446655440306",
+        "changes": {
+            "before": {
+                "current_stage_id": "550e8400-e29b-41d4-a716-446655440204"
+            },
+            "after": {
+                "current_stage_id": "550e8400-e29b-41d4-a716-446655440205"
+            }
+        },
+        "ip_address": "192.168.1.112",
+        "user_agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36",
+        "timestamp": "2025-01-28T09:15:00.000Z",
+        "metadata": {
+            "customer": "LG Vietnam",
+            "project_type": "manufacturing",
+            "action_category": "completion"
+        }
+    },
+    {
+        "id": "550e8400-e29b-41d4-a716-446655440853",
+        "organization_id": "550e8400-e29b-41d4-a716-446655440001",
+        "user_id": "550e8400-e29b-41d4-a716-446655440012",
+        "project_id": "550e8400-e29b-41d4-a716-446655440307",
+        "action": "project_completed",
+        "description": "Completed Airbus aircraft control systems project",
+        "entity_type": "project",
+        "entity_id": "550e8400-e29b-41d4-a716-446655440307",
+        "changes": {
+            "before": {
+                "current_stage_id": "550e8400-e29b-41d4-a716-446655440204"
+            },
+            "after": {
+                "current_stage_id": "550e8400-e29b-41d4-a716-446655440205"
+            }
+        },
+        "ip_address": "192.168.1.112",
+        "user_agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36",
+        "timestamp": "2025-01-28T09:30:00.000Z",
+        "metadata": {
+            "customer": "Airbus Vietnam",
+            "project_type": "system_build",
+            "action_category": "completion"
+        }
+    },
+    {
+        "id": "550e8400-e29b-41d4-a716-446655440854",
+        "organization_id": "550e8400-e29b-41d4-a716-446655440001",
+        "user_id": "550e8400-e29b-41d4-a716-446655440012",
+        "project_id": "550e8400-e29b-41d4-a716-446655440308",
+        "action": "project_completed",
+        "description": "Completed ABB power systems project",
+        "entity_type": "project",
+        "entity_id": "550e8400-e29b-41d4-a716-446655440308",
+        "changes": {
+            "before": {
+                "current_stage_id": "550e8400-e29b-41d4-a716-446655440204"
+            },
+            "after": {
+                "current_stage_id": "550e8400-e29b-41d4-a716-446655440205"
+            }
+        },
+        "ip_address": "192.168.1.112",
+        "user_agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36",
+        "timestamp": "2025-01-28T09:45:00.000Z",
+        "metadata": {
+            "customer": "ABB Vietnam",
+            "project_type": "system_build",
+            "action_category": "completion"
+        }
+    },
+    {
+        "id": "550e8400-e29b-41d4-a716-446655440855",
+        "organization_id": "550e8400-e29b-41d4-a716-446655440001",
+        "user_id": "550e8400-e29b-41d4-a716-446655440012",
+        "project_id": "550e8400-e29b-41d4-a716-446655440309",
+        "action": "project_completed",
+        "description": "Completed Samsung display assembly project",
+        "entity_type": "project",
+        "entity_id": "550e8400-e29b-41d4-a716-446655440309",
+        "changes": {
+            "before": {
+                "current_stage_id": "550e8400-e29b-41d4-a716-446655440204"
+            },
+            "after": {
+                "current_stage_id": "550e8400-e29b-41d4-a716-446655440205"
+            }
+        },
+        "ip_address": "192.168.1.112",
+        "user_agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36",
+        "timestamp": "2025-01-28T10:00:00.000Z",
+        "metadata": {
+            "customer": "Samsung Vietnam",
+            "project_type": "manufacturing",
+            "action_category": "completion"
+        }
+    },
+    {
+        "id": "550e8400-e29b-41d4-a716-446655440856",
+        "organization_id": "550e8400-e29b-41d4-a716-446655440001",
+        "user_id": "550e8400-e29b-41d4-a716-446655440012",
+        "project_id": "550e8400-e29b-41d4-a716-446655440310",
+        "action": "project_completed",
+        "description": "Completed Honda engine components project",
+        "entity_type": "project",
+        "entity_id": "550e8400-e29b-41d4-a716-446655440310",
+        "changes": {
+            "before": {
+                "current_stage_id": "550e8400-e29b-41d4-a716-446655440204"
+            },
+            "after": {
+                "current_stage_id": "550e8400-e29b-41d4-a716-446655440205"
+            }
+        },
+        "ip_address": "192.168.1.112",
+        "user_agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36",
+        "timestamp": "2025-01-28T10:15:00.000Z",
+        "metadata": {
+            "customer": "Honda Vietnam",
+            "project_type": "manufacturing",
+            "action_category": "completion"
+        }
+    },
+    {
+        "id": "550e8400-e29b-41d4-a716-446655440857",
+        "organization_id": "550e8400-e29b-41d4-a716-446655440001",
+        "user_id": "550e8400-e29b-41d4-a716-446655440012",
+        "project_id": "550e8400-e29b-41d4-a716-446655440311",
+        "action": "project_completed",
+        "description": "Completed Boeing avionics housing project",
+        "entity_type": "project",
+        "entity_id": "550e8400-e29b-41d4-a716-446655440311",
+        "changes": {
+            "before": {
+                "current_stage_id": "550e8400-e29b-41d4-a716-446655440204"
+            },
+            "after": {
+                "current_stage_id": "550e8400-e29b-41d4-a716-446655440205"
+            }
+        },
+        "ip_address": "192.168.1.112",
+        "user_agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36",
+        "timestamp": "2025-01-28T10:30:00.000Z",
+        "metadata": {
+            "customer": "Boeing Vietnam",
+            "project_type": "fabrication",
+            "action_category": "completion"
+        }
+    },
+    {
+        "id": "550e8400-e29b-41d4-a716-446655440858",
+        "organization_id": "550e8400-e29b-41d4-a716-446655440001",
+        "user_id": "550e8400-e29b-41d4-a716-446655440012",
+        "project_id": "550e8400-e29b-41d4-a716-446655440312",
+        "action": "project_completed",
+        "description": "Completed Samsung electronic components project",
+        "entity_type": "project",
+        "entity_id": "550e8400-e29b-41d4-a716-446655440312",
+        "changes": {
+            "before": {
+                "current_stage_id": "550e8400-e29b-41d4-a716-446655440204"
+            },
+            "after": {
+                "current_stage_id": "550e8400-e29b-41d4-a716-446655440205"
+            }
+        },
+        "ip_address": "192.168.1.112",
+        "user_agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36",
+        "timestamp": "2025-01-28T10:45:00.000Z",
+        "metadata": {
+            "customer": "Samsung Vietnam",
+            "project_type": "manufacturing",
+            "action_category": "completion"
+        }
+    },
+    {
+        "id": "550e8400-e29b-41d4-a716-446655440859",
+        "organization_id": "550e8400-e29b-41d4-a716-446655440001",
+        "user_id": "550e8400-e29b-41d4-a716-446655440012",
+        "project_id": "550e8400-e29b-41d4-a716-446655440313",
+        "action": "project_completed",
+        "description": "Completed LG smart home project",
+        "entity_type": "project",
+        "entity_id": "550e8400-e29b-41d4-a716-446655440313",
+        "changes": {
+            "before": {
+                "current_stage_id": "550e8400-e29b-41d4-a716-446655440204"
+            },
+            "after": {
+                "current_stage_id": "550e8400-e29b-41d4-a716-446655440205"
+            }
+        },
+        "ip_address": "192.168.1.112",
+        "user_agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36",
+        "timestamp": "2025-01-28T11:00:00.000Z",
+        "metadata": {
+            "customer": "LG Vietnam",
+            "project_type": "system_build",
+            "action_category": "completion"
+        }
+    },
+    {
+        "id": "550e8400-e29b-41d4-a716-446655440860",
+        "organization_id": "550e8400-e29b-41d4-a716-446655440001",
+        "user_id": "550e8400-e29b-41d4-a716-446655440012",
+        "project_id": "550e8400-e29b-41d4-a716-446655440314",
+        "action": "project_completed",
+        "description": "Completed Airbus engine mount project",
+        "entity_type": "project",
+        "entity_id": "550e8400-e29b-41d4-a716-446655440314",
+        "changes": {
+            "before": {
+                "current_stage_id": "550e8400-e29b-41d4-a716-446655440204"
+            },
+            "after": {
+                "current_stage_id": "550e8400-e29b-41d4-a716-446655440205"
+            }
+        },
+        "ip_address": "192.168.1.112",
+        "user_agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36",
+        "timestamp": "2025-01-28T11:15:00.000Z",
+        "metadata": {
+            "customer": "Airbus Vietnam",
+            "project_type": "fabrication",
+            "action_category": "completion"
+        }
+    },
+    {
+        "id": "550e8400-e29b-41d4-a716-446655440861",
+        "organization_id": "550e8400-e29b-41d4-a716-446655440001",
+        "user_id": "550e8400-e29b-41d4-a716-446655440012",
+        "project_id": "550e8400-e29b-41d4-a716-446655440315",
+        "action": "project_completed",
+        "description": "Completed ABB motor production project",
+        "entity_type": "project",
+        "entity_id": "550e8400-e29b-41d4-a716-446655440315",
+        "changes": {
+            "before": {
+                "current_stage_id": "550e8400-e29b-41d4-a716-446655440204"
+            },
+            "after": {
+                "current_stage_id": "550e8400-e29b-41d4-a716-446655440205"
+            }
+        },
+        "ip_address": "192.168.1.112",
+        "user_agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36",
+        "timestamp": "2025-01-28T11:30:00.000Z",
+        "metadata": {
+            "customer": "ABB Vietnam",
+            "project_type": "manufacturing",
+            "action_category": "completion"
+        }
+    },
+    {
+        "id": "550e8400-e29b-41d4-a716-446655440862",
+        "organization_id": "550e8400-e29b-41d4-a716-446655440001",
+        "user_id": "550e8400-e29b-41d4-a716-446655440012",
+        "project_id": "550e8400-e29b-41d4-a716-446655440316",
+        "action": "project_completed",
+        "description": "Completed Toyota transmission housing project",
+        "entity_type": "project",
+        "entity_id": "550e8400-e29b-41d4-a716-446655440316",
+        "changes": {
+            "before": {
+                "current_stage_id": "550e8400-e29b-41d4-a716-446655440204"
+            },
+            "after": {
+                "current_stage_id": "550e8400-e29b-41d4-a716-446655440205"
+            }
+        },
+        "ip_address": "192.168.1.112",
+        "user_agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36",
+        "timestamp": "2025-01-28T11:45:00.000Z",
+        "metadata": {
+            "customer": "Toyota Vietnam",
+            "project_type": "fabrication",
+            "action_category": "completion"
+        }
+    },
+    {
+        "id": "550e8400-e29b-41d4-a716-446655440863",
+        "organization_id": "550e8400-e29b-41d4-a716-446655440001",
+        "user_id": "550e8400-e29b-41d4-a716-446655440012",
+        "project_id": "550e8400-e29b-41d4-a716-446655440317",
+        "action": "project_completed",
+        "description": "Completed Honda chassis assembly project",
+        "entity_type": "project",
+        "entity_id": "550e8400-e29b-41d4-a716-446655440317",
+        "changes": {
+            "before": {
+                "current_stage_id": "550e8400-e29b-41d4-a716-446655440204"
+            },
+            "after": {
+                "current_stage_id": "550e8400-e29b-41d4-a716-446655440205"
+            }
+        },
+        "ip_address": "192.168.1.112",
+        "user_agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36",
+        "timestamp": "2025-01-28T12:00:00.000Z",
+        "metadata": {
+            "customer": "Honda Vietnam",
+            "project_type": "fabrication",
+            "action_category": "completion"
+        }
+    },
+    {
+        "id": "550e8400-e29b-41d4-a716-446655440864",
+        "organization_id": "550e8400-e29b-41d4-a716-446655440001",
+        "user_id": "550e8400-e29b-41d4-a716-446655440012",
+        "project_id": "550e8400-e29b-41d4-a716-446655440301",
+        "action": "final_delivery",
+        "description": "Delivered automotive bracket assembly to Toyota Vietnam",
+        "entity_type": "project",
+        "entity_id": "550e8400-e29b-41d4-a716-446655440301",
+        "changes": {
+            "before": {
+                "status": "completed"
+            },
+            "after": {
+                "status": "delivered"
+            }
+        },
+        "ip_address": "192.168.1.112",
+        "user_agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36",
+        "timestamp": "2025-01-28T14:00:00.000Z",
+        "metadata": {
+            "customer": "Toyota Vietnam",
+            "project_type": "fabrication",
+            "action_category": "delivery"
+        }
+    },
+    {
+        "id": "550e8400-e29b-41d4-a716-446655440865",
+        "organization_id": "550e8400-e29b-41d4-a716-446655440001",
+        "user_id": "550e8400-e29b-41d4-a716-446655440012",
+        "project_id": "550e8400-e29b-41d4-a716-446655440302",
+        "action": "final_delivery",
+        "description": "Delivered Honda engine components to Honda Vietnam",
+        "entity_type": "project",
+        "entity_id": "550e8400-e29b-41d4-a716-446655440302",
+        "changes": {
+            "before": {
+                "status": "completed"
+            },
+            "after": {
+                "status": "delivered"
+            }
+        },
+        "ip_address": "192.168.1.112",
+        "user_agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36",
+        "timestamp": "2025-01-28T14:15:00.000Z",
+        "metadata": {
+            "customer": "Honda Vietnam",
+            "project_type": "fabrication",
+            "action_category": "delivery"
+        }
+    },
+    {
+        "id": "550e8400-e29b-41d4-a716-446655440866",
+        "organization_id": "550e8400-e29b-41d4-a716-446655440001",
+        "user_id": "550e8400-e29b-41d4-a716-446655440012",
+        "project_id": "550e8400-e29b-41d4-a716-446655440303",
+        "action": "final_delivery",
+        "description": "Delivered Boeing avionics housing to Boeing Vietnam",
+        "entity_type": "project",
+        "entity_id": "550e8400-e29b-41d4-a716-446655440303",
+        "changes": {
+            "before": {
+                "status": "completed"
+            },
+            "after": {
+                "status": "delivered"
+            }
+        },
+        "ip_address": "192.168.1.112",
+        "user_agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36",
+        "timestamp": "2025-01-28T14:30:00.000Z",
+        "metadata": {
+            "customer": "Boeing Vietnam",
+            "project_type": "fabrication",
+            "action_category": "delivery"
+        }
+    },
+    {
+        "id": "550e8400-e29b-41d4-a716-446655440867",
+        "organization_id": "550e8400-e29b-41d4-a716-446655440001",
+        "user_id": "550e8400-e29b-41d4-a716-446655440012",
+        "project_id": "550e8400-e29b-41d4-a716-446655440304",
+        "action": "final_delivery",
+        "description": "Delivered Samsung electronics assembly to Samsung Vietnam",
+        "entity_type": "project",
+        "entity_id": "550e8400-e29b-41d4-a716-446655440304",
+        "changes": {
+            "before": {
+                "status": "completed"
+            },
+            "after": {
+                "status": "delivered"
+            }
+        },
+        "ip_address": "192.168.1.112",
+        "user_agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36",
+        "timestamp": "2025-01-28T14:45:00.000Z",
+        "metadata": {
+            "customer": "Samsung Vietnam",
+            "project_type": "manufacturing",
+            "action_category": "delivery"
+        }
+    }
+]

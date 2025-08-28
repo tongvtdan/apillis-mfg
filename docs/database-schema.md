@@ -37,6 +37,8 @@ CREATE TABLE organizations (
     slug VARCHAR(100) UNIQUE NOT NULL,
     domain VARCHAR(255),
     logo_url TEXT,
+    description TEXT,
+    industry VARCHAR(100),
     settings JSONB DEFAULT '{}',
     subscription_plan VARCHAR(50) DEFAULT 'starter' 
       CHECK (subscription_plan IN ('starter', 'growth', 'enterprise', 'trial', 'suspended', 'cancelled')),
@@ -59,6 +61,9 @@ CREATE TABLE users (
     status VARCHAR(20) DEFAULT 'active' 
       CHECK (status IN ('active', 'dismiss')),
     description TEXT,
+    employee_id VARCHAR(50),
+    direct_manager_id UUID REFERENCES users(id),
+    direct_reports UUID[] DEFAULT '{}',
     last_login_at TIMESTAMPTZ,
     preferences JSONB DEFAULT '{}',
     created_at TIMESTAMPTZ DEFAULT NOW(),
@@ -1006,7 +1011,7 @@ This schema provides a solid foundation for the Factory Pulse MES system with ro
 
 ## Database Relationship Diagram
 
-```mermaid
+```
 erDiagram
     organizations ||--o{ users : "belongs to"
     organizations ||--o{ contacts : "manages"
@@ -1015,6 +1020,7 @@ erDiagram
     organizations ||--o{ organization_settings : "has"
     organizations ||--o{ email_templates : "uses"
     
+    users ||--o{ users : "manages"
     users ||--o{ projects : "creates/assigns"
     users ||--o{ project_assignments : "assigned to"
     users ||--o{ documents : "uploads"
@@ -1055,6 +1061,8 @@ erDiagram
         varchar slug UK
         varchar domain
         text logo_url
+        text description
+        varchar industry
         jsonb settings
         varchar subscription_plan
         boolean is_active
@@ -1072,6 +1080,10 @@ erDiagram
         varchar phone
         text avatar_url
         boolean is_active
+        text description
+        varchar employee_id
+        uuid direct_manager_id FK
+        uuid_array direct_reports
         timestamp last_login_at
         jsonb preferences
         timestamp created_at
@@ -1267,7 +1279,7 @@ erDiagram
 
 ### 1. RFQ Submission and Processing Flow
 
-```mermaid
+```
 sequenceDiagram
     participant C as Customer
     participant P as Portal
@@ -1322,7 +1334,7 @@ sequenceDiagram
 
 ### 2. Communication and Notification Flow
 
-```mermaid
+```
 sequenceDiagram
     participant U1 as User/Contact
     participant MSG as Message System
@@ -1361,7 +1373,7 @@ sequenceDiagram
 
 ### 3. Document Management and Version Control Flow
 
-```mermaid
+```
 sequenceDiagram
     participant U as User
     participant DOC as Document System
@@ -1400,7 +1412,7 @@ sequenceDiagram
 
 ### 4. Workflow Stage Progression Flow
 
-```mermaid
+```
 sequenceDiagram
     participant U as User
     participant WF as Workflow System
@@ -1436,7 +1448,7 @@ sequenceDiagram
 
 ### 5. Supplier Quote Evaluation Flow
 
-```mermaid
+```
 sequenceDiagram
     participant PC as Procurement
     participant RFQ as RFQ System
@@ -1473,7 +1485,7 @@ sequenceDiagram
 
 ## System Architecture Data Flow
 
-```mermaid
+```
 flowchart TD
     A[Customer Portal] --> B[Project Creation]
     B --> C[Document Upload]

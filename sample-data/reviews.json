@@ -1,0 +1,702 @@
+[
+    {
+        "id": "550e8400-e29b-41d4-a716-446655440501",
+        "organization_id": "550e8400-e29b-41d4-a716-446655440001",
+        "project_id": "550e8400-e29b-41d4-a716-446655440301",
+        "reviewer_id": "550e8400-e29b-41d4-a716-446655440008",
+        "review_type": "engineering",
+        "status": "approved",
+        "priority": "high",
+        "review_date": "2025-01-27T14:00:00.000Z",
+        "due_date": "2025-01-28T17:00:00.000Z",
+        "title": "Engineering Review - Automotive Bracket Design",
+        "description": "Review of automotive bracket design for manufacturability and compliance",
+        "comments": "Design meets all automotive standards. Recommend proceeding with manufacturing.",
+        "rating": 5,
+        "metadata": {
+            "customer": "Toyota Vietnam",
+            "project_type": "fabrication",
+            "review_phase": "design_review"
+        },
+        "tags": [
+            "engineering",
+            "design",
+            "automotive",
+            "bracket"
+        ],
+        "created_at": "2025-01-27T14:00:00.000Z",
+        "updated_at": "2025-01-27T14:00:00.000Z"
+    },
+    {
+        "id": "550e8400-e29b-41d4-a716-446655440502",
+        "organization_id": "550e8400-e29b-41d4-a716-446655440001",
+        "project_id": "550e8400-e29b-41d4-a716-446655440301",
+        "reviewer_id": "550e8400-e29b-41d4-a716-446655440010",
+        "review_type": "quality",
+        "status": "pending",
+        "priority": "medium",
+        "review_date": null,
+        "due_date": "2025-01-29T17:00:00.000Z",
+        "title": "Quality Review - Bracket Manufacturing Process",
+        "description": "Review of manufacturing process for quality control and consistency",
+        "comments": "Process documentation needs to be completed before review.",
+        "rating": null,
+        "metadata": {
+            "customer": "Toyota Vietnam",
+            "project_type": "fabrication",
+            "review_phase": "process_review"
+        },
+        "tags": [
+            "quality",
+            "manufacturing",
+            "process",
+            "bracket"
+        ],
+        "created_at": "2025-01-27T14:00:00.000Z",
+        "updated_at": "2025-01-27T14:00:00.000Z"
+    },
+    {
+        "id": "550e8400-e29b-41d4-a716-446655440503",
+        "organization_id": "550e8400-e29b-41d4-a716-446655440001",
+        "project_id": "550e8400-e29b-41d4-a716-446655440302",
+        "reviewer_id": "550e8400-e29b-41d4-a716-446655440006",
+        "review_type": "engineering",
+        "status": "approved",
+        "priority": "medium",
+        "review_date": "2025-01-27T15:00:00.000Z",
+        "due_date": "2025-01-28T17:00:00.000Z",
+        "title": "Engineering Review - Motorcycle Frame Jig",
+        "description": "Review of welding jig design for motorcycle frame assembly",
+        "comments": "Jig design is excellent. Will improve welding accuracy and consistency.",
+        "rating": 5,
+        "metadata": {
+            "customer": "Honda Vietnam",
+            "project_type": "fabrication",
+            "review_phase": "design_review"
+        },
+        "tags": [
+            "engineering",
+            "jig",
+            "welding",
+            "frame"
+        ],
+        "created_at": "2025-01-27T15:00:00.000Z",
+        "updated_at": "2025-01-27T15:00:00.000Z"
+    },
+    {
+        "id": "550e8400-e29b-41d4-a716-446655440504",
+        "organization_id": "550e8400-e29b-41d4-a716-446655440001",
+        "project_id": "550e8400-e29b-41d4-a716-446655440303",
+        "reviewer_id": "550e8400-e29b-41d4-a716-446655440005",
+        "review_type": "engineering",
+        "status": "approved",
+        "priority": "urgent",
+        "review_date": "2025-01-27T16:00:00.000Z",
+        "due_date": "2025-01-27T17:00:00.000Z",
+        "title": "Engineering Review - Aircraft Landing Gear",
+        "description": "Critical review of aerospace landing gear bracket design",
+        "comments": "Design meets AS9100 standards. All safety requirements satisfied.",
+        "rating": 5,
+        "metadata": {
+            "customer": "Boeing Vietnam",
+            "project_type": "fabrication",
+            "review_phase": "design_review"
+        },
+        "tags": [
+            "engineering",
+            "aerospace",
+            "landing_gear",
+            "safety"
+        ],
+        "created_at": "2025-01-27T16:00:00.000Z",
+        "updated_at": "2025-01-27T16:00:00.000Z"
+    },
+    {
+        "id": "550e8400-e29b-41d4-a716-446655440505",
+        "organization_id": "550e8400-e29b-41d4-a716-446655440001",
+        "project_id": "550e8400-e29b-41d4-a716-446655440303",
+        "reviewer_id": "550e8400-e29b-41d4-a716-446655440008",
+        "review_type": "quality",
+        "status": "approved",
+        "priority": "urgent",
+        "review_date": "2025-01-27T17:00:00.000Z",
+        "due_date": "2025-01-27T18:00:00.000Z",
+        "title": "Quality Review - Aerospace Materials",
+        "description": "Review of material certifications and quality standards",
+        "comments": "All materials meet aerospace specifications. Ready for production.",
+        "rating": 5,
+        "metadata": {
+            "customer": "Boeing Vietnam",
+            "project_type": "fabrication",
+            "review_phase": "material_review"
+        },
+        "tags": [
+            "quality",
+            "materials",
+            "aerospace",
+            "certification"
+        ],
+        "created_at": "2025-01-27T17:00:00.000Z",
+        "updated_at": "2025-01-27T17:00:00.000Z"
+    },
+    {
+        "id": "550e8400-e29b-41d4-a716-446655440506",
+        "organization_id": "550e8400-e29b-41d4-a716-446655440001",
+        "project_id": "550e8400-e29b-41d4-a716-446655440304",
+        "reviewer_id": "550e8400-e29b-41d4-a716-446655440009",
+        "review_type": "production",
+        "status": "pending",
+        "priority": "high",
+        "review_date": null,
+        "due_date": "2025-01-28T17:00:00.000Z",
+        "title": "Production Review - Electronics Housing Assembly",
+        "description": "Review of assembly process for electronics housing production",
+        "comments": "Assembly line setup needs optimization for high volume production.",
+        "rating": null,
+        "metadata": {
+            "customer": "Samsung Vietnam",
+            "project_type": "manufacturing",
+            "review_phase": "production_review"
+        },
+        "tags": [
+            "production",
+            "assembly",
+            "electronics",
+            "housing"
+        ],
+        "created_at": "2025-01-27T18:00:00.000Z",
+        "updated_at": "2025-01-27T18:00:00.000Z"
+    },
+    {
+        "id": "550e8400-e29b-41d4-a716-446655440507",
+        "organization_id": "550e8400-e29b-41d4-a716-446655440001",
+        "project_id": "550e8400-e29b-41d4-a716-446655440305",
+        "reviewer_id": "550e8400-e29b-41d4-a716-446655440007",
+        "review_type": "engineering",
+        "status": "approved",
+        "priority": "medium",
+        "review_date": "2025-01-27T19:00:00.000Z",
+        "due_date": "2025-01-28T17:00:00.000Z",
+        "title": "Engineering Review - Control Panel Design",
+        "description": "Review of industrial control panel electrical design",
+        "comments": "Electrical design is compliant with industrial standards. Good work.",
+        "rating": 4,
+        "metadata": {
+            "customer": "Siemens Vietnam",
+            "project_type": "manufacturing",
+            "review_phase": "design_review"
+        },
+        "tags": [
+            "engineering",
+            "electrical",
+            "control_panel",
+            "industrial"
+        ],
+        "created_at": "2025-01-27T19:00:00.000Z",
+        "updated_at": "2025-01-27T19:00:00.000Z"
+    },
+    {
+        "id": "550e8400-e29b-41d4-a716-446655440508",
+        "organization_id": "550e8400-e29b-41d4-a716-446655440001",
+        "project_id": "550e8400-e29b-41d4-a716-446655440306",
+        "reviewer_id": "550e8400-e29b-41d4-a716-446655440009",
+        "review_type": "production",
+        "status": "approved",
+        "priority": "medium",
+        "review_date": "2025-01-27T20:00:00.000Z",
+        "due_date": "2025-01-28T17:00:00.000Z",
+        "title": "Production Review - Home Appliance Parts",
+        "description": "Review of manufacturing process for home appliance components",
+        "comments": "Process is well-defined and suitable for medium volume production.",
+        "rating": 4,
+        "metadata": {
+            "customer": "LG Vietnam",
+            "project_type": "manufacturing",
+            "review_phase": "process_review"
+        },
+        "tags": [
+            "production",
+            "manufacturing",
+            "home_appliance",
+            "components"
+        ],
+        "created_at": "2025-01-27T20:00:00.000Z",
+        "updated_at": "2025-01-27T20:00:00.000Z"
+    },
+    {
+        "id": "550e8400-e29b-41d4-a716-446655440509",
+        "organization_id": "550e8400-e29b-41d4-a716-446655440001",
+        "project_id": "550e8400-e29b-41d4-a716-446655440307",
+        "reviewer_id": "550e8400-e29b-41d4-a716-446655440005",
+        "review_type": "engineering",
+        "status": "approved",
+        "priority": "urgent",
+        "review_date": "2025-01-27T21:00:00.000Z",
+        "due_date": "2025-01-27T22:00:00.000Z",
+        "title": "Engineering Review - Aircraft Systems Architecture",
+        "description": "Critical review of aircraft control systems architecture",
+        "comments": "System architecture is robust and meets aviation safety requirements.",
+        "rating": 5,
+        "metadata": {
+            "customer": "Airbus Vietnam",
+            "project_type": "system_build",
+            "review_phase": "architecture_review"
+        },
+        "tags": [
+            "engineering",
+            "architecture",
+            "aircraft",
+            "systems"
+        ],
+        "created_at": "2025-01-27T21:00:00.000Z",
+        "updated_at": "2025-01-27T21:00:00.000Z"
+    },
+    {
+        "id": "550e8400-e29b-41d4-a716-446655440510",
+        "organization_id": "550e8400-e29b-41d4-a716-446655440001",
+        "project_id": "550e8400-e29b-41d4-a716-446655440308",
+        "reviewer_id": "550e8400-e29b-41d4-a716-446655440007",
+        "review_type": "engineering",
+        "status": "approved",
+        "priority": "high",
+        "review_date": "2025-01-27T22:00:00.000Z",
+        "due_date": "2025-01-28T17:00:00.000Z",
+        "title": "Engineering Review - Power System Design",
+        "description": "Review of power system design for industrial automation",
+        "comments": "Power system design is efficient and meets industrial standards.",
+        "rating": 4,
+        "metadata": {
+            "customer": "ABB Vietnam",
+            "project_type": "system_build",
+            "review_phase": "design_review"
+        },
+        "tags": [
+            "engineering",
+            "power_systems",
+            "design",
+            "automation"
+        ],
+        "created_at": "2025-01-27T22:00:00.000Z",
+        "updated_at": "2025-01-27T22:00:00.000Z"
+    },
+    {
+        "id": "550e8400-e29b-41d4-a716-446655440511",
+        "organization_id": "550e8400-e29b-41d4-a716-446655440001",
+        "project_id": "550e8400-e29b-41d4-a716-446655440309",
+        "reviewer_id": "550e8400-e29b-41d4-a716-446655440008",
+        "review_type": "quality",
+        "status": "approved",
+        "priority": "high",
+        "review_date": "2025-01-28T08:00:00.000Z",
+        "due_date": "2025-01-28T17:00:00.000Z",
+        "title": "Quality Review - Display Assembly QC Plan",
+        "description": "Review of quality control procedures for display assembly",
+        "comments": "QC plan is comprehensive and will ensure high quality output.",
+        "rating": 5,
+        "metadata": {
+            "customer": "Samsung Vietnam",
+            "project_type": "manufacturing",
+            "review_phase": "quality_review"
+        },
+        "tags": [
+            "quality",
+            "qc_plan",
+            "display",
+            "assembly"
+        ],
+        "created_at": "2025-01-28T08:00:00.000Z",
+        "updated_at": "2025-01-28T08:00:00.000Z"
+    },
+    {
+        "id": "550e8400-e29b-41d4-a716-446655440512",
+        "organization_id": "550e8400-e29b-41d4-a716-446655440001",
+        "project_id": "550e8400-e29b-41d4-a716-446655440310",
+        "reviewer_id": "550e8400-e29b-41d4-a716-446655440009",
+        "review_type": "production",
+        "status": "approved",
+        "priority": "high",
+        "review_date": "2025-01-28T09:00:00.000Z",
+        "due_date": "2025-01-28T17:00:00.000Z",
+        "title": "Production Review - Engine Component Manufacturing",
+        "description": "Review of manufacturing process for engine components",
+        "comments": "Manufacturing process is well-optimized for precision components.",
+        "rating": 4,
+        "metadata": {
+            "customer": "Honda Vietnam",
+            "project_type": "manufacturing",
+            "review_phase": "process_review"
+        },
+        "tags": [
+            "production",
+            "manufacturing",
+            "engine",
+            "components"
+        ],
+        "created_at": "2025-01-28T08:00:00.000Z",
+        "updated_at": "2025-01-28T09:00:00.000Z"
+    },
+    {
+        "id": "550e8400-e29b-41d4-a716-446655440513",
+        "organization_id": "550e8400-e29b-41d4-a716-446655440001",
+        "project_id": "550e8400-e29b-41d4-a716-446655440311",
+        "reviewer_id": "550e8400-e29b-41d4-a716-446655440005",
+        "review_type": "engineering",
+        "status": "approved",
+        "priority": "urgent",
+        "review_date": "2025-01-28T10:00:00.000Z",
+        "due_date": "2025-01-28T17:00:00.000Z",
+        "title": "Engineering Review - Avionics Housing Design",
+        "description": "Review of avionics housing design for aerospace application",
+        "comments": "Design meets all aerospace requirements. Ready for production.",
+        "rating": 5,
+        "metadata": {
+            "customer": "Boeing Vietnam",
+            "project_type": "fabrication",
+            "review_phase": "design_review"
+        },
+        "tags": [
+            "engineering",
+            "design",
+            "avionics",
+            "aerospace"
+        ],
+        "created_at": "2025-01-28T08:00:00.000Z",
+        "updated_at": "2025-01-28T10:00:00.000Z"
+    },
+    {
+        "id": "550e8400-e29b-41d4-a716-446655440514",
+        "organization_id": "550e8400-e29b-41d4-a716-446655440001",
+        "project_id": "550e8400-e29b-41d4-a716-446655440312",
+        "reviewer_id": "550e8400-e29b-41d4-a716-446655440007",
+        "review_type": "engineering",
+        "status": "approved",
+        "priority": "medium",
+        "review_date": "2025-01-28T11:00:00.000Z",
+        "due_date": "2025-01-28T17:00:00.000Z",
+        "title": "Engineering Review - PCB Design",
+        "description": "Review of PCB design for electronic components",
+        "comments": "PCB design is well-laid out and follows industry best practices.",
+        "rating": 4,
+        "metadata": {
+            "customer": "Samsung Vietnam",
+            "project_type": "manufacturing",
+            "review_phase": "design_review"
+        },
+        "tags": [
+            "engineering",
+            "pcb",
+            "design",
+            "electronics"
+        ],
+        "created_at": "2025-01-28T08:00:00.000Z",
+        "updated_at": "2025-01-28T11:00:00.000Z"
+    },
+    {
+        "id": "550e8400-e29b-41d4-a716-446655440515",
+        "organization_id": "550e8400-e29b-41d4-a716-446655440001",
+        "project_id": "550e8400-e29b-41d4-a716-446655440313",
+        "reviewer_id": "550e8400-e29b-41d4-a716-446655440005",
+        "review_type": "engineering",
+        "status": "approved",
+        "priority": "high",
+        "review_date": "2025-01-28T12:00:00.000Z",
+        "due_date": "2025-01-28T17:00:00.000Z",
+        "title": "Engineering Review - Smart Home Integration",
+        "description": "Review of system integration plan for smart home automation",
+        "comments": "Integration plan is comprehensive and follows IoT best practices.",
+        "rating": 5,
+        "metadata": {
+            "customer": "LG Vietnam",
+            "project_type": "system_build",
+            "review_phase": "integration_review"
+        },
+        "tags": [
+            "engineering",
+            "integration",
+            "smart_home",
+            "iot"
+        ],
+        "created_at": "2025-01-28T08:00:00.000Z",
+        "updated_at": "2025-01-28T12:00:00.000Z"
+    },
+    {
+        "id": "550e8400-e29b-41d4-a716-446655440516",
+        "organization_id": "550e8400-e29b-41d4-a716-446655440001",
+        "project_id": "550e8400-e29b-41d4-a716-446655440314",
+        "reviewer_id": "550e8400-e29b-41d4-a716-446655440005",
+        "review_type": "engineering",
+        "status": "approved",
+        "priority": "urgent",
+        "review_date": "2025-01-28T13:00:00.000Z",
+        "due_date": "2025-01-28T17:00:00.000Z",
+        "title": "Engineering Review - Engine Mount Analysis",
+        "description": "Review of structural analysis for aircraft engine mount",
+        "comments": "Structural analysis confirms design meets all load requirements.",
+        "rating": 5,
+        "metadata": {
+            "customer": "Airbus Vietnam",
+            "project_type": "fabrication",
+            "review_phase": "analysis_review"
+        },
+        "tags": [
+            "engineering",
+            "analysis",
+            "engine_mount",
+            "structural"
+        ],
+        "created_at": "2025-01-28T08:00:00.000Z",
+        "updated_at": "2025-01-28T13:00:00.000Z"
+    },
+    {
+        "id": "550e8400-e29b-41d4-a716-446655440517",
+        "organization_id": "550e8400-e29b-41d4-a716-446655440001",
+        "project_id": "550e8400-e29b-41d4-a716-446655440315",
+        "reviewer_id": "550e8400-e29b-41d4-a716-446655440009",
+        "review_type": "production",
+        "status": "approved",
+        "priority": "medium",
+        "review_date": "2025-01-28T14:00:00.000Z",
+        "due_date": "2025-01-28T17:00:00.000Z",
+        "title": "Production Review - Motor Assembly Line",
+        "description": "Review of assembly line layout for motor production",
+        "comments": "Assembly line layout is efficient and well-designed for automation.",
+        "rating": 4,
+        "metadata": {
+            "customer": "ABB Vietnam",
+            "project_type": "manufacturing",
+            "review_phase": "layout_review"
+        },
+        "tags": [
+            "production",
+            "layout",
+            "assembly_line",
+            "motor"
+        ],
+        "created_at": "2025-01-28T08:00:00.000Z",
+        "updated_at": "2025-01-28T14:00:00.000Z"
+    },
+    {
+        "id": "550e8400-e29b-41d4-a716-446655440518",
+        "organization_id": "550e8400-e29b-41d4-a716-446655440001",
+        "project_id": "550e8400-e29b-41d4-a716-446655440316",
+        "reviewer_id": "550e8400-e29b-41d4-a716-446655440005",
+        "review_type": "engineering",
+        "status": "approved",
+        "priority": "high",
+        "review_date": "2025-01-28T15:00:00.000Z",
+        "due_date": "2025-01-28T17:00:00.000Z",
+        "title": "Engineering Review - Transmission Housing Casting",
+        "description": "Review of casting design for automotive transmission housing",
+        "comments": "Casting design is optimized for manufacturability and quality.",
+        "rating": 4,
+        "metadata": {
+            "customer": "Toyota Vietnam",
+            "project_type": "fabrication",
+            "review_phase": "design_review"
+        },
+        "tags": [
+            "engineering",
+            "casting",
+            "transmission",
+            "automotive"
+        ],
+        "created_at": "2025-01-28T08:00:00.000Z",
+        "updated_at": "2025-01-28T15:00:00.000Z"
+    },
+    {
+        "id": "550e8400-e29b-41d4-a716-446655440519",
+        "organization_id": "550e8400-e29b-41d4-a716-446655440001",
+        "project_id": "550e8400-e29b-41d4-a716-446655440317",
+        "reviewer_id": "550e8400-e29b-41d4-a716-446655440006",
+        "review_type": "engineering",
+        "status": "approved",
+        "priority": "high",
+        "review_date": "2025-01-28T16:00:00.000Z",
+        "due_date": "2025-01-28T17:00:00.000Z",
+        "title": "Engineering Review - Chassis Welding Procedure",
+        "description": "Review of welding procedure for motorcycle chassis assembly",
+        "comments": "Welding procedure is well-defined and will ensure consistent quality.",
+        "rating": 4,
+        "metadata": {
+            "customer": "Honda Vietnam",
+            "project_type": "fabrication",
+            "review_phase": "procedure_review"
+        },
+        "tags": [
+            "engineering",
+            "welding",
+            "procedure",
+            "chassis"
+        ],
+        "created_at": "2025-01-28T08:00:00.000Z",
+        "updated_at": "2025-01-28T16:00:00.000Z"
+    },
+    {
+        "id": "550e8400-e29b-41d4-a716-446655440520",
+        "organization_id": "550e8400-e29b-41d4-a716-446655440001",
+        "project_id": "550e8400-e29b-41d4-a716-446655440317",
+        "reviewer_id": "550e8400-e29b-41d4-a716-446655440008",
+        "review_type": "quality",
+        "status": "approved",
+        "priority": "high",
+        "review_date": "2025-01-28T17:00:00.000Z",
+        "due_date": "2025-01-28T17:00:00.000Z",
+        "title": "Quality Review - Chassis Inspection Report",
+        "description": "Review of quality inspection report for chassis assembly",
+        "comments": "Inspection report shows excellent quality standards maintained.",
+        "rating": 5,
+        "metadata": {
+            "customer": "Honda Vietnam",
+            "project_type": "fabrication",
+            "review_phase": "inspection_review"
+        },
+        "tags": [
+            "quality",
+            "inspection",
+            "report",
+            "chassis"
+        ],
+        "created_at": "2025-01-28T08:00:00.000Z",
+        "updated_at": "2025-01-28T17:00:00.000Z"
+    },
+    {
+        "id": "550e8400-e29b-41d4-a716-446655440521",
+        "organization_id": "550e8400-e29b-41d4-a716-446655440001",
+        "project_id": "550e8400-e29b-41d4-a716-446655440301",
+        "reviewer_id": "550e8400-e29b-41d4-a716-446655440011",
+        "review_type": "safety",
+        "status": "approved",
+        "priority": "high",
+        "review_date": "2025-01-28T18:00:00.000Z",
+        "due_date": "2025-01-29T17:00:00.000Z",
+        "title": "Safety Review - Bracket Manufacturing",
+        "description": "Safety review of manufacturing process for automotive brackets",
+        "comments": "All safety protocols are in place and properly documented.",
+        "rating": 5,
+        "metadata": {
+            "customer": "Toyota Vietnam",
+            "project_type": "fabrication",
+            "review_phase": "safety_review"
+        },
+        "tags": [
+            "safety",
+            "manufacturing",
+            "brackets",
+            "automotive"
+        ],
+        "created_at": "2025-01-28T18:00:00.000Z",
+        "updated_at": "2025-01-28T18:00:00.000Z"
+    },
+    {
+        "id": "550e8400-e29b-41d4-a716-446655440522",
+        "organization_id": "550e8400-e29b-41d4-a716-446655440001",
+        "project_id": "550e8400-e29b-41d4-a716-446655440303",
+        "reviewer_id": "550e8400-e29b-41d4-a716-446655440011",
+        "review_type": "safety",
+        "status": "approved",
+        "priority": "urgent",
+        "review_date": "2025-01-28T19:00:00.000Z",
+        "due_date": "2025-01-28T20:00:00.000Z",
+        "title": "Safety Review - Aerospace Manufacturing",
+        "description": "Critical safety review for aerospace component manufacturing",
+        "comments": "Safety protocols exceed aerospace industry standards.",
+        "rating": 5,
+        "metadata": {
+            "customer": "Boeing Vietnam",
+            "project_type": "fabrication",
+            "review_phase": "safety_review"
+        },
+        "tags": [
+            "safety",
+            "aerospace",
+            "manufacturing",
+            "critical"
+        ],
+        "created_at": "2025-01-28T18:00:00.000Z",
+        "updated_at": "2025-01-28T19:00:00.000Z"
+    },
+    {
+        "id": "550e8400-e29b-41d4-a716-446655440523",
+        "organization_id": "550e8400-e29b-41d4-a716-446655440001",
+        "project_id": "550e8400-e29b-41d4-a716-446655440304",
+        "reviewer_id": "550e8400-e29b-41d4-a716-446655440010",
+        "review_type": "quality",
+        "status": "pending",
+        "priority": "medium",
+        "review_date": null,
+        "due_date": "2025-01-29T17:00:00.000Z",
+        "title": "Quality Review - Electronics Assembly",
+        "description": "Quality review of electronics assembly process",
+        "comments": "Waiting for final assembly line setup completion.",
+        "rating": null,
+        "metadata": {
+            "customer": "Samsung Vietnam",
+            "project_type": "manufacturing",
+            "review_phase": "quality_review"
+        },
+        "tags": [
+            "quality",
+            "assembly",
+            "electronics",
+            "process"
+        ],
+        "created_at": "2025-01-28T18:00:00.000Z",
+        "updated_at": "2025-01-28T18:00:00.000Z"
+    },
+    {
+        "id": "550e8400-e29b-41d4-a716-446655440524",
+        "organization_id": "550e8400-e29b-41d4-a716-446655440001",
+        "project_id": "550e8400-e29b-41d4-a716-446655440307",
+        "reviewer_id": "550e8400-e29b-41d4-a716-446655440011",
+        "review_type": "safety",
+        "status": "approved",
+        "priority": "urgent",
+        "review_date": "2025-01-28T20:00:00.000Z",
+        "due_date": "2025-01-28T21:00:00.000Z",
+        "title": "Safety Review - Aircraft Systems",
+        "description": "Critical safety review for aircraft control systems",
+        "comments": "All safety systems meet aviation authority requirements.",
+        "rating": 5,
+        "metadata": {
+            "customer": "Airbus Vietnam",
+            "project_type": "system_build",
+            "review_phase": "safety_review"
+        },
+        "tags": [
+            "safety",
+            "aircraft",
+            "systems",
+            "aviation"
+        ],
+        "created_at": "2025-01-28T18:00:00.000Z",
+        "updated_at": "2025-01-28T20:00:00.000Z"
+    },
+    {
+        "id": "550e8400-e29b-41d4-a716-446655440525",
+        "organization_id": "550e8400-e29b-41d4-a716-446655440001",
+        "project_id": "550e8400-e29b-41d4-a716-446655440308",
+        "reviewer_id": "550e8400-e29b-41d4-a716-446655440011",
+        "review_type": "safety",
+        "status": "approved",
+        "priority": "high",
+        "review_date": "2025-01-28T21:00:00.000Z",
+        "due_date": "2025-01-29T17:00:00.000Z",
+        "title": "Safety Review - Power Systems",
+        "description": "Safety review of industrial power system design",
+        "comments": "Power system safety features meet industrial standards.",
+        "rating": 4,
+        "metadata": {
+            "customer": "ABB Vietnam",
+            "project_type": "system_build",
+            "review_phase": "safety_review"
+        },
+        "tags": [
+            "safety",
+            "power_systems",
+            "industrial",
+            "design"
+        ],
+        "created_at": "2025-01-28T18:00:00.000Z",
+        "updated_at": "2025-01-28T21:00:00.000Z"
+    }
+]
