@@ -1,5 +1,6 @@
 # Factory Pulse Database Schema – Updated & Revised
 
+
 This revised document consolidates, corrects, and enhances the schema to ensure:
 - Full alignment with the PRD workflow and user roles
 - Consistent naming, data types, and constraints
