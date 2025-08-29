@@ -1562,3 +1562,204 @@ flowchart TD
 ```
 
 This comprehensive set of diagrams provides a complete visual understanding of the Factory Pulse database schema, relationships, and data flows throughout the system.
+
+## Database Functions
+
+### Overview
+The Factory Pulse database includes several custom functions that provide business logic, data aggregation, and security features. These functions are implemented in PL/pgSQL and are designed to work with the Row Level Security (RLS) policies.
+
+### Core Functions
+
+#### 1. `get_dashboard_summary()`
+**Purpose**: Provides aggregated dashboard data for the main application dashboard
+**Returns**: JSONB containing project statistics and recent activity
+**Security**: SECURITY DEFINER - runs with elevated privileges
+
+**Function Signature**:
+```sql
+CREATE OR REPLACE FUNCTION public.get_dashboard_summary()
+RETURNS JSONB
+LANGUAGE plpgsql
+SECURITY DEFINER
+```
+
+**Return Structure**:
+```json
+{
+  "projects": {
+    "total": 17,
+    "by_status": {
+      "active": 14,
+      "delayed": 2,
+      "on_hold": 1
+    }
+  },
+  "recent_projects": [
+    {
+      "id": "uuid",
+      "project_id": "P-25012701",
+      "title": "Project Title",
+      "status": "active",
+      "priority": "high",
+      "created_at": "timestamp",
+      "customer_name": "Company Name"
+    }
+  ],
+  "generated_at": 1756481316.780059
+}
+```
+
+**Implementation Details**:
+- Uses PL/pgSQL loops to avoid complex SQL aggregation issues
+- Efficiently queries projects table for counts and recent activity
+- Joins with contacts table to provide customer information
+- Returns timestamp for cache invalidation purposes
+
+#### 2. `is_internal_user()`
+**Purpose**: Determines if the current authenticated user is an internal Factory Pulse employee
+**Returns**: Boolean indicating internal user status
+**Security**: SECURITY DEFINER - runs with elevated privileges
+
+**Function Signature**:
+```sql
+CREATE OR REPLACE FUNCTION public.is_internal_user()
+RETURNS boolean
+LANGUAGE plpgsql
+SECURITY DEFINER
+```
+
+**Logic**: Checks if user role is in the internal roles list:
+- admin, management, sales, procurement, engineering, production, qa
+
+#### 3. `is_portal_user()`
+**Purpose**: Determines if the current authenticated user is a portal user (customer/supplier)
+**Returns**: Boolean indicating portal user status
+**Security**: SECURITY DEFINER - runs with elevated privileges
+
+**Function Signature**:
+```sql
+CREATE OR REPLACE FUNCTION public.is_portal_user()
+RETURNS boolean
+LANGUAGE plpgsql
+SECURITY DEFINER
+```
+
+**Logic**: Checks if user role is in the portal roles list:
+- customer, supplier
+
+#### 4. `get_current_user_org_id()`
+**Purpose**: Retrieves the organization ID of the currently authenticated user
+**Returns**: UUID of the user's organization
+**Security**: SECURITY DEFINER - runs with elevated privileges
+
+**Function Signature**:
+```sql
+CREATE OR REPLACE FUNCTION public.get_current_user_org_id()
+RETURNS uuid
+LANGUAGE plpgsql
+SECURITY DEFINER
+```
+
+**Usage**: Primarily used in RLS policies for multi-tenant data isolation
+
+#### 5. `get_current_user_role()`
+**Purpose**: Retrieves the role of the currently authenticated user
+**Returns**: Text string representing the user's role
+**Security**: SECURITY DEFINER - runs with elevated privileges
+
+**Function Signature**:
+```sql
+CREATE OR REPLACE FUNCTION public.get_current_user_role()
+RETURNS text
+LANGUAGE plpgsql
+SECURITY DEFINER
+```
+
+**Usage**: Used in RLS policies for role-based access control
+
+#### 6. `update_updated_at_column()`
+**Purpose**: Trigger function to automatically update the `updated_at` timestamp
+**Returns**: Trigger (NEW record)
+**Security**: Standard function - no special privileges
+
+**Function Signature**:
+```sql
+CREATE OR REPLACE FUNCTION public.update_updated_at_column()
+RETURNS trigger
+LANGUAGE plpgsql
+```
+
+**Usage**: Applied as a trigger to all tables with `updated_at` columns
+
+### Utility Functions
+
+#### 7. `disable_fk_checks_temporarily()`
+**Purpose**: Temporarily disables foreign key constraint checks during data operations
+**Returns**: void
+**Security**: SECURITY DEFINER - runs with elevated privileges
+
+**Usage**: Used during data migration and bulk import operations
+
+#### 8. `enable_fk_checks_temporarily()`
+**Purpose**: Re-enables foreign key constraint checks after temporary disable
+**Returns**: void
+**Security**: SECURITY DEFINER - runs with elevated privileges
+
+**Usage**: Called after data operations to restore referential integrity
+
+#### 9. `fix_user_id_mismatch(old_user_id, new_user_id)`
+**Purpose**: Fixes user ID mismatches between auth.users and public.users tables
+**Parameters**: 
+- `old_user_id`: UUID of the old user ID
+- `new_user_id`: UUID of the new user ID
+**Returns**: void
+**Security**: SECURITY DEFINER - runs with elevated privileges
+
+**Usage**: Used during user ID synchronization operations
+
+### Function Security Model
+
+**SECURITY DEFINER Functions**:
+- `get_dashboard_summary()`
+- `is_internal_user()`
+- `is_portal_user()`
+- `get_current_user_org_id()`
+- `get_current_user_role()`
+- `disable_fk_checks_temporarily()`
+- `enable_fk_checks_temporarily()`
+- `fix_user_id_mismatch()`
+
+**Standard Functions**:
+- `update_updated_at_column()`
+
+**Permissions**:
+- All functions are granted EXECUTE permission to authenticated users
+- SECURITY DEFINER functions run with elevated privileges for security operations
+- Functions respect RLS policies when querying data
+
+### Performance Considerations
+
+**Dashboard Function**:
+- Uses efficient COUNT queries for statistics
+- Limits recent projects to 10 records
+- Returns JSONB for efficient data transfer
+- Includes timestamp for client-side caching
+
+**Security Functions**:
+- Minimal database queries for user type detection
+- Cached results where possible
+- Optimized for frequent RLS policy evaluation
+
+### Maintenance and Updates
+
+**Function Updates**:
+- Functions are updated through migration files
+- Version control maintained for all function changes
+- Backward compatibility considered for existing integrations
+
+**Monitoring**:
+- Function performance can be monitored through PostgreSQL statistics
+- Query execution plans available for optimization
+- Error logging through standard PostgreSQL mechanisms
+
+This functions layer provides the business logic foundation for the Factory Pulse application, ensuring secure, efficient, and maintainable database operations.
