@@ -1,652 +1,224 @@
 [
     {
         "id": "550e8400-e29b-41d4-a716-446655440601",
-        "organization_id": "550e8400-e29b-41d4-a716-446655440001",
         "project_id": "550e8400-e29b-41d4-a716-446655440301",
-        "sender_id": "550e8400-e29b-41d4-a716-446655440012",
-        "recipient_id": "550e8400-e29b-41d4-a716-446655440009",
         "thread_id": "550e8400-e29b-41d4-a716-446655440301",
+        "sender_id": "550e8400-e29b-41d4-a716-446655440012",
+        "sender_type": "user",
+        "sender_contact_id": null,
+        "recipient_type": "user",
+        "recipient_id": "550e8400-e29b-41d4-a716-446655440009",
+        "recipient_role": null,
+        "recipient_department": null,
         "subject": "Automotive Bracket Project Update",
         "content": "Hi, I've reviewed the automotive bracket design. The specifications look good and we're ready to proceed with manufacturing. Please let me know if you need any clarification on the technical requirements.",
-        "message_type": "project_update",
+        "message_type": "message",
         "priority": "normal",
-        "status": "read",
-        "sent_at": "2025-01-27T10:00:00.000Z",
+        "is_read": true,
         "read_at": "2025-01-27T10:15:00.000Z",
+        "attachments": [],
         "metadata": {
             "customer": "Toyota Vietnam",
             "project_type": "fabrication",
             "message_category": "technical"
         },
-        "tags": [
-            "project_update",
-            "automotive",
-            "bracket",
-            "manufacturing"
-        ]
+        "created_at": "2025-01-27T10:00:00.000Z",
+        "updated_at": "2025-01-27T10:00:00.000Z"
     },
     {
         "id": "550e8400-e29b-41d4-a716-446655440602",
-        "organization_id": "550e8400-e29b-41d4-a716-446655440001",
         "project_id": "550e8400-e29b-41d4-a716-446655440301",
-        "sender_id": "550e8400-e29b-41d4-a716-446655440009",
-        "recipient_id": "550e8400-e29b-41d4-a716-446655440012",
         "thread_id": "550e8400-e29b-41d4-a716-446655440301",
+        "sender_id": "550e8400-e29b-41d4-a716-446655440009",
+        "sender_type": "user",
+        "sender_contact_id": null,
+        "recipient_type": "user",
+        "recipient_id": "550e8400-e29b-41d4-a716-446655440012",
+        "recipient_role": null,
+        "recipient_department": null,
         "subject": "Re: Automotive Bracket Project Update",
         "content": "Thanks for the update! I have a few questions about the material specifications. Can you confirm the exact grade of steel required and any special heat treatment needed?",
-        "message_type": "question",
+        "message_type": "message",
         "priority": "normal",
-        "status": "read",
-        "sent_at": "2025-01-27T10:30:00.000Z",
+        "is_read": true,
         "read_at": "2025-01-27T10:45:00.000Z",
+        "attachments": [],
         "metadata": {
             "customer": "Toyota Vietnam",
             "project_type": "fabrication",
             "message_category": "technical"
         },
-        "tags": [
-            "question",
-            "materials",
-            "steel",
-            "specifications"
-        ]
+        "created_at": "2025-01-27T10:30:00.000Z",
+        "updated_at": "2025-01-27T10:30:00.000Z"
     },
     {
         "id": "550e8400-e29b-41d4-a716-446655440603",
-        "organization_id": "550e8400-e29b-41d4-a716-446655440001",
         "project_id": "550e8400-e29b-41d4-a716-446655440302",
-        "sender_id": "550e8400-e29b-41d4-a716-446655440006",
-        "recipient_id": "550e8400-e29b-41d4-a716-446655440012",
         "thread_id": "550e8400-e29b-41d4-a716-446655440302",
+        "sender_id": "550e8400-e29b-41d4-a716-446655440006",
+        "sender_type": "user",
+        "sender_contact_id": null,
+        "recipient_type": "user",
+        "recipient_id": "550e8400-e29b-41d4-a716-446655440012",
+        "recipient_role": null,
+        "recipient_department": null,
         "subject": "Motorcycle Frame Jig Design Complete",
         "content": "The welding jig design for the motorcycle frame is complete. I've attached the technical drawings and specifications. The jig will ensure consistent welding quality and reduce assembly time.",
-        "message_type": "completion_notice",
+        "message_type": "message",
         "priority": "normal",
-        "status": "unread",
-        "sent_at": "2025-01-27T11:00:00.000Z",
+        "is_read": false,
         "read_at": null,
+        "attachments": [
+            {
+                "file_name": "jig_design.dwg",
+                "file_url": "https://storage.googleapis.com/factory-pulse-assets/documents/drawings/P-25012702_jig_design.dwg",
+                "file_type": "dwg",
+                "file_size": 2048000
+            }
+        ],
         "metadata": {
             "customer": "Honda Vietnam",
             "project_type": "fabrication",
             "message_category": "technical"
         },
-        "tags": [
-            "completion",
-            "jig_design",
-            "welding",
-            "frame"
-        ]
+        "created_at": "2025-01-27T11:00:00.000Z",
+        "updated_at": "2025-01-27T11:00:00.000Z"
     },
     {
         "id": "550e8400-e29b-41d4-a716-446655440604",
-        "organization_id": "550e8400-e29b-41d4-a716-446655440001",
         "project_id": "550e8400-e29b-41d4-a716-446655440303",
-        "sender_id": "550e8400-e29b-41d4-a716-446655440005",
-        "recipient_id": "550e8400-e29b-41d4-a716-446655440012",
         "thread_id": "550e8400-e29b-41d4-a716-446655440303",
+        "sender_id": "550e8400-e29b-41d4-a716-446655440005",
+        "sender_type": "user",
+        "sender_contact_id": null,
+        "recipient_type": "user",
+        "recipient_id": "550e8400-e29b-41d4-a716-446655440012",
+        "recipient_role": null,
+        "recipient_department": null,
         "subject": "Aerospace Landing Gear - Critical Update",
         "content": "URGENT: The landing gear bracket design has been reviewed and approved. However, we need to expedite the material procurement for titanium. The delivery timeline is critical for this aerospace project.",
-        "message_type": "urgent_notice",
+        "message_type": "message",
         "priority": "high",
-        "status": "read",
-        "sent_at": "2025-01-27T11:30:00.000Z",
+        "is_read": true,
         "read_at": "2025-01-27T11:35:00.000Z",
+        "attachments": [],
         "metadata": {
             "customer": "Boeing Vietnam",
             "project_type": "fabrication",
             "message_category": "urgent"
         },
-        "tags": [
-            "urgent",
-            "aerospace",
-            "landing_gear",
-            "titanium"
-        ]
+        "created_at": "2025-01-27T11:30:00.000Z",
+        "updated_at": "2025-01-27T11:30:00.000Z"
     },
     {
         "id": "550e8400-e29b-41d4-a716-446655440605",
-        "organization_id": "550e8400-e29b-41d4-a716-446655440001",
-        "project_id": "550e8400-e29b-41d4-a716-446655440304",
-        "sender_id": "550e8400-e29b-41d4-a716-446655440009",
-        "recipient_id": "550e8400-e29b-41d4-a716-446655440012",
-        "thread_id": "550e8400-e29b-41d4-a716-446655440304",
-        "subject": "Electronics Housing Assembly Line Setup",
-        "content": "The assembly line for Samsung electronics housing is being set up. We're on schedule and should be ready for production testing by next week. The quality control procedures are also in place.",
-        "message_type": "progress_update",
+        "project_id": "550e8400-e29b-41d4-a716-446655440301",
+        "thread_id": "550e8400-e29b-41d4-a716-446655440301",
+        "sender_id": "550e8400-e29b-41d4-a716-446655440012",
+        "sender_type": "user",
+        "sender_contact_id": null,
+        "recipient_type": "user",
+        "recipient_id": "550e8400-e29b-41d4-a716-446655440009",
+        "recipient_role": null,
+        "recipient_department": null,
+        "subject": "Re: Material Specifications",
+        "content": "The steel grade required is AISI 4140, heat treated to HRC 28-32. This provides the optimal balance of strength and machinability for automotive applications. Let me know if you need the complete material specification sheet.",
+        "message_type": "message",
         "priority": "normal",
-        "status": "read",
-        "sent_at": "2025-01-27T12:00:00.000Z",
-        "read_at": "2025-01-27T12:10:00.000Z",
+        "is_read": false,
+        "read_at": null,
+        "attachments": [
+            {
+                "file_name": "material_spec.pdf",
+                "file_url": "https://storage.googleapis.com/factory-pulse-assets/documents/specifications/P-25012701_material_spec.pdf",
+                "file_type": "pdf",
+                "file_size": 512000
+            }
+        ],
         "metadata": {
-            "customer": "Samsung Vietnam",
-            "project_type": "manufacturing",
-            "message_category": "progress"
+            "customer": "Toyota Vietnam",
+            "project_type": "fabrication",
+            "message_category": "technical"
         },
-        "tags": [
-            "progress",
-            "assembly_line",
-            "electronics",
-            "quality"
-        ]
+        "created_at": "2025-01-27T11:45:00.000Z",
+        "updated_at": "2025-01-27T11:45:00.000Z"
     },
     {
         "id": "550e8400-e29b-41d4-a716-446655440606",
-        "organization_id": "550e8400-e29b-41d4-a716-446655440001",
-        "project_id": "550e8400-e29b-41d4-a716-446655440305",
-        "sender_id": "550e8400-e29b-41d4-a716-446655440007",
-        "recipient_id": "550e8400-e29b-41d4-a716-446655440012",
-        "thread_id": "550e8400-e29b-41d4-a716-446655440305",
-        "subject": "Control Panel Electrical Design Review",
-        "content": "The electrical design for the Siemens control panel has been completed and reviewed. All components meet industrial standards and the wiring diagram is ready for production. Do you need any modifications?",
-        "message_type": "review_complete",
+        "project_id": "550e8400-e29b-41d4-a716-446655440302",
+        "thread_id": "550e8400-e29b-41d4-a716-446655440302",
+        "sender_id": "550e8400-e29b-41d4-a716-446655440012",
+        "sender_type": "user",
+        "sender_contact_id": null,
+        "recipient_type": "user",
+        "recipient_id": "550e8400-e29b-41d4-a716-446655440006",
+        "recipient_role": null,
+        "recipient_department": null,
+        "subject": "Re: Motorcycle Frame Jig Design Complete",
+        "content": "Excellent work on the jig design! The drawings look comprehensive. I've forwarded this to the production team for review. We should be able to start jig manufacturing next week. Great job on the welding optimization.",
+        "message_type": "message",
         "priority": "normal",
-        "status": "unread",
-        "sent_at": "2025-01-27T12:30:00.000Z",
+        "is_read": false,
         "read_at": null,
+        "attachments": [],
         "metadata": {
-            "customer": "Siemens Vietnam",
-            "project_type": "manufacturing",
+            "customer": "Honda Vietnam",
+            "project_type": "fabrication",
             "message_category": "technical"
         },
-        "tags": [
-            "review",
-            "electrical",
-            "control_panel",
-            "industrial"
-        ]
+        "created_at": "2025-01-27T12:00:00.000Z",
+        "updated_at": "2025-01-27T12:00:00.000Z"
     },
     {
         "id": "550e8400-e29b-41d4-a716-446655440607",
-        "organization_id": "550e8400-e29b-41d4-a716-446655440001",
-        "project_id": "550e8400-e29b-41d4-a716-446655440306",
-        "sender_id": "550e8400-e29b-41d4-a716-446655440009",
-        "recipient_id": "550e8400-e29b-41d4-a716-446655440012",
-        "thread_id": "550e8400-e29b-41d4-a716-446655440306",
-        "subject": "LG Home Appliance Parts - Process Confirmation",
-        "content": "The manufacturing process for LG home appliance parts has been finalized. We're ready to begin production next week. The process includes quality checks at each stage to ensure consistency.",
-        "message_type": "process_confirmation",
-        "priority": "normal",
-        "status": "read",
-        "sent_at": "2025-01-27T13:00:00.000Z",
-        "read_at": "2025-01-27T13:05:00.000Z",
+        "project_id": "550e8400-e29b-41d4-a716-446655440303",
+        "thread_id": "550e8400-e29b-41d4-a716-446655440303",
+        "sender_id": "550e8400-e29b-41d4-a716-446655440012",
+        "sender_type": "user",
+        "sender_contact_id": null,
+        "recipient_type": "user",
+        "recipient_id": "550e8400-e29b-41d4-a716-446655440005",
+        "recipient_role": null,
+        "recipient_department": null,
+        "subject": "Re: Aerospace Landing Gear - Critical Update",
+        "content": "Understood. I've contacted our titanium supplier to expedite the order. They've confirmed they can deliver within 2 weeks instead of the usual 6 weeks. I'll update the project timeline accordingly. Thanks for the heads up.",
+        "message_type": "message",
+        "priority": "high",
+        "is_read": false,
+        "read_at": null,
+        "attachments": [],
         "metadata": {
-            "customer": "LG Vietnam",
-            "project_type": "manufacturing",
-            "message_category": "production"
+            "customer": "Boeing Vietnam",
+            "project_type": "fabrication",
+            "message_category": "urgent"
         },
-        "tags": [
-            "process",
-            "manufacturing",
-            "home_appliance",
-            "quality"
-        ]
+        "created_at": "2025-01-27T12:15:00.000Z",
+        "updated_at": "2025-01-27T12:15:00.000Z"
     },
     {
         "id": "550e8400-e29b-41d4-a716-446655440608",
-        "organization_id": "550e8400-e29b-41d4-a716-446655440001",
-        "project_id": "550e8400-e29b-41d4-a716-446655440307",
-        "sender_id": "550e8400-e29b-41d4-a716-446655440005",
-        "recipient_id": "550e8400-e29b-41d4-a716-446655440012",
-        "thread_id": "550e8400-e29b-41d4-a716-446655440307",
-        "subject": "Airbus Aircraft Systems - Architecture Approval",
-        "content": "Great news! The aircraft control systems architecture has been approved by the Airbus engineering team. The system design meets all aviation safety requirements and we can proceed with detailed design.",
-        "message_type": "approval_notice",
-        "priority": "high",
-        "status": "read",
-        "sent_at": "2025-01-27T13:30:00.000Z",
-        "read_at": "2025-01-27T13:40:00.000Z",
-        "metadata": {
-            "customer": "Airbus Vietnam",
-            "project_type": "system_build",
-            "message_category": "approval"
-        },
-        "tags": [
-            "approval",
-            "aircraft",
-            "systems",
-            "architecture"
-        ]
-    },
-    {
-        "id": "550e8400-e29b-41d4-a716-446655440609",
-        "organization_id": "550e8400-e29b-41d4-a716-446655440001",
-        "project_id": "550e8400-e29b-41d4-a716-446655440308",
-        "sender_id": "550e8400-e29b-41d4-a716-446655440007",
-        "recipient_id": "550e8400-e29b-41d4-a716-446655440012",
-        "thread_id": "550e8400-e29b-41d4-a716-446655440308",
-        "subject": "ABB Power Systems - Design Review Request",
-        "content": "The power system design for ABB automation is ready for review. I've included the electrical schematics and component specifications. Please review and let me know if any changes are needed.",
-        "message_type": "review_request",
-        "priority": "normal",
-        "status": "unread",
-        "sent_at": "2025-01-27T14:00:00.000Z",
-        "read_at": null,
-        "metadata": {
-            "customer": "ABB Vietnam",
-            "project_type": "system_build",
-            "message_category": "review"
-        },
-        "tags": [
-            "review",
-            "power_systems",
-            "electrical",
-            "automation"
-        ]
-    },
-    {
-        "id": "550e8400-e29b-41d4-a716-446655440610",
-        "organization_id": "550e8400-e29b-41d4-a716-446655440001",
-        "project_id": "550e8400-e29b-41d4-a716-446655440309",
-        "sender_id": "550e8400-e29b-41d4-a716-446655440008",
-        "recipient_id": "550e8400-e29b-41d4-a716-446655440012",
-        "thread_id": "550e8400-e29b-41d4-a716-446655440309",
-        "subject": "Samsung Display QC Plan - Ready for Review",
-        "content": "The quality control plan for Samsung display assembly is complete and ready for your review. The plan includes 100% inspection at critical stages and statistical process control.",
-        "message_type": "review_ready",
-        "priority": "normal",
-        "status": "read",
-        "sent_at": "2025-01-27T14:30:00.000Z",
-        "read_at": "2025-01-27T14:35:00.000Z",
-        "metadata": {
-            "customer": "Samsung Vietnam",
-            "project_type": "manufacturing",
-            "message_category": "quality"
-        },
-        "tags": [
-            "qc_plan",
-            "display",
-            "assembly",
-            "inspection"
-        ]
-    },
-    {
-        "id": "550e8400-e29b-41d4-a716-446655440611",
-        "organization_id": "550e8400-e29b-41d4-a716-446655440001",
-        "project_id": "550e8400-e29b-41d4-a716-446655440310",
-        "sender_id": "550e8400-e29b-41d4-a716-446655440009",
-        "recipient_id": "550e8400-e29b-41d4-a716-446655440012",
-        "thread_id": "550e8400-e29b-41d4-a716-446655440310",
-        "subject": "Honda Engine Components - Manufacturing Start",
-        "content": "Production has started for Honda engine components. The first batch is running through the machining process. Quality checks are in place and everything looks good so far.",
-        "message_type": "production_start",
-        "priority": "normal",
-        "status": "read",
-        "sent_at": "2025-01-27T15:00:00.000Z",
-        "read_at": "2025-01-27T15:10:00.000Z",
-        "metadata": {
-            "customer": "Honda Vietnam",
-            "project_type": "manufacturing",
-            "message_category": "production"
-        },
-        "tags": [
-            "production",
-            "engine",
-            "components",
-            "machining"
-        ]
-    },
-    {
-        "id": "550e8400-e29b-41d4-a716-446655440612",
-        "organization_id": "550e8400-e29b-41d4-a716-446655440001",
-        "project_id": "550e8400-e29b-41d4-a716-446655440311",
-        "sender_id": "550e8400-e29b-41d4-a716-446655440005",
-        "recipient_id": "550e8400-e29b-41d4-a716-446655440012",
-        "thread_id": "550e8400-e29b-41d4-a716-446655440311",
-        "subject": "Boeing Avionics Housing - Material Confirmation",
-        "content": "The aluminum 6061 material for Boeing avionics housing has been confirmed and ordered. The material will arrive next week and we can begin fabrication immediately upon receipt.",
-        "message_type": "material_update",
-        "priority": "normal",
-        "status": "unread",
-        "sent_at": "2025-01-27T15:30:00.000Z",
-        "read_at": null,
-        "metadata": {
-            "customer": "Boeing Vietnam",
-            "project_type": "fabrication",
-            "message_category": "materials"
-        },
-        "tags": [
-            "materials",
-            "aluminum",
-            "avionics",
-            "fabrication"
-        ]
-    },
-    {
-        "id": "550e8400-e29b-41d4-a716-446655440613",
-        "organization_id": "550e8400-e29b-41d4-a716-446655440001",
-        "project_id": "550e8400-e29b-41d4-a716-446655440312",
-        "sender_id": "550e8400-e29b-41d4-a716-446655440007",
-        "recipient_id": "550e8400-e29b-41d4-a716-446655440012",
-        "thread_id": "550e8400-e29b-41d4-a716-446655440312",
-        "subject": "Samsung PCB Design - Layout Complete",
-        "content": "The PCB design for Samsung electronic components is complete. The 4-layer design includes all necessary components and follows industry best practices. Ready for manufacturing review.",
-        "message_type": "design_complete",
-        "priority": "normal",
-        "status": "read",
-        "sent_at": "2025-01-27T16:00:00.000Z",
-        "read_at": "2025-01-27T16:05:00.000Z",
-        "metadata": {
-            "customer": "Samsung Vietnam",
-            "project_type": "manufacturing",
-            "message_category": "design"
-        },
-        "tags": [
-            "design",
-            "pcb",
-            "4_layer",
-            "electronics"
-        ]
-    },
-    {
-        "id": "550e8400-e29b-41d4-a716-446655440614",
-        "organization_id": "550e8400-e29b-41d4-a716-446655440001",
-        "project_id": "550e8400-e29b-41d4-a716-446655440313",
-        "sender_id": "550e8400-e29b-41d4-a716-446655440005",
-        "recipient_id": "550e8400-e29b-41d4-a716-446655440012",
-        "thread_id": "550e8400-e29b-41d4-a716-446655440313",
-        "subject": "LG Smart Home - Integration Plan Ready",
-        "content": "The system integration plan for LG smart home automation is ready for review. The plan covers IoT connectivity, user interface, and system testing procedures. Please review and approve.",
-        "message_type": "plan_ready",
-        "priority": "normal",
-        "status": "unread",
-        "sent_at": "2025-01-27T16:30:00.000Z",
-        "read_at": null,
-        "metadata": {
-            "customer": "LG Vietnam",
-            "project_type": "system_build",
-            "message_category": "planning"
-        },
-        "tags": [
-            "plan",
-            "integration",
-            "smart_home",
-            "iot"
-        ]
-    },
-    {
-        "id": "550e8400-e29b-41d4-a716-446655440615",
-        "organization_id": "550e8400-e29b-41d4-a716-446655440001",
-        "project_id": "550e8400-e29b-41d4-a716-446655440314",
-        "sender_id": "550e8400-e29b-41d4-a716-446655440005",
-        "recipient_id": "550e8400-e29b-41d4-a716-446655440012",
-        "thread_id": "550e8400-e29b-41d4-a716-446655440314",
-        "subject": "Airbus Engine Mount - Structural Analysis Complete",
-        "content": "The finite element analysis for the Airbus engine mount is complete. The structural analysis confirms the design meets all load requirements and safety factors. Ready for production.",
-        "message_type": "analysis_complete",
-        "priority": "high",
-        "status": "read",
-        "sent_at": "2025-01-27T17:00:00.000Z",
-        "read_at": "2025-01-27T17:10:00.000Z",
-        "metadata": {
-            "customer": "Airbus Vietnam",
-            "project_type": "fabrication",
-            "message_category": "analysis"
-        },
-        "tags": [
-            "analysis",
-            "structural",
-            "engine_mount",
-            "finite_element"
-        ]
-    },
-    {
-        "id": "550e8400-e29b-41d4-a716-446655440616",
-        "organization_id": "550e8400-e29b-41d4-a716-446655440001",
-        "project_id": "550e8400-e29b-41d4-a716-446655440315",
-        "sender_id": "550e8400-e29b-41d4-a716-446655440009",
-        "recipient_id": "550e8400-e29b-41d4-a716-446655440012",
-        "thread_id": "550e8400-e29b-41d4-a716-446655440315",
-        "subject": "ABB Motor Assembly - Line Layout Approved",
-        "content": "The assembly line layout for ABB motor production has been approved by the production team. The automated line will significantly improve efficiency and quality consistency.",
-        "message_type": "approval_notice",
-        "priority": "normal",
-        "status": "read",
-        "sent_at": "2025-01-27T17:30:00.000Z",
-        "read_at": "2025-01-27T17:35:00.000Z",
-        "metadata": {
-            "customer": "ABB Vietnam",
-            "project_type": "manufacturing",
-            "message_category": "approval"
-        },
-        "tags": [
-            "approval",
-            "assembly_line",
-            "motor",
-            "automation"
-        ]
-    },
-    {
-        "id": "550e8400-e29b-41d4-a716-446655440617",
-        "organization_id": "550e8400-e29b-41d4-a716-446655440001",
-        "project_id": "550e8400-e29b-41d4-a716-446655440316",
-        "sender_id": "550e8400-e29b-41d4-a716-446655440005",
-        "recipient_id": "550e8400-e29b-41d4-a716-446655440012",
-        "thread_id": "550e8400-e29b-41d4-a716-446655440316",
-        "subject": "Toyota Transmission Housing - Casting Design Review",
-        "content": "The die casting design for Toyota transmission housing has been reviewed and optimized. The design ensures proper material flow and reduces defects. Ready for tooling fabrication.",
-        "message_type": "design_optimized",
-        "priority": "normal",
-        "status": "unread",
-        "sent_at": "2025-01-27T18:00:00.000Z",
-        "read_at": null,
-        "metadata": {
-            "customer": "Toyota Vietnam",
-            "project_type": "fabrication",
-            "message_category": "design"
-        },
-        "tags": [
-            "design",
-            "casting",
-            "transmission",
-            "die_cast"
-        ]
-    },
-    {
-        "id": "550e8400-e29b-41d4-a716-446655440618",
-        "organization_id": "550e8400-e29b-41d4-a716-446655440001",
-        "project_id": "550e8400-e29b-41d4-a716-446655440317",
-        "sender_id": "550e8400-e29b-41d4-a716-446655440006",
-        "recipient_id": "550e8400-e29b-41d4-a716-446655440012",
-        "thread_id": "550e8400-e29b-41d4-a716-446655440317",
-        "subject": "Honda Chassis - Welding Procedure Finalized",
-        "content": "The MIG welding procedure for Honda motorcycle chassis has been finalized and documented. The procedure includes all safety protocols and quality checkpoints. Ready for production.",
-        "message_type": "procedure_finalized",
-        "priority": "normal",
-        "status": "read",
-        "sent_at": "2025-01-27T18:30:00.000Z",
-        "read_at": "2025-01-27T18:35:00.000Z",
-        "metadata": {
-            "customer": "Honda Vietnam",
-            "project_type": "fabrication",
-            "message_category": "procedure"
-        },
-        "tags": [
-            "procedure",
-            "welding",
-            "mig",
-            "chassis"
-        ]
-    },
-    {
-        "id": "550e8400-e29b-41d4-a716-446655440619",
-        "organization_id": "550e8400-e29b-41d4-a716-446655440001",
-        "project_id": "550e8400-e29b-41d4-a716-446655440317",
-        "sender_id": "550e8400-e29b-41d4-a716-446655440008",
-        "recipient_id": "550e8400-e29b-41d4-a716-446655440012",
-        "thread_id": "550e8400-e29b-41d4-a716-446655440317",
-        "subject": "Chassis Quality Inspection - Results Available",
-        "content": "The quality inspection report for Honda chassis assembly is complete. All samples passed inspection with excellent results. The welding quality and dimensional accuracy are within specifications.",
-        "message_type": "inspection_results",
-        "priority": "normal",
-        "status": "read",
-        "sent_at": "2025-01-27T19:00:00.000Z",
-        "read_at": "2025-01-27T19:05:00.000Z",
-        "metadata": {
-            "customer": "Honda Vietnam",
-            "project_type": "fabrication",
-            "message_category": "quality"
-        },
-        "tags": [
-            "inspection",
-            "quality",
-            "chassis",
-            "welding"
-        ]
-    },
-    {
-        "id": "550e8400-e29b-41d4-a716-446655440620",
-        "organization_id": "550e8400-e29b-41d4-a716-446655440001",
         "project_id": "550e8400-e29b-41d4-a716-446655440301",
-        "sender_id": "550e8400-e29b-41d4-a716-446655440011",
-        "recipient_id": "550e8400-e29b-41d4-a716-446655440012",
         "thread_id": "550e8400-e29b-41d4-a716-446655440301",
-        "subject": "Safety Review - Bracket Manufacturing Complete",
-        "content": "The safety review for automotive bracket manufacturing has been completed. All safety protocols are in place and properly documented. The process meets all safety standards.",
-        "message_type": "safety_review_complete",
+        "sender_id": "550e8400-e29b-41d4-a716-446655440009",
+        "sender_type": "user",
+        "sender_contact_id": null,
+        "recipient_type": "user",
+        "recipient_id": "550e8400-e29b-41d4-a716-446655440012",
+        "recipient_role": null,
+        "recipient_department": null,
+        "subject": "Re: Material Specifications",
+        "content": "Perfect! AISI 4140 with that heat treatment range is exactly what we need. I'll update our material procurement plan. The specification sheet would be helpful for our quality control team. Thanks for the quick response.",
+        "message_type": "message",
         "priority": "normal",
-        "status": "unread",
-        "sent_at": "2025-01-27T19:30:00.000Z",
+        "is_read": false,
         "read_at": null,
+        "attachments": [],
         "metadata": {
             "customer": "Toyota Vietnam",
             "project_type": "fabrication",
-            "message_category": "safety"
+            "message_category": "technical"
         },
-        "tags": [
-            "safety",
-            "review",
-            "manufacturing",
-            "brackets"
-        ]
-    },
-    {
-        "id": "550e8400-e29b-41d4-a716-446655440621",
-        "organization_id": "550e8400-e29b-41d4-a716-446655440001",
-        "project_id": "550e8400-e29b-41d4-a716-446655440303",
-        "sender_id": "550e8400-e29b-41d4-a716-446655440011",
-        "recipient_id": "550e8400-e29b-41d4-a716-446655440012",
-        "thread_id": "550e8400-e29b-41d4-a716-446655440303",
-        "subject": "Aerospace Safety Review - Exceeds Standards",
-        "content": "The safety review for aerospace manufacturing has been completed. Our safety protocols exceed aerospace industry standards. All critical safety systems are properly implemented.",
-        "message_type": "safety_review_complete",
-        "priority": "high",
-        "status": "read",
-        "sent_at": "2025-01-27T20:00:00.000Z",
-        "read_at": "2025-01-27T20:05:00.000Z",
-        "metadata": {
-            "customer": "Boeing Vietnam",
-            "project_type": "fabrication",
-            "message_category": "safety"
-        },
-        "tags": [
-            "safety",
-            "aerospace",
-            "standards",
-            "critical"
-        ]
-    },
-    {
-        "id": "550e8400-e29b-41d4-a716-446655440622",
-        "organization_id": "550e8400-e29b-41d4-a716-446655440001",
-        "project_id": "550e8400-e29b-41d4-a716-446655440304",
-        "sender_id": "550e8400-e29b-41d4-a716-446655440010",
-        "recipient_id": "550e8400-e29b-41d4-a716-446655440012",
-        "thread_id": "550e8400-e29b-41d4-a716-446655440304",
-        "subject": "Electronics Assembly - Quality Review Pending",
-        "content": "The quality review for electronics assembly is pending completion of the assembly line setup. We expect to complete this by the end of the week and then proceed with the quality review.",
-        "message_type": "status_update",
-        "priority": "normal",
-        "status": "read",
-        "sent_at": "2025-01-27T20:30:00.000Z",
-        "read_at": "2025-01-27T20:35:00.000Z",
-        "metadata": {
-            "customer": "Samsung Vietnam",
-            "project_type": "manufacturing",
-            "message_category": "status"
-        },
-        "tags": [
-            "status",
-            "quality",
-            "assembly",
-            "pending"
-        ]
-    },
-    {
-        "id": "550e8400-e29b-41d4-a716-446655440623",
-        "organization_id": "550e8400-e29b-41d4-a716-446655440001",
-        "project_id": "550e8400-e29b-41d4-a716-446655440307",
-        "sender_id": "550e8400-e29b-41d4-a716-446655440011",
-        "recipient_id": "550e8400-e29b-41d4-a716-446655440012",
-        "thread_id": "550e8400-e29b-41d4-a716-446655440307",
-        "subject": "Aircraft Systems Safety - Aviation Authority Approved",
-        "content": "Excellent news! The aircraft control systems have been approved by the aviation authority. All safety systems meet the highest standards and we're cleared to proceed with system integration.",
-        "message_type": "authority_approval",
-        "priority": "high",
-        "status": "read",
-        "sent_at": "2025-01-27T21:00:00.000Z",
-        "read_at": "2025-01-27T21:05:00.000Z",
-        "metadata": {
-            "customer": "Airbus Vietnam",
-            "project_type": "system_build",
-            "message_category": "approval"
-        },
-        "tags": [
-            "approval",
-            "aviation",
-            "authority",
-            "safety"
-        ]
-    },
-    {
-        "id": "550e8400-e29b-41d4-a716-446655440624",
-        "organization_id": "550e8400-e29b-41d4-a716-446655440001",
-        "project_id": "550e8400-e29b-41d4-a716-446655440308",
-        "sender_id": "550e8400-e29b-41d4-a716-446655440011",
-        "recipient_id": "550e8400-e29b-41d4-a716-446655440012",
-        "thread_id": "550e8400-e29b-41d4-a716-446655440308",
-        "subject": "Power Systems Safety - Industrial Standards Met",
-        "content": "The safety review for ABB power systems has been completed. All safety features meet industrial standards and the system includes comprehensive protection mechanisms.",
-        "message_type": "safety_review_complete",
-        "priority": "normal",
-        "status": "read",
-        "sent_at": "2025-01-27T21:30:00.000Z",
-        "read_at": "2025-01-27T21:35:00.000Z",
-        "metadata": {
-            "customer": "ABB Vietnam",
-            "project_type": "system_build",
-            "message_category": "safety"
-        },
-        "tags": [
-            "safety",
-            "power_systems",
-            "industrial",
-            "protection"
-        ]
-    },
-    {
-        "id": "550e8400-e29b-41d4-a716-446655440625",
-        "organization_id": "550e8400-e29b-41d4-a716-446655440001",
-        "project_id": "550e8400-e29b-41d4-a716-446655440301",
-        "sender_id": "550e8400-e29b-41d4-a716-446655440013",
-        "recipient_id": "550e8400-e29b-41d4-a716-446655440012",
-        "thread_id": "550e8400-e29b-41d4-a716-446655440301",
-        "subject": "Supplier Quote Received - Precision Machining",
-        "content": "We've received a quote from Precision Machining Co. for the bracket components. The quote is competitive and meets our quality requirements. Should we proceed with this supplier?",
-        "message_type": "supplier_update",
-        "priority": "normal",
-        "status": "unread",
-        "sent_at": "2025-01-27T22:00:00.000Z",
-        "read_at": null,
-        "metadata": {
-            "customer": "Toyota Vietnam",
-            "project_type": "fabrication",
-            "message_category": "supplier"
-        },
-        "tags": [
-            "supplier",
-            "quote",
-            "machining",
-            "components"
-        ]
+        "created_at": "2025-01-27T12:30:00.000Z",
+        "updated_at": "2025-01-27T12:30:00.000Z"
     }
 ]

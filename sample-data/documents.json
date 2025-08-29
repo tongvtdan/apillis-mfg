@@ -1,990 +1,332 @@
 [
     {
         "id": "550e8400-e29b-41d4-a716-446655440401",
-        "organization_id": "550e8400-e29b-41d4-a716-446655440001",
         "project_id": "550e8400-e29b-41d4-a716-446655440301",
-        "title": "RFQ - Automotive Bracket Assembly",
-        "description": "Request for quotation for automotive bracket assembly project",
+        "file_name": "P-25012701_RFQ.pdf",
+        "original_file_name": "RFQ - Automotive Bracket Assembly.pdf",
         "file_type": "pdf",
         "file_size": 2048576,
-        "file_path": "/documents/rfq/P-25012701_RFQ.pdf",
-        "category": "rfq",
-        "status": "active",
-        "version": "1.0",
-        "uploaded_by": "550e8400-e29b-41d4-a716-446655440012",
-        "uploaded_at": "2025-01-27T08:00:00.000Z",
+        "file_url": "https://storage.googleapis.com/factory-pulse-assets/documents/rfq/P-25012701_RFQ.pdf",
+        "mime_type": "application/pdf",
+        "version": 1,
+        "is_latest": true,
+        "document_type": "rfq",
+        "access_level": "internal",
+        "checksum": "a1b2c3d4e5f6g7h8i9j0k1l2m3n4o5p6q7r8s9t0u1v2w3x4y5z6",
         "metadata": {
             "customer": "Toyota Vietnam",
             "project_type": "fabrication",
-            "priority": "high"
+            "priority": "high",
+            "title": "RFQ - Automotive Bracket Assembly",
+            "description": "Request for quotation for automotive bracket assembly project"
         },
-        "tags": [
-            "rfq",
-            "automotive",
-            "bracket",
-            "welding"
-        ]
+        "storage_provider": "supabase",
+        "external_id": null,
+        "external_url": null,
+        "sync_status": "synced",
+        "last_synced_at": "2025-01-27T08:00:00.000Z",
+        "ai_extracted_data": {
+            "customer_name": "Toyota Vietnam",
+            "project_type": "fabrication",
+            "priority": "high",
+            "estimated_quantity": 1000,
+            "material": "steel"
+        },
+        "ai_processing_status": "completed",
+        "ai_confidence_score": 92.5,
+        "ai_processed_at": "2025-01-27T08:05:00.000Z",
+        "uploaded_at": "2025-01-27T08:00:00.000Z",
+        "uploaded_by": "550e8400-e29b-41d4-a716-446655440012",
+        "approved_at": "2025-01-27T08:30:00.000Z",
+        "approved_by": "550e8400-e29b-41d4-a716-446655440012"
     },
     {
         "id": "550e8400-e29b-41d4-a716-446655440402",
-        "organization_id": "550e8400-e29b-41d4-a716-446655440001",
         "project_id": "550e8400-e29b-41d4-a716-446655440301",
-        "title": "Technical Drawing - Bracket Assembly",
-        "description": "Detailed technical drawing for automotive bracket assembly",
+        "file_name": "P-25012701_drawing.dwg",
+        "original_file_name": "Technical Drawing - Bracket Assembly.dwg",
         "file_type": "dwg",
         "file_size": 1048576,
-        "file_path": "/documents/drawings/P-25012701_drawing.dwg",
-        "category": "drawing",
-        "status": "active",
-        "version": "2.1",
-        "uploaded_by": "550e8400-e29b-41d4-a716-446655440005",
-        "uploaded_at": "2025-01-27T09:00:00.000Z",
+        "file_url": "https://storage.googleapis.com/factory-pulse-assets/documents/drawings/P-25012701_drawing.dwg",
+        "mime_type": "application/acad",
+        "version": 2,
+        "is_latest": true,
+        "document_type": "drawing",
+        "access_level": "internal",
+        "checksum": "b2c3d4e5f6g7h8i9j0k1l2m3n4o5p6q7r8s9t0u1v2w3x4y5z6a1",
         "metadata": {
             "customer": "Toyota Vietnam",
             "project_type": "fabrication",
-            "tolerance": "±0.1mm"
+            "tolerance": "±0.1mm",
+            "title": "Technical Drawing - Bracket Assembly",
+            "description": "Detailed technical drawing for automotive bracket assembly"
         },
-        "tags": [
-            "drawing",
-            "technical",
-            "bracket",
-            "assembly"
-        ]
+        "storage_provider": "supabase",
+        "external_id": null,
+        "external_url": null,
+        "sync_status": "synced",
+        "last_synced_at": "2025-01-27T09:00:00.000Z",
+        "ai_extracted_data": {
+            "customer_name": "Toyota Vietnam",
+            "project_type": "fabrication",
+            "tolerance": "±0.1mm",
+            "material": "steel",
+            "dimensions": "100x50x25mm"
+        },
+        "ai_processing_status": "completed",
+        "ai_confidence_score": 88.7,
+        "ai_processed_at": "2025-01-27T09:05:00.000Z",
+        "uploaded_at": "2025-01-27T09:00:00.000Z",
+        "uploaded_by": "550e8400-e29b-41d4-a716-446655440005",
+        "approved_at": "2025-01-27T09:30:00.000Z",
+        "approved_by": "550e8400-e29b-41d4-a716-446655440005"
     },
     {
         "id": "550e8400-e29b-41d4-a716-446655440403",
-        "organization_id": "550e8400-e29b-41d4-a716-446655440001",
         "project_id": "550e8400-e29b-41d4-a716-446655440301",
-        "title": "BOM - Bracket Components",
-        "description": "Bill of materials for automotive bracket assembly",
+        "file_name": "P-25012701_BOM.xlsx",
+        "original_file_name": "BOM - Bracket Components.xlsx",
         "file_type": "xlsx",
         "file_size": 512000,
-        "file_path": "/documents/bom/P-25012701_BOM.xlsx",
-        "category": "bom",
-        "status": "active",
-        "version": "1.0",
-        "uploaded_by": "550e8400-e29b-41d4-a716-446655440009",
-        "uploaded_at": "2025-01-27T10:00:00.000Z",
+        "file_url": "https://storage.googleapis.com/factory-pulse-assets/documents/bom/P-25012701_BOM.xlsx",
+        "mime_type": "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+        "version": 1,
+        "is_latest": true,
+        "document_type": "bom",
+        "access_level": "internal",
+        "checksum": "c3d4e5f6g7h8i9j0k1l2m3n4o5p6q7r8s9t0u1v2w3x4y5z6a1b2",
         "metadata": {
             "customer": "Toyota Vietnam",
             "project_type": "fabrication",
-            "material": "steel"
+            "material": "steel",
+            "title": "BOM - Bracket Components",
+            "description": "Bill of materials for automotive bracket assembly"
         },
-        "tags": [
-            "bom",
-            "components",
-            "materials",
-            "steel"
-        ]
+        "storage_provider": "supabase",
+        "external_id": null,
+        "external_url": null,
+        "sync_status": "synced",
+        "last_synced_at": "2025-01-27T10:00:00.000Z",
+        "ai_extracted_data": {
+            "customer_name": "Toyota Vietnam",
+            "project_type": "fabrication",
+            "material": "steel",
+            "component_count": 15,
+            "total_cost": "45000000"
+        },
+        "ai_processing_status": "completed",
+        "ai_confidence_score": 95.2,
+        "ai_processed_at": "2025-01-27T10:05:00.000Z",
+        "uploaded_at": "2025-01-27T10:00:00.000Z",
+        "uploaded_by": "550e8400-e29b-41d4-a716-446655440009",
+        "approved_at": "2025-01-27T10:30:00.000Z",
+        "approved_by": "550e8400-e29b-41d4-a716-446655440009"
     },
     {
         "id": "550e8400-e29b-41d4-a716-446655440404",
-        "organization_id": "550e8400-e29b-41d4-a716-446655440001",
         "project_id": "550e8400-e29b-41d4-a716-446655440301",
-        "title": "Supplier Quote - Precision Machining",
-        "description": "Quote from Precision Machining Co. for bracket components",
+        "file_name": "P-25012701_quote_precision.pdf",
+        "original_file_name": "Supplier Quote - Precision Machining.pdf",
         "file_type": "pdf",
         "file_size": 1536000,
-        "file_path": "/documents/quotes/P-25012701_quote_precision.pdf",
-        "category": "quote",
-        "status": "active",
-        "version": "1.0",
-        "uploaded_by": "550e8400-e29b-41d4-a716-446655440013",
-        "uploaded_at": "2025-01-27T11:00:00.000Z",
+        "file_url": "https://storage.googleapis.com/factory-pulse-assets/documents/quotes/P-25012701_quote_precision.pdf",
+        "mime_type": "application/pdf",
+        "version": 1,
+        "is_latest": true,
+        "document_type": "quote",
+        "access_level": "internal",
+        "checksum": "d4e5f6g7h8i9j0k1l2m3n4o5p6q7r8s9t0u1v2w3x4y5z6a1b2c3",
         "metadata": {
             "supplier": "Precision Machining Co.",
             "project_type": "fabrication",
-            "amount": "25000000"
+            "amount": "25000000",
+            "title": "Supplier Quote - Precision Machining",
+            "description": "Quote from Precision Machining Co. for bracket components"
         },
-        "tags": [
-            "quote",
-            "supplier",
-            "machining",
-            "components"
-        ]
+        "storage_provider": "supabase",
+        "external_id": null,
+        "external_url": null,
+        "sync_status": "synced",
+        "last_synced_at": "2025-01-27T11:00:00.000Z",
+        "ai_extracted_data": {
+            "supplier_name": "Precision Machining Co.",
+            "project_type": "fabrication",
+            "amount": "25000000",
+            "currency": "VND",
+            "validity": "30 days"
+        },
+        "ai_processing_status": "completed",
+        "ai_confidence_score": 91.8,
+        "ai_processed_at": "2025-01-27T11:05:00.000Z",
+        "uploaded_at": "2025-01-27T11:00:00.000Z",
+        "uploaded_by": "550e8400-e29b-41d4-a716-446655440013",
+        "approved_at": "2025-01-27T11:30:00.000Z",
+        "approved_by": "550e8400-e29b-41d4-a716-446655440013"
     },
     {
         "id": "550e8400-e29b-41d4-a716-446655440405",
-        "organization_id": "550e8400-e29b-41d4-a716-446655440001",
         "project_id": "550e8400-e29b-41d4-a716-446655440302",
-        "title": "RFQ - Motorcycle Frame Welding",
-        "description": "Request for quotation for motorcycle frame welding project",
+        "file_name": "P-25012702_RFQ.pdf",
+        "original_file_name": "RFQ - Motorcycle Frame Welding.pdf",
         "file_type": "pdf",
         "file_size": 1792000,
-        "file_path": "/documents/rfq/P-25012702_RFQ.pdf",
-        "category": "rfq",
-        "status": "active",
-        "version": "1.0",
-        "uploaded_by": "550e8400-e29b-41d4-a716-446655440012",
-        "uploaded_at": "2025-01-27T08:30:00.000Z",
+        "file_url": "https://storage.googleapis.com/factory-pulse-assets/documents/rfq/P-25012702_RFQ.pdf",
+        "mime_type": "application/pdf",
+        "version": 1,
+        "is_latest": true,
+        "document_type": "rfq",
+        "access_level": "internal",
+        "checksum": "e5f6g7h8i9j0k1l2m3n4o5p6q7r8s9t0u1v2w3x4y5z6a1b2c3d4",
         "metadata": {
             "customer": "Honda Vietnam",
             "project_type": "fabrication",
-            "priority": "medium"
+            "priority": "medium",
+            "title": "RFQ - Motorcycle Frame Welding",
+            "description": "Request for quotation for motorcycle frame welding project"
         },
-        "tags": [
-            "rfq",
-            "motorcycle",
-            "frame",
-            "welding"
-        ]
+        "storage_provider": "supabase",
+        "external_id": null,
+        "external_url": null,
+        "sync_status": "synced",
+        "last_synced_at": "2025-01-27T08:15:00.000Z",
+        "ai_extracted_data": {
+            "customer_name": "Honda Vietnam",
+            "project_type": "fabrication",
+            "priority": "medium",
+            "estimated_quantity": 500,
+            "material": "aluminum"
+        },
+        "ai_processing_status": "completed",
+        "ai_confidence_score": 89.3,
+        "ai_processed_at": "2025-01-27T08:20:00.000Z",
+        "uploaded_at": "2025-01-27T08:15:00.000Z",
+        "uploaded_by": "550e8400-e29b-41d4-a716-446655440012",
+        "approved_at": "2025-01-27T08:45:00.000Z",
+        "approved_by": "550e8400-e29b-41d4-a716-446655440012"
     },
     {
         "id": "550e8400-e29b-41d4-a716-446655440406",
-        "organization_id": "550e8400-e29b-41d4-a716-446655440001",
         "project_id": "550e8400-e29b-41d4-a716-446655440302",
-        "title": "Jig Design - Frame Welding",
-        "description": "Welding jig design for motorcycle frame assembly",
+        "file_name": "P-25012702_jig_design.dwg",
+        "original_file_name": "Welding Jig Design.dwg",
         "file_type": "dwg",
         "file_size": 2048000,
-        "file_path": "/documents/drawings/P-25012702_jig.dwg",
-        "category": "drawing",
-        "status": "active",
-        "version": "1.0",
-        "uploaded_by": "550e8400-e29b-41d4-a716-446655440006",
-        "uploaded_at": "2025-01-27T09:30:00.000Z",
+        "file_url": "https://storage.googleapis.com/factory-pulse-assets/documents/drawings/P-25012702_jig_design.dwg",
+        "mime_type": "application/acad",
+        "version": 1,
+        "is_latest": true,
+        "document_type": "drawing",
+        "access_level": "internal",
+        "checksum": "f6g7h8i9j0k1l2m3n4o5p6q7r8s9t0u1v2w3x4y5z6a1b2c3d4e5",
         "metadata": {
             "customer": "Honda Vietnam",
             "project_type": "fabrication",
-            "material": "aluminum"
+            "tolerance": "±0.5mm",
+            "title": "Welding Jig Design",
+            "description": "Welding jig design for motorcycle frame assembly"
         },
-        "tags": [
-            "drawing",
-            "jig",
-            "welding",
-            "frame"
-        ]
+        "storage_provider": "supabase",
+        "external_id": null,
+        "external_url": null,
+        "sync_status": "synced",
+        "last_synced_at": "2025-01-27T11:00:00.000Z",
+        "ai_extracted_data": {
+            "customer_name": "Honda Vietnam",
+            "project_type": "fabrication",
+            "tolerance": "±0.5mm",
+            "material": "aluminum",
+            "jig_type": "welding"
+        },
+        "ai_processing_status": "completed",
+        "ai_confidence_score": 94.1,
+        "ai_processed_at": "2025-01-27T11:05:00.000Z",
+        "uploaded_at": "2025-01-27T11:00:00.000Z",
+        "uploaded_by": "550e8400-e29b-41d4-a716-446655440006",
+        "approved_at": "2025-01-27T11:30:00.000Z",
+        "approved_by": "550e8400-e29b-41d4-a716-446655440006"
     },
     {
         "id": "550e8400-e29b-41d4-a716-446655440407",
-        "organization_id": "550e8400-e29b-41d4-a716-446655440001",
-        "project_id": "550e8400-e29b-41d4-a716-446655440302",
-        "title": "Supplier Quote - Metal Fabrication",
-        "description": "Quote from Metal Fabrication Ltd. for frame welding",
+        "project_id": "550e8400-e29b-41d4-a716-446655440303",
+        "file_name": "P-25012703_RFQ.pdf",
+        "original_file_name": "RFQ - Aircraft Landing Gear.pdf",
         "file_type": "pdf",
-        "file_size": 1280000,
-        "file_path": "/documents/quotes/P-25012702_quote_metalfab.pdf",
-        "category": "quote",
-        "status": "active",
-        "version": "1.0",
-        "uploaded_by": "550e8400-e29b-41d4-a716-446655440013",
-        "uploaded_at": "2025-01-27T11:30:00.000Z",
+        "file_size": 2560000,
+        "file_url": "https://storage.googleapis.com/factory-pulse-assets/documents/rfq/P-25012703_RFQ.pdf",
+        "mime_type": "application/pdf",
+        "version": 1,
+        "is_latest": true,
+        "document_type": "rfq",
+        "access_level": "restricted",
+        "checksum": "g7h8i9j0k1l2m3n4o5p6q7r8s9t0u1v2w3x4y5z6a1b2c3d4e5f6",
         "metadata": {
-            "supplier": "Metal Fabrication Ltd.",
+            "customer": "Boeing Vietnam",
             "project_type": "fabrication",
-            "amount": "18000000"
+            "priority": "urgent",
+            "title": "RFQ - Aircraft Landing Gear",
+            "description": "Request for quotation for aircraft landing gear bracket"
         },
-        "tags": [
-            "quote",
-            "supplier",
-            "fabrication",
-            "welding"
-        ]
+        "storage_provider": "supabase",
+        "external_id": null,
+        "external_url": null,
+        "sync_status": "synced",
+        "last_synced_at": "2025-01-27T08:30:00.000Z",
+        "ai_extracted_data": {
+            "customer_name": "Boeing Vietnam",
+            "project_type": "fabrication",
+            "priority": "urgent",
+            "estimated_quantity": 100,
+            "material": "titanium",
+            "certification": "AS9100"
+        },
+        "ai_processing_status": "completed",
+        "ai_confidence_score": 96.7,
+        "ai_processed_at": "2025-01-27T08:35:00.000Z",
+        "uploaded_at": "2025-01-27T08:30:00.000Z",
+        "uploaded_by": "550e8400-e29b-41d4-a716-446655440012",
+        "approved_at": "2025-01-27T09:00:00.000Z",
+        "approved_by": "550e8400-e29b-41d4-a716-446655440012"
     },
     {
         "id": "550e8400-e29b-41d4-a716-446655440408",
-        "organization_id": "550e8400-e29b-41d4-a716-446655440001",
         "project_id": "550e8400-e29b-41d4-a716-446655440303",
-        "title": "RFQ - Aircraft Landing Gear Bracket",
-        "description": "Request for quotation for aerospace landing gear bracket",
+        "file_name": "P-25012703_technical_spec.pdf",
+        "original_file_name": "Technical Specification - Landing Gear.pdf",
         "file_type": "pdf",
-        "file_size": 2560000,
-        "file_path": "/documents/rfq/P-25012703_RFQ.pdf",
-        "category": "rfq",
-        "status": "active",
-        "version": "1.0",
-        "uploaded_by": "550e8400-e29b-41d4-a716-446655440012",
-        "uploaded_at": "2025-01-27T08:45:00.000Z",
+        "file_size": 3072000,
+        "file_url": "https://storage.googleapis.com/factory-pulse-assets/documents/specifications/P-25012703_technical_spec.pdf",
+        "mime_type": "application/pdf",
+        "version": 1,
+        "is_latest": true,
+        "document_type": "specification",
+        "access_level": "restricted",
+        "checksum": "h8i9j0k1l2m3n4o5p6q7r8s9t0u1v2w3x4y5z6a1b2c3d4e5f6g7",
         "metadata": {
             "customer": "Boeing Vietnam",
             "project_type": "fabrication",
-            "priority": "urgent"
+            "tolerance": "±0.05mm",
+            "title": "Technical Specification - Landing Gear",
+            "description": "Technical specification for aerospace landing gear bracket"
         },
-        "tags": [
-            "rfq",
-            "aerospace",
-            "landing_gear",
-            "bracket"
-        ]
-    },
-    {
-        "id": "550e8400-e29b-41d4-a716-446655440409",
-        "organization_id": "550e8400-e29b-41d4-a716-446655440001",
-        "project_id": "550e8400-e29b-41d4-a716-446655440303",
-        "title": "Technical Specification - Landing Gear",
-        "description": "Detailed technical specifications for aerospace bracket",
-        "file_type": "pdf",
-        "file_size": 3584000,
-        "file_path": "/documents/specs/P-25012703_specs.pdf",
-        "category": "specification",
-        "status": "active",
-        "version": "1.0",
-        "uploaded_by": "550e8400-e29b-41d4-a716-446655440005",
-        "uploaded_at": "2025-01-27T09:45:00.000Z",
-        "metadata": {
-            "customer": "Boeing Vietnam",
+        "storage_provider": "supabase",
+        "external_id": null,
+        "external_url": null,
+        "sync_status": "synced",
+        "last_synced_at": "2025-01-27T09:30:00.000Z",
+        "ai_extracted_data": {
+            "customer_name": "Boeing Vietnam",
             "project_type": "fabrication",
-            "certification": "AS9100"
+            "tolerance": "±0.05mm",
+            "material": "titanium",
+            "certification": "AS9100",
+            "surface_finish": "polished"
         },
-        "tags": [
-            "specification",
-            "aerospace",
-            "technical",
-            "certification"
-        ]
-    },
-    {
-        "id": "550e8400-e29b-41d4-a716-446655440410",
-        "organization_id": "550e8400-e29b-41d4-a716-446655440001",
-        "project_id": "550e8400-e29b-41d4-a716-446655440303",
-        "title": "Material Certification - Titanium",
-        "description": "Material certification for aerospace-grade titanium",
-        "file_type": "pdf",
-        "file_size": 1024000,
-        "file_path": "/documents/certifications/P-25012703_titanium_cert.pdf",
-        "category": "certification",
-        "status": "active",
-        "version": "1.0",
-        "uploaded_by": "550e8400-e29b-41d4-a716-446655440013",
-        "uploaded_at": "2025-01-27T10:45:00.000Z",
-        "metadata": {
-            "customer": "Boeing Vietnam",
-            "project_type": "fabrication",
-            "material": "titanium"
-        },
-        "tags": [
-            "certification",
-            "material",
-            "titanium",
-            "aerospace"
-        ]
-    },
-    {
-        "id": "550e8400-e29b-41d4-a716-446655440411",
-        "organization_id": "550e8400-e29b-41d4-a716-446655440001",
-        "project_id": "550e8400-e29b-41d4-a716-446655440304",
-        "title": "RFQ - Electronics Housing Assembly",
-        "description": "Request for quotation for Samsung electronics housing assembly",
-        "file_type": "pdf",
-        "file_size": 1536000,
-        "file_path": "/documents/rfq/P-25012704_RFQ.pdf",
-        "category": "rfq",
-        "status": "active",
-        "version": "1.0",
-        "uploaded_by": "550e8400-e29b-41d4-a716-446655440012",
-        "uploaded_at": "2025-01-27T09:00:00.000Z",
-        "metadata": {
-            "customer": "Samsung Vietnam",
-            "project_type": "manufacturing",
-            "priority": "high"
-        },
-        "tags": [
-            "rfq",
-            "electronics",
-            "housing",
-            "assembly"
-        ]
-    },
-    {
-        "id": "550e8400-e29b-41d4-a716-446655440412",
-        "organization_id": "550e8400-e29b-41d4-a716-446655440001",
-        "project_id": "550e8400-e29b-41d4-a716-446655440304",
-        "title": "Assembly Instructions - Electronics Housing",
-        "description": "Step-by-step assembly instructions for electronics housing",
-        "file_type": "pdf",
-        "file_size": 2560000,
-        "file_path": "/documents/instructions/P-25012704_assembly.pdf",
-        "category": "instruction",
-        "status": "active",
-        "version": "1.0",
-        "uploaded_by": "550e8400-e29b-41d4-a716-446655440009",
-        "uploaded_at": "2025-01-27T10:00:00.000Z",
-        "metadata": {
-            "customer": "Samsung Vietnam",
-            "project_type": "manufacturing",
-            "quantity": "5000"
-        },
-        "tags": [
-            "instruction",
-            "assembly",
-            "electronics",
-            "housing"
-        ]
-    },
-    {
-        "id": "550e8400-e29b-41d4-a716-446655440413",
-        "organization_id": "550e8400-e29b-41d4-a716-446655440001",
-        "project_id": "550e8400-e29b-41d4-a716-446655440305",
-        "title": "RFQ - Industrial Control Panel",
-        "description": "Request for quotation for Siemens industrial control panel",
-        "file_type": "pdf",
-        "file_size": 2048000,
-        "file_path": "/documents/rfq/P-25012705_RFQ.pdf",
-        "category": "rfq",
-        "status": "active",
-        "version": "1.0",
-        "uploaded_by": "550e8400-e29b-41d4-a716-446655440012",
-        "uploaded_at": "2025-01-27T09:15:00.000Z",
-        "metadata": {
-            "customer": "Siemens Vietnam",
-            "project_type": "manufacturing",
-            "priority": "medium"
-        },
-        "tags": [
-            "rfq",
-            "industrial",
-            "control_panel",
-            "automation"
-        ]
-    },
-    {
-        "id": "550e8400-e29b-41d4-a716-446655440414",
-        "organization_id": "550e8400-e29b-41d4-a716-446655440001",
-        "project_id": "550e8400-e29b-41d4-a716-446655440305",
-        "title": "Electrical Schematic - Control Panel",
-        "description": "Electrical wiring diagram for industrial control panel",
-        "file_type": "dwg",
-        "file_size": 1536000,
-        "file_path": "/documents/drawings/P-25012705_schematic.dwg",
-        "category": "drawing",
-        "status": "active",
-        "version": "1.0",
-        "uploaded_by": "550e8400-e29b-41d4-a716-446655440007",
-        "uploaded_at": "2025-01-27T10:15:00.000Z",
-        "metadata": {
-            "customer": "Siemens Vietnam",
-            "project_type": "manufacturing",
-            "voltage": "24V"
-        },
-        "tags": [
-            "drawing",
-            "electrical",
-            "schematic",
-            "control_panel"
-        ]
-    },
-    {
-        "id": "550e8400-e29b-41d4-a716-446655440415",
-        "organization_id": "550e8400-e29b-41d4-a716-446655440001",
-        "project_id": "550e8400-e29b-41d4-a716-446655440306",
-        "title": "RFQ - LG Home Appliance Parts",
-        "description": "Request for quotation for LG home appliance components",
-        "file_type": "pdf",
-        "file_size": 1792000,
-        "file_path": "/documents/rfq/P-25012706_RFQ.pdf",
-        "category": "rfq",
-        "status": "active",
-        "version": "1.0",
-        "uploaded_by": "550e8400-e29b-41d4-a716-446655440012",
+        "ai_processing_status": "completed",
+        "ai_confidence_score": 97.3,
+        "ai_processed_at": "2025-01-27T09:35:00.000Z",
         "uploaded_at": "2025-01-27T09:30:00.000Z",
-        "metadata": {
-            "customer": "LG Vietnam",
-            "project_type": "manufacturing",
-            "priority": "medium"
-        },
-        "tags": [
-            "rfq",
-            "home_appliance",
-            "components",
-            "lg"
-        ]
-    },
-    {
-        "id": "550e8400-e29b-41d4-a716-446655440416",
-        "organization_id": "550e8400-e29b-41d4-a716-446655440001",
-        "project_id": "550e8400-e29b-41d4-a716-446655440307",
-        "title": "RFQ - Airbus Aircraft Systems",
-        "description": "Request for quotation for Airbus aircraft system components",
-        "file_type": "pdf",
-        "file_size": 3072000,
-        "file_path": "/documents/rfq/P-25012707_RFQ.pdf",
-        "category": "rfq",
-        "status": "active",
-        "version": "1.0",
-        "uploaded_by": "550e8400-e29b-41d4-a716-446655440012",
-        "uploaded_at": "2025-01-27T09:45:00.000Z",
-        "metadata": {
-            "customer": "Airbus Vietnam",
-            "project_type": "system_build",
-            "priority": "urgent"
-        },
-        "tags": [
-            "rfq",
-            "aircraft",
-            "systems",
-            "airbus"
-        ]
-    },
-    {
-        "id": "550e8400-e29b-41d4-a716-446655440417",
-        "organization_id": "550e8400-e29b-41d4-a716-446655440001",
-        "project_id": "550e8400-e29b-41d4-a716-446655440307",
-        "title": "System Architecture - Aircraft Systems",
-        "description": "System architecture diagram for aircraft control systems",
-        "file_type": "dwg",
-        "file_size": 4096000,
-        "file_path": "/documents/drawings/P-25012707_architecture.dwg",
-        "category": "drawing",
-        "status": "active",
-        "version": "1.0",
         "uploaded_by": "550e8400-e29b-41d4-a716-446655440005",
-        "uploaded_at": "2025-01-27T10:45:00.000Z",
-        "metadata": {
-            "customer": "Airbus Vietnam",
-            "project_type": "system_build",
-            "certification": "AS9100"
-        },
-        "tags": [
-            "drawing",
-            "architecture",
-            "aircraft",
-            "systems"
-        ]
-    },
-    {
-        "id": "550e8400-e29b-41d4-a716-446655440418",
-        "organization_id": "550e8400-e29b-41d4-a716-446655440001",
-        "project_id": "550e8400-e29b-41d4-a716-446655440308",
-        "title": "RFQ - ABB Power Systems",
-        "description": "Request for quotation for ABB power system components",
-        "file_type": "pdf",
-        "file_size": 2048000,
-        "file_path": "/documents/rfq/P-25012708_RFQ.pdf",
-        "category": "rfq",
-        "status": "active",
-        "version": "1.0",
-        "uploaded_by": "550e8400-e29b-41d4-a716-446655440012",
-        "uploaded_at": "2025-01-27T10:00:00.000Z",
-        "metadata": {
-            "customer": "ABB Vietnam",
-            "project_type": "system_build",
-            "priority": "high"
-        },
-        "tags": [
-            "rfq",
-            "power_systems",
-            "abb",
-            "automation"
-        ]
-    },
-    {
-        "id": "550e8400-e29b-41d4-a716-446655440419",
-        "organization_id": "550e8400-e29b-41d4-a716-446655440001",
-        "project_id": "550e8400-e29b-41d4-a716-446655440308",
-        "title": "Power System Design - ABB Components",
-        "description": "Power system design specifications for ABB automation",
-        "file_type": "pdf",
-        "file_size": 3584000,
-        "file_path": "/documents/specs/P-25012708_power_design.pdf",
-        "category": "specification",
-        "status": "active",
-        "version": "1.0",
-        "uploaded_by": "550e8400-e29b-41d4-a716-446655440007",
-        "uploaded_at": "2025-01-27T11:00:00.000Z",
-        "metadata": {
-            "customer": "ABB Vietnam",
-            "project_type": "system_build",
-            "voltage": "480V"
-        },
-        "tags": [
-            "specification",
-            "power_systems",
-            "design",
-            "abb"
-        ]
-    },
-    {
-        "id": "550e8400-e29b-41d4-a716-446655440420",
-        "organization_id": "550e8400-e29b-41d4-a716-446655440001",
-        "project_id": "550e8400-e29b-41d4-a716-446655440309",
-        "title": "RFQ - Samsung Display Assembly",
-        "description": "Request for quotation for Samsung display assembly project",
-        "file_type": "pdf",
-        "file_size": 1792000,
-        "file_path": "/documents/rfq/P-25012709_RFQ.pdf",
-        "category": "rfq",
-        "status": "active",
-        "version": "1.0",
-        "uploaded_by": "550e8400-e29b-41d4-a716-446655440012",
-        "uploaded_at": "2025-01-27T10:15:00.000Z",
-        "metadata": {
-            "customer": "Samsung Vietnam",
-            "project_type": "manufacturing",
-            "priority": "high"
-        },
-        "tags": [
-            "rfq",
-            "display",
-            "assembly",
-            "samsung"
-        ]
-    },
-    {
-        "id": "550e8400-e29b-41d4-a716-446655440421",
-        "organization_id": "550e8400-e29b-41d4-a716-446655440001",
-        "project_id": "550e8400-e29b-41d4-a716-446655440309",
-        "title": "Quality Control Plan - Display Assembly",
-        "description": "Quality control procedures for display assembly process",
-        "file_type": "pdf",
-        "file_size": 2560000,
-        "file_path": "/documents/qc/P-25012709_qc_plan.pdf",
-        "category": "quality_control",
-        "status": "active",
-        "version": "1.0",
-        "uploaded_by": "550e8400-e29b-41d4-a716-446655440008",
-        "uploaded_at": "2025-01-27T11:15:00.000Z",
-        "metadata": {
-            "customer": "Samsung Vietnam",
-            "project_type": "manufacturing",
-            "inspection_level": "100%"
-        },
-        "tags": [
-            "quality_control",
-            "display",
-            "assembly",
-            "inspection"
-        ]
-    },
-    {
-        "id": "550e8400-e29b-41d4-a716-446655440422",
-        "organization_id": "550e8400-e29b-41d4-a716-446655440001",
-        "project_id": "550e8400-e29b-41d4-a716-446655440310",
-        "title": "RFQ - Honda Engine Components",
-        "description": "Request for quotation for Honda engine component manufacturing",
-        "file_type": "pdf",
-        "file_size": 2048000,
-        "file_path": "/documents/rfq/P-25012710_RFQ.pdf",
-        "category": "rfq",
-        "status": "active",
-        "version": "1.0",
-        "uploaded_by": "550e8400-e29b-41d4-a716-446655440012",
-        "uploaded_at": "2025-01-27T10:30:00.000Z",
-        "metadata": {
-            "customer": "Honda Vietnam",
-            "project_type": "manufacturing",
-            "priority": "high"
-        },
-        "tags": [
-            "rfq",
-            "engine",
-            "components",
-            "honda"
-        ]
-    },
-    {
-        "id": "550e8400-e29b-41d4-a716-446655440423",
-        "organization_id": "550e8400-e29b-41d4-a716-446655440001",
-        "project_id": "550e8400-e29b-41d4-a716-446655440310",
-        "title": "Manufacturing Process - Engine Components",
-        "description": "Manufacturing process documentation for engine components",
-        "file_type": "pdf",
-        "file_size": 3072000,
-        "file_path": "/documents/process/P-25012710_manufacturing.pdf",
-        "category": "process",
-        "status": "active",
-        "version": "1.0",
-        "uploaded_by": "550e8400-e29b-41d4-a716-446655440009",
-        "uploaded_at": "2025-01-27T11:30:00.000Z",
-        "metadata": {
-            "customer": "Honda Vietnam",
-            "project_type": "manufacturing",
-            "process_type": "machining"
-        },
-        "tags": [
-            "process",
-            "manufacturing",
-            "engine",
-            "machining"
-        ]
-    },
-    {
-        "id": "550e8400-e29b-41d4-a716-446655440424",
-        "organization_id": "550e8400-e29b-41d4-a716-446655440001",
-        "project_id": "550e8400-e29b-41d4-a716-446655440311",
-        "title": "RFQ - Boeing Avionics Housing",
-        "description": "Request for quotation for Boeing avionics housing fabrication",
-        "file_type": "pdf",
-        "file_size": 2560000,
-        "file_path": "/documents/rfq/P-25012711_RFQ.pdf",
-        "category": "rfq",
-        "status": "active",
-        "version": "1.0",
-        "uploaded_by": "550e8400-e29b-41d4-a716-446655440012",
-        "uploaded_at": "2025-01-27T10:45:00.000Z",
-        "metadata": {
-            "customer": "Boeing Vietnam",
-            "project_type": "fabrication",
-            "priority": "urgent"
-        },
-        "tags": [
-            "rfq",
-            "avionics",
-            "housing",
-            "boeing"
-        ]
-    },
-    {
-        "id": "550e8400-e29b-41d4-a716-446655440425",
-        "organization_id": "550e8400-e29b-41d4-a716-446655440001",
-        "project_id": "550e8400-e29b-41d4-a716-446655440311",
-        "title": "Material Specification - Avionics Housing",
-        "description": "Material specifications for aerospace avionics housing",
-        "file_type": "pdf",
-        "file_size": 1792000,
-        "file_path": "/documents/specs/P-25012711_material_specs.pdf",
-        "category": "specification",
-        "status": "active",
-        "version": "1.0",
-        "uploaded_by": "550e8400-e29b-41d4-a716-446655440005",
-        "uploaded_at": "2025-01-27T11:45:00.000Z",
-        "metadata": {
-            "customer": "Boeing Vietnam",
-            "project_type": "fabrication",
-            "material": "aluminum_6061"
-        },
-        "tags": [
-            "specification",
-            "material",
-            "avionics",
-            "aerospace"
-        ]
-    },
-    {
-        "id": "550e8400-e29b-41d4-a716-446655440426",
-        "organization_id": "550e8400-e29b-41d4-a716-446655440001",
-        "project_id": "550e8400-e29b-41d4-a716-446655440312",
-        "title": "RFQ - Samsung PCB Assembly",
-        "description": "Request for quotation for Samsung PCB assembly project",
-        "file_type": "pdf",
-        "file_size": 1536000,
-        "file_path": "/documents/rfq/P-25012712_RFQ.pdf",
-        "category": "rfq",
-        "status": "active",
-        "version": "1.0",
-        "uploaded_by": "550e8400-e29b-41d4-a716-446655440012",
-        "uploaded_at": "2025-01-27T11:00:00.000Z",
-        "metadata": {
-            "customer": "Samsung Vietnam",
-            "project_type": "manufacturing",
-            "priority": "medium"
-        },
-        "tags": [
-            "rfq",
-            "pcb",
-            "assembly",
-            "samsung"
-        ]
-    },
-    {
-        "id": "550e8400-e29b-41d4-a716-446655440427",
-        "organization_id": "550e8400-e29b-41d4-a716-446655440001",
-        "project_id": "550e8400-e29b-41d4-a716-446655440312",
-        "title": "PCB Design - Samsung Components",
-        "description": "PCB design files for Samsung electronic components",
-        "file_type": "dwg",
-        "file_size": 2048000,
-        "file_path": "/documents/drawings/P-25012712_pcb_design.dwg",
-        "category": "drawing",
-        "status": "active",
-        "version": "1.0",
-        "uploaded_by": "550e8400-e29b-41d4-a716-446655440007",
-        "uploaded_at": "2025-01-27T12:00:00.000Z",
-        "metadata": {
-            "customer": "Samsung Vietnam",
-            "project_type": "manufacturing",
-            "layers": "4"
-        },
-        "tags": [
-            "drawing",
-            "pcb",
-            "design",
-            "electronics"
-        ]
-    },
-    {
-        "id": "550e8400-e29b-41d4-a716-446655440428",
-        "organization_id": "550e8400-e29b-41d4-a716-446655440001",
-        "project_id": "550e8400-e29b-41d4-a716-446655440313",
-        "title": "RFQ - LG Smart Home System",
-        "description": "Request for quotation for LG smart home system integration",
-        "file_type": "pdf",
-        "file_size": 2560000,
-        "file_path": "/documents/rfq/P-25012713_RFQ.pdf",
-        "category": "rfq",
-        "status": "active",
-        "version": "1.0",
-        "uploaded_by": "550e8400-e29b-41d4-a716-446655440012",
-        "uploaded_at": "2025-01-27T11:15:00.000Z",
-        "metadata": {
-            "customer": "LG Vietnam",
-            "project_type": "system_build",
-            "priority": "high"
-        },
-        "tags": [
-            "rfq",
-            "smart_home",
-            "system",
-            "lg"
-        ]
-    },
-    {
-        "id": "550e8400-e29b-41d4-a716-446655440429",
-        "organization_id": "550e8400-e29b-41d4-a716-446655440001",
-        "project_id": "550e8400-e29b-41d4-a716-446655440313",
-        "title": "System Integration Plan - Smart Home",
-        "description": "System integration plan for LG smart home automation",
-        "file_type": "pdf",
-        "file_size": 3584000,
-        "file_path": "/documents/plans/P-25012713_integration.pdf",
-        "category": "plan",
-        "status": "active",
-        "version": "1.0",
-        "uploaded_by": "550e8400-e29b-41d4-a716-446655440005",
-        "uploaded_at": "2025-01-27T12:15:00.000Z",
-        "metadata": {
-            "customer": "LG Vietnam",
-            "project_type": "system_build",
-            "integration_type": "iot"
-        },
-        "tags": [
-            "plan",
-            "integration",
-            "smart_home",
-            "iot"
-        ]
-    },
-    {
-        "id": "550e8400-e29b-41d4-a716-446655440430",
-        "organization_id": "550e8400-e29b-41d4-a716-446655440001",
-        "project_id": "550e8400-e29b-41d4-a716-446655440314",
-        "title": "RFQ - Airbus Engine Mount",
-        "description": "Request for quotation for Airbus engine mount fabrication",
-        "file_type": "pdf",
-        "file_size": 2048000,
-        "file_path": "/documents/rfq/P-25012714_RFQ.pdf",
-        "category": "rfq",
-        "status": "active",
-        "version": "1.0",
-        "uploaded_by": "550e8400-e29b-41d4-a716-446655440012",
-        "uploaded_at": "2025-01-27T11:30:00.000Z",
-        "metadata": {
-            "customer": "Airbus Vietnam",
-            "project_type": "fabrication",
-            "priority": "urgent"
-        },
-        "tags": [
-            "rfq",
-            "engine_mount",
-            "airbus",
-            "aerospace"
-        ]
-    },
-    {
-        "id": "550e8400-e29b-41d4-a716-446655440431",
-        "organization_id": "550e8400-e29b-41d4-a716-446655440001",
-        "project_id": "550e8400-e29b-41d4-a716-446655440314",
-        "title": "Structural Analysis - Engine Mount",
-        "description": "Structural analysis report for aircraft engine mount",
-        "file_type": "pdf",
-        "file_size": 4096000,
-        "file_path": "/documents/analysis/P-25012714_structural.pdf",
-        "category": "analysis",
-        "status": "active",
-        "version": "1.0",
-        "uploaded_by": "550e8400-e29b-41d4-a716-446655440005",
-        "uploaded_at": "2025-01-27T12:30:00.000Z",
-        "metadata": {
-            "customer": "Airbus Vietnam",
-            "project_type": "fabrication",
-            "analysis_type": "finite_element"
-        },
-        "tags": [
-            "analysis",
-            "structural",
-            "engine_mount",
-            "finite_element"
-        ]
-    },
-    {
-        "id": "550e8400-e29b-41d4-a716-446655440432",
-        "organization_id": "550e8400-e29b-41d4-a716-446655440001",
-        "project_id": "550e8400-e29b-41d4-a716-446655440315",
-        "title": "RFQ - ABB Motor Assembly",
-        "description": "Request for quotation for ABB motor assembly project",
-        "file_type": "pdf",
-        "file_size": 1792000,
-        "file_path": "/documents/rfq/P-25012715_RFQ.pdf",
-        "category": "rfq",
-        "status": "active",
-        "version": "1.0",
-        "uploaded_by": "550e8400-e29b-41d4-a716-446655440012",
-        "uploaded_at": "2025-01-27T11:45:00.000Z",
-        "metadata": {
-            "customer": "ABB Vietnam",
-            "project_type": "manufacturing",
-            "priority": "medium"
-        },
-        "tags": [
-            "rfq",
-            "motor",
-            "assembly",
-            "abb"
-        ]
-    },
-    {
-        "id": "550e8400-e29b-41d4-a716-446655440433",
-        "organization_id": "550e8400-e29b-41d4-a716-446655440001",
-        "project_id": "550e8400-e29b-41d4-a716-446655440315",
-        "title": "Assembly Line Layout - Motor Assembly",
-        "description": "Production line layout for ABB motor assembly",
-        "file_type": "dwg",
-        "file_size": 2560000,
-        "file_path": "/documents/layouts/P-25012715_assembly_line.dwg",
-        "category": "drawing",
-        "status": "active",
-        "version": "1.0",
-        "uploaded_by": "550e8400-e29b-41d4-a716-446655440009",
-        "uploaded_at": "2025-01-27T12:45:00.000Z",
-        "metadata": {
-            "customer": "ABB Vietnam",
-            "project_type": "manufacturing",
-            "line_type": "automated"
-        },
-        "tags": [
-            "drawing",
-            "layout",
-            "assembly_line",
-            "motor"
-        ]
-    },
-    {
-        "id": "550e8400-e29b-41d4-a716-446655440434",
-        "organization_id": "550e8400-e29b-41d4-a716-446655440001",
-        "project_id": "550e8400-e29b-41d4-a716-446655440316",
-        "title": "RFQ - Toyota Transmission Housing",
-        "description": "Request for quotation for Toyota transmission housing",
-        "file_type": "pdf",
-        "file_size": 2048000,
-        "file_path": "/documents/rfq/P-25012716_RFQ.pdf",
-        "category": "rfq",
-        "status": "active",
-        "version": "1.0",
-        "uploaded_by": "550e8400-e29b-41d4-a716-446655440012",
-        "uploaded_at": "2025-01-27T12:00:00.000Z",
-        "metadata": {
-            "customer": "Toyota Vietnam",
-            "project_type": "fabrication",
-            "priority": "high"
-        },
-        "tags": [
-            "rfq",
-            "transmission",
-            "housing",
-            "toyota"
-        ]
-    },
-    {
-        "id": "550e8400-e29b-41d4-a716-446655440435",
-        "organization_id": "550e8400-e29b-41d4-a716-446655440001",
-        "project_id": "550e8400-e29b-41d4-a716-446655440316",
-        "title": "Casting Design - Transmission Housing",
-        "description": "Casting design for automotive transmission housing",
-        "file_type": "dwg",
-        "file_size": 3072000,
-        "file_path": "/documents/drawings/P-25012716_casting.dwg",
-        "category": "drawing",
-        "status": "active",
-        "version": "1.0",
-        "uploaded_by": "550e8400-e29b-41d4-a716-446655440005",
-        "uploaded_at": "2025-01-27T13:00:00.000Z",
-        "metadata": {
-            "customer": "Toyota Vietnam",
-            "project_type": "fabrication",
-            "casting_type": "die_cast"
-        },
-        "tags": [
-            "drawing",
-            "casting",
-            "transmission",
-            "automotive"
-        ]
-    },
-    {
-        "id": "550e8400-e29b-41d4-a716-446655440436",
-        "organization_id": "550e8400-e29b-41d4-a716-446655440001",
-        "project_id": "550e8400-e29b-41d4-a716-446655440317",
-        "title": "RFQ - Honda Chassis Assembly",
-        "description": "Request for quotation for Honda chassis assembly project",
-        "file_type": "pdf",
-        "file_size": 2560000,
-        "file_path": "/documents/rfq/P-25012717_RFQ.pdf",
-        "category": "rfq",
-        "status": "active",
-        "version": "1.0",
-        "uploaded_by": "550e8400-e29b-41d4-a716-446655440012",
-        "uploaded_at": "2025-01-27T12:15:00.000Z",
-        "metadata": {
-            "customer": "Honda Vietnam",
-            "project_type": "fabrication",
-            "priority": "high"
-        },
-        "tags": [
-            "rfq",
-            "chassis",
-            "assembly",
-            "honda"
-        ]
-    },
-    {
-        "id": "550e8400-e29b-41d4-a716-446655440437",
-        "organization_id": "550e8400-e29b-41d4-a716-446655440001",
-        "project_id": "550e8400-e29b-41d4-a716-446655440317",
-        "title": "Welding Procedure - Chassis Assembly",
-        "description": "Welding procedure specification for motorcycle chassis",
-        "file_type": "pdf",
-        "file_size": 2048000,
-        "file_path": "/documents/procedures/P-25012717_welding.pdf",
-        "category": "procedure",
-        "status": "active",
-        "version": "1.0",
-        "uploaded_by": "550e8400-e29b-41d4-a716-446655440006",
-        "uploaded_at": "2025-01-27T13:15:00.000Z",
-        "metadata": {
-            "customer": "Honda Vietnam",
-            "project_type": "fabrication",
-            "welding_type": "mig"
-        },
-        "tags": [
-            "procedure",
-            "welding",
-            "chassis",
-            "motorcycle"
-        ]
-    },
-    {
-        "id": "550e8400-e29b-41d4-a716-446655440438",
-        "organization_id": "550e8400-e29b-41d4-a716-446655440001",
-        "project_id": "550e8400-e29b-41d4-a716-446655440317",
-        "title": "Quality Inspection Report - Chassis",
-        "description": "Quality inspection report for Honda chassis assembly",
-        "file_type": "pdf",
-        "file_size": 1536000,
-        "file_path": "/documents/reports/P-25012717_inspection.pdf",
-        "category": "report",
-        "status": "active",
-        "version": "1.0",
-        "uploaded_by": "550e8400-e29b-41d4-a716-446655440008",
-        "uploaded_at": "2025-01-27T13:30:00.000Z",
-        "metadata": {
-            "customer": "Honda Vietnam",
-            "project_type": "fabrication",
-            "inspection_date": "2025-01-27"
-        },
-        "tags": [
-            "report",
-            "inspection",
-            "quality",
-            "chassis"
-        ]
+        "approved_at": "2025-01-27T10:00:00.000Z",
+        "approved_by": "550e8400-e29b-41d4-a716-446655440005"
     }
 ]
