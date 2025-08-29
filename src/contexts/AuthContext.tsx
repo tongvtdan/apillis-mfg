@@ -81,29 +81,15 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         return;
       }
 
-      // Query user profile by user_id (which links to auth.users.id) - this avoids RLS recursion
-      console.log('Searching for user with user_id:', authUser.id);
+      // Query user profile by id (which should match auth.users.id)
+      console.log('Searching for user with id:', authUser.id);
       let { data, error } = await supabase
         .from('users')
         .select('*')
-        .eq('user_id', authUser.id)
+        .eq('id', authUser.id)
         .maybeSingle();
 
-      console.log('Database query by user_id result:', { data, error });
-
-      // If user_id query fails, try by email as fallback (for backward compatibility)
-      if (!data && !error) {
-        console.log('user_id query returned no data, trying email query...');
-        const emailQuery = await supabase
-          .from('users')
-          .select('*')
-          .eq('email', authUser.email)
-          .maybeSingle();
-
-        data = emailQuery.data;
-        error = emailQuery.error;
-        console.log('Database query by email result:', { data, error });
-      }
+      console.log('Database query by id result:', { data, error });
 
       if (error) {
         console.error('Error fetching profile:', error);
@@ -124,7 +110,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         setProfile(typedData);
         console.log('Profile state set successfully');
       } else {
-        console.log('No user data found in database for email:', authUser.email);
+        console.log('No user data found in database for user ID:', authUser.id);
 
         // Check if this is a new user that needs a profile created
         if (authUser.email && authUser.id) {
@@ -140,15 +126,36 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
               .maybeSingle();
 
             if (orgData) {
+              // Determine role based on email pattern
+              let userRole: 'sales' | 'procurement' | 'engineering' | 'qa' | 'production' | 'management' | 'admin' = 'sales';
+
+              if (authUser.email) {
+                if (authUser.email === 'admin@factorypulse.vn') {
+                  userRole = 'admin';
+                } else if (authUser.email.startsWith('ceo@')) {
+                  userRole = 'management';
+                } else if (authUser.email.startsWith('sales')) {
+                  userRole = 'sales';
+                } else if (authUser.email.startsWith('procurement')) {
+                  userRole = 'procurement';
+                } else if (authUser.email.startsWith('engineering')) {
+                  userRole = 'engineering';
+                } else if (authUser.email.startsWith('qa')) {
+                  userRole = 'qa';
+                } else if (authUser.email.startsWith('production')) {
+                  userRole = 'production';
+                }
+              }
+
               // Create new user profile in database
               const { data: newProfile, error: createError } = await supabase
                 .from('users')
                 .insert({
-                  user_id: authUser.id, // Link to auth.users.id
+                  id: authUser.id, // Use the auth user ID as the primary key
                   organization_id: orgData.id,
                   email: authUser.email,
                   name: authUser.user_metadata?.name || authUser.email.split('@')[0],
-                  role: 'sales', // Default role for new users
+                  role: userRole,
                   department: '',
                   status: 'active',
                   created_at: new Date().toISOString(),
@@ -179,13 +186,34 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
           // Fallback: Create profile from auth user metadata if database creation fails
           console.log('Creating fallback profile from auth user metadata...');
 
+          // Determine role based on email pattern
+          let fallbackRole: 'sales' | 'procurement' | 'engineering' | 'qa' | 'production' | 'management' | 'admin' = 'sales';
+
+          if (authUser.email) {
+            if (authUser.email === 'admin@factorypulse.vn') {
+              fallbackRole = 'admin';
+            } else if (authUser.email.startsWith('ceo@')) {
+              fallbackRole = 'management';
+            } else if (authUser.email.startsWith('sales')) {
+              fallbackRole = 'sales';
+            } else if (authUser.email.startsWith('procurement')) {
+              fallbackRole = 'procurement';
+            } else if (authUser.email.startsWith('engineering')) {
+              fallbackRole = 'engineering';
+            } else if (authUser.email.startsWith('qa')) {
+              fallbackRole = 'qa';
+            } else if (authUser.email.startsWith('production')) {
+              fallbackRole = 'production';
+            }
+          }
+
           // Map auth user data to profile format
           const fallbackProfile: UserProfile = {
             id: authUser.id,
             organization_id: '',
             email: authUser.email,
             name: authUser.user_metadata?.name || authUser.email.split('@')[0],
-            role: 'sales', // Default role for new users
+            role: fallbackRole,
             department: '',
             phone: '',
             avatar_url: undefined,
@@ -242,7 +270,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       const { error: userError } = await supabase
         .from('users')
         .insert({
-          user_id: userId, // Link to auth.users.id
+          id: userId, // Use the auth user ID as the primary key
           organization_id: organization.id,
           email: email,
           name: displayName,

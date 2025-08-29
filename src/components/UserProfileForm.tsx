@@ -9,7 +9,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 export function UserProfileForm() {
     const { profile, updateUserProfile, loading } = useAuth();
     const [formData, setFormData] = useState({
-        name: profile?.name || '',
+        display_name: profile?.name || '',
         role: profile?.role || 'sales',
         department: profile?.department || '',
         phone: profile?.phone || '',
@@ -21,7 +21,10 @@ export function UserProfileForm() {
         setIsUpdating(true);
 
         try {
-            await updateUserProfile(formData);
+            await updateUserProfile({
+                ...formData,
+                name: formData.display_name // Map display_name to name for the API
+            });
         } catch (error) {
             console.error('Failed to update profile:', error);
         } finally {
@@ -107,7 +110,7 @@ export function UserProfileForm() {
                             type="button"
                             variant="outline"
                             onClick={() => setFormData({
-                                name: profile?.name || '',
+                                display_name: profile?.name || '',
                                 role: profile?.role || 'sales',
                                 department: profile?.department || '',
                                 phone: profile?.phone || '',

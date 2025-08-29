@@ -62,7 +62,7 @@ export default function Auth() {
       ...prev,
       domain: savedDomain,
       username: savedUsername,
-      password: savedPassword
+      password: savedRememberPassword ? savedPassword : '' // Only load password if remember me is enabled
     }));
     setRememberPassword(savedRememberPassword);
   }, []);
@@ -92,6 +92,21 @@ export default function Auth() {
     }
 
     setSignInData(prev => ({ ...prev, username: cleanUsername }));
+  };
+
+  // Handle remember password change
+  const handleRememberPasswordChange = (checked: boolean) => {
+    setRememberPassword(checked);
+    if (!checked) {
+      // Clear password field when remember me is unchecked
+      setSignInData(prev => ({ ...prev, password: '' }));
+    } else {
+      // Load saved password when remember me is checked
+      const savedPassword = getSavedPassword();
+      if (savedPassword) {
+        setSignInData(prev => ({ ...prev, password: savedPassword }));
+      }
+    }
   };
 
   // Get the full email for display
@@ -288,7 +303,7 @@ export default function Auth() {
                     <Checkbox
                       id="remember-password"
                       checked={rememberPassword}
-                      onCheckedChange={(checked) => setRememberPassword(checked as boolean)}
+                      onCheckedChange={handleRememberPasswordChange}
                     />
                     <Label htmlFor="remember-password" className="text-sm text-muted-foreground">
                       Remember me
