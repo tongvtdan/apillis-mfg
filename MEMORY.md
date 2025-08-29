@@ -316,6 +316,72 @@ public.contacts (Business Relationships)
 - Test all database operations with synchronized user IDs
 - Ensure foreign key relationships work correctly
 
+### 11. **Projects Sample Data Updated and Imported** ✅
+**Date**: 2025-01-29
+**Objective**: Update projects sample data to use actual database IDs and import into local Supabase
+**Process Completed**:
+- ✅ **Database Analysis**: Examined current database schema and existing data
+- ✅ **Data Mapping**: Mapped customer contacts, sales personnel, and workflow stages
+- ✅ **Sample Data Update**: Created updated projects data with real database IDs
+- ✅ **Database Import**: Successfully imported 17 projects into local Supabase
+- ✅ **Relationship Verification**: Confirmed all foreign keys and relationships working correctly
+
+**Technical Implementation**:
+- **Database Connection**: Connected to local Supabase instance (port 54322)
+- **Schema Analysis**: Reviewed projects, contacts, users, organizations, and workflow_stages tables
+- **ID Mapping**: 
+  - Customer IDs: Mapped to actual contact IDs from contacts table
+  - Sales Personnel: Used actual sales user IDs (sales@factorypulse.vn, sales2@factorypulse.vn)
+  - Workflow Stages: Used actual workflow stage IDs from database
+  - Organization: All projects assigned to Factory Pulse Vietnam
+- **Data Structure**: Aligned with current database schema (removed non-existent fields)
+- **Batch Import**: Imported projects in batches of 5 to avoid overwhelming database
+
+**Data Mapping Results**:
+- **Customer Contacts**: 8 customer contacts mapped (Toyota, Honda, Boeing, Airbus, Samsung, LG, Siemens, ABB)
+- **Sales Personnel**: 2 sales users assigned to projects (253d6f3d-d962-43a4-ad25-b85348b58902, 9bdeb177-6029-4c61-a24a-6964a5d2825d)
+- **Workflow Stages**: 8 stages mapped (Inquiry Received, Technical Review, Supplier RFQ, Quoted, Order Confirmed, Procurement Planning, In Production, Shipped & Closed)
+- **Project Types**: Fabrication, manufacturing, and system_build projects included
+- **Status Distribution**: active (15), delayed (1), on_hold (1)
+
+**Import Results**:
+```
+🎉 Projects import completed!
+✅ Successfully imported: 17 projects
+📊 Total projects in database: 17
+📋 Sample projects:
+  - P-25012701: Automotive Bracket Assembly (active, high, 45M VND)
+  - P-25012702: Motorcycle Frame Welding (active, medium, 28M VND)
+  - P-25012703: Aircraft Landing Gear Bracket (active, urgent, 120M VND)
+  - P-25012704: Industrial Control Panel Housing (delayed, medium, 35M VND)
+  - P-25012705: Power System Enclosure (active, high, 85M VND)
+```
+
+**Files Created/Updated**:
+- `sample-data/backup/projects-updated.json` - Updated projects data with real database IDs
+- `scripts/import-projects.js` - ES module script for importing projects data
+- `MEMORY.md` - Documentation of the update and import process
+
+**Benefits**:
+- **Real Data Relationships**: All projects now have valid foreign key relationships
+- **Database Consistency**: Sample data matches actual database schema
+- **Testing Ready**: Projects can be used for testing all application features
+- **Relationship Testing**: Foreign keys work correctly for customer, user, and stage relationships
+- **Development Foundation**: Realistic project data for building and testing project management features
+
+**Verification Results**:
+- **Total Projects**: 17 projects successfully imported
+- **Foreign Key Integrity**: All relationships working correctly
+- **Data Consistency**: Project data matches database schema
+- **Relationship Testing**: Customer, assigned user, and workflow stage relationships verified
+
+**Next Steps**:
+- Test project management features with the imported data
+- Develop project dashboard and management interfaces
+- Implement project workflow progression functionality
+- Test project assignment and user management features
+- Build project analytics and reporting capabilities
+
 ## Next Steps
 
 1. **Portal Development**: Build unified customer and supplier portal interfaces
