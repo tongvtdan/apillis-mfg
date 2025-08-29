@@ -10,7 +10,7 @@ export function UserProfileForm() {
     const { profile, updateUserProfile, loading } = useAuth();
     const [formData, setFormData] = useState({
         name: profile?.name || '',
-        role: profile?.role || 'customer',
+        role: profile?.role || 'sales',
         department: profile?.department || '',
         phone: profile?.phone || '',
     });
@@ -80,14 +80,12 @@ export function UserProfileForm() {
                                     <SelectValue placeholder="Select your role" />
                                 </SelectTrigger>
                                 <SelectContent>
-                                    <SelectItem value="customer">Customer</SelectItem>
+                                    <SelectItem value="sales">Sales</SelectItem>
                                     <SelectItem value="procurement">Procurement</SelectItem>
                                     <SelectItem value="engineering">Engineering</SelectItem>
                                     <SelectItem value="qa">Quality Assurance</SelectItem>
                                     <SelectItem value="production">Production</SelectItem>
-                                    <SelectItem value="supplier">Supplier</SelectItem>
                                     <SelectItem value="management">Management</SelectItem>
-                                    <SelectItem value="sales">Sales</SelectItem>
                                     <SelectItem value="admin">Admin</SelectItem>
                                 </SelectContent>
                             </Select>
@@ -110,7 +108,7 @@ export function UserProfileForm() {
                             variant="outline"
                             onClick={() => setFormData({
                                 name: profile?.name || '',
-                                role: profile?.role || 'customer',
+                                role: profile?.role || 'sales',
                                 department: profile?.department || '',
                                 phone: profile?.phone || '',
                             })}

@@ -3,13 +3,11 @@ export type DatabaseTimestamp = string; // ISO 8601 timestamp string
 
 // User roles enum
 export enum UserRole {
-    CUSTOMER = 'customer',
-    SUPPLIER = 'supplier',
-    PRODUCTION = 'production',
-    QA = 'qa',
-    ENGINEERING = 'engineering',
-    PROCUREMENT = 'procurement',
     SALES = 'sales',
+    PROCUREMENT = 'procurement',
+    ENGINEERING = 'engineering',
+    QA = 'qa',
+    PRODUCTION = 'production',
     MANAGEMENT = 'management',
     ADMIN = 'admin'
 }
@@ -131,11 +129,6 @@ export interface PasswordChangeData {
 
 // Permission matrix mapping roles to allowed actions
 export const ROLE_PERMISSIONS: Record<UserRole, Permission[]> = {
-    [UserRole.CUSTOMER]: [
-        { resource: 'rfq', actions: ['create', 'read_own'] },
-        { resource: 'profile', actions: ['read_own', 'update_own'] },
-        { resource: 'dashboard', actions: ['read_own'] }
-    ],
     [UserRole.SALES]: [
         { resource: 'rfq', actions: ['create', 'read', 'update', 'assign', 'delete'] },
         { resource: 'customer', actions: ['read', 'create', 'update'] },
@@ -175,13 +168,6 @@ export const ROLE_PERMISSIONS: Record<UserRole, Permission[]> = {
         { resource: 'profile', actions: ['read_own', 'update_own'] },
         { resource: 'capacity', actions: ['read', 'update'] },
         { resource: 'workflow', actions: ['read', 'update'] }
-    ],
-    [UserRole.SUPPLIER]: [
-        { resource: 'rfq', actions: ['read_assigned', 'respond'] },
-        { resource: 'quotations', actions: ['create', 'read_own', 'update_own'] },
-        { resource: 'dashboard', actions: ['read_own'] },
-        { resource: 'profile', actions: ['read_own', 'update_own'] },
-        { resource: 'communications', actions: ['read', 'create'] }
     ],
     [UserRole.MANAGEMENT]: [
         { resource: 'rfq', actions: ['read', 'approve', 'reject'] },

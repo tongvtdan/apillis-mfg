@@ -261,7 +261,7 @@ export default function AdminUsers() {
     filterUsers();
   }, [searchQuery, roleFilter, statusFilter, users]);
 
-  const roles = ['customer', 'procurement', 'engineering', 'qa', 'production', 'supplier', 'management'];
+  const roles = ['procurement', 'engineering', 'qa', 'production', 'management'];
   const statuses = ['active', 'dismiss'];
 
   return (

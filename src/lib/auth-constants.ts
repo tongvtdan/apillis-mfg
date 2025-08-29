@@ -63,12 +63,11 @@ export const PASSWORD_PATTERNS = {
  * Role display names and descriptions
  */
 export const ROLE_DESCRIPTIONS = {
-    customer: 'External customers who submit RFQs and track their progress',
+    sales: 'Sales staff who manage customer relationships and RFQ intake',
     procurement: 'Internal staff who manage RFQ workflows and supplier relationships',
     engineering: 'Technical staff who review and provide engineering input on RFQs',
     qa: 'Quality assurance staff who review and approve technical specifications',
     production: 'Production staff who handle manufacturing scheduling and capacity planning',
-    supplier: 'External suppliers who respond to RFQs and provide quotations',
     management: 'Senior management with full system access and administrative privileges',
     admin: 'System administrators with full access to all features and system configuration',
 } as const;
@@ -77,12 +76,11 @@ export const ROLE_DESCRIPTIONS = {
  * Navigation routes based on user roles
  */
 export const ROLE_DEFAULT_ROUTES = {
-    customer: '/dashboard',
+    sales: '/dashboard',
     procurement: '/dashboard',
     engineering: '/dashboard',
     qa: '/dashboard',
     production: '/dashboard',
-    supplier: '/dashboard',
     management: '/admin/dashboard',
     admin: '/admin/dashboard',
 } as const;

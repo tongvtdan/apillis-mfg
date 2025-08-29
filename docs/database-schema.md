@@ -54,14 +54,14 @@ CREATE TABLE organizations (
     updated_at TIMESTAMPTZ DEFAULT NOW()
 );
 
--- User profiles with role-based access
+-- User profiles with role-based access (internal users only)
 CREATE TABLE users (
     id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
     organization_id UUID REFERENCES organizations(id) ON DELETE CASCADE,
     email VARCHAR(255) UNIQUE NOT NULL,
     name VARCHAR(255) NOT NULL,
     role VARCHAR(50) NOT NULL 
-      CHECK (role IN ('customer', 'sales', 'procurement', 'engineering', 'qa', 'production', 'management', 'supplier', 'admin')),
+      CHECK (role IN ('sales', 'procurement', 'engineering', 'qa', 'production', 'management', 'admin')),
     department VARCHAR(100),
     phone VARCHAR(50),
     avatar_url TEXT,
@@ -80,6 +80,8 @@ CREATE TABLE users (
 -- External contacts (customers and suppliers)
 -- Note: Each contact references their own organization, not Factory Pulse's organization
 -- This enables proper multi-tenant separation between external companies and Factory Pulse
+-- IMPORTANT: External customers and suppliers are managed in this table, NOT in the users table
+-- The users table is reserved for internal Factory Pulse employees only
 CREATE TABLE contacts (
     id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
     organization_id UUID REFERENCES organizations(id) ON DELETE CASCADE,

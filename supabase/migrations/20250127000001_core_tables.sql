@@ -129,11 +129,9 @@ VALUES
     ('550e8400-e29b-41d4-a716-446655440006', '550e8400-e29b-41d4-a716-446655440001', 'engineering@factorypulse.vn', 'Nguyễn Thị Lan', 'engineering', 'Engineering', '+84-28-7300-0005', 'active', 'EMP-NTL-550e', NOW(), NOW()),
     ('550e8400-e29b-41d4-a716-446655440007', '550e8400-e29b-41d4-a716-446655440001', 'qa@factorypulse.vn', 'Trần Văn Dũng', 'qa', 'Quality Assurance', '+84-28-7300-0006', 'active', 'EMP-TVD-550e', NOW(), NOW()),
     ('550e8400-e29b-41d4-a716-446655440008', '550e8400-e29b-41d4-a716-446655440001', 'production@factorypulse.vn', 'Lê Thị Mai', 'production', 'Production', '+84-28-7300-0007', 'active', 'EMP-LTM-550e', NOW(), NOW()),
-    ('550e8400-e29b-41d4-a716-446655440009', '550e8400-e29b-41d4-a716-446655440001', 'sales@factorypulse.vn', 'Võ Văn Nam', 'sales', 'Sales', '+84-28-7300-0008', 'active', 'EMP-VVN-550e', NOW(), NOW()),
-    ('550e8400-e29b-41d4-a716-446655440010', '550e8400-e29b-41d4-a716-446655440001', 'supplier@factorypulse.vn', 'Nguyễn Văn Thành', 'supplier', 'Procurement', '+84-28-7300-0009', 'active', 'EMP-NVT-550e', NOW(), NOW()),
-    ('550e8400-e29b-41d4-a716-446655440011', '550e8400-e29b-41d4-a716-446655440001', 'customer@factorypulse.vn', 'Trần Thị Kim', 'customer', 'Customer Relations', '+84-28-7300-0010', 'active', 'EMP-TTK-550e', NOW(), NOW()),
+    ('550e8400-e29b-41d4-a716-446655440009', '550e8400-e29b-41d4-a716-446655440001', 'sales@factorypulse.vn', 'Võ Văn Nam', 'sales', 'Sales', '+84-28-7300-0008', 'active', 'EMP-VVN-550e', NOW(), NOW()),    
     ('550e8400-e29b-41d4-a716-446655440012', '550e8400-e29b-41d4-a716-446655440001', 'admin@factorypulse.vn', 'Lê Văn Sơn', 'admin', 'IT', '+84-28-7300-0011', 'active', 'EMP-LVS-550e', NOW(), NOW()),
-    ('550e8400-e29b-41d4-a716-446655440013', '550e8400-e29b-41d4-a716-446655440001', 'support@factorypulse.vn', 'Phạm Thị Nga', 'customer', 'Support', '+84-28-7300-0012', 'active', 'EMP-PTN-550e', NOW(), NOW())
+    
 ON CONFLICT (email) DO NOTHING;
 
 -- ============================================================================

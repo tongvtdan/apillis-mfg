@@ -12,7 +12,7 @@ export interface UserProfile {
   organization_id: string;
   email: string;
   name: string;
-  role: 'customer' | 'sales' | 'procurement' | 'engineering' | 'qa' | 'production' | 'management' | 'supplier' | 'admin';
+  role: 'sales' | 'procurement' | 'engineering' | 'qa' | 'production' | 'management' | 'admin';
   department?: string;
   phone?: string;
   avatar_url?: string;
@@ -116,7 +116,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         // Ensure the role and status are properly typed
         const typedData: UserProfile = {
           ...data,
-          role: data.role as 'customer' | 'sales' | 'procurement' | 'engineering' | 'qa' | 'production' | 'management' | 'supplier' | 'admin',
+          role: data.role as 'sales' | 'procurement' | 'engineering' | 'qa' | 'production' | 'management' | 'admin',
           status: data.status as 'active' | 'dismiss',
           preferences: typeof data.preferences === 'object' && data.preferences !== null ? data.preferences as Record<string, any> : {}
         };
@@ -148,7 +148,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
                   organization_id: orgData.id,
                   email: authUser.email,
                   name: authUser.user_metadata?.name || authUser.email.split('@')[0],
-                  role: 'customer', // Default role for new users
+                  role: 'sales', // Default role for new users
                   department: '',
                   status: 'active',
                   created_at: new Date().toISOString(),
@@ -162,7 +162,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
                 // Ensure proper typing for the new profile
                 const typedNewProfile: UserProfile = {
                   ...newProfile,
-                  role: newProfile.role as 'customer' | 'sales' | 'procurement' | 'engineering' | 'qa' | 'production' | 'management' | 'supplier' | 'admin',
+                  role: newProfile.role as 'sales' | 'procurement' | 'engineering' | 'qa' | 'production' | 'management' | 'admin',
                   status: newProfile.status as 'active' | 'dismiss',
                   preferences: typeof newProfile.preferences === 'object' ? newProfile.preferences as Record<string, any> : {}
                 };
@@ -185,7 +185,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
             organization_id: '',
             email: authUser.email,
             name: authUser.user_metadata?.name || authUser.email.split('@')[0],
-            role: 'customer', // Default role for new users
+            role: 'sales', // Default role for new users
             department: '',
             phone: '',
             avatar_url: undefined,
@@ -246,7 +246,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
           organization_id: organization.id,
           email: email,
           name: displayName,
-          role: 'customer', // Default role for new users
+          role: 'sales', // Default role for new users
           status: 'active'
         });
 

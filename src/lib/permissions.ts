@@ -107,19 +107,17 @@ export function getMinimumRoleForPermission(resource: string, action: string): U
 
 /**
  * Get the hierarchy level of a user role
- * Based on the hierarchy: Admin > Management > Sales > Procurement > Engineering > QA > Production > Supplier > Customer
+ * Based on the hierarchy: Admin > Management > Sales > Procurement > Engineering > QA > Production
  */
 export function getRoleHierarchyLevel(role: UserRole): number {
     const roleHierarchy: Record<UserRole, number> = {
-        [UserRole.ADMIN]: 9,
-        [UserRole.MANAGEMENT]: 8,
-        [UserRole.SALES]: 7,
-        [UserRole.PROCUREMENT]: 6,
-        [UserRole.ENGINEERING]: 5,
-        [UserRole.QA]: 4,
-        [UserRole.PRODUCTION]: 3,
-        [UserRole.SUPPLIER]: 2,
-        [UserRole.CUSTOMER]: 1
+        [UserRole.ADMIN]: 7,
+        [UserRole.MANAGEMENT]: 6,
+        [UserRole.SALES]: 5,
+        [UserRole.PROCUREMENT]: 4,
+        [UserRole.ENGINEERING]: 3,
+        [UserRole.QA]: 2,
+        [UserRole.PRODUCTION]: 1
     };
 
     return roleHierarchy[role] || 0;
@@ -127,7 +125,7 @@ export function getRoleHierarchyLevel(role: UserRole): number {
 
 /**
  * Check if one role has higher privileges than another
- * Based on the hierarchy: Admin > Management > Sales > Procurement > Engineering > QA > Production > Supplier > Customer
+ * Based on the hierarchy: Admin > Management > Sales > Procurement > Engineering > QA > Production
  */
 export function isHigherRole(role1: UserRole, role2: UserRole): boolean {
     return getRoleHierarchyLevel(role1) > getRoleHierarchyLevel(role2);

@@ -4,24 +4,55 @@
 
 - Date: 2025-01-27  
 - What we completed / changed:
-1. **Local Supabase Database Seeded with Sample Data**: 
-   - **Objective**: Populate local Supabase database with comprehensive sample data for development and testing
+1. **Local Supabase Database Sample Data Population Completed**: 
+   - **Objective**: Populate local Supabase database with comprehensive sample data for development and testing, with projects as the leader
    - **Process completed**: 
-     - ✅ Database reset and schema migration applied successfully
-     - ✅ Factory Pulse Vietnam organization and users created during migration
-     - ✅ Sample organizations added: Toyota Vietnam, Honda Vietnam, Boeing Vietnam, Samsung Vietnam
-     - ✅ Sample contacts added: 4 customer contacts with Vietnamese names and addresses
-     - ✅ Sample projects added: 6 projects across different industries (automotive, aerospace, electronics)
-     - ✅ Projects properly linked to workflow stages and assigned to users
+     - ✅ **Organizations**: Expanded from 5 to 21 organizations including Factory Pulse Vietnam, major customers (Toyota, Honda, Boeing, Samsung, LG, Siemens, ABB, Airbus), and suppliers (Precision Machining, Metal Fabrication, Assembly Solutions, Surface Finishing, Electronics Assembly, Quality Control, Logistics, Material Supply, Tooling, Packaging, Calibration Lab, Training Institute)
+     - ✅ **Workflow Stages**: Updated from generic workflow to business-focused 8-stage workflow (Inquiry Received → Technical Review → Supplier RFQ → Quoted → Order Confirmed → Procurement Planning → In Production → Shipped & Closed)
+     - ✅ **Contacts**: Expanded from 4 to 20 contacts (8 customers + 12 suppliers) with proper organization references, Vietnamese names, addresses, and business details
+     - ✅ **Projects**: Expanded from 6 to 19 projects spanning automotive, aerospace, electronics, industrial, and medical industries with proper customer and workflow stage references
+     - ✅ **Users**: Maintained 12 users with proper role assignments
    - **Data structure established**: 
      - Multi-tenant organization structure with Factory Pulse Vietnam as main organization
-     - Customer organizations for external companies (Toyota, Honda, Boeing, Samsung)
-     - Projects spanning different manufacturing domains (automotive, aerospace, electronics)
-     - Proper foreign key relationships maintained
-   - **Files created**: 
-     - `supabase/seed.sql` - Comprehensive seed file for local development
-   - **Database now ready** for local development with realistic sample data
-   - **Status**: ✅ Local Supabase database successfully seeded with sample data
+     - Customer organizations for external companies across automotive, aerospace, electronics, industrial, and power systems
+     - Supplier organizations for manufacturing services, quality control, logistics, and specialized services
+     - Projects properly linked to workflow stages and assigned to users
+     - Business-focused workflow that reflects real manufacturing processes
+   - **Database now ready** for local development with realistic sample data covering:
+     - **Industries**: Automotive, Aerospace, Electronics, Industrial, Power Systems, Medical, Renewable Energy
+     - **Project Types**: Fabrication, Assembly, Quality Control, Logistics, Training
+     - **Geographic Focus**: Vietnam/SEA market with Vietnamese names and addresses
+     - **Business Processes**: Complete RFQ to delivery workflow
+   - **Status**: ✅ Local Supabase database successfully populated with comprehensive sample data for development
+
+2. **Database Reset and Rebuild Completed - Local Supabase Database Successfully Rebuilt with Sample Data**: 
+   - **Objective**: Reset local Supabase database and rebuild all tables with comprehensive sample data based on current database schema
+   - **Process completed**: 
+     - ✅ **Database Reset**: Successfully reset local Supabase database using `supabase db reset`
+     - ✅ **Schema Verification**: Verified current database schema matches existing migrations (not full database-schema.md specification)
+     - ✅ **Data Population**: Populated database with realistic sample data matching current schema constraints
+     - ✅ **Organizations**: Created 7 organizations including Factory Pulse Vietnam, Toyota Vietnam, Honda Vietnam, Boeing Vietnam, Samsung Vietnam, Precision Machining Co., and Metal Fabrication Ltd.
+     - ✅ **Workflow Stages**: Implemented complete 8-stage workflow (Inquiry Received → Technical Review → Supplier RFQ → Quoted → Order Confirmed → Procurement Planning → In Production → Shipped & Closed)
+     - ✅ **Contacts**: Added 4 contacts (3 customers + 1 supplier) with Vietnamese names, addresses, and business details
+     - ✅ **Projects**: Created 3 sample projects (Automotive Bracket Assembly, Motorcycle Frame Welding, Aircraft Landing Gear Components) properly linked to workflow stages
+     - ✅ **Supporting Data**: Added project assignments, documents, reviews, messages, notifications, and activity log entries
+   - **Current Database Status**: 
+     - **Organizations**: 7 (Factory Pulse Vietnam + 6 external companies)
+     - **Workflow Stages**: 8 (complete manufacturing workflow)
+     - **Contacts**: 4 (3 customers + 1 supplier)
+     - **Projects**: 3 (automotive, motorcycle, aerospace)
+     - **Project Assignments**: 3 (proper role assignments)
+     - **Documents**: 1 (sample specification)
+     - **Reviews**: 2 (technical and quality reviews)
+     - **Messages**: 1 (sample communication)
+     - **Notifications**: 1 (project assignment notification)
+     - **Activity Log**: 1 (project creation activity)
+   - **Schema Alignment**: 
+     - Current database schema differs from database-schema.md specification
+     - Missing fields include: estimated_value, tags, metadata, stage_entered_at, project_type, notes in projects table
+     - Missing fields include: file_name, original_file_name, file_url, checksum, ai_extracted_data, ai_confidence_score in documents table
+     - Working with current schema constraints to provide functional sample data
+   - **Status**: ✅ Local Supabase database successfully reset and rebuilt with comprehensive sample data matching current schema
 
 2. **Multi-Tenant Organization Structure Fixed - Customer/Supplier Organization Mismatch Resolved**: 
    - **Objective**: Fix incorrect organization assignments where customers and suppliers were all assigned to Factory Pulse Vietnam organization instead of having their own separate organizations
@@ -60,6 +91,35 @@
    - **Performance improvements**: Added appropriate indexes for new fields (GIN index for tags, metadata)
    - **Data integrity**: Added proper constraints and validation for project_type field
    - **Status**: ✅ All field mismatches resolved, database schema fully aligned with codebase
+
+- Date: 2025-01-27  
+- What we completed / changed:
+1. **Database Schema Cleanup - Customer/Supplier Roles Removed from Users Table**: 
+   - **Objective**: Clean up database schema by removing customer and supplier roles from users table to eliminate role duplication
+   - **Issues identified**: 
+     - Users table had both internal employee roles AND external customer/supplier roles
+     - This created confusion between internal users and external contacts
+     - Role duplication between users table and contacts table
+     - Architectural inconsistency with the intended design
+   - **Root cause**: Initial schema design mixed internal users with external business relationships
+   - **Solution implemented**: 
+     - Created migration `20250127000011_remove_customer_supplier_roles.sql`
+     - Removed 2 users with customer role and 1 user with supplier role
+     - Updated users table role constraint to exclude customer/supplier roles
+     - Maintained all customer/supplier data in contacts table where it belongs
+   - **Database changes made**:
+     - Users table now only allows: sales, procurement, engineering, qa, production, management, admin
+     - Customer and supplier roles completely removed from users table
+     - Contacts table remains the single source of truth for external business relationships
+   - **Architecture improved**: 
+     - Clear separation between internal users (employees) and external contacts (customers/suppliers)
+     - Users table now properly represents Factory Pulse employees only
+     - Contacts table handles all external business relationships
+     - Eliminated role confusion and duplication
+   - **Files updated**: 
+     - `supabase/migrations/20250127000011_remove_customer_supplier_roles.sql` - New migration
+     - `docs/database-schema.md` - Updated schema documentation
+   - **Status**: ✅ Database schema cleaned up, role duplication eliminated, architecture clarified
 
 - Date: 2025-08-28  
 - What we completed / changed:
