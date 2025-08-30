@@ -65,6 +65,16 @@ This document summarizes the schema mismatches identified between the project co
 - Fixed stage counting to use `current_stage_id`
 - Updated project filtering to work with new schema
 
+#### WorkflowFlowchart.tsx
+- Replaced static PROJECT_STAGES with dynamic workflow stages from database
+- Updated stage filtering to use `current_stage_id` instead of legacy fields
+- Fixed stage status calculation to use `stage_order` for proper ordering
+- Added proper workflow stage loading with error handling
+- Updated project grouping to use database workflow stages
+- Fixed priority color function to work with `priority_level` field
+- Added stage description display from database
+- Updated interface to use string stage IDs instead of legacy enum
+
 ## Database Schema Alignment
 
 ### Projects Table Fields (Confirmed)
@@ -145,10 +155,32 @@ current_stage: project.current_stage ? {
 - Components gracefully handle missing or null data
 - No database migrations required - only frontend code changes
 
+## WorkflowFlowchart.tsx Specific Fixes
+
+### Major Changes Made:
+1. **Dynamic Workflow Stages**: Replaced hardcoded PROJECT_STAGES with database-driven workflow stages
+2. **Proper Field Mapping**: Updated all references to use correct database fields:
+   - `current_stage_id` instead of legacy `current_stage`
+   - `priority_level` instead of `priority`
+   - `stage_order` for proper stage ordering
+3. **Stage Status Calculation**: Fixed stage progression logic to use `stage_order` comparison
+4. **Interface Updates**: Changed stage selection to use string IDs instead of legacy enum values
+5. **Error Handling**: Added proper loading states and error handling for workflow stages
+6. **Database Integration**: Added workflowStageService integration for stage management
+
+### Key Functions Updated:
+- `getProjectStageStatus()`: Now uses database stage ordering
+- `handleStatusChange()`: Updated to work with stage IDs and validation
+- `filteredProjects`: Uses `current_stage_id` for filtering
+- `projectsByStage`: Groups projects by actual database stages
+- `getPriorityColor()`: Works with `priority_level` field
+
 ## Next Steps
 
-1. Test all project views (Kanban, Table, Calendar, Analytics)
+1. Test all project views (Kanban, Table, Calendar, Analytics, **Workflow Flowchart**)
 2. Verify workflow stepper functionality
 3. Test project creation and updates
 4. Validate real-time updates work correctly
-5. Consider removing legacy field support in future versions
+5. Test stage transitions in WorkflowFlowchart component
+6. Verify project filtering and grouping works correctly
+7. Consider removing legacy field support in future versions

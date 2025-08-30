@@ -19,6 +19,10 @@
 - **Function Signatures**: Updated `useProjects.ts` hook
   - `updateProjectStatusOptimistic` now returns `Promise<boolean>` instead of `void`
   - Improved error handling with try-catch blocks
+- **Data Mapping Enhancement**: Added legacy field compatibility in `useProjects.ts`
+  - Automatic mapping of `estimated_delivery_date` to `due_date`
+  - Automatic mapping of `priority_level` to `priority`
+  - Computed `order_index` from `stage_order` for workflow stages
   - Better alignment with component expectations
 
 ### Technical Details
@@ -37,7 +41,7 @@
 - `src/types/project.ts` - Updated WorkflowStage interface structure
 - `src/pages/Projects.tsx` - Main projects page component
 - `docs/project-management-system/database-schema.md` - Updated field names
-- `src/hooks/useProjects.ts` - Projects data management hook
+- `src/hooks/useProjects.ts` - Projects data management hook (enhanced with legacy field mapping)
 - `MEMORY.md` - Added development memory documentation
 - `PROJECT_READY_STATUS.md` - Updated project status
 - `docs/database-analysis/schema-mismatch-report.md` - Marked type mismatch as resolved

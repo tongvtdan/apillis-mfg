@@ -114,6 +114,11 @@ interface ProjectStageHistory {
 - Updated all database queries to use new schema
 - Enhanced project status updates to handle `current_stage_id`
 - Improved optimistic updates with new field structure
+- **Legacy Field Mapping (2025-01-30)**: Added automatic field mapping for backward compatibility
+  - Maps `estimated_delivery_date` to `due_date` for legacy components
+  - Maps `priority_level` to `priority` for existing component interfaces
+  - Computes `order_index` from `stage_order` in workflow stage objects
+- **Data Transformation**: Ensures seamless compatibility between database schema and component expectations
 
 ### 4. **New Components Created**
 

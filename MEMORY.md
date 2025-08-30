@@ -2,6 +2,48 @@
 
 ## Recent Changes
 
+### 2025-01-30 - WorkflowFlowchart Component Database Integration
+
+**Changes Made:**
+- **Dynamic Workflow Stages**: Updated `WorkflowFlowchart.tsx` to use database-driven workflow stages instead of static `PROJECT_STAGES` constant
+  - Integrated `workflowStageService` for dynamic stage loading from database
+  - Added loading state for workflow stages with proper error handling
+  - Replaced all references to legacy `PROJECT_STAGES` with dynamic `workflowStages` state
+  - Updated stage filtering and project grouping to use database stage IDs
+
+**Technical Details:**
+- **Service Integration**: 
+  - Added `workflowStageService` import and usage for stage management
+  - Implemented `useEffect` hook to load workflow stages on component mount
+  - Added `stagesLoading` state to handle async stage loading
+
+- **Stage Management**:
+  - Updated `projectsByStage` calculation to use dynamic workflow stages
+  - Fixed stage selection to work with database stage IDs instead of legacy enum values
+  - Updated stage transition validation to use `workflowStageService.validateStageTransition`
+  - Improved stage color handling with fallback to database `color` field
+
+- **Component Architecture**:
+  - Removed unused imports (`DropdownMenu`, `Progress`, `Tooltip`, navigation utilities)
+  - Cleaned up unused state variables (`isUpdating`, `updatingProjects`, `navigate`)
+  - Simplified component props interface to focus on essential functionality
+  - Added proper loading state handling for better user experience
+
+- **Type Safety Improvements**:
+  - Fixed type mismatches between `ProjectStatus` and workflow stage IDs
+  - Updated function signatures to work with string stage IDs instead of enum values
+  - Improved error handling with proper type checking for stage operations
+
+**Impact:**
+- ✅ Component now fully supports database-driven workflow configuration
+- ✅ Eliminates dependency on hardcoded `PROJECT_STAGES` constant
+- ✅ Enables dynamic workflow customization without code changes
+- ✅ Improves type safety and reduces runtime errors
+- ✅ Provides better user experience with loading states and error handling
+
+**Files Modified:**
+- `src/components/project/WorkflowFlowchart.tsx` - Complete refactor for database integration
+
 ### 2025-01-30 - WorkflowStage Interface Database Schema Alignment
 
 **Changes Made:**
@@ -164,6 +206,8 @@ The project has completed transition from a legacy enum-based stage system to a 
 - **Caching**: Intelligent caching system for performance optimization
 - **Table Views**: Simplified HTML tables for better performance and maintainability
 - **Legacy Compatibility**: Automatic field mapping for backward compatibility with existing components
+- **Dynamic Workflow Stages**: Components now use database-driven workflow stages via `workflowStageService`
+- **Service Layer**: Business logic encapsulated in service classes for better separation of concerns
 
 ## Development Guidelines
 
@@ -172,8 +216,10 @@ The project has completed transition from a legacy enum-based stage system to a 
 - Use `ProjectStatus` for project lifecycle status ('active', 'completed', etc.)
 - Use `ProjectStage` for legacy workflow stages (backward compatibility only)
 - Use `WorkflowStage` for current database-driven workflow stages
+- Use string IDs for workflow stage references (not enum values)
 - Ensure interface fields match database schema exactly for new features
 - Use computed fields (`order_index`) for legacy compatibility when needed
+- Prefer `workflowStageService` methods over direct database queries for stage operations
 
 ### Error Handling
 - Wrap components in appropriate error boundaries

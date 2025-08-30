@@ -203,6 +203,33 @@ sequenceDiagram
     end
 ```
 
+### WorkflowFlowchart Component
+
+**Purpose**: Dynamic workflow visualization with database-driven stages
+
+**Location**: `src/components/project/WorkflowFlowchart.tsx`
+
+**Key Features**:
+- Database-driven workflow stages via `workflowStageService`
+- Real-time project counts per stage
+- Interactive stage selection and project filtering
+- Animated transitions and loading states
+- Stage transition validation
+
+**Service Integration**:
+```typescript
+// Uses workflowStageService for dynamic stage management
+const [workflowStages, setWorkflowStages] = useState<WorkflowStage[]>([]);
+
+useEffect(() => {
+  const loadWorkflowStages = async () => {
+    const stages = await workflowStageService.getWorkflowStages();
+    setWorkflowStages(stages);
+  };
+  loadWorkflowStages();
+}, []);
+```
+
 ### WorkflowStepper Component
 
 **Purpose**: Visual workflow progression with stage management
@@ -227,6 +254,20 @@ graph LR
 ```
 
 **Props Interface**:
+```typescript
+interface WorkflowFlowchartProps {
+  selectedProject: Project | null;
+  onProjectSelect: (project: Project | null) => void;
+  onStageSelect?: (stageId: string) => void;
+  selectedStage?: string | null;
+  projectTypeFilter?: ProjectType | 'all';
+  projects?: Project[];
+  updateProjectStatusOptimistic?: (projectId: string, newStatus: ProjectStatus) => Promise<boolean>;
+  refetch?: (forceRefresh?: boolean) => Promise<void>;
+}
+```
+
+**WorkflowStepper Props Interface**:
 ```typescript
 interface WorkflowStepperProps {
   project: Project;
@@ -322,6 +363,10 @@ interface UseProjectsReturn {
   updateProject: (id: string, data: ProjectUpdateData) => Promise<Project>;
   deleteProject: (id: string) => Promise<void>;
   refetch: () => Promise<void>;
+  // Enhanced with automatic legacy field mapping:
+  // - Maps estimated_delivery_date → due_date
+  // - Maps priority_level → priority  
+  // - Computes order_index from stage_order
 }
 
 // useProjectReviews - Review system integration
