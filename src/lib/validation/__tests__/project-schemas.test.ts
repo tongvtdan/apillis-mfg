@@ -2,22 +2,24 @@ import { describe, it, expect } from 'vitest';
 import {
     ProjectIntakeFormSchema,
     ProjectEditFormSchema,
+    ProjectStatusSchema,
+    ProjectPrioritySchema,
     validateFileUpload,
     validateFileUploads,
     PROJECT_CONSTRAINTS
 } from '../project-schemas';
 
 describe('ProjectIntakeFormSchema', () => {
-    it('should validate a valid form', () => {
+    it('should validate valid project intake data', () => {
         const validData = {
             companyName: 'Test Company',
             contactName: 'John Doe',
             contactEmail: 'john@test.com',
-            contactPhone: '123-456-7890',
+            contactPhone: '+1234567890',
             projectTitle: 'Test Project',
             description: 'Test description',
             priority: 'medium' as const,
-            estimatedValue: '1000.00',
+            estimatedValue: '10000.50',
             dueDate: '2025-12-31',
             notes: 'Test notes'
         };
@@ -26,34 +28,39 @@ describe('ProjectIntakeFormSchema', () => {
         expect(result.success).toBe(true);
     });
 
-    it('should reject empty required fields', () => {
+    it('should reject missing required fields', () => {
         const invalidData = {
-            companyName: '',
-            contactName: '',
-            projectTitle: '',
-            priority: 'medium' as const
+            contactEmail: 'john@test.com'
         };
 
         const result = ProjectIntakeFormSchema.safeParse(invalidData);
         expect(result.success).toBe(false);
 
         if (!result.success) {
-            expect(result.error.issues).toHaveLength(3); // companyName, contactName, projectTitle
+            const errors = result.error.flatten().fieldErrors;
+            expect(errors.companyName).toBeDefined();
+            expect(errors.contactName).toBeDefined();
+            expect(errors.projectTitle).toBeDefined();
         }
     });
 
-    it('should reject fields that exceed maximum length', () => {
-        const longString = 'a'.repeat(PROJECT_CONSTRAINTS.TITLE_MAX_LENGTH + 1);
+    it('should reject fields exceeding length limits', () => {
+        const longString = 'x'.repeat(PROJECT_CONSTRAINTS.TITLE_MAX_LENGTH + 1);
 
         const invalidData = {
             companyName: 'Test Company',
             contactName: 'John Doe',
-            projectTitle: longString,
-            priority: 'medium' as const
+            projectTitle: longString
         };
 
         const result = ProjectIntakeFormSchema.safeParse(invalidData);
         expect(result.success).toBe(false);
+
+        if (!result.success) {
+            const errors = result.error.flatten().fieldErrors;
+            expect(errors.projectTitle).toBeDefined();
+            expect(errors.projectTitle?.[0]).toContain('cannot exceed 255 characters');
+        }
     });
 
     it('should validate email format', () => {
@@ -61,96 +68,174 @@ describe('ProjectIntakeFormSchema', () => {
             companyName: 'Test Company',
             contactName: 'John Doe',
             contactEmail: 'invalid-email',
-            projectTitle: 'Test Project',
-            priority: 'medium' as const
+            projectTitle: 'Test Project'
         };
 
         const result = ProjectIntakeFormSchema.safeParse(invalidData);
         expect(result.success).toBe(false);
+
+        if (!result.success) {
+            const errors = result.error.flatten().fieldErrors;
+            expect(errors.contactEmail).toBeDefined();
+            expect(errors.contactEmail?.[0]).toContain('valid email address');
+        }
     });
 
-    it('should validate priority enum values', () => {
+    it('should validate estimated value format', () => {
         const invalidData = {
             companyName: 'Test Company',
             contactName: 'John Doe',
             projectTitle: 'Test Project',
-            priority: 'invalid' as any
+            estimatedValue: 'not-a-number'
         };
 
         const result = ProjectIntakeFormSchema.safeParse(invalidData);
         expect(result.success).toBe(false);
+
+        if (!result.success) {
+            const errors = result.error.flatten().fieldErrors;
+            expect(errors.estimatedValue).toBeDefined();
+        }
+    });
+
+    it('should validate future dates for due date', () => {
+        const pastDate = '2020-01-01';
+
+        const invalidData = {
+            companyName: 'Test Company',
+            contactName: 'John Doe',
+            projectTitle: 'Test Project',
+            dueDate: pastDate
+        };
+
+        const result = ProjectIntakeFormSchema.safeParse(invalidData);
+        expect(result.success).toBe(false);
+
+        if (!result.success) {
+            const errors = result.error.flatten().fieldErrors;
+            expect(errors.dueDate).toBeDefined();
+            expect(errors.dueDate?.[0]).toContain('must be in the future');
+        }
     });
 });
 
 describe('ProjectEditFormSchema', () => {
-    it('should validate a valid edit form', () => {
+    it('should validate valid project edit data', () => {
         const validData = {
             title: 'Updated Project',
             description: 'Updated description',
             status: 'active' as const,
             priority_level: 'high' as const,
-            estimated_value: 2000,
-            project_type: 'Manufacturing',
+            estimated_value: 15000.75,
+            project_type: 'manufacturing',
             notes: 'Updated notes',
-            tags: ['tag1', 'tag2']
+            tags: ['urgent', 'customer-priority']
         };
 
         const result = ProjectEditFormSchema.safeParse(validData);
         expect(result.success).toBe(true);
     });
 
-    it('should validate status enum values', () => {
+    it('should reject invalid status values', () => {
         const invalidData = {
             title: 'Test Project',
-            status: 'invalid_status' as any,
-            priority_level: 'medium' as const
+            status: 'invalid-status',
+            priority_level: 'medium'
         };
 
         const result = ProjectEditFormSchema.safeParse(invalidData);
         expect(result.success).toBe(false);
     });
+
+    it('should reject negative estimated values', () => {
+        const invalidData = {
+            title: 'Test Project',
+            status: 'active',
+            priority_level: 'medium',
+            estimated_value: -1000
+        };
+
+        const result = ProjectEditFormSchema.safeParse(invalidData);
+        expect(result.success).toBe(false);
+
+        if (!result.success) {
+            const errors = result.error.flatten().fieldErrors;
+            expect(errors.estimated_value).toBeDefined();
+        }
+    });
+});
+
+describe('Enum Schemas', () => {
+    it('should validate project status enum', () => {
+        const validStatuses = ['active', 'on_hold', 'delayed', 'cancelled', 'completed'];
+
+        validStatuses.forEach(status => {
+            const result = ProjectStatusSchema.safeParse(status);
+            expect(result.success).toBe(true);
+        });
+
+        const invalidResult = ProjectStatusSchema.safeParse('invalid-status');
+        expect(invalidResult.success).toBe(false);
+    });
+
+    it('should validate project priority enum', () => {
+        const validPriorities = ['low', 'medium', 'high', 'urgent'];
+
+        validPriorities.forEach(priority => {
+            const result = ProjectPrioritySchema.safeParse(priority);
+            expect(result.success).toBe(true);
+        });
+
+        const invalidResult = ProjectPrioritySchema.safeParse('invalid-priority');
+        expect(invalidResult.success).toBe(false);
+    });
 });
 
 describe('File Upload Validation', () => {
-    it('should validate a valid file', () => {
-        const validFile = new File(['test content'], 'test.pdf', { type: 'application/pdf' });
-        const result = validateFileUpload(validFile);
+    // Mock File constructor for testing
+    const createMockFile = (name: string, size: number, type: string): File => {
+        const file = new File([''], name, { type });
+        Object.defineProperty(file, 'size', { value: size });
+        return file;
+    };
 
+    it('should validate valid file uploads', () => {
+        const validFile = createMockFile('document.pdf', 1024 * 1024, 'application/pdf'); // 1MB PDF
+
+        const result = validateFileUpload(validFile);
         expect(result.isValid).toBe(true);
         expect(result.error).toBeUndefined();
     });
 
-    it('should reject empty files', () => {
-        const emptyFile = new File([], 'empty.pdf', { type: 'application/pdf' });
-        const result = validateFileUpload(emptyFile);
+    it('should reject files exceeding size limit', () => {
+        const largeFile = createMockFile('large.pdf', 60 * 1024 * 1024, 'application/pdf'); // 60MB
 
+        const result = validateFileUpload(largeFile);
         expect(result.isValid).toBe(false);
-        expect(result.error).toBe('File cannot be empty');
+        expect(result.error).toContain('cannot exceed 50MB');
     });
 
-    it('should reject files that are too large', () => {
-        const largeContent = new Array(51 * 1024 * 1024).fill('a').join(''); // 51MB
-        const largeFile = new File([largeContent], 'large.pdf', { type: 'application/pdf' });
-        const result = validateFileUpload(largeFile);
+    it('should reject empty files', () => {
+        const emptyFile = createMockFile('empty.pdf', 0, 'application/pdf');
 
+        const result = validateFileUpload(emptyFile);
         expect(result.isValid).toBe(false);
-        expect(result.error).toBe('File size cannot exceed 50MB');
+        expect(result.error).toContain('cannot be empty');
     });
 
     it('should reject unsupported file types', () => {
-        const unsupportedFile = new File(['test'], 'test.exe', { type: 'application/x-executable' });
-        const result = validateFileUpload(unsupportedFile);
+        const unsupportedFile = createMockFile('virus.exe', 1024, 'application/x-executable');
 
+        const result = validateFileUpload(unsupportedFile);
         expect(result.isValid).toBe(false);
         expect(result.error).toContain('Unsupported file type');
     });
-});
 
-describe('Multiple File Upload Validation', () => {
-    it('should validate multiple valid files', () => {
+    it('should validate multiple file uploads', () => {
         const files = [
-            new File(['content1'], 'file1.pdf', { type: 'application/pdf' }),
-            new File(['content2'], 'file2.jpg', { type: 'image/jpeg' })
+            createMockFile('doc1.pdf', 1024 * 1024, 'application/pdf'),
+            createMockFile('doc2.docx', 2 * 1024 * 1024, 'application/vnd.openxmlformats-officedocument.wordprocessingml.document'),
+            createMockFile('image.jpg', 512 * 1024, 'image/jpeg')
         ];
 
         const result = validateFileUploads(files);
@@ -158,20 +243,29 @@ describe('Multiple File Upload Validation', () => {
         expect(result.errors).toHaveLength(0);
     });
 
-    it('should reject when no files are provided', () => {
-        const result = validateFileUploads([]);
-
-        expect(result.isValid).toBe(false);
-        expect(result.errors).toContain('At least one file must be uploaded');
-    });
-
     it('should reject too many files', () => {
-        const files = Array.from({ length: 21 }, (_, i) =>
-            new File(['content'], `file${i}.pdf`, { type: 'application/pdf' })
+        const files = Array.from({ length: 25 }, (_, i) =>
+            createMockFile(`doc${i}.pdf`, 1024, 'application/pdf')
         );
 
         const result = validateFileUploads(files);
         expect(result.isValid).toBe(false);
-        expect(result.errors).toContain('Cannot upload more than 20 files at once');
+        expect(result.errors.some(error => error.includes('more than 20 files'))).toBe(true);
+    });
+
+    it('should reject when total size exceeds limit', () => {
+        const files = Array.from({ length: 5 }, (_, i) =>
+            createMockFile(`doc${i}.pdf`, 25 * 1024 * 1024, 'application/pdf') // 25MB each = 125MB total
+        );
+
+        const result = validateFileUploads(files);
+        expect(result.isValid).toBe(false);
+        expect(result.errors.some(error => error.includes('Total file size cannot exceed 100MB'))).toBe(true);
+    });
+
+    it('should reject empty file array', () => {
+        const result = validateFileUploads([]);
+        expect(result.isValid).toBe(false);
+        expect(result.errors.some(error => error.includes('At least one file must be uploaded'))).toBe(true);
     });
 });
