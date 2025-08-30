@@ -550,6 +550,67 @@ SELECT
 
 **Database Schema Alignment**:
 ```typescript
+// Before: Incorrect field name
+.update({ current_stage: newStageId })
+
+// After: Correct database field name  
+.update({ current_stage_id: newStageId })
+```
+
+**Benefits**:
+- **Database Consistency**: All stage operations now use correct database field names
+- **Error Prevention**: Eliminates database errors from incorrect field references
+- **Type Safety**: Function parameters now match expected data types
+- **State Management**: Optimistic updates work correctly with proper field names
+- **Schema Alignment**: Hook operations align with actual database schema
+
+**Files Updated**:
+- `src/hooks/useProjects.ts` - Fixed updateProjectStage function field names and parameter types
+
+### 16. **ProjectTable Component Sorting Logic Fixed** ✅
+**Date**: 2025-08-30
+**Objective**: Fix sorting logic in ProjectTable component to handle database schema changes and joined data properly
+**Process Completed**:
+- ✅ **Stage Sorting Fixed**: Updated to handle both joined `current_stage` object and legacy `current_stage_id` field
+- ✅ **Priority Sorting Fixed**: Changed from `priority` to `priority_level` to match database field name
+- ✅ **Fallback Logic**: Added proper fallback handling for missing or undefined stage data
+- ✅ **Schema Alignment**: Ensured sorting logic works with actual database field names
+
+**Technical Implementation**:
+- **Stage Sorting Logic**: 
+  ```typescript
+  // Before: Used current_stage directly
+  aValue = PROJECT_STAGES.find(s => s.id === a.current_stage)?.name || a.current_stage;
+  
+  // After: Handle joined data with fallback
+  aValue = a.current_stage?.name || PROJECT_STAGES.find(s => s.id === a.current_stage_legacy)?.name || 'Unknown';
+  ```
+- **Priority Field Correction**: 
+  ```typescript
+  // Before: Used non-existent priority field
+  aValue = a.priority;
+  
+  // After: Use correct database field
+  aValue = a.priority_level;
+  ```
+
+**Sorting Improvements**:
+- **Stage Sorting**: Now handles both joined stage objects and legacy stage ID references
+- **Priority Sorting**: Uses correct `priority_level` database field
+- **Fallback Handling**: Graceful degradation when stage data is missing
+- **Type Safety**: Proper null/undefined checking for optional fields
+
+**Benefits**:
+- **Correct Sorting**: Table sorting now works properly with actual database data
+- **Schema Alignment**: Sorting logic matches database field names exactly
+- **Robust Handling**: Graceful fallback for missing or incomplete data
+- **User Experience**: Consistent and reliable table sorting functionality
+- **Future-Proof**: Handles both current and legacy data structures
+
+**Files Updated**:
+- `src/components/project/ProjectTable.tsx` - Fixed sorting logic for stage and priority fields
+
+**Next Phase**: Continue with Task 6 - Project Workflow System Audit to ensure complete workflow integration alignmentpt
 // Before (incorrect)
 current_stage: newStage
 

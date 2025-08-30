@@ -44,6 +44,7 @@ const priorityVariants = {
   low: "bg-green-100 text-green-800",
   medium: "bg-yellow-100 text-yellow-800",
   high: "bg-red-100 text-red-800",
+  urgent: "bg-red-200 text-red-900",
 } as const;
 
 export function ProjectTable({ projects, updateProjectStatusOptimistic: externalUpdateFn, refetch: externalRefetch }: ProjectTableProps) {
@@ -138,12 +139,14 @@ export function ProjectTable({ projects, updateProjectStatusOptimistic: external
           bValue = b.title.toLowerCase();
           break;
         case 'stage':
-          aValue = PROJECT_STAGES.find(s => s.id === a.current_stage)?.name || a.current_stage;
-          bValue = PROJECT_STAGES.find(s => s.id === b.current_stage)?.name || b.current_stage;
+          // Use current_stage from joined data or current_stage_id
+          aValue = a.current_stage?.name || PROJECT_STAGES.find(s => s.id === a.current_stage_legacy)?.name || 'Unknown';
+          bValue = b.current_stage?.name || PROJECT_STAGES.find(s => s.id === b.current_stage_legacy)?.name || 'Unknown';
           break;
         case 'priority':
-          aValue = a.priority;
-          bValue = b.priority;
+          // Use priority_level (database field) instead of priority
+          aValue = a.priority_level;
+          bValue = b.priority_level;
           break;
         default:
           aValue = a.title.toLowerCase();

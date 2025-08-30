@@ -78,35 +78,39 @@
     - Update error handling and validation logic
     - _Requirements: 1.4, 5.4_
 
-- [ ] 5. Project Components Audit and Fixes
-  - [ ] 5.1 Audit ProjectTable component
+- [x] 5. Project Components Audit and Fixes
+  - [x] 5.1 Audit ProjectTable component
     - Review column definitions for correct field names
     - Check data rendering for proper type handling
     - Verify sorting and filtering use correct database fields
     - _Requirements: 2.3, 5.1_
 
-  - [ ] 5.2 Fix ProjectTable component issues
+  - [x] 5.2 Fix ProjectTable component issues - PHASE 1 COMPLETED
+    - ✅ Fixed sorting logic for stage field to handle joined data and legacy references
+    - ✅ Corrected priority sorting to use priority_level database field
+    - ✅ Added proper fallback handling for missing stage data
+    - ✅ Updated sorting logic to align with database schema
     - Update column definitions to match database schema
     - Fix data access patterns for renamed fields
     - Ensure proper null/undefined handling for optional fields
     - Update sorting and filtering logic
     - _Requirements: 2.3, 5.1_
 
-  - [ ] 5.3 Audit ProjectDetail components
+  - [x] 5.3 Audit ProjectDetail components
     - Review ProjectDetail.tsx for field name usage
     - Check ProjectDetailSimple.tsx for data consistency
     - Verify all project property access uses correct names
     - _Requirements: 2.2, 5.2_
 
-  - [ ] 5.4 Fix ProjectDetail component issues
+  - [x] 5.4 Fix ProjectDetail component issues
     - Update all property access to use correct database field names
     - Fix data display logic for renamed or restructured fields
     - Ensure proper handling of nullable fields and relationships
     - Update form validation to match database constraints
     - _Requirements: 2.2, 5.2_
 
-- [ ] 6. Project Workflow System Audit
-  - [ ] 6.1 Audit workflow stage integration
+- [-] 6. Project Workflow System Audit
+  - [-] 6.1 Audit workflow stage integration
     - Review current_stage vs current_stage_id usage
     - Check workflow_stages table integration
     - Verify stage transition logic uses correct fields

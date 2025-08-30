@@ -29,8 +29,8 @@ export function AnimatedTableRow({
     formatCurrency,
     isUpdating = false
 }: AnimatedTableRowProps) {
-    // Get assignee display name at the top level
-    const assigneeDisplayName = useUserDisplayName(project.assignee_id);
+    // Get assignee display name using correct database field name
+    const assigneeDisplayName = useUserDisplayName(project.assigned_to);
 
     const handleStatusChange = async (projectId: string, newStatus: ProjectStatus) => {
         console.log(`🔄 AnimatedTableRow: Status change triggered for project ${projectId} to ${newStatus}`);
@@ -67,23 +67,23 @@ export function AnimatedTableRow({
                 <TableCell>
                     <div>
                         <div className="font-medium">
-                            {project.customer?.company || project.contact_name}
+                            {project.customer?.company_name || 'No Customer'}
                         </div>
                         <div className="text-sm text-muted-foreground">
-                            {project.contact_email}
+                            {project.customer?.email || ''}
                         </div>
                     </div>
                 </TableCell>
                 <TableCell>
                     <Select
-                        value={project.current_stage}
+                        value={project.current_stage?.id || project.current_stage_legacy || ''}
                         onValueChange={(value: ProjectStage) => onStatusChange(project.id, value as ProjectStatus)}
                         disabled={isUpdating}
                     >
                         <SelectTrigger className="w-[180px]">
                             <SelectValue>
-                                <Badge className={statusVariants[project.current_stage as keyof typeof statusVariants]}>
-                                    {PROJECT_STAGES.find(s => s.id === project.current_stage)?.name || project.current_stage}
+                                <Badge className={statusVariants[(project.current_stage?.id || project.current_stage_legacy) as keyof typeof statusVariants]}>
+                                    {project.current_stage?.name || PROJECT_STAGES.find(s => s.id === project.current_stage_legacy)?.name || 'Unknown Stage'}
                                 </Badge>
                             </SelectValue>
                         </SelectTrigger>
@@ -99,16 +99,16 @@ export function AnimatedTableRow({
                     </Select>
                 </TableCell>
                 <TableCell>
-                    <Badge className={priorityVariants[project.priority as keyof typeof priorityVariants]}>
-                        {project.priority?.toUpperCase()}
+                    <Badge className={priorityVariants[project.priority_level as keyof typeof priorityVariants]}>
+                        {project.priority_level?.toUpperCase()}
                     </Badge>
                 </TableCell>
                 <TableCell>
-                    <AssigneeCell assigneeId={project.assignee_id} displayName={assigneeDisplayName} />
+                    <AssigneeCell assigneeId={project.assigned_to} displayName={assigneeDisplayName} />
                 </TableCell>
                 <TableCell>
                     <div className="text-sm">
-                        {calculateLeadTime(project.due_date, project.created_at)}
+                        {calculateLeadTime(project.estimated_delivery_date, project.created_at)}
                     </div>
                 </TableCell>
                 <TableCell>

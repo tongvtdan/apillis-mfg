@@ -13,16 +13,16 @@ This revised document consolidates, corrects, and enhances the schema to ensure:
 
 ## ✅ Key Improvements Made
 
-| Area                        | Issue in Original                                 | Fix Implemented                                                                    |
-| --------------------------- | ------------------------------------------------- | ---------------------------------------------------------------------------------- |
-| **UUID Generation**         | Mixed `gen_random_uuid()` vs `uuid_generate_v4()` | Standardized to `uuid_generate_v4()`                                               |
-| **Project Status vs Stage** | Confused in schema                                | Separated `status` (active/delayed/cancelled) from `current_stage` (workflow step) |
-| **Organization-User Link**  | Inconsistent                                      | Enforced `organization_id` on all core tables                                      |
-| **Document Versioning**     | Parent-child model                                | Improved with `document_versions` table                                            |
-| **Message System**          | Overly complex                                    | Simplified with thread-based messaging                                             |
-| **AI & Automation**         | Scattered fields                                  | Unified in `ai_processing_queue` and metadata                                      |
-| **Vietnam Support**         | Missing                                           | Added VND, Asia/Ho_Chi_Minh, Vietnamese language                                   |
-| **Realtime & Sync**         | Incomplete                                        | Enhanced triggers and subscriptions                                                |
+| Area                        | Issue in Original                                 | Fix Implemented                                                                       |
+| --------------------------- | ------------------------------------------------- | ------------------------------------------------------------------------------------- |
+| **UUID Generation**         | Mixed `gen_random_uuid()` vs `uuid_generate_v4()` | Standardized to `uuid_generate_v4()`                                                  |
+| **Project Status vs Stage** | Confused in schema                                | Separated `status` (active/delayed/cancelled) from `current_stage_id` (workflow step) |
+| **Organization-User Link**  | Inconsistent                                      | Enforced `organization_id` on all core tables                                         |
+| **Document Versioning**     | Parent-child model                                | Improved with `document_versions` table                                               |
+| **Message System**          | Overly complex                                    | Simplified with thread-based messaging                                                |
+| **AI & Automation**         | Scattered fields                                  | Unified in `ai_processing_queue` and metadata                                         |
+| **Vietnam Support**         | Missing                                           | Added VND, Asia/Ho_Chi_Minh, Vietnamese language                                      |
+| **Realtime & Sync**         | Incomplete                                        | Enhanced triggers and subscriptions                                                   |
 
 ---
 
@@ -1001,7 +1001,7 @@ This schema provides a solid foundation for the Factory Pulse MES system with ro
 
 1. **Fixed Project Status vs Stage**  
    - `status`: `active`, `delayed`, `on_hold`, `cancelled`, `completed`  
-   - `current_stage`: workflow step (e.g., `technical_review`)
+   - `current_stage_id`: workflow step reference (UUID to workflow_stages table)
 
 2. **Standardized UUID Generation**  
    - All `uuid_generate_v4()` for consistency

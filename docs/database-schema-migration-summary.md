@@ -18,7 +18,7 @@ This document summarizes the updates made to the Factory Pulse codebase to align
 
 #### Enhanced Relationships:
 - `customer` now references `contacts` table instead of `customers`
-- `current_stage` now references `workflow_stages` table
+- `current_stage_id` now references `workflow_stages` table
 - Support for `project_stage_history` tracking
 - Support for `project_assignments` for multi-user assignments
 
@@ -82,14 +82,20 @@ interface ProjectStageHistory {
 - Enhanced urgency calculation with new fields
 
 #### WorkflowStepper (`src/components/project/WorkflowStepper.tsx`)
-- Updated to use `current_stage` with fallback to `status`
+- Updated to use `current_stage_id` with fallback to `status`
 - Enhanced stage calculations with new schema
 - Improved logging and debugging for new fields
 
 #### WorkflowFlowchart (`src/components/project/WorkflowFlowchart.tsx`)
-- Updated project filtering to use `current_stage`
+- Updated project filtering to use `current_stage_id`
 - Enhanced stage status calculations
 - Improved project grouping by stage
+
+#### ProjectTable (`src/components/project/ProjectTable.tsx`)
+- ✅ **Fixed sorting logic for stage field** - Now handles both joined `current_stage` object and legacy `current_stage_id` references
+- ✅ **Fixed priority sorting** - Updated from `priority` to `priority_level` to match database field
+- ✅ **Added fallback handling** - Graceful degradation when stage data is missing or undefined
+- ✅ **Schema alignment** - All sorting operations now use correct database field names
 
 ### 3. **Service Layer Updates**
 
@@ -104,7 +110,7 @@ interface ProjectStageHistory {
 
 #### useProjects Hook (`src/hooks/useProjects.ts`)
 - Updated all database queries to use new schema
-- Enhanced project status updates to handle `current_stage`
+- Enhanced project status updates to handle `current_stage_id`
 - Improved optimistic updates with new field structure
 
 ### 4. **New Components Created**

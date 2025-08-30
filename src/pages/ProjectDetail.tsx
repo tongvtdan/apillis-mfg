@@ -83,11 +83,11 @@ export default function ProjectDetail() {
   // Fetch real data using hooks
   const { data: documents = [], isLoading: documentsLoading } = useDocuments(id || '');
   const { data: messages = [], isLoading: messagesLoading } = useProjectMessages(id || '');
-  
+
   const { reviews, loading: reviewsLoading, getReviewStatuses, getOverallReviewStatus, getReviewSummary, submitReview } = useProjectReviews(id || '');
 
   // Get user display names for project assignee and reviewers
-  const assigneeDisplayName = useUserDisplayName(project?.assignee_id);
+  const assigneeDisplayName = useUserDisplayName(project?.assigned_to);
 
   // Collect all unique reviewer IDs
   const reviewerIds = reviews ? [...new Set(reviews.map(review => review.reviewer_id).filter(Boolean))] : [];
@@ -368,15 +368,14 @@ export default function ProjectDetail() {
 
   // Helper function to get customer display name
   const getCustomerDisplayName = () => {
-    if (project.customer?.company) return project.customer.company;
-    if (project.customer?.name) return project.customer.name;
-    if (project.contact_name) return project.contact_name;
+    if (project.customer?.company_name) return project.customer.company_name;
+    if (project.customer?.contact_name) return project.customer.contact_name;
     return 'N/A';
   };
 
   // Helper function to get assignee display name
   const getAssigneeDisplayName = () => {
-    return project.assignee_id || 'N/A';
+    return project.assigned_to || 'N/A';
   };
 
   // Helper function to get volume from estimated value or default
@@ -482,8 +481,8 @@ export default function ProjectDetail() {
                 </span>
                 <span>|</span>
                 <span className="flex items-center">
-                  Priority: <Badge className={cn("ml-2", getPriorityColor(project.priority))}>
-                    {project.priority.charAt(0).toUpperCase() + project.priority.slice(1)}
+                  Priority: <Badge className={cn("ml-2", getPriorityColor(project.priority_level))}>
+                    {project.priority_level.charAt(0).toUpperCase() + project.priority_level.slice(1)}
                   </Badge>
                 </span>
               </div>
@@ -502,7 +501,7 @@ export default function ProjectDetail() {
                 <span>|</span>
                 <span className="flex items-center">
                   <Users className="w-4 h-4 mr-1" />
-                  Owner: <AssigneeDisplay assigneeId={project.assignee_id} displayName={assigneeDisplayName} />
+                  Owner: {assigneeDisplayName || 'Unassigned'}
                 </span>
                 {dataSource === 'supabase' && (
                   <Badge variant="outline" className="bg-green-50 text-green-700 border-green-200">
@@ -658,7 +657,7 @@ export default function ProjectDetail() {
                       </div>
                       <div className="flex">
                         <div className="w-24 text-sm font-medium text-muted-foreground">Delivery:</div>
-                        <div className="flex-1 text-sm">{project.due_date ? format(new Date(project.due_date), 'MMM dd, yyyy') : 'N/A'}</div>
+                        <div className="flex-1 text-sm">{project.estimated_delivery_date ? format(new Date(project.estimated_delivery_date), 'MMM dd, yyyy') : 'N/A'}</div>
                       </div>
                       <div className="flex">
                         <div className="w-24 text-sm font-medium text-muted-foreground">Notes:</div>

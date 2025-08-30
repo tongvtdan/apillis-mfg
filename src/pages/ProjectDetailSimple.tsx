@@ -109,7 +109,7 @@ export default function ProjectDetailSimple() {
                                     {project.status.replace('_', ' ').toUpperCase()}
                                 </Badge>
                                 <Badge variant="outline">
-                                    {project.priority.toUpperCase()}
+                                    {project.priority_level.toUpperCase()}
                                 </Badge>
                                 {dataSource === 'mock' && (
                                     <Badge variant="outline" className="bg-yellow-50 text-yellow-700">
@@ -151,7 +151,7 @@ export default function ProjectDetailSimple() {
                         <div className="grid grid-cols-2 gap-4">
                             <div>
                                 <h4 className="font-medium text-sm text-muted-foreground">Customer</h4>
-                                <p>{project.customer?.company || project.contact_name || 'Unknown'}</p>
+                                <p>{project.customer?.company_name || 'Unknown'}</p>
                             </div>
                             <div>
                                 <h4 className="font-medium text-sm text-muted-foreground">Estimated Value</h4>
@@ -162,14 +162,14 @@ export default function ProjectDetailSimple() {
                         <div className="grid grid-cols-2 gap-4">
                             <div>
                                 <h4 className="font-medium text-sm text-muted-foreground">Contact</h4>
-                                <p>{project.contact_name || 'Not specified'}</p>
-                                {project.contact_email && (
-                                    <p className="text-sm text-muted-foreground">{project.contact_email}</p>
+                                <p>{project.customer?.contact_name || 'Not specified'}</p>
+                                {project.customer?.email && (
+                                    <p className="text-sm text-muted-foreground">{project.customer.email}</p>
                                 )}
                             </div>
                             <div>
                                 <h4 className="font-medium text-sm text-muted-foreground">Due Date</h4>
-                                <p>{project.due_date ? new Date(project.due_date).toLocaleDateString() : 'Not specified'}</p>
+                                <p>{project.estimated_delivery_date ? new Date(project.estimated_delivery_date).toLocaleDateString() : 'Not specified'}</p>
                             </div>
                         </div>
 
