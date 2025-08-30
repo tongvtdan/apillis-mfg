@@ -96,6 +96,11 @@ interface ProjectStageHistory {
 #### ProjectService (`src/services/projectService.ts`)
 - Updated Supabase queries to join with `contacts` and `workflow_stages`
 - Enhanced data fetching with new relationships
+- **Query Optimization (2025-08-30)**: Replaced wildcard `*` selects with explicit field selection in `getProjectById` function
+  - Improved performance by selecting only required fields
+  - Reduced network overhead and data transfer
+  - Ensured schema alignment with explicit field mapping
+  - Optimized JOIN queries for customer and workflow stage relationships
 
 #### useProjects Hook (`src/hooks/useProjects.ts`)
 - Updated all database queries to use new schema

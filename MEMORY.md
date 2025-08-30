@@ -491,12 +491,53 @@ public.contacts (Business Relationships)
 - **Foundation**: Established systematic approach for complete interface alignment
 - **Documentation**: Clear roadmap for remaining alignment work
 
-**Next Phase**: Task 2.2 - Update Project interface to add missing `notes` field and fix remaining type mismatches
+**Next Phase**: Task 3.1 - Audit projectService.ts database queries for correct column names and optimization
+
+### 14. **Project Service Query Optimization - Phase 1** ✅
+**Date**: 2025-08-30
+**Objective**: Optimize database queries in projectService.ts by replacing wildcard selects with explicit field selection
+**Process Completed**:
+- ✅ **getProjectById Query Optimized**: Replaced `*` wildcard with explicit field selection for projects, contacts, and workflow_stages
+- ✅ **Performance Improvement**: Reduced data transfer by selecting only required fields
+- ✅ **Schema Alignment**: Ensured all selected fields match actual database schema
+- ✅ **Relationship Optimization**: Optimized JOIN queries for customer and current_stage relationships
+
+**Technical Implementation**:
+- **Projects Table**: Explicit selection of all 21 project fields (id, organization_id, project_id, title, description, etc.)
+- **Customer Relationship**: Explicit selection of all 19 contact fields for customer data
+- **Workflow Stage Relationship**: Explicit selection of all 8 workflow_stage fields
+- **Query Structure**: Maintained proper JOIN relationships while optimizing field selection
+- **Performance**: Reduced network overhead and improved query performance
+
+**Query Optimization Details**:
+```sql
+-- Before: SELECT *
+-- After: Explicit field selection
+SELECT 
+  id, organization_id, project_id, title, description, customer_id, 
+  current_stage_id, status, priority_level, source, assigned_to, 
+  created_by, estimated_value, tags, metadata, stage_entered_at, 
+  project_type, notes, created_at, updated_at,
+  customer:contacts!customer_id(...),
+  current_stage:workflow_stages!current_stage_id(...)
+```
+
+**Benefits**:
+- **Performance**: Faster query execution and reduced data transfer
+- **Schema Alignment**: All selected fields verified against actual database schema
+- **Maintainability**: Explicit field selection makes dependencies clear
+- **Network Efficiency**: Only required data transferred from database
+- **Type Safety**: Explicit selection ensures TypeScript interface alignment
+
+**Files Updated**:
+- `src/services/projectService.ts` - Optimized getProjectById function with explicit field selection
+
+**Next Phase**: Task 3.2 - Continue auditing remaining projectService.ts functions for query optimization and schema alignment
 
 ## Next Steps
 
-1. **Interface Alignment Continuation**: Complete remaining phases of TypeScript interface alignment with database schema
-2. **Project Service Layer Audit**: Review and fix database queries for correct column names and relationships
+1. **Project Service Layer Audit Continuation**: Complete remaining projectService.ts functions optimization and schema alignment
+2. **Interface Alignment Continuation**: Complete remaining phases of TypeScript interface alignment with database schema
 3. **Component Updates**: Update all project-related components to use aligned interfaces
 4. **Portal Development**: Build unified customer and supplier portal interfaces
 5. **Application Authentication**: All 32 users (12 internal + 20 portal) tested and working with `Password@123`

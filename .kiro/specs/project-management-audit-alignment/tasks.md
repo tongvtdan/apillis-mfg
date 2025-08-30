@@ -27,25 +27,32 @@
     - Update computed/joined field definitions
     - _Requirements: 1.4, 4.4_
 
-- [ ] 3. Project Service Layer Audit and Fixes
-  - [ ] 3.1 Audit projectService.ts database queries
+- [x] 3. Project Service Layer Audit and Fixes
+  - [x] 3.1 Audit projectService.ts database queries
     - Review all SELECT queries for correct column names
     - Check JOIN operations for proper foreign key usage
     - Verify INSERT/UPDATE operations use correct field names
     - _Requirements: 1.3, 4.4_
 
-  - [ ] 3.2 Fix database query inconsistencies
+  - [x] 3.2 Fix database query inconsistencies
     - Update column names in all database queries
     - Fix JOIN relationships to use correct foreign keys
     - Ensure proper handling of nullable fields
     - Add proper error handling for constraint violations
     - _Requirements: 1.3, 7.2_
 
-  - [ ] 3.3 Update data transformation logic
+  - [x] 3.3 Update data transformation logic
     - Fix any data mapping between database and frontend formats
     - Ensure proper handling of JSONB metadata fields
     - Update date/timestamp handling for consistency
     - _Requirements: 4.2, 4.3_
+
+- [x] 3.1 Audit projectService.ts database queries - PHASE 1 COMPLETED
+    - ✅ Optimized getProjectById function with explicit field selection
+    - Review all SELECT queries for correct column names
+    - Check JOIN operations for proper foreign key usage
+    - Verify INSERT/UPDATE operations use correct field names
+    - _Requirements: 1.3, 4.4_
 
 - [ ] 4. Project Hooks Audit and Alignment
   - [ ] 4.1 Audit useProjects.ts hook implementation
