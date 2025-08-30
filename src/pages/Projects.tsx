@@ -14,6 +14,8 @@ import { ProjectErrorBoundary } from "@/components/error/ProjectErrorBoundary";
 import { DatabaseErrorHandler } from "@/components/error/DatabaseErrorHandler";
 import { LoadingFallback, OfflineState, GracefulDegradation } from "@/components/error/FallbackMechanisms";
 import { useErrorHandling } from "@/hooks/useErrorHandling";
+import { ProjectWorkflowAnalytics } from "@/components/project/ProjectWorkflowAnalytics";
+import { ProjectCalendar } from "@/components/project/ProjectCalendar";
 
 // This component displays the projects management interface
 // It uses the authenticated user's data from the AuthContext to fetch and manage projects
