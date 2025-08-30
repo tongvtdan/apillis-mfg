@@ -1,47 +1,75 @@
-# Scripts Directory
+# Authentication Scripts
 
-This directory contains utility scripts for data management and database operations.
+This directory contains scripts for managing user authentication in the Factory Pulse system.
 
-## Available Scripts
+## Scripts Overview
 
-### Organization Seeding
+### Create Auth Users (`create-auth-users.js`)
+Creates Supabase auth.users accounts from the sample data, ensuring matching IDs between auth.users and the users table.
 
-**seed-organizations.js** - Seeds sample organization data into the database
-
+**Usage:**
 ```bash
-# Seed organizations (safe - won't overwrite existing data)
-npm run seed:organizations
-
-# Force seed organizations (overwrites existing data)
-npm run seed:organizations:force
-
-# Or run directly with bun/node
-bun run scripts/seed-organizations.js
-node scripts/seed-organizations.js --force
+npm run create:auth-users
 ```
 
-**Requirements:**
-- Local Supabase instance running
-- Environment variables configured in `.env.local`:
-  - `VITE_SUPABASE_URL`
-  - `SUPABASE_SERVICE_ROLE_KEY`
-
 **Features:**
-- Checks for existing data before seeding
-- Uses `--force` flag to overwrite existing organizations
-- Provides detailed logging and error handling
-- Validates environment configuration
+- Creates auth accounts with IDs matching sample-data/03-users.json
+- Sets display names and user metadata
+- Uses default password: `FactoryPulse@2025`
+- Auto-confirms email addresses
+- Includes employee_id, department, role in metadata
 
-### Other Scripts
+## Prerequisites
 
-- **migrate-users.js** - User migration script
-- **import-projects.js** - Import sample project data
-- **reset-admin-password.js** - Reset admin password
-- **test-admin-signin.js** - Test admin authentication
+1. **Local Supabase Running:**
+   ```bash
+   supabase start
+   ```
 
-## Usage Notes
+2. **Environment Variables:**
+   Ensure `.env.local` contains:
+   - `VITE_SUPABASE_URL`
+   - `VITE_SUPABASE_SERVICE_ROLE_KEY`
 
-- All scripts use ES modules (type: "module" in package.json)
-- Scripts connect to local Supabase by default
-- Use service role key for administrative operations
-- Always backup data before running destructive operations
+## Sample User Accounts
+
+The script creates accounts for all users in `sample-data/03-users.json`:
+
+| Role        | Email                                 | Name              | Department         |
+| ----------- | ------------------------------------- | ----------------- | ------------------ |
+| management  | ceo@factorypulse.vn                   | Nguyễn Quang Minh | Executive          |
+| management  | operations@factorypulse.vn            | Trần Ngọc Hương   | Operations         |
+| management  | quality@factorypulse.vn               | Lê Viết Tuấn      | Quality            |
+| engineering | senior.engineer@factorypulse.vn       | Phạm Văn Dũng     | Engineering        |
+| engineering | mechanical.engineer@factorypulse.vn   | Hoàng Thị Lan     | Engineering        |
+| engineering | electrical.engineer@factorypulse.vn   | Vũ Đình Nam       | Engineering        |
+| qa          | qa.engineer@factorypulse.vn           | Ngô Thị Hà        | Quality            |
+| production  | production.supervisor@factorypulse.vn | Trịnh Văn Sơn     | Production         |
+| production  | team.lead@factorypulse.vn             | Lý Thị Mai        | Production         |
+| qa          | quality.inspector@factorypulse.vn     | Đặng Văn Hùng     | Quality            |
+| sales       | sales.manager@factorypulse.vn         | Bùi Thị Thu       | Sales              |
+| procurement | procurement@factorypulse.vn           | Lê Văn Phúc       | Procurement        |
+| management  | project.coordinator@factorypulse.vn   | Phan Thị Kim      | Project Management |
+| admin       | admin@factorypulse.vn                 | Võ Đình Tài       | IT                 |
+| sales       | customer.service@factorypulse.vn      | Nguyễn Thị Hoa    | Customer Service   |
+
+## Security Notes
+
+- All users are created with default password: `FactoryPulse@2025`
+- Email confirmation is automatically handled
+- Service role key is required for admin operations
+
+## Troubleshooting
+
+**Error: Missing environment variables**
+- Ensure Supabase is running locally
+- Check `.env.local` file exists and contains required variables
+
+**Error: User already exists**
+- The script will skip existing users and continue
+- Manually update passwords through Supabase dashboard if needed
+
+**Error: Rate limiting**
+- The script includes small delays between operations
+- If issues persist, run the script again
+- Use `--force` flag carefully as it overwrites existing data

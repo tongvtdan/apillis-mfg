@@ -11,7 +11,10 @@
         "migrate:users": "node scripts/migrate-users.js",
         "seed:organizations": "node scripts/seed-organizations.js",
         "seed:organizations:force": "node scripts/seed-organizations.js --force",
-        "verify:organizations": "node scripts/verify-organizations.js"
+        "verify:organizations": "node scripts/verify-organizations.js",
+        "seed:workflow-stages": "node scripts/seed-workflow-stages.js",
+        "seed:workflow-stages:force": "node scripts/seed-workflow-stages.js --force",
+        "create:auth-users": "node scripts/create-auth-users.js"
     },
     "dependencies": {
         "@supabase/supabase-js": "^2.39.0",

@@ -94,6 +94,15 @@ supabase db reset
 # Seed organizations data
 npm run seed:organizations
 
+# Seed workflow stages
+npm run seed:workflow-stages
+
+# Create authentication users
+npm run create:auth-users
+
+# Verify seeded data
+npm run verify:organizations
+
 # Migrate users (if needed)
 npm run migrate:users
 ```
@@ -126,7 +135,14 @@ npm run lint
 ### Database Scripts
 - `npm run seed:organizations` - Seed organizations data
 - `npm run seed:organizations:force` - Force reseed organizations (overwrites existing)
+- `npm run verify:organizations` - Verify seeded organizations data
+- `npm run seed:workflow-stages` - Seed workflow stages configuration
+- `npm run seed:workflow-stages:force` - Force reseed workflow stages (overwrites existing)
+- `npm run create:auth-users` - Create Supabase authentication users from sample data
 - `npm run migrate:users` - Run user migration script
+
+**Administrative Scripts (Manual Execution):**
+- `node scripts/reset-user-password.js <email> [password]` - Reset user passwords (not in npm scripts for security)
 
 ## Build System Features
 
@@ -192,6 +208,9 @@ supabase gen types typescript --local > src/integrations/supabase/types.ts
 ```bash
 # Seed fresh data
 npm run seed:organizations:force
+
+# Verify seeded data
+npm run verify:organizations
 
 # Import sample data
 node scripts/import-sample-data.js
