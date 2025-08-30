@@ -388,6 +388,8 @@ class SystemError extends Error {
 ### Service Method Error Wrapping
 
 ```typescript
+import { handleDatabaseError } from '@/lib/validation/error-handlers';
+
 async function withErrorHandling<T>(
   operation: () => Promise<T>,
   context: { component?: string; action?: string } = {}
@@ -402,9 +404,9 @@ async function withErrorHandling<T>(
     (enhancedError as any).context = context;
     (enhancedError as any).originalError = error;
     
-    // Handle specific error types
-    if (error.name === 'PostgrestError') {
-      DatabaseErrorHandler.handle(error);
+    // Handle specific error types using centralized handler
+    if (error.name === 'PostgrestError' || error.code) {
+      throw handleDatabaseError(error);
     }
     
     if (error.message?.includes('fetch')) {
@@ -426,7 +428,7 @@ export const projectService = {
           .select()
           .single();
         
-        if (error) throw error;
+        if (error) throw handleDatabaseError(error);
         return project;
       },
       { component: 'projectService', action: 'createProject' }
@@ -443,7 +445,7 @@ export const projectService = {
           .select()
           .single();
         
-        if (error) throw error;
+        if (error) throw handleDatabaseError(error);
         return project;
       },
       { component: 'projectService', action: 'updateProject' }
@@ -883,6 +885,7 @@ export const errorLogger = new ErrorLogger();
 3. **User-Friendly Messages**: Show clear, actionable error messages
 4. **Context Preservation**: Maintain user's work and state when errors occur
 5. **Recovery Options**: Always provide ways for users to recover
+6. **Centralized Error Handling**: Use `handleDatabaseError` for consistent database error processing
 
 ### Implementation Patterns
 
@@ -891,6 +894,28 @@ export const errorLogger = new ErrorLogger();
 3. **Optimistic Updates**: Update UI immediately, handle failures gracefully
 4. **Validation Layers**: Validate at multiple levels (client, server, database)
 5. **Monitoring**: Log errors for analysis and improvement
+6. **Consistent API**: Use `handleDatabaseError` or `formatDatabaseError` interchangeably for backward compatibility
+
+### Error Handler Usage
+
+```typescript
+// Recommended approach - use the centralized error handler
+import { handleDatabaseError } from '@/lib/validation/error-handlers';
+
+try {
+  const { data, error } = await supabase.from('projects').insert(projectData);
+  if (error) throw handleDatabaseError(error);
+  return data;
+} catch (error) {
+  // Error is already formatted with user-friendly message
+  toast.error(error.message);
+  throw error;
+}
+
+// Alternative - both functions are equivalent
+import { formatDatabaseError } from '@/lib/validation/error-handlers';
+// Use formatDatabaseError(error) - same functionality
+```
 
 ### Testing Error Scenarios
 

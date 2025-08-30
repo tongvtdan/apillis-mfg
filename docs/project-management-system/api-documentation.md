@@ -32,27 +32,26 @@ const supabase = createClient(
 
 All API calls require authentication via Supabase Auth. The system uses Row Level Security (RLS) to ensure data isolation by organization.
 
-**ID Mismatch Handling**: The system includes transparent ID mapping for users with mismatched IDs between `auth.users` and `public.users` tables.
+**Authentication**: All API calls require authentication via Supabase Auth. The system uses Row Level Security (RLS) to ensure data isolation by organization.
+
+**ID Synchronization**: Perfect ID synchronization has been achieved between `auth.users` and `public.users` tables. All users now have matching IDs, eliminating the need for ID mapping.
 
 ```typescript
-// Authentication check with ID mapping
+// Authentication check with direct ID matching
 const { data: { user } } = await supabase.auth.getUser();
 if (!user) {
   throw new Error('Authentication required');
 }
 
-// ID mapping for affected users (handled in AuthContext)
-const ID_MISMATCH_MAP: Record<string, string> = {
-  '1bbb8aef-fdfe-446b-b8cc-42bd7677aa7c': '083f04db-458a-416b-88e9-94acf10382f8', // admin
-  '4bfa5ef8-2a21-46b8-bc99-2c8000b681bf': '99845907-7255-4155-9dd0-c848ab9860cf', // ceo
-  '2171de5a-c007-4893-92f1-b15522c164d9': 'a1f24ed5-319e-4b66-8d21-fbc70d07ea09', // sales
-  '2e828057-adde-44e7-8fa7-a2d1aea656ab': 'c91843ad-4327-429a-bf57-2b891df50e18', // procurement
-  'f23c3fea-cd08-48c0-9107-df83a0059ec6': '776edb76-953a-4482-9533-c793a633cc27'  // engineering
-};
-
-// Get effective user ID for database queries
-const getEffectiveUserId = (authUserId: string): string => {
-  return ID_MISMATCH_MAP[authUserId] || authUserId;
+// Direct ID usage - no mapping needed
+const getUserProfile = async (authUserId: string) => {
+  const { data, error } = await supabase
+    .from('users')
+    .select('*')
+    .eq('id', authUserId) // Direct ID matching
+    .single();
+  
+  return { data, error };
 };
 ```
 
@@ -594,21 +593,19 @@ const ErrorCodes = {
 ### Error Handling Patterns
 
 ```typescript
+import { handleDatabaseError, formatDatabaseError } from '@/lib/validation/error-handlers';
+
 async function handleAPICall<T>(
   operation: () => Promise<T>
 ): Promise<T> {
   try {
     return await operation();
   } catch (error: any) {
-    // Supabase error handling
-    if (error.code === '23505') {
-      throw new Error('Duplicate project ID');
-    }
-    if (error.code === '23503') {
-      throw new Error('Referenced record not found');
-    }
-    if (error.code === '42501') {
-      throw new Error('Permission denied');
+    // Use centralized database error handling
+    if (error.code) {
+      // Both functions are equivalent - use either for consistency
+      throw handleDatabaseError(error);
+      // or: throw formatDatabaseError(error);
     }
     
     // Network errors
@@ -620,6 +617,25 @@ async function handleAPICall<T>(
     throw error;
   }
 }
+
+// Example usage in service methods
+export const projectService = {
+  async createProject(data: CreateProjectRequest) {
+    try {
+      const { data: project, error } = await supabase
+        .from('projects')
+        .insert(data)
+        .select()
+        .single();
+
+      if (error) throw handleDatabaseError(error);
+      return project;
+    } catch (error) {
+      // Error is already formatted by handleDatabaseError
+      throw error;
+    }
+  }
+};
 ```
 
 ## Rate Limiting and Performance

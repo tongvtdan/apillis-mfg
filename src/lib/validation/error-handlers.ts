@@ -206,3 +206,8 @@ export const formatErrorsWithSuggestions = (error: ZodError): EnhancedValidation
         return createEnhancedError(field, message, code, ValidationSeverity.ERROR, suggestion);
     });
 };
+
+/**
+ * Handle database errors - alias for formatDatabaseError for backward compatibility
+ */
+export const handleDatabaseError = formatDatabaseError;

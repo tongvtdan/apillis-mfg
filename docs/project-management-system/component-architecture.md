@@ -392,40 +392,29 @@ sequenceDiagram
     participant U as User
     participant A as Auth Context
     participant S as Supabase Auth
-    participant M as ID Mapping
     participant DB as Database
     participant C as Components
     
     U->>A: Login request
     A->>S: Authenticate
     S-->>A: User session (auth ID)
-    A->>M: Check ID_MISMATCH_MAP
-    M-->>A: Return mapped ID or original
-    A->>DB: Fetch user profile (mapped ID)
+    A->>DB: Fetch user profile (direct ID)
     DB-->>A: User profile data
     A-->>C: Update auth state with profile
     C->>C: Enable protected features
     
-    Note over U,C: User can now access project data with correct profile
+    Note over U,C: User can now access project data with synchronized IDs
 ```
 
-**ID Mismatch Handling**:
+**Direct ID Synchronization**:
 ```typescript
-// AuthContext with ID mapping
-const ID_MISMATCH_MAP: Record<string, string> = {
-  // Maps auth.users.id -> public.users.id for affected users
-  '1bbb8aef-fdfe-446b-b8cc-42bd7677aa7c': '083f04db-458a-416b-88e9-94acf10382f8',
-  // ... other mappings
-};
-
+// AuthContext with direct ID matching (ID_MISMATCH_MAP removed)
 const getUserProfile = async (authUser) => {
-  // Use mapped ID if exists, otherwise use auth ID
-  const userIdToQuery = ID_MISMATCH_MAP[authUser.id] || authUser.id;
-  
+  // Direct ID matching - no mapping needed
   const { data, error } = await supabase
     .from('users')
     .select('*')
-    .eq('id', userIdToQuery)
+    .eq('id', authUser.id) // Direct matching with synchronized IDs
     .single();
     
   return { data, error };

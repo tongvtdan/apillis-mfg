@@ -19,7 +19,7 @@
 
 ### **Login Credentials**
 - **Email**: Any of the emails listed above
-- **Password**: `Password123!` (same for all users)
+- **Password**: `FactoryPulse2024!` (same for all users)
 
 ### **Role Distribution**
 - **admin**: 1 user (admin@factorypulse.vn)
