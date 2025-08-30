@@ -1,183 +1,125 @@
 #!/usr/bin/env node
 
-/**
- * Factory Pulse - Organizations Import Script
- * 
- * This script imports organizations from the sample data into the database.
- * It must be run before creating auth users since users reference organizations.
- */
-
-import fs from 'fs';
-import path from 'path';
 import { createClient } from '@supabase/supabase-js';
-import dotenv from 'dotenv';
+import { config } from 'dotenv';
 import { fileURLToPath } from 'url';
+import { dirname, join } from 'path';
+import fs from 'fs';
 
-// Configure dotenv
-dotenv.config({ path: '.env.local' });
+// Load environment variables
+config({ path: '.env.local' });
 
-// Get __dirname equivalent in ES modules
 const __filename = fileURLToPath(import.meta.url);
-const __dirname = path.dirname(__filename);
+const __dirname = dirname(__filename);
 
 // Initialize Supabase client
 const supabaseUrl = process.env.VITE_SUPABASE_URL || 'http://127.0.0.1:54321';
-const supabaseServiceKey = process.env.VITE_SUPABASE_SERVICE_ROLE_KEY || process.env.SUPABASE_SERVICE_ROLE_KEY || process.env.VITE_SUPABASE_ANON_KEY;
+const supabaseKey = process.env.SUPABASE_SERVICE_ROLE_KEY || process.env.VITE_SUPABASE_ANON_KEY;
 
-if (!supabaseServiceKey) {
-    console.error('❌ Error: VITE_SUPABASE_SERVICE_ROLE_KEY, SUPABASE_SERVICE_ROLE_KEY, or VITE_SUPABASE_ANON_KEY not found in .env.local');
+if (!supabaseKey) {
+    console.error('❌ Error: SUPABASE_SERVICE_ROLE_KEY or VITE_SUPABASE_ANON_KEY not found in environment variables');
     process.exit(1);
 }
 
-const supabase = createClient(supabaseUrl, supabaseServiceKey, {
-    auth: {
-        autoRefreshToken: false,
-        persistSession: false
-    }
-});
+const supabase = createClient(supabaseUrl, supabaseKey);
 
-// Load organizations data
-function loadOrganizations() {
+async function importOrganizations() {
+    console.log('🚀 Factory Pulse - Organizations Import Script');
+    console.log('============================================================');
+    console.log(`🌐 Supabase URL: ${supabaseUrl}\n`);
+
     try {
-        const orgsPath = path.join(__dirname, '..', 'sample-data', '01-organizations.json');
-        const orgsData = fs.readFileSync(orgsPath, 'utf8');
-        return JSON.parse(orgsData);
+        // Load organizations data
+        console.log('📋 Loading organizations data...');
+        const organizationsPath = join(__dirname, '..', 'sample-data', '01-organizations.json');
+        const organizationsData = JSON.parse(fs.readFileSync(organizationsPath, 'utf8'));
+        console.log(`✅ Loaded ${organizationsData.length} organizations from sample data\n`);
+
+        const results = {
+            success: [],
+            errors: []
+        };
+
+        // Import each organization
+        for (const org of organizationsData) {
+            try {
+                console.log(`🏢 Processing organization: ${org.name}`);
+
+                const { data, error } = await supabase
+                    .from('organizations')
+                    .insert([org])
+                    .select();
+
+                if (error) {
+                    console.error(`❌ Error importing ${org.name}:`, error.message);
+                    results.errors.push({
+                        name: org.name,
+                        error: error.message
+                    });
+                } else {
+                    console.log(`  ✅ Imported organization: ${org.name} (${org.id})`);
+                    results.success.push({
+                        name: org.name,
+                        id: org.id
+                    });
+                }
+            } catch (err) {
+                console.error(`❌ Unexpected error importing ${org.name}:`, err.message);
+                results.errors.push({
+                    name: org.name,
+                    error: err.message
+                });
+            }
+        }
+
+        // Summary
+        console.log('\n📊 Summary');
+        console.log('============================================================');
+        console.log(`✅ Successful: ${results.success.length}`);
+        console.log(`❌ Errors: ${results.errors.length}`);
+        console.log(`📝 Total: ${organizationsData.length}\n`);
+
+        if (results.success.length > 0) {
+            console.log('✅ Successfully imported organizations:');
+            results.success.forEach(org => {
+                console.log(`  - ${org.name} (${org.id})`);
+            });
+        }
+
+        if (results.errors.length > 0) {
+            console.log('\n❌ Failed organizations:');
+            results.errors.forEach(error => {
+                console.log(`  - ${error.name}: ${error.error}`);
+            });
+        }
+
+        // Save results to file
+        const timestamp = new Date().toISOString().replace(/[:.]/g, '-');
+        const resultsFile = join(__dirname, `organizations-import-${timestamp}.json`);
+        fs.writeFileSync(resultsFile, JSON.stringify(results, null, 2));
+        console.log(`\n📄 Detailed results saved to: ${resultsFile}`);
+
+        console.log('\n🎉 Organizations import completed!');
+        console.log('Next step: Run the auth users creation script');
+
+        return results;
+
     } catch (error) {
-        console.error('❌ Error loading organizations data:', error.message);
+        console.error('💥 Fatal error:', error);
         process.exit(1);
     }
 }
 
-// Import organization
-async function importOrganization(orgData) {
-    try {
-        const { error } = await supabase
-            .from('organizations')
-            .insert({
-                id: orgData.id,
-                name: orgData.name,
-                slug: orgData.slug,
-                domain: orgData.domain,
-                logo_url: orgData.logo_url,
-                description: orgData.description,
-                industry: orgData.industry,
-                settings: orgData.settings,
-                subscription_plan: orgData.subscription_plan,
-                is_active: orgData.is_active,
-                created_at: orgData.created_at,
-                updated_at: orgData.updated_at
-            });
-
-        if (error) {
-            console.error(`  ❌ Error importing organization ${orgData.name}:`, error.message);
-            return { success: false, error: error.message };
-        }
-
-        console.log(`  ✅ Imported organization: ${orgData.name} (${orgData.id})`);
-        return { success: true };
-    } catch (error) {
-        console.error(`  ❌ Unexpected error importing organization ${orgData.name}:`, error.message);
-        return { success: false, error: error.message };
-    }
-}
-
-// Main execution function
-async function main() {
-    console.log('🚀 Factory Pulse - Organizations Import Script');
-    console.log('='.repeat(60));
-
-    console.log(`🌐 Supabase URL: ${supabaseUrl}`);
-    console.log('');
-
-    // Load organizations
-    console.log('📋 Loading organizations data...');
-    const organizations = loadOrganizations();
-    console.log(`✅ Loaded ${organizations.length} organizations from sample data`);
-    console.log('');
-
-    // Track results
-    let successCount = 0;
-    let errorCount = 0;
-    const results = [];
-
-    // Process each organization
-    for (const orgData of organizations) {
-        console.log(`🏢 Processing organization: ${orgData.name}`);
-
-        const result = await importOrganization(orgData);
-
-        if (result.success) {
-            successCount++;
-            results.push({
-                organization: orgData.name,
-                id: orgData.id,
-                status: 'success'
-            });
-        } else {
-            errorCount++;
-            results.push({
-                organization: orgData.name,
-                id: orgData.id,
-                status: 'error',
-                error: result.error
-            });
-        }
-
-        console.log('');
-    }
-
-    // Summary
-    console.log('📊 Summary');
-    console.log('='.repeat(60));
-    console.log(`✅ Successful: ${successCount}`);
-    console.log(`❌ Errors: ${errorCount}`);
-    console.log(`📝 Total: ${organizations.length}`);
-    console.log('');
-
-    if (errorCount > 0) {
-        console.log('❌ Organizations with errors:');
-        results
-            .filter(r => r.status !== 'success')
-            .forEach(r => {
-                console.log(`  - ${r.organization}: ${r.error}`);
-            });
-        console.log('');
-    }
-
-    if (successCount > 0) {
-        console.log('✅ Successfully imported organizations:');
-        results
-            .filter(r => r.status === 'success')
-            .forEach(r => {
-                console.log(`  - ${r.organization} (${r.id})`);
-            });
-        console.log('');
-    }
-
-    // Save results to file
-    const timestamp = new Date().toISOString().replace(/[:.]/g, '-');
-    const resultsFile = `organizations-import-${timestamp}.json`;
-    fs.writeFileSync(resultsFile, JSON.stringify(results, null, 2));
-    console.log(`📄 Detailed results saved to: ${resultsFile}`);
-
-    console.log('');
-    console.log('🎉 Organizations import completed!');
-    console.log('Next step: Run the auth users creation script');
-}
-
-// Error handling
-process.on('unhandledRejection', (reason, promise) => {
-    console.error('❌ Unhandled Rejection at:', promise, 'reason:', reason);
-    process.exit(1);
-});
-
-process.on('uncaughtException', (error) => {
-    console.error('❌ Uncaught Exception:', error);
-    process.exit(1);
-});
-
 // Run the script
-main().catch(error => {
-    console.error('❌ Script failed:', error);
-    process.exit(1);
-});
+if (import.meta.url === `file://${process.argv[1]}`) {
+    importOrganizations()
+        .then(() => {
+            process.exit(0);
+        })
+        .catch((error) => {
+            console.error('\n💥 Fatal error:', error);
+            process.exit(1);
+        });
+}
+
+export { importOrganizations };

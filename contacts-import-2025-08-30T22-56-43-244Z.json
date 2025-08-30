@@ -1,0 +1,62 @@
+[
+  {
+    "contact": "Toyota Vietnam",
+    "type": "customer",
+    "id": "550e8400-e29b-41d4-a716-446655440101",
+    "status": "success"
+  },
+  {
+    "contact": "Honda Vietnam",
+    "type": "customer",
+    "id": "550e8400-e29b-41d4-a716-446655440102",
+    "status": "success"
+  },
+  {
+    "contact": "Boeing Vietnam",
+    "type": "customer",
+    "id": "550e8400-e29b-41d4-a716-446655440103",
+    "status": "success"
+  },
+  {
+    "contact": "Airbus Vietnam",
+    "type": "customer",
+    "id": "550e8400-e29b-41d4-a716-446655440104",
+    "status": "success"
+  },
+  {
+    "contact": "Samsung Vietnam",
+    "type": "customer",
+    "id": "550e8400-e29b-41d4-a716-446655440105",
+    "status": "success"
+  },
+  {
+    "contact": "Precision Machining Co.",
+    "type": "supplier",
+    "id": "550e8400-e29b-41d4-a716-446655440106",
+    "status": "success"
+  },
+  {
+    "contact": "Metal Fabrication Ltd.",
+    "type": "supplier",
+    "id": "550e8400-e29b-41d4-a716-446655440107",
+    "status": "success"
+  },
+  {
+    "contact": "Assembly Solutions",
+    "type": "supplier",
+    "id": "550e8400-e29b-41d4-a716-446655440108",
+    "status": "success"
+  },
+  {
+    "contact": "Surface Finishing Pro",
+    "type": "supplier",
+    "id": "550e8400-e29b-41d4-a716-446655440109",
+    "status": "success"
+  },
+  {
+    "contact": "Electronics Assembly",
+    "type": "supplier",
+    "id": "550e8400-e29b-41d4-a716-446655440110",
+    "status": "success"
+  }
+]
