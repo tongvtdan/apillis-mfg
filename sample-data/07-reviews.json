@@ -1,0 +1,230 @@
+[
+    {
+        "id": "550e8400-e29b-41d4-a716-446655440501",
+        "project_id": "550e8400-e29b-41d4-a716-446655440301",
+        "reviewer_id": "550e8400-e29b-41d4-a716-446655440005",
+        "reviewer_role": "senior_engineer",
+        "review_type": "technical",
+        "status": "approved",
+        "priority": "high",
+        "comments": "Technical design is sound and manufacturable. CNC machining approach is appropriate for the required tolerances.",
+        "risks": [
+            {
+                "risk": "Material waste during machining",
+                "severity": "low",
+                "mitigation": "Optimize cutting paths and nesting"
+            }
+        ],
+        "recommendations": "Consider using carbide tooling for better surface finish and tool life.",
+        "tooling_required": true,
+        "estimated_cost": 5000000,
+        "estimated_lead_time": 14,
+        "due_date": "2025-02-10T00:00:00.000Z",
+        "reviewed_at": "2025-01-27T09:00:00.000Z",
+        "created_at": "2025-01-27T08:00:00.000Z",
+        "updated_at": "2025-01-27T09:00:00.000Z"
+    },
+    {
+        "id": "550e8400-e29b-41d4-a716-446655440502",
+        "project_id": "550e8400-e29b-41d4-a716-446655440301",
+        "reviewer_id": "550e8400-e29b-41d4-a716-446655440008",
+        "reviewer_role": "qa_engineer",
+        "review_type": "quality",
+        "status": "approved",
+        "priority": "high",
+        "comments": "Quality requirements are clear and achievable. Inspection points are well defined.",
+        "risks": [
+            {
+                "risk": "Surface finish measurement accuracy",
+                "severity": "medium",
+                "mitigation": "Use calibrated surface roughness tester"
+            }
+        ],
+        "recommendations": "Add 100% inspection for critical dimensions and surface finish.",
+        "tooling_required": false,
+        "estimated_cost": 2000000,
+        "estimated_lead_time": 7,
+        "due_date": "2025-02-10T00:00:00.000Z",
+        "reviewed_at": "2025-01-27T09:30:00.000Z",
+        "created_at": "2025-01-27T08:00:00.000Z",
+        "updated_at": "2025-01-27T09:30:00.000Z"
+    },
+    {
+        "id": "550e8400-e29b-41d4-a716-446655440503",
+        "project_id": "550e8400-e29b-41d4-a716-446655440301",
+        "reviewer_id": "550e8400-e29b-41d4-a716-446655440009",
+        "reviewer_role": "production_supervisor",
+        "review_type": "production",
+        "status": "approved",
+        "priority": "medium",
+        "comments": "Production plan is feasible with current capacity. JIT delivery schedule is manageable.",
+        "risks": [
+            {
+                "risk": "Material availability for JIT schedule",
+                "severity": "medium",
+                "mitigation": "Maintain safety stock and supplier agreements"
+            }
+        ],
+        "recommendations": "Schedule production in smaller batches to meet weekly delivery requirements.",
+        "tooling_required": true,
+        "estimated_cost": 3000000,
+        "estimated_lead_time": 10,
+        "due_date": "2025-02-10T00:00:00.000Z",
+        "reviewed_at": "2025-01-27T10:00:00.000Z",
+        "created_at": "2025-01-27T08:00:00.000Z",
+        "updated_at": "2025-01-27T10:00:00.000Z"
+    },
+    {
+        "id": "550e8400-e29b-41d4-a716-446655440504",
+        "project_id": "550e8400-e29b-41d4-a716-446655440302",
+        "reviewer_id": "550e8400-e29b-41d4-a716-446655440005",
+        "reviewer_role": "senior_engineer",
+        "review_type": "technical",
+        "status": "approved",
+        "comments": "Welding design is appropriate for chromoly steel. Jig design will ensure consistency.",
+        "risks": [
+            {
+                "risk": "Heat affected zone control",
+                "severity": "medium",
+                "mitigation": "Use proper welding parameters and post-weld heat treatment"
+            }
+        ],
+        "recommendations": "Implement welding procedure qualification and operator certification.",
+        "tooling_required": true,
+        "estimated_cost": 8000000,
+        "estimated_lead_time": 21,
+        "due_date": "2025-02-15T00:00:00.000Z",
+        "reviewed_at": "2025-01-27T10:30:00.000Z",
+        "created_at": "2025-01-27T08:00:00.000Z",
+        "updated_at": "2025-01-27T10:30:00.000Z"
+    },
+    {
+        "id": "550e8400-e29b-41d4-a716-446655440505",
+        "project_id": "550e8400-e29b-41d4-a716-446655440303",
+        "reviewer_id": "550e8400-e29b-41d4-a716-446655440005",
+        "reviewer_role": "senior_engineer",
+        "review_type": "technical",
+        "status": "approved",
+        "priority": "urgent",
+        "comments": "Aerospace component design meets Boeing requirements. Tight tolerances are achievable with proper equipment.",
+        "risks": [
+            {
+                "risk": "Material certification and traceability",
+                "severity": "high",
+                "mitigation": "Use certified suppliers and maintain full documentation"
+            },
+            {
+                "risk": "Tolerance stack-up in assembly",
+                "severity": "medium",
+                "mitigation": "Implement statistical process control"
+            }
+        ],
+        "recommendations": "Require 100% dimensional inspection and material certification for each batch.",
+        "tooling_required": true,
+        "estimated_cost": 15000000,
+        "estimated_lead_time": 35,
+        "due_date": "2025-02-20T00:00:00.000Z",
+        "reviewed_at": "2025-01-27T11:00:00.000Z",
+        "created_at": "2025-01-27T08:00:00.000Z",
+        "updated_at": "2025-01-27T11:00:00.000Z"
+    },
+    {
+        "id": "550e8400-e29b-41d4-a716-446655440506",
+        "project_id": "550e8400-e29b-41d4-a716-446655440303",
+        "reviewer_id": "550e8400-e29b-41d4-a716-446655440008",
+        "reviewer_role": "qa_engineer",
+        "review_type": "quality",
+        "status": "approved",
+        "priority": "urgent",
+        "comments": "Quality requirements exceed standard aerospace standards. Full traceability and certification required.",
+        "risks": [
+            {
+                "risk": "Non-conforming material detection",
+                "severity": "high",
+                "mitigation": "Implement incoming material inspection and testing"
+            }
+        ],
+        "recommendations": "Establish quality control checkpoints at each manufacturing step.",
+        "tooling_required": true,
+        "estimated_cost": 8000000,
+        "estimated_lead_time": 14,
+        "due_date": "2025-02-20T00:00:00.000Z",
+        "reviewed_at": "2025-01-27T11:30:00.000Z",
+        "created_at": "2025-01-27T08:00:00.000Z",
+        "updated_at": "2025-01-27T11:30:00.000Z"
+    },
+    {
+        "id": "550e8400-e29b-41d4-a716-446655440507",
+        "project_id": "550e8400-e29b-41d4-a716-446655440304",
+        "reviewer_id": "550e8400-e29b-41d4-a716-446655440006",
+        "reviewer_role": "mechanical_engineer",
+        "review_type": "technical",
+        "status": "approved",
+        "comments": "Sheet metal design is appropriate for aluminum. ESD protection requirements are clear.",
+        "risks": [
+            {
+                "risk": "ESD damage during assembly",
+                "severity": "medium",
+                "mitigation": "Implement ESD-safe workstations and procedures"
+            }
+        ],
+        "recommendations": "Use ESD-safe materials and implement grounding procedures.",
+        "tooling_required": true,
+        "estimated_cost": 4000000,
+        "estimated_lead_time": 14,
+        "due_date": "2025-02-25T00:00:00.000Z",
+        "reviewed_at": "2025-01-27T12:00:00.000Z",
+        "created_at": "2025-01-27T08:00:00.000Z",
+        "updated_at": "2025-01-27T12:00:00.000Z"
+    },
+    {
+        "id": "550e8400-e29b-41d4-a716-446655440508",
+        "project_id": "550e8400-e29b-41d4-a716-446655440305",
+        "reviewer_id": "550e8400-e29b-41d4-a716-446655440007",
+        "reviewer_role": "electrical_engineer",
+        "review_type": "technical",
+        "status": "pending",
+        "priority": "high",
+        "comments": "Electrical schematic review in progress. UL certification requirements need verification.",
+        "risks": [
+            {
+                "risk": "UL certification timeline",
+                "severity": "high",
+                "mitigation": "Engage UL consultant early in the process"
+            }
+        ],
+        "recommendations": "Complete UL certification before production begins.",
+        "tooling_required": true,
+        "estimated_cost": 12000000,
+        "estimated_lead_time": 42,
+        "due_date": "2025-03-15T00:00:00.000Z",
+        "reviewed_at": null,
+        "created_at": "2025-01-27T08:00:00.000Z",
+        "updated_at": "2025-01-27T08:00:00.000Z"
+    },
+    {
+        "id": "550e8400-e29b-41d4-a716-446655440509",
+        "project_id": "550e8400-e29b-41d4-a716-446655440306",
+        "reviewer_id": "550e8400-e29b-41d4-a716-446655440005",
+        "reviewer_role": "senior_engineer",
+        "review_type": "technical",
+        "status": "needs_info",
+        "priority": "urgent",
+        "comments": "Medical component design requires additional information on sterilization requirements and biocompatibility testing.",
+        "risks": [
+            {
+                "risk": "Biocompatibility testing failure",
+                "severity": "high",
+                "mitigation": "Use proven medical-grade materials and processes"
+            }
+        ],
+        "recommendations": "Clarify sterilization method and biocompatibility testing requirements.",
+        "tooling_required": true,
+        "estimated_cost": 20000000,
+        "estimated_lead_time": 60,
+        "due_date": "2025-03-01T00:00:00.000Z",
+        "reviewed_at": null,
+        "created_at": "2025-01-27T08:00:00.000Z",
+        "updated_at": "2025-01-27T08:00:00.000Z"
+    }
+]

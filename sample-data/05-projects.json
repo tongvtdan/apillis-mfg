@@ -1,0 +1,270 @@
+[
+    {
+        "id": "550e8400-e29b-41d4-a716-446655440301",
+        "organization_id": "550e8400-e29b-41d4-a716-446655440001",
+        "project_id": "P-25012701",
+        "title": "Automotive Bracket Assembly",
+        "description": "High-precision automotive bracket assembly for Toyota Vietnam, including CNC machining, welding, and surface finishing",
+        "customer_id": "550e8400-e29b-41d4-a716-446655440101",
+        "current_stage_id": "550e8400-e29b-41d4-a716-446655440207",
+        "status": "active",
+        "priority_score": 85,
+        "priority_level": "high",
+        "estimated_value": 45000000,
+        "estimated_delivery_date": "2025-03-15T00:00:00.000Z",
+        "actual_delivery_date": null,
+        "source": "portal",
+        "tags": [
+            "automotive",
+            "bracket",
+            "assembly",
+            "high_precision"
+        ],
+        "metadata": {
+            "project_type": "fabrication",
+            "material": "stainless_steel",
+            "quantity": 1000,
+            "quality_standards": [
+                "ISO_9001",
+                "TS_16949"
+            ]
+        },
+        "stage_entered_at": "2025-01-27T08:00:00.000Z",
+        "project_type": "fabrication",
+        "notes": "Customer requires JIT delivery schedule with weekly shipments",
+        "created_at": "2025-01-27T08:00:00.000Z",
+        "updated_at": "2025-01-27T08:00:00.000Z",
+        "created_by": "550e8400-e29b-41d4-a716-446655440012",
+        "assigned_to": "550e8400-e29b-41d4-a716-446655440013"
+    },
+    {
+        "id": "550e8400-e29b-41d4-a716-446655440302",
+        "organization_id": "550e8400-e29b-41d4-a716-446655440001",
+        "project_id": "P-25012702",
+        "title": "Motorcycle Frame Welding",
+        "description": "Motorcycle frame welding project for Honda Vietnam, including jig design, welding, and quality inspection",
+        "customer_id": "550e8400-e29b-41d4-a716-446655440102",
+        "current_stage_id": "550e8400-e29b-41d4-a716-446655440206",
+        "status": "active",
+        "priority_score": 75,
+        "priority_level": "medium",
+        "estimated_value": 28000000,
+        "estimated_delivery_date": "2025-02-28T00:00:00.000Z",
+        "actual_delivery_date": null,
+        "source": "portal",
+        "tags": [
+            "motorcycle",
+            "frame",
+            "welding",
+            "jig_design"
+        ],
+        "metadata": {
+            "project_type": "fabrication",
+            "material": "chromoly_steel",
+            "quantity": 500,
+            "quality_standards": [
+                "ISO_9001",
+                "JIS_standards"
+            ]
+        },
+        "stage_entered_at": "2025-01-27T08:00:00.000Z",
+        "project_type": "fabrication",
+        "notes": "Requires specialized welding equipment and jig fixtures",
+        "created_at": "2025-01-27T08:00:00.000Z",
+        "updated_at": "2025-01-27T08:00:00.000Z",
+        "created_by": "550e8400-e29b-41d4-a716-446655440012",
+        "assigned_to": "550e8400-e29b-41d4-a716-446655440013"
+    },
+    {
+        "id": "550e8400-e29b-41d4-a716-446655440303",
+        "organization_id": "550e8400-e29b-41d4-a716-446655440001",
+        "project_id": "P-25012703",
+        "title": "Aerospace Component Machining",
+        "description": "High-precision aerospace component machining for Boeing Vietnam, requiring tight tolerances and certified materials",
+        "customer_id": "550e8400-e29b-41d4-a716-446655440103",
+        "current_stage_id": "550e8400-e29b-41d4-a716-446655440205",
+        "status": "active",
+        "priority_score": 95,
+        "priority_level": "urgent",
+        "estimated_value": 120000000,
+        "estimated_delivery_date": "2025-04-30T00:00:00.000Z",
+        "actual_delivery_date": null,
+        "source": "portal",
+        "tags": [
+            "aerospace",
+            "machining",
+            "high_precision",
+            "certified_materials"
+        ],
+        "metadata": {
+            "project_type": "fabrication",
+            "material": "titanium_alloy",
+            "quantity": 100,
+            "quality_standards": [
+                "AS_9100",
+                "NADCAP",
+                "Boeing_standards"
+            ]
+        },
+        "stage_entered_at": "2025-01-27T08:00:00.000Z",
+        "project_type": "fabrication",
+        "notes": "Critical aerospace component requiring full traceability and certification",
+        "created_at": "2025-01-27T08:00:00.000Z",
+        "updated_at": "2025-01-27T08:00:00.000Z",
+        "created_by": "550e8400-e29b-41d4-a716-446655440012",
+        "assigned_to": "550e8400-e29b-41d4-a716-446655440013"
+    },
+    {
+        "id": "550e8400-e29b-41d4-a716-446655440304",
+        "organization_id": "550e8400-e29b-41d4-a716-446655440001",
+        "project_id": "P-25012704",
+        "title": "Electronics Enclosure Assembly",
+        "description": "Electronics enclosure assembly for Samsung Vietnam, including sheet metal fabrication and PCB mounting",
+        "customer_id": "550e8400-e29b-41d4-a716-446655440105",
+        "current_stage_id": "550e8400-e29b-41d4-a716-446655440204",
+        "status": "active",
+        "priority_score": 70,
+        "priority_level": "medium",
+        "estimated_value": 35000000,
+        "estimated_delivery_date": "2025-03-31T00:00:00.000Z",
+        "actual_delivery_date": null,
+        "source": "portal",
+        "tags": [
+            "electronics",
+            "enclosure",
+            "sheet_metal",
+            "pcb_mounting"
+        ],
+        "metadata": {
+            "project_type": "fabrication",
+            "material": "aluminum_sheet",
+            "quantity": 2000,
+            "quality_standards": [
+                "ISO_9001",
+                "IPC_standards"
+            ]
+        },
+        "stage_entered_at": "2025-01-27T08:00:00.000Z",
+        "project_type": "fabrication",
+        "notes": "Requires ESD protection and clean room assembly",
+        "created_at": "2025-01-27T08:00:00.000Z",
+        "updated_at": "2025-01-27T08:00:00.000Z",
+        "created_by": "550e8400-e29b-41d4-a716-446655440012",
+        "assigned_to": "550e8400-e29b-41d4-a716-446655440013"
+    },
+    {
+        "id": "550e8400-e29b-41d4-a716-446655440305",
+        "organization_id": "550e8400-e29b-41d4-a716-446655440001",
+        "project_id": "P-25012705",
+        "title": "Industrial Control Panel",
+        "description": "Industrial control panel for Siemens Vietnam, including electrical assembly and testing",
+        "customer_id": "550e8400-e29b-41d4-a716-446655440001",
+        "current_stage_id": "550e8400-e29b-41d4-a716-446655440203",
+        "status": "active",
+        "priority_score": 80,
+        "priority_level": "high",
+        "estimated_value": 65000000,
+        "estimated_delivery_date": "2025-04-15T00:00:00.000Z",
+        "actual_delivery_date": null,
+        "source": "portal",
+        "tags": [
+            "industrial",
+            "control_panel",
+            "electrical",
+            "assembly"
+        ],
+        "metadata": {
+            "project_type": "system_build",
+            "material": "steel_enclosure",
+            "quantity": 50,
+            "quality_standards": [
+                "ISO_9001",
+                "IEC_standards"
+            ]
+        },
+        "stage_entered_at": "2025-01-27T08:00:00.000Z",
+        "project_type": "system_build",
+        "notes": "Requires UL certification and electrical safety testing",
+        "created_at": "2025-01-27T08:00:00.000Z",
+        "updated_at": "2025-01-27T08:00:00.000Z",
+        "created_by": "550e8400-e29b-41d4-a716-446655440012",
+        "assigned_to": "550e8400-e29b-41d4-a716-446655440013"
+    },
+    {
+        "id": "550e8400-e29b-41d4-a716-446655440306",
+        "organization_id": "550e8400-e29b-41d4-a716-446655440001",
+        "project_id": "P-25012706",
+        "title": "Medical Device Components",
+        "description": "Precision medical device components for local healthcare manufacturer, requiring medical-grade materials and sterilization",
+        "customer_id": "550e8400-e29b-41d4-a716-446655440001",
+        "current_stage_id": "550e8400-e29b-41d4-a716-446655440202",
+        "status": "active",
+        "priority_score": 90,
+        "priority_level": "urgent",
+        "estimated_value": 85000000,
+        "estimated_delivery_date": "2025-05-15T00:00:00.000Z",
+        "actual_delivery_date": null,
+        "source": "manual",
+        "tags": [
+            "medical",
+            "precision",
+            "sterilization",
+            "biocompatible"
+        ],
+        "metadata": {
+            "project_type": "fabrication",
+            "material": "medical_grade_stainless",
+            "quantity": 500,
+            "quality_standards": [
+                "ISO_13485",
+                "FDA_standards",
+                "CE_marking"
+            ]
+        },
+        "stage_entered_at": "2025-01-27T08:00:00.000Z",
+        "project_type": "fabrication",
+        "notes": "Critical medical application requiring full biocompatibility testing",
+        "created_at": "2025-01-27T08:00:00.000Z",
+        "updated_at": "2025-01-27T08:00:00.000Z",
+        "created_by": "550e8400-e29b-41d4-a716-446655440012",
+        "assigned_to": "550e8400-e29b-41d4-a716-446655440013"
+    },
+    {
+        "id": "550e8400-e29b-41d4-a716-446655440307",
+        "organization_id": "550e8400-e29b-41d4-a716-446655440001",
+        "project_id": "P-25012707",
+        "title": "Solar Panel Mounting System",
+        "description": "Solar panel mounting system for renewable energy project, including structural steel and corrosion protection",
+        "customer_id": "550e8400-e29b-41d4-a716-446655440001",
+        "current_stage_id": "550e8400-e29b-41d4-a716-446655440201",
+        "status": "active",
+        "priority_score": 65,
+        "priority_level": "medium",
+        "estimated_value": 95000000,
+        "estimated_delivery_date": "2025-06-30T00:00:00.000Z",
+        "actual_delivery_date": null,
+        "source": "portal",
+        "tags": [
+            "solar",
+            "mounting",
+            "structural",
+            "corrosion_protection"
+        ],
+        "metadata": {
+            "project_type": "fabrication",
+            "material": "galvanized_steel",
+            "quantity": 100,
+            "quality_standards": [
+                "ISO_9001",
+                "ASTM_standards"
+            ]
+        },
+        "stage_entered_at": "2025-01-27T08:00:00.000Z",
+        "project_type": "fabrication",
+        "notes": "Outdoor installation requiring weather resistance and UV protection",
+        "created_at": "2025-01-27T08:00:00.000Z",
+        "updated_at": "2025-01-27T08:00:00.000Z",
+        "created_by": "550e8400-e29b-41d4-a716-446655440012",
+        "assigned_to": "550e8400-e29b-41d4-a716-446655440013"
+    }
+]

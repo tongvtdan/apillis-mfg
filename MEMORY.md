@@ -2,6 +2,85 @@
 
 ## Recent Changes
 
+### 2025-08-30 - Separated Seed Data Structure Creation
+
+**Changes Made:**
+- **Seed Data Reorganization**: Successfully separated the monolithic sample data into individual, properly structured seed data files
+  - **File Separation**: Converted single large JSON files into 10 separate, focused seed data files
+  - **Referential Integrity**: Maintained all foreign key relationships and UUID references across tables
+  - **Import Order**: Established proper import sequence to respect database dependencies
+  - **Documentation**: Created comprehensive README explaining the new structure and usage
+
+**Technical Details:**
+- **File Structure Created**:
+  - `01-organizations.json` - Base organizations (Factory Pulse + customers/suppliers)
+  - `02-workflow-stages.json` - 8 workflow stages with colors and responsibilities
+  - `03-users.json` - 16 internal Factory Pulse employees with roles and hierarchy
+  - `04-contacts.json` - 10 external customers and suppliers with AI categorization
+  - `05-projects.json` - 7 sample projects across different industries
+  - `06-documents.json` - 8 project documents with AI processing data
+  - `07-reviews.json` - 9 project reviews with risk assessments
+  - `08-messages.json` - 10 communication messages with thread structure
+  - `09-notifications.json` - 13 user notifications with delivery methods
+  - `10-activity-log.json` - 18 system activity log entries for audit trail
+
+- **Data Relationships Maintained**:
+  - All UUIDs preserved to maintain referential integrity
+  - Foreign key relationships properly established across all tables
+  - Organization-based multi-tenancy structure maintained
+  - User hierarchy and direct reports preserved
+  - Project-stage relationships maintained
+
+- **Import Sequence Established**:
+  1. Organizations (base entities)
+  2. Workflow Stages (referenced by projects)
+  3. Users (referenced by multiple tables)
+  4. Contacts (referenced by projects)
+  5. Projects (central entity)
+  6. Documents (referenced by projects)
+  7. Reviews (referenced by projects)
+  8. Messages (referenced by projects)
+  9. Notifications (referenced by users/projects)
+  10. Activity Log (references all entities)
+
+**Benefits of New Structure:**
+- **Easier Management**: Individual files are easier to maintain and update
+- **Selective Import**: Can import specific tables without affecting others
+- **Better Testing**: Can test individual table data independently
+- **Clearer Dependencies**: Import order clearly shows table relationships
+- **Version Control**: Better tracking of changes to specific data types
+- **Development Workflow**: Easier to work with specific data sets during development
+
+**Files Created:**
+- `sample-data/01-organizations.json` - Organizations seed data
+- `sample-data/02-workflow-stages.json` - Workflow stages seed data
+- `sample-data/03-users.json` - Users seed data
+- `sample-data/04-contacts.json` - Contacts seed data
+- `sample-data/05-projects.json` - Projects seed data
+- `sample-data/06-documents.json` - Documents seed data
+- `sample-data/07-reviews.json` - Reviews seed data
+- `sample-data/08-messages.json` - Messages seed data
+- `sample-data/09-notifications.json` - Notifications seed data
+- `sample-data/10-activity-log.json` - Activity log seed data
+- `sample-data/README-separated-seed-data.md` - Comprehensive documentation
+
+**Data Overview:**
+- **Organizations**: 5 total (1 main + 4 customers/suppliers)
+- **Users**: 16 internal employees across 8 departments
+- **Projects**: 7 active projects in various industries
+- **Documents**: 8 documents with AI processing capabilities
+- **Reviews**: 9 reviews with comprehensive feedback
+- **Messages**: 10 messages with thread-based communication
+- **Notifications**: 13 notifications with multiple delivery methods
+- **Activity Log**: 18 entries providing complete audit trail
+
+**Important Notes:**
+- **Local Development Only**: All data configured for local Supabase development
+- **Vietnamese Context**: Realistic Vietnamese manufacturing industry data
+- **Multi-tenant Ready**: Structure supports multiple organizations with proper isolation
+- **AI Integration**: Includes AI processing fields for future automation
+- **Complete Audit Trail**: Full activity logging for compliance and debugging
+
 ### 2025-01-30 - Workflow Stages Table Schema Alignment
 
 **Changes Made:**
