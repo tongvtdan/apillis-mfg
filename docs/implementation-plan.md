@@ -6,15 +6,17 @@ This implementation plan provides step-by-step instructions for AI coding assist
 
 ## Technology Stack
 
-- **Frontend**: React 18 + TypeScript + Tailwind CSS + Shadcn/ui
+- **Frontend**: React 18 + TypeScript + Vite + Tailwind CSS + Shadcn/ui
 - **Backend**: Supabase (PostgreSQL + Auth + Storage + Realtime)
-- **State Management**: Zustand + React Query (TanStack Query)
+- **Build System**: Vite 5.0+ with ES modules and development server on port 8080
+- **State Management**: TanStack Query (React Query) + React Context
 - **Routing**: React Router v6
 - **Forms**: React Hook Form + Zod validation
 - **UI Components**: Shadcn/ui + Lucide React icons
 - **Charts**: Recharts
 - **File Upload**: React Dropzone
 - **Date Handling**: date-fns
+- **Environment**: dotenv for configuration management
 - **Deployment**: Vercel (Frontend) + Supabase (Backend)
 
 ## Project Structure
@@ -72,31 +74,55 @@ factory-pulse/
 
 **Instructions for AI Assistant**:
 ```bash
-# Create new React TypeScript project
-npx create-react-app factory-pulse --template typescript
+# Initialize project with Vite + TypeScript
+npm create vite@latest factory-pulse -- --template react-ts
 cd factory-pulse
 
-# Install core dependencies
-npm install @supabase/supabase-js @supabase/auth-ui-react @supabase/auth-ui-shared
-npm install @tanstack/react-query @tanstack/react-query-devtools
-npm install zustand react-router-dom react-hook-form @hookform/resolvers
-npm install zod date-fns lucide-react
-npm install tailwindcss @tailwindcss/forms @tailwindcss/typography
-npm install @radix-ui/react-slot @radix-ui/react-dialog @radix-ui/react-dropdown-menu
-npm install @radix-ui/react-select @radix-ui/react-toast @radix-ui/react-tabs
-npm install class-variance-authority clsx tailwind-merge
-npm install react-dropzone recharts
+# Install core dependencies (minimal essential setup)
+npm install @supabase/supabase-js dotenv
 
-# Install dev dependencies
-npm install -D @types/node
+# Install development dependencies
+npm install -D vite eslint
+
+# Additional dependencies to install as needed:
+# npm install @tanstack/react-query @tanstack/react-query-devtools
+# npm install react-router-dom react-hook-form @hookform/resolvers
+# npm install zod date-fns lucide-react
+# npm install tailwindcss @tailwindcss/forms @tailwindcss/typography
+# npm install @radix-ui/react-slot @radix-ui/react-dialog @radix-ui/react-dropdown-menu
+# npm install class-variance-authority clsx tailwind-merge
+# npm install react-dropzone recharts
 ```
 
+**Build System Configuration**:
+- **Development Server**: `npm run dev` starts Vite dev server on port 8080
+- **Build Commands**: `npm run build` for production, `npm run build:dev` for development builds
+- **Environment**: Uses dotenv for environment variable management
+- **ES Modules**: Project configured with `"type": "module"` for modern JavaScript
+
 **Files to Create**:
-1. `tailwind.config.js` - Tailwind configuration with custom colors
-2. `src/lib/supabase.ts` - Supabase client configuration
-3. `src/lib/utils.ts` - Utility functions (cn, formatters, etc.)
-4. `src/types/index.ts` - Core TypeScript interfaces
-5. `src/constants/index.ts` - Application constants
+1. `vite.config.ts` - Vite configuration with port 8080 and path aliases
+2. `tailwind.config.js` - Tailwind configuration with custom colors
+3. `src/lib/supabase.ts` - Supabase client configuration
+4. `src/lib/utils.ts` - Utility functions (cn, formatters, etc.)
+5. `src/types/index.ts` - Core TypeScript interfaces
+6. `src/constants/index.ts` - Application constants
+7. `.env.local` - Local environment configuration
+
+**Package.json Scripts**:
+```json
+{
+  "scripts": {
+    "dev": "vite --port 8080",
+    "build": "vite build",
+    "build:dev": "vite build --mode development",
+    "preview": "vite preview",
+    "lint": "eslint .",
+    "migrate:users": "node scripts/migrate-users.js",
+    "seed:organizations": "node scripts/seed-organizations.js"
+  }
+}
+```
 
 ### 1.2 Supabase Setup
 

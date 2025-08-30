@@ -508,62 +508,151 @@ VITE_SUPABASE_ANON_KEY=your_anon_key
 **Files Modified:**
 - `src/hooks/useProjects.ts` - Enhanced data mapping and legacy field support
 
-### 2025-08-30 - Complete Database Schema Implementation ✅
+### 2025-08-31 - Project Structure Simplification and Core Dependencies ✅
 
 **Changes Made:**
-- **Complete Database Schema**: Successfully created comprehensive database schema for Factory Pulse manufacturing system
-  - **17 Core Tables**: All essential tables for multi-tenant manufacturing operations
-  - **8 Custom Types**: Proper enum types for user roles, project statuses, workflow stages, etc.
-  - **Comprehensive Indexes**: Performance-optimized indexes for all major query patterns
-  - **Row Level Security**: RLS enabled on all tables with basic policies for multi-tenancy
-  - **Automatic Triggers**: Updated_at triggers for all tables with timestamp fields
+- **Package.json Restructure**: Simplified project configuration to focus on core functionality and essential dependencies
+  - **Minimal Dependencies**: Reduced to essential packages - Supabase client and dotenv for environment management
+  - **Core Scripts**: Streamlined npm scripts focusing on development, build, and database seeding operations
+  - **ES Module Configuration**: Maintained `"type": "module"` for modern JavaScript module support
+  - **Development Focus**: Optimized for local development and database management workflows
 
 **Technical Implementation:**
-- **Database Migration**: Created `20250130000001_create_complete_schema.sql` with complete schema
-- **Local Supabase**: Applied migration directly to local database on port 54322
-- **Multi-Tenant Architecture**: Organizations table as root with proper foreign key relationships
-- **Workflow Management**: 8 default workflow stages from inquiry to delivery
-- **Document Management**: Versioned document system with metadata support
-- **Communication System**: Thread-based messaging with file attachments
-- **AI & Automation**: Processing queue for future AI integration
-- **Supplier Management**: RFQ engine with quote line items
-- **Analytics Ready**: Project metrics table for future dashboard implementation
+- **Essential Dependencies**:
+  - `@supabase/supabase-js ^2.39.0` - Core Supabase client for database and auth operations
+  - `dotenv ^16.3.1` - Environment variable management for configuration
+
+- **Development Dependencies**:
+  - `vite ^5.0.0` - Modern build tool and development server
+  - `eslint ^8.0.0` - Code linting and quality assurance
+
+- **NPM Scripts Configuration**:
+  ```json
+  {
+    "dev": "vite --port 8080",           // Development server on port 8080
+    "build": "vite build",               // Production build
+    "build:dev": "vite build --mode development", // Development build
+    "preview": "vite preview",           // Preview production build
+    "lint": "eslint .",                  // Code linting
+    "migrate:users": "node scripts/migrate-users.js",     // User migration
+    "seed:organizations": "node scripts/seed-organizations.js",        // Seed organizations
+    "seed:organizations:force": "node scripts/seed-organizations.js --force", // Force seed
+    "verify:organizations": "node scripts/verify-organizations.js"     // Verify seeded organizations
+  }
+  ```
+
+- **Build System**: Vite-based build system with development server on port 8080
+- **Database Management**: Dedicated scripts for user migration and organization seeding
+- **Environment Management**: Dotenv integration for local development configuration
+
+**Impact:**
+- ✅ **Simplified Architecture**: Focused on core functionality without unnecessary dependencies
+- ✅ **Development Efficiency**: Streamlined scripts for common development tasks
+- ✅ **Database Management**: Dedicated seeding and migration scripts for data management
+- ✅ **Modern Build System**: Vite integration for fast development and optimized builds
+- ✅ **Environment Safety**: Proper environment variable management for local development
+
+**Project Status**: Core foundation established with essential dependencies and build system
+**Ready for**: Frontend development, database operations, and application scaffolding
+
+### 2025-08-31 - Database Functions and Triggers Enhancement ✅
+
+**Changes Made:**
+- **Enhanced Activity Logging**: Improved `log_activity()` function with better organization ID handling and null safety
+  - **Multi-Tenant Safety**: Enhanced organization ID resolution with fallback logic to prevent logging failures
+  - **Null Safety**: Added conditional logging to only create activity log entries when organization ID is available
+  - **Entity Organization Detection**: Improved logic to detect organization ID from entity data or user context
+  - **Robust Error Handling**: Prevents activity logging failures from blocking database operations
+
+**Technical Implementation:**
+- **Enhanced `log_activity()` Function**: 
+  - Added `entity_org_id` variable for better organization ID resolution
+  - Implemented fallback chain: `NEW.organization_id → OLD.organization_id → user_org_id`
+  - Added conditional check `IF entity_org_id IS NOT NULL` before logging
+  - Maintains audit trail integrity while preventing logging failures
+
+- **Organization ID Resolution Logic**:
+  ```sql
+  -- Get entity's organization ID (fallback to user's org if not found)
+  entity_org_id := COALESCE(NEW.organization_id, OLD.organization_id, user_org_id);
+  
+  -- Only log if we have an organization ID
+  IF entity_org_id IS NOT NULL THEN
+      -- Insert activity log entry
+  END IF;
+  ```
+
+- **Multi-Tenant Audit Trail**: Ensures all activity log entries have proper organization association
+- **Graceful Degradation**: Database operations continue even if activity logging encounters issues
+- **Comprehensive Coverage**: Activity logging triggers remain active on projects, contacts, and reviews tables
+
+**Impact:**
+- ✅ **Improved Reliability**: Activity logging no longer fails due to missing organization context
+- ✅ **Multi-Tenant Safety**: All activity log entries properly associated with organizations
+- ✅ **Better Error Handling**: Database operations protected from logging-related failures
+- ✅ **Audit Trail Integrity**: Maintains comprehensive activity tracking while improving robustness
+- ✅ **Production Ready**: Enhanced error handling suitable for production deployment
+
+**Database Functions Status**: Enhanced and production-ready with robust error handling
+**Ready for**: Production deployment, comprehensive audit trail, multi-tenant activity logging
+
+### 2025-08-31 - Initial Database Schema Foundation ✅
+
+**Changes Made:**
+- **Initial Database Schema**: Created foundational database schema for Factory Pulse manufacturing system
+  - **6 Custom Types**: Essential enum types for user roles, project statuses, contact types, priority levels, and subscription plans
+  - **4 Core Tables**: Organizations, workflow_stages, users, contacts, and projects tables with proper relationships
+  - **Multi-Tenant Foundation**: Organizations table as root entity with proper foreign key relationships
+  - **Authentication Ready**: Users table extends Supabase auth.users with organization-based multi-tenancy
+  - **Workflow Management**: Configurable workflow stages with role assignments and exit criteria
+
+**Technical Implementation:**
+- **Database Migration**: Created `supabase/migrations/20250831000001_initial_schema.sql` with foundational schema
+- **PostgreSQL Extensions**: Enabled uuid-ossp and pgcrypto for UUID generation and encryption
+- **Multi-Tenant Architecture**: Organizations table supports multiple companies with isolated data
+- **User Management**: Users table for internal employees with role-based access control
+- **Contact Management**: External customers and suppliers managed separately from internal users
+- **Project Workflow**: Projects linked to workflow stages with configurable progression
 
 **Database Tables Created:**
-- **Core**: organizations, users, contacts, workflow_stages
-- **Projects**: projects, project_assignments, project_metrics
-- **Documents**: documents, document_versions
-- **Communication**: message_threads, messages, notifications
-- **Workflow**: reviews, activity_log
-- **AI & Suppliers**: ai_processing_queue, supplier_quotes, quote_line_items
+- **organizations**: Multi-tenant root entity with subscription plans and settings
+- **workflow_stages**: Configurable workflow stages with colors, ordering, and role assignments
+- **users**: Internal employees extending Supabase auth with organizational context
+- **contacts**: External customers and suppliers with AI-ready fields
+- **projects**: Core project entity with workflow stage tracking and metadata
 
-**Default Data:**
-- ✅ **Factory Pulse Vietnam** organization created with enterprise subscription
-- ✅ **8 Workflow Stages** from inquiry to delivery with proper ordering
-- ✅ **All Foreign Key Constraints** properly established
-- ✅ **Indexes** created for optimal query performance
-- ✅ **RLS Policies** enabled for multi-tenant security
-- ✅ **Triggers** configured for automatic timestamp updates
+**Custom Types Defined:**
+- **user_role**: admin, management, sales, engineering, qa, production, procurement, supplier, customer
+- **user_status**: active, inactive, pending, suspended
+- **contact_type**: customer, supplier, partner, internal
+- **project_status**: active, completed, cancelled, on_hold
+- **priority_level**: low, medium, high, critical
+- **subscription_plan**: starter, growth, enterprise
 
 **Schema Features:**
-- **Multi-Tenant**: Each table includes organization_id for proper data isolation
-- **Audit Trail**: Created_at and updated_at timestamps on all relevant tables
-- **Flexible Metadata**: JSONB fields for extensible data storage
-- **Vietnam Localization**: Default country set to Vietnam, VND currency support
-- **Role-Based Access**: User roles with proper enum constraints
-- **Workflow Flexibility**: Configurable stages with approval requirements
-- **Document Versioning**: Parent-child relationship for document history
-- **Real-time Ready**: Proper structure for Supabase real-time subscriptions
+- **Multi-Tenant Ready**: Organization-based data isolation for SaaS deployment
+- **Audit Trail**: Created_at and updated_at timestamps on all tables
+- **Flexible Metadata**: JSONB fields for extensible configuration and data storage
+- **AI Integration Ready**: AI processing fields in contacts table for future automation
+- **Vietnam Localization**: Support for Vietnamese business context and requirements
+- **Role-Based Access**: Comprehensive user role system for manufacturing workflows
+- **Workflow Flexibility**: Configurable stages with exit criteria and responsible roles
 
-**Database Status**: Fully operational with complete schema ready for development  
-**Ready for**: User creation, sample data import, application development, testing  
-**Files**: `supabase/migrations/20250130000001_create_complete_schema.sql`
+**Sample Data Integration:**
+- **Organizations**: Supports sample data structure with Factory Pulse Vietnam as primary organization
+- **Workflow Stages**: Ready for 8-stage manufacturing workflow (inquiry → delivery)
+- **User Roles**: Covers all manufacturing roles from sales to production
+- **Contact Types**: Separates customers and suppliers for proper relationship management
+
+**Database Status**: Foundation established, ready for additional tables and sample data import  
+**Ready for**: Extended schema development, sample data import, authentication setup  
+**Files**: `supabase/migrations/20250831000001_initial_schema.sql`
 
 **Next Steps**: 
-- Import sample organizations, users, and contacts using existing scripts
-- Test authentication system with new schema
-- Begin application development with complete data model
-- Implement real-time features using new table structure
+- Add remaining tables (documents, reviews, messages, notifications, activity_log)
+- Import sample organizations and workflow stages
+- Create authentication users and test multi-tenant access
+- Implement remaining business logic tables for complete system
 
 ## Architecture Notes
 

@@ -190,5 +190,218 @@
         "is_active": true,
         "created_at": "2025-01-27T08:00:00.000Z",
         "updated_at": "2025-01-27T08:00:00.000Z"
+    },
+    {
+        "id": "550e8400-e29b-41d4-a716-446655440006",
+        "name": "General Motors Manufacturing",
+        "slug": "gm-manufacturing",
+        "domain": "gm.com",
+        "logo_url": "https://storage.googleapis.com/factory-pulse-assets/logos/gm.png",
+        "description": "Leading automotive manufacturer with advanced manufacturing capabilities",
+        "industry": "Automotive",
+        "settings": {
+            "timezone": "America/Detroit",
+            "default_language": "en",
+            "default_currency": "USD",
+            "date_format": "MM/DD/YYYY",
+            "time_format": "12h",
+            "working_hours": {
+                "monday": {
+                    "start": "07:00",
+                    "end": "16:00"
+                },
+                "tuesday": {
+                    "start": "07:00",
+                    "end": "16:00"
+                },
+                "wednesday": {
+                    "start": "07:00",
+                    "end": "16:00"
+                },
+                "thursday": {
+                    "start": "07:00",
+                    "end": "16:00"
+                },
+                "friday": {
+                    "start": "07:00",
+                    "end": "16:00"
+                },
+                "saturday": {
+                    "start": "00:00",
+                    "end": "00:00"
+                },
+                "sunday": {
+                    "start": "00:00",
+                    "end": "00:00"
+                }
+            },
+            "holidays": [
+                "2025-01-01",
+                "2025-01-20",
+                "2025-02-17",
+                "2025-05-26",
+                "2025-07-04",
+                "2025-09-01",
+                "2025-10-13",
+                "2025-11-11",
+                "2025-11-27",
+                "2025-12-25"
+            ],
+            "notification_preferences": {
+                "email_notifications": true,
+                "sms_notifications": false,
+                "push_notifications": true,
+                "auto_advance_workflow": true,
+                "escalation_enabled": true
+            }
+        },
+        "subscription_plan": "enterprise",
+        "is_active": true,
+        "created_at": "2025-01-27T08:00:00.000Z",
+        "updated_at": "2025-01-27T08:00:00.000Z"
+    },
+    {
+        "id": "550e8400-e29b-41d4-a716-446655440007",
+        "name": "Lockheed Martin Aeronautics",
+        "slug": "lockheed-martin",
+        "domain": "lockheedmartin.com",
+        "logo_url": "https://storage.googleapis.com/factory-pulse-assets/logos/lockheed.png",
+        "description": "Advanced aerospace and defense technology manufacturer",
+        "industry": "Aerospace",
+        "settings": {
+            "timezone": "America/Los_Angeles",
+            "default_language": "en",
+            "default_currency": "USD",
+            "date_format": "MM/DD/YYYY",
+            "time_format": "24h",
+            "working_hours": {
+                "monday": {
+                    "start": "06:00",
+                    "end": "15:00"
+                },
+                "tuesday": {
+                    "start": "06:00",
+                    "end": "15:00"
+                },
+                "wednesday": {
+                    "start": "06:00",
+                    "end": "15:00"
+                },
+                "thursday": {
+                    "start": "06:00",
+                    "end": "15:00"
+                },
+                "friday": {
+                    "start": "06:00",
+                    "end": "15:00"
+                },
+                "saturday": {
+                    "start": "00:00",
+                    "end": "00:00"
+                },
+                "sunday": {
+                    "start": "00:00",
+                    "end": "00:00"
+                }
+            },
+            "holidays": [
+                "2025-01-01",
+                "2025-01-20",
+                "2025-02-17",
+                "2025-05-26",
+                "2025-07-04",
+                "2025-09-01",
+                "2025-10-13",
+                "2025-11-11",
+                "2025-11-27",
+                "2025-12-25"
+            ],
+            "notification_preferences": {
+                "email_notifications": true,
+                "sms_notifications": true,
+                "push_notifications": true,
+                "auto_advance_workflow": false,
+                "escalation_enabled": true
+            }
+        },
+        "subscription_plan": "enterprise",
+        "is_active": true,
+        "created_at": "2025-01-27T08:00:00.000Z",
+        "updated_at": "2025-01-27T08:00:00.000Z"
+    },
+    {
+        "id": "550e8400-e29b-41d4-a716-446655440008",
+        "name": "Mitsubishi Heavy Industries",
+        "slug": "mhi-japan",
+        "domain": "mhi.co.jp",
+        "logo_url": "https://storage.googleapis.com/factory-pulse-assets/logos/mhi.png",
+        "description": "Diversified manufacturing company specializing in heavy machinery and aerospace",
+        "industry": "Manufacturing",
+        "settings": {
+            "timezone": "Asia/Tokyo",
+            "default_language": "ja",
+            "default_currency": "JPY",
+            "date_format": "YYYY/MM/DD",
+            "time_format": "24h",
+            "working_hours": {
+                "monday": {
+                    "start": "08:30",
+                    "end": "17:30"
+                },
+                "tuesday": {
+                    "start": "08:30",
+                    "end": "17:30"
+                },
+                "wednesday": {
+                    "start": "08:30",
+                    "end": "17:30"
+                },
+                "thursday": {
+                    "start": "08:30",
+                    "end": "17:30"
+                },
+                "friday": {
+                    "start": "08:30",
+                    "end": "17:30"
+                },
+                "saturday": {
+                    "start": "00:00",
+                    "end": "00:00"
+                },
+                "sunday": {
+                    "start": "00:00",
+                    "end": "00:00"
+                }
+            },
+            "holidays": [
+                "2025-01-01",
+                "2025-01-13",
+                "2025-02-11",
+                "2025-02-23",
+                "2025-03-20",
+                "2025-04-29",
+                "2025-05-03",
+                "2025-05-04",
+                "2025-05-05",
+                "2025-07-21",
+                "2025-08-11",
+                "2025-09-15",
+                "2025-09-23",
+                "2025-10-13",
+                "2025-11-03",
+                "2025-11-23"
+            ],
+            "notification_preferences": {
+                "email_notifications": true,
+                "sms_notifications": false,
+                "push_notifications": true,
+                "auto_advance_workflow": true,
+                "escalation_enabled": true
+            }
+        },
+        "subscription_plan": "enterprise",
+        "is_active": true,
+        "created_at": "2025-01-27T08:00:00.000Z",
+        "updated_at": "2025-01-27T08:00:00.000Z"
     }
 ]
