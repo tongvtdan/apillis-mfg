@@ -16,6 +16,7 @@ import { LoadingFallback, OfflineState, GracefulDegradation } from "@/components
 import { useErrorHandling } from "@/hooks/useErrorHandling";
 import { ProjectWorkflowAnalytics } from "@/components/project/ProjectWorkflowAnalytics";
 import { ProjectCalendar } from "@/components/project/ProjectCalendar";
+import { ProjectTable } from "@/components/project/ProjectTable";
 
 // This component displays the projects management interface
 // It uses the authenticated user's data from the AuthContext to fetch and manage projects
@@ -357,62 +358,97 @@ export default function Projects() {
                     </CardContent>
                   </Card>
                 )}
+
+                {/* Enhanced Project Workflow Details */}
+                {selectedStage && selectedStageProjects.length > 0 && (
+                  <Card>
+                    <CardHeader>
+                      <CardTitle>
+                        {workflowStages.find(s => s.id === selectedStage)?.name} - Detailed Project Information
+                      </CardTitle>
+                      <CardDescription>
+                        Comprehensive workflow and project details for each project in this stage
+                      </CardDescription>
+                    </CardHeader>
+                    <CardContent>
+                      <div className="space-y-6">
+                        {selectedStageProjects.map((project) => (
+                          <div key={project.id} className="border rounded-lg p-4 bg-base-50 hover:bg-base-100 transition-colors">
+                            <div className="mb-4">
+                              <h4 className="font-semibold text-lg mb-2 text-base-content">{project.title}</h4>
+                              <p className="text-sm text-muted-foreground mb-3">{project.project_id}</p>
+                            </div>
+
+                            <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
+                              <div className="space-y-2">
+                                <div className="text-sm">
+                                  <span className="font-medium text-base-content">Current Stage:</span>
+                                  <Badge variant="outline" className="ml-2">{project.current_stage?.name || 'Unknown'}</Badge>
+                                </div>
+                                <div className="text-sm">
+                                  <span className="font-medium text-base-content">Status:</span>
+                                  <Badge
+                                    variant={project.status === 'active' ? 'default' : 'secondary'}
+                                    className="ml-2"
+                                  >
+                                    {project.status}
+                                  </Badge>
+                                </div>
+                                <div className="text-sm">
+                                  <span className="font-medium text-base-content">Priority:</span>
+                                  <Badge variant="outline" className="ml-2">{project.priority_level || 'Not set'}</Badge>
+                                </div>
+                              </div>
+
+                              <div className="space-y-2">
+                                {project.estimated_value && (
+                                  <div className="text-sm">
+                                    <span className="font-medium text-base-content">Estimated Value:</span>
+                                    <span className="ml-2 text-success font-semibold">${project.estimated_value.toLocaleString()}</span>
+                                  </div>
+                                )}
+                                <div className="text-sm">
+                                  <span className="font-medium text-base-content">Days in Stage:</span>
+                                  <span className={`ml-2 font-semibold ${(project.days_in_stage || 0) > 7 ? 'text-warning' : 'text-success'}`}>
+                                    {project.days_in_stage || 0}
+                                  </span>
+                                </div>
+                                <div className="text-sm">
+                                  <span className="font-medium text-base-content">Created:</span>
+                                  <span className="ml-2">{new Date(project.created_at).toLocaleDateString()}</span>
+                                </div>
+                              </div>
+                            </div>
+
+                            {project.description && (
+                              <div className="mb-3">
+                                <span className="font-medium text-base-content text-sm">Description:</span>
+                                <p className="text-sm text-muted-foreground mt-1">{project.description}</p>
+                              </div>
+                            )}
+
+                            <div className="flex flex-wrap gap-2">
+                              <Badge variant="outline">{project.project_type}</Badge>
+                              {project.tags && project.tags.map((tag, index) => (
+                                <Badge key={index} variant="secondary" className="text-xs">{tag}</Badge>
+                              ))}
+                            </div>
+                          </div>
+                        ))}
+                      </div>
+                    </CardContent>
+                  </Card>
+                )}
               </div>
             </ProjectErrorBoundary>
           </TabsContent>
 
           <TabsContent value="table" className="mt-4 space-y-6">
-            <div className="bg-base-100 rounded-lg p-6 border border-base-300">
-              <div className="mb-4">
-                <h3 className="text-lg font-semibold text-base-content">Project Table View</h3>
-                <p className="text-sm text-base-content/70 mt-1">
-                  {selectedProjectType === 'all'
-                    ? `Showing ${activeProjects.length} projects`
-                    : `Showing ${activeProjects.filter(p => p.project_type === selectedProjectType).length} ${PROJECT_TYPE_LABELS[selectedProjectType]} projects`
-                  }
-                </p>
-              </div>
-
-              {/* Simple table for now - will enhance later */}
-              <div className="overflow-x-auto">
-                <table className="w-full border-collapse border border-gray-300">
-                  <thead>
-                    <tr className="bg-gray-50">
-                      <th className="border border-gray-300 px-4 py-2 text-left">Project ID</th>
-                      <th className="border border-gray-300 px-4 py-2 text-left">Title</th>
-                      <th className="border border-gray-300 px-4 py-2 text-left">Status</th>
-                      <th className="border border-gray-300 px-4 py-2 text-left">Stage</th>
-                      <th className="border border-gray-300 px-4 py-2 text-left">Type</th>
-                      <th className="border border-gray-300 px-4 py-2 text-left">Value</th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {activeProjects
-                      .filter(p => selectedProjectType === 'all' || p.project_type === selectedProjectType)
-                      .map((project) => (
-                        <tr key={project.id} className="hover:bg-gray-50">
-                          <td className="border border-gray-300 px-4 py-2">{project.project_id}</td>
-                          <td className="border border-gray-300 px-4 py-2">{project.title}</td>
-                          <td className="border border-gray-300 px-4 py-2">
-                            <Badge variant={project.status === 'active' ? 'default' : 'secondary'}>
-                              {project.status}
-                            </Badge>
-                          </td>
-                          <td className="border border-gray-300 px-4 py-2">
-                            {project.current_stage?.name || 'No stage'}
-                          </td>
-                          <td className="border border-gray-300 px-4 py-2">
-                            <Badge variant="outline">{project.project_type}</Badge>
-                          </td>
-                          <td className="border border-gray-300 px-4 py-2">
-                            {project.estimated_value ? `$${project.estimated_value.toLocaleString()}` : '-'}
-                          </td>
-                        </tr>
-                      ))}
-                  </tbody>
-                </table>
-              </div>
-            </div>
+            <ProjectTable
+              projects={activeProjects.filter(p => selectedProjectType === 'all' || p.project_type === selectedProjectType)}
+              updateProjectStatusOptimistic={updateProjectStatusOptimistic}
+              refetch={refetch}
+            />
           </TabsContent>
 
           <TabsContent value="analytics" className="mt-4 space-y-6">
