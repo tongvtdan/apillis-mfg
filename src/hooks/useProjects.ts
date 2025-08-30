@@ -13,6 +13,7 @@ import { useToast } from '@/hooks/use-toast';
 import { WorkflowValidator, WorkflowValidationResult } from '@/lib/workflow-validator';
 import { cacheService } from '@/services/cacheService';
 import { realtimeManager } from '@/lib/realtime-manager';
+import { projectQueries, ProjectQueryOptions, generateProjectQueryKey } from '@/lib/project-queries';
 
 // Database now uses new status values directly - no mapping needed
 
@@ -24,7 +25,7 @@ export function useProjects() {
   const { toast } = useToast();
   const realtimeChannelRef = useRef<any>(null);
 
-  const fetchProjects = async (forceRefresh = false) => {
+  const fetchProjects = async (forceRefresh = false, options?: ProjectQueryOptions) => {
     if (!user) {
       setProjects([]);
       setLoading(false);
@@ -32,27 +33,97 @@ export function useProjects() {
     }
 
     try {
-      // Check if we have valid cached data with consistency validation
-      if (!forceRefresh && cacheService.isCacheValid() && cacheService.validateCacheConsistency()) {
-        const cachedProjects = cacheService.getProjects();
-        if (cachedProjects) {
-          setProjects(cachedProjects);
-          setLoading(false);
-          return;
+      // Check cache based on whether options are applied
+      if (!forceRefresh) {
+        if (options && Object.keys(options).length > 0) {
+          // Check query-specific cache for filtered results
+          const queryKey = generateProjectQueryKey('list', options);
+          if (cacheService.isQueryCacheValid(queryKey)) {
+            const cachedResult = cacheService.getQueryResult(queryKey);
+            if (cachedResult) {
+              setProjects(cachedResult);
+              setLoading(false);
+              return;
+            }
+          }
+        } else {
+          // Check main cache for unfiltered results
+          if (cacheService.isCacheValid() && cacheService.validateCacheConsistency()) {
+            const cachedProjects = cacheService.getProjects();
+            if (cachedProjects) {
+              setProjects(cachedProjects);
+              setLoading(false);
+              return;
+            }
+          }
         }
       }
 
       setLoading(true);
       setError(null);
 
-      const { data, error: fetchError } = await supabase
+      // Use optimized query with selective field specification
+      let query = supabase
         .from('projects')
         .select(`
-          *,
-          customer:contacts(*),
-          current_stage:workflow_stages(*)
-        `)
-        .order('created_at', { ascending: false });
+          id,
+          organization_id,
+          project_id,
+          title,
+          description,
+          customer_id,
+          current_stage_id,
+          status,
+          priority_level,
+          source,
+          assigned_to,
+          created_by,
+          estimated_value,
+          tags,
+          metadata,
+          stage_entered_at,
+          project_type,
+          notes,
+          created_at,
+          updated_at,
+          customer:contacts!customer_id(
+            id,
+            company_name,
+            contact_name,
+            email,
+            phone,
+            type,
+            is_active
+          ),
+          current_stage:workflow_stages!current_stage_id(
+            id,
+            name,
+            description,
+            order_index,
+            is_active,
+            estimated_duration_days
+          )
+        `);
+
+      // Apply filters if provided
+      if (filters?.status) {
+        query = query.eq('status', filters.status);
+      }
+      if (filters?.priority) {
+        query = query.eq('priority_level', filters.priority);
+      }
+
+      // Apply ordering and pagination
+      query = query.order('created_at', { ascending: false });
+
+      if (filters?.limit) {
+        query = query.limit(filters.limit);
+      }
+      if (filters?.offset) {
+        query = query.range(filters.offset, filters.offset + (filters.limit || 50) - 1);
+      }
+
+      const { data, error: fetchError } = await query;
 
       if (fetchError) {
         console.error('Error fetching projects:', fetchError);
@@ -81,8 +152,15 @@ export function useProjects() {
 
       setProjects(mappedProjects as Project[]);
 
-      // Cache the data
-      cacheService.setProjects(mappedProjects as Project[]);
+      // Cache the data appropriately
+      if (filters) {
+        // Cache filtered results with query-specific key
+        const queryKey = cacheService.generateQueryKey(filters);
+        cacheService.setQueryResult(queryKey, mappedProjects as Project[]);
+      } else {
+        // Cache full dataset in main cache
+        cacheService.setProjects(mappedProjects as Project[]);
+      }
     } catch (err) {
       console.error('Error in fetchProjects:', err);
       const errorMessage = err instanceof Error ? err.message : 'Failed to fetch projects';
@@ -523,6 +601,16 @@ export function useProjects() {
     }
   };
 
+  // Enhanced refetch function with filtering support
+  const refetchWithFilters = useCallback(async (filters?: {
+    status?: string;
+    priority?: string;
+    limit?: number;
+    offset?: number;
+  }, forceRefresh = false) => {
+    await fetchProjects(forceRefresh, filters);
+  }, []);
+
   return {
     projects,
     loading,
@@ -531,6 +619,7 @@ export function useProjects() {
     updateProjectStage,
     updateProjectStatusOptimistic,
     refetch,
+    refetchWithFilters,
     getProjectById,
     getBottleneckAnalysis
   };

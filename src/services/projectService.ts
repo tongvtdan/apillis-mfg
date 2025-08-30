@@ -49,11 +49,29 @@ class ProjectService {
         }
     }
 
-    // Get all projects with fallback
-    async getAllProjects(options: ProjectServiceOptions = {}): Promise<Project[]> {
-        const { forceMock = false, timeout = this.connectionTimeout } = options;
+    // Get all projects with fallback and filtering options
+    async getAllProjects(options: ProjectServiceOptions & {
+        status?: string;
+        priority?: string;
+        limit?: number;
+        offset?: number;
+        orderBy?: string;
+        orderDirection?: 'asc' | 'desc';
+    } = {}): Promise<Project[]> {
+        const {
+            forceMock = false,
+            timeout = this.connectionTimeout,
+            status,
+            priority,
+            limit,
+            offset,
+            orderBy = 'created_at',
+            orderDirection = 'desc'
+        } = options;
 
-        console.log(`📊 ProjectService: Fetching all projects (mode: ${forceMock ? 'MOCK' : 'SUPABASE'})`);
+        console.log(`📊 ProjectService: Fetching projects with filters:`, {
+            status, priority, limit, offset, orderBy, orderDirection
+        });
 
         // If forced to use mock data, return empty array since mock data is not available
         if (forceMock) {
@@ -61,9 +79,11 @@ class ProjectService {
             return [];
         }
 
-        // Try Supabase with timeout
+        // Try Supabase with timeout and filtering
         try {
-            const supabaseProjects = await this.getSupabaseProjectsWithTimeout(timeout);
+            const supabaseProjects = await this.getSupabaseProjectsWithTimeout(timeout, {
+                status, priority, limit, offset, orderBy, orderDirection
+            });
             console.log(`✅ ProjectService: Successfully fetched ${supabaseProjects.length} projects from Supabase`);
             return supabaseProjects;
         } catch (error) {
@@ -111,6 +131,7 @@ class ProjectService {
                 // Dynamic import to avoid issues if Supabase is not available
                 const { supabase } = await import('@/integrations/supabase/client');
 
+                // Optimized query with selective field specification to reduce data transfer
                 const { data, error } = await supabase
                     .from('projects')
                     .select(`
@@ -136,31 +157,12 @@ class ProjectService {
             updated_at,
             customer:contacts!customer_id(
                 id,
-                organization_id,
-                type,
                 company_name,
                 contact_name,
                 email,
                 phone,
-                address,
-                city,
-                state,
-                country,
-                postal_code,
-                website,
-                tax_id,
-                payment_terms,
-                credit_limit,
-                is_active,
-                notes,
-                metadata,
-                ai_category,
-                ai_capabilities,
-                ai_risk_score,
-                ai_last_analyzed,
-                created_at,
-                updated_at,
-                created_by
+                type,
+                is_active
             ),
             current_stage:workflow_stages!current_stage_id(
                 id,
@@ -168,11 +170,7 @@ class ProjectService {
                 description,
                 order_index,
                 is_active,
-                estimated_duration_days,
-                required_approvals,
-                auto_advance_conditions,
-                created_at,
-                updated_at
+                estimated_duration_days
             )
           `)
                     .eq('id', id)
@@ -199,8 +197,15 @@ class ProjectService {
         });
     }
 
-    // Private method to get all Supabase projects with timeout
-    private async getSupabaseProjectsWithTimeout(timeout: number): Promise<Project[]> {
+    // Private method to get all Supabase projects with timeout and filtering
+    private async getSupabaseProjectsWithTimeout(timeout: number, filters: {
+        status?: string;
+        priority?: string;
+        limit?: number;
+        offset?: number;
+        orderBy?: string;
+        orderDirection?: 'asc' | 'desc';
+    } = {}): Promise<Project[]> {
         return new Promise(async (resolve, reject) => {
             const timeoutId = setTimeout(() => {
                 reject(new Error(`Supabase connection timeout after ${timeout}ms`));
@@ -210,7 +215,8 @@ class ProjectService {
                 // Dynamic import to avoid issues if Supabase is not available
                 const { supabase } = await import('@/integrations/supabase/client');
 
-                const { data, error } = await supabase
+                // Build optimized query with filtering and pagination
+                let query = supabase
                     .from('projects')
                     .select(`
             id,
@@ -235,31 +241,12 @@ class ProjectService {
             updated_at,
             customer:contacts!customer_id(
                 id,
-                organization_id,
-                type,
                 company_name,
                 contact_name,
                 email,
                 phone,
-                address,
-                city,
-                state,
-                country,
-                postal_code,
-                website,
-                tax_id,
-                payment_terms,
-                credit_limit,
-                is_active,
-                notes,
-                metadata,
-                ai_category,
-                ai_capabilities,
-                ai_risk_score,
-                ai_last_analyzed,
-                created_at,
-                updated_at,
-                created_by
+                type,
+                is_active
             ),
             current_stage:workflow_stages!current_stage_id(
                 id,
@@ -267,14 +254,31 @@ class ProjectService {
                 description,
                 order_index,
                 is_active,
-                estimated_duration_days,
-                required_approvals,
-                auto_advance_conditions,
-                created_at,
-                updated_at
+                estimated_duration_days
             )
-          `)
-                    .order('created_at', { ascending: false });
+          `);
+
+                // Apply filters
+                if (filters.status) {
+                    query = query.eq('status', filters.status);
+                }
+                if (filters.priority) {
+                    query = query.eq('priority_level', filters.priority);
+                }
+
+                // Apply ordering
+                const orderDirection = filters.orderDirection === 'asc' ? true : false;
+                query = query.order(filters.orderBy || 'created_at', { ascending: orderDirection });
+
+                // Apply pagination
+                if (filters.limit) {
+                    query = query.limit(filters.limit);
+                }
+                if (filters.offset) {
+                    query = query.range(filters.offset, filters.offset + (filters.limit || 50) - 1);
+                }
+
+                const { data, error } = await query;
 
                 clearTimeout(timeoutId);
 
@@ -505,7 +509,7 @@ class ProjectService {
 
             if (error) {
                 console.error('Database error creating project:', error);
-                
+
                 // Handle specific constraint violations
                 if (error.code === '23505') { // Unique constraint violation
                     if (error.message.includes('project_id')) {
@@ -513,7 +517,7 @@ class ProjectService {
                     }
                     throw new Error('This project conflicts with an existing record. Please check your data.');
                 }
-                
+
                 if (error.code === '23503') { // Foreign key constraint violation
                     if (error.message.includes('customer_id')) {
                         throw new Error('The specified customer does not exist. Please select a valid customer.');
@@ -532,7 +536,7 @@ class ProjectService {
                     }
                     throw new Error('One or more referenced records do not exist. Please check your data.');
                 }
-                
+
                 if (error.code === '23514') { // Check constraint violation
                     if (error.message.includes('status')) {
                         throw new Error('Invalid project status. Must be one of: active, on_hold, delayed, cancelled, completed.');
@@ -542,11 +546,11 @@ class ProjectService {
                     }
                     throw new Error('Invalid data provided. Please check your input values.');
                 }
-                
+
                 if (error.code === '23502') { // Not null constraint violation
                     throw new Error('Required fields are missing. Please provide all required information.');
                 }
-                
+
                 throw new Error(`Failed to create project: ${error.message} (Code: ${error.code})`);
             }
 
@@ -568,7 +572,7 @@ class ProjectService {
 
             // Prepare data for database update - only include fields that exist in database
             const updateData: any = {};
-            
+
             if (updates.title !== undefined) updateData.title = updates.title;
             if (updates.description !== undefined) updateData.description = updates.description;
             if (updates.customer_id !== undefined) updateData.customer_id = updates.customer_id;
@@ -657,7 +661,7 @@ class ProjectService {
 
             if (error) {
                 console.error('Database error updating project:', error);
-                
+
                 // Handle specific constraint violations
                 if (error.code === '23505') { // Unique constraint violation
                     if (error.message.includes('project_id')) {
@@ -665,7 +669,7 @@ class ProjectService {
                     }
                     throw new Error('This project conflicts with an existing record. Please check your data.');
                 }
-                
+
                 if (error.code === '23503') { // Foreign key constraint violation
                     if (error.message.includes('customer_id')) {
                         throw new Error('The specified customer does not exist. Please select a valid customer.');
@@ -681,7 +685,7 @@ class ProjectService {
                     }
                     throw new Error('One or more referenced records do not exist. Please check your data.');
                 }
-                
+
                 if (error.code === '23514') { // Check constraint violation
                     if (error.message.includes('status')) {
                         throw new Error('Invalid project status. Must be one of: active, on_hold, delayed, cancelled, completed.');
@@ -691,11 +695,11 @@ class ProjectService {
                     }
                     throw new Error('Invalid data provided. Please check your input values.');
                 }
-                
+
                 if (error.code === '23502') { // Not null constraint violation
                     throw new Error('Required fields are missing. Please provide all required information.');
                 }
-                
+
                 throw new Error(`Failed to update project: ${error.message} (Code: ${error.code})`);
             }
 
@@ -890,12 +894,12 @@ class ProjectService {
 
             if (error) {
                 console.error('Database error deleting project:', error);
-                
+
                 // Handle specific constraint violations
                 if (error.code === '23503') { // Foreign key constraint violation
                     throw new Error('Cannot delete project because it is referenced by other records. Please remove related data first.');
                 }
-                
+
                 throw new Error(`Failed to delete project: ${error.message} (Code: ${error.code})`);
             }
 
@@ -969,12 +973,12 @@ class ProjectService {
         if (value === null || value === undefined) {
             return undefined;
         }
-        
+
         // If it's already an array, return it
         if (Array.isArray(value)) {
             return value;
         }
-        
+
         // If it's a string, try to parse it as JSON
         if (typeof value === 'string') {
             try {
@@ -984,7 +988,7 @@ class ProjectService {
                 return undefined;
             }
         }
-        
+
         return undefined;
     }
 
@@ -992,12 +996,12 @@ class ProjectService {
         if (value === null || value === undefined) {
             return undefined;
         }
-        
+
         // If it's already an object, return it
         if (typeof value === 'object' && !Array.isArray(value)) {
             return value;
         }
-        
+
         // If it's a string, try to parse it as JSON
         if (typeof value === 'string') {
             try {
@@ -1007,7 +1011,7 @@ class ProjectService {
                 return undefined;
             }
         }
-        
+
         return undefined;
     }
 
@@ -1018,7 +1022,7 @@ class ProjectService {
             }
             return undefined;
         }
-        
+
         // If it's already a string, validate it's a proper ISO timestamp
         if (typeof value === 'string') {
             try {
@@ -1037,7 +1041,7 @@ class ProjectService {
                 return undefined;
             }
         }
-        
+
         // If it's a Date object, convert to ISO string
         if (value instanceof Date) {
             if (isNaN(value.getTime())) {
@@ -1048,7 +1052,7 @@ class ProjectService {
             }
             return value.toISOString();
         }
-        
+
         if (required) {
             throw new Error('Invalid timestamp type');
         }
@@ -1059,17 +1063,17 @@ class ProjectService {
         if (!stageEnteredAt) {
             return undefined;
         }
-        
+
         try {
             const enteredDate = new Date(stageEnteredAt);
             if (isNaN(enteredDate.getTime())) {
                 return undefined;
             }
-            
+
             const now = new Date();
             const diffTime = now.getTime() - enteredDate.getTime();
             const diffDays = Math.floor(diffTime / (1000 * 60 * 60 * 24));
-            
+
             return diffDays >= 0 ? diffDays : 0;
         } catch {
             return undefined;

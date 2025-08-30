@@ -2,7 +2,9 @@ import { Project } from '@/types/project';
 
 const CACHE_KEY = 'apillis_projects_cache';
 const CACHE_TIMESTAMP_KEY = 'apillis_projects_cache_timestamp';
-const CACHE_DURATION = 15 * 60 * 1000; // Increased from 5 to 15 minutes for better stability
+const QUERY_CACHE_KEY_PREFIX = 'apillis_query_cache_';
+const CACHE_DURATION = 15 * 60 * 1000; // 15 minutes for better stability
+const QUERY_CACHE_DURATION = 5 * 60 * 1000; // 5 minutes for query-specific cache
 
 export interface CacheService {
     setProjects: (projects: Project[]) => void;
@@ -13,6 +15,12 @@ export interface CacheService {
     updateProjectStatus: (projectId: string, newStatus: string) => void;
     getProject: (projectId: string) => Project | null;
     validateCacheConsistency: () => boolean;
+    // Query-specific caching methods
+    setQueryResult: (queryKey: string, data: any) => void;
+    getQueryResult: (queryKey: string) => any | null;
+    isQueryCacheValid: (queryKey: string) => boolean;
+    clearQueryCache: (queryKey?: string) => void;
+    generateQueryKey: (filters: Record<string, any>) => string;
 }
 
 export const cacheService: CacheService = {
@@ -174,5 +182,87 @@ export const cacheService: CacheService = {
             cacheService.clearCache();
             return false;
         }
+    },
+
+    // Query-specific caching methods
+    setQueryResult: (queryKey: string, data: any) => {
+        try {
+            const cacheKey = `${QUERY_CACHE_KEY_PREFIX}${queryKey}`;
+            const timestampKey = `${cacheKey}_timestamp`;
+
+            localStorage.setItem(cacheKey, JSON.stringify(data));
+            localStorage.setItem(timestampKey, Date.now().toString());
+
+            console.log('💾 Query result cached:', queryKey);
+        } catch (error) {
+            console.warn('💾 Failed to cache query result:', error);
+        }
+    },
+
+    getQueryResult: (queryKey: string) => {
+        try {
+            const cacheKey = `${QUERY_CACHE_KEY_PREFIX}${queryKey}`;
+            const cachedData = localStorage.getItem(cacheKey);
+
+            if (!cachedData) return null;
+
+            return JSON.parse(cachedData);
+        } catch (error) {
+            console.warn('💾 Failed to retrieve cached query result:', error);
+            return null;
+        }
+    },
+
+    isQueryCacheValid: (queryKey: string): boolean => {
+        try {
+            const timestampKey = `${QUERY_CACHE_KEY_PREFIX}${queryKey}_timestamp`;
+            const timestamp = localStorage.getItem(timestampKey);
+
+            if (!timestamp) return false;
+
+            const cacheTime = parseInt(timestamp, 10);
+            const now = Date.now();
+
+            return (now - cacheTime) < QUERY_CACHE_DURATION;
+        } catch (error) {
+            console.warn('💾 Failed to check query cache validity:', error);
+            return false;
+        }
+    },
+
+    clearQueryCache: (queryKey?: string) => {
+        try {
+            if (queryKey) {
+                // Clear specific query cache
+                const cacheKey = `${QUERY_CACHE_KEY_PREFIX}${queryKey}`;
+                const timestampKey = `${cacheKey}_timestamp`;
+                localStorage.removeItem(cacheKey);
+                localStorage.removeItem(timestampKey);
+            } else {
+                // Clear all query caches
+                const keys = Object.keys(localStorage);
+                keys.forEach(key => {
+                    if (key.startsWith(QUERY_CACHE_KEY_PREFIX)) {
+                        localStorage.removeItem(key);
+                    }
+                });
+            }
+        } catch (error) {
+            console.warn('💾 Failed to clear query cache:', error);
+        }
+    },
+
+    generateQueryKey: (filters: Record<string, any>): string => {
+        // Create a consistent query key from filters
+        const sortedFilters = Object.keys(filters)
+            .sort()
+            .reduce((result, key) => {
+                if (filters[key] !== undefined && filters[key] !== null) {
+                    result[key] = filters[key];
+                }
+                return result;
+            }, {} as Record<string, any>);
+
+        return btoa(JSON.stringify(sortedFilters)).replace(/[^a-zA-Z0-9]/g, '');
     }
 };

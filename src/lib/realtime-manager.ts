@@ -92,10 +92,10 @@ class RealtimeManager {
                         clearTimeout(this.updateTimeout);
                     }
 
-                    // Debounce updates to prevent flickering
+                    // Debounce updates to prevent flickering - optimized delay
                     this.updateTimeout = setTimeout(() => {
                         this.processPendingUpdates();
-                    }, 150); // Increased debounce delay for better stability
+                    }, 100); // Optimized debounce delay for better responsiveness
                 }
             )
             .on(
