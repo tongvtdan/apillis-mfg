@@ -77,13 +77,15 @@ Examples:
 
 // Initialize Supabase client
 const supabaseUrl = process.env.VITE_SUPABASE_URL || 'http://127.0.0.1:54321';
-const supabaseServiceKey = process.env.SUPABASE_SERVICE_ROLE_KEY || process.env.VITE_SUPABASE_ANON_KEY;
+const supabaseServiceKey = process.env.VITE_SUPABASE_SERVICE_ROLE_KEY || process.env.SUPABASE_SERVICE_ROLE_KEY || process.env.VITE_SUPABASE_ANON_KEY;
 
 if (!supabaseServiceKey) {
-    console.error('❌ Error: SUPABASE_SERVICE_ROLE_KEY or VITE_SUPABASE_ANON_KEY not found in .env.local');
+    console.error('❌ Error: VITE_SUPABASE_SERVICE_ROLE_KEY, SUPABASE_SERVICE_ROLE_KEY, or VITE_SUPABASE_ANON_KEY not found in .env.local');
     console.error('Please ensure your .env.local file contains the necessary Supabase keys.');
     process.exit(1);
 }
+
+
 
 const supabase = createClient(supabaseUrl, supabaseServiceKey, {
     auth: {
@@ -146,28 +148,51 @@ async function createAuthUser(userData, password) {
     }
 }
 
-// Update user profile with auth user ID
-async function updateUserProfile(userData, authUserId) {
+// Create user profile in database
+async function createUserProfile(userData, authUserId, uuidMapping) {
     try {
         if (options.dryRun) {
-            console.log(`  🔍 Would update user profile: ${userData.id} with auth user ID: ${authUserId}`);
+            console.log(`  🔍 Would create user profile: ${userData.name} with auth user ID: ${authUserId}`);
             return { success: true };
+        }
+
+        // Map the direct_manager_id to the new auth user UUID if it exists
+        let mappedManagerId = null;
+        if (userData.direct_manager_id && uuidMapping.has(userData.direct_manager_id)) {
+            mappedManagerId = uuidMapping.get(userData.direct_manager_id);
         }
 
         const { error } = await supabase
             .from('users')
-            .update({ user_id: authUserId })
-            .eq('id', userData.id);
+            .insert({
+                id: authUserId, // Use the auth user ID as the profile ID
+                organization_id: userData.organization_id,
+                email: userData.email,
+                name: userData.name,
+                role: userData.role,
+                department: userData.department,
+                phone: userData.phone,
+                avatar_url: userData.avatar_url,
+                status: userData.status,
+                description: userData.description,
+                employee_id: userData.employee_id,
+                direct_manager_id: mappedManagerId, // Use mapped UUID or null
+                direct_reports: [], // Start with empty array, will update later
+                last_login_at: userData.last_login_at,
+                preferences: userData.preferences,
+                created_at: userData.created_at,
+                updated_at: userData.updated_at
+            });
 
         if (error) {
-            console.error(`  ❌ Error updating user profile ${userData.id}:`, error.message);
+            console.error(`  ❌ Error creating user profile for ${userData.name}:`, error.message);
             return { success: false, error: error.message };
         }
 
-        console.log(`  ✅ Updated user profile: ${userData.id} with auth user ID: ${authUserId}`);
+        console.log(`  ✅ Created user profile: ${userData.name} with auth user ID: ${authUserId}`);
         return { success: true };
     } catch (error) {
-        console.error(`  ❌ Unexpected error updating user profile ${userData.id}:`, error.message);
+        console.error(`  ❌ Unexpected error creating user profile for ${userData.name}:`, error.message);
         return { success: false, error: error.message };
     }
 }
@@ -193,21 +218,33 @@ async function main() {
     console.log(`✅ Loaded ${users.length} users from sample data`);
     console.log('');
 
-    // Track results
+    // Track results and UUID mapping
     let successCount = 0;
     let errorCount = 0;
     const results = [];
+    const uuidMapping = new Map(); // Map old UUIDs to new auth user UUIDs
 
-    // Process each user
-    for (const userData of users) {
+    // Sort users by dependency level (no manager first, then with managers)
+    const sortedUsers = [...users].sort((a, b) => {
+        // Users without direct_manager_id come first
+        if (!a.direct_manager_id && b.direct_manager_id) return -1;
+        if (a.direct_manager_id && !b.direct_manager_id) return 1;
+        return 0;
+    });
+
+    // Process each user in dependency order
+    for (const userData of sortedUsers) {
         console.log(`👤 Processing user: ${userData.name} (${userData.role})`);
 
         // Create auth user
         const authResult = await createAuthUser(userData, options.password);
 
         if (authResult.success) {
-            // Update user profile with auth user ID
-            const profileResult = await updateUserProfile(userData, authResult.user.id);
+            // Store the UUID mapping for future reference
+            uuidMapping.set(userData.id, authResult.user.id);
+
+            // Create user profile in database
+            const profileResult = await createUserProfile(userData, authResult.user.id, uuidMapping);
 
             if (profileResult.success) {
                 successCount++;
@@ -303,4 +340,4 @@ main().catch(error => {
 });
 
 // Export for testing (if imported as module)
-export { createAuthUser, updateUserProfile };
+export { createAuthUser, createUserProfile };
