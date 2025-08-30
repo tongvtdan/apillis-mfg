@@ -1,4 +1,8 @@
+// Legacy ProjectStage enum - kept for backward compatibility
 export type ProjectStage = 'inquiry_received' | 'technical_review' | 'supplier_rfq_sent' | 'quoted' | 'order_confirmed' | 'procurement_planning' | 'in_production' | 'shipped_closed';
+
+// Dynamic stage type based on database workflow_stages
+export type WorkflowStageId = string; // UUID from workflow_stages table
 export type ProjectStatus = 'active' | 'on_hold' | 'delayed' | 'cancelled' | 'completed';
 export type ProjectPriority = 'low' | 'medium' | 'high' | 'urgent';
 export type ProjectType = 'system_build' | 'fabrication' | 'manufacturing';
@@ -209,6 +213,7 @@ export interface ProjectMetric {
   created_at: string;
 }
 
+// Legacy PROJECT_STAGES - kept for backward compatibility
 export const PROJECT_STAGES: ProjectStageInfo[] = [
   { id: "inquiry_received", name: "Inquiry Received", color: "bg-blue-100 text-blue-800", count: 0 },
   { id: "technical_review", name: "Technical Review", color: "bg-orange-100 text-orange-800", count: 0 },
@@ -219,6 +224,30 @@ export const PROJECT_STAGES: ProjectStageInfo[] = [
   { id: "in_production", name: "In Production", color: "bg-teal-100 text-teal-800", count: 0 },
   { id: "shipped_closed", name: "Shipped & Closed", color: "bg-gray-100 text-gray-800", count: 0 }
 ];
+
+// Stage name mapping from database to legacy enum for backward compatibility
+export const STAGE_NAME_TO_LEGACY: Record<string, ProjectStage> = {
+  'Inquiry Received': 'inquiry_received',
+  'Technical Review': 'technical_review',
+  'Supplier RFQ': 'supplier_rfq_sent',
+  'Quoted': 'quoted',
+  'Order Confirmed': 'order_confirmed',
+  'Procurement Planning': 'procurement_planning',
+  'In Production': 'in_production',
+  'Shipped & Closed': 'shipped_closed'
+};
+
+// Legacy enum to stage name mapping
+export const LEGACY_TO_STAGE_NAME: Record<ProjectStage, string> = {
+  'inquiry_received': 'Inquiry Received',
+  'technical_review': 'Technical Review',
+  'supplier_rfq_sent': 'Supplier RFQ',
+  'quoted': 'Quoted',
+  'order_confirmed': 'Order Confirmed',
+  'procurement_planning': 'Procurement Planning',
+  'in_production': 'In Production',
+  'shipped_closed': 'Shipped & Closed'
+};
 
 export const STAGE_COLORS: Record<ProjectStage, string> = {
   inquiry_received: 'bg-blue-100 text-blue-800',

@@ -109,21 +109,21 @@
     - Update form validation to match database constraints
     - _Requirements: 2.2, 5.2_
 
-- [-] 6. Project Workflow System Audit
-  - [-] 6.1 Audit workflow stage integration
+- [x] 6. Project Workflow System Audit
+  - [x] 6.1 Audit workflow stage integration
     - Review current_stage vs current_stage_id usage
     - Check workflow_stages table integration
     - Verify stage transition logic uses correct fields
     - _Requirements: 3.1, 3.2_
 
-  - [ ] 6.2 Fix workflow system inconsistencies
+  - [x] 6.2 Fix workflow system inconsistencies
     - Update stage references to use current_stage_id properly
     - Fix workflow stage queries and joins
     - Ensure stage transition validation uses correct constraints
     - Update stage display logic for proper data access
     - _Requirements: 3.2, 3.3_
 
-  - [ ] 6.3 Update WorkflowStepper and related components
+  - [x] 6.3 Update WorkflowStepper and related components
     - Fix any workflow-related components for schema alignment
     - Ensure proper stage progression logic
     - Update stage status calculations and displays

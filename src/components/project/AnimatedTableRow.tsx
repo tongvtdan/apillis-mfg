@@ -5,7 +5,9 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { ExternalLink, User } from "lucide-react";
-import { Project, ProjectStatus, ProjectStage, PROJECT_STAGES } from "@/types/project";
+import { Project, ProjectStatus, ProjectStage, PROJECT_STAGES, WorkflowStage } from "@/types/project";
+import { workflowStageService } from '@/services/workflowStageService';
+import { useState, useEffect } from 'react';
 import { useUserDisplayName, useUsers } from "@/hooks/useUsers";
 
 interface AnimatedTableRowProps {
@@ -31,6 +33,21 @@ export function AnimatedTableRow({
 }: AnimatedTableRowProps) {
     // Get assignee display name using correct database field name
     const assigneeDisplayName = useUserDisplayName(project.assigned_to);
+    const [workflowStages, setWorkflowStages] = useState<WorkflowStage[]>([]);
+
+    // Load workflow stages
+    useEffect(() => {
+        const loadStages = async () => {
+            try {
+                const stages = await workflowStageService.getWorkflowStages();
+                setWorkflowStages(stages);
+            } catch (error) {
+                console.error('Error loading workflow stages:', error);
+                setWorkflowStages([]);
+            }
+        };
+        loadStages();
+    }, []);
 
     const handleStatusChange = async (projectId: string, newStatus: ProjectStatus) => {
         console.log(`🔄 AnimatedTableRow: Status change triggered for project ${projectId} to ${newStatus}`);
@@ -88,9 +105,9 @@ export function AnimatedTableRow({
                             </SelectValue>
                         </SelectTrigger>
                         <SelectContent>
-                            {PROJECT_STAGES.map((stage) => (
+                            {workflowStages.map((stage) => (
                                 <SelectItem key={stage.id} value={stage.id}>
-                                    <Badge className={statusVariants[stage.id as keyof typeof statusVariants]}>
+                                    <Badge className={workflowStageService.getStageColor(stage)}>
                                         {stage.name}
                                     </Badge>
                                 </SelectItem>

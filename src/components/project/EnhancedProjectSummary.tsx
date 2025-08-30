@@ -16,7 +16,9 @@ import {
     MapPin,
     Eye
 } from "lucide-react";
-import { Project, PROJECT_STAGES, PRIORITY_COLORS } from "@/types/project";
+import { Project, PROJECT_STAGES, PRIORITY_COLORS, WorkflowStage } from "@/types/project";
+import { workflowStageService } from '@/services/workflowStageService';
+import { useState, useEffect, useMemo } from 'react';
 import { useNavigate } from "react-router-dom";
 import { useUserDisplayName } from "@/hooks/useUsers";
 
@@ -33,13 +35,49 @@ export function EnhancedProjectSummary({
 }: EnhancedProjectSummaryProps) {
     const navigate = useNavigate();
     const assigneeDisplayName = useUserDisplayName(project.assigned_to || project.assignee_id);
+    const [workflowStages, setWorkflowStages] = useState<WorkflowStage[]>([]);
 
-    // Calculate workflow progress
-    const currentStage = project.current_stage || project.status;
-    const currentStageIndex = PROJECT_STAGES.findIndex(stage => stage.id === currentStage);
-    const progressPercentage = currentStageIndex >= 0
-        ? Math.round((currentStageIndex / (PROJECT_STAGES.length - 1)) * 100)
-        : 0;
+    // Load workflow stages
+    useEffect(() => {
+        const loadStages = async () => {
+            try {
+                const stages = await workflowStageService.getWorkflowStages();
+                setWorkflowStages(stages);
+            } catch (error) {
+                console.error('Error loading workflow stages:', error);
+                setWorkflowStages([]);
+            }
+        };
+        loadStages();
+    }, []);
+
+    // Calculate workflow progress using dynamic stages
+    const progressCalculation = useMemo(() => {
+        if (workflowStages.length === 0) {
+            return { progressPercentage: 0, currentStageIndex: -1 };
+        }
+
+        let currentStageIndex = -1;
+
+        if (project.current_stage_id) {
+            // Use current_stage_id (preferred)
+            currentStageIndex = workflowStages.findIndex(stage => stage.id === project.current_stage_id);
+        } else if (project.current_stage) {
+            // Fallback to legacy current_stage mapping
+            currentStageIndex = workflowStages.findIndex(stage =>
+                stage.name.toLowerCase().replace(/\s+/g, '_') === project.current_stage ||
+                stage.name === project.current_stage
+            );
+        }
+
+        const progressPercentage = currentStageIndex >= 0 && workflowStages.length > 1
+            ? Math.round((currentStageIndex / (workflowStages.length - 1)) * 100)
+            : 0;
+
+        return { progressPercentage, currentStageIndex };
+    }, [project.current_stage_id, project.current_stage, workflowStages]);
+
+    const { progressPercentage } = progressCalculation;
 
     // Get priority with fallback
     const priority = project.priority_level || project.priority || 'medium';
@@ -61,8 +99,21 @@ export function EnhancedProjectSummary({
         return new Date(dateString).toLocaleDateString();
     };
 
-    // Get stage info
-    const currentStageInfo = PROJECT_STAGES.find(stage => stage.id === currentStage);
+    // Get stage info using dynamic stages
+    const currentStageInfo = useMemo(() => {
+        if (workflowStages.length === 0) return null;
+
+        if (project.current_stage_id) {
+            return workflowStages.find(stage => stage.id === project.current_stage_id);
+        } else if (project.current_stage) {
+            return workflowStages.find(stage =>
+                stage.name.toLowerCase().replace(/\s+/g, '_') === project.current_stage ||
+                stage.name === project.current_stage
+            );
+        }
+
+        return null;
+    }, [project.current_stage_id, project.current_stage, workflowStages]);
 
     // Calculate urgency indicators
     const getUrgencyIndicators = () => {
@@ -152,8 +203,8 @@ export function EnhancedProjectSummary({
                             <div
                                 key={index}
                                 className={`flex items-center gap-1 px-2 py-1 rounded-full text-xs ${indicator.severity === 'high'
-                                        ? 'bg-red-100 text-red-800'
-                                        : 'bg-orange-100 text-orange-800'
+                                    ? 'bg-red-100 text-red-800'
+                                    : 'bg-orange-100 text-orange-800'
                                     }`}
                             >
                                 <AlertTriangle className="h-3 w-3" />

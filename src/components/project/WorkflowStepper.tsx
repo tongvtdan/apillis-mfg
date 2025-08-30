@@ -11,7 +11,7 @@ import {
   AlertCircle,
   Loader2
 } from "lucide-react";
-import { Project, ProjectStatus, ProjectStage } from "@/types/project";
+import { Project, ProjectStatus, ProjectStage, WorkflowStage } from "@/types/project";
 import { WorkflowValidator } from "@/lib/workflow-validator";
 import {
   Tooltip,
@@ -26,17 +26,21 @@ import { usePermissions } from '@/hooks/usePermissions';
 import { WorkflowBypassRequest } from '@/lib/workflow-validator';
 import { useWorkflowAutoAdvance } from '@/hooks/useWorkflowAutoAdvance';
 import { projectService } from '@/services/projectService';
+import { workflowStageService } from '@/services/workflowStageService';
 
 interface WorkflowStepperProps {
   project: Project;
 }
 
-const stageConfig: Record<ProjectStage, {
+interface StageConfig {
   title: string;
   icon: React.ElementType;
   color: string;
   bgColor: string;
-}> = {
+}
+
+// Legacy stage config for backward compatibility
+const legacyStageConfig: Record<ProjectStage, StageConfig> = {
   inquiry_received: {
     title: "Inquiry Received",
     icon: Circle,
@@ -87,27 +91,51 @@ const stageConfig: Record<ProjectStage, {
   }
 };
 
-const allStages: ProjectStage[] = [
-  'inquiry_received',
-  'technical_review',
-  'supplier_rfq_sent',
-  'quoted',
-  'order_confirmed',
-  'procurement_planning',
-  'in_production',
-  'shipped_closed'
-];
+// Dynamic stage config based on database workflow_stages
+const getStageConfig = (stage: WorkflowStage): StageConfig => {
+  // Map stage names to appropriate icons and colors
+  const iconMap: Record<string, React.ElementType> = {
+    'Inquiry Received': Circle,
+    'Technical Review': Play,
+    'Supplier RFQ': Clock,
+    'Quoted': CheckCircle,
+    'Order Confirmed': CheckCircle,
+    'Procurement Planning': Clock,
+    'In Production': Play,
+    'Shipped & Closed': CheckCircle2
+  };
+
+  const colorMap: Record<string, { color: string; bgColor: string }> = {
+    'Inquiry Received': { color: "text-blue-600", bgColor: "bg-blue-100" },
+    'Technical Review': { color: "text-orange-600", bgColor: "bg-orange-100" },
+    'Supplier RFQ': { color: "text-indigo-600", bgColor: "bg-indigo-100" },
+    'Quoted': { color: "text-green-600", bgColor: "bg-green-100" },
+    'Order Confirmed': { color: "text-purple-600", bgColor: "bg-purple-100" },
+    'Procurement Planning': { color: "text-yellow-600", bgColor: "bg-yellow-100" },
+    'In Production': { color: "text-teal-600", bgColor: "bg-teal-100" },
+    'Shipped & Closed': { color: "text-gray-600", bgColor: "bg-gray-100" }
+  };
+
+  const colors = colorMap[stage.name] || { color: "text-gray-600", bgColor: "bg-gray-100" };
+
+  return {
+    title: stage.name,
+    icon: iconMap[stage.name] || Circle,
+    color: colors.color,
+    bgColor: colors.bgColor
+  };
+};
 
 export const WorkflowStepper = React.memo(({ project }: WorkflowStepperProps) => {
   const { toast } = useToast();
   const { updateStatus, isUpdating } = useProjectUpdate(project.id);
   const { checkPermission } = usePermissions();
   const { autoAdvanceAvailable, nextStage, autoAdvanceReason, executeAutoAdvance } = useWorkflowAutoAdvance(project);
-  const [hoveredStage, setHoveredStage] = useState<ProjectStage | null>(null);
+  const [hoveredStage, setHoveredStage] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [bypassDialog, setBypassDialog] = useState<{
     isOpen: boolean;
-    targetStage: ProjectStage | null;
+    targetStage: string | null;
     warnings: string[];
   }>({
     isOpen: false,
@@ -115,44 +143,84 @@ export const WorkflowStepper = React.memo(({ project }: WorkflowStepperProps) =>
     warnings: []
   });
   const [isLocalUpdating, setIsLocalUpdating] = useState(false);
+  const [workflowStages, setWorkflowStages] = useState<WorkflowStage[]>([]);
 
   // Refs for tracking logged values to prevent duplicate logging
   const lastStatusLogged = useRef<string>('');
   const lastUpdatedAtLogged = useRef<string>('');
   const lastStageCalculationsLogged = useRef<string>('');
 
+  // Load workflow stages from database
+  useEffect(() => {
+    const loadWorkflowStages = async () => {
+      try {
+        const stages = await workflowStageService.getWorkflowStages();
+        setWorkflowStages(stages);
+      } catch (error) {
+        console.error('Error loading workflow stages:', error);
+        // Fallback to empty array - components will handle gracefully
+        setWorkflowStages([]);
+      }
+    };
+
+    loadWorkflowStages();
+  }, []);
+
   // Memoize stage calculations to prevent unnecessary recalculations
   const stageCalculations = useMemo(() => {
-    // Use current_stage with fallback to status for backward compatibility
-    const currentStage = project.current_stage || project.status;
-    const currentIndex = allStages.indexOf(currentStage as any);
-    const progressPercentage = currentIndex >= 0 ? Math.round((currentIndex / (allStages.length - 1)) * 100) : 0;
+    if (workflowStages.length === 0) {
+      return {
+        currentIndex: -1,
+        progressPercentage: 0,
+        totalStages: 0,
+        currentStage: null,
+        currentStageData: null
+      };
+    }
+
+    // Find current stage by ID (preferred) or by legacy mapping
+    let currentStageData: WorkflowStage | null = null;
+    let currentIndex = -1;
+
+    if (project.current_stage_id) {
+      // Use current_stage_id (UUID) to find the stage
+      currentStageData = workflowStages.find(stage => stage.id === project.current_stage_id) || null;
+      currentIndex = currentStageData ? workflowStages.indexOf(currentStageData) : -1;
+    } else if (project.current_stage) {
+      // Fallback to legacy current_stage mapping
+      const stageName = project.current_stage;
+      currentStageData = workflowStages.find(stage =>
+        stage.name.toLowerCase().replace(/\s+/g, '_') === stageName ||
+        stage.name === stageName
+      ) || null;
+      currentIndex = currentStageData ? workflowStages.indexOf(currentStageData) : -1;
+    }
+
+    const progressPercentage = currentIndex >= 0 && workflowStages.length > 1
+      ? Math.round((currentIndex / (workflowStages.length - 1)) * 100)
+      : 0;
 
     return {
       currentIndex,
       progressPercentage,
-      totalStages: allStages.length,
-      currentStage
+      totalStages: workflowStages.length,
+      currentStage: currentStageData?.id || null,
+      currentStageData
     };
-  }, [project.current_stage, project.status]);
+  }, [project.current_stage_id, project.current_stage, workflowStages]);
 
   // Memoize stage status functions to prevent recreation on every render
-  const getStageStatus = useCallback((stage: ProjectStage) => {
-    const index = allStages.indexOf(stage);
+  const getStageStatus = useCallback((stage: WorkflowStage) => {
+    const index = workflowStages.findIndex(s => s.id === stage.id);
     if (index < 0) return 'pending';
     if (index < stageCalculations.currentIndex) return 'completed';
     if (index === stageCalculations.currentIndex) return 'current';
     return 'pending';
-  }, [stageCalculations.currentIndex]);
+  }, [stageCalculations.currentIndex, workflowStages]);
 
-  const getStatusIcon = useCallback((stage: ProjectStage) => {
+  const getStatusIcon = useCallback((stage: WorkflowStage) => {
     const status = getStageStatus(stage);
-    const stageConfigItem = stageConfig[stage];
-
-    if (!stageConfigItem) {
-      console.warn(`Warning: stageConfig not found for stage: ${stage}`);
-      return <Circle className="w-5 h-5 text-gray-300" />;
-    }
+    const stageConfigItem = getStageConfig(stage);
 
     const Icon = stageConfigItem.icon;
 
@@ -166,7 +234,7 @@ export const WorkflowStepper = React.memo(({ project }: WorkflowStepperProps) =>
     }
   }, [getStageStatus]);
 
-  const getStatusColor = useCallback((stage: ProjectStage) => {
+  const getStatusColor = useCallback((stage: WorkflowStage) => {
     const status = getStageStatus(stage);
     switch (status) {
       case 'completed':
@@ -178,12 +246,12 @@ export const WorkflowStepper = React.memo(({ project }: WorkflowStepperProps) =>
     }
   }, [getStageStatus]);
 
-  const getConnectorColor = useCallback((stage: ProjectStage) => {
-    const index = allStages.indexOf(stage);
+  const getConnectorColor = useCallback((stage: WorkflowStage) => {
+    const index = workflowStages.findIndex(s => s.id === stage.id);
     if (index < 0) return 'bg-gray-200';
     if (index < stageCalculations.currentIndex) return 'bg-green-600';
     return 'bg-gray-200';
-  }, [stageCalculations.currentIndex]);
+  }, [stageCalculations.currentIndex, workflowStages]);
 
   // Debug logging for project changes - only log when status actually changes
   useEffect(() => {
@@ -219,82 +287,69 @@ export const WorkflowStepper = React.memo(({ project }: WorkflowStepperProps) =>
 
   // Debug logging to help identify status mapping issues - only log once per status
   useEffect(() => {
-    const currentStage = project?.current_stage || project?.status;
-    if (currentStage && !stageConfig[currentStage]) {
-      console.warn(`🚨 WorkflowStepper: Unknown project stage "${currentStage}" not found in stageConfig`);
-      console.warn(`🚨 Available stages:`, Object.keys(stageConfig));
-    }
-  }, [project?.current_stage, project?.status]);
+    if (workflowStages.length === 0) return;
 
-  const handleStageClick = useCallback(async (stage: ProjectStage) => {
-    if (stage === project.current_stage) return;
+    const currentStageId = project?.current_stage_id;
+    const currentStageLegacy = project?.current_stage;
+
+    if (currentStageId && !workflowStages.find(s => s.id === currentStageId)) {
+      console.warn(`🚨 WorkflowStepper: Unknown project stage ID "${currentStageId}" not found in workflow_stages`);
+      console.warn(`🚨 Available stage IDs:`, workflowStages.map(s => s.id));
+    }
+
+    if (currentStageLegacy && !workflowStages.find(s =>
+      s.name.toLowerCase().replace(/\s+/g, '_') === currentStageLegacy ||
+      s.name === currentStageLegacy
+    )) {
+      console.warn(`🚨 WorkflowStepper: Legacy stage "${currentStageLegacy}" could not be mapped to workflow_stages`);
+      console.warn(`🚨 Available stage names:`, workflowStages.map(s => s.name));
+    }
+  }, [project?.current_stage_id, project?.current_stage, workflowStages]);
+
+  const handleStageClick = useCallback(async (stage: WorkflowStage) => {
+    if (stage.id === project.current_stage_id) return;
 
     try {
       // Check if user can bypass workflow
       const canBypass = checkPermission('workflow', 'bypass').allowed;
 
-      // Validate the status change
-      const validationResult = await WorkflowValidator.validateStatusChange(project, stage);
+      // Validate the stage transition using workflow stage service
+      const validationResult = await workflowStageService.validateStageTransition(
+        project.current_stage_id || '',
+        stage.id
+      );
 
       if (!validationResult.isValid) {
         toast({
           variant: "destructive",
           title: "Validation Error",
-          description: validationResult.errors.join(", "),
+          description: validationResult.message || "Invalid stage transition",
         });
         return;
       }
 
-      // Check if auto-advance is possible
-      if (validationResult.canAutoAdvance) {
-        toast({
-          title: "Auto-Advance Available",
-          description: validationResult.autoAdvanceReason,
-        });
-      }
-
-      // Check if bypass is required (stage skipping or unauthorized transitions)
-      if (validationResult.bypassRequired) {
+      // Check if manager approval is required
+      if (validationResult.requiresApproval) {
         if (canBypass) {
           // Show bypass dialog
           setBypassDialog({
             isOpen: true,
-            targetStage: stage,
-            warnings: validationResult.warnings
+            targetStage: stage.id,
+            warnings: [validationResult.message || "This transition requires approval"]
           });
           return;
         } else {
           toast({
             variant: "destructive",
             title: "Manager Approval Required",
-            description: validationResult.bypassReason || "This stage change requires manager approval. Please contact your manager.",
+            description: validationResult.message || "This stage change requires manager approval. Please contact your manager.",
           });
           return;
         }
       }
 
-      // Check if manager approval is required for exit criteria
-      if (validationResult.requiresManagerApproval) {
-        if (canBypass) {
-          // Show bypass dialog
-          setBypassDialog({
-            isOpen: true,
-            targetStage: stage,
-            warnings: validationResult.warnings
-          });
-          return;
-        } else {
-          toast({
-            variant: "destructive",
-            title: "Manager Approval Required",
-            description: "This stage change requires manager approval. Please contact your manager.",
-          });
-          return;
-        }
-      }
-
-      // Proceed with normal status update
-      await updateProjectStatus(stage);
+      // Proceed with normal stage update
+      await updateProjectStage(stage.id);
 
     } catch (err) {
       console.error('Error updating project status:', err);
@@ -318,55 +373,47 @@ export const WorkflowStepper = React.memo(({ project }: WorkflowStepperProps) =>
         requestedAt: new Date()
       };
 
-      // Validate with bypass
-      const validationResult = await WorkflowValidator.validateStatusChange(
-        project,
-        bypassDialog.targetStage
-      );
+      // For bypass, we skip validation and proceed directly
+      console.log('🔄 WorkflowStepper: Bypass requested, updating stage');
+      await updateProjectStage(bypassDialog.targetStage);
 
-      if (validationResult.isValid) {
-        console.log('🔄 WorkflowStepper: Bypass validation passed, updating status');
-        await updateProjectStatus(bypassDialog.targetStage);
+      console.log('✅ WorkflowStepper: Bypass stage update completed');
 
-        console.log('✅ WorkflowStepper: Bypass status update completed');
+      // Close the bypass dialog
+      setBypassDialog({
+        isOpen: false,
+        targetStage: null,
+        warnings: []
+      });
 
-        // Close the bypass dialog
-        setBypassDialog({
-          isOpen: false,
-          targetStage: null,
-          warnings: []
-        });
+      const targetStage = workflowStages.find(s => s.id === bypassDialog.targetStage);
+      toast({
+        title: "Stage Updated",
+        description: `Project stage changed to ${targetStage?.name || 'Unknown Stage'} (bypassed)`,
+      });
 
-        toast({
-          title: "Status Updated",
-          description: `Project status changed to ${stageConfig[bypassDialog.targetStage]?.title || 'Unknown Stage'} (bypassed)`,
-        });
-
-        // Force a manual refresh of the project data since real-time update might not be working
-        console.log('🔄 WorkflowStepper: Triggering manual project refresh');
-        setTimeout(async () => {
-          try {
-            // Prevent multiple rapid updates
-            if (isLocalUpdating) {
-              console.log('🔄 WorkflowStepper: Skipping manual refresh - already updating');
-              return;
-            }
-
-            setIsLocalUpdating(true);
-            const latestProject = await projectService.getProjectById(project.id);
-            if (latestProject && latestProject.current_stage === bypassDialog.targetStage) {
-              console.log('✅ WorkflowStepper: Manual refresh successful, updating local state');
-              // Note: We don't need to update local state here since the parent component should handle this
-            }
-          } catch (error) {
-            console.error('❌ WorkflowStepper: Manual refresh failed:', error);
-          } finally {
-            setIsLocalUpdating(false);
+      // Force a manual refresh of the project data since real-time update might not be working
+      console.log('🔄 WorkflowStepper: Triggering manual project refresh');
+      setTimeout(async () => {
+        try {
+          // Prevent multiple rapid updates
+          if (isLocalUpdating) {
+            console.log('🔄 WorkflowStepper: Skipping manual refresh - already updating');
+            return;
           }
-        }, 1000); // Wait 1 second for database to settle
-      } else {
-        console.error('❌ WorkflowStepper: Bypass validation failed:', validationResult.errors);
-      }
+
+          setIsLocalUpdating(true);
+          const latestProject = await projectService.getProjectById(project.id);
+          if (latestProject && latestProject.current_stage === bypassDialog.targetStage) {
+            console.log('✅ WorkflowStepper: Manual refresh successful, updating local state');
+            // Note: We don't need to update local state here since the parent component should handle this
+          }
+        } catch (error) {
+          console.error('❌ WorkflowStepper: Manual refresh failed:', error);
+        } finally {
+          setIsLocalUpdating(false);
+        }
+      }, 1000); // Wait 1 second for database to settle
     } catch (err) {
       console.error('Error processing bypass:', err);
       toast({
@@ -377,18 +424,34 @@ export const WorkflowStepper = React.memo(({ project }: WorkflowStepperProps) =>
     }
   }, [bypassDialog.targetStage, project, toast, isLocalUpdating]);
 
-  const updateProjectStatus = useCallback(async (stage: ProjectStage) => {
+  const updateProjectStage = useCallback(async (stageId: string) => {
     setError(null);
-    const success = await updateStatus(stage);
-    if (success) {
-      toast({
-        title: "Status Updated",
-        description: `Project status changed to ${stageConfig[stage]?.title || 'Unknown Stage'}`,
+
+    try {
+      // Use the project service to update the stage
+      const updatedProject = await projectService.updateProject(project.id, {
+        current_stage_id: stageId,
+        stage_entered_at: new Date().toISOString()
       });
-    } else {
-      setError("Failed to update project status. Please try again.");
+
+      const targetStage = workflowStages.find(s => s.id === stageId);
+      toast({
+        title: "Stage Updated",
+        description: `Project stage changed to ${targetStage?.name || 'Unknown Stage'}`,
+      });
+
+      return true;
+    } catch (error) {
+      console.error('Error updating project stage:', error);
+      setError("Failed to update project stage. Please try again.");
+      toast({
+        variant: "destructive",
+        title: "Update Failed",
+        description: "Failed to update project stage. Please try again.",
+      });
+      return false;
     }
-  }, [updateStatus, toast]);
+  }, [project.id, workflowStages, toast]);
 
   const handleAutoAdvance = useCallback(async () => {
     if (autoAdvanceAvailable && nextStage) {
@@ -396,7 +459,7 @@ export const WorkflowStepper = React.memo(({ project }: WorkflowStepperProps) =>
     }
   }, [autoAdvanceAvailable, nextStage, executeAutoAdvance]);
 
-  const handleKeyDown = useCallback((event: React.KeyboardEvent, stage: ProjectStage) => {
+  const handleKeyDown = useCallback((event: React.KeyboardEvent, stage: WorkflowStage) => {
     if (event.key === 'Enter' || event.key === ' ') {
       event.preventDefault();
       handleStageClick(stage);
@@ -404,63 +467,61 @@ export const WorkflowStepper = React.memo(({ project }: WorkflowStepperProps) =>
   }, [handleStageClick]);
 
   // Memoize stage tooltip content to prevent recreation
-  const getStageTooltipContent = useCallback((stage: ProjectStage, status: 'completed' | 'current' | 'pending') => {
-    const stageConfigItem = stageConfig[stage];
-    if (!stageConfigItem) {
-      console.warn(`Warning: stageConfig not found for stage: ${stage}`);
-      return 'Unknown stage';
-    }
+  const getStageTooltipContent = useCallback((stage: WorkflowStage, status: 'completed' | 'current' | 'pending') => {
+    const stageTitle = stage.name;
 
-    const stageTitle = stageConfigItem.title;
-
-    const stageDescriptions: Record<ProjectStage, {
+    const stageDescriptions: Record<string, {
       description: string;
       keyActions: string[];
       exitCriteria: string[];
     }> = {
-      inquiry_received: {
+      'Inquiry Received': {
         description: "Initial customer inquiry and project setup",
         keyActions: ["Customer information collected", "Project requirements documented", "Initial assessment completed"],
         exitCriteria: ["Customer details verified", "Project scope defined", "Technical requirements gathered"]
       },
-      technical_review: {
+      'Technical Review': {
         description: "Engineering, QA, and Production review process",
         keyActions: ["Engineering feasibility assessment", "QA requirements definition", "Production capability evaluation"],
         exitCriteria: ["All department reviews completed", "Technical risks identified", "Manufacturing process defined"]
       },
-      supplier_rfq_sent: {
+      'Supplier RFQ': {
         description: "Supplier selection and quote collection",
         keyActions: ["BOM breakdown completed", "Suppliers selected and contacted", "RFQ documents sent", "Quote deadlines set"],
         exitCriteria: ["All critical supplier quotes received", "Quote comparison completed", "Supplier selection finalized"]
       },
-      quoted: {
+      'Quoted': {
         description: "Final quote preparation and customer submission",
         keyActions: ["Internal costing finalized", "Quote document generated", "Customer quote submitted"],
         exitCriteria: ["Quote sent to customer", "Follow-up schedule set", "Customer response tracked"]
       },
-      order_confirmed: {
+      'Order Confirmed': {
         description: "Customer order acceptance and processing",
         keyActions: ["Customer PO received", "Internal sales order created", "Order details verified"],
         exitCriteria: ["Purchase order validated", "Payment terms confirmed", "Delivery schedule agreed"]
       },
-      procurement_planning: {
+      'Procurement Planning': {
         description: "Material procurement and production planning",
         keyActions: ["Purchase orders finalized", "Production schedule created", "Material availability confirmed"],
         exitCriteria: ["All materials ordered", "Production slots reserved", "Delivery timeline confirmed"]
       },
-      in_production: {
+      'In Production': {
         description: "Manufacturing and quality control process",
         keyActions: ["Work orders released", "Manufacturing in progress", "Quality inspections performed"],
         exitCriteria: ["Production completed", "Quality tests passed", "Packaging and shipping prepared"]
       },
-      shipped_closed: {
+      'Shipped & Closed': {
         description: "Final delivery and project closure",
         keyActions: ["Product shipped", "Delivery confirmed", "Customer feedback collected"],
         exitCriteria: ["Proof of delivery received", "Customer satisfaction confirmed", "Project documentation complete"]
       }
     };
 
-    const stageInfo = stageDescriptions[stage];
+    const stageInfo = stageDescriptions[stage.name] || {
+      description: stage.description || "Stage description not available",
+      keyActions: ["Stage actions not defined"],
+      exitCriteria: ["Stage criteria not defined"]
+    };
 
     return (
       <div className="text-sm space-y-2 rounded-lg">
@@ -559,13 +620,13 @@ export const WorkflowStepper = React.memo(({ project }: WorkflowStepperProps) =>
 
           {/* Desktop view - horizontal stepper */}
           <div className="hidden md:flex items-center justify-between relative">
-            {allStages.map((stage, index) => {
+            {workflowStages.map((stage, index) => {
               const status = getStageStatus(stage);
               const isClickable = status !== 'current' && !isUpdating;
-              const stageTitle = stageConfig[stage]?.title || 'Unknown Stage';
+              const stageTitle = stage.name;
 
               return (
-                <React.Fragment key={stage}>
+                <React.Fragment key={stage.id}>
                   <TooltipProvider>
                     <Tooltip>
                       <TooltipTrigger asChild>
@@ -584,7 +645,7 @@ export const WorkflowStepper = React.memo(({ project }: WorkflowStepperProps) =>
                           <div className={`
                           relative flex items-center justify-center w-12 h-12 rounded-full border-2 mb-2
                           ${getStatusColor(stage)}
-                          ${stageConfig[stage]?.bgColor || 'bg-gray-100'}
+                          ${getStageConfig(stage).bgColor}
                           ${isClickable ? 'hover:shadow-md focus:ring-2 focus:ring-blue-500 focus:outline-none' : ''}
                           transition-all duration-200
                         `}>
@@ -607,7 +668,7 @@ export const WorkflowStepper = React.memo(({ project }: WorkflowStepperProps) =>
                     </Tooltip>
                   </TooltipProvider>
 
-                  {index < allStages.length - 1 && (
+                  {index < workflowStages.length - 1 && (
                     <div className={`flex-grow h-0.5 mx-2 ${getConnectorColor(stage)}`}></div>
                   )}
                 </React.Fragment>
@@ -617,18 +678,18 @@ export const WorkflowStepper = React.memo(({ project }: WorkflowStepperProps) =>
 
           {/* Mobile view - vertical stepper */}
           <div className="md:hidden space-y-4">
-            {allStages.map((stage, index) => {
+            {workflowStages.map((stage, index) => {
               const status = getStageStatus(stage);
               const isClickable = status !== 'current' && !isUpdating;
-              const stageTitle = stageConfig[stage]?.title || 'Unknown Stage';
+              const stageTitle = stage.name;
 
               return (
-                <div key={stage} className="flex items-center">
+                <div key={stage.id} className="flex items-center">
                   <div
                     className={`
                     relative flex items-center justify-center w-10 h-10 rounded-full border-2 mr-4
                     ${getStatusColor(stage)}
-                    ${stageConfig[stage]?.bgColor || 'bg-gray-100'}
+                    ${getStageConfig(stage).bgColor}
                     ${isClickable ? 'cursor-pointer hover:shadow-lg focus:ring-2 focus:ring-blue-500 focus:outline-none' : ''}
                     transition-all duration-200
                   `}
@@ -655,17 +716,11 @@ export const WorkflowStepper = React.memo(({ project }: WorkflowStepperProps) =>
                     </div>
                     {status === 'current' && (
                       <div className="mt-1 text-xs text-muted-foreground">
-                        {WorkflowValidator.getExitCriteriaForStage(stage).length > 0 && (
-                          <div>
-                            <div className="font-medium">Exit criteria:</div>
-                            <ul className="list-disc list-inside mt-1 space-y-1">
-                              {WorkflowValidator.getExitCriteriaForStage(stage).slice(0, 2).map((criteria, idx) => (
-                                <li key={idx} className="text-muted-foreground">{criteria}</li>
-                              ))}
-                              {WorkflowValidator.getExitCriteriaForStage(stage).length > 2 && (
-                                <li className="text-muted-foreground">+{WorkflowValidator.getExitCriteriaForStage(stage).length - 2} more</li>
-                              )}
-                            </ul>
+                        <div className="font-medium">Current Stage</div>
+                        <div>{stage.description || 'Stage in progress'}</div>
+                        {stage.estimated_duration_days && (
+                          <div className="mt-1">
+                            Estimated duration: {stage.estimated_duration_days} days
                           </div>
                         )}
                       </div>
@@ -691,7 +746,7 @@ export const WorkflowStepper = React.memo(({ project }: WorkflowStepperProps) =>
                   onClick={handleAutoAdvance}
                   className="bg-green-600 hover:bg-green-700 text-white"
                 >
-                  Auto-Advance to {stageConfig[nextStage]?.title || 'Unknown Stage'}
+                  Auto-Advance to {nextStage || 'Next Stage'}
                 </Button>
               </div>
               <p className="text-xs text-green-600 mt-1">{autoAdvanceReason}</p>
@@ -705,8 +760,8 @@ export const WorkflowStepper = React.memo(({ project }: WorkflowStepperProps) =>
         isOpen={bypassDialog.isOpen}
         onClose={() => setBypassDialog({ isOpen: false, targetStage: null, warnings: [] })}
         onConfirm={handleBypassConfirm}
-        currentStage={stageConfig[project.current_stage]?.title || 'Unknown Stage'}
-        nextStage={bypassDialog.targetStage ? stageConfig[bypassDialog.targetStage]?.title || 'Unknown Stage' : ''}
+        currentStage={stageCalculations.currentStageData?.name || 'Unknown Stage'}
+        nextStage={bypassDialog.targetStage ? workflowStages.find(s => s.id === bypassDialog.targetStage)?.name || 'Unknown Stage' : ''}
         validationWarnings={bypassDialog.warnings}
       />
     </>
