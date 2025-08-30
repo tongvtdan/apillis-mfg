@@ -298,27 +298,90 @@ export default function Projects() {
           <TabsContent value="flowchart" className="mt-4 space-y-6">
             <ProjectErrorBoundary context="Workflow Flowchart">
               <div className="space-y-6">
-                {/* Workflow Stages Overview */}
-                <div className="grid grid-cols-1 md:grid-cols-4 lg:grid-cols-8 gap-4">
-                  {workflowStages.map((stage) => (
-                    <Card
-                      key={stage.id}
-                      className={`cursor-pointer transition-all hover:shadow-md ${selectedStage === stage.id ? 'ring-2 ring-primary' : ''
-                        }`}
-                      onClick={() => handleStageSelect(stage.id)}
-                    >
-                      <CardContent className="p-4">
-                        <div className="text-center">
-                          <h3 className="font-semibold text-sm mb-2">{stage.name}</h3>
-                          <Badge variant="secondary" className="text-lg font-bold">
-                            {stageCounts[stage.id] || 0}
-                          </Badge>
-                          <p className="text-xs text-muted-foreground mt-1">projects</p>
-                        </div>
-                      </CardContent>
-                    </Card>
-                  ))}
-                </div>
+                {/* Workflow Visualization - Horizontal Flow */}
+                <Card>
+                  <CardHeader>
+                    <CardTitle>Workflow Visualization</CardTitle>
+                    <CardDescription>Visualize and manage project workflow stages</CardDescription>
+                  </CardHeader>
+                  <CardContent>
+                    <div className="w-full overflow-x-auto pb-4 pt-2 px-2">
+                      <div className="flex items-center gap-2 min-w-max">
+                        {workflowStages.map((stage, index) => (
+                          <React.Fragment key={stage.id}>
+                            <div
+                              className={`cursor-pointer transition-all duration-200 hover:shadow-md w-[160px] max-w-[160px] flex-none ${selectedStage === stage.id
+                                  ? 'ring-2 ring-primary shadow-md'
+                                  : ''
+                                }`}
+                              onClick={() => handleStageSelect(stage.id)}
+                            >
+                              <Card className="h-full">
+                                <CardContent className="p-4 text-center w-full">
+                                  <div className="space-y-2">
+                                    <div className="flex justify-center">
+                                      <Badge
+                                        className={`${stage.color || '#6B7280'} text-xs font-medium`}
+                                        variant="outline"
+                                      >
+                                        {stageCounts[stage.id] || 0}
+                                      </Badge>
+                                    </div>
+                                    <div className="text-sm font-medium leading-tight">
+                                      {stage.name}
+                                    </div>
+                                    {stage.description && (
+                                      <div className="text-xs text-muted-foreground leading-tight">
+                                        {stage.description}
+                                      </div>
+                                    )}
+                                  </div>
+                                </CardContent>
+                              </Card>
+                            </div>
+
+                            {/* Arrow connector between stages */}
+                            {index < workflowStages.length - 1 && (
+                              <div className="flex-shrink-0">
+                                <svg
+                                  className="h-5 w-5 text-muted-foreground"
+                                  fill="none"
+                                  viewBox="0 0 24 24"
+                                  stroke="currentColor"
+                                >
+                                  <path
+                                    strokeLinecap="round"
+                                    strokeLinejoin="round"
+                                    strokeWidth={2}
+                                    d="M9 5l7 7-7 7"
+                                  />
+                                </svg>
+                              </div>
+                            )}
+                          </React.Fragment>
+                        ))}
+                      </div>
+                    </div>
+
+                    {/* Progress Bar */}
+                    <div className="mt-6">
+                      <div className="flex justify-between text-xs text-muted-foreground mb-2">
+                        <span>Workflow Progress</span>
+                        <span>{workflowStages.length} stages</span>
+                      </div>
+                      <div className="w-full bg-gray-200 rounded-full h-2">
+                        <div
+                          className="bg-primary h-2 rounded-full transition-all duration-300"
+                          style={{
+                            width: `${selectedStage ?
+                              ((workflowStages.findIndex(s => s.id === selectedStage) + 1) / workflowStages.length) * 100 :
+                              0}%`
+                          }}
+                        ></div>
+                      </div>
+                    </div>
+                  </CardContent>
+                </Card>
 
                 {/* Selected Stage Projects */}
                 {selectedStage && (
