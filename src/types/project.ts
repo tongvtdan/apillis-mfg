@@ -1,36 +1,15 @@
 export type ProjectStage = 'inquiry_received' | 'technical_review' | 'supplier_rfq_sent' | 'quoted' | 'order_confirmed' | 'procurement_planning' | 'in_production' | 'shipped_closed';
-export type ProjectStatus = 'active' | 'delayed' | 'on_hold' | 'cancelled' | 'completed' | 'archived';
+export type ProjectStatus = 'active' | 'on_hold' | 'delayed' | 'cancelled' | 'completed';
 export type ProjectPriority = 'low' | 'medium' | 'high' | 'urgent';
 export type ProjectType = 'system_build' | 'fabrication' | 'manufacturing';
 export type ProjectSource = 'manual' | 'portal' | 'email' | 'api' | 'import' | 'migration';
 
-export interface Customer {
-  id: string;
-  name: string;
-  company?: string;
-  email?: string;
-  phone?: string;
-  address?: string;
-  country?: string;
-  postal_code?: string;
-  website?: string;
-  tax_id?: string;
-  payment_terms?: string;
-  credit_limit?: number;
-  is_active: boolean; // Reverted back - customers are in contacts table which has is_active boolean
-  notes?: string;
-  metadata?: Record<string, any>;
-  // AI-ready fields
-  ai_category?: Record<string, any>;
-  ai_capabilities?: any[];
-  ai_risk_score?: number;
-  ai_last_analyzed?: string;
-  created_at: string;
-  updated_at: string;
-  created_by?: string;
-}
+// Customer interface removed - customers are stored in contacts table with type='customer'
+// Use Contact interface with type='customer' instead
+export type Customer = Contact & { type: 'customer' };
 
 export interface Contact {
+  // Core database fields - must match database schema exactly
   id: string;
   organization_id: string;
   type: 'customer' | 'supplier';
@@ -49,65 +28,79 @@ export interface Contact {
   credit_limit?: number;
   is_active: boolean;
   notes?: string;
+  created_at: string;
+  updated_at: string;
+
+  // Legacy fields for backward compatibility - to be gradually removed
   metadata?: Record<string, any>;
-  // AI-ready fields
   ai_category?: Record<string, any>;
   ai_capabilities?: any[];
   ai_risk_score?: number;
   ai_last_analyzed?: string;
-  created_at: string;
-  updated_at: string;
   created_by?: string;
 }
 
 export interface WorkflowStage {
+  // Core database fields - must match database schema exactly
   id: string;
-  organization_id: string;
   name: string;
-  slug: string;
   description?: string;
-  color: string;
-  stage_order: number;
+  order_index: number;
   is_active: boolean;
-  exit_criteria?: string;
-  responsible_roles?: string[];
+  estimated_duration_days?: number;
+  required_approvals?: any[];
+  auto_advance_conditions?: Record<string, any>;
   created_at: string;
   updated_at: string;
+
+  // Legacy fields for backward compatibility - to be gradually removed
+  organization_id?: string;
+  slug?: string;
+  color?: string;
+  stage_order?: number;
+  exit_criteria?: string;
+  responsible_roles?: string[];
 }
 
 export interface Project {
+  // Core database fields - must match database schema exactly
   id: string;
   organization_id: string;
   project_id: string; // P-25082001 format
   title: string;
   description?: string;
   customer_id?: string;
-  customer?: Customer;
   current_stage_id?: string;
-  current_stage: ProjectStage; // For backward compatibility
-  stage_entered_at: string;
   status: ProjectStatus;
-  priority_score?: number;
   priority_level: ProjectPriority;
-  priority: ProjectPriority; // For backward compatibility
+  source: string;
+  assigned_to?: string;
+  created_by?: string;
   estimated_value?: number;
-  estimated_delivery_date?: string;
-  actual_delivery_date?: string;
-  due_date?: string; // For backward compatibility
-  source: ProjectSource;
   tags?: string[];
   metadata?: Record<string, any>;
+  stage_entered_at?: string;
+  project_type?: string;
+  notes?: string;
   created_at: string;
   updated_at: string;
-  created_by?: string;
-  assigned_to?: string;
-  assignee_id?: string; // For backward compatibility
+
+  // Computed/joined fields (not in database)
+  customer?: Contact;
+  current_stage?: WorkflowStage;
+  assignee?: any; // User interface to be defined
+  creator?: any; // User interface to be defined
 
   // Calculated fields
-  days_in_stage: number;
+  days_in_stage?: number;
 
-  // Legacy fields for compatibility
-  project_type?: ProjectType;
+  // Legacy fields for backward compatibility - to be gradually removed
+  current_stage_legacy?: ProjectStage;
+  priority?: ProjectPriority;
+  estimated_delivery_date?: string;
+  actual_delivery_date?: string;
+  due_date?: string;
+  assignee_id?: string;
   estimated_completion?: string;
   actual_completion?: string;
   updated_by?: string;
@@ -118,7 +111,6 @@ export interface Project {
   contact_name?: string;
   contact_email?: string;
   contact_phone?: string;
-  notes?: string;
 }
 
 export interface ProjectStageHistory {
@@ -205,14 +197,7 @@ export interface ProjectStageInfo {
   count: number;
 }
 
-export interface WorkflowStage {
-  id: string;
-  name: string;
-  color: string;
-  stage_order: number;
-  is_active: boolean;
-  created_at: string;
-}
+// Duplicate WorkflowStage interface removed - using the main definition above
 
 export interface ProjectMetric {
   id: string;
