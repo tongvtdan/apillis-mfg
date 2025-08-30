@@ -22,6 +22,9 @@ import { ExternalLink, User, ArrowUpDown, ArrowUp, ArrowDown } from "lucide-reac
 import { useNavigate } from "react-router-dom";
 import { AnimatedTableRow } from "./AnimatedTableRow";
 import { WorkflowValidator } from "@/lib/workflow-validator";
+import { ProjectErrorBoundary } from "@/components/error/ProjectErrorBoundary";
+import { useErrorHandling } from "@/hooks/useErrorHandling";
+import { DataUnavailable, LoadingFallback } from "@/components/error/FallbackMechanisms";
 
 interface ProjectTableProps {
   projects: Project[];
@@ -54,6 +57,23 @@ export function ProjectTable({ projects, updateProjectStatusOptimistic: external
   const [sortField, setSortField] = useState<'name' | 'stage' | 'priority'>('name');
   const [sortDirection, setSortDirection] = useState<'asc' | 'desc'>('asc');
 
+  // Enhanced error handling
+  const {
+    handleError,
+    clearError,
+    retry,
+    hasError,
+    error,
+    isRetrying,
+    canRetry
+  } = useErrorHandling({
+    context: 'ProjectTable',
+    maxRetries: 3,
+    onError: (error) => {
+      console.error('ProjectTable error:', error);
+    }
+  });
+
   // Use external functions if provided, otherwise use hook versions
   const updateProjectStatusOptimistic = externalUpdateFn || hookUpdateFn;
   const refetch = externalRefetch || hookRefetch;
@@ -63,42 +83,43 @@ export function ProjectTable({ projects, updateProjectStatusOptimistic: external
 
     const project = projects.find(p => p.id === projectId);
     if (!project) {
-      console.error('❌ Project not found:', projectId);
+      handleError(new Error(`Project with ID ${projectId} not found`));
       return;
     }
 
     console.log(`📊 Current project status: ${project.status}, target: ${newStatus}`);
 
-    // Validate the stage change using workflow validator
-    const validationResult = await WorkflowValidator.validateStatusChange(project, newStatus as any);
-
-    if (!validationResult.isValid) {
-      // Show validation errors via toast (handled by the hook)
-      console.error('❌ Validation failed:', validationResult.errors);
-      return;
-    }
-
-    console.log('✅ Validation passed, proceeding with update');
-
     // Track this specific project as updating
     setUpdatingProjects(prev => new Set(prev).add(projectId));
 
     try {
+      // Clear any previous errors
+      clearError();
+
+      // Validate the stage change using workflow validator
+      const validationResult = await WorkflowValidator.validateStatusChange(project, newStatus as any);
+
+      if (!validationResult.isValid) {
+        throw new Error(`Validation failed: ${validationResult.errors?.join(', ') || 'Invalid status change'}`);
+      }
+
+      console.log('✅ Validation passed, proceeding with update');
       console.log('🚀 Calling updateProjectStatusOptimistic...');
+
       const result = await updateProjectStatusOptimistic(projectId, newStatus);
       console.log('📊 Update result:', result);
 
-      if (result) {
-        console.log('✅ Update completed successfully');
-        // ❌ Removed unnecessary refetch - let real-time handle updates
-        // await refetch(true);
-      } else {
-        console.error('❌ Update failed, result was false');
+      if (!result) {
+        throw new Error('Update operation returned false - operation may have failed');
       }
-      // Errors will be shown via toast notifications from the hook
+
+      console.log('✅ Update completed successfully');
     } catch (error) {
       console.error('❌ Error in handleStatusChange:', error);
-      // Error handling is already done in the hook via toast notifications
+      handleError(
+        error instanceof Error ? error : new Error('Unknown error occurred during status change'),
+        'Status Change Operation'
+      );
     } finally {
       // Remove this project from updating state
       setUpdatingProjects(prev => {
@@ -183,106 +204,153 @@ export function ProjectTable({ projects, updateProjectStatusOptimistic: external
     return sortDirection === 'asc' ? <ArrowUp className="h-4 w-4" /> : <ArrowDown className="h-4 w-4" />;
   };
 
-  return (
-    <div className="space-y-4">
-      {/* Sorting Summary */}
-      <div className="flex items-center justify-between text-sm text-muted-foreground">
-        <div>
-          Showing {sortedProjects.length} project{sortedProjects.length !== 1 ? 's' : ''}
-          {sortField !== 'name' && (
-            <span className="ml-2">
-              • Sorted by {sortField === 'stage' ? 'Stage' : sortField === 'priority' ? 'Priority' : 'Name'}
-              ({sortDirection === 'asc' ? 'A to Z' : 'Z to A'})
-            </span>
-          )}
-        </div>
-        <div className="flex items-center gap-2">
-          <span>Sort by:</span>
-          <Button
-            variant={sortField === 'name' ? 'default' : 'outline'}
-            size="sm"
-            onClick={() => handleSort('name')}
-            className="h-7 text-xs"
-          >
-            Name {getSortIcon('name')}
-          </Button>
-          <Button
-            variant={sortField === 'stage' ? 'default' : 'outline'}
-            size="sm"
-            onClick={() => handleSort('stage')}
-            className="h-7 text-xs"
-          >
-            Stage {getSortIcon('stage')}
-          </Button>
-          <Button
-            variant={sortField === 'priority' ? 'default' : 'outline'}
-            size="sm"
-            onClick={() => handleSort('priority')}
-            className="h-7 text-xs"
-          >
-            Priority {getSortIcon('priority')}
-          </Button>
-        </div>
-      </div>
+  // Handle error states
+  if (hasError && error) {
+    return (
+      <DataUnavailable
+        title="Unable to Load Projects"
+        message={error.message}
+        onRetry={() => retry(async () => {
+          if (externalRefetch) {
+            await externalRefetch();
+          } else if (hookRefetch) {
+            await hookRefetch();
+          }
+        })}
+        showSkeleton={false}
+      />
+    );
+  }
 
-      <div className="rounded-md border">
-        <Table>
-          <TableHeader>
-            <TableRow>
-              <TableHead className="w-[200px]">
-                <Button
-                  variant="ghost"
-                  onClick={() => handleSort('name')}
-                  className="h-auto p-0 font-semibold hover:bg-transparent"
-                >
-                  Project
-                  {getSortIcon('name')}
-                </Button>
-              </TableHead>
-              <TableHead>Customer</TableHead>
-              <TableHead>
-                <Button
-                  variant="ghost"
-                  onClick={() => handleSort('stage')}
-                  className="h-auto p-0 font-semibold hover:bg-transparent"
-                >
-                  Stage
-                  {getSortIcon('stage')}
-                </Button>
-              </TableHead>
-              <TableHead>
-                <Button
-                  variant="ghost"
-                  onClick={() => handleSort('priority')}
-                  className="h-auto p-0 font-semibold hover:bg-transparent"
-                >
-                  Priority
-                  {getSortIcon('priority')}
-                </Button>
-              </TableHead>
-              <TableHead>Assignee</TableHead>
-              <TableHead>Lead Time</TableHead>
-              <TableHead>Value</TableHead>
-              <TableHead className="text-right">Actions</TableHead>
-            </TableRow>
-          </TableHeader>
-          <TableBody>
-            {sortedProjects.map((project) => (
-              <AnimatedTableRow
-                key={project.id}
-                project={project}
-                onStatusChange={handleStatusChange}
-                onViewProject={handleViewProject}
-                statusVariants={statusVariants}
-                priorityVariants={priorityVariants}
-                calculateLeadTime={calculateLeadTime}
-                formatCurrency={formatCurrency}
-                isUpdating={updatingProjects.has(project.id)}
-              />
-            ))}
-          </TableBody>
-        </Table>
+  // Handle empty projects
+  if (!projects || projects.length === 0) {
+    return (
+      <DataUnavailable
+        title="No Projects Found"
+        message="There are no projects to display."
+        onRetry={() => {
+          if (externalRefetch) {
+            externalRefetch();
+          } else if (hookRefetch) {
+            hookRefetch();
+          }
+        }}
+        showSkeleton={false}
+      />
+    );
+  }
+
+  return (
+    <ProjectErrorBoundary
+      context="ProjectTable"
+      showErrorDetails={process.env.NODE_ENV === 'development'}
+    >
+      <div className="space-y-4">
+        {/* Sorting Summary */}
+        <div className="flex items-center justify-between text-sm text-muted-foreground">
+          <div>
+            Showing {sortedProjects.length} project{sortedProjects.length !== 1 ? 's' : ''}
+            {sortField !== 'name' && (
+              <span className="ml-2">
+                • Sorted by {sortField === 'stage' ? 'Stage' : sortField === 'priority' ? 'Priority' : 'Name'}
+                ({sortDirection === 'asc' ? 'A to Z' : 'Z to A'})
+              </span>
+            )}
+          </div>
+          <div className="flex items-center gap-2">
+            <span>Sort by:</span>
+            <Button
+              variant={sortField === 'name' ? 'default' : 'outline'}
+              size="sm"
+              onClick={() => handleSort('name')}
+              className="h-7 text-xs"
+              disabled={isRetrying}
+            >
+              Name {getSortIcon('name')}
+            </Button>
+            <Button
+              variant={sortField === 'stage' ? 'default' : 'outline'}
+              size="sm"
+              onClick={() => handleSort('stage')}
+              className="h-7 text-xs"
+              disabled={isRetrying}
+            >
+              Stage {getSortIcon('stage')}
+            </Button>
+            <Button
+              variant={sortField === 'priority' ? 'default' : 'outline'}
+              size="sm"
+              onClick={() => handleSort('priority')}
+              className="h-7 text-xs"
+              disabled={isRetrying}
+            >
+              Priority {getSortIcon('priority')}
+            </Button>
+          </div>
+        </div>
+
+        <div className="rounded-md border">
+          <Table>
+            <TableHeader>
+              <TableRow>
+                <TableHead className="w-[200px]">
+                  <Button
+                    variant="ghost"
+                    onClick={() => handleSort('name')}
+                    className="h-auto p-0 font-semibold hover:bg-transparent"
+                    disabled={isRetrying}
+                  >
+                    Project
+                    {getSortIcon('name')}
+                  </Button>
+                </TableHead>
+                <TableHead>Customer</TableHead>
+                <TableHead>
+                  <Button
+                    variant="ghost"
+                    onClick={() => handleSort('stage')}
+                    className="h-auto p-0 font-semibold hover:bg-transparent"
+                    disabled={isRetrying}
+                  >
+                    Stage
+                    {getSortIcon('stage')}
+                  </Button>
+                </TableHead>
+                <TableHead>
+                  <Button
+                    variant="ghost"
+                    onClick={() => handleSort('priority')}
+                    className="h-auto p-0 font-semibold hover:bg-transparent"
+                    disabled={isRetrying}
+                  >
+                    Priority
+                    {getSortIcon('priority')}
+                  </Button>
+                </TableHead>
+                <TableHead>Assignee</TableHead>
+                <TableHead>Lead Time</TableHead>
+                <TableHead>Value</TableHead>
+                <TableHead className="text-right">Actions</TableHead>
+              </TableRow>
+            </TableHeader>
+            <TableBody>
+              {sortedProjects.map((project) => (
+                <AnimatedTableRow
+                  key={project.id}
+                  project={project}
+                  onStatusChange={handleStatusChange}
+                  onViewProject={handleViewProject}
+                  statusVariants={statusVariants}
+                  priorityVariants={priorityVariants}
+                  calculateLeadTime={calculateLeadTime}
+                  formatCurrency={formatCurrency}
+                  isUpdating={updatingProjects.has(project.id) || isRetrying}
+                />
+              ))}
+            </TableBody>
+          </Table>
+        </div>
       </div>
-    </div>
+    </ProjectErrorBoundary>
   );
 }
