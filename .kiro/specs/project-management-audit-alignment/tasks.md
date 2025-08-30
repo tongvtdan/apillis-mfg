@@ -15,6 +15,9 @@
 
   - [x] 2.2 Update Project interface to match database schema - PHASE 1 COMPLETED
     - ✅ Fixed ProjectStatus enum to match database exactly (removed 'archived')
+    - ✅ Added WorkflowStageId type for dynamic database-driven workflow stages
+    - ✅ Enhanced type system with dual support for legacy and dynamic stages
+    - ✅ Added clear documentation for backward compatibility approach
     - Correct property names to match database column names exactly
     - Fix data types to match database column types
     - Update optional/required properties based on database nullable constraints
@@ -129,14 +132,14 @@
     - Update stage status calculations and displays
     - _Requirements: 3.4, 5.4_
 
-- [ ] 7. Form Validation and Input Handling
-  - [ ] 7.1 Audit project forms for validation rules
+- [x] 7. Form Validation and Input Handling
+  - [x] 7.1 Audit project forms for validation rules
     - Review ProjectIntakeForm for field validation
     - Check EditProjectModal for constraint compliance
     - Verify all form inputs match database field types
     - _Requirements: 4.3, 5.3_
 
-  - [ ] 7.2 Update form validation logic
+  - [x] 7.2 Update form validation logic
     - Implement proper validation for all database constraints
     - Add client-side validation for enum fields (status, priority_level)
     - Ensure required field validation matches database NOT NULL constraints

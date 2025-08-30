@@ -1,4 +1,6 @@
 import { useState } from "react";
+import { useForm } from "react-hook-form";
+import { zodResolver } from "@hookform/resolvers/zod";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -10,6 +12,14 @@ import { useToast } from "@/hooks/use-toast";
 import { useProjects } from "@/hooks/useProjects";
 import { ProjectPriority } from "@/types/project";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
+import {
+  ProjectIntakeFormSchema,
+  ProjectIntakeFormData,
+  validateFileUploads,
+  validateFileUpload
+} from "@/lib/validation/project-schemas";
+import { handleDatabaseError } from "@/lib/validation/error-handlers";
 
 interface FileUpload {
   id: string;
@@ -28,26 +38,27 @@ export function ProjectIntakeForm({ submissionType, onSuccess }: ProjectIntakeFo
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isSubmitted, setIsSubmitted] = useState(false);
   const [tempProjectId, setTempProjectId] = useState<string>("");
-  const [formData, setFormData] = useState({
-    // Company & Contact Information
-    companyName: "",
-    contactName: "",
-    contactEmail: "",
-    contactPhone: "",
-
-    // Project Details
-    projectTitle: "",
-    description: "",
-    priority: "medium" as ProjectPriority,
-    estimatedValue: "",
-    dueDate: "",
-
-    // Additional Information
-    notes: ""
-  });
+  const [fileValidationErrors, setFileValidationErrors] = useState<string[]>([]);
 
   const { toast } = useToast();
   const { createProject, createOrGetCustomer } = useProjects();
+
+  // Initialize form with validation
+  const form = useForm<ProjectIntakeFormData>({
+    resolver: zodResolver(ProjectIntakeFormSchema),
+    defaultValues: {
+      companyName: "",
+      contactName: "",
+      contactEmail: "",
+      contactPhone: "",
+      projectTitle: "",
+      description: "",
+      priority: "medium",
+      estimatedValue: "",
+      dueDate: "",
+      notes: ""
+    }
+  });
 
   // Generate temporary project ID when component mounts
   useState(() => {
@@ -67,7 +78,23 @@ export function ProjectIntakeForm({ submissionType, onSuccess }: ProjectIntakeFo
     const files = event.target.files;
     if (!files) return;
 
-    const newFiles: FileUpload[] = Array.from(files).map(file => ({
+    const fileArray = Array.from(files);
+    const validationResult = validateFileUploads(fileArray);
+
+    if (!validationResult.isValid) {
+      setFileValidationErrors(validationResult.errors);
+      toast({
+        variant: "destructive",
+        title: "File Upload Error",
+        description: validationResult.errors[0], // Show first error
+      });
+      return;
+    }
+
+    // Clear any previous validation errors
+    setFileValidationErrors([]);
+
+    const newFiles: FileUpload[] = fileArray.map(file => ({
       id: Math.random().toString(36).substr(2, 9),
       name: file.name,
       size: file.size,
@@ -89,13 +116,8 @@ export function ProjectIntakeForm({ submissionType, onSuccess }: ProjectIntakeFo
     return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i];
   };
 
-  const handleInputChange = (field: string, value: string) => {
-    setFormData(prev => ({ ...prev, [field]: value }));
-  };
-
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-
+  const handleSubmit = async (data: ProjectIntakeFormData) => {
+    // Validate files before submission
     if (uploadedFiles.length === 0) {
       toast({
         variant: "destructive",
@@ -110,24 +132,24 @@ export function ProjectIntakeForm({ submissionType, onSuccess }: ProjectIntakeFo
     try {
       // Create or get customer
       const customer = await createOrGetCustomer({
-        name: formData.contactName,
-        company: formData.companyName,
-        email: formData.contactEmail,
-        phone: formData.contactPhone
+        name: data.contactName,
+        company: data.companyName,
+        email: data.contactEmail || undefined,
+        phone: data.contactPhone || undefined
       });
 
       // Create project
       const project = await createProject({
-        title: formData.projectTitle || `${submissionType} from ${formData.companyName}`,
-        description: formData.description,
+        title: data.projectTitle || `${submissionType} from ${data.companyName}`,
+        description: data.description || undefined,
         customer_id: customer.id,
-        priority: formData.priority,
-        estimated_value: formData.estimatedValue ? parseFloat(formData.estimatedValue) : undefined,
-        due_date: formData.dueDate || undefined,
-        contact_name: formData.contactName,
-        contact_email: formData.contactEmail,
-        contact_phone: formData.contactPhone,
-        notes: formData.notes,
+        priority: data.priority,
+        estimated_value: data.estimatedValue ? parseFloat(data.estimatedValue) : undefined,
+        due_date: data.dueDate || undefined,
+        contact_name: data.contactName,
+        contact_email: data.contactEmail || undefined,
+        contact_phone: data.contactPhone || undefined,
+        notes: data.notes || undefined,
         tags: [submissionType.toLowerCase().replace(' ', '_')]
       });
 
@@ -145,10 +167,14 @@ export function ProjectIntakeForm({ submissionType, onSuccess }: ProjectIntakeFo
 
     } catch (error) {
       console.error('Error submitting project:', error);
+
+      // Handle database errors with user-friendly messages
+      const userError = handleDatabaseError(error);
+
       toast({
         variant: "destructive",
-        title: "Submission Error",
-        description: "There was an error submitting your project. Please try again.",
+        title: userError.title,
+        description: userError.message,
       });
     } finally {
       setIsSubmitting(false);
@@ -180,247 +206,328 @@ export function ProjectIntakeForm({ submissionType, onSuccess }: ProjectIntakeFo
   }
 
   return (
-    <form onSubmit={handleSubmit} className="space-y-8">
-      {/* Project ID Display */}
-      <div className="project-header">
-        <p className="text-sm text-muted-foreground mb-1">Temporary Project ID</p>
-        <p className="project-header-title">{tempProjectId}</p>
-        <p className="text-xs text-muted-foreground mt-1">
-          A permanent ID will be assigned upon submission
-        </p>
-      </div>
+    <Form {...form}>
+      <form onSubmit={form.handleSubmit(handleSubmit)} className="space-y-8">
+        {/* Project ID Display */}
+        <div className="project-header">
+          <p className="text-sm text-muted-foreground mb-1">Temporary Project ID</p>
+          <p className="project-header-title">{tempProjectId}</p>
+          <p className="text-xs text-muted-foreground mt-1">
+            A permanent ID will be assigned upon submission
+          </p>
+        </div>
 
-      {/* Company & Contact Information */}
-      <Card className="project-card">
-        <CardHeader className="project-card-header">
-          <CardTitle>Company & Contact Information</CardTitle>
-          <CardDescription>
-            Tell us about your company and the primary contact for this project.
-          </CardDescription>
-        </CardHeader>
-        <CardContent className="space-y-4">
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <div className="space-y-2">
-              <Label htmlFor="companyName">Company Name *</Label>
-              <Input
-                id="companyName"
-                value={formData.companyName}
-                onChange={(e) => handleInputChange('companyName', e.target.value)}
-                placeholder="Enter company name"
-                className="project-input"
-                required
+        {/* Company & Contact Information */}
+        <Card className="project-card">
+          <CardHeader className="project-card-header">
+            <CardTitle>Company & Contact Information</CardTitle>
+            <CardDescription>
+              Tell us about your company and the primary contact for this project.
+            </CardDescription>
+          </CardHeader>
+          <CardContent className="space-y-4">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <FormField
+                control={form.control}
+                name="companyName"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Company Name *</FormLabel>
+                    <FormControl>
+                      <Input
+                        placeholder="Enter company name"
+                        className="project-input"
+                        {...field}
+                      />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+              <FormField
+                control={form.control}
+                name="contactName"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Contact Name *</FormLabel>
+                    <FormControl>
+                      <Input
+                        placeholder="Enter contact person name"
+                        className="project-input"
+                        {...field}
+                      />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
               />
             </div>
-            <div className="space-y-2">
-              <Label htmlFor="contactName">Contact Name *</Label>
-              <Input
-                id="contactName"
-                value={formData.contactName}
-                onChange={(e) => handleInputChange('contactName', e.target.value)}
-                placeholder="Enter contact person name"
-                className="project-input"
-                required
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <FormField
+                control={form.control}
+                name="contactEmail"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Email Address</FormLabel>
+                    <FormControl>
+                      <Input
+                        type="email"
+                        placeholder="Enter email address"
+                        className="project-input"
+                        {...field}
+                      />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+              <FormField
+                control={form.control}
+                name="contactPhone"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Phone Number</FormLabel>
+                    <FormControl>
+                      <Input
+                        type="tel"
+                        placeholder="Enter phone number"
+                        className="project-input"
+                        {...field}
+                      />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
               />
             </div>
-          </div>
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <div className="space-y-2">
-              <Label htmlFor="contactEmail">Email Address *</Label>
-              <Input
-                id="contactEmail"
-                type="email"
-                value={formData.contactEmail}
-                onChange={(e) => handleInputChange('contactEmail', e.target.value)}
-                placeholder="Enter email address"
-                className="project-input"
-                required
-              />
-            </div>
-            <div className="space-y-2">
-              <Label htmlFor="contactPhone">Phone Number</Label>
-              <Input
-                id="contactPhone"
-                type="tel"
-                value={formData.contactPhone}
-                onChange={(e) => handleInputChange('contactPhone', e.target.value)}
-                placeholder="Enter phone number"
-                className="project-input"
-              />
-            </div>
-          </div>
-        </CardContent>
-      </Card>
+          </CardContent>
+        </Card>
 
-      {/* Project Details */}
-      <Card className="project-card">
-        <CardHeader className="project-card-header">
-          <CardTitle>Project Details</CardTitle>
-          <CardDescription>
-            Provide details about your manufacturing project or requirements.
-          </CardDescription>
-        </CardHeader>
-        <CardContent className="space-y-4">
-          <div className="space-y-2">
-            <Label htmlFor="projectTitle">Project Title *</Label>
-            <Input
-              id="projectTitle"
-              value={formData.projectTitle}
-              onChange={(e) => handleInputChange('projectTitle', e.target.value)}
-              placeholder={`Enter ${submissionType.toLowerCase()} title`}
-              className="project-input"
-              required
+        {/* Project Details */}
+        <Card className="project-card">
+          <CardHeader className="project-card-header">
+            <CardTitle>Project Details</CardTitle>
+            <CardDescription>
+              Provide details about your manufacturing project or requirements.
+            </CardDescription>
+          </CardHeader>
+          <CardContent className="space-y-4">
+            <FormField
+              control={form.control}
+              name="projectTitle"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Project Title *</FormLabel>
+                  <FormControl>
+                    <Input
+                      placeholder={`Enter ${submissionType.toLowerCase()} title`}
+                      className="project-input"
+                      {...field}
+                    />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
             />
-          </div>
 
-          <div className="space-y-2">
-            <Label htmlFor="description">Description *</Label>
-            <Textarea
-              id="description"
-              value={formData.description}
-              onChange={(e) => handleInputChange('description', e.target.value)}
-              placeholder="Describe your project requirements, materials, quantities, specifications, etc."
-              className="min-h-[100px] project-input"
-              required
+            <FormField
+              control={form.control}
+              name="description"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Description</FormLabel>
+                  <FormControl>
+                    <Textarea
+                      placeholder="Describe your project requirements, materials, quantities, specifications, etc."
+                      className="min-h-[100px] project-input"
+                      {...field}
+                    />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
             />
-          </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-            <div className="space-y-2">
-              <Label htmlFor="priority">Priority Level</Label>
-              <Select value={formData.priority} onValueChange={(value: ProjectPriority) => handleInputChange('priority', value)}>
-                <SelectTrigger className="project-select">
-                  <SelectValue placeholder="Select priority" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="low">Low</SelectItem>
-                  <SelectItem value="medium">Medium</SelectItem>
-                  <SelectItem value="high">High</SelectItem>
-                  <SelectItem value="urgent">Urgent</SelectItem>
-                </SelectContent>
-              </Select>
-            </div>
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+              <FormField
+                control={form.control}
+                name="priority"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Priority Level</FormLabel>
+                    <Select onValueChange={field.onChange} defaultValue={field.value}>
+                      <FormControl>
+                        <SelectTrigger className="project-select">
+                          <SelectValue placeholder="Select priority" />
+                        </SelectTrigger>
+                      </FormControl>
+                      <SelectContent>
+                        <SelectItem value="low">Low</SelectItem>
+                        <SelectItem value="medium">Medium</SelectItem>
+                        <SelectItem value="high">High</SelectItem>
+                        <SelectItem value="urgent">Urgent</SelectItem>
+                      </SelectContent>
+                    </Select>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
 
-            <div className="space-y-2">
-              <Label htmlFor="estimatedValue">Estimated Value ($)</Label>
-              <Input
-                id="estimatedValue"
-                type="number"
-                step="0.01"
-                value={formData.estimatedValue}
-                onChange={(e) => handleInputChange('estimatedValue', e.target.value)}
-                placeholder="0.00"
-                className="project-input"
+              <FormField
+                control={form.control}
+                name="estimatedValue"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Estimated Value ($)</FormLabel>
+                    <FormControl>
+                      <Input
+                        type="number"
+                        step="0.01"
+                        placeholder="0.00"
+                        className="project-input"
+                        {...field}
+                      />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+
+              <FormField
+                control={form.control}
+                name="dueDate"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Target Due Date</FormLabel>
+                    <FormControl>
+                      <Input
+                        type="date"
+                        className="project-input"
+                        {...field}
+                      />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
               />
             </div>
 
-            <div className="space-y-2">
-              <Label htmlFor="dueDate">Target Due Date</Label>
-              <Input
-                id="dueDate"
-                type="date"
-                value={formData.dueDate}
-                onChange={(e) => handleInputChange('dueDate', e.target.value)}
-                className="project-input"
-              />
-            </div>
-          </div>
-
-          <div className="space-y-2">
-            <Label htmlFor="notes">Additional Notes</Label>
-            <Textarea
-              id="notes"
-              value={formData.notes}
-              onChange={(e) => handleInputChange('notes', e.target.value)}
-              placeholder="Any additional information, special requirements, or notes..."
-              className="min-h-[80px] project-input"
+            <FormField
+              control={form.control}
+              name="notes"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Additional Notes</FormLabel>
+                  <FormControl>
+                    <Textarea
+                      placeholder="Any additional information, special requirements, or notes..."
+                      className="min-h-[80px] project-input"
+                      {...field}
+                    />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
             />
-          </div>
-        </CardContent>
-      </Card>
+          </CardContent>
+        </Card>
 
-      {/* File Upload */}
-      <Card className="project-card">
-        <CardHeader className="project-card-header">
-          <CardTitle className="flex items-center gap-2">
-            <Upload className="h-5 w-5" />
-            File Upload
-          </CardTitle>
-          <CardDescription>
-            Upload drawings, specifications, samples, or any relevant documents. (Required)
-          </CardDescription>
-        </CardHeader>
-        <CardContent className="space-y-4">
-          <div className="file-upload-area">
-            <div className="space-y-2">
-              <Upload className="mx-auto h-8 w-8 text-muted-foreground" />
-              <div className="text-sm">
-                <Label htmlFor="fileUpload" className="cursor-pointer file-upload-label hover:underline">
-                  Click to upload files
-                </Label>
-                <Input
-                  id="fileUpload"
-                  type="file"
-                  multiple
-                  className="hidden"
-                  onChange={handleFileUpload}
-                  accept=".pdf,.dwg,.dxf,.step,.stp,.iges,.igs,.jpg,.jpeg,.png,.doc,.docx,.xls,.xlsx"
-                />
-                <p className="text-muted-foreground">or drag and drop</p>
-              </div>
-              <p className="text-xs text-muted-foreground">
-                Supported: PDF, CAD files (DWG, DXF, STEP), Images, Office documents
-              </p>
-            </div>
-          </div>
-
-          {uploadedFiles.length > 0 && (
-            <div className="space-y-2">
-              <h4 className="text-sm font-medium">Uploaded Files ({uploadedFiles.length})</h4>
+        {/* File Upload */}
+        <Card className="project-card">
+          <CardHeader className="project-card-header">
+            <CardTitle className="flex items-center gap-2">
+              <Upload className="h-5 w-5" />
+              File Upload
+            </CardTitle>
+            <CardDescription>
+              Upload drawings, specifications, samples, or any relevant documents. (Required)
+            </CardDescription>
+          </CardHeader>
+          <CardContent className="space-y-4">
+            <div className="file-upload-area">
               <div className="space-y-2">
-                {uploadedFiles.map((file) => (
-                  <div key={file.id} className="flex items-center justify-between file-item">
-                    <div className="flex items-center gap-3">
-                      <File className="h-4 w-4 text-muted-foreground" />
-                      <div>
-                        <p className="text-sm font-medium">{file.name}</p>
-                        <p className="text-xs text-muted-foreground">{formatFileSize(file.size)}</p>
+                <Upload className="mx-auto h-8 w-8 text-muted-foreground" />
+                <div className="text-sm">
+                  <Label htmlFor="fileUpload" className="cursor-pointer file-upload-label hover:underline">
+                    Click to upload files
+                  </Label>
+                  <Input
+                    id="fileUpload"
+                    type="file"
+                    multiple
+                    className="hidden"
+                    onChange={handleFileUpload}
+                    accept=".pdf,.dwg,.dxf,.step,.stp,.iges,.igs,.jpg,.jpeg,.png,.doc,.docx,.xls,.xlsx"
+                  />
+                  <p className="text-muted-foreground">or drag and drop</p>
+                </div>
+                <p className="text-xs text-muted-foreground">
+                  Supported: PDF, CAD files (DWG, DXF, STEP), Images, Office documents
+                </p>
+              </div>
+            </div>
+
+            {uploadedFiles.length > 0 && (
+              <div className="space-y-2">
+                <h4 className="text-sm font-medium">Uploaded Files ({uploadedFiles.length})</h4>
+                <div className="space-y-2">
+                  {uploadedFiles.map((file) => (
+                    <div key={file.id} className="flex items-center justify-between file-item">
+                      <div className="flex items-center gap-3">
+                        <File className="h-4 w-4 text-muted-foreground" />
+                        <div>
+                          <p className="text-sm font-medium">{file.name}</p>
+                          <p className="text-xs text-muted-foreground">{formatFileSize(file.size)}</p>
+                        </div>
                       </div>
+                      <Button
+                        type="button"
+                        variant="ghost"
+                        size="sm"
+                        onClick={() => removeFile(file.id)}
+                      >
+                        <X className="h-4 w-4" />
+                      </Button>
                     </div>
-                    <Button
-                      type="button"
-                      variant="ghost"
-                      size="sm"
-                      onClick={() => removeFile(file.id)}
-                    >
-                      <X className="h-4 w-4" />
-                    </Button>
+                  ))}
+                </div>
+              </div>
+            )}
+
+            {/* File validation errors */}
+            {fileValidationErrors.length > 0 && (
+              <div className="space-y-2">
+                {fileValidationErrors.map((error, index) => (
+                  <div key={index} className="flex items-center gap-2 text-red-600 bg-red-50 p-3 rounded-lg">
+                    <AlertCircle className="h-4 w-4" />
+                    <p className="text-sm">{error}</p>
                   </div>
                 ))}
               </div>
-            </div>
-          )}
+            )}
 
-          {uploadedFiles.length === 0 && (
-            <div className="flex items-center gap-2 text-amber-600 bg-amber-50 p-3 rounded-lg">
-              <AlertCircle className="h-4 w-4" />
-              <p className="text-sm">At least one file must be uploaded before submission.</p>
-            </div>
-          )}
-        </CardContent>
-      </Card>
+            {uploadedFiles.length === 0 && fileValidationErrors.length === 0 && (
+              <div className="flex items-center gap-2 text-amber-600 bg-amber-50 p-3 rounded-lg">
+                <AlertCircle className="h-4 w-4" />
+                <p className="text-sm">At least one file must be uploaded before submission.</p>
+              </div>
+            )}
+          </CardContent>
+        </Card>
 
-      {/* Submit Button */}
-      <div className="flex justify-end">
-        <Button
-          type="submit"
-          size="lg"
-          disabled={isSubmitting || uploadedFiles.length === 0}
-          className="min-w-[200px] project-submit-button"
-        >
-          {isSubmitting ? "Submitting..." : `Submit ${submissionType}`}
-        </Button>
-      </div>
-    </form>
+        {/* Submit Button */}
+        <div className="flex justify-end">
+          <Button
+            type="submit"
+            size="lg"
+            disabled={isSubmitting || uploadedFiles.length === 0 || !form.formState.isValid}
+            className="min-w-[200px] project-submit-button"
+          >
+            {isSubmitting ? "Submitting..." : `Submit ${submissionType}`}
+          </Button>
+        </div>
+      </form>
+    </Form>
   );
 }
 

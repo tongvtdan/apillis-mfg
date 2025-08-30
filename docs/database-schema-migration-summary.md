@@ -72,6 +72,8 @@ interface ProjectStageHistory {
 - Added new field types with backward compatibility
 - Enhanced `Project` interface with new schema fields
 - Added new entity interfaces: `Contact`, `WorkflowStage`, `ProjectStageHistory`, `ProjectAssignment`
+- **Dynamic Workflow Stage Support**: Added `WorkflowStageId` type for database-driven workflow stages
+- **Legacy Compatibility**: Maintained `ProjectStage` enum for backward compatibility during migration
 - Maintained legacy field support for smooth migration
 
 ### 2. **Component Updates**
@@ -162,12 +164,13 @@ FROM projects
 ## Key Benefits Achieved
 
 1. **Enhanced Multi-tenancy**: Organization-based data isolation
-2. **Configurable Workflows**: Dynamic workflow stage management
+2. **Configurable Workflows**: Dynamic workflow stage management with database-driven stages
 3. **Better Analytics**: Rich data for workflow performance analysis
 4. **Audit Trail**: Complete project stage history tracking
 5. **AI-Ready**: Fields prepared for AI/automation features
 6. **Vietnam/SEA Support**: Localization-ready structure
 7. **Improved UX**: Better project summaries and analytics
+8. **Type System Flexibility**: Dual-type system supporting both legacy and dynamic workflow stages
 
 ## Migration Path
 
