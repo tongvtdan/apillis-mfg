@@ -2,6 +2,110 @@
 
 ## Recent Changes
 
+### 2025-08-30 - Auth Users Creation Script Development
+
+**Changes Made:**
+- **Auth Users Creation Script**: Successfully created a comprehensive Node.js script to create Supabase authentication users with matching UUIDs
+  - **Script Location**: `scripts/create-auth-users.js` - ES module compatible script for user management
+  - **UUID Matching**: Creates auth users with exact UUIDs from sample data to maintain referential integrity
+  - **Profile Linking**: Updates user profiles in `users` table to link with auth user IDs via `user_id` field
+  - **Command Line Interface**: Full CLI with options for password, email domain, dry-run mode, and help
+  - **Error Handling**: Comprehensive error handling with detailed logging and results export
+  - **Dry Run Mode**: Safe testing mode to preview changes without executing them
+
+**Technical Details:**
+- **ES Module Compatibility**: Updated script to use ES modules matching project's `"type": "module"` configuration
+  - Uses `import` statements instead of `require()`
+  - Implements `fileURLToPath` for `__dirname` equivalent in ES modules
+  - Proper export syntax for module functionality
+
+- **Supabase Integration**: 
+  - Uses `@supabase/supabase-js` client with service role key for admin operations
+  - Creates auth users via `supabase.auth.admin.createUser()` with metadata
+  - Updates user profiles via direct database queries to maintain consistency
+  - Supports both service role key and anon key for flexibility
+
+- **User Data Processing**:
+  - Reads from `sample-data/03-users.json` to maintain data consistency
+  - Normalizes email addresses (adds domain if missing)
+  - Preserves all user metadata (name, role, department) in auth user creation
+  - Maintains exact UUID matching between sample data and auth users
+
+- **Command Line Options**:
+  - `--password=PASSWORD`: Custom password for all users (default: "FactoryPulse2025!")
+  - `--email-domain=DOMAIN`: Email domain for users without domains (default: "factorypulse.vn")
+  - `--dry-run`: Preview mode without making changes
+  - `--help`: Comprehensive help documentation
+
+- **Output and Logging**:
+  - Rich console output with emojis and clear status messages
+  - Progress tracking for each user creation step
+  - Detailed results summary with success/error counts
+  - JSON results file export with timestamp for audit trail
+  - Comprehensive error reporting with specific failure reasons
+
+**Package Integration**:
+- **NPM Script**: Added `"create:auth-users": "node scripts/create-auth-users.js"` to package.json
+- **Easy Execution**: Can be run via `npm run create:auth-users` or direct node execution
+- **Documentation**: Created comprehensive `scripts/README.md` with usage examples and troubleshooting
+
+**Script Features**:
+- **Environment Safety**: Checks for required environment variables before execution
+- **Dry Run Support**: Safe testing mode for development and validation
+- **Comprehensive Logging**: Clear progress indicators and status messages
+- **Error Recovery**: Continues processing other users if individual operations fail
+- **Results Export**: Saves detailed operation results to timestamped JSON files
+- **Help System**: Built-in help with examples and usage instructions
+
+**Usage Examples**:
+```bash
+# Basic execution
+npm run create:auth-users
+
+# Custom password
+node scripts/create-auth-users.js --password=SecurePass123
+
+# Custom email domain
+node scripts/create-auth-users.js --email-domain=example.com
+
+# Dry run (safe testing)
+node scripts/create-auth-users.js --dry-run
+
+# Help information
+node scripts/create-auth-users.js --help
+```
+
+**Environment Requirements**:
+```bash
+# .env.local
+VITE_SUPABASE_URL=http://127.0.0.1:54321
+SUPABASE_SERVICE_ROLE_KEY=your_service_role_key
+# OR
+VITE_SUPABASE_ANON_KEY=your_anon_key
+```
+
+**Benefits**:
+- **Referential Integrity**: Maintains exact UUID matching between auth users and profiles
+- **Automated Setup**: Eliminates manual user creation process
+- **Safe Testing**: Dry-run mode prevents accidental changes during development
+- **Comprehensive Logging**: Full audit trail of all operations
+- **Error Handling**: Graceful failure handling with detailed error reporting
+- **Flexibility**: Customizable passwords and email domains for different environments
+- **Integration Ready**: Works seamlessly with existing sample data structure
+
+**Files Created**:
+- `scripts/create-auth-users.js` - Main script for auth user creation
+- `scripts/README.md` - Comprehensive documentation and usage guide
+
+**Files Modified**:
+- `package.json` - Added `create:auth-users` npm script
+
+**Next Steps**:
+- Test script with actual Supabase instance to verify user creation
+- Consider adding user role validation and permission setup
+- Explore adding user group/team assignment functionality
+- Consider adding user preference and setting initialization
+
 ### 2025-08-30 - Separated Seed Data Structure Creation
 
 **Changes Made:**

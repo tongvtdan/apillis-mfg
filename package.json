@@ -10,6 +10,7 @@
     "lint": "eslint .",
     "preview": "vite preview",
     "migrate:users": "node scripts/migrate-users.js",
+    "create:auth-users": "node scripts/create-auth-users.js",
     "test": "vitest",
     "test:run": "vitest run",
     "test:ui": "vitest --ui",
