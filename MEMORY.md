@@ -532,7 +532,42 @@ SELECT
 **Files Updated**:
 - `src/services/projectService.ts` - Optimized getProjectById function with explicit field selection
 
-**Next Phase**: Task 3.2 - Continue auditing remaining projectService.ts functions for query optimization and schema alignment
+### 15. **useProjects Hook Database Field Alignment** ✅
+**Date**: 2025-08-30
+**Objective**: Fix database field name inconsistencies in useProjects hook to align with actual database schema
+**Process Completed**:
+- ✅ **updateProjectStage Function Fixed**: Changed `current_stage` to `current_stage_id` to match database column name
+- ✅ **Parameter Type Correction**: Updated function parameter from `ProjectStage` to `string` for stage ID
+- ✅ **Database Query Alignment**: Ensured all database operations use correct field names
+- ✅ **State Management Fix**: Updated optimistic state updates to use correct field names
+
+**Technical Implementation**:
+- **Field Name Correction**: `current_stage` → `current_stage_id` (matches database schema)
+- **Function Signature**: `updateProjectStage(projectId: string, newStageId: string)` 
+- **Database Update**: Uses correct `current_stage_id` field in UPDATE query
+- **State Synchronization**: Optimistic updates now use correct field names
+- **Consistency**: All stage-related operations now align with database schema
+
+**Database Schema Alignment**:
+```typescript
+// Before (incorrect)
+current_stage: newStage
+
+// After (correct - matches database)
+current_stage_id: newStageId
+```
+
+**Benefits**:
+- **Database Consistency**: All queries now use correct database field names
+- **Error Prevention**: Eliminates potential database errors from incorrect field names
+- **Type Safety**: Function parameters match actual database column types
+- **State Synchronization**: Optimistic updates work correctly with database schema
+- **Workflow Management**: Stage transitions now function properly with correct field references
+
+**Files Updated**:
+- `src/hooks/useProjects.ts` - Fixed updateProjectStage function to use correct database field names
+
+**Next Phase**: Task 4.2 - Continue auditing remaining project hooks for database schema alignment and fix any remaining field name inconsistencies
 
 ## Next Steps
 

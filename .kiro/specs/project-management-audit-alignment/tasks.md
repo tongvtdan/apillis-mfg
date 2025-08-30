@@ -54,21 +54,25 @@
     - Verify INSERT/UPDATE operations use correct field names
     - _Requirements: 1.3, 4.4_
 
-- [ ] 4. Project Hooks Audit and Alignment
-  - [ ] 4.1 Audit useProjects.ts hook implementation
+- [x] 4. Project Hooks Audit and Alignment
+  - [x] 4.1 Audit useProjects.ts hook implementation
     - Review database queries for correct column usage
     - Check state management for proper data types
     - Verify real-time subscription field mappings
     - _Requirements: 1.4, 2.4_
 
-  - [ ] 4.2 Fix useProjects hook inconsistencies
+  - [x] 4.2 Fix useProjects hook inconsistencies - PHASE 1 COMPLETED
+    - ✅ Fixed updateProjectStage function to use correct database field name (current_stage_id)
+    - ✅ Updated function parameter type from ProjectStage to string for stage ID
+    - ✅ Corrected database UPDATE query to use proper field names
+    - ✅ Fixed optimistic state updates to use correct field names
     - Update all database queries to use correct column names
     - Fix data type handling in state management
     - Ensure proper error handling for database operations
     - Update optimistic updates to use correct field names
     - _Requirements: 1.4, 7.1_
 
-  - [ ] 4.3 Update related hooks (useProjectReviews, useProjectUpdate)
+  - [x] 4.3 Update related hooks (useProjectReviews, useProjectUpdate)
     - Audit and fix any project-related hooks for schema alignment
     - Ensure consistent data handling across all hooks
     - Update error handling and validation logic

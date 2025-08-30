@@ -1,48 +1,57 @@
 import { useState, useCallback } from 'react';
-import { ProjectStage } from '@/types/project';
 import { useProjects } from './useProjects';
 import { useToast } from './use-toast';
 
 export function useProjectUpdate(projectId: string) {
     const [isUpdating, setIsUpdating] = useState(false);
-    const [localStage, setLocalStage] = useState<ProjectStage | null>(null);
+    const [localStageId, setLocalStageId] = useState<string | null>(null);
     const { updateProjectStage } = useProjects();
     const { toast } = useToast();
 
-    const updateStatus = useCallback(async (newStage: ProjectStage) => {
+    const updateStatus = useCallback(async (newStageId: string) => {
         if (isUpdating) return false;
 
-        console.log(`🔄 useProjectUpdate: Starting stage update for project ${projectId} to ${newStage}`);
+        // Validate input
+        if (!projectId || !newStageId) {
+            toast({
+                variant: "destructive",
+                title: "Invalid Parameters",
+                description: "Project ID and stage ID are required.",
+            });
+            return false;
+        }
+
+        console.log(`🔄 useProjectUpdate: Starting stage update for project ${projectId} to stage ${newStageId}`);
         setIsUpdating(true);
-        setLocalStage(newStage);
+        setLocalStageId(newStageId);
 
         try {
-            // For now, we'll use the existing updateProjectStatusOptimistic but pass the stage
-            // In a full implementation, this would update the current_stage field specifically
-            const result = await updateProjectStage(projectId, newStage);
+            // Use the updated updateProjectStage function that expects stage ID
+            const result = await updateProjectStage(projectId, newStageId);
             console.log(`📊 useProjectUpdate: Stage update result for project ${projectId}:`, result);
 
-            if (!result) {
+            if (!result.isValid) {
                 // Revert local stage on failure
                 console.log(`❌ useProjectUpdate: Stage update failed for project ${projectId}, reverting local stage`);
-                setLocalStage(null);
+                setLocalStageId(null);
                 toast({
                     variant: "destructive",
                     title: "Update Failed",
-                    description: "Failed to update project stage. Please try again.",
+                    description: result.message || "Failed to update project stage. Please try again.",
                 });
+                return false;
             } else {
                 console.log(`✅ useProjectUpdate: Stage update successful for project ${projectId}`);
+                return true;
             }
-
-            return result;
         } catch (error) {
             console.error('Error updating project stage:', error);
-            setLocalStage(null);
+            setLocalStageId(null);
+            const errorMessage = error instanceof Error ? error.message : 'An unexpected error occurred while updating the project stage.';
             toast({
                 variant: "destructive",
                 title: "Error",
-                description: "An unexpected error occurred while updating the project stage.",
+                description: errorMessage,
             });
             return false;
         } finally {
@@ -50,16 +59,16 @@ export function useProjectUpdate(projectId: string) {
             // Clear local stage after a longer delay to ensure real-time updates have propagated
             setTimeout(() => {
                 console.log(`🧹 useProjectUpdate: Clearing local stage for project ${projectId}`);
-                setLocalStage(null);
+                setLocalStageId(null);
             }, 2000);
         }
     }, [projectId, isUpdating, updateProjectStage, toast]);
 
     return {
         isUpdating,
-        localStage,
+        localStageId,
         updateStatus,
-        // Helper to get the effective stage (local or original)
-        getEffectiveStage: (originalStage: ProjectStage) => localStage || originalStage
+        // Helper to get the effective stage ID (local or original)
+        getEffectiveStageId: (originalStageId: string | null) => localStageId || originalStageId
     };
 }

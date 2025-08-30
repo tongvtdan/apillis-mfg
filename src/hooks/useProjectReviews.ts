@@ -12,21 +12,21 @@ export function useProjectReviews(projectId: string) {
     const { user } = useAuth();
     const { toast } = useToast();
 
-  // For now, return empty data since review tables don't exist yet
-  const fetchReviewData = async () => {
-    if (!projectId) return;
+    // For now, return empty data since review tables don't exist yet
+    const fetchReviewData = async () => {
+        if (!projectId) return;
 
-    try {
-      // Mock empty review data until proper project review tables are created
-      setReviews([]);
-      setRisks([]);
-      setClarifications([]);
-    } catch (error) {
-      console.error('Error fetching project review data:', error);
-    } finally {
-      setLoading(false);
-    }
-  };
+        try {
+            // Mock empty review data until proper project review tables are created
+            setReviews([]);
+            setRisks([]);
+            setClarifications([]);
+        } catch (error) {
+            console.error('Error fetching project review data:', error);
+        } finally {
+            setLoading(false);
+        }
+    };
 
     useEffect(() => {
         fetchReviewData();
@@ -79,7 +79,7 @@ export function useProjectReviews(projectId: string) {
         };
     };
 
-    // Mock submission until proper review tables are created
+    // Mock submission until proper review tables are created -> This function should be removed, because only signed in user can go to dashboard, project. So this look like redundant
     const submitReview = async (department: Department, submission: ReviewSubmission) => {
         if (!user) {
             toast({

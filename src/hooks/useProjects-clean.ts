@@ -1,6 +1,6 @@
 import { useState, useEffect, useCallback, useRef } from 'react';
 import { supabase } from '@/integrations/supabase/client';
-import { Project, ProjectStage, ProjectStatus, Customer } from '@/types/project';
+import { Project, ProjectStatus, Customer } from '@/types/project';
 import {
     SupplierQuote,
     QuoteReadinessIndicator,
@@ -49,7 +49,8 @@ export function useProjects() {
                 .from('projects')
                 .select(`
           *,
-          customer:customers(*)
+          customer:contacts(*),
+          current_stage:workflow_stages(*)
         `)
                 .order('created_at', { ascending: false });
 
@@ -163,7 +164,8 @@ export function useProjects() {
                 .from('projects')
                 .select(`
           *,
-          customer:customers(*)
+          customer:contacts(*),
+          current_stage:workflow_stages(*)
         `);
 
             if (allProjectsError) {
@@ -181,7 +183,8 @@ export function useProjects() {
                 .from('projects')
                 .select(`
           *,
-          customer:customers(*)
+          customer:contacts(*),
+          current_stage:workflow_stages(*)
         `)
                 .eq('id', id)
                 .single();
@@ -237,7 +240,7 @@ export function useProjects() {
         }
     };
 
-    const updateProjectStatus = async (projectId: string, newStage: ProjectStage) => {
+    const updateProjectStatus = async (projectId: string, newStageId: string) => {
         try {
             // Find the current project to get the old stage
             const currentProject = projects.find(project => project.id === projectId);
@@ -251,7 +254,7 @@ export function useProjects() {
             }
 
             // Validate the status change using workflow validator
-            const validationResult = await WorkflowValidator.validateStatusChange(currentProject, newStage);
+            const validationResult = await WorkflowValidator.validateStatusChange(currentProject, newStageId);
 
             if (!validationResult.isValid) {
                 toast({
@@ -262,12 +265,13 @@ export function useProjects() {
                 return false;
             }
 
-            const oldStage = currentProject.current_stage;
+            const oldStageId = currentProject.current_stage_id;
 
             const { error } = await supabase
                 .from('projects')
                 .update({
-                    current_stage: newStage,
+                    current_stage_id: newStageId,
+                    stage_entered_at: new Date().toISOString(),
                     updated_at: new Date().toISOString()
                 })
                 .eq('id', projectId);
@@ -285,32 +289,17 @@ export function useProjects() {
             console.log('✅ Database update successful, real-time subscription should handle UI updates');
             console.log('🔔 Global real-time channel status:', realtimeManager.getStatus());
 
-            // Format stage names for display
-            const formatStageName = (stage: ProjectStage) => {
-                const stageMap = {
-                    inquiry_received: "Inquiry Received",
-                    technical_review: "Technical Review",
-                    supplier_rfq_sent: "Supplier RFQ Sent",
-                    quoted: "Quoted",
-                    order_confirmed: "Order Confirmed",
-                    procurement_planning: "Procurement & Planning",
-                    in_production: "In Production",
-                    shipped_closed: "Shipped & Closed"
-                };
-                return stageMap[stage] || stage;
-            };
-
-            // Show warnings if any
+            // Show success message
             if (validationResult.warnings.length > 0) {
                 toast({
                     variant: "warning",
                     title: "Stage Updated with Warnings",
-                    description: `From ${formatStageName(oldStage)} to ${formatStageName(newStage)}. Warnings: ${validationResult.warnings.join(", ")}`,
+                    description: `Stage updated successfully. Warnings: ${validationResult.warnings.join(", ")}`,
                 });
             } else {
                 toast({
                     title: "Stage Updated",
-                    description: `From ${formatStageName(oldStage)} to ${formatStageName(newStage)}`,
+                    description: "Project stage has been successfully updated.",
                 });
             }
 
@@ -327,7 +316,7 @@ export function useProjects() {
     };
 
     // Optimistic update for immediate UI feedback
-    const updateProjectStatusOptimistic = useCallback(async (projectId: string, newStage: ProjectStage) => {
+    const updateProjectStatusOptimistic = useCallback(async (projectId: string, newStageId: string) => {
         try {
             // Find the current project to get the old stage
             const currentProject = projects.find(project => project.id === projectId);
@@ -337,20 +326,25 @@ export function useProjects() {
             }
 
             // Validate the status change using workflow validator
-            const validationResult = await WorkflowValidator.validateStatusChange(currentProject, newStage);
+            const validationResult = await WorkflowValidator.validateStatusChange(currentProject, newStageId);
 
             if (!validationResult.isValid) {
                 console.error('Validation failed for optimistic update:', validationResult.errors);
                 return false;
             }
 
-            const oldStage = currentProject.current_stage;
+            const oldStageId = currentProject.current_stage_id;
 
             // Optimistically update the UI first
             setProjects(prev =>
                 prev.map(project =>
                     project.id === projectId
-                        ? { ...project, current_stage: newStage, updated_at: new Date().toISOString() }
+                        ? { 
+                            ...project, 
+                            current_stage_id: newStageId, 
+                            stage_entered_at: new Date().toISOString(),
+                            updated_at: new Date().toISOString() 
+                          }
                         : project
                 )
             );
@@ -358,20 +352,30 @@ export function useProjects() {
             // Update cache immediately for instant feedback
             const updatedProjects = projects.map(project =>
                 project.id === projectId
-                    ? { ...project, current_stage: newStage, updated_at: new Date().toISOString() }
+                    ? { 
+                        ...project, 
+                        current_stage_id: newStageId, 
+                        stage_entered_at: new Date().toISOString(),
+                        updated_at: new Date().toISOString() 
+                      }
                     : project
             );
             cacheService.setProjects(updatedProjects);
 
             // Perform the actual database update
-            const result = await updateProjectStatus(projectId, newStage);
+            const result = await updateProjectStatus(projectId, newStageId);
 
             if (!result) {
                 // Revert optimistic update on failure
                 setProjects(prev =>
                     prev.map(project =>
                         project.id === projectId
-                            ? { ...project, current_stage: oldStage, updated_at: currentProject.updated_at }
+                            ? { 
+                                ...project, 
+                                current_stage_id: oldStageId, 
+                                stage_entered_at: currentProject.stage_entered_at,
+                                updated_at: currentProject.updated_at 
+                              }
                             : project
                     )
                 );
@@ -379,7 +383,12 @@ export function useProjects() {
                 // Revert cache
                 const revertedProjects = projects.map(project =>
                     project.id === projectId
-                        ? { ...project, current_stage: oldStage, updated_at: currentProject.updated_at }
+                        ? { 
+                            ...project, 
+                            current_stage_id: oldStageId, 
+                            stage_entered_at: currentProject.stage_entered_at,
+                            updated_at: currentProject.updated_at 
+                          }
                         : project
                 );
                 cacheService.setProjects(revertedProjects);
@@ -412,14 +421,15 @@ export function useProjects() {
         }
     };
 
-    // Create or get customer
+    // Create or get customer (now stored in contacts table)
     const createOrGetCustomer = async (customerData: Partial<Customer>) => {
         try {
-            // First try to find existing customer
+            // First try to find existing customer in contacts table
             const { data: existingCustomer, error: findError } = await supabase
-                .from('customers')
+                .from('contacts')
                 .select('*')
                 .eq('email', customerData.email)
+                .eq('type', 'customer')
                 .single();
 
             if (existingCustomer) {
@@ -428,8 +438,8 @@ export function useProjects() {
 
             // Create new customer if not found
             const { data: newCustomer, error: createError } = await supabase
-                .from('customers')
-                .insert([customerData])
+                .from('contacts')
+                .insert([{ ...customerData, type: 'customer' }])
                 .select()
                 .single();
 

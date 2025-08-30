@@ -1,6 +1,6 @@
 import { useState, useEffect, useCallback, useRef } from 'react';
 import { supabase } from '@/integrations/supabase/client';
-import { Project, ProjectStatus, ProjectStage, Customer } from '@/types/project';
+import { Project, ProjectStatus, Customer } from '@/types/project';
 import {
   SupplierQuote,
   QuoteReadinessIndicator,
@@ -49,26 +49,44 @@ export function useProjects() {
         .from('projects')
         .select(`
           *,
-          customer:contacts(*)
+          customer:contacts(*),
+          current_stage:workflow_stages(*)
         `)
         .order('created_at', { ascending: false });
 
       if (fetchError) {
         console.error('Error fetching projects:', fetchError);
-        setError(fetchError.message);
+        const errorMessage = fetchError.code === 'PGRST116' 
+          ? 'Database connection error. Please check your connection and try again.'
+          : fetchError.message || 'Failed to fetch projects';
+        setError(errorMessage);
         setLoading(false);
         return;
       }
 
-      // Set projects data directly
-      const mappedProjects = (data || []);
+      // Validate and transform the data
+      const mappedProjects = (data || []).map(project => ({
+        ...project,
+        // Ensure required fields have proper defaults
+        status: project.status || 'active',
+        priority_level: project.priority_level || 'medium',
+        source: project.source || 'portal',
+        tags: project.tags || [],
+        metadata: project.metadata || {},
+        // Calculate days in stage if stage_entered_at exists
+        days_in_stage: project.stage_entered_at 
+          ? Math.floor((new Date().getTime() - new Date(project.stage_entered_at).getTime()) / (1000 * 60 * 60 * 24))
+          : undefined
+      }));
+
       setProjects(mappedProjects as Project[]);
 
       // Cache the data
       cacheService.setProjects(mappedProjects as Project[]);
     } catch (err) {
       console.error('Error in fetchProjects:', err);
-      setError('Failed to fetch projects');
+      const errorMessage = err instanceof Error ? err.message : 'Failed to fetch projects';
+      setError(errorMessage);
     } finally {
       setLoading(false);
     }
@@ -114,6 +132,12 @@ export function useProjects() {
             cacheService.setProjects(updatedProjects);
             return updatedProjects;
           });
+
+          // If stage was updated, we should refetch to get the full stage relationship
+          if (payload.old?.current_stage_id !== payload.new.current_stage_id) {
+            console.log('🔔 Stage updated, refetching to get full stage data');
+            fetchProjects(true);
+          }
         }
       )
       .subscribe();
@@ -175,7 +199,8 @@ export function useProjects() {
         .from('projects')
         .select(`
           *,
-          customer:contacts(*)
+          customer:contacts(*),
+          current_stage:workflow_stages(*)
         `);
 
       if (allProjectsError) {
@@ -193,7 +218,8 @@ export function useProjects() {
         .from('projects')
         .select(`
           *,
-          customer:contacts(*)
+          customer:contacts(*),
+          current_stage:workflow_stages(*)
         `)
         .eq('id', id)
         .single();
@@ -205,7 +231,8 @@ export function useProjects() {
           .from('projects')
           .select(`
             *,
-            customer:contacts(*)
+            customer:contacts(*),
+            current_stage:workflow_stages(*)
           `)
           .eq('project_id', id)
           .single();
@@ -241,6 +268,27 @@ export function useProjects() {
   // Update project status with validation
   const updateProjectStatus = async (projectId: string, newStatus: ProjectStatus): Promise<boolean> => {
     try {
+      // Validate input parameters
+      if (!projectId || !newStatus) {
+        toast({
+          variant: "destructive",
+          title: "Invalid Parameters",
+          description: "Project ID and status are required.",
+        });
+        return false;
+      }
+
+      // Validate status value
+      const validStatuses: ProjectStatus[] = ['active', 'on_hold', 'delayed', 'cancelled', 'completed'];
+      if (!validStatuses.includes(newStatus)) {
+        toast({
+          variant: "destructive",
+          title: "Invalid Status",
+          description: `Status must be one of: ${validStatuses.join(', ')}`,
+        });
+        return false;
+      }
+
       // Validate the workflow transition
       const validationResult = WorkflowValidator.validateTransition(projectId, newStatus);
       if (!validationResult.isValid) {
@@ -263,10 +311,14 @@ export function useProjects() {
 
       if (error) {
         console.error('Error updating project status:', error);
+        const errorMessage = error.code === '23514' 
+          ? 'Invalid status value. Please select a valid status.'
+          : error.message || 'Failed to update project status. Please try again.';
+        
         toast({
           variant: "destructive",
           title: "Update Failed",
-          description: "Failed to update project status. Please try again.",
+          description: errorMessage,
         });
         return false;
       }
@@ -280,6 +332,14 @@ export function useProjects() {
         )
       );
 
+      // Update cache
+      const updatedProjects = projects.map(project => 
+        project.id === projectId 
+          ? { ...project, status: newStatus, updated_at: new Date().toISOString() } 
+          : project
+      );
+      cacheService.setProjects(updatedProjects);
+
       // Notify real-time subscribers
       realtimeManager.notifyUpdate();
 
@@ -291,20 +351,35 @@ export function useProjects() {
       return true;
     } catch (error) {
       console.error('Error updating project status:', error);
+      const errorMessage = error instanceof Error ? error.message : 'An unexpected error occurred while updating the project status.';
       toast({
         variant: "destructive",
         title: "Update Failed",
-        description: "An unexpected error occurred while updating the project status.",
+        description: errorMessage,
       });
       return false;
     }
   };
 
   // Update project stage with validation
-  const updateProjectStage = async (projectId: string, newStage: ProjectStage): Promise<WorkflowValidationResult> => {
+  const updateProjectStage = async (projectId: string, newStageId: string): Promise<WorkflowValidationResult> => {
     try {
+      // Validate input parameters
+      if (!projectId || !newStageId) {
+        const errorResult = {
+          isValid: false,
+          message: "Project ID and stage ID are required."
+        };
+        toast({
+          variant: "destructive",
+          title: "Invalid Parameters",
+          description: errorResult.message,
+        });
+        return errorResult;
+      }
+
       // Validate the workflow transition
-      const validationResult = WorkflowValidator.validateTransition(projectId, newStage);
+      const validationResult = WorkflowValidator.validateTransition(projectId, newStageId);
       if (!validationResult.isValid) {
         toast({
           variant: "destructive",
@@ -314,11 +389,11 @@ export function useProjects() {
         return validationResult;
       }
 
-      // Update the project stage
+      // Update the project stage using correct database field name
       const { error } = await supabase
         .from('projects')
         .update({ 
-          current_stage: newStage,
+          current_stage_id: newStageId,
           stage_entered_at: new Date().toISOString(),
           updated_at: new Date().toISOString()
         })
@@ -326,14 +401,18 @@ export function useProjects() {
 
       if (error) {
         console.error('Error updating project stage:', error);
+        const errorMessage = error.code === '23503' 
+          ? 'Invalid stage ID. The specified stage does not exist.'
+          : error.message || 'Failed to update project stage. Please try again.';
+        
         toast({
           variant: "destructive",
           title: "Update Failed",
-          description: "Failed to update project stage. Please try again.",
+          description: errorMessage,
         });
         return {
           isValid: false,
-          message: "Failed to update project stage in database"
+          message: errorMessage
         };
       }
 
@@ -343,7 +422,7 @@ export function useProjects() {
           project.id === projectId 
             ? { 
                 ...project, 
-                current_stage: newStage, 
+                current_stage_id: newStageId, 
                 stage_entered_at: new Date().toISOString(),
                 updated_at: new Date().toISOString() 
               } 
@@ -351,8 +430,24 @@ export function useProjects() {
         )
       );
 
+      // Update cache
+      const updatedProjects = projects.map(project => 
+        project.id === projectId 
+          ? { 
+              ...project, 
+              current_stage_id: newStageId, 
+              stage_entered_at: new Date().toISOString(),
+              updated_at: new Date().toISOString() 
+            } 
+          : project
+      );
+      cacheService.setProjects(updatedProjects);
+
       // Notify real-time subscribers
       realtimeManager.notifyUpdate();
+
+      // Refetch to get the full stage relationship data
+      setTimeout(() => fetchProjects(true), 100);
 
       toast({
         title: "Stage Updated",
@@ -365,14 +460,15 @@ export function useProjects() {
       };
     } catch (error) {
       console.error('Error updating project stage:', error);
+      const errorMessage = error instanceof Error ? error.message : 'An unexpected error occurred while updating the project stage.';
       toast({
         variant: "destructive",
         title: "Update Failed",
-        description: "An unexpected error occurred while updating the project stage.",
+        description: errorMessage,
       });
       return {
         isValid: false,
-        message: "An unexpected error occurred"
+        message: errorMessage
       };
     }
   };
