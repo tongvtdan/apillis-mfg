@@ -20,7 +20,7 @@ class WorkflowStageService {
                 .from('workflow_stages')
                 .select('*')
                 .eq('is_active', true)
-                .order('order_index', { ascending: true });
+                .order('stage_order', { ascending: true });
 
             if (error) {
                 console.error('Error fetching workflow stages:', error);
@@ -108,7 +108,7 @@ class WorkflowStageService {
 
         if (!currentStage) return null;
 
-        const nextStage = stages.find(s => s.order_index === currentStage.order_index + 1);
+        const nextStage = stages.find(s => s.stage_order === currentStage.stage_order + 1);
         return nextStage || null;
     }
 
@@ -119,7 +119,7 @@ class WorkflowStageService {
 
         if (!currentStage) return null;
 
-        const previousStage = stages.find(s => s.order_index === currentStage.order_index - 1);
+        const previousStage = stages.find(s => s.stage_order === currentStage.stage_order - 1);
         return previousStage || null;
     }
 
@@ -141,9 +141,9 @@ class WorkflowStageService {
         }
 
         // Allow moving to next stage or same stage
-        if (toStage.order_index >= fromStage.order_index) {
+        if (toStage.stage_order >= fromStage.stage_order) {
             // Check if skipping stages (requires approval)
-            if (toStage.order_index > fromStage.order_index + 1) {
+            if (toStage.stage_order > fromStage.stage_order + 1) {
                 return {
                     isValid: true,
                     message: 'Stage skipping requires manager approval',

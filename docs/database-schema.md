@@ -1164,6 +1164,9 @@ erDiagram
         boolean is_active
         text exit_criteria
         text_array responsible_roles
+        integer estimated_duration_days
+        jsonb required_approvals
+        jsonb auto_advance_conditions
         timestamp created_at
         timestamp updated_at
     }

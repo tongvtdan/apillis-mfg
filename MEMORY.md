@@ -2,6 +2,70 @@
 
 ## Recent Changes
 
+### 2025-01-30 - Workflow Stages Table Schema Alignment
+
+**Changes Made:**
+- **Database Schema Alignment**: Successfully aligned the `workflow_stages` table in Supabase with the expected database schema and sample data
+  - **Missing Columns Added**: Added `organization_id`, `slug`, `color`, `exit_criteria`, and `responsible_roles` columns
+  - **Column Renaming**: Renamed `order_index` to `stage_order` to match expected schema
+  - **Data Migration**: Preserved existing workflow stage IDs while adding missing data for new columns
+  - **Seed Data Update**: Updated seed.sql to include all required columns with proper sample data
+
+**Important Lesson Learned:**
+- **NEVER reset the entire database** when working with existing data - this destroys user authentication, projects, and other important data
+- **Always use targeted migrations** that only add/modify specific columns without affecting existing data
+- **Work with local Supabase only** unless explicitly configured for remote deployment
+- **Preserve existing IDs** to maintain referential integrity with other tables
+
+**Technical Details:**
+- **Migration File**: Created `20250130000002_add_missing_workflow_stages_columns.sql` migration
+  - Added `organization_id` as UUID FK to organizations table
+  - Added `slug` as VARCHAR(100) for URL-friendly stage names
+  - Added `color` as VARCHAR(7) for stage visualization
+  - Added `exit_criteria` as TEXT for stage completion requirements
+  - Added `responsible_roles` as TEXT[] for role assignments
+  - Renamed `order_index` to `stage_order` for schema consistency
+
+- **Data Population**:
+  - Set default `organization_id` to Factory Pulse Vietnam organization
+  - Applied color scheme matching sample data (blue, amber, orange, emerald, indigo, violet, lime, gray)
+  - Generated slugs from stage names (e.g., "Inquiry Received" → "inquiry_received")
+  - Set comprehensive exit criteria for each workflow stage
+  - Assigned appropriate responsible roles for each stage
+
+- **Indexes and Constraints**:
+  - Added indexes for `organization_id` and `slug` columns
+  - Maintained existing foreign key relationships
+  - Preserved all existing workflow stage IDs to maintain referential integrity
+
+**Impact:**
+- ✅ Workflow stages table now matches expected database schema exactly
+- ✅ All 8 workflow stages have complete data including colors, slugs, and exit criteria
+- ✅ Maintained backward compatibility with existing project references
+- ✅ Database schema now aligns with application expectations
+- ✅ Sample data structure matches actual database implementation
+
+**Files Modified:**
+- `supabase/migrations/20250130000002_add_missing_workflow_stages_columns.sql` - New migration for missing columns
+- `supabase/seed.sql` - Updated workflow stages INSERT statement with all required columns
+
+**Database Schema Now Includes:**
+- `id` (UUID, PK) - Preserved existing IDs for referential integrity
+- `organization_id` (UUID, FK) - Links to organizations table
+- `name` (VARCHAR(100)) - Stage display name
+- `slug` (VARCHAR(100)) - URL-friendly identifier
+- `description` (TEXT) - Stage description
+- `color` (VARCHAR(7)) - Hex color for visualization
+- `stage_order` (INTEGER) - Renamed from order_index
+- `is_active` (BOOLEAN) - Stage availability flag
+- `exit_criteria` (TEXT) - Stage completion requirements
+- `responsible_roles` (TEXT[]) - Array of responsible roles
+- `estimated_duration_days` (INTEGER) - Expected stage duration
+- `required_approvals` (JSONB) - Approval requirements
+- `auto_advance_conditions` (JSONB) - Auto-advance rules
+- `created_at` (TIMESTAMPTZ) - Creation timestamp
+- `updated_at` (TIMESTAMPTZ) - Last update timestamp
+
 ### 2025-01-30 - Projects Page Enhanced Component Integration
 
 **Changes Made:**
