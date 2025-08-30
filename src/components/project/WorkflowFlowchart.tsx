@@ -45,8 +45,8 @@ export function WorkflowFlowchart({
             try {
                 setStagesLoading(true);
                 const stages = await workflowStageService.getWorkflowStages();
-                // Sort stages by stage_order
-                const sortedStages = stages.sort((a, b) => a.stage_order - b.stage_order);
+                // Sort stages by order_index
+                const sortedStages = stages.sort((a, b) => a.order_index - b.order_index);
                 setWorkflowStages(sortedStages);
             } catch (error) {
                 console.error('Error loading workflow stages:', error);
@@ -103,9 +103,9 @@ export function WorkflowFlowchart({
 
         if (!currentStage || !targetStage) return 'pending';
 
-        if (targetStage.stage_order < currentStage.stage_order) {
+        if (targetStage.order_index < currentStage.order_index) {
             return 'completed';
-        } else if (targetStage.stage_order === currentStage.stage_order) {
+        } else if (targetStage.order_index === currentStage.order_index) {
             return 'current';
         } else {
             return 'pending';
@@ -316,7 +316,7 @@ export function WorkflowFlowchart({
                                 {workflowStages.map((stage) => {
                                     const stageStatus = getProjectStageStatus(selectedProject, stage.id);
                                     const currentStage = workflowStages.find(s => s.id === selectedProject.current_stage_id);
-                                    const canMoveToStage = !currentStage || stage.stage_order > currentStage.stage_order;
+                                    const canMoveToStage = !currentStage || stage.order_index > currentStage.order_index;
 
                                     return (
                                         <div key={stage.id} className="flex items-center space-x-3">

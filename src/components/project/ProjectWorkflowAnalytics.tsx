@@ -30,7 +30,7 @@ export function ProjectWorkflowAnalytics({ projects }: ProjectWorkflowAnalyticsP
                     .filter(p => p.current_stage)
                     .map(p => [p.current_stage!.id, p.current_stage!])
             ).values()
-        ).sort((a, b) => (a.stage_order || 0) - (b.stage_order || 0));
+        ).sort((a, b) => (a.order_index || 0) - (b.order_index || 0));
 
         // Calculate stage distribution using actual workflow stages
         const stageDistribution = workflowStages.map(stage => {

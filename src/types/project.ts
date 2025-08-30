@@ -50,7 +50,7 @@ export interface WorkflowStage {
   name: string;
   description?: string;
   slug: string;
-  stage_order: number;
+  order_index: number;
   color?: string;
   exit_criteria?: string;
   responsible_roles?: string[];
@@ -60,7 +60,7 @@ export interface WorkflowStage {
   updated_at: string;
 
   // Computed fields for compatibility
-  order_index?: number; // Computed from stage_order
+  stage_order?: number; // Computed from order_index for backward compatibility
   estimated_duration_days?: number;
   required_approvals?: any[];
   auto_advance_conditions?: Record<string, any>;

@@ -17,6 +17,7 @@ import { useErrorHandling } from "@/hooks/useErrorHandling";
 import { ProjectWorkflowAnalytics } from "@/components/project/ProjectWorkflowAnalytics";
 import { ProjectCalendar } from "@/components/project/ProjectCalendar";
 import { ProjectTable } from "@/components/project/ProjectTable";
+import { workflowStageService } from "@/services/workflowStageService";
 
 // This component displays the projects management interface
 // It uses the authenticated user's data from the AuthContext to fetch and manage projects
@@ -50,6 +51,28 @@ export default function Projects() {
 
   const [selectedProjectType, setSelectedProjectType] = React.useState<ProjectType | 'all'>('all');
   const [selectedProject, setSelectedProject] = React.useState<Project | null>(null);
+  const [workflowStages, setWorkflowStages] = React.useState<WorkflowStage[]>([]);
+  const [stagesLoading, setStagesLoading] = React.useState(true);
+
+  // Load workflow stages from database
+  React.useEffect(() => {
+    const loadWorkflowStages = async () => {
+      try {
+        setStagesLoading(true);
+        const stages = await workflowStageService.getWorkflowStages();
+        // Sort stages by order_index
+        const sortedStages = stages.sort((a, b) => a.order_index - b.order_index);
+        setWorkflowStages(sortedStages);
+      } catch (error) {
+        console.error('Error loading workflow stages:', error);
+        setWorkflowStages([]);
+      } finally {
+        setStagesLoading(false);
+      }
+    };
+
+    loadWorkflowStages();
+  }, []);
 
   // Get default tab from URL params or localStorage
   const getDefaultTab = () => {
@@ -85,19 +108,6 @@ export default function Projects() {
   }, []);
 
   const activeProjects = projects.filter(p => p.status !== 'completed');
-
-  // Get unique workflow stages from projects
-  const workflowStages = React.useMemo(() => {
-    const stagesMap = new Map<string, WorkflowStage>();
-
-    projects.forEach(project => {
-      if (project.current_stage) {
-        stagesMap.set(project.current_stage.id, project.current_stage);
-      }
-    });
-
-    return Array.from(stagesMap.values()).sort((a, b) => (a.stage_order || 0) - (b.stage_order || 0));
-  }, [projects]);
 
   // Calculate stage counts by current_stage_id
   const stageCounts = React.useMemo(() => {
@@ -302,17 +312,23 @@ export default function Projects() {
                 <Card>
                   <CardHeader>
                     <CardTitle>Workflow Visualization</CardTitle>
-                    <CardDescription>Visualize and manage project workflow stages</CardDescription>
+                    <CardDescription>
+                      Visualize and manage project workflow stages
+                      {stagesLoading ? ' (Loading...)' : ` (${workflowStages.length} stages)`}
+                    </CardDescription>
                   </CardHeader>
                   <CardContent>
+
+
+
                     <div className="w-full overflow-x-auto pb-4 pt-2 px-2">
                       <div className="flex items-center gap-2 min-w-max">
                         {workflowStages.map((stage, index) => (
                           <React.Fragment key={stage.id}>
                             <div
                               className={`cursor-pointer transition-all duration-200 hover:shadow-md w-[160px] max-w-[160px] flex-none ${selectedStage === stage.id
-                                  ? 'ring-2 ring-primary shadow-md'
-                                  : ''
+                                ? 'ring-2 ring-primary shadow-md'
+                                : ''
                                 }`}
                               onClick={() => handleStageSelect(stage.id)}
                             >

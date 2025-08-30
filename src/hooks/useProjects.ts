@@ -154,7 +154,7 @@ export function useProjects() {
         // Add order_index to current_stage if it exists
         current_stage: project.current_stage ? {
           ...project.current_stage,
-          order_index: project.current_stage.stage_order
+          order_index: project.current_stage.order_index
         } : undefined
       }));
 
