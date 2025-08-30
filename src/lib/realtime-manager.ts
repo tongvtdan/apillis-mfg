@@ -23,7 +23,7 @@ class RealtimeManager {
 
     public setAuthenticationStatus(authenticated: boolean) {
         this.isAuthenticated = authenticated;
-        
+
         if (!authenticated) {
             // Clean up subscriptions when user logs out
             this.cleanup();
@@ -70,10 +70,18 @@ class RealtimeManager {
                     table: 'projects'
                 },
                 (payload) => {
+                    // Validate payload structure
+                    if (!payload.new?.id) {
+                        console.warn('🔔 RealtimeManager: Invalid payload received:', payload);
+                        return;
+                    }
+
                     console.log('🔔 RealtimeManager: Update received:', {
                         projectId: payload.new.id,
                         oldStatus: payload.old?.status,
-                        newStatus: payload.new.status
+                        newStatus: payload.new.status,
+                        oldStage: payload.old?.current_stage_id,
+                        newStage: payload.new.current_stage_id
                     });
 
                     // Store the update in pending updates
@@ -121,7 +129,13 @@ class RealtimeManager {
                 } else if (status === 'CHANNEL_ERROR') {
                     console.error('❌ RealtimeManager: Subscription error:', status);
                     this.isActive = false;
-                    
+
+                    // Clean up the failed channel
+                    if (this.globalChannel) {
+                        supabase.removeChannel(this.globalChannel);
+                        this.globalChannel = null;
+                    }
+
                     // Retry subscription after a delay if user is still authenticated
                     if (this.isAuthenticated) {
                         setTimeout(() => {

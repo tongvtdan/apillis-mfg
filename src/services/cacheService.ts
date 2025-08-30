@@ -12,6 +12,7 @@ export interface CacheService {
     updateProject: (projectId: string, updates: Partial<Project>) => void;
     updateProjectStatus: (projectId: string, newStatus: string) => void;
     getProject: (projectId: string) => Project | null;
+    validateCacheConsistency: () => boolean;
 }
 
 export const cacheService: CacheService = {
@@ -64,9 +65,19 @@ export const cacheService: CacheService = {
     updateProject: (projectId: string, updates: Partial<Project>) => {
         try {
             const cachedData = localStorage.getItem(CACHE_KEY);
-            if (!cachedData) return;
+            if (!cachedData) {
+                console.warn('💾 Cache update skipped: No cached data found');
+                return;
+            }
 
             const projects = JSON.parse(cachedData) as Project[];
+            const projectIndex = projects.findIndex(p => p.id === projectId);
+
+            if (projectIndex === -1) {
+                console.warn('💾 Cache update skipped: Project not found in cache:', projectId);
+                return;
+            }
+
             const updatedProjects = projects.map(project =>
                 project.id === projectId
                     ? { ...project, ...updates, updated_at: new Date().toISOString() }
@@ -74,18 +85,31 @@ export const cacheService: CacheService = {
             );
 
             localStorage.setItem(CACHE_KEY, JSON.stringify(updatedProjects));
+            localStorage.setItem(CACHE_TIMESTAMP_KEY, Date.now().toString());
             console.log('💾 Cache updated for project:', projectId, 'with updates:', updates);
         } catch (error) {
-            console.warn('Failed to update cached project:', error);
+            console.warn('💾 Failed to update cached project:', error);
+            // Clear corrupted cache
+            cacheService.clearCache();
         }
     },
 
     updateProjectStatus: (projectId: string, newStatus: string) => {
         try {
             const cachedData = localStorage.getItem(CACHE_KEY);
-            if (!cachedData) return;
+            if (!cachedData) {
+                console.warn('💾 Status update skipped: No cached data found');
+                return;
+            }
 
             const projects = JSON.parse(cachedData) as Project[];
+            const projectIndex = projects.findIndex(p => p.id === projectId);
+
+            if (projectIndex === -1) {
+                console.warn('💾 Status update skipped: Project not found in cache:', projectId);
+                return;
+            }
+
             const updatedProjects = projects.map(project =>
                 project.id === projectId
                     ? { ...project, status: newStatus, updated_at: new Date().toISOString() }
@@ -93,9 +117,12 @@ export const cacheService: CacheService = {
             );
 
             localStorage.setItem(CACHE_KEY, JSON.stringify(updatedProjects));
+            localStorage.setItem(CACHE_TIMESTAMP_KEY, Date.now().toString());
             console.log('💾 Cache status updated for project:', projectId, 'to:', newStatus);
         } catch (error) {
-            console.warn('Failed to update cached project status:', error);
+            console.warn('💾 Failed to update cached project status:', error);
+            // Clear corrupted cache
+            cacheService.clearCache();
         }
     },
 
@@ -107,8 +134,45 @@ export const cacheService: CacheService = {
             const projects = JSON.parse(cachedData) as Project[];
             return projects.find(project => project.id === projectId) || null;
         } catch (error) {
-            console.warn('Failed to retrieve cached project:', error);
+            console.warn('💾 Failed to retrieve cached project:', error);
+            // Clear corrupted cache
+            cacheService.clearCache();
             return null;
+        }
+    },
+
+    validateCacheConsistency: (): boolean => {
+        try {
+            const cachedData = localStorage.getItem(CACHE_KEY);
+            const timestamp = localStorage.getItem(CACHE_TIMESTAMP_KEY);
+
+            if (!cachedData || !timestamp) {
+                return false;
+            }
+
+            // Validate JSON structure
+            const projects = JSON.parse(cachedData) as Project[];
+
+            // Basic validation - ensure all projects have required fields
+            const isValid = Array.isArray(projects) && projects.every(project =>
+                project.id &&
+                project.project_id &&
+                project.title &&
+                project.status &&
+                project.priority_level
+            );
+
+            if (!isValid) {
+                console.warn('💾 Cache validation failed: Invalid project structure');
+                cacheService.clearCache();
+                return false;
+            }
+
+            return true;
+        } catch (error) {
+            console.warn('💾 Cache validation failed:', error);
+            cacheService.clearCache();
+            return false;
         }
     }
 };

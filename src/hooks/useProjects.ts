@@ -32,8 +32,8 @@ export function useProjects() {
     }
 
     try {
-      // Check if we have valid cached data
-      if (!forceRefresh && cacheService.isCacheValid()) {
+      // Check if we have valid cached data with consistency validation
+      if (!forceRefresh && cacheService.isCacheValid() && cacheService.validateCacheConsistency()) {
         const cachedProjects = cacheService.getProjects();
         if (cachedProjects) {
           setProjects(cachedProjects);
@@ -56,7 +56,7 @@ export function useProjects() {
 
       if (fetchError) {
         console.error('Error fetching projects:', fetchError);
-        const errorMessage = fetchError.code === 'PGRST116' 
+        const errorMessage = fetchError.code === 'PGRST116'
           ? 'Database connection error. Please check your connection and try again.'
           : fetchError.message || 'Failed to fetch projects';
         setError(errorMessage);
@@ -74,7 +74,7 @@ export function useProjects() {
         tags: project.tags || [],
         metadata: project.metadata || {},
         // Calculate days in stage if stage_entered_at exists
-        days_in_stage: project.stage_entered_at 
+        days_in_stage: project.stage_entered_at
           ? Math.floor((new Date().getTime() - new Date(project.stage_entered_at).getTime()) / (1000 * 60 * 60 * 24))
           : undefined
       }));
@@ -114,10 +114,18 @@ export function useProjects() {
           filter: `id=in.(${projectIds.join(',')})`
         },
         (payload) => {
+          // Validate payload structure
+          if (!payload.new?.id) {
+            console.warn('🔔 Selective subscription: Invalid payload received:', payload);
+            return;
+          }
+
           console.log('🔔 Selective real-time update received:', {
             projectId: payload.new.id,
             oldStatus: payload.old?.status,
-            newStatus: payload.new.status
+            newStatus: payload.new.status,
+            oldStage: payload.old?.current_stage_id,
+            newStage: payload.new.current_stage_id
           });
 
           // Update the specific project in our state
@@ -128,8 +136,13 @@ export function useProjects() {
                 : project
             );
 
-            // Update cache
-            cacheService.setProjects(updatedProjects);
+            // Update cache with error handling
+            try {
+              cacheService.setProjects(updatedProjects);
+            } catch (error) {
+              console.warn('🔔 Failed to update cache during real-time update:', error);
+            }
+
             return updatedProjects;
           });
 
@@ -140,7 +153,22 @@ export function useProjects() {
           }
         }
       )
-      .subscribe();
+      .subscribe((status) => {
+        if (status === 'SUBSCRIBED') {
+          console.log('✅ Selective project subscription established for projects:', projectIds);
+        } else if (status === 'CHANNEL_ERROR') {
+          console.error('❌ Selective project subscription error:', status);
+          // Retry after a delay
+          setTimeout(() => {
+            if (realtimeChannelRef.current) {
+              console.log('🔄 Retrying selective subscription...');
+              subscribeToProjectUpdates(projectIds);
+            }
+          }, 3000);
+        } else if (status === 'CLOSED') {
+          console.log('🔔 Selective project subscription closed');
+        }
+      });
 
     return realtimeChannelRef.current;
   }, []);
@@ -303,7 +331,7 @@ export function useProjects() {
       // Update the project status
       const { error } = await supabase
         .from('projects')
-        .update({ 
+        .update({
           status: newStatus,
           updated_at: new Date().toISOString()
         })
@@ -311,10 +339,10 @@ export function useProjects() {
 
       if (error) {
         console.error('Error updating project status:', error);
-        const errorMessage = error.code === '23514' 
+        const errorMessage = error.code === '23514'
           ? 'Invalid status value. Please select a valid status.'
           : error.message || 'Failed to update project status. Please try again.';
-        
+
         toast({
           variant: "destructive",
           title: "Update Failed",
@@ -324,24 +352,21 @@ export function useProjects() {
       }
 
       // Update local state optimistically
-      setProjects(prev => 
-        prev.map(project => 
-          project.id === projectId 
-            ? { ...project, status: newStatus, updated_at: new Date().toISOString() } 
+      setProjects(prev =>
+        prev.map(project =>
+          project.id === projectId
+            ? { ...project, status: newStatus, updated_at: new Date().toISOString() }
             : project
         )
       );
 
       // Update cache
-      const updatedProjects = projects.map(project => 
-        project.id === projectId 
-          ? { ...project, status: newStatus, updated_at: new Date().toISOString() } 
+      const updatedProjects = projects.map(project =>
+        project.id === projectId
+          ? { ...project, status: newStatus, updated_at: new Date().toISOString() }
           : project
       );
       cacheService.setProjects(updatedProjects);
-
-      // Notify real-time subscribers
-      realtimeManager.notifyUpdate();
 
       toast({
         title: "Status Updated",
@@ -392,7 +417,7 @@ export function useProjects() {
       // Update the project stage using correct database field name
       const { error } = await supabase
         .from('projects')
-        .update({ 
+        .update({
           current_stage_id: newStageId,
           stage_entered_at: new Date().toISOString(),
           updated_at: new Date().toISOString()
@@ -401,10 +426,10 @@ export function useProjects() {
 
       if (error) {
         console.error('Error updating project stage:', error);
-        const errorMessage = error.code === '23503' 
+        const errorMessage = error.code === '23503'
           ? 'Invalid stage ID. The specified stage does not exist.'
           : error.message || 'Failed to update project stage. Please try again.';
-        
+
         toast({
           variant: "destructive",
           title: "Update Failed",
@@ -417,34 +442,31 @@ export function useProjects() {
       }
 
       // Update local state optimistically
-      setProjects(prev => 
-        prev.map(project => 
-          project.id === projectId 
-            ? { 
-                ...project, 
-                current_stage_id: newStageId, 
-                stage_entered_at: new Date().toISOString(),
-                updated_at: new Date().toISOString() 
-              } 
+      setProjects(prev =>
+        prev.map(project =>
+          project.id === projectId
+            ? {
+              ...project,
+              current_stage_id: newStageId,
+              stage_entered_at: new Date().toISOString(),
+              updated_at: new Date().toISOString()
+            }
             : project
         )
       );
 
       // Update cache
-      const updatedProjects = projects.map(project => 
-        project.id === projectId 
-          ? { 
-              ...project, 
-              current_stage_id: newStageId, 
-              stage_entered_at: new Date().toISOString(),
-              updated_at: new Date().toISOString() 
-            } 
+      const updatedProjects = projects.map(project =>
+        project.id === projectId
+          ? {
+            ...project,
+            current_stage_id: newStageId,
+            stage_entered_at: new Date().toISOString(),
+            updated_at: new Date().toISOString()
+          }
           : project
       );
       cacheService.setProjects(updatedProjects);
-
-      // Notify real-time subscribers
-      realtimeManager.notifyUpdate();
 
       // Refetch to get the full stage relationship data
       setTimeout(() => fetchProjects(true), 100);
@@ -475,10 +497,10 @@ export function useProjects() {
 
   // Optimistic update for project status (for UI updates before database confirmation)
   const updateProjectStatusOptimistic = (projectId: string, newStatus: ProjectStatus) => {
-    setProjects(prev => 
-      prev.map(project => 
-        project.id === projectId 
-          ? { ...project, status: newStatus } 
+    setProjects(prev =>
+      prev.map(project =>
+        project.id === projectId
+          ? { ...project, status: newStatus }
           : project
       )
     );
