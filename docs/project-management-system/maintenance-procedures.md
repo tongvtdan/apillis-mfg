@@ -759,6 +759,56 @@ ReactDOM.createRoot(document.getElementById('root')!).render(
 - [ ] Security penetration testing
 - [ ] Disaster recovery testing
 
+### Authentication Management
+
+#### ID Mismatch Resolution
+
+**Background**: Some users may have ID mismatches between `auth.users` and `public.users` tables due to foreign key constraints.
+
+**Current Solution**: ID mapping in AuthContext provides transparent resolution.
+
+**Monitoring**:
+```sql
+-- Check for ID mismatches
+SELECT 
+  au.id as auth_id,
+  au.email,
+  pu.id as public_id,
+  pu.name
+FROM auth.users au
+LEFT JOIN public.users pu ON au.id = pu.id
+WHERE pu.id IS NULL;
+
+-- Verify mapping effectiveness
+SELECT 
+  email,
+  id as auth_id,
+  user_metadata->>'name' as name
+FROM auth.users
+WHERE id IN (
+  '1bbb8aef-fdfe-446b-b8cc-42bd7677aa7c',
+  '4bfa5ef8-2a21-46b8-bc99-2c8000b681bf',
+  '2171de5a-c007-4893-92f1-b15522c164d9',
+  '2e828057-adde-44e7-8fa7-a2d1aea656ab',
+  'f23c3fea-cd08-48c0-9107-df83a0059ec6'
+);
+```
+
+**Maintenance Tasks**:
+- Monitor authentication success rates
+- Verify ID mapping effectiveness
+- Update mapping if new mismatches occur
+- Plan future constraint resolution
+
+**Future Optimization**:
+```sql
+-- When constraints allow, synchronize IDs properly
+-- This is a future enhancement when foreign key constraints are resolved
+UPDATE public.users 
+SET id = auth_user_id 
+WHERE email = user_email;
+```
+
 ### Emergency Procedures
 
 #### System Outage Response
