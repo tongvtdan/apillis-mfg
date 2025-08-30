@@ -76,14 +76,8 @@ async function importContact(contactData) {
                 credit_limit: contactData.credit_limit,
                 is_active: contactData.is_active,
                 notes: contactData.notes,
-                metadata: contactData.metadata,
-                ai_category: contactData.ai_category,
-                ai_capabilities: contactData.ai_capabilities,
-                ai_risk_score: contactData.ai_risk_score,
-                ai_last_analyzed: contactData.ai_last_analyzed,
                 created_at: contactData.created_at,
-                updated_at: contactData.updated_at,
-                created_by: mappedCreatedBy
+                updated_at: contactData.updated_at
             });
 
         if (error) {
