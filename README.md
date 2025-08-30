@@ -34,6 +34,12 @@ npm i
 
 # Step 4: Start the development server with auto-reloading and an instant preview.
 npm run dev
+
+# Step 5: Run tests (optional)
+npm test                # Run tests in watch mode
+npm run test:run        # Run all tests once
+npm run test:ui         # Launch interactive test UI
+npm run test:coverage   # Generate coverage reports
 ```
 
 **Edit a file directly in GitHub**
@@ -54,11 +60,36 @@ npm run dev
 
 This project is built with:
 
-- Vite
-- TypeScript
-- React
-- shadcn-ui
-- Tailwind CSS
+- **Frontend**: React 18 + TypeScript + Vite
+- **UI Framework**: shadcn/ui + Radix UI components  
+- **Styling**: Tailwind CSS + DaisyUI
+- **Backend**: Supabase (PostgreSQL + Auth + Storage + Realtime)
+- **State Management**: TanStack Query (React Query) + React Context
+- **Testing**: Vitest + React Testing Library + JSDOM
+- **Forms**: React Hook Form + Zod validation
+- **Charts**: Recharts + Chart.js
+- **Animations**: Framer Motion
+- **Icons**: Lucide React
+
+## Testing
+
+This project includes comprehensive testing infrastructure:
+
+- **Unit Tests**: Component and function testing with Vitest
+- **Integration Tests**: Component interaction and workflow testing  
+- **E2E Tests**: Complete user journey testing
+- **Mocking**: Supabase client and browser API mocking
+- **Coverage**: Automated test coverage reporting
+
+Run tests with:
+```bash
+npm test                # Watch mode for development
+npm run test:run        # Single run for CI/CD
+npm run test:ui         # Interactive test interface
+npm run test:coverage   # Coverage reports
+```
+
+See [Testing Documentation](docs/testing-infrastructure.md) for detailed information.
 
 ## How can I deploy this project?
 

@@ -295,3 +295,12 @@ export type RFQActivity = ProjectActivity;
 export type RFQStage = ProjectStageInfo;
 
 export const RFQ_STAGES = PROJECT_STAGES;
+
+// Type validation functions
+export function isValidProjectStatus(status: string): status is ProjectStatus {
+  return ['active', 'on_hold', 'delayed', 'cancelled', 'completed'].includes(status);
+}
+
+export function isValidProjectPriority(priority: string): priority is ProjectPriority {
+  return ['low', 'medium', 'high', 'urgent'].includes(priority);
+}

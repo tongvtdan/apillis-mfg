@@ -12,8 +12,8 @@ const __dirname = path.dirname(__filename);
 dotenv.config({ path: '.env.local' });
 
 // Initialize Supabase client
-const supabaseUrl = process.env.SUPABASE_URL || 'http://127.0.0.1:54321';
-const supabaseKey = process.env.SUPABASE_SERVICE_ROLE_KEY || 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZS1kZW1vIiwicm9sZSI6InNlcnZpY2Vfcm9sZSIsImV4cCI6MTk4MzgxMjk5Nn0.EGIM96RAZx35lJzdJsyH-qQwv8Hdp7fsn3W0YpN81IU';
+const supabaseUrl = process.env.VITE_SUPABASE_URL || 'http://127.0.0.1:54321';
+const supabaseKey = process.env.VITE_SUPABASE_SERVICE_ROLE_KEY || 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZS1kZW1vIiwicm9sZSI6InNlcnZpY2Vfcm9sZSIsImV4cCI6MTk4MzgxMjk5Nn0.EGIM96RAZx35lJzdJsyH-qQwv8Hdp7fsn3W0YpN81IU';
 
 const supabase = createClient(supabaseUrl, supabaseKey);
 
@@ -21,8 +21,8 @@ async function importProjects() {
     try {
         console.log('🚀 Starting projects import...');
 
-        // Read the updated projects data
-        const projectsPath = path.join(__dirname, '../sample-data/backup/projects-updated.json');
+        // Read the projects data
+        const projectsPath = path.join(__dirname, '../sample-data/backup/projects.json');
         const projectsData = JSON.parse(fs.readFileSync(projectsPath, 'utf8'));
 
         console.log(`📊 Found ${projectsData.length} projects to import`);
@@ -33,19 +33,9 @@ async function importProjects() {
             .select('*', { count: 'exact', head: true });
 
         if (existingCount > 0) {
-            console.log(`⚠️  Found ${existingCount} existing projects. Clearing table first...`);
-
-            // Clear existing projects
-            const { error: deleteError } = await supabase
-                .from('projects')
-                .delete()
-                .neq('id', '00000000-0000-0000-0000-000000000000'); // Delete all records
-
-            if (deleteError) {
-                throw new Error(`Failed to clear projects table: ${deleteError.message}`);
-            }
-
-            console.log('✅ Existing projects cleared');
+            console.log(`⚠️  Found ${existingCount} existing projects. Skipping import.`);
+            console.log(`📊 Total projects in database: ${existingCount}`);
+            return;
         }
 
         // Import projects in batches
