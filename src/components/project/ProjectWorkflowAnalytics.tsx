@@ -23,20 +23,23 @@ interface ProjectWorkflowAnalyticsProps {
 
 export function ProjectWorkflowAnalytics({ projects }: ProjectWorkflowAnalyticsProps) {
     const analytics = useMemo(() => {
-        // Calculate stage distribution
-        const stageDistribution = PROJECT_STAGES.map(stage => {
-            const stageProjects = projects.filter(p => (p.current_stage || p.status) === stage.id);
+        // Get unique workflow stages from projects
+        const workflowStages = Array.from(
+            new Map(
+                projects
+                    .filter(p => p.current_stage)
+                    .map(p => [p.current_stage!.id, p.current_stage!])
+            ).values()
+        ).sort((a, b) => (a.stage_order || 0) - (b.stage_order || 0));
+
+        // Calculate stage distribution using actual workflow stages
+        const stageDistribution = workflowStages.map(stage => {
+            const stageProjects = projects.filter(p => p.current_stage_id === stage.id);
             return {
                 name: stage.name,
                 count: stageProjects.length,
                 percentage: projects.length > 0 ? Math.round((stageProjects.length / projects.length) * 100) : 0,
-                color: stage.color.includes('blue') ? '#3B82F6' :
-                    stage.color.includes('orange') ? '#F97316' :
-                        stage.color.includes('indigo') ? '#6366F1' :
-                            stage.color.includes('green') ? '#10B981' :
-                                stage.color.includes('purple') ? '#8B5CF6' :
-                                    stage.color.includes('yellow') ? '#F59E0B' :
-                                        stage.color.includes('teal') ? '#14B8A6' : '#6B7280'
+                color: stage.color || '#6B7280'
             };
         });
 
@@ -44,7 +47,7 @@ export function ProjectWorkflowAnalytics({ projects }: ProjectWorkflowAnalyticsP
         const bottlenecks = stageDistribution
             .filter(stage => stage.count > 0)
             .map(stage => {
-                const stageProjects = projects.filter(p => (p.current_stage || p.status) === stage.name.toLowerCase().replace(/\s+/g, '_'));
+                const stageProjects = projects.filter(p => p.current_stage?.name === stage.name);
                 const avgDaysInStage = stageProjects.length > 0
                     ? stageProjects.reduce((sum, p) => sum + (p.days_in_stage || 0), 0) / stageProjects.length
                     : 0;
@@ -66,9 +69,9 @@ export function ProjectWorkflowAnalytics({ projects }: ProjectWorkflowAnalyticsP
         ];
 
         // Calculate workflow efficiency metrics
-        const completedProjects = projects.filter(p => (p.current_stage || p.status) === 'shipped_closed');
+        const completedProjects = projects.filter(p => p.status === 'completed' || p.current_stage?.slug === 'shipped_closed');
         const activeProjects = projects.filter(p => p.status === 'active');
-        const delayedProjects = projects.filter(p => p.status === 'delayed' || p.days_in_stage > 14);
+        const delayedProjects = projects.filter(p => p.status === 'delayed' || (p.days_in_stage && p.days_in_stage > 14));
 
         const totalValue = projects.reduce((sum, p) => sum + (p.estimated_value || 0), 0);
         const completedValue = completedProjects.reduce((sum, p) => sum + (p.estimated_value || 0), 0);

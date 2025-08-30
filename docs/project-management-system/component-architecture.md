@@ -15,7 +15,7 @@ graph TB
     end
     
     subgraph "Component Layer"
-        D[ProjectTable]
+        D[Projects Table View]
         E[ProjectDetail Components]
         F[ProjectIntakeForm]
         G[WorkflowStepper]
@@ -64,17 +64,19 @@ graph TB
 
 ## Core Components
 
-### ProjectTable Component
+### Projects Table View
 
-**Purpose**: Main project listing with sorting, filtering, and bulk operations
+**Purpose**: Simplified project listing with filtering and basic information display
 
-**Location**: `src/components/project/ProjectTable.tsx`
+**Location**: `src/pages/Projects.tsx` (Table tab implementation)
 
-**Props Interface**:
-```typescript
-interface ProjectTableProps {
-  projects: Project[];
-  loading?: boolean;
+**Implementation**: Direct HTML table with Tailwind CSS styling for better performance and maintainability
+
+**Features**:
+- Project type filtering
+- Responsive design with overflow handling
+- Status and type badges
+- Currency formatting for estimated values
   onProjectSelect?: (project: Project) => void;
   onStatusChange?: (projectId: string, status: ProjectStatus) => void;
   onStageChange?: (projectId: string, stageId: string) => void;
@@ -86,7 +88,7 @@ interface ProjectTableProps {
 **Data Flow**:
 ```mermaid
 sequenceDiagram
-    participant PT as ProjectTable
+    participant PT as Projects Table View
     participant UP as useProjects
     participant PS as projectService
     participant SC as Supabase Client

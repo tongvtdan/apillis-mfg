@@ -43,8 +43,9 @@ export function ProjectCalendar({ projects, projectTypeFilter = 'all' }: Project
         return filteredProjects.filter(project => {
             switch (dateDisplayMode) {
                 case 'due_date':
-                    // Only show projects on their due date
-                    return project.due_date && isSameDay(new Date(project.due_date), date);
+                    // Only show projects on their due date (use estimated_delivery_date as fallback)
+                    const dueDate = project.due_date || project.estimated_delivery_date;
+                    return dueDate && isSameDay(new Date(dueDate), date);
 
                 case 'created_date':
                     // Only show projects on their creation date
@@ -121,10 +122,11 @@ export function ProjectCalendar({ projects, projectTypeFilter = 'all' }: Project
 
     // Check if project is overdue
     const isProjectOverdue = (project: Project) => {
-        if (!project.due_date) return false;
-        const dueDate = new Date(project.due_date);
+        const dueDate = project.due_date || project.estimated_delivery_date;
+        if (!dueDate) return false;
+        const dueDateObj = new Date(dueDate);
         const today = new Date();
-        return dueDate < today && project.current_stage !== 'shipped_closed';
+        return dueDateObj < today && project.current_stage_legacy !== 'shipped_closed' && project.status !== 'completed';
     };
 
     return (
@@ -266,22 +268,22 @@ export function ProjectCalendar({ projects, projectTypeFilter = 'all' }: Project
 
                                                             {/* Project Status and Priority */}
                                                             <div className="flex items-center gap-1 mb-1">
-                                                <Badge
-                                                    variant="outline"
-                                                    className={`text-xs ${getProjectStatusColor(project.current_stage)}`}
-                                                >
-                                                    {PROJECT_STAGES.find(s => s.id === project.current_stage)?.name || project.current_stage}
-                                                </Badge>
                                                                 <Badge
                                                                     variant="outline"
-                                                                    className={`text-xs ${getPriorityColor(project.priority)}`}
+                                                                    className={`text-xs ${getProjectStatusColor(project.current_stage_legacy || 'inquiry_received')}`}
                                                                 >
-                                                                    {project.priority}
+                                                                    {project.current_stage?.name || PROJECT_STAGES.find(s => s.id === project.current_stage_legacy)?.name || 'Unknown'}
+                                                                </Badge>
+                                                                <Badge
+                                                                    variant="outline"
+                                                                    className={`text-xs ${getPriorityColor(project.priority_level || project.priority || 'medium')}`}
+                                                                >
+                                                                    {project.priority_level || project.priority || 'medium'}
                                                                 </Badge>
                                                             </div>
 
                                                             {/* Due Date Indicator */}
-                                                            {project.due_date && (
+                                                            {(project.due_date || project.estimated_delivery_date) && (
                                                                 <div className="flex items-center gap-1 text-xs">
                                                                     {isProjectOverdue(project) ? (
                                                                         <AlertCircle className="h-3 w-3 text-red-500" />
@@ -289,7 +291,7 @@ export function ProjectCalendar({ projects, projectTypeFilter = 'all' }: Project
                                                                         <Clock className="h-3 w-3 text-blue-500" />
                                                                     )}
                                                                     <span className={isProjectOverdue(project) ? 'text-red-600 font-medium' : 'text-muted-foreground'}>
-                                                                        {format(new Date(project.due_date), 'MMM d')}
+                                                                        {format(new Date(project.due_date || project.estimated_delivery_date!), 'MMM d')}
                                                                     </span>
                                                                 </div>
                                                             )}

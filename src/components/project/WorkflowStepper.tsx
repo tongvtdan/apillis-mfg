@@ -155,7 +155,14 @@ export const WorkflowStepper = React.memo(({ project }: WorkflowStepperProps) =>
     const loadWorkflowStages = async () => {
       try {
         const stages = await workflowStageService.getWorkflowStages();
-        setWorkflowStages(stages);
+        // Sort stages by stage_order and add computed order_index for compatibility
+        const sortedStages = stages
+          .sort((a, b) => a.stage_order - b.stage_order)
+          .map((stage, index) => ({
+            ...stage,
+            order_index: index // Add computed field for compatibility
+          }));
+        setWorkflowStages(sortedStages);
       } catch (error) {
         console.error('Error loading workflow stages:', error);
         // Fallback to empty array - components will handle gracefully
@@ -178,32 +185,36 @@ export const WorkflowStepper = React.memo(({ project }: WorkflowStepperProps) =>
       };
     }
 
+    // Sort stages by stage_order to ensure correct ordering
+    const sortedStages = [...workflowStages].sort((a, b) => a.stage_order - b.stage_order);
+
     // Find current stage by ID (preferred) or by legacy mapping
     let currentStageData: WorkflowStage | null = null;
     let currentIndex = -1;
 
     if (project.current_stage_id) {
       // Use current_stage_id (UUID) to find the stage
-      currentStageData = workflowStages.find(stage => stage.id === project.current_stage_id) || null;
-      currentIndex = currentStageData ? workflowStages.indexOf(currentStageData) : -1;
+      currentStageData = sortedStages.find(stage => stage.id === project.current_stage_id) || null;
+      currentIndex = currentStageData ? sortedStages.indexOf(currentStageData) : -1;
     } else if (project.current_stage) {
       // Fallback to legacy current_stage mapping
       const stageName = project.current_stage;
-      currentStageData = workflowStages.find(stage =>
+      currentStageData = sortedStages.find(stage =>
+        stage.slug === stageName ||
         stage.name.toLowerCase().replace(/\s+/g, '_') === stageName ||
         stage.name === stageName
       ) || null;
-      currentIndex = currentStageData ? workflowStages.indexOf(currentStageData) : -1;
+      currentIndex = currentStageData ? sortedStages.indexOf(currentStageData) : -1;
     }
 
-    const progressPercentage = currentIndex >= 0 && workflowStages.length > 1
-      ? Math.round((currentIndex / (workflowStages.length - 1)) * 100)
+    const progressPercentage = currentIndex >= 0 && sortedStages.length > 1
+      ? Math.round((currentIndex / (sortedStages.length - 1)) * 100)
       : 0;
 
     return {
       currentIndex,
       progressPercentage,
-      totalStages: workflowStages.length,
+      totalStages: sortedStages.length,
       currentStage: currentStageData?.id || null,
       currentStageData
     };

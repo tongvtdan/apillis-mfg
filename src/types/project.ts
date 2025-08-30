@@ -49,35 +49,35 @@ export interface WorkflowStage {
   id: string;
   name: string;
   description?: string;
-  order_index: number;
+  slug: string;
+  stage_order: number;
+  color?: string;
+  exit_criteria?: string;
+  responsible_roles?: string[];
   is_active: boolean;
-  estimated_duration_days?: number;
-  required_approvals?: any[];
-  auto_advance_conditions?: Record<string, any>;
+  organization_id?: string;
   created_at: string;
   updated_at: string;
 
-  // Legacy fields for backward compatibility - to be gradually removed
-  organization_id?: string;
-  slug?: string;
-  color?: string;
-  stage_order?: number;
-  exit_criteria?: string;
-  responsible_roles?: string[];
+  // Computed fields for compatibility
+  order_index?: number; // Computed from stage_order
+  estimated_duration_days?: number;
+  required_approvals?: any[];
+  auto_advance_conditions?: Record<string, any>;
 }
 
 export interface Project {
   // Core database fields - must match database schema exactly
   id: string;
-  organization_id: string;
+  organization_id?: string;
   project_id: string; // P-25082001 format
   title: string;
   description?: string;
   customer_id?: string;
   current_stage_id?: string;
   status: ProjectStatus;
-  priority_level: ProjectPriority;
-  source: string;
+  priority_level?: ProjectPriority;
+  source?: string;
   assigned_to?: string;
   created_by?: string;
   estimated_value?: number;
@@ -87,7 +87,9 @@ export interface Project {
   project_type?: string;
   notes?: string;
   created_at: string;
-  updated_at: string;
+  updated_at?: string;
+  estimated_delivery_date?: string;
+  actual_delivery_date?: string;
 
   // Computed/joined fields (not in database)
   customer?: Contact;
@@ -97,13 +99,11 @@ export interface Project {
 
   // Calculated fields
   days_in_stage?: number;
+  due_date?: string; // Computed from estimated_delivery_date
 
   // Legacy fields for backward compatibility - to be gradually removed
   current_stage_legacy?: ProjectStage;
-  priority?: ProjectPriority;
-  estimated_delivery_date?: string;
-  actual_delivery_date?: string;
-  due_date?: string;
+  priority?: ProjectPriority; // Maps to priority_level
   assignee_id?: string;
   estimated_completion?: string;
   actual_completion?: string;

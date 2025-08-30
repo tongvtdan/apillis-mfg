@@ -106,21 +106,21 @@ export function useProjects() {
         `);
 
       // Apply filters if provided
-      if (filters?.status) {
-        query = query.eq('status', filters.status);
+      if (options?.status) {
+        query = query.eq('status', options.status);
       }
-      if (filters?.priority) {
-        query = query.eq('priority_level', filters.priority);
+      if (options?.priority) {
+        query = query.eq('priority_level', options.priority);
       }
 
       // Apply ordering and pagination
       query = query.order('created_at', { ascending: false });
 
-      if (filters?.limit) {
-        query = query.limit(filters.limit);
+      if (options?.limit) {
+        query = query.limit(options.limit);
       }
-      if (filters?.offset) {
-        query = query.range(filters.offset, filters.offset + (filters.limit || 50) - 1);
+      if (options?.offset) {
+        query = query.range(options.offset, options.offset + (options.limit || 50) - 1);
       }
 
       const { data, error: fetchError } = await query;
@@ -147,15 +147,23 @@ export function useProjects() {
         // Calculate days in stage if stage_entered_at exists
         days_in_stage: project.stage_entered_at
           ? Math.floor((new Date().getTime() - new Date(project.stage_entered_at).getTime()) / (1000 * 60 * 60 * 24))
-          : undefined
+          : undefined,
+        // Add computed fields for compatibility
+        due_date: project.estimated_delivery_date, // Map estimated_delivery_date to due_date for compatibility
+        priority: project.priority_level, // Map priority_level to priority for legacy compatibility
+        // Add order_index to current_stage if it exists
+        current_stage: project.current_stage ? {
+          ...project.current_stage,
+          order_index: project.current_stage.stage_order
+        } : undefined
       }));
 
       setProjects(mappedProjects as Project[]);
 
       // Cache the data appropriately
-      if (filters) {
+      if (options) {
         // Cache filtered results with query-specific key
-        const queryKey = cacheService.generateQueryKey(filters);
+        const queryKey = cacheService.generateQueryKey(options);
         cacheService.setQueryResult(queryKey, mappedProjects as Project[]);
       } else {
         // Cache full dataset in main cache
@@ -574,14 +582,20 @@ export function useProjects() {
   };
 
   // Optimistic update for project status (for UI updates before database confirmation)
-  const updateProjectStatusOptimistic = (projectId: string, newStatus: ProjectStatus) => {
-    setProjects(prev =>
-      prev.map(project =>
-        project.id === projectId
-          ? { ...project, status: newStatus }
-          : project
-      )
-    );
+  const updateProjectStatusOptimistic = async (projectId: string, newStatus: ProjectStatus): Promise<boolean> => {
+    try {
+      setProjects(prev =>
+        prev.map(project =>
+          project.id === projectId
+            ? { ...project, status: newStatus }
+            : project
+        )
+      );
+      return true;
+    } catch (error) {
+      console.error('Error in optimistic update:', error);
+      return false;
+    }
   };
 
   // Manual refetch function

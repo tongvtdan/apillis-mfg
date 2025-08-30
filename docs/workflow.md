@@ -225,9 +225,10 @@ Extended to include workflow validation before any status updates:
 - Visual indicators for validation errors
 - **🆕 Auto-advance detection and execution**
 
-#### Table View (`src/components/project/ProjectTable.tsx`)
-- Dropdown-based status changes
-- Validation feedback through toast notifications
+#### Table View (Projects Page - Table Tab)
+- Simplified HTML table implementation for better performance
+- Basic project information display with filtering
+- Status and type badges for visual clarity
 - **🆕 Manager bypass integration**
 
 ## Exit Criteria

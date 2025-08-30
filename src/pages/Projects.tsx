@@ -1,16 +1,14 @@
 import React from "react";
-import { ProjectTable } from "@/components/project/ProjectTable";
-import { StageFlowchart } from "@/components/project/StageFlowchart";
-import { ProjectCalendar } from "@/components/project/ProjectCalendar";
+
 
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Button } from "@/components/ui/button";
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { Badge } from "@/components/ui/badge";
 import { useProjects } from "@/hooks/useProjects";
-import { ProjectStatus, ProjectType, PROJECT_TYPE_LABELS, Project } from "@/types/project";
-import { WorkflowFlowchart } from "@/components/project/WorkflowFlowchart";
-import { ProjectWorkflowAnalytics } from "@/components/project/ProjectWorkflowAnalytics";
-import { EnhancedProjectSummary } from "@/components/project/EnhancedProjectSummary";
+import { ProjectType, PROJECT_TYPE_LABELS, Project, WorkflowStage } from "@/types/project";
+
 import { useSearchParams } from "react-router-dom";
 import { ProjectErrorBoundary } from "@/components/error/ProjectErrorBoundary";
 import { DatabaseErrorHandler } from "@/components/error/DatabaseErrorHandler";
@@ -41,10 +39,10 @@ export default function Projects() {
     }
   });
 
-  const [selectedStage, setSelectedStage] = React.useState<ProjectStatus | null>(() => {
-    // Try to restore from localStorage, default to 'inquiry_received' if none found
+  const [selectedStage, setSelectedStage] = React.useState<string | null>(() => {
+    // Try to restore from localStorage, default to first stage if none found
     const saved = localStorage.getItem('projects-selected-stage');
-    return saved ? (saved as ProjectStatus) : 'inquiry_received';
+    return saved || null;
   });
 
   const [selectedProjectType, setSelectedProjectType] = React.useState<ProjectType | 'all'>('all');
@@ -74,44 +72,53 @@ export default function Projects() {
   };
 
   // Save selected stage to localStorage whenever it changes
-  const handleStageSelect = React.useCallback((stage: ProjectStatus | null) => {
-    setSelectedStage(stage);
-    if (stage) {
-      localStorage.setItem('projects-selected-stage', stage);
+  const handleStageSelect = React.useCallback((stageId: string | null) => {
+    setSelectedStage(stageId);
+    if (stageId) {
+      localStorage.setItem('projects-selected-stage', stageId);
     } else {
       localStorage.removeItem('projects-selected-stage');
     }
   }, []);
 
-  const activeProjects = projects.filter(p => p.status !== 'shipped_closed');
+  const activeProjects = projects.filter(p => p.status !== 'completed');
 
-  // Calculate stage counts
-  const stageCounts = React.useMemo(() => {
-    const counts: Record<ProjectStatus, number> = {
-      inquiry_received: 0,
-      technical_review: 0,
-      supplier_rfq_sent: 0,
-      quoted: 0,
-      order_confirmed: 0,
-      procurement_planning: 0,
-      in_production: 0,
-      shipped_closed: 0
-    };
+  // Get unique workflow stages from projects
+  const workflowStages = React.useMemo(() => {
+    const stagesMap = new Map<string, WorkflowStage>();
 
     projects.forEach(project => {
-      const currentStage = project.current_stage || project.status;
-      if (currentStage in counts) {
-        counts[currentStage as ProjectStatus] = (counts[currentStage as ProjectStatus] || 0) + 1;
+      if (project.current_stage) {
+        stagesMap.set(project.current_stage.id, project.current_stage);
+      }
+    });
+
+    return Array.from(stagesMap.values()).sort((a, b) => (a.stage_order || 0) - (b.stage_order || 0));
+  }, [projects]);
+
+  // Calculate stage counts by current_stage_id
+  const stageCounts = React.useMemo(() => {
+    const counts: Record<string, number> = {};
+
+    // Initialize counts for all workflow stages
+    workflowStages.forEach(stage => {
+      counts[stage.id] = 0;
+    });
+
+    // Count projects by current_stage_id
+    projects.forEach(project => {
+      if (project.current_stage_id && counts.hasOwnProperty(project.current_stage_id)) {
+        counts[project.current_stage_id]++;
       }
     });
 
     return counts;
-  }, [projects]);
+  }, [projects, workflowStages]);
 
   // Get projects for selected stage with type filtering
   const selectedStageProjects = React.useMemo(() => {
     if (!selectedStage) return [];
-    let filtered = projects.filter(p => (p.current_stage || p.status) === selectedStage);
+    let filtered = projects.filter(p => p.current_stage_id === selectedStage);
 
     // Apply project type filter
     if (selectedProjectType !== 'all') {
@@ -287,16 +294,68 @@ export default function Projects() {
 
           <TabsContent value="flowchart" className="mt-4 space-y-6">
             <ProjectErrorBoundary context="Workflow Flowchart">
-              <WorkflowFlowchart
-                selectedProject={selectedProject}
-                onProjectSelect={setSelectedProject}
-                onStageSelect={handleStageSelect}
-                selectedStage={selectedStage}
-                projectTypeFilter={selectedProjectType}
-                projects={projects}
-                updateProjectStatusOptimistic={updateProjectStatusOptimistic}
-                refetch={() => refetch(true)}
-              />
+              <div className="space-y-6">
+                {/* Workflow Stages Overview */}
+                <div className="grid grid-cols-1 md:grid-cols-4 lg:grid-cols-8 gap-4">
+                  {workflowStages.map((stage) => (
+                    <Card
+                      key={stage.id}
+                      className={`cursor-pointer transition-all hover:shadow-md ${selectedStage === stage.id ? 'ring-2 ring-primary' : ''
+                        }`}
+                      onClick={() => handleStageSelect(stage.id)}
+                    >
+                      <CardContent className="p-4">
+                        <div className="text-center">
+                          <h3 className="font-semibold text-sm mb-2">{stage.name}</h3>
+                          <Badge variant="secondary" className="text-lg font-bold">
+                            {stageCounts[stage.id] || 0}
+                          </Badge>
+                          <p className="text-xs text-muted-foreground mt-1">projects</p>
+                        </div>
+                      </CardContent>
+                    </Card>
+                  ))}
+                </div>
+
+                {/* Selected Stage Projects */}
+                {selectedStage && (
+                  <Card>
+                    <CardHeader>
+                      <CardTitle>
+                        {workflowStages.find(s => s.id === selectedStage)?.name} Projects
+                      </CardTitle>
+                      <CardDescription>
+                        {selectedStageProjects.length} projects in this stage
+                      </CardDescription>
+                    </CardHeader>
+                    <CardContent>
+                      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                        {selectedStageProjects.map((project) => (
+                          <Card key={project.id} className="cursor-pointer hover:shadow-md">
+                            <CardContent className="p-4">
+                              <h4 className="font-semibold mb-2">{project.title}</h4>
+                              <p className="text-sm text-muted-foreground mb-2">{project.project_id}</p>
+                              <div className="flex justify-between items-center">
+                                <Badge variant="outline">{project.project_type}</Badge>
+                                <Badge
+                                  variant={project.status === 'active' ? 'default' : 'secondary'}
+                                >
+                                  {project.status}
+                                </Badge>
+                              </div>
+                              {project.estimated_value && (
+                                <p className="text-sm mt-2">
+                                  Value: ${project.estimated_value.toLocaleString()}
+                                </p>
+                              )}
+                            </CardContent>
+                          </Card>
+                        ))}
+                      </div>
+                    </CardContent>
+                  </Card>
+                )}
+              </div>
             </ProjectErrorBoundary>
           </TabsContent>
 
@@ -311,23 +370,166 @@ export default function Projects() {
                   }
                 </p>
               </div>
-              <ProjectTable
-                projects={activeProjects}
-                updateProjectStatusOptimistic={updateProjectStatusOptimistic}
-                refetch={() => refetch(true)}
-              />
+
+              {/* Simple table for now - will enhance later */}
+              <div className="overflow-x-auto">
+                <table className="w-full border-collapse border border-gray-300">
+                  <thead>
+                    <tr className="bg-gray-50">
+                      <th className="border border-gray-300 px-4 py-2 text-left">Project ID</th>
+                      <th className="border border-gray-300 px-4 py-2 text-left">Title</th>
+                      <th className="border border-gray-300 px-4 py-2 text-left">Status</th>
+                      <th className="border border-gray-300 px-4 py-2 text-left">Stage</th>
+                      <th className="border border-gray-300 px-4 py-2 text-left">Type</th>
+                      <th className="border border-gray-300 px-4 py-2 text-left">Value</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {activeProjects
+                      .filter(p => selectedProjectType === 'all' || p.project_type === selectedProjectType)
+                      .map((project) => (
+                        <tr key={project.id} className="hover:bg-gray-50">
+                          <td className="border border-gray-300 px-4 py-2">{project.project_id}</td>
+                          <td className="border border-gray-300 px-4 py-2">{project.title}</td>
+                          <td className="border border-gray-300 px-4 py-2">
+                            <Badge variant={project.status === 'active' ? 'default' : 'secondary'}>
+                              {project.status}
+                            </Badge>
+                          </td>
+                          <td className="border border-gray-300 px-4 py-2">
+                            {project.current_stage?.name || 'No stage'}
+                          </td>
+                          <td className="border border-gray-300 px-4 py-2">
+                            <Badge variant="outline">{project.project_type}</Badge>
+                          </td>
+                          <td className="border border-gray-300 px-4 py-2">
+                            {project.estimated_value ? `$${project.estimated_value.toLocaleString()}` : '-'}
+                          </td>
+                        </tr>
+                      ))}
+                  </tbody>
+                </table>
+              </div>
             </div>
           </TabsContent>
 
           <TabsContent value="analytics" className="mt-4 space-y-6">
             <ProjectErrorBoundary context="Project Analytics">
-              <ProjectWorkflowAnalytics />
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+                {/* Project Status Summary */}
+                <Card>
+                  <CardHeader>
+                    <CardTitle>Project Status</CardTitle>
+                  </CardHeader>
+                  <CardContent>
+                    <div className="space-y-2">
+                      <div className="flex justify-between">
+                        <span>Active</span>
+                        <Badge>{projects.filter(p => p.status === 'active').length}</Badge>
+                      </div>
+                      <div className="flex justify-between">
+                        <span>On Hold</span>
+                        <Badge variant="secondary">{projects.filter(p => p.status === 'on_hold').length}</Badge>
+                      </div>
+                      <div className="flex justify-between">
+                        <span>Delayed</span>
+                        <Badge variant="destructive">{projects.filter(p => p.status === 'delayed').length}</Badge>
+                      </div>
+                      <div className="flex justify-between">
+                        <span>Completed</span>
+                        <Badge variant="outline">{projects.filter(p => p.status === 'completed').length}</Badge>
+                      </div>
+                    </div>
+                  </CardContent>
+                </Card>
+
+                {/* Project Types */}
+                <Card>
+                  <CardHeader>
+                    <CardTitle>Project Types</CardTitle>
+                  </CardHeader>
+                  <CardContent>
+                    <div className="space-y-2">
+                      <div className="flex justify-between">
+                        <span>System Build</span>
+                        <Badge>{projects.filter(p => p.project_type === 'system_build').length}</Badge>
+                      </div>
+                      <div className="flex justify-between">
+                        <span>Fabrication</span>
+                        <Badge>{projects.filter(p => p.project_type === 'fabrication').length}</Badge>
+                      </div>
+                      <div className="flex justify-between">
+                        <span>Manufacturing</span>
+                        <Badge>{projects.filter(p => p.project_type === 'manufacturing').length}</Badge>
+                      </div>
+                    </div>
+                  </CardContent>
+                </Card>
+
+                {/* Workflow Stages */}
+                <Card>
+                  <CardHeader>
+                    <CardTitle>Workflow Stages</CardTitle>
+                  </CardHeader>
+                  <CardContent>
+                    <div className="space-y-2">
+                      {workflowStages.slice(0, 4).map((stage) => (
+                        <div key={stage.id} className="flex justify-between">
+                          <span className="text-sm">{stage.name}</span>
+                          <Badge variant="outline">{stageCounts[stage.id] || 0}</Badge>
+                        </div>
+                      ))}
+                    </div>
+                  </CardContent>
+                </Card>
+
+                {/* Total Value */}
+                <Card>
+                  <CardHeader>
+                    <CardTitle>Total Value</CardTitle>
+                  </CardHeader>
+                  <CardContent>
+                    <div className="text-2xl font-bold">
+                      ${projects
+                        .filter(p => p.estimated_value)
+                        .reduce((sum, p) => sum + (p.estimated_value || 0), 0)
+                        .toLocaleString()}
+                    </div>
+                    <p className="text-sm text-muted-foreground">
+                      Across {projects.filter(p => p.estimated_value).length} projects
+                    </p>
+                  </CardContent>
+                </Card>
+              </div>
             </ProjectErrorBoundary>
           </TabsContent>
 
           <TabsContent value="calendar" className="mt-4 space-y-6">
             <ProjectErrorBoundary context="Project Calendar">
-              <ProjectCalendar projects={projects} />
+              <Card>
+                <CardHeader>
+                  <CardTitle>Project Calendar</CardTitle>
+                  <CardDescription>Calendar view of projects (Coming Soon)</CardDescription>
+                </CardHeader>
+                <CardContent>
+                  <p className="text-muted-foreground">
+                    Calendar view will be available after component updates are completed.
+                  </p>
+                  <div className="mt-4 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                    {projects.slice(0, 6).map((project) => (
+                      <Card key={project.id}>
+                        <CardContent className="p-4">
+                          <h4 className="font-semibold mb-2">{project.title}</h4>
+                          <p className="text-sm text-muted-foreground mb-2">{project.project_id}</p>
+                          <p className="text-xs text-muted-foreground">
+                            Created: {new Date(project.created_at).toLocaleDateString()}
+                          </p>
+                        </CardContent>
+                      </Card>
+                    ))}
+                  </div>
+                </CardContent>
+              </Card>
             </ProjectErrorBoundary>
           </TabsContent>
         </Tabs>

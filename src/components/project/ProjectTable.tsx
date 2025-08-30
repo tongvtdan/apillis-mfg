@@ -160,14 +160,14 @@ export function ProjectTable({ projects, updateProjectStatusOptimistic: external
           bValue = b.title.toLowerCase();
           break;
         case 'stage':
-          // Use current_stage from joined data or current_stage_id
-          aValue = a.current_stage?.name || PROJECT_STAGES.find(s => s.id === a.current_stage_legacy)?.name || 'Unknown';
-          bValue = b.current_stage?.name || PROJECT_STAGES.find(s => s.id === b.current_stage_legacy)?.name || 'Unknown';
+          // Use current_stage from joined data or fallback to 'Unknown'
+          aValue = a.current_stage?.name || 'Unknown';
+          bValue = b.current_stage?.name || 'Unknown';
           break;
         case 'priority':
-          // Use priority_level (database field) instead of priority
-          aValue = a.priority_level;
-          bValue = b.priority_level;
+          // Use priority_level (database field) or fallback to priority for compatibility
+          aValue = a.priority_level || a.priority || 'medium';
+          bValue = b.priority_level || b.priority || 'medium';
           break;
         default:
           aValue = a.title.toLowerCase();

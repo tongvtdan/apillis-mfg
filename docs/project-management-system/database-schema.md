@@ -84,7 +84,7 @@ CREATE TABLE workflow_stages (
     name VARCHAR(100) NOT NULL,
     description TEXT,
     color VARCHAR(7) DEFAULT '#6B7280',
-    order_index INTEGER NOT NULL,
+    stage_order INTEGER NOT NULL,
     is_active BOOLEAN DEFAULT true,
     stage_type VARCHAR(50) DEFAULT 'standard',
     exit_criteria JSONB DEFAULT '{}',
@@ -100,7 +100,7 @@ interface WorkflowStage {
   name: string;
   description?: string;
   color: string;
-  order_index: number;
+  stage_order: number;
   is_active: boolean;
   stage_type: string;
   exit_criteria?: Record<string, any>;
