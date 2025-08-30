@@ -53,11 +53,10 @@ Used in: `projects.status`
 
 ```sql
 'active'       -- Project is active and progressing
-'delayed'      -- Project is behind schedule
 'on_hold'      -- Project temporarily paused
+'delayed'      -- Project is behind schedule
 'cancelled'    -- Project cancelled
 'completed'    -- Project successfully completed
-'archived'     -- Project completed and archived
 ```
 
 Used in: `projects.priority_level`

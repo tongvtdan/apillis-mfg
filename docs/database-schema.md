@@ -145,7 +145,7 @@ CREATE TABLE projects (
     customer_id UUID REFERENCES contacts(id),
     current_stage_id UUID REFERENCES workflow_stages(id),
     status VARCHAR(20) NOT NULL DEFAULT 'active' 
-      CHECK (status IN ('active', 'delayed', 'on_hold', 'cancelled', 'completed', 'archived')),
+      CHECK (status IN ('active', 'on_hold', 'delayed', 'cancelled', 'completed')),
     priority_score INTEGER DEFAULT 50 CHECK (priority_score BETWEEN 0 AND 100),
     priority_level VARCHAR(10) DEFAULT 'medium' 
       CHECK (priority_level IN ('low', 'medium', 'high', 'urgent', 'critical')),
