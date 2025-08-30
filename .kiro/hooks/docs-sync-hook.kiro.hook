@@ -1,0 +1,25 @@
+{
+  "enabled": true,
+  "name": "Documentation Sync",
+  "description": "Monitors TypeScript source files, configuration files, and database migrations for changes, then updates documentation in MEMORY.md and /docs folder with a summary commit message",
+  "version": "1",
+  "when": {
+    "type": "fileEdited",
+    "patterns": [
+      "src/**/*.tsx",
+      "src/**/*.ts",
+      "supabase/migrations/*.sql",
+      "package.json",
+      "tsconfig.json",
+      "vite.config.ts",
+      "tailwind.config.ts",
+      "components.json",
+      "dataconnect/**/*.yaml",
+      "dataconnect/**/*.gql"
+    ]
+  },
+  "then": {
+    "type": "askAgent",
+    "prompt": "Source code has been modified. Please analyze the changes and update the documentation accordingly:\n\n1. Update MEMORY.md with any significant architectural changes, new features, or important modifications\n2. If there's a /docs folder, update relevant documentation files there as well\n3. Focus on documenting:\n   - New components or major component changes\n   - Database schema changes (migrations)\n   - New API endpoints or services\n   - Configuration changes\n   - New dependencies or build system changes\n4. Generate a concise git commit message summarizing the documentation updates\n\nPlease provide both the documentation updates and a suggested commit message for the changes."
+  }
+}
