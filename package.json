@@ -20,6 +20,12 @@
         "seed:projects": "node scripts/05-seed-projects.js",
         "seed:projects:force": "node scripts/05-seed-projects.js --force",
         "seed:projects:fix": "node scripts/05-seed-projects.js --fix-relationships",
+        "seed:purchase-orders": "node scripts/11-seed-purchase-orders.js",
+        "seed:purchase-orders:force": "node scripts/11-seed-purchase-orders.js --force",
+        "seed:production-orders": "node scripts/12-seed-production-orders.js",
+        "seed:production-orders:force": "node scripts/12-seed-production-orders.js --force",
+        "seed:inventory": "node scripts/13-seed-inventory.js",
+        "seed:inventory:force": "node scripts/13-seed-inventory.js --force",
         "test:auth": "node scripts/test-auth-signin.js",
         "test:auth:verbose": "node scripts/test-auth-signin.js --verbose"
     },
