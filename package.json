@@ -17,7 +17,9 @@
         "create:auth-users": "node scripts/01-create-auth-users.js",
         "seed:projects": "node scripts/05-seed-projects.js",
         "seed:projects:force": "node scripts/05-seed-projects.js --force",
-        "seed:projects:fix": "node scripts/05-seed-projects.js --fix-relationships"
+        "seed:projects:fix": "node scripts/05-seed-projects.js --fix-relationships",
+        "test:auth": "node scripts/test-auth-signin.js",
+        "test:auth:verbose": "node scripts/test-auth-signin.js --verbose"
     },
     "dependencies": {
         "@supabase/supabase-js": "^2.39.0",
