@@ -17,7 +17,10 @@
         "seed:workflow-sub-stages": "node scripts/02a-seed-workflow-sub-stages.js",
         "seed:workflow-sub-stages:force": "node scripts/02a-seed-workflow-sub-stages.js --force",
         "create:auth-users": "node scripts/create-auth-users.js",
-        "update:auth-display-names": "node scripts/update-auth-display-names.js"
+        "update:auth-display-names": "node scripts/update-auth-display-names.js",
+        "seed:projects": "node scripts/05-seed-projects.js",
+        "seed:projects:force": "node scripts/05-seed-projects.js --force",
+        "seed:projects:fix": "node scripts/05-seed-projects.js --fix-relationships"
     },
     "dependencies": {
         "@supabase/supabase-js": "^2.39.0",

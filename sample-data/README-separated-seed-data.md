@@ -104,9 +104,11 @@ When importing the seed data, follow this order to maintain referential integrit
 - **1 IT**: System Administrator
 
 ### Projects
-- **7 Active Projects**: Automotive, Motorcycle, Aerospace, Electronics, Industrial, Medical, Solar
-- **Multiple Industries**: Automotive, Aerospace, Electronics, Medical, Renewable Energy
+- **17 Active Projects**: Automotive, Motorcycle, Aerospace, Electronics, Industrial, Medical, Solar, Robotics, Defense, Renewable Energy
+- **Multiple Industries**: Automotive, Aerospace, Electronics, Medical, Renewable Energy, Defense, Robotics
 - **Various Stages**: From Inquiry to Production
+- **Priority Levels**: Low, Medium, High, Critical
+- **Project Types**: Fabrication, System Build, Manufacturing
 
 ### Documents
 - **8 Documents**: Drawings, Specifications, Certificates
@@ -117,9 +119,14 @@ When importing the seed data, follow this order to maintain referential integrit
 
 ### For Development
 ```bash
-# Import in order using Supabase CLI
-supabase db reset --db-url postgresql://postgres:password@localhost:54322/postgres
-# Then import each file in sequence
+# Seed projects using the provided script
+npm run seed:projects
+
+# Or with relationship fixing if needed
+npm run seed:projects:fix
+
+# Or force overwrite existing data
+npm run seed:projects:force
 ```
 
 ### For Testing
