@@ -2,6 +2,40 @@
 
 ## Recent Changes
 
+### 2025-08-31 - Package.json Cleanup and Script Organization
+
+**Changes Made:**
+- **Package.json Cleanup**: Removed unnecessary and non-existent scripts to maintain clean project structure
+- **Script Organization**: Standardized script naming and removed debug/temporary scripts
+- **Script Validation**: Ensured all referenced scripts actually exist and are functional
+
+**Removed Scripts:**
+- `migrate:users` - Referenced non-existent `scripts/migrate-users.js`
+- `verify:organizations` - Referenced non-existent `scripts/verify-organizations.js`
+- `update:auth-display-names` - Referenced non-existent `scripts/update-auth-display-names.js`
+
+**Removed Debug Files:**
+- `scripts/fix-priority-levels.js` - Empty debug script (0 bytes)
+- `scripts/fix-project-data.js` - Empty debug script (0 bytes)
+
+**Script Corrections:**
+- Fixed `seed:organizations` to reference correct file: `01-seed-organizations.js`
+- Fixed `create:auth-users` to reference correct file: `01-create-auth-users.js`
+
+**Current Script Structure:**
+- **Development**: `dev`, `build`, `build:dev`, `preview`, `lint`
+- **Data Seeding**: `seed:organizations`, `seed:workflow-stages`, `seed:workflow-sub-stages`, `seed:projects`
+- **Auth Management**: `create:auth-users`
+- **Force Options**: All seeding scripts have `:force` variants for overwriting
+- **Special Features**: `seed:projects:fix` for relationship fixing
+
+**Benefits:**
+- ✅ **Clean Structure**: Only functional scripts remain
+- ✅ **No Broken References**: All scripts referenced actually exist
+- ✅ **Consistent Naming**: Script names match actual file names
+- ✅ **Maintainable**: Easy to understand and maintain script collection
+- ✅ **Production Ready**: No debug or temporary scripts cluttering the project
+
 ### 2025-08-31 - Project Data Seeding System
 
 **Changes Made:**
