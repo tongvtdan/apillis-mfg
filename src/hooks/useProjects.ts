@@ -21,18 +21,22 @@ export function useProjects() {
   const [projects, setProjects] = useState<Project[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  const { user } = useAuth();
+  const { user, profile } = useAuth(); // Also get profile
   const { toast } = useToast();
   const realtimeChannelRef = useRef<any>(null);
 
   const fetchProjects = async (forceRefresh = false, options?: ProjectQueryOptions) => {
-    if (!user) {
+    // Check if user is authenticated and has a profile with organization
+    if (!user || !profile?.organization_id) {
+      console.log('⚠️ No authenticated user or organization, returning empty projects array');
       setProjects([]);
       setLoading(false);
       return;
     }
 
     try {
+      console.log('🔍 Fetching projects for user:', user.id, 'organization:', profile.organization_id);
+
       // Check cache based on whether options are applied
       if (!forceRefresh) {
         if (options && Object.keys(options).length > 0) {
@@ -41,6 +45,7 @@ export function useProjects() {
           if (cacheService.isQueryCacheValid(queryKey)) {
             const cachedResult = cacheService.getQueryResult(queryKey);
             if (cachedResult) {
+              console.log('📦 Using cached query result for:', queryKey);
               setProjects(cachedResult);
               setLoading(false);
               return;
@@ -51,6 +56,7 @@ export function useProjects() {
           if (cacheService.isCacheValid() && cacheService.validateCacheConsistency()) {
             const cachedProjects = cacheService.getProjects();
             if (cachedProjects) {
+              console.log('📦 Using cached projects:', cachedProjects.length);
               setProjects(cachedProjects);
               setLoading(false);
               return;
@@ -62,7 +68,8 @@ export function useProjects() {
       setLoading(true);
       setError(null);
 
-      // Use optimized query with selective field specification
+      // Use optimized query with selective field specification and organization filtering
+      console.log('📡 Fetching projects from database...');
       let query = supabase
         .from('projects')
         .select(`
@@ -102,7 +109,8 @@ export function useProjects() {
             stage_order,
             is_active
           ) 
-        `);
+        `)
+        .eq('organization_id', profile.organization_id); // Add organization filter
 
       // Apply filters if provided
       if (options?.status) {
@@ -122,10 +130,17 @@ export function useProjects() {
         query = query.range(options.offset, options.offset + (options.limit || 50) - 1);
       }
 
-      const { data, error: fetchError } = await query;
+      const { data, error: fetchError, count } = await query;
+
+      console.log('📊 Projects query result:', {
+        dataLength: data?.length,
+        count,
+        hasError: !!fetchError,
+        error: fetchError
+      });
 
       if (fetchError) {
-        console.error('Error fetching projects:', fetchError);
+        console.error('❌ Error fetching projects:', fetchError);
         const errorMessage = fetchError.code === 'PGRST116'
           ? 'Database connection error. Please check your connection and try again.'
           : fetchError.message || 'Failed to fetch projects';
@@ -157,6 +172,7 @@ export function useProjects() {
         } : undefined
       }));
 
+      console.log('✅ Successfully mapped projects:', mappedProjects.length);
       setProjects(mappedProjects as Project[]);
 
       // Cache the data appropriately
@@ -169,7 +185,7 @@ export function useProjects() {
         cacheService.setProjects(mappedProjects as Project[]);
       }
     } catch (err) {
-      console.error('Error in fetchProjects:', err);
+      console.error('💥 Error in fetchProjects:', err);
       const errorMessage = err instanceof Error ? err.message : 'Failed to fetch projects';
       setError(errorMessage);
     } finally {
@@ -306,6 +322,12 @@ export function useProjects() {
   const getProjectById = async (id: string): Promise<Project | null> => {
     console.log('🔍 Fetching project with ID:', id);
 
+    // Check if user is authenticated and has a profile with organization
+    if (!user || !profile?.organization_id) {
+      console.log('⚠️ No authenticated user or organization, cannot fetch project');
+      return null;
+    }
+
     try {
       // First, log all projects to see what's available
       const { data: allProjects, error: allProjectsError } = await supabase
@@ -314,7 +336,8 @@ export function useProjects() {
           *,
           customer:contacts(*),
           current_stage:workflow_stages(*)
-        `);
+        `)
+        .eq('organization_id', profile.organization_id); // Add organization filter
 
       if (allProjectsError) {
         console.error('❌ Error fetching all projects:', allProjectsError);
@@ -335,6 +358,7 @@ export function useProjects() {
           current_stage:workflow_stages(*)
         `)
         .eq('id', id)
+        .eq('organization_id', profile.organization_id) // Add organization filter
         .single();
 
       if (error) {
@@ -348,6 +372,7 @@ export function useProjects() {
             current_stage:workflow_stages(*)
           `)
           .eq('project_id', id)
+          .eq('organization_id', profile.organization_id) // Add organization filter
           .single();
 
         if (altError) {
