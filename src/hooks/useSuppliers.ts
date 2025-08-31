@@ -19,7 +19,7 @@ export function useSuppliers() {
   const { toast } = useToast();
 
   const fetchSuppliers = async () => {
-    if (!user) {
+    if (!user || !profile?.organization_id) {
       setSuppliers([]);
       setLoading(false);
       return;
@@ -33,7 +33,7 @@ export function useSuppliers() {
         .from('contacts')
         .select('*')
         .eq('type', 'supplier')
-        .eq('organization_id', profile?.organization_id)
+        .eq('organization_id', profile.organization_id)
         .order('updated_at', { ascending: false });
 
       if (fetchError) {
@@ -349,7 +349,7 @@ export function useSuppliers() {
 
   const getSupplierById = async (id: string): Promise<Supplier> => {
     const { data, error } = await supabase
-      .from('suppliers')
+      .from('contacts') // Changed from 'suppliers' to 'contacts'
       .select('*')
       .eq('id', id)
       .single();
@@ -360,16 +360,16 @@ export function useSuppliers() {
 
     return {
       id: data.id,
-      name: data.name,
-      company: data.company,
+      name: data.contact_name || data.company_name, // Updated field mapping
+      company: data.company_name,
       email: data.email ?? undefined,
       phone: data.phone ?? undefined,
       address: data.address ?? undefined,
       country: data.country ?? undefined,
-      specialties: (data.capabilities || []) as any,
-      rating: Number(((data.quality_rating ?? 4) + (data.delivery_rating ?? 4) + (data.cost_rating ?? 4)) / 3),
+      specialties: (data.ai_capabilities || []) as any, // Updated field mapping
+      rating: Number(((data.ai_risk_score ?? 50) / 10) + 2), // Updated rating calculation
       response_rate: 0,
-      is_active: (data.status ?? 'active') === 'active',
+      is_active: data.is_active ?? true, // Updated field mapping
       created_at: data.created_at,
       updated_at: data.updated_at,
       total_quotes_sent: 0,
@@ -403,7 +403,7 @@ export function useSuppliers() {
     return () => {
       supabase.removeChannel(channel);
     };
-  }, [user]);
+  }, [user, profile]); // Added profile to dependency array
 
   useEffect(() => {
     // No background updates in demo

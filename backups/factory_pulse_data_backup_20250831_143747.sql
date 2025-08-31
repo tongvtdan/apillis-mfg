@@ -204,7 +204,9 @@ INSERT INTO "auth"."audit_log_entries" ("instance_id", "id", "payload", "created
 	('00000000-0000-0000-0000-000000000000', 'e65898c2-c81d-4477-8572-67f40eead5d0', '{"action":"login","actor_id":"a3b8e7b3-f0d9-4edd-abd4-ec78f3816d11","actor_name":"Võ Đình Tài","actor_username":"admin@factorypulse.vn","actor_via_sso":false,"log_type":"account","traits":{"provider":"email"}}', '2025-08-31 03:03:57.51232+00', ''),
 	('00000000-0000-0000-0000-000000000000', 'c49a8545-9867-4c39-940a-be3983a6c76d', '{"action":"token_refreshed","actor_id":"a3b8e7b3-f0d9-4edd-abd4-ec78f3816d11","actor_name":"Võ Đình Tài","actor_username":"admin@factorypulse.vn","actor_via_sso":false,"log_type":"token"}', '2025-08-31 04:07:18.761375+00', ''),
 	('00000000-0000-0000-0000-000000000000', '5f6fa2be-5602-4f68-9c9b-e886a63f60e5', '{"action":"token_revoked","actor_id":"a3b8e7b3-f0d9-4edd-abd4-ec78f3816d11","actor_name":"Võ Đình Tài","actor_username":"admin@factorypulse.vn","actor_via_sso":false,"log_type":"token"}', '2025-08-31 04:07:18.762019+00', ''),
-	('00000000-0000-0000-0000-000000000000', '80007350-bf18-4819-814e-67e2469386e1', '{"action":"login","actor_id":"a3b8e7b3-f0d9-4edd-abd4-ec78f3816d11","actor_name":"Võ Đình Tài","actor_username":"admin@factorypulse.vn","actor_via_sso":false,"log_type":"account","traits":{"provider":"email"}}', '2025-08-31 06:53:32.767889+00', '');
+	('00000000-0000-0000-0000-000000000000', '80007350-bf18-4819-814e-67e2469386e1', '{"action":"login","actor_id":"a3b8e7b3-f0d9-4edd-abd4-ec78f3816d11","actor_name":"Võ Đình Tài","actor_username":"admin@factorypulse.vn","actor_via_sso":false,"log_type":"account","traits":{"provider":"email"}}', '2025-08-31 06:53:32.767889+00', ''),
+	('00000000-0000-0000-0000-000000000000', '5c684a5e-787a-454b-ab91-94275d38994a', '{"action":"logout","actor_id":"a3b8e7b3-f0d9-4edd-abd4-ec78f3816d11","actor_name":"Võ Đình Tài","actor_username":"admin@factorypulse.vn","actor_via_sso":false,"log_type":"account"}', '2025-08-31 07:30:32.11283+00', ''),
+	('00000000-0000-0000-0000-000000000000', 'fb027cbb-16f9-493a-a6aa-efb3ecbf232b', '{"action":"login","actor_id":"a3b8e7b3-f0d9-4edd-abd4-ec78f3816d11","actor_name":"Võ Đình Tài","actor_username":"admin@factorypulse.vn","actor_via_sso":false,"log_type":"account","traits":{"provider":"email"}}', '2025-08-31 07:30:52.685725+00', '');
 
 
 --
@@ -242,7 +244,7 @@ INSERT INTO "auth"."users" ("instance_id", "id", "aud", "role", "email", "encryp
 	('00000000-0000-0000-0000-000000000000', 'da918e06-7480-4b36-8368-456db3fba638', 'authenticated', 'authenticated', 'electrical.engineer@factorypulse.vn', '$2a$10$fU9HMBc.AkTQiYTY/URJNew80EPY6HXedfocjw88I3KXuHxWYezJO', '2025-08-30 23:52:10.211199+00', NULL, '', NULL, '', NULL, '', '', NULL, '2025-08-31 02:55:38.107339+00', '{"provider": "email", "providers": ["email"]}', '{"name": "Vũ Đình Nam", "role": "engineering", "phone": "+84-28-7300-0006", "full_name": "Vũ Đình Nam", "avatar_url": "https://storage.googleapis.com/factory-pulse-assets/avatars/electrical-engineer.jpg", "department": "Engineering", "employee_id": "EMP-VDN-550e", "display_name": "Vũ Đình Nam", "email_verified": true}', NULL, '2025-08-30 23:52:10.210031+00', '2025-08-31 02:55:38.108145+00', NULL, NULL, '', '', NULL, '', 0, NULL, '', NULL, false, NULL, false),
 	('00000000-0000-0000-0000-000000000000', '550e8400-e29b-41d4-a716-446655440102', 'authenticated', 'authenticated', 'purchasing@honda.vn', '$2a$10$HeO13cli1XfYllyXgGNakOi4BvqcuvzBuVWwj4KwLhNa276uOLsEa', '2025-08-31 00:16:48.302028+00', NULL, '', NULL, '', NULL, '', '', NULL, '2025-08-31 02:55:40.477852+00', '{"provider": "email", "providers": ["email"]}', '{"name": "Trần Thị Bình", "role": "customer", "phone": "+84-28-7300-1002", "full_name": "Trần Thị Bình", "company_name": "Honda Vietnam", "contact_type": "customer", "display_name": "Trần Thị Bình", "email_verified": true}', NULL, '2025-08-31 00:16:48.300448+00', '2025-08-31 02:55:40.478958+00', NULL, NULL, '', '', NULL, '', 0, NULL, '', NULL, false, NULL, false),
 	('00000000-0000-0000-0000-000000000000', '550e8400-e29b-41d4-a716-446655440106', 'authenticated', 'authenticated', 'sales@precision-machining.vn', '$2a$10$DzT3y5YnVww6LZ9Yg3IA7eB/vK6TWIcTZYX18vnGVlB15tyqSkp/q', '2025-08-31 00:16:48.521384+00', NULL, '', NULL, '', NULL, '', '', NULL, '2025-08-31 02:55:41.33304+00', '{"provider": "email", "providers": ["email"]}', '{"name": "Trần Văn Phúc", "role": "supplier", "phone": "+84-28-7300-2001", "full_name": "Trần Văn Phúc", "company_name": "Precision Machining Co.", "contact_type": "supplier", "display_name": "Trần Văn Phúc", "email_verified": true}', NULL, '2025-08-31 00:16:48.519592+00', '2025-08-31 02:55:41.333766+00', NULL, NULL, '', '', NULL, '', 0, NULL, '', NULL, false, NULL, false),
-	('00000000-0000-0000-0000-000000000000', 'a3b8e7b3-f0d9-4edd-abd4-ec78f3816d11', 'authenticated', 'authenticated', 'admin@factorypulse.vn', '$2a$10$xvX5akXuK7C4MyV19j0BS.7wYRf63zjkOowMbqrmD.Hy88tYydutq', '2025-08-30 23:52:10.639627+00', NULL, '', NULL, '', NULL, '', '', NULL, '2025-08-31 06:53:32.768522+00', '{"provider": "email", "providers": ["email"]}', '{"name": "Võ Đình Tài", "role": "admin", "phone": "+84-28-7300-0014", "full_name": "Võ Đình Tài", "avatar_url": "https://storage.googleapis.com/factory-pulse-assets/avatars/admin.jpg", "department": "IT", "employee_id": "EMP-VDT-550e", "display_name": "Võ Đình Tài", "email_verified": true}', NULL, '2025-08-30 23:52:10.638335+00', '2025-08-31 06:53:32.769776+00', NULL, NULL, '', '', NULL, '', 0, NULL, '', NULL, false, NULL, false);
+	('00000000-0000-0000-0000-000000000000', 'a3b8e7b3-f0d9-4edd-abd4-ec78f3816d11', 'authenticated', 'authenticated', 'admin@factorypulse.vn', '$2a$10$xvX5akXuK7C4MyV19j0BS.7wYRf63zjkOowMbqrmD.Hy88tYydutq', '2025-08-30 23:52:10.639627+00', NULL, '', NULL, '', NULL, '', '', NULL, '2025-08-31 07:30:52.686047+00', '{"provider": "email", "providers": ["email"]}', '{"name": "Võ Đình Tài", "role": "admin", "phone": "+84-28-7300-0014", "full_name": "Võ Đình Tài", "avatar_url": "https://storage.googleapis.com/factory-pulse-assets/avatars/admin.jpg", "department": "IT", "employee_id": "EMP-VDT-550e", "display_name": "Võ Đình Tài", "email_verified": true}', NULL, '2025-08-30 23:52:10.638335+00', '2025-08-31 07:30:52.687453+00', NULL, NULL, '', '', NULL, '', 0, NULL, '', NULL, false, NULL, false);
 
 
 --
@@ -288,8 +290,7 @@ INSERT INTO "auth"."identities" ("provider_id", "user_id", "identity_data", "pro
 --
 
 INSERT INTO "auth"."sessions" ("id", "user_id", "created_at", "updated_at", "factor_id", "aal", "not_after", "refreshed_at", "user_agent", "ip", "tag") VALUES
-	('364654bc-ecae-4ade-a0e5-70dadf85050a', 'a3b8e7b3-f0d9-4edd-abd4-ec78f3816d11', '2025-08-31 03:03:57.512783+00', '2025-08-31 04:07:18.764857+00', NULL, 'aal1', NULL, '2025-08-31 04:07:18.764826', 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/139.0.0.0 Safari/537.36', '172.217.70.95', NULL),
-	('3b780c15-63ea-402e-a1d4-71339d42f8da', 'a3b8e7b3-f0d9-4edd-abd4-ec78f3816d11', '2025-08-31 06:53:32.768643+00', '2025-08-31 06:53:32.768643+00', NULL, 'aal1', NULL, NULL, 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/139.0.0.0 Safari/537.36', '172.217.70.95', NULL);
+	('42d974f2-5f0c-4795-afa7-a895c9891322', 'a3b8e7b3-f0d9-4edd-abd4-ec78f3816d11', '2025-08-31 07:30:52.686085+00', '2025-08-31 07:30:52.686085+00', NULL, 'aal1', NULL, NULL, 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/139.0.0.0 Safari/537.36', '172.217.70.95', NULL);
 
 
 --
@@ -297,8 +298,7 @@ INSERT INTO "auth"."sessions" ("id", "user_id", "created_at", "updated_at", "fac
 --
 
 INSERT INTO "auth"."mfa_amr_claims" ("session_id", "created_at", "updated_at", "authentication_method", "id") VALUES
-	('364654bc-ecae-4ade-a0e5-70dadf85050a', '2025-08-31 03:03:57.514243+00', '2025-08-31 03:03:57.514243+00', 'password', '7e26a106-7d24-41c6-9100-d7ecdb7ca418'),
-	('3b780c15-63ea-402e-a1d4-71339d42f8da', '2025-08-31 06:53:32.77019+00', '2025-08-31 06:53:32.77019+00', 'password', 'b8b7c2a1-f97c-47ff-88a8-5302a2dbe253');
+	('42d974f2-5f0c-4795-afa7-a895c9891322', '2025-08-31 07:30:52.687921+00', '2025-08-31 07:30:52.687921+00', 'password', 'c25951b3-9450-49de-bbc8-05c5616d3d0a');
 
 
 --
@@ -324,9 +324,7 @@ INSERT INTO "auth"."mfa_amr_claims" ("session_id", "created_at", "updated_at", "
 --
 
 INSERT INTO "auth"."refresh_tokens" ("instance_id", "id", "token", "user_id", "revoked", "created_at", "updated_at", "parent", "session_id") VALUES
-	('00000000-0000-0000-0000-000000000000', 47, '6lpl3y2wno5i', 'a3b8e7b3-f0d9-4edd-abd4-ec78f3816d11', true, '2025-08-31 03:03:57.513323+00', '2025-08-31 04:07:18.762484+00', NULL, '364654bc-ecae-4ade-a0e5-70dadf85050a'),
-	('00000000-0000-0000-0000-000000000000', 48, 'lqevchmsg3ah', 'a3b8e7b3-f0d9-4edd-abd4-ec78f3816d11', false, '2025-08-31 04:07:18.76338+00', '2025-08-31 04:07:18.76338+00', '6lpl3y2wno5i', '364654bc-ecae-4ade-a0e5-70dadf85050a'),
-	('00000000-0000-0000-0000-000000000000', 49, 'b3whr4bolaqb', 'a3b8e7b3-f0d9-4edd-abd4-ec78f3816d11', false, '2025-08-31 06:53:32.76914+00', '2025-08-31 06:53:32.76914+00', NULL, '3b780c15-63ea-402e-a1d4-71339d42f8da');
+	('00000000-0000-0000-0000-000000000000', 50, '6hdxzoqu7yy4', 'a3b8e7b3-f0d9-4edd-abd4-ec78f3816d11', false, '2025-08-31 07:30:52.686787+00', '2025-08-31 07:30:52.686787+00', NULL, '42d974f2-5f0c-4795-afa7-a895c9891322');
 
 
 --
@@ -455,6 +453,15 @@ INSERT INTO "public"."contacts" ("id", "organization_id", "type", "company_name"
 -- Data for Name: workflow_stages; Type: TABLE DATA; Schema: public; Owner: postgres
 --
 
+INSERT INTO "public"."workflow_stages" ("id", "organization_id", "name", "slug", "description", "color", "stage_order", "is_active", "exit_criteria", "responsible_roles", "created_at", "updated_at") VALUES
+	('550e8400-e29b-41d4-a716-446655440201', '550e8400-e29b-41d4-a716-446655440001', 'Inquiry Received', 'inquiry_received', 'Customer RFQ submitted and initial review completed', '#3B82F6', 1, true, 'RFQ reviewed, customer requirements understood, initial feasibility assessment completed', '{sales,procurement}', '2025-01-27 08:00:00+00', '2025-01-27 08:00:00+00'),
+	('550e8400-e29b-41d4-a716-446655440202', '550e8400-e29b-41d4-a716-446655440001', 'Technical Review', 'technical_review', 'Engineering, QA, and Production teams review technical requirements', '#F59E0B', 2, true, 'All technical reviews completed, feasibility confirmed, requirements clarified', '{engineering,qa,production}', '2025-01-27 08:00:00+00', '2025-01-27 08:00:00+00'),
+	('550e8400-e29b-41d4-a716-446655440203', '550e8400-e29b-41d4-a716-446655440001', 'Supplier RFQ Sent', 'supplier_rfq_sent', 'RFQs sent to qualified suppliers for component pricing and lead times', '#F97316', 3, true, 'All supplier RFQs sent, responses received and evaluated', '{procurement}', '2025-01-27 08:00:00+00', '2025-01-27 08:00:00+00'),
+	('550e8400-e29b-41d4-a716-446655440204', '550e8400-e29b-41d4-a716-446655440001', 'Quoted', 'quoted', 'Customer quote generated and sent based on supplier responses', '#10B981', 4, true, 'Customer quote generated, pricing approved, terms negotiated', '{sales,procurement}', '2025-01-27 08:00:00+00', '2025-01-27 08:00:00+00'),
+	('550e8400-e29b-41d4-a716-446655440205', '550e8400-e29b-41d4-a716-446655440001', 'Order Confirmed', 'order_confirmed', 'Customer accepted quote and order confirmed', '#6366F1', 5, true, 'Customer PO received, contract signed, production planning initiated', '{sales,procurement,production}', '2025-01-27 08:00:00+00', '2025-01-27 08:00:00+00'),
+	('550e8400-e29b-41d4-a716-446655440206', '550e8400-e29b-41d4-a716-446655440001', 'Procurement Planning', 'procurement_planning', 'BOM finalized, purchase orders issued, material planning completed', '#8B5CF6', 6, true, 'All purchase orders issued, material delivery schedule confirmed', '{procurement,production}', '2025-01-27 08:00:00+00', '2025-01-27 08:00:00+00'),
+	('550e8400-e29b-41d4-a716-446655440207', '550e8400-e29b-41d4-a716-446655440001', 'Production', 'production', 'Manufacturing process initiated and quality control implemented', '#84CC16', 7, true, 'Production completed, quality checks passed, ready for shipping', '{production,qa}', '2025-01-27 08:00:00+00', '2025-01-27 08:00:00+00'),
+	('550e8400-e29b-41d4-a716-446655440208', '550e8400-e29b-41d4-a716-446655440001', 'Completed', 'completed', 'Order fulfilled and delivered to customer', '#6B7280', 8, true, 'Order delivered, customer satisfied, project closed', '{sales,production}', '2025-01-27 08:00:00+00', '2025-01-27 08:00:00+00');
 
 
 --
@@ -618,7 +625,7 @@ INSERT INTO "public"."workflow_sub_stages" ("id", "organization_id", "workflow_s
 -- Name: refresh_tokens_id_seq; Type: SEQUENCE SET; Schema: auth; Owner: supabase_auth_admin
 --
 
-SELECT pg_catalog.setval('"auth"."refresh_tokens_id_seq"', 49, true);
+SELECT pg_catalog.setval('"auth"."refresh_tokens_id_seq"', 50, true);
 
 
 --

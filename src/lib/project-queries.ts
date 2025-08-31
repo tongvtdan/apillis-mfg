@@ -23,7 +23,7 @@ export const PROJECT_FIELDS = {
     current_stage:workflow_stages!current_stage_id(
       id,
       name,
-      order_index
+      stage_order
     )
   `,
 
@@ -58,14 +58,14 @@ export const PROJECT_FIELDS = {
       type,
       is_active
     ),
-    current_stage:workflow_stages!current_stage_id(
-      id,
-      name,
-      description,
-      order_index,
-      is_active,
-      estimated_duration_days
-    )
+                current_stage:workflow_stages!current_stage_id(
+                id,
+                name,
+                description,
+                stage_order,
+                is_active,
+                estimated_duration_days
+            )
   `,
 
     // Summary fields for dashboard/analytics
@@ -81,7 +81,7 @@ export const PROJECT_FIELDS = {
     stage_entered_at,
     current_stage:workflow_stages!current_stage_id(
       name,
-      order_index
+      stage_order
     )
   `
 };

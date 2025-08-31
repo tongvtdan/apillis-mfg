@@ -1604,6 +1604,12 @@ CREATE POLICY "Users can modify documents" ON "public"."documents" USING ((("pro
 
 
 
+CREATE POLICY "Users can modify documents in their org" ON "public"."documents" USING (("organization_id" IN ( SELECT "users"."organization_id"
+   FROM "public"."users"
+  WHERE ("users"."id" = "auth"."uid"()))));
+
+
+
 CREATE POLICY "Users can modify project assignments" ON "public"."project_assignments" USING ((("project_id" IN ( SELECT "projects"."id"
    FROM "public"."projects"
   WHERE "public"."can_access_project"("projects"."id"))) AND ("public"."get_current_user_role"() = ANY (ARRAY['admin'::"text", 'management'::"text"]))));
@@ -1624,9 +1630,25 @@ CREATE POLICY "Users can modify projects" ON "public"."projects" USING (("public
 
 
 
+CREATE POLICY "Users can modify projects in their org" ON "public"."projects" USING (("organization_id" IN ( SELECT "users"."organization_id"
+   FROM "public"."users"
+  WHERE ("users"."id" = "auth"."uid"()))));
+
+
+
 CREATE POLICY "Users can modify reviews" ON "public"."reviews" USING ((("project_id" IN ( SELECT "projects"."id"
    FROM "public"."projects"
-  WHERE "public"."can_access_project"("projects"."id"))) AND (("public"."get_current_user_role"() = ANY (ARRAY['admin'::"text", 'management'::"text"])) OR ("reviewer_id" = "auth"."uid"()))));
+  WHERE "public"."can_access_project"("projects"."id"))) AND (("public"."get_current_user_role"() = ANY (ARRAY['admin'::"text", 'management'::"text"])) OR ("reviewer_id" = "auth"."uid"()) OR (EXISTS ( SELECT 1
+   FROM "public"."workflow_stages"
+  WHERE (("workflow_stages"."id" = ( SELECT "projects"."current_stage_id"
+           FROM "public"."projects"
+          WHERE ("projects"."id" = "reviews"."project_id"))) AND (("public"."get_current_user_role"())::"public"."user_role" = ANY ("workflow_stages"."responsible_roles"))))))));
+
+
+
+CREATE POLICY "Users can modify reviews in their org" ON "public"."reviews" USING (("organization_id" IN ( SELECT "users"."organization_id"
+   FROM "public"."users"
+  WHERE ("users"."id" = "auth"."uid"()))));
 
 
 
@@ -1642,6 +1664,12 @@ CREATE POLICY "Users can send messages" ON "public"."messages" FOR INSERT WITH C
 
 
 
+CREATE POLICY "Users can send messages in their org" ON "public"."messages" FOR INSERT WITH CHECK ((("organization_id" IN ( SELECT "users"."organization_id"
+   FROM "public"."users"
+  WHERE ("users"."id" = "auth"."uid"()))) AND ("sender_id" = "auth"."uid"())));
+
+
+
 CREATE POLICY "Users can update assigned sub-stage progress" ON "public"."project_sub_stage_progress" FOR UPDATE USING ((("organization_id" IN ( SELECT "users"."organization_id"
    FROM "public"."users"
   WHERE ("users"."id" = "auth"."uid"()))) AND (("assigned_to" = "auth"."uid"()) OR (EXISTS ( SELECT 1
@@ -1650,7 +1678,9 @@ CREATE POLICY "Users can update assigned sub-stage progress" ON "public"."projec
 
 
 
-CREATE POLICY "Users can update their organization" ON "public"."organizations" FOR UPDATE USING ((("id" = "public"."get_current_user_org_id"()) AND ("public"."get_current_user_role"() = ANY (ARRAY['admin'::"text", 'management'::"text"]))));
+CREATE POLICY "Users can update their organization" ON "public"."organizations" FOR UPDATE USING (("id" IN ( SELECT "users"."organization_id"
+   FROM "public"."users"
+  WHERE (("users"."id" = "auth"."uid"()) AND ("users"."role" = ANY (ARRAY['admin'::"public"."user_role", 'management'::"public"."user_role"]))))));
 
 
 
@@ -1662,23 +1692,37 @@ CREATE POLICY "Users can update their own profile" ON "public"."users" FOR UPDAT
 
 
 
-CREATE POLICY "Users can view activity in their org" ON "public"."activity_log" FOR SELECT USING ((("organization_id" = "public"."get_current_user_org_id"()) AND (("public"."get_current_user_role"() = ANY (ARRAY['admin'::"text", 'management'::"text"])) OR ("user_id" = "auth"."uid"()) OR ((("entity_type")::"text" = 'projects'::"text") AND ("entity_id" IN ( SELECT "projects"."id"
-   FROM "public"."projects"
-  WHERE "public"."can_access_project"("projects"."id")))))));
+CREATE POLICY "Users can view activity in their org" ON "public"."activity_log" FOR SELECT USING (("organization_id" IN ( SELECT "users"."organization_id"
+   FROM "public"."users"
+  WHERE ("users"."id" = "auth"."uid"()))));
 
 
 
-CREATE POLICY "Users can view contacts in their org" ON "public"."contacts" FOR SELECT USING ((("organization_id" = "public"."get_current_user_org_id"()) AND (("public"."get_current_user_role"() = ANY (ARRAY['admin'::"text", 'management'::"text"])) OR (("public"."get_current_user_role"() = 'sales'::"text") AND ("type" = 'customer'::"public"."contact_type")) OR (("public"."get_current_user_role"() = 'procurement'::"text") AND ("type" = 'supplier'::"public"."contact_type")) OR (("public"."get_current_user_role"() = ANY (ARRAY['engineering'::"text", 'qa'::"text", 'production'::"text"])) AND ("type" = ANY (ARRAY['customer'::"public"."contact_type", 'supplier'::"public"."contact_type"]))))));
+CREATE POLICY "Users can view contacts in their org" ON "public"."contacts" USING (("organization_id" IN ( SELECT "users"."organization_id"
+   FROM "public"."users"
+  WHERE ("users"."id" = "auth"."uid"()))));
 
 
 
 CREATE POLICY "Users can view documents" ON "public"."documents" FOR SELECT USING ((("project_id" IN ( SELECT "projects"."id"
    FROM "public"."projects"
-  WHERE "public"."can_access_project"("projects"."id"))) AND (("public"."get_current_user_role"() = ANY (ARRAY['admin'::"text", 'management'::"text"])) OR (("access_level")::"text" = ANY ((ARRAY['public'::character varying, 'internal'::character varying])::"text"[])) OR (("public"."get_current_user_role"() = 'customer'::"text") AND (("access_level")::"text" = ANY ((ARRAY['public'::character varying, 'customer'::character varying])::"text"[]))) OR (("public"."get_current_user_role"() = 'supplier'::"text") AND (("access_level")::"text" = ANY ((ARRAY['public'::character varying, 'supplier'::character varying])::"text"[]))))));
+  WHERE "public"."can_access_project"("projects"."id"))) AND (("public"."get_current_user_role"() = ANY (ARRAY['admin'::"text", 'management'::"text"])) OR (("access_level")::"text" = ANY (ARRAY[('public'::character varying)::"text", ('internal'::character varying)::"text"])) OR (("public"."get_current_user_role"() = 'customer'::"text") AND (("access_level")::"text" = ANY (ARRAY[('public'::character varying)::"text", ('customer'::character varying)::"text"]))) OR (("public"."get_current_user_role"() = 'supplier'::"text") AND (("access_level")::"text" = ANY (ARRAY[('public'::character varying)::"text", ('supplier'::character varying)::"text"]))))));
+
+
+
+CREATE POLICY "Users can view documents in their org" ON "public"."documents" FOR SELECT USING (("organization_id" IN ( SELECT "users"."organization_id"
+   FROM "public"."users"
+  WHERE ("users"."id" = "auth"."uid"()))));
 
 
 
 CREATE POLICY "Users can view messages" ON "public"."messages" FOR SELECT USING ((("organization_id" = "public"."get_current_user_org_id"()) AND (("public"."get_current_user_role"() = ANY (ARRAY['admin'::"text", 'management'::"text"])) OR ("sender_id" = "auth"."uid"()) OR ("recipient_id" = "auth"."uid"()))));
+
+
+
+CREATE POLICY "Users can view messages in their org" ON "public"."messages" FOR SELECT USING (("organization_id" IN ( SELECT "users"."organization_id"
+   FROM "public"."users"
+  WHERE ("users"."id" = "auth"."uid"()))));
 
 
 
@@ -1692,13 +1736,37 @@ CREATE POLICY "Users can view project assignments" ON "public"."project_assignme
 
 
 
+CREATE POLICY "Users can view project assignments in their org" ON "public"."project_assignments" FOR SELECT USING (("project_id" IN ( SELECT "projects"."id"
+   FROM "public"."projects"
+  WHERE ("projects"."organization_id" IN ( SELECT "users"."organization_id"
+           FROM "public"."users"
+          WHERE ("users"."id" = "auth"."uid"()))))));
+
+
+
 CREATE POLICY "Users can view projects" ON "public"."projects" FOR SELECT USING ("public"."can_access_project"("id"));
+
+
+
+CREATE POLICY "Users can view projects in their org" ON "public"."projects" FOR SELECT USING (("organization_id" IN ( SELECT "users"."organization_id"
+   FROM "public"."users"
+  WHERE ("users"."id" = "auth"."uid"()))));
 
 
 
 CREATE POLICY "Users can view reviews" ON "public"."reviews" FOR SELECT USING ((("project_id" IN ( SELECT "projects"."id"
    FROM "public"."projects"
-  WHERE "public"."can_access_project"("projects"."id"))) AND (("public"."get_current_user_role"() = ANY (ARRAY['admin'::"text", 'management'::"text"])) OR ("reviewer_id" = "auth"."uid"()))));
+  WHERE "public"."can_access_project"("projects"."id"))) AND (("public"."get_current_user_role"() = ANY (ARRAY['admin'::"text", 'management'::"text"])) OR ("reviewer_id" = "auth"."uid"()) OR (EXISTS ( SELECT 1
+   FROM "public"."workflow_stages"
+  WHERE (("workflow_stages"."id" = ( SELECT "projects"."current_stage_id"
+           FROM "public"."projects"
+          WHERE ("projects"."id" = "reviews"."project_id"))) AND (("public"."get_current_user_role"())::"public"."user_role" = ANY ("workflow_stages"."responsible_roles"))))))));
+
+
+
+CREATE POLICY "Users can view reviews in their org" ON "public"."reviews" FOR SELECT USING (("organization_id" IN ( SELECT "users"."organization_id"
+   FROM "public"."users"
+  WHERE ("users"."id" = "auth"."uid"()))));
 
 
 
@@ -1722,7 +1790,15 @@ CREATE POLICY "Users can view supplier quotes" ON "public"."supplier_quotes" FOR
 
 
 
-CREATE POLICY "Users can view their organization" ON "public"."organizations" FOR SELECT USING (("id" = "public"."get_current_user_org_id"()));
+CREATE POLICY "Users can view supplier quotes in their org" ON "public"."supplier_quotes" USING (("organization_id" IN ( SELECT "users"."organization_id"
+   FROM "public"."users"
+  WHERE ("users"."id" = "auth"."uid"()))));
+
+
+
+CREATE POLICY "Users can view their organization" ON "public"."organizations" FOR SELECT USING (("id" IN ( SELECT "users"."organization_id"
+   FROM "public"."users"
+  WHERE ("users"."id" = "auth"."uid"()))));
 
 
 
@@ -1734,7 +1810,9 @@ CREATE POLICY "Users can view their own profile" ON "public"."users" FOR SELECT 
 
 
 
-CREATE POLICY "Users can view workflow stages in their org" ON "public"."workflow_stages" FOR SELECT USING (("organization_id" = "public"."get_current_user_org_id"()));
+CREATE POLICY "Users can view workflow stages in their org" ON "public"."workflow_stages" FOR SELECT USING (("organization_id" IN ( SELECT "users"."organization_id"
+   FROM "public"."users"
+  WHERE ("users"."id" = "auth"."uid"()))));
 
 
 

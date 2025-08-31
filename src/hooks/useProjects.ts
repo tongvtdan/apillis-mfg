@@ -99,7 +99,7 @@ export function useProjects() {
             id,
             name,
             description,
-            order_index,
+            stage_order,
             is_active,
             estimated_duration_days
           )
@@ -151,10 +151,10 @@ export function useProjects() {
         // Add computed fields for compatibility
         due_date: project.estimated_delivery_date, // Map estimated_delivery_date to due_date for compatibility
         priority: project.priority_level, // Map priority_level to priority for legacy compatibility
-        // Add order_index to current_stage if it exists
+        // Add stage_order to current_stage if it exists
         current_stage: project.current_stage ? {
           ...project.current_stage,
-          order_index: project.current_stage.order_index
+          stage_order: project.current_stage.stage_order
         } : undefined
       }));
 

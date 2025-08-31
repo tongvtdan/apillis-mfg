@@ -155,12 +155,12 @@ export const WorkflowStepper = React.memo(({ project }: WorkflowStepperProps) =>
     const loadWorkflowStages = async () => {
       try {
         const stages = await workflowStageService.getWorkflowStages();
-        // Sort stages by order_index and add computed stage_order for compatibility
+        // Sort stages by stage_order and add computed order_index for compatibility
         const sortedStages = stages
-          .sort((a, b) => a.order_index - b.order_index)
+          .sort((a, b) => a.stage_order - b.stage_order)
           .map((stage, index) => ({
             ...stage,
-            stage_order: index // Add computed field for compatibility
+            order_index: index // Add computed field for compatibility
           }));
         setWorkflowStages(sortedStages);
       } catch (error) {
@@ -185,8 +185,8 @@ export const WorkflowStepper = React.memo(({ project }: WorkflowStepperProps) =>
       };
     }
 
-    // Sort stages by order_index to ensure correct ordering
-    const sortedStages = [...workflowStages].sort((a, b) => a.order_index - b.order_index);
+    // Sort stages by stage_order to ensure correct ordering
+    const sortedStages = [...workflowStages].sort((a, b) => a.stage_order - b.stage_order);
 
     // Find current stage by ID (preferred) or by legacy mapping
     let currentStageData: WorkflowStage | null = null;

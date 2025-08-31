@@ -34,11 +34,11 @@ export function useCustomers() {
     const [customers, setCustomers] = useState<Customer[]>([]);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState<string | null>(null);
-    const { user } = useAuth();
+    const { user, profile } = useAuth(); // Added profile
     const { toast } = useToast();
 
     const fetchCustomers = async () => {
-        if (!user) {
+        if (!user || !profile?.organization_id) { // Added profile check
             setCustomers([]);
             setLoading(false);
             return;
@@ -52,6 +52,7 @@ export function useCustomers() {
                 .from('contacts')
                 .select('*')
                 .eq('type', 'customer')
+                .eq('organization_id', profile.organization_id) // Added organization_id filter
                 .order('created_at', { ascending: false });
 
             if (fetchError) {
@@ -79,7 +80,11 @@ export function useCustomers() {
         try {
             const { data, error } = await supabase
                 .from('contacts')
-                .insert([{ ...customerData, type: 'customer' }])
+                .insert([{ 
+                    ...customerData, 
+                    type: 'customer',
+                    organization_id: profile?.organization_id // Added organization_id
+                }])
                 .select('*')
                 .single();
 
@@ -197,7 +202,8 @@ export function useCustomers() {
             let query = supabase
                 .from('contacts')
                 .select('*')
-                .eq('type', 'customer');
+                .eq('type', 'customer')
+                .eq('organization_id', profile?.organization_id); // Added organization_id filter
 
             if (criteria.company_name) {
                 query = query.ilike('company_name', `%${criteria.company_name}%`);
@@ -288,7 +294,7 @@ export function useCustomers() {
         return () => {
             supabase.removeChannel(channel);
         };
-    }, [user]);
+    }, [user, profile]); // Added profile to dependency array
 
     return {
         customers,

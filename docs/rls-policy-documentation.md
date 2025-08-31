@@ -6,10 +6,11 @@ This document describes the comprehensive Row Level Security (RLS) policies impl
 
 ## Key Features
 
-### 1. **Circular Dependency Resolution**
+### 1. **Circular Dependency Resolution** ✅ FIXED
 - **Problem**: Original `users` table policy created circular dependency when users tried to fetch their own profile
 - **Solution**: Separate policies for self-access (`id = auth.uid()`) and organization access
 - **Result**: Users can now fetch their profiles without triggering RLS evaluation loops
+- **Latest Fix**: Removed problematic "Users can view users in their org" policy that was causing circular dependency
 
 ### 2. **Role-Based Access Control (RBAC)**
 - **Hierarchy**: `admin` > `management` > `sales` > `procurement` > `engineering` > `qa` > `production`
@@ -54,10 +55,11 @@ Comprehensive function that determines if a user can access a specific project b
 - **View**: Users can only view their own organization
 - **Update**: Only admin and management roles can update organization settings
 
-### Users
-- **Self Access**: Users can always view and update their own profile
+### Users ✅ FIXED
+- **Self Access**: Users can always view and update their own profile (`id = auth.uid()`)
 - **Other Users**: Role-based access to other users in the organization
 - **Creation**: Only admin and management can create new user profiles
+- **Circular Dependency**: Resolved by removing problematic policy that queried users table within RLS
 
 ### Workflow Stages
 - **View**: All users in the organization can view workflow stages
@@ -81,10 +83,11 @@ Comprehensive function that determines if a user can access a specific project b
 - **Role-Based**: Different access based on user role and document type
 - **Project Context**: Access tied to project access permissions
 
-### Reviews
+### Reviews ✅ FIXED
 - **Reviewers**: Full access to their own reviews
 - **Stage Responsible**: Users responsible for current stage can access reviews
 - **Admin/Management**: Full access to all reviews
+- **Type Casting Issue**: Fixed by using EXISTS clause instead of direct ANY comparison
 
 ### Messages
 - **Sender/Recipient**: Users can view messages they sent or received
@@ -143,7 +146,7 @@ Comprehensive function that determines if a user can access a specific project b
 ## Testing and Validation
 
 ### Test Cases
-1. **User Profile Access**: Verify users can fetch their own profiles
+1. **User Profile Access**: ✅ Verify users can fetch their own profiles
 2. **Role-Based Access**: Test access restrictions based on user roles
 3. **Workflow Integration**: Verify access changes with project stage progression
 4. **Portal User Access**: Test customer/supplier access limitations
@@ -157,7 +160,7 @@ Comprehensive function that determines if a user can access a specific project b
 ## Migration Notes
 
 ### Breaking Changes
-- Previous circular dependency issues resolved
+- Previous circular dependency issues resolved ✅
 - More restrictive access policies implemented
 - Role-based access control enforced
 
@@ -165,6 +168,18 @@ Comprehensive function that determines if a user can access a specific project b
 - Existing user sessions continue to work
 - API endpoints maintain same interface
 - Frontend components may need role-based UI adjustments
+
+## Recent Fixes Applied
+
+### 2025-08-31: Circular Dependency Resolution
+- **Issue**: Users table RLS policy created circular dependency preventing profile fetching
+- **Solution**: Removed problematic "Users can view users in their org" policy
+- **Result**: Users can now fetch their own profiles without RLS evaluation loops
+
+### 2025-08-31: Reviews Policy Type Casting Fix
+- **Issue**: Reviews RLS policy had type casting error with user_role enum
+- **Solution**: Used EXISTS clause instead of direct ANY comparison
+- **Result**: Reviews policies now work correctly with workflow stage responsibilities
 
 ## Future Enhancements
 

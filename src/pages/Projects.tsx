@@ -60,8 +60,8 @@ export default function Projects() {
       try {
         setStagesLoading(true);
         const stages = await workflowStageService.getWorkflowStages();
-        // Sort stages by order_index
-        const sortedStages = stages.sort((a, b) => a.order_index - b.order_index);
+        // Sort stages by stage_order
+        const sortedStages = stages.sort((a, b) => a.stage_order - b.stage_order);
         setWorkflowStages(sortedStages);
       } catch (error) {
         console.error('Error loading workflow stages:', error);
