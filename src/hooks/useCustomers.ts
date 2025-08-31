@@ -5,19 +5,27 @@ import { useAuth } from '@/contexts/AuthContext';
 import { useToast } from '@/hooks/use-toast';
 
 export interface CreateCustomerRequest {
-    name: string;
-    company?: string;
+    company_name: string;
+    contact_name?: string;
     email?: string;
     phone?: string;
     address?: string;
+    city?: string;
+    state?: string;
     country?: string;
+    postal_code?: string;
+    website?: string;
+    tax_id?: string;
+    payment_terms?: string;
+    credit_limit?: number;
+    notes?: string;
 }
 
 export interface UpdateCustomerRequest extends Partial<CreateCustomerRequest> { }
 
 export interface CustomerSearchCriteria {
-    name?: string;
-    company?: string;
+    company_name?: string;
+    contact_name?: string;
     email?: string;
     country?: string;
 }
@@ -41,8 +49,9 @@ export function useCustomers() {
             setError(null);
 
             const { data, error: fetchError } = await supabase
-                .from('customers')
+                .from('contacts')
                 .select('*')
+                .eq('type', 'customer')
                 .order('created_at', { ascending: false });
 
             if (fetchError) {
@@ -51,7 +60,13 @@ export function useCustomers() {
                 return;
             }
 
-            setCustomers(data || []);
+            // Transform contacts to Customer type
+            const customerData = (data || []).map(contact => ({
+                ...contact,
+                type: 'customer' as const
+            }));
+
+            setCustomers(customerData);
         } catch (err) {
             console.error('Error in fetchCustomers:', err);
             setError('Failed to fetch customers');
@@ -63,8 +78,8 @@ export function useCustomers() {
     const createCustomer = async (customerData: CreateCustomerRequest): Promise<Customer> => {
         try {
             const { data, error } = await supabase
-                .from('customers')
-                .insert([customerData])
+                .from('contacts')
+                .insert([{ ...customerData, type: 'customer' }])
                 .select('*')
                 .single();
 
@@ -72,14 +87,15 @@ export function useCustomers() {
                 throw error;
             }
 
-            setCustomers(prev => [data, ...prev]);
+            const newCustomer = { ...data, type: 'customer' as const };
+            setCustomers(prev => [newCustomer, ...prev]);
 
             toast({
                 title: "Customer Created",
-                description: `${data.name} has been added successfully.`,
+                description: `${data.company_name} has been added successfully.`,
             });
 
-            return data;
+            return newCustomer;
         } catch (err) {
             console.error('Error creating customer:', err);
             toast({
@@ -94,9 +110,10 @@ export function useCustomers() {
     const updateCustomer = async (id: string, updates: UpdateCustomerRequest): Promise<Customer> => {
         try {
             const { data, error } = await supabase
-                .from('customers')
+                .from('contacts')
                 .update(updates)
                 .eq('id', id)
+                .eq('type', 'customer')
                 .select('*')
                 .single();
 
@@ -104,16 +121,17 @@ export function useCustomers() {
                 throw error;
             }
 
+            const updatedCustomer = { ...data, type: 'customer' as const };
             setCustomers(prev => prev.map(customer =>
-                customer.id === id ? data : customer
+                customer.id === id ? updatedCustomer : customer
             ));
 
             toast({
                 title: "Customer Updated",
-                description: `${data.name} has been updated successfully.`,
+                description: `${data.company_name} has been updated successfully.`,
             });
 
-            return data;
+            return updatedCustomer;
         } catch (err) {
             console.error('Error updating customer:', err);
             toast({
@@ -128,9 +146,10 @@ export function useCustomers() {
     const deleteCustomer = async (id: string): Promise<void> => {
         try {
             const { error } = await supabase
-                .from('customers')
+                .from('contacts')
                 .delete()
-                .eq('id', id);
+                .eq('id', id)
+                .eq('type', 'customer');
 
             if (error) {
                 throw error;
@@ -156,16 +175,17 @@ export function useCustomers() {
     const getCustomerById = async (id: string): Promise<Customer | null> => {
         try {
             const { data, error } = await supabase
-                .from('customers')
+                .from('contacts')
                 .select('*')
                 .eq('id', id)
+                .eq('type', 'customer')
                 .single();
 
             if (error) {
                 throw error;
             }
 
-            return data;
+            return data ? { ...data, type: 'customer' as const } : null;
         } catch (err) {
             console.error('Error fetching customer by ID:', err);
             return null;
@@ -174,13 +194,16 @@ export function useCustomers() {
 
     const searchCustomers = async (criteria: CustomerSearchCriteria): Promise<Customer[]> => {
         try {
-            let query = supabase.from('customers').select('*');
+            let query = supabase
+                .from('contacts')
+                .select('*')
+                .eq('type', 'customer');
 
-            if (criteria.name) {
-                query = query.ilike('name', `%${criteria.name}%`);
+            if (criteria.company_name) {
+                query = query.ilike('company_name', `%${criteria.company_name}%`);
             }
-            if (criteria.company) {
-                query = query.ilike('company', `%${criteria.company}%`);
+            if (criteria.contact_name) {
+                query = query.ilike('contact_name', `%${criteria.contact_name}%`);
             }
             if (criteria.email) {
                 query = query.ilike('email', `%${criteria.email}%`);
@@ -195,7 +218,11 @@ export function useCustomers() {
                 throw error;
             }
 
-            return data || [];
+            // Transform contacts to Customer type
+            return (data || []).map(contact => ({
+                ...contact,
+                type: 'customer' as const
+            }));
         } catch (err) {
             console.error('Error searching customers:', err);
             return [];
@@ -208,7 +235,7 @@ export function useCustomers() {
                 .from('projects')
                 .select(`
           *,
-          customer:customers(*)
+          customer:contacts!customer_id(*)
         `)
                 .eq('customer_id', customerId)
                 .order('created_at', { ascending: false });
@@ -235,17 +262,20 @@ export function useCustomers() {
                 {
                     event: '*',
                     schema: 'public',
-                    table: 'customers'
+                    table: 'contacts',
+                    filter: 'type=eq.customer'
                 },
                 (payload) => {
                     console.log('Customer change received:', payload);
 
                     if (payload.eventType === 'INSERT') {
-                        setCustomers(prev => [payload.new as Customer, ...prev]);
+                        const newCustomer = { ...payload.new, type: 'customer' as const };
+                        setCustomers(prev => [newCustomer, ...prev]);
                     } else if (payload.eventType === 'UPDATE') {
+                        const updatedCustomer = { ...payload.new, type: 'customer' as const };
                         setCustomers(prev => prev.map(customer =>
-                            customer.id === (payload.new as Customer).id
-                                ? payload.new as Customer
+                            customer.id === updatedCustomer.id
+                                ? updatedCustomer
                                 : customer
                         ));
                     } else if (payload.eventType === 'DELETE') {

@@ -273,7 +273,7 @@ export function EnhancedProjectSummary({
                         </div>
                         <div className="grid grid-cols-1 md:grid-cols-2 gap-2 text-sm">
                             <div>
-                                <span className="font-medium">Company:</span> {project.customer.company || project.customer.name}
+                                <span className="font-medium">Company:</span> {project.customer.company_name}
                             </div>
                             {project.customer.email && (
                                 <div>

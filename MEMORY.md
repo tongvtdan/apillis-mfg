@@ -2,6 +2,80 @@
 
 ## Recent Changes
 
+### 2025-01-27 - Customer Fetch Issue Fix
+
+**Task Completed:**
+- Fixed customer fetch 404 error by updating useCustomers hook to use correct database table
+- Updated customer components to use proper field names matching database schema
+- Successfully resolved customer management functionality
+
+**Problem Identified:**
+- Customer fetch was failing with 404 error: "Could not find the table 'public.customers' in the schema cache"
+- Error occurred because code was trying to query non-existent 'customers' table
+- Database schema uses 'contacts' table with type='customer' for customer data
+- Customer components were using incorrect field names (name, company instead of company_name, contact_name)
+
+**Solution Implemented:**
+- **Updated useCustomers Hook**: Changed from querying 'customers' table to 'contacts' table with type='customer' filter
+- **Fixed Field Names**: Updated all customer interfaces to use correct database field names:
+  - `name` → `company_name`
+  - `company` → `contact_name`
+  - Added missing fields: `city`, `state`, `postal_code`, `website`
+- **Updated Components**: Fixed CustomerModal and CustomerTable to use correct field structure
+- **Enhanced Real-time**: Updated real-time subscription to filter contacts by type='customer'
+
+**Technical Changes:**
+```typescript
+// Before: Querying non-existent table
+.from('customers')
+
+// After: Querying correct table with filter
+.from('contacts')
+.eq('type', 'customer')
+
+// Before: Wrong field names
+interface CreateCustomerRequest {
+  name: string;
+  company?: string;
+}
+
+// After: Correct field names
+interface CreateCustomerRequest {
+  company_name: string;
+  contact_name?: string;
+  city?: string;
+  state?: string;
+  postal_code?: string;
+  website?: string;
+}
+```
+
+**Components Updated:**
+- ✅ **useCustomers Hook**: Fixed table queries and field mapping
+- ✅ **CustomerModal**: Updated form fields and validation
+- ✅ **CustomerTable**: Fixed display and filtering logic
+- ✅ **Customers Page**: Updated statistics calculations
+
+**Database Schema Alignment:**
+- ✅ **Table Structure**: Now correctly uses contacts table with type='customer'
+- ✅ **Field Mapping**: All field names match database schema exactly
+- ✅ **Type Safety**: Customer type properly extends Contact with type='customer'
+- ✅ **Real-time Sync**: Proper filtering for customer-only changes
+
+**Benefits:**
+- ✅ **Customer Management**: Full CRUD operations now work correctly
+- ✅ **Data Consistency**: Field names match database schema
+- ✅ **Type Safety**: Proper TypeScript types for customer data
+- ✅ **Real-time Updates**: Customer changes sync properly
+- ✅ **Search Functionality**: Customer search works with correct fields
+
+**Files Modified:**
+- `src/hooks/useCustomers.ts` - Fixed table queries and field names
+- `src/components/customer/CustomerModal.tsx` - Updated form structure
+- `src/components/customer/CustomerTable.tsx` - Fixed display logic
+- `src/pages/Customers.tsx` - Updated statistics calculation
+- `MEMORY.md` - This update
+
 ### 2025-01-27 - Dashboard Summary Function Implementation
 
 **Task Completed:**

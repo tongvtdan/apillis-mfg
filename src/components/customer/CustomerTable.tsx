@@ -63,8 +63,8 @@ export function CustomerTable({ customers, onCustomerSelect }: CustomerTableProp
 
         const query = searchQuery.toLowerCase();
         return customers.filter(customer =>
-            customer.name.toLowerCase().includes(query) ||
-            customer.company?.toLowerCase().includes(query) ||
+            customer.company_name.toLowerCase().includes(query) ||
+            customer.contact_name?.toLowerCase().includes(query) ||
             customer.email?.toLowerCase().includes(query) ||
             customer.country?.toLowerCase().includes(query)
         );
@@ -163,11 +163,11 @@ export function CustomerTable({ customers, onCustomerSelect }: CustomerTableProp
                                 <TableRow key={customer.id} className="hover:bg-muted/50">
                                     <TableCell>
                                         <div className="space-y-1">
-                                            <div className="font-medium">{customer.name}</div>
-                                            {customer.company && (
+                                            <div className="font-medium">{customer.company_name}</div>
+                                            {customer.contact_name && (
                                                 <div className="flex items-center text-sm text-muted-foreground">
-                                                    <Building2 className="w-3 h-3 mr-1" />
-                                                    {customer.company}
+                                                    <Users className="w-3 h-3 mr-1" />
+                                                    {customer.contact_name}
                                                 </div>
                                             )}
                                         </div>
@@ -199,12 +199,20 @@ export function CustomerTable({ customers, onCustomerSelect }: CustomerTableProp
                                         </div>
                                     </TableCell>
                                     <TableCell>
-                                        {customer.country && (
-                                            <div className="flex items-center text-sm">
-                                                <MapPin className="w-3 h-3 mr-1 text-muted-foreground" />
-                                                {customer.country}
-                                            </div>
-                                        )}
+                                        <div className="space-y-1">
+                                            {customer.city && (
+                                                <div className="text-sm">
+                                                    {customer.city}
+                                                    {customer.state && `, ${customer.state}`}
+                                                </div>
+                                            )}
+                                            {customer.country && (
+                                                <div className="flex items-center text-sm text-muted-foreground">
+                                                    <MapPin className="w-3 h-3 mr-1" />
+                                                    {customer.country}
+                                                </div>
+                                            )}
+                                        </div>
                                     </TableCell>
                                     <TableCell>
                                         <div className="text-sm text-muted-foreground">

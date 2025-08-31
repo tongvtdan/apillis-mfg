@@ -192,11 +192,11 @@ export function AnimatedProjectCard({
                                             onClick={handleCustomerClick}
                                             className="hover:bg-accent hover:text-accent-foreground px-1 py-0.5 rounded transition-all duration-200 flex items-center space-x-1 group"
                                         >
-                                            <span>{project.customer.company || project.customer.name || 'Unknown'}</span>
+                                            <span>{project.customer.company_name || 'Unknown'}</span>
                                             <ExternalLink className="h-2.5 w-2.5 opacity-0 group-hover:opacity-100 transition-opacity duration-200" />
                                         </button>
                                     ) : (
-                                        <span>{project.customer?.company || project.customer?.name || project.contact_name || 'Unknown'}</span>
+                                        <span>{project.customer?.company_name || project.contact_name || 'Unknown'}</span>
                                     )}
                                 </div>
                             </div>

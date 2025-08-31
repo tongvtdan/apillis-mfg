@@ -342,6 +342,98 @@ $$;
 ALTER FUNCTION "public"."get_current_user_role"() OWNER TO "postgres";
 
 
+CREATE OR REPLACE FUNCTION "public"."get_dashboard_summary"() RETURNS "jsonb"
+    LANGUAGE "plpgsql" SECURITY DEFINER
+    AS $$
+DECLARE
+    user_org_id UUID;
+    result JSONB;
+    project_counts JSONB;
+    recent_projects JSONB;
+    status_counts JSONB;
+    project_record RECORD;
+BEGIN
+    -- Get user's organization ID
+    SELECT organization_id INTO user_org_id 
+    FROM users 
+    WHERE id = auth.uid();
+
+    -- If no organization found, return empty result
+    IF user_org_id IS NULL THEN
+        RETURN jsonb_build_object(
+            'projects', jsonb_build_object('total', 0, 'by_status', '{}'),
+            'recent_projects', '[]',
+            'generated_at', extract(epoch from now())
+        );
+    END IF;
+
+    -- Get project counts by status
+    status_counts := '{}';
+    FOR project_record IN 
+        SELECT 
+            status,
+            COUNT(*) as count
+        FROM projects 
+        WHERE organization_id = user_org_id
+        GROUP BY status
+    LOOP
+        status_counts := status_counts || jsonb_build_object(project_record.status, project_record.count);
+    END LOOP;
+
+    -- Build project counts object
+    project_counts := jsonb_build_object(
+        'total', (SELECT COUNT(*) FROM projects WHERE organization_id = user_org_id),
+        'by_status', status_counts
+    );
+
+    -- Get recent projects with customer information
+    recent_projects := (
+        SELECT jsonb_agg(
+            jsonb_build_object(
+                'id', p.id,
+                'project_id', p.project_id,
+                'title', p.title,
+                'status', p.status,
+                'priority', p.priority_level,
+                'created_at', p.created_at,
+                'customer_name', c.company_name
+            )
+        )
+        FROM (
+            SELECT *
+            FROM projects 
+            WHERE organization_id = user_org_id
+            ORDER BY created_at DESC
+            LIMIT 10
+        ) p
+        LEFT JOIN contacts c ON p.customer_id = c.id
+    );
+
+    -- If no recent projects, set to empty array
+    IF recent_projects IS NULL THEN
+        recent_projects := '[]';
+    END IF;
+
+    -- Build final result
+    result := jsonb_build_object(
+        'projects', project_counts,
+        'recent_projects', recent_projects,
+        'generated_at', extract(epoch from now())
+    );
+
+    RETURN result;
+END;
+$$;
+
+
+ALTER FUNCTION "public"."get_dashboard_summary"() OWNER TO "postgres";
+
+
+COMMENT ON FUNCTION "public"."get_dashboard_summary"() IS 'Returns dashboard summary data including project counts by status and recent projects with customer information. 
+Requires user to be authenticated and have an organization_id.';
+
+
+
 CREATE OR REPLACE FUNCTION "public"."get_user_organization"() RETURNS "uuid"
     LANGUAGE "plpgsql" SECURITY DEFINER
     AS $$
@@ -700,7 +792,7 @@ CREATE TABLE IF NOT EXISTS "public"."project_sub_stage_progress" (
     "metadata" "jsonb" DEFAULT '{}'::"jsonb",
     "created_at" timestamp with time zone DEFAULT "now"(),
     "updated_at" timestamp with time zone DEFAULT "now"(),
-    CONSTRAINT "project_sub_stage_progress_status_check" CHECK ((("status")::"text" = ANY ((ARRAY['pending'::character varying, 'in_progress'::character varying, 'completed'::character varying, 'skipped'::character varying, 'blocked'::character varying])::"text"[])))
+    CONSTRAINT "project_sub_stage_progress_status_check" CHECK ((("status")::"text" = ANY (ARRAY[('pending'::character varying)::"text", ('in_progress'::character varying)::"text", ('completed'::character varying)::"text", ('skipped'::character varying)::"text", ('blocked'::character varying)::"text"])))
 );
 
 
@@ -820,8 +912,7 @@ CREATE TABLE IF NOT EXISTS "public"."workflow_stages" (
     "exit_criteria" "text",
     "responsible_roles" "public"."user_role"[] DEFAULT '{}'::"public"."user_role"[],
     "created_at" timestamp with time zone DEFAULT "now"(),
-    "updated_at" timestamp with time zone DEFAULT "now"(),
-    "sub_stages_count" integer DEFAULT 0
+    "updated_at" timestamp with time zone DEFAULT "now"()
 );
 
 
@@ -1533,6 +1624,12 @@ CREATE POLICY "Users can modify projects" ON "public"."projects" USING (("public
 
 
 
+CREATE POLICY "Users can modify reviews" ON "public"."reviews" USING ((("project_id" IN ( SELECT "projects"."id"
+   FROM "public"."projects"
+  WHERE "public"."can_access_project"("projects"."id"))) AND (("public"."get_current_user_role"() = ANY (ARRAY['admin'::"text", 'management'::"text"])) OR ("reviewer_id" = "auth"."uid"()))));
+
+
+
 CREATE POLICY "Users can modify supplier quotes" ON "public"."supplier_quotes" USING ((("organization_id" = "public"."get_current_user_org_id"()) AND ("public"."get_current_user_role"() = ANY (ARRAY['admin'::"text", 'management'::"text", 'procurement'::"text"]))));
 
 
@@ -1541,7 +1638,7 @@ CREATE POLICY "Users can modify workflow stages" ON "public"."workflow_stages" U
 
 
 
-CREATE POLICY "Users can send messages" ON "public"."messages" FOR INSERT WITH CHECK ((("organization_id" = "public"."get_current_user_org_id"()) AND ("sender_id" = "auth"."uid"()) AND (("public"."get_current_user_role"() = ANY (ARRAY['admin'::"text", 'management'::"text"])) OR ("recipient_id" IS NOT NULL) OR (("recipient_type")::"text" = ANY ((ARRAY['role'::character varying, 'department'::character varying])::"text"[])))));
+CREATE POLICY "Users can send messages" ON "public"."messages" FOR INSERT WITH CHECK ((("organization_id" = "public"."get_current_user_org_id"()) AND ("sender_id" = "auth"."uid"()) AND (("public"."get_current_user_role"() = ANY (ARRAY['admin'::"text", 'management'::"text"])) OR ("recipient_id" IS NOT NULL))));
 
 
 
@@ -1581,6 +1678,10 @@ CREATE POLICY "Users can view documents" ON "public"."documents" FOR SELECT USIN
 
 
 
+CREATE POLICY "Users can view messages" ON "public"."messages" FOR SELECT USING ((("organization_id" = "public"."get_current_user_org_id"()) AND (("public"."get_current_user_role"() = ANY (ARRAY['admin'::"text", 'management'::"text"])) OR ("sender_id" = "auth"."uid"()) OR ("recipient_id" = "auth"."uid"()))));
+
+
+
 CREATE POLICY "Users can view other users in their org" ON "public"."users" FOR SELECT USING ((("organization_id" = "public"."get_current_user_org_id"()) AND ("id" <> "auth"."uid"()) AND (("public"."get_current_user_role"() = ANY (ARRAY['admin'::"text", 'management'::"text"])) OR (("public"."get_current_user_role"() = 'sales'::"text") AND ("role" = ANY (ARRAY['sales'::"public"."user_role", 'procurement'::"public"."user_role", 'engineering'::"public"."user_role", 'qa'::"public"."user_role", 'production'::"public"."user_role"]))) OR (("public"."get_current_user_role"() = 'procurement'::"text") AND ("role" = ANY (ARRAY['procurement'::"public"."user_role", 'engineering'::"public"."user_role", 'qa'::"public"."user_role", 'production'::"public"."user_role"]))) OR (("public"."get_current_user_role"() = 'engineering'::"text") AND ("role" = ANY (ARRAY['engineering'::"public"."user_role", 'qa'::"public"."user_role", 'production'::"public"."user_role"]))) OR (("public"."get_current_user_role"() = 'qa'::"text") AND ("role" = ANY (ARRAY['qa'::"public"."user_role", 'production'::"public"."user_role"]))) OR (("public"."get_current_user_role"() = 'production'::"text") AND ("role" = 'production'::"public"."user_role")))));
 
 
@@ -1592,6 +1693,12 @@ CREATE POLICY "Users can view project assignments" ON "public"."project_assignme
 
 
 CREATE POLICY "Users can view projects" ON "public"."projects" FOR SELECT USING ("public"."can_access_project"("id"));
+
+
+
+CREATE POLICY "Users can view reviews" ON "public"."reviews" FOR SELECT USING ((("project_id" IN ( SELECT "projects"."id"
+   FROM "public"."projects"
+  WHERE "public"."can_access_project"("projects"."id"))) AND (("public"."get_current_user_role"() = ANY (ARRAY['admin'::"text", 'management'::"text"])) OR ("reviewer_id" = "auth"."uid"()))));
 
 
 
@@ -1881,6 +1988,12 @@ GRANT ALL ON FUNCTION "public"."get_current_user_org_id"() TO "service_role";
 GRANT ALL ON FUNCTION "public"."get_current_user_role"() TO "anon";
 GRANT ALL ON FUNCTION "public"."get_current_user_role"() TO "authenticated";
 GRANT ALL ON FUNCTION "public"."get_current_user_role"() TO "service_role";
+
+
+
+GRANT ALL ON FUNCTION "public"."get_dashboard_summary"() TO "anon";
+GRANT ALL ON FUNCTION "public"."get_dashboard_summary"() TO "authenticated";
+GRANT ALL ON FUNCTION "public"."get_dashboard_summary"() TO "service_role";
 
 
 
