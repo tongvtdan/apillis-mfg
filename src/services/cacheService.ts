@@ -69,10 +69,12 @@ export const cacheService: CacheService = {
                         }
                     }
                 }
+                console.log('No cached projects found');
                 return null;
             }
 
             const projects = JSON.parse(cachedData) as Project[];
+            console.log('Retrieved cached projects:', projects.length);
             return projects;
         } catch (error) {
             console.warn('Failed to retrieve cached projects:', error);
@@ -99,7 +101,9 @@ export const cacheService: CacheService = {
             const now = Date.now();
             const duration = navigator.onLine ? CACHE_DURATION : OFFLINE_CACHE_DURATION;
 
-            return (now - cacheTime) < duration;
+            const isValid = (now - cacheTime) < duration;
+            console.log('Cache validity check:', { isValid, cacheTime, now, duration });
+            return isValid;
         } catch (error) {
             console.warn('Failed to check cache validity:', error);
             return false;
@@ -215,6 +219,7 @@ export const cacheService: CacheService = {
                 project.priority_level
             );
 
+            console.log('Cache consistency validation:', { isValid, projectsCount: projects.length });
             if (!isValid) {
                 console.warn('💾 Cache validation failed: Invalid project structure');
                 cacheService.clearCache();

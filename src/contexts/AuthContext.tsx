@@ -325,7 +325,6 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
         // Update realtime manager authentication status
         realtimeManager.setAuthenticationStatus(!!session?.user);
-        // realtimeManager.setAuthenticationStatus(!!session?.user); // This line was removed as per the edit hint
 
         // Defer profile fetching to avoid blocking auth state changes
         if (session?.user) {
@@ -489,7 +488,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
     try {
       // Handle ID mismatch for updates as well
-      const userIdToUpdate = ID_MISMATCH_MAP[user.id] || user.id;
+      const userIdToUpdate = user.id; // Remove ID_MISMATCH_MAP reference
 
       const { error } = await supabase
         .from('users')

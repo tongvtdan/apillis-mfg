@@ -114,6 +114,7 @@ export class ProjectQueryBuilder {
 
     // Apply filters
     applyFilters(options: ProjectQueryOptions) {
+        console.log('Applying filters:', options);
         if (options.status) {
             if (Array.isArray(options.status)) {
                 this.query = this.query.in('status', options.status);
@@ -207,6 +208,7 @@ export class ProjectQueryBuilder {
 export const projectQueries = {
     // Get all projects with basic info
     getProjectsList: async (options: ProjectQueryOptions = {}) => {
+        console.log('Fetching projects list with options:', options);
         const builder = new ProjectQueryBuilder(PROJECT_FIELDS.LIST);
         return builder
             .applyFilters(options)

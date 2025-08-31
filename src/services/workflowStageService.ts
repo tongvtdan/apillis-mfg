@@ -12,6 +12,7 @@ class WorkflowStageService {
 
         // Return cached data if still valid
         if (!forceRefresh && this.cachedStages && (now - this.cacheTimestamp) < this.CACHE_DURATION) {
+            console.log('Returning cached workflow stages');
             return this.cachedStages;
         }
 
@@ -30,6 +31,7 @@ class WorkflowStageService {
             this.cachedStages = data || [];
             this.cacheTimestamp = now;
 
+            console.log('Fetched workflow stages:', this.cachedStages);
             return this.cachedStages;
         } catch (error) {
             console.error('Error in getWorkflowStages:', error);

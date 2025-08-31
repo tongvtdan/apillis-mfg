@@ -25,10 +25,12 @@ export function useProjects() {
   const { toast } = useToast();
   const realtimeChannelRef = useRef<any>(null);
 
-  const fetchProjects = async (forceRefresh = false, options?: ProjectQueryOptions) => {
+  const fetchProjects = useCallback(async (forceRefresh = false, options?: ProjectQueryOptions) => {
     // Check if user is authenticated and has a profile with organization
     if (!user || !profile?.organization_id) {
       console.log('⚠️ No authenticated user or organization, returning empty projects array');
+      console.log('User:', user);
+      console.log('Profile:', profile);
       setProjects([]);
       setLoading(false);
       return;
@@ -173,12 +175,13 @@ export function useProjects() {
       }));
 
       console.log('✅ Successfully mapped projects:', mappedProjects.length);
+      console.log('Mapped projects data:', mappedProjects);
       setProjects(mappedProjects as Project[]);
 
       // Cache the data appropriately
       if (options) {
         // Cache filtered results with query-specific key
-        const queryKey = cacheService.generateQueryKey(options);
+        const queryKey = generateProjectQueryKey('list', options);
         cacheService.setQueryResult(queryKey, mappedProjects as Project[]);
       } else {
         // Cache full dataset in main cache
@@ -191,7 +194,7 @@ export function useProjects() {
     } finally {
       setLoading(false);
     }
-  };
+  }, [user, profile]);
 
   // Selective real-time subscription for specific projects
   const subscribeToProjectUpdates = useCallback((projectIds: string[]) => {
@@ -272,10 +275,13 @@ export function useProjects() {
       });
 
     return realtimeChannelRef.current;
-  }, []);
+  }, [fetchProjects]); // Add fetchProjects dependency
 
   // Set up real-time subscription - only for project detail pages
   useEffect(() => {
+    console.log('🔄 useProjects useEffect triggered');
+    console.log('User:', user);
+    console.log('Profile:', profile);
     fetchProjects();
 
     // Only subscribe to real-time updates on specific routes
@@ -316,7 +322,7 @@ export function useProjects() {
       }
       unsubscribe();
     };
-  }, [user]); // Remove projects.length dependency to prevent infinite loops
+  }, [user, profile, fetchProjects]); // Add fetchProjects dependency
 
   // Get project by ID
   const getProjectById = async (id: string): Promise<Project | null> => {
@@ -625,7 +631,7 @@ export function useProjects() {
   // Manual refetch function
   const refetch = useCallback(async (forceRefresh = false) => {
     await fetchProjects(forceRefresh);
-  }, []);
+  }, [fetchProjects]); // Add fetchProjects dependency
 
   // Get bottleneck analysis for projects
   const getBottleneckAnalysis = async (): Promise<BottleneckAlert[]> => {
@@ -647,7 +653,7 @@ export function useProjects() {
     offset?: number;
   }, forceRefresh = false) => {
     await fetchProjects(forceRefresh, filters);
-  }, []);
+  }, [fetchProjects]); // Add fetchProjects dependency
 
   return {
     projects,

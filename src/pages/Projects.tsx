@@ -27,6 +27,13 @@ export default function Projects() {
   const { projects, loading, error, updateProjectStage, updateProjectStatusOptimistic, refetch, getBottleneckAnalysis } = useProjects();
   const [searchParams, setSearchParams] = useSearchParams();
 
+  // Log projects data for debugging
+  React.useEffect(() => {
+    console.log('Projects page - projects data:', projects);
+    console.log('Projects page - loading state:', loading);
+    console.log('Projects page - error state:', error);
+  }, [projects, loading, error]);
+
   // Enhanced error handling for the page
   const {
     handleError,
@@ -60,9 +67,16 @@ export default function Projects() {
       try {
         setStagesLoading(true);
         const stages = await workflowStageService.getWorkflowStages();
+        console.log('Workflow stages loaded:', stages);
         // Sort stages by stage_order
         const sortedStages = stages.sort((a, b) => a.stage_order - b.stage_order);
         setWorkflowStages(sortedStages);
+
+        // Set the first stage as selected if none is currently selected
+        if (!selectedStage && sortedStages.length > 0) {
+          setSelectedStage(sortedStages[0].id);
+          localStorage.setItem('projects-selected-stage', sortedStages[0].id);
+        }
       } catch (error) {
         console.error('Error loading workflow stages:', error);
         setWorkflowStages([]);
@@ -108,6 +122,7 @@ export default function Projects() {
   }, []);
 
   const activeProjects = projects.filter(p => p.status !== 'completed');
+  console.log('Active projects count:', activeProjects.length);
 
   // Calculate stage counts by current_stage_id
   const stageCounts = React.useMemo(() => {
@@ -125,19 +140,26 @@ export default function Projects() {
       }
     });
 
+    console.log('Stage counts calculated:', counts);
     return counts;
   }, [projects, workflowStages]);
 
   // Get projects for selected stage with type filtering
   const selectedStageProjects = React.useMemo(() => {
-    if (!selectedStage) return [];
+    if (!selectedStage) {
+      console.log('No selected stage, returning empty array');
+      return [];
+    }
     let filtered = projects.filter(p => p.current_stage_id === selectedStage);
+    console.log('Projects filtered by stage:', filtered.length);
 
     // Apply project type filter
     if (selectedProjectType !== 'all') {
       filtered = filtered.filter(p => p.project_type === selectedProjectType);
+      console.log('Projects filtered by type:', filtered.length);
     }
 
+    console.log('Selected stage projects:', filtered);
     return filtered;
   }, [projects, selectedStage, selectedProjectType]);
 
@@ -228,7 +250,7 @@ export default function Projects() {
     >
       <div className="p-6 bg-base-100 text-base-content min-h-screen">
         {/* Show degraded mode if there are issues but some functionality works */}
-        {projects.length === 0 && !loading && !hasError && (
+        {projects.length === 0 && !loading && !hasError && !isRetrying && (
           <GracefulDegradation
             level="minimal"
             onUpgrade={() => retry(refetch)}
