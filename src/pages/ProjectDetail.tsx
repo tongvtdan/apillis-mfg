@@ -207,7 +207,7 @@ export default function ProjectDetail() {
     }, 10000); // Increased to 10 seconds to prevent interference with real-time updates
 
     return () => clearTimeout(refreshTimer);
-  }, [project?.status, project?.updated_at, id]);
+  }, [id]); // Only depend on id, not on project properties to prevent infinite loops
 
   // Loading state
   if (loading) {

@@ -63,11 +63,18 @@ export function EnhancedProjectSummary({
             // Use current_stage_id (preferred)
             currentStageIndex = workflowStages.findIndex(stage => stage.id === project.current_stage_id);
         } else if (project.current_stage) {
-            // Fallback to legacy current_stage mapping
-            currentStageIndex = workflowStages.findIndex(stage =>
-                stage.name.toLowerCase().replace(/\s+/g, '_') === project.current_stage ||
-                stage.name === project.current_stage
-            );
+            // Handle current_stage as WorkflowStage object (new behavior)
+            if (typeof project.current_stage === 'object' && 'name' in project.current_stage) {
+                const stageName = project.current_stage.name;
+                currentStageIndex = workflowStages.findIndex(stage => stage.name === stageName);
+            }
+            // Handle current_stage as string (legacy behavior) - for backward compatibility
+            else if (typeof project.current_stage === 'string') {
+                currentStageIndex = workflowStages.findIndex(stage =>
+                    stage.name.toLowerCase().replace(/\s+/g, '_') === project.current_stage ||
+                    stage.name === project.current_stage
+                );
+            }
         }
 
         const progressPercentage = currentStageIndex >= 0 && workflowStages.length > 1
@@ -106,10 +113,18 @@ export function EnhancedProjectSummary({
         if (project.current_stage_id) {
             return workflowStages.find(stage => stage.id === project.current_stage_id);
         } else if (project.current_stage) {
-            return workflowStages.find(stage =>
-                stage.name.toLowerCase().replace(/\s+/g, '_') === project.current_stage ||
-                stage.name === project.current_stage
-            );
+            // Handle current_stage as WorkflowStage object (new behavior)
+            if (typeof project.current_stage === 'object' && 'name' in project.current_stage) {
+                const stageName = project.current_stage.name;
+                return workflowStages.find(stage => stage.name === stageName);
+            }
+            // Handle current_stage as string (legacy behavior) - for backward compatibility
+            else if (typeof project.current_stage === 'string') {
+                return workflowStages.find(stage =>
+                    stage.name.toLowerCase().replace(/\s+/g, '_') === project.current_stage ||
+                    stage.name === project.current_stage
+                );
+            }
         }
 
         return null;

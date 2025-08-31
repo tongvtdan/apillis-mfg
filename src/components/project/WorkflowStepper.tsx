@@ -214,10 +214,9 @@ export const WorkflowStepper = React.memo(({ project }: WorkflowStepperProps) =>
       };
     }
 
-    // Sort stages by stage_order to ensure correct ordering
     const sortedStages = [...workflowStages].sort((a, b) => a.stage_order - b.stage_order);
 
-    // Find current stage by ID (preferred) or by legacy mapping
+    // Find current stage by ID (preferred) or by current_stage object
     let currentStageData: WorkflowStage | null = null;
     let currentIndex = -1;
 
@@ -226,14 +225,22 @@ export const WorkflowStepper = React.memo(({ project }: WorkflowStepperProps) =>
       currentStageData = sortedStages.find(stage => stage.id === project.current_stage_id) || null;
       currentIndex = currentStageData ? sortedStages.indexOf(currentStageData) : -1;
     } else if (project.current_stage) {
-      // Fallback to legacy current_stage mapping
-      const stageName = project.current_stage;
-      currentStageData = sortedStages.find(stage =>
-        stage.slug === stageName ||
-        stage.name.toLowerCase().replace(/\s+/g, '_') === stageName ||
-        stage.name === stageName
-      ) || null;
-      currentIndex = currentStageData ? sortedStages.indexOf(currentStageData) : -1;
+      // Handle current_stage as WorkflowStage object (new behavior)
+      if (typeof project.current_stage === 'object' && 'name' in project.current_stage) {
+        const stageName = project.current_stage.name;
+        currentStageData = sortedStages.find(stage => stage.name === stageName) || null;
+        currentIndex = currentStageData ? sortedStages.indexOf(currentStageData) : -1;
+      }
+      // Handle current_stage as string (legacy behavior) - for backward compatibility
+      else if (typeof project.current_stage === 'string') {
+        const stageName = project.current_stage;
+        currentStageData = sortedStages.find(stage =>
+          stage.slug === stageName ||
+          stage.name.toLowerCase().replace(/\s+/g, '_') === stageName ||
+          stage.name === stageName
+        ) || null;
+        currentIndex = currentStageData ? sortedStages.indexOf(currentStageData) : -1;
+      }
     }
 
     const progressPercentage = currentIndex >= 0 && sortedStages.length > 1
@@ -330,19 +337,30 @@ export const WorkflowStepper = React.memo(({ project }: WorkflowStepperProps) =>
     if (workflowStages.length === 0) return;
 
     const currentStageId = project?.current_stage_id;
-    const currentStageLegacy = project?.current_stage;
+    const currentStage = project?.current_stage;
 
     if (currentStageId && !workflowStages.find(s => s.id === currentStageId)) {
       console.warn(`🚨 WorkflowStepper: Unknown project stage ID "${currentStageId}" not found in workflow_stages`);
       console.warn(`🚨 Available stage IDs:`, workflowStages.map(s => s.id));
     }
 
-    if (currentStageLegacy && !workflowStages.find(s =>
-      s.name.toLowerCase().replace(/\s+/g, '_') === currentStageLegacy ||
-      s.name === currentStageLegacy
-    )) {
-      console.warn(`🚨 WorkflowStepper: Legacy stage "${currentStageLegacy}" could not be mapped to workflow_stages`);
-      console.warn(`🚨 Available stage names:`, workflowStages.map(s => s.name));
+    // Handle current_stage as WorkflowStage object (new behavior)
+    if (currentStage && typeof currentStage === 'object' && 'name' in currentStage) {
+      const stageName = currentStage.name;
+      if (!workflowStages.find(s => s.name === stageName)) {
+        console.warn(`🚨 WorkflowStepper: Current stage "${stageName}" not found in workflow_stages`);
+        console.warn(`🚨 Available stage names:`, workflowStages.map(s => s.name));
+      }
+    }
+    // Handle current_stage as string (legacy behavior) - for backward compatibility
+    else if (currentStage && typeof currentStage === 'string') {
+      if (!workflowStages.find(s =>
+        s.name.toLowerCase().replace(/\s+/g, '_') === currentStage ||
+        s.name === currentStage
+      )) {
+        console.warn(`🚨 WorkflowStepper: Legacy stage "${currentStage}" could not be mapped to workflow_stages`);
+        console.warn(`🚨 Available stage names:`, workflowStages.map(s => s.name));
+      }
     }
   }, [project?.current_stage_id, project?.current_stage, workflowStages]);
 

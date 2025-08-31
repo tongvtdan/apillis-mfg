@@ -24,6 +24,7 @@ export function useProjects() {
   const { user, profile } = useAuth(); // Also get profile
   const { toast } = useToast();
   const realtimeChannelRef = useRef<any>(null);
+  const lastFetchTimeRef = useRef<number>(0);
 
   const fetchProjects = useCallback(async (forceRefresh = false, options?: ProjectQueryOptions) => {
     // Check if user is authenticated and has a profile with organization
@@ -311,13 +312,23 @@ export function useProjects() {
       return;
     }
 
-    // Subscribe to the global real-time manager
+    // Subscribe to the global real-time manager with rate limiting
     const unsubscribe = realtimeManager.subscribe(() => {
+      // Rate limit real-time updates to prevent excessive API calls
+      const now = Date.now();
+      const timeSinceLastFetch = now - lastFetchTimeRef.current;
+
+      if (timeSinceLastFetch < 2000) { // Minimum 2 seconds between fetches
+        console.log('🔔 useProjects: Rate limiting real-time update (last fetch was', timeSinceLastFetch, 'ms ago)');
+        return;
+      }
+
       // When we receive a notification, refetch projects to get the latest data
       if (shouldLog) {
         console.log('🔔 useProjects: Received real-time update notification, refetching projects');
       }
-      fetchProjects();
+      lastFetchTimeRef.current = now;
+      fetchProjects(true);
     });
 
     return () => {
@@ -326,7 +337,7 @@ export function useProjects() {
       }
       unsubscribe();
     };
-  }, [user, profile, fetchProjects]); // Add fetchProjects dependency
+  }, [user, profile]); // Remove fetchProjects from dependency array to prevent circular dependency
 
   // Get project by ID
   const getProjectById = async (id: string): Promise<Project | null> => {
