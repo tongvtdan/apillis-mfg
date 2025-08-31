@@ -173,6 +173,43 @@ $$;
 ALTER FUNCTION "public"."create_notification"("p_user_id" "uuid", "p_title" "text", "p_message" "text", "p_type" "text", "p_priority" "public"."priority_level", "p_action_url" "text", "p_action_label" "text", "p_related_entity_type" "text", "p_related_entity_id" "uuid") OWNER TO "postgres";
 
 
+CREATE OR REPLACE FUNCTION "public"."create_project_sub_stage_progress"() RETURNS "trigger"
+    LANGUAGE "plpgsql"
+    AS $$
+BEGIN
+    -- When a project's current_stage_id changes, create progress records for all sub-stages
+    IF NEW.current_stage_id IS DISTINCT FROM OLD.current_stage_id AND NEW.current_stage_id IS NOT NULL THEN
+        INSERT INTO project_sub_stage_progress (
+            organization_id,
+            project_id,
+            workflow_stage_id,
+            sub_stage_id,
+            status
+        )
+        SELECT 
+            NEW.organization_id,
+            NEW.id,
+            NEW.current_stage_id,
+            ws.id,
+            CASE 
+                WHEN ws.sub_stage_order = 1 THEN 'in_progress'
+                ELSE 'pending'
+            END
+        FROM workflow_sub_stages ws
+        WHERE ws.workflow_stage_id = NEW.current_stage_id
+        AND ws.is_active = true
+        AND ws.is_required = true
+        ON CONFLICT (project_id, sub_stage_id) DO NOTHING;
+    END IF;
+    
+    RETURN NEW;
+END;
+$$;
+
+
+ALTER FUNCTION "public"."create_project_sub_stage_progress"() OWNER TO "postgres";
+
+
 CREATE OR REPLACE FUNCTION "public"."generate_project_id"() RETURNS "trigger"
     LANGUAGE "plpgsql"
     AS $$
@@ -314,6 +351,28 @@ $$;
 
 
 ALTER FUNCTION "public"."update_updated_at_column"() OWNER TO "postgres";
+
+
+CREATE OR REPLACE FUNCTION "public"."update_workflow_stage_sub_stages_count"() RETURNS "trigger"
+    LANGUAGE "plpgsql"
+    AS $$
+BEGIN
+    -- Update the count when sub-stages are inserted, updated, or deleted
+    UPDATE workflow_stages 
+    SET sub_stages_count = (
+        SELECT COUNT(*) 
+        FROM workflow_sub_stages 
+        WHERE workflow_stage_id = COALESCE(NEW.workflow_stage_id, OLD.workflow_stage_id)
+        AND is_active = true
+    )
+    WHERE id = COALESCE(NEW.workflow_stage_id, OLD.workflow_stage_id);
+    
+    RETURN COALESCE(NEW, OLD);
+END;
+$$;
+
+
+ALTER FUNCTION "public"."update_workflow_stage_sub_stages_count"() OWNER TO "postgres";
 
 SET default_tablespace = '';
 
@@ -483,6 +542,27 @@ CREATE TABLE IF NOT EXISTS "public"."project_assignments" (
 ALTER TABLE "public"."project_assignments" OWNER TO "postgres";
 
 
+CREATE TABLE IF NOT EXISTS "public"."project_sub_stage_progress" (
+    "id" "uuid" DEFAULT "extensions"."uuid_generate_v4"() NOT NULL,
+    "organization_id" "uuid" NOT NULL,
+    "project_id" "uuid" NOT NULL,
+    "workflow_stage_id" "uuid" NOT NULL,
+    "sub_stage_id" "uuid" NOT NULL,
+    "status" character varying(50) DEFAULT 'pending'::character varying,
+    "started_at" timestamp with time zone,
+    "completed_at" timestamp with time zone,
+    "assigned_to" "uuid",
+    "notes" "text",
+    "metadata" "jsonb" DEFAULT '{}'::"jsonb",
+    "created_at" timestamp with time zone DEFAULT "now"(),
+    "updated_at" timestamp with time zone DEFAULT "now"(),
+    CONSTRAINT "project_sub_stage_progress_status_check" CHECK ((("status")::"text" = ANY ((ARRAY['pending'::character varying, 'in_progress'::character varying, 'completed'::character varying, 'skipped'::character varying, 'blocked'::character varying])::"text"[])))
+);
+
+
+ALTER TABLE "public"."project_sub_stage_progress" OWNER TO "postgres";
+
+
 CREATE TABLE IF NOT EXISTS "public"."projects" (
     "id" "uuid" DEFAULT "extensions"."uuid_generate_v4"() NOT NULL,
     "organization_id" "uuid" NOT NULL,
@@ -596,11 +676,39 @@ CREATE TABLE IF NOT EXISTS "public"."workflow_stages" (
     "exit_criteria" "text",
     "responsible_roles" "public"."user_role"[] DEFAULT '{}'::"public"."user_role"[],
     "created_at" timestamp with time zone DEFAULT "now"(),
-    "updated_at" timestamp with time zone DEFAULT "now"()
+    "updated_at" timestamp with time zone DEFAULT "now"(),
+    "sub_stages_count" integer DEFAULT 0
 );
 
 
 ALTER TABLE "public"."workflow_stages" OWNER TO "postgres";
+
+
+CREATE TABLE IF NOT EXISTS "public"."workflow_sub_stages" (
+    "id" "uuid" DEFAULT "extensions"."uuid_generate_v4"() NOT NULL,
+    "organization_id" "uuid" NOT NULL,
+    "workflow_stage_id" "uuid" NOT NULL,
+    "name" character varying(255) NOT NULL,
+    "slug" character varying(100) NOT NULL,
+    "description" "text",
+    "color" character varying(7) DEFAULT '#6B7280'::character varying,
+    "sub_stage_order" integer NOT NULL,
+    "is_active" boolean DEFAULT true,
+    "exit_criteria" "text",
+    "responsible_roles" "public"."user_role"[] DEFAULT '{}'::"public"."user_role"[],
+    "estimated_duration_hours" integer,
+    "is_required" boolean DEFAULT true,
+    "can_skip" boolean DEFAULT false,
+    "auto_advance" boolean DEFAULT false,
+    "requires_approval" boolean DEFAULT false,
+    "approval_roles" "public"."user_role"[] DEFAULT '{}'::"public"."user_role"[],
+    "metadata" "jsonb" DEFAULT '{}'::"jsonb",
+    "created_at" timestamp with time zone DEFAULT "now"(),
+    "updated_at" timestamp with time zone DEFAULT "now"()
+);
+
+
+ALTER TABLE "public"."workflow_sub_stages" OWNER TO "postgres";
 
 
 ALTER TABLE ONLY "public"."activity_log"
@@ -648,6 +756,16 @@ ALTER TABLE ONLY "public"."project_assignments"
 
 
 
+ALTER TABLE ONLY "public"."project_sub_stage_progress"
+    ADD CONSTRAINT "project_sub_stage_progress_pkey" PRIMARY KEY ("id");
+
+
+
+ALTER TABLE ONLY "public"."project_sub_stage_progress"
+    ADD CONSTRAINT "project_sub_stage_progress_project_id_sub_stage_id_key" UNIQUE ("project_id", "sub_stage_id");
+
+
+
 ALTER TABLE ONLY "public"."projects"
     ADD CONSTRAINT "projects_pkey" PRIMARY KEY ("id");
 
@@ -690,6 +808,21 @@ ALTER TABLE ONLY "public"."workflow_stages"
 
 ALTER TABLE ONLY "public"."workflow_stages"
     ADD CONSTRAINT "workflow_stages_pkey" PRIMARY KEY ("id");
+
+
+
+ALTER TABLE ONLY "public"."workflow_sub_stages"
+    ADD CONSTRAINT "workflow_sub_stages_pkey" PRIMARY KEY ("id");
+
+
+
+ALTER TABLE ONLY "public"."workflow_sub_stages"
+    ADD CONSTRAINT "workflow_sub_stages_workflow_stage_id_slug_key" UNIQUE ("workflow_stage_id", "slug");
+
+
+
+ALTER TABLE ONLY "public"."workflow_sub_stages"
+    ADD CONSTRAINT "workflow_sub_stages_workflow_stage_id_sub_stage_order_key" UNIQUE ("workflow_stage_id", "sub_stage_order");
 
 
 
@@ -797,6 +930,26 @@ CREATE INDEX "idx_project_assignments_user" ON "public"."project_assignments" US
 
 
 
+CREATE INDEX "idx_project_sub_stage_progress_assigned_to" ON "public"."project_sub_stage_progress" USING "btree" ("assigned_to");
+
+
+
+CREATE INDEX "idx_project_sub_stage_progress_project_id" ON "public"."project_sub_stage_progress" USING "btree" ("project_id");
+
+
+
+CREATE INDEX "idx_project_sub_stage_progress_status" ON "public"."project_sub_stage_progress" USING "btree" ("status");
+
+
+
+CREATE INDEX "idx_project_sub_stage_progress_sub_stage_id" ON "public"."project_sub_stage_progress" USING "btree" ("sub_stage_id");
+
+
+
+CREATE INDEX "idx_project_sub_stage_progress_workflow_stage_id" ON "public"."project_sub_stage_progress" USING "btree" ("workflow_stage_id");
+
+
+
 CREATE INDEX "idx_projects_assigned_to" ON "public"."projects" USING "btree" ("assigned_to");
 
 
@@ -893,6 +1046,22 @@ CREATE INDEX "idx_workflow_stages_org_id" ON "public"."workflow_stages" USING "b
 
 
 
+CREATE INDEX "idx_workflow_sub_stages_is_active" ON "public"."workflow_sub_stages" USING "btree" ("is_active");
+
+
+
+CREATE INDEX "idx_workflow_sub_stages_order" ON "public"."workflow_sub_stages" USING "btree" ("workflow_stage_id", "sub_stage_order");
+
+
+
+CREATE INDEX "idx_workflow_sub_stages_organization_id" ON "public"."workflow_sub_stages" USING "btree" ("organization_id");
+
+
+
+CREATE INDEX "idx_workflow_sub_stages_workflow_stage_id" ON "public"."workflow_sub_stages" USING "btree" ("workflow_stage_id");
+
+
+
 CREATE OR REPLACE TRIGGER "generate_project_id_trigger" BEFORE INSERT ON "public"."projects" FOR EACH ROW EXECUTE FUNCTION "public"."generate_project_id"();
 
 
@@ -910,6 +1079,22 @@ CREATE OR REPLACE TRIGGER "log_projects_activity" AFTER INSERT OR DELETE OR UPDA
 
 
 CREATE OR REPLACE TRIGGER "log_reviews_activity" AFTER INSERT OR DELETE OR UPDATE ON "public"."reviews" FOR EACH ROW EXECUTE FUNCTION "public"."log_activity"();
+
+
+
+CREATE OR REPLACE TRIGGER "set_project_sub_stage_progress_updated_at" BEFORE UPDATE ON "public"."project_sub_stage_progress" FOR EACH ROW EXECUTE FUNCTION "public"."update_updated_at_column"();
+
+
+
+CREATE OR REPLACE TRIGGER "set_workflow_sub_stages_updated_at" BEFORE UPDATE ON "public"."workflow_sub_stages" FOR EACH ROW EXECUTE FUNCTION "public"."update_updated_at_column"();
+
+
+
+CREATE OR REPLACE TRIGGER "trigger_create_project_sub_stage_progress" AFTER UPDATE OF "current_stage_id" ON "public"."projects" FOR EACH ROW EXECUTE FUNCTION "public"."create_project_sub_stage_progress"();
+
+
+
+CREATE OR REPLACE TRIGGER "trigger_update_workflow_stage_sub_stages_count" AFTER INSERT OR DELETE OR UPDATE ON "public"."workflow_sub_stages" FOR EACH ROW EXECUTE FUNCTION "public"."update_workflow_stage_sub_stages_count"();
 
 
 
@@ -1043,6 +1228,31 @@ ALTER TABLE ONLY "public"."project_assignments"
 
 
 
+ALTER TABLE ONLY "public"."project_sub_stage_progress"
+    ADD CONSTRAINT "project_sub_stage_progress_assigned_to_fkey" FOREIGN KEY ("assigned_to") REFERENCES "public"."users"("id");
+
+
+
+ALTER TABLE ONLY "public"."project_sub_stage_progress"
+    ADD CONSTRAINT "project_sub_stage_progress_organization_id_fkey" FOREIGN KEY ("organization_id") REFERENCES "public"."organizations"("id") ON DELETE CASCADE;
+
+
+
+ALTER TABLE ONLY "public"."project_sub_stage_progress"
+    ADD CONSTRAINT "project_sub_stage_progress_project_id_fkey" FOREIGN KEY ("project_id") REFERENCES "public"."projects"("id") ON DELETE CASCADE;
+
+
+
+ALTER TABLE ONLY "public"."project_sub_stage_progress"
+    ADD CONSTRAINT "project_sub_stage_progress_sub_stage_id_fkey" FOREIGN KEY ("sub_stage_id") REFERENCES "public"."workflow_sub_stages"("id") ON DELETE CASCADE;
+
+
+
+ALTER TABLE ONLY "public"."project_sub_stage_progress"
+    ADD CONSTRAINT "project_sub_stage_progress_workflow_stage_id_fkey" FOREIGN KEY ("workflow_stage_id") REFERENCES "public"."workflow_stages"("id") ON DELETE CASCADE;
+
+
+
 ALTER TABLE ONLY "public"."projects"
     ADD CONSTRAINT "projects_assigned_to_fkey" FOREIGN KEY ("assigned_to") REFERENCES "public"."users"("id");
 
@@ -1123,6 +1333,28 @@ ALTER TABLE ONLY "public"."workflow_stages"
 
 
 
+ALTER TABLE ONLY "public"."workflow_sub_stages"
+    ADD CONSTRAINT "workflow_sub_stages_organization_id_fkey" FOREIGN KEY ("organization_id") REFERENCES "public"."organizations"("id") ON DELETE CASCADE;
+
+
+
+ALTER TABLE ONLY "public"."workflow_sub_stages"
+    ADD CONSTRAINT "workflow_sub_stages_workflow_stage_id_fkey" FOREIGN KEY ("workflow_stage_id") REFERENCES "public"."workflow_stages"("id") ON DELETE CASCADE;
+
+
+
+CREATE POLICY "Admin and management can manage sub-stage progress" ON "public"."project_sub_stage_progress" USING (("organization_id" IN ( SELECT "users"."organization_id"
+   FROM "public"."users"
+  WHERE (("users"."id" = "auth"."uid"()) AND ("users"."role" = ANY (ARRAY['admin'::"public"."user_role", 'management'::"public"."user_role"]))))));
+
+
+
+CREATE POLICY "Admin and management can manage sub-stages" ON "public"."workflow_sub_stages" USING (("organization_id" IN ( SELECT "users"."organization_id"
+   FROM "public"."users"
+  WHERE (("users"."id" = "auth"."uid"()) AND ("users"."role" = ANY (ARRAY['admin'::"public"."user_role", 'management'::"public"."user_role"]))))));
+
+
+
 CREATE POLICY "Users can modify documents in their org" ON "public"."documents" USING (("organization_id" IN ( SELECT "users"."organization_id"
    FROM "public"."users"
   WHERE ("users"."id" = "auth"."uid"()))));
@@ -1144,6 +1376,14 @@ CREATE POLICY "Users can modify reviews in their org" ON "public"."reviews" USIN
 CREATE POLICY "Users can send messages in their org" ON "public"."messages" FOR INSERT WITH CHECK ((("organization_id" IN ( SELECT "users"."organization_id"
    FROM "public"."users"
   WHERE ("users"."id" = "auth"."uid"()))) AND ("sender_id" = "auth"."uid"())));
+
+
+
+CREATE POLICY "Users can update assigned sub-stage progress" ON "public"."project_sub_stage_progress" FOR UPDATE USING ((("organization_id" IN ( SELECT "users"."organization_id"
+   FROM "public"."users"
+  WHERE ("users"."id" = "auth"."uid"()))) AND (("assigned_to" = "auth"."uid"()) OR (EXISTS ( SELECT 1
+   FROM "public"."users"
+  WHERE (("users"."id" = "auth"."uid"()) AND ("users"."role" = ANY (ARRAY['admin'::"public"."user_role", 'management'::"public"."user_role"]))))))));
 
 
 
@@ -1205,6 +1445,18 @@ CREATE POLICY "Users can view reviews in their org" ON "public"."reviews" FOR SE
 
 
 
+CREATE POLICY "Users can view sub-stage progress for their organization" ON "public"."project_sub_stage_progress" FOR SELECT USING (("organization_id" IN ( SELECT "users"."organization_id"
+   FROM "public"."users"
+  WHERE ("users"."id" = "auth"."uid"()))));
+
+
+
+CREATE POLICY "Users can view sub-stages for their organization" ON "public"."workflow_sub_stages" FOR SELECT USING (("organization_id" IN ( SELECT "users"."organization_id"
+   FROM "public"."users"
+  WHERE ("users"."id" = "auth"."uid"()))));
+
+
+
 CREATE POLICY "Users can view supplier quotes in their org" ON "public"."supplier_quotes" USING (("organization_id" IN ( SELECT "users"."organization_id"
    FROM "public"."users"
   WHERE ("users"."id" = "auth"."uid"()))));
@@ -1254,6 +1506,9 @@ ALTER TABLE "public"."organizations" ENABLE ROW LEVEL SECURITY;
 ALTER TABLE "public"."project_assignments" ENABLE ROW LEVEL SECURITY;
 
 
+ALTER TABLE "public"."project_sub_stage_progress" ENABLE ROW LEVEL SECURITY;
+
+
 ALTER TABLE "public"."projects" ENABLE ROW LEVEL SECURITY;
 
 
@@ -1267,6 +1522,9 @@ ALTER TABLE "public"."users" ENABLE ROW LEVEL SECURITY;
 
 
 ALTER TABLE "public"."workflow_stages" ENABLE ROW LEVEL SECURITY;
+
+
+ALTER TABLE "public"."workflow_sub_stages" ENABLE ROW LEVEL SECURITY;
 
 
 
@@ -1446,6 +1704,12 @@ GRANT ALL ON FUNCTION "public"."create_notification"("p_user_id" "uuid", "p_titl
 
 
 
+GRANT ALL ON FUNCTION "public"."create_project_sub_stage_progress"() TO "anon";
+GRANT ALL ON FUNCTION "public"."create_project_sub_stage_progress"() TO "authenticated";
+GRANT ALL ON FUNCTION "public"."create_project_sub_stage_progress"() TO "service_role";
+
+
+
 GRANT ALL ON FUNCTION "public"."generate_project_id"() TO "anon";
 GRANT ALL ON FUNCTION "public"."generate_project_id"() TO "authenticated";
 GRANT ALL ON FUNCTION "public"."generate_project_id"() TO "service_role";
@@ -1473,6 +1737,12 @@ GRANT ALL ON FUNCTION "public"."log_activity"() TO "service_role";
 GRANT ALL ON FUNCTION "public"."update_updated_at_column"() TO "anon";
 GRANT ALL ON FUNCTION "public"."update_updated_at_column"() TO "authenticated";
 GRANT ALL ON FUNCTION "public"."update_updated_at_column"() TO "service_role";
+
+
+
+GRANT ALL ON FUNCTION "public"."update_workflow_stage_sub_stages_count"() TO "anon";
+GRANT ALL ON FUNCTION "public"."update_workflow_stage_sub_stages_count"() TO "authenticated";
+GRANT ALL ON FUNCTION "public"."update_workflow_stage_sub_stages_count"() TO "service_role";
 
 
 
@@ -1533,6 +1803,12 @@ GRANT ALL ON TABLE "public"."project_assignments" TO "service_role";
 
 
 
+GRANT ALL ON TABLE "public"."project_sub_stage_progress" TO "anon";
+GRANT ALL ON TABLE "public"."project_sub_stage_progress" TO "authenticated";
+GRANT ALL ON TABLE "public"."project_sub_stage_progress" TO "service_role";
+
+
+
 GRANT ALL ON TABLE "public"."projects" TO "anon";
 GRANT ALL ON TABLE "public"."projects" TO "authenticated";
 GRANT ALL ON TABLE "public"."projects" TO "service_role";
@@ -1560,6 +1836,12 @@ GRANT ALL ON TABLE "public"."users" TO "service_role";
 GRANT ALL ON TABLE "public"."workflow_stages" TO "anon";
 GRANT ALL ON TABLE "public"."workflow_stages" TO "authenticated";
 GRANT ALL ON TABLE "public"."workflow_stages" TO "service_role";
+
+
+
+GRANT ALL ON TABLE "public"."workflow_sub_stages" TO "anon";
+GRANT ALL ON TABLE "public"."workflow_sub_stages" TO "authenticated";
+GRANT ALL ON TABLE "public"."workflow_sub_stages" TO "service_role";
 
 
 
