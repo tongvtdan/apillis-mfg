@@ -2,6 +2,57 @@
 
 ## Recent Changes
 
+### 2025-08-31 - Real Sub-Stage Progress Tracking Implementation
+
+**Task Completed:**
+- Replaced mock sub-stage progress with real database-driven progress tracking
+- Implemented actual project sub-stage status from database
+- Added fallback logic for projects without progress data
+- Enhanced visual indicators with real completion status
+
+**Changes Made:**
+- **Real Progress Data**: Integrated `useProjectSubStageProgress` hook for actual progress
+- **Database Integration**: Fetches real sub-stage progress from `project_sub_stage_progress` table
+- **Status Mapping**: Maps database status (completed, in_progress, pending, skipped, blocked) to visual indicators
+- **Fallback Logic**: Provides estimated progress when no real data exists
+- **Enhanced Accuracy**: Shows actual completion status instead of random mock data
+
+**Technical Implementation:**
+- **File Modified**: `src/pages/Projects.tsx`
+- **Progress Hook**: Added `useProjectSubStageProgress` for real data fetching
+- **Status Logic**: Implemented proper status mapping from database to UI
+- **Fallback System**: Estimated progress based on days in stage when no real data exists
+- **Visual Indicators**: Real-time status updates based on actual progress
+
+**Progress Status Mapping:**
+- **Completed**: Green checkmark (✓) for finished or skipped sub-stages
+- **In Progress**: Yellow clock (⏰) for currently active sub-stages
+- **Pending**: Empty checkbox (□) for upcoming sub-stages
+- **Blocked**: Red alert icon for blocked sub-stages (future enhancement)
+
+**Data Flow:**
+1. **Fetch Sub-Stages**: Get workflow sub-stages for selected stage
+2. **Fetch Progress**: Get real progress data for projects in stage
+3. **Map Status**: Map database status to visual indicators
+4. **Display**: Show real completion status in project cards
+5. **Fallback**: Use estimated progress when no real data exists
+
+**Benefits:**
+- **Real Data**: Project cards now show actual sub-stage completion status
+- **Accurate Progress**: Real-time progress tracking from database
+- **Better Decision Making**: Users can see actual project progress
+- **Data Integrity**: Consistent with actual workflow progress
+- **Future-Ready**: Foundation for advanced progress tracking features
+
+**Files Modified:**
+- `src/pages/Projects.tsx` - Implemented real progress tracking
+
+**Next Steps:**
+- Add real-time progress updates with WebSocket integration
+- Implement sub-stage management interface
+- Add progress editing capabilities
+- Create progress analytics and reporting
+
 ### 2025-08-31 - Workflow Visualization UI Improvements
 
 **Task Completed:**

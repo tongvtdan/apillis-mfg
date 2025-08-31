@@ -51,15 +51,51 @@ export default function Projects() {
     return days;
   };
 
-  // Helper function to get sub-stage progress for a project
+  // Helper function to get real sub-stage progress for a project
   const getSubStageProgress = (projectId: string) => {
-    // This would be replaced with real progress data from the database
-    // For now, return a mock progress based on sub-stages
     const totalSubStages = subStages.length;
-    const completedSubStages = Math.floor(Math.random() * (totalSubStages + 1)); // Mock data
+
+    // Get real progress data from the database
+    const projectProgress = allProjectProgress.filter(p => p.project_id === projectId);
+
+    if (projectProgress.length === 0) {
+      // If no progress data exists, calculate based on days in stage
+      const project = projects.find(p => p.id === projectId);
+      if (!project || !project.days_in_stage) {
+        return {
+          total: totalSubStages,
+          completed: 0,
+          progress: 0
+        };
+      }
+
+      // Estimate progress based on days in stage
+      const avgDurationPerSubStage = 2; // Average days per sub-stage
+      const estimatedCompleted = Math.min(
+        Math.floor(project.days_in_stage / avgDurationPerSubStage),
+        totalSubStages
+      );
+
+      return {
+        total: totalSubStages,
+        completed: estimatedCompleted,
+        progress: totalSubStages > 0 ? (estimatedCompleted / totalSubStages) * 100 : 0
+      };
+    }
+
+    // Use real progress data
+    const completedSubStages = projectProgress.filter(p =>
+      p.status === 'completed' || p.status === 'skipped'
+    ).length;
+
+    const inProgressSubStages = projectProgress.filter(p =>
+      p.status === 'in_progress'
+    ).length;
+
     return {
       total: totalSubStages,
       completed: completedSubStages,
+      inProgress: inProgressSubStages,
       progress: totalSubStages > 0 ? (completedSubStages / totalSubStages) * 100 : 0
     };
   };
@@ -205,6 +241,12 @@ export default function Projects() {
     console.log('Selected stage projects:', filtered);
     return filtered;
   }, [projects, selectedStage, selectedProjectType]);
+
+  // Fetch project sub-stage progress for all projects in the selected stage
+  const { progress: allProjectProgress, loading: progressLoading } = useProjectSubStageProgress({
+    projectId: selectedStageProjects.length > 0 ? selectedStageProjects[0].id : undefined,
+    enabled: !!selectedStage && selectedStageProjects.length > 0
+  });
 
   // Handle loading state
   if (loading || isRetrying) {
@@ -613,14 +655,35 @@ export default function Projects() {
                                   <div className="space-y-1">
                                     {subStages.slice(0, 4).map((subStage, index) => {
                                       const progress = getSubStageProgress(project.id);
-                                      const isCompleted = index < progress.completed;
-                                      const isInProgress = index === progress.completed && progress.completed < progress.total;
+
+                                      // Get real progress status for this specific sub-stage
+                                      const projectProgress = allProjectProgress.filter(p =>
+                                        p.project_id === project.id && p.sub_stage_id === subStage.id
+                                      );
+
+                                      let status: 'completed' | 'in_progress' | 'pending' = 'pending';
+
+                                      if (projectProgress.length > 0) {
+                                        const subStageProgress = projectProgress[0];
+                                        if (subStageProgress.status === 'completed' || subStageProgress.status === 'skipped') {
+                                          status = 'completed';
+                                        } else if (subStageProgress.status === 'in_progress') {
+                                          status = 'in_progress';
+                                        }
+                                      } else {
+                                        // Fallback to estimated progress based on index
+                                        if (index < progress.completed) {
+                                          status = 'completed';
+                                        } else if (index === progress.completed && progress.completed < progress.total) {
+                                          status = 'in_progress';
+                                        }
+                                      }
 
                                       return (
                                         <div key={subStage.id} className="flex items-center gap-2">
-                                          {isCompleted ? (
+                                          {status === 'completed' ? (
                                             <CheckCircle2 className="h-3 w-3 text-green-500" />
-                                          ) : isInProgress ? (
+                                          ) : status === 'in_progress' ? (
                                             <Clock className="h-3 w-3 text-yellow-500" />
                                           ) : (
                                             <div className="h-3 w-3 border border-gray-300 rounded-sm" />
