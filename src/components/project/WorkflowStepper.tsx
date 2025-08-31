@@ -105,6 +105,35 @@ const getStageConfig = (stage: WorkflowStage): StageConfig => {
     'Shipped & Closed': CheckCircle2
   };
 
+  // Use the stage's own color if available, otherwise fallback to legacy colors
+  let bgColorClass = "bg-gray-100";
+  if (stage.color) {
+    // For hex colors, we'll use a light version of the color
+    // For named colors, we'll use the corresponding Tailwind class
+    if (stage.color.startsWith('#')) {
+      // For hex colors, we'll handle this with inline styles, so return empty class
+      bgColorClass = "";
+    } else {
+      // For named colors like "blue", "red", etc., use Tailwind classes
+      bgColorClass = `bg-${stage.color}-100`;
+    }
+  } else {
+    // Fallback to legacy color mapping
+    const colorMap: Record<string, { color: string; bgColor: string }> = {
+      'Inquiry Received': { color: "text-blue-600", bgColor: "bg-blue-100" },
+      'Technical Review': { color: "text-orange-600", bgColor: "bg-orange-100" },
+      'Supplier RFQ': { color: "text-indigo-600", bgColor: "bg-indigo-100" },
+      'Quoted': { color: "text-green-600", bgColor: "bg-green-100" },
+      'Order Confirmed': { color: "text-purple-600", bgColor: "bg-purple-100" },
+      'Procurement Planning': { color: "text-yellow-600", bgColor: "bg-yellow-100" },
+      'In Production': { color: "text-teal-600", bgColor: "bg-teal-100" },
+      'Shipped & Closed': { color: "text-gray-600", bgColor: "bg-gray-100" }
+    };
+
+    const colors = colorMap[stage.name] || { color: "text-gray-600", bgColor: "bg-gray-100" };
+    bgColorClass = colors.bgColor;
+  }
+
   const colorMap: Record<string, { color: string; bgColor: string }> = {
     'Inquiry Received': { color: "text-blue-600", bgColor: "bg-blue-100" },
     'Technical Review': { color: "text-orange-600", bgColor: "bg-orange-100" },
@@ -122,7 +151,7 @@ const getStageConfig = (stage: WorkflowStage): StageConfig => {
     title: stage.name,
     icon: iconMap[stage.name] || Circle,
     color: colors.color,
-    bgColor: colors.bgColor
+    bgColor: bgColorClass
   };
 };
 
@@ -249,11 +278,11 @@ export const WorkflowStepper = React.memo(({ project }: WorkflowStepperProps) =>
     const status = getStageStatus(stage);
     switch (status) {
       case 'completed':
-        return 'text-green-600 border-green-600';
+        return 'text-green-600';
       case 'current':
-        return 'text-blue-600 border-blue-600 font-bold';
+        return 'text-blue-600 font-bold';
       default:
-        return 'text-gray-400 border-gray-300';
+        return 'text-gray-400';
     }
   }, [getStageStatus]);
 
@@ -656,10 +685,15 @@ export const WorkflowStepper = React.memo(({ project }: WorkflowStepperProps) =>
                           <div className={`
                           relative flex items-center justify-center w-12 h-12 rounded-full border-2 mb-2
                           ${getStatusColor(stage)}
-                          ${getStageConfig(stage).bgColor}
+                          ${getStageConfig(stage).bgColor || ''}
                           ${isClickable ? 'hover:shadow-md focus:ring-2 focus:ring-blue-500 focus:outline-none' : ''}
                           transition-all duration-200
-                        `}>
+                        `}
+                            style={{
+                              borderColor: stage.color || undefined,
+                              backgroundColor: stage.color && stage.color.startsWith('#') ? `${stage.color}20` : undefined
+                            }}
+                          >
                             {getStatusIcon(stage)}
                             {hoveredStage === stage && status !== 'current' && (
                               <div className="absolute -top-1 -right-1 w-4 h-4 rounded-full bg-blue-500 flex items-center justify-center">
@@ -700,10 +734,14 @@ export const WorkflowStepper = React.memo(({ project }: WorkflowStepperProps) =>
                     className={`
                     relative flex items-center justify-center w-10 h-10 rounded-full border-2 mr-4
                     ${getStatusColor(stage)}
-                    ${getStageConfig(stage).bgColor}
+                    ${getStageConfig(stage).bgColor || ''}
                     ${isClickable ? 'cursor-pointer hover:shadow-lg focus:ring-2 focus:ring-blue-500 focus:outline-none' : ''}
                     transition-all duration-200
                   `}
+                    style={{
+                      borderColor: stage.color || undefined,
+                      backgroundColor: stage.color && stage.color.startsWith('#') ? `${stage.color}20` : undefined
+                    }}
                     onClick={() => isClickable && handleStageClick(stage)}
                     onKeyDown={(e) => isClickable && handleKeyDown(e, stage)}
                     tabIndex={isClickable ? 0 : -1}
