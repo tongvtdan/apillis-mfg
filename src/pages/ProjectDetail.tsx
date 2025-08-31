@@ -50,6 +50,9 @@ import { ProjectDetailHeader } from "@/components/project/ProjectDetailHeader";
 import { ProjectSummaryCard } from "@/components/project/ProjectSummaryCard";
 import { VisualTimelineProgression } from "@/components/project/VisualTimelineProgression";
 import { useWorkflowStages } from "@/hooks/useWorkflowStages";
+import { ResponsiveNavigationWrapper } from "@/components/project/ResponsiveNavigationWrapper";
+import { TabTransition, TabContentWrapper } from "@/components/project/TabTransition";
+import { useProjectNavigation } from "@/hooks/useProjectNavigation";
 
 // Separate component for auto-advance functionality to avoid Rules of Hooks violation
 const ProjectAutoAdvance = memo(({ project }: { project: Project }) => {
@@ -67,10 +70,23 @@ export default function ProjectDetail() {
   const navigate = useNavigate();
   const { profile } = useAuth(); // Add this line to access the profile
 
-  const [activeTab, setActiveTab] = useState(() => {
-    // Try to restore the active tab from sessionStorage based on project ID
-    const savedTab = sessionStorage.getItem(`project-${id}-active-tab`);
-    return savedTab || "overview";
+  // Use the new navigation hook
+  const {
+    activeTab,
+    navigationTabs,
+    handleTabChange,
+    getBreadcrumbs,
+    isTabLoading,
+    hasTabError,
+  } = useProjectNavigation({
+    projectId: id || '',
+    documentsCount: documents.length,
+    messagesCount: messages.length,
+    unreadMessagesCount: messages.filter(m => !m.read_at).length,
+    reviewsCount: reviews?.length || 0,
+    pendingReviewsCount: reviews?.filter(r => r.status === 'pending').length || 0,
+    supplierRfqsCount: supplierRfqs.length,
+    activeSupplierRfqsCount: supplierRfqs.filter(rfq => rfq.status === 'sent' || rfq.status === 'pending').length,
   });
   const [showSupplierModal, setShowSupplierModal] = useState(false);
   const [project, setProject] = useState<Project | null>(null);
@@ -364,12 +380,7 @@ export default function ProjectDetail() {
     }
   };
 
-  // Helper function to handle tab changes
-  const handleTabChange = (tab: string) => {
-    setActiveTab(tab);
-    // Save the active tab to sessionStorage for this specific project
-    sessionStorage.setItem(`project-${id}-active-tab`, tab);
-  };
+  // Tab change is now handled by the navigation hook
 
   const getReviewStatusColor = (status: string) => {
     switch (status) {
@@ -503,706 +514,634 @@ export default function ProjectDetail() {
 
 
 
-        {/* Main Content */}
-        <div className="flex">
-          {/* Navigation Sidebar */}
-          <div className="w-48 border-r bg-card shadow-sm min-h-screen">
-            <div className="p-4">
-              <div className="mb-4 text-xs font-bold text-primary uppercase tracking-wider py-2 border-b border-muted">
-                NAVIGATION
-              </div>
-              <nav className="space-y-2">
-                <button
-                  onClick={() => handleTabChange("overview")}
-                  className={cn(
-                    "w-full text-left px-4 py-2.5 rounded-md text-sm font-medium transition-all duration-200",
-                    activeTab === "overview"
-                      ? "bg-primary text-primary-foreground font-bold shadow-sm border-l-4 border-primary"
-                      : "text-foreground hover:bg-muted hover:border-l-4 hover:border-muted-foreground/30"
-                  )}
-                >
-                  Overview
-                </button>
-                <button
-                  onClick={() => handleTabChange("reviews")}
-                  className={cn(
-                    "w-full text-left px-4 py-2.5 rounded-md text-sm font-medium transition-all duration-200",
-                    activeTab === "reviews"
-                      ? "bg-primary text-primary-foreground font-bold shadow-sm border-l-4 border-primary"
-                      : "text-foreground hover:bg-muted hover:border-l-4 hover:border-muted-foreground/30"
-                  )}
-                >
-                  Reviews
-                </button>
-                <button
-                  onClick={() => handleTabChange("documents")}
-                  className={cn(
-                    "w-full text-left px-4 py-2.5 rounded-md text-sm font-medium transition-all duration-200",
-                    activeTab === "documents"
-                      ? "bg-primary text-primary-foreground font-bold shadow-sm border-l-4 border-primary"
-                      : "text-foreground hover:bg-muted hover:border-l-4 hover:border-muted-foreground/30"
-                  )}
-                >
-                  Documents
-                </button>
-                <button
-                  onClick={() => handleTabChange("supplier")}
-                  className={cn(
-                    "w-full text-left px-4 py-2.5 rounded-md text-sm font-medium transition-all duration-200",
-                    activeTab === "supplier"
-                      ? "bg-primary text-primary-foreground font-bold shadow-sm border-l-4 border-primary"
-                      : "text-foreground hover:bg-muted hover:border-l-4 hover:border-muted-foreground/30"
-                  )}
-                >
-                  Supplier
-                </button>
-                <button
-                  onClick={() => handleTabChange("communication")}
-                  className={cn(
-                    "w-full text-left px-4 py-2.5 rounded-md text-sm font-medium transition-all duration-200",
-                    activeTab === "communication"
-                      ? "bg-primary text-primary-foreground font-bold shadow-sm border-l-4 border-primary"
-                      : "text-foreground hover:bg-muted hover:border-l-4 hover:border-muted-foreground/30"
-                  )}
-                >
-                  Communication
-                </button>
-                <button
-                  onClick={() => handleTabChange("timeline")}
-                  className={cn(
-                    "w-full text-left px-4 py-2.5 rounded-md text-sm font-medium transition-all duration-200",
-                    activeTab === "timeline"
-                      ? "bg-primary text-primary-foreground font-bold shadow-sm border-l-4 border-primary"
-                      : "text-foreground hover:bg-muted hover:border-l-4 hover:border-muted-foreground/30"
-                  )}
-                >
-                  Timeline
-                </button>
-                <button
-                  onClick={() => handleTabChange("analytics")}
-                  className={cn(
-                    "w-full text-left px-4 py-2.5 rounded-md text-sm font-medium transition-all duration-200",
-                    activeTab === "analytics"
-                      ? "bg-primary text-primary-foreground font-bold shadow-sm border-l-4 border-primary"
-                      : "text-foreground hover:bg-muted hover:border-l-4 hover:border-muted-foreground/30"
-                  )}
-                >
-                  Analytics
-                </button>
-                <button
-                  onClick={() => handleTabChange("settings")}
-                  className={cn(
-                    "w-full text-left px-4 py-2.5 rounded-md text-sm font-medium transition-all duration-200",
-                    activeTab === "settings"
-                      ? "bg-primary text-primary-foreground font-bold shadow-sm border-l-4 border-primary"
-                      : "text-foreground hover:bg-muted hover:border-l-4 hover:border-muted-foreground/30"
-                  )}
-                >
-                  Settings
-                </button>
-              </nav>
-            </div>
-          </div>
+        {/* Enhanced Interactive Navigation */}
+        <ResponsiveNavigationWrapper
+          activeTab={activeTab}
+          onTabChange={handleTabChange}
+          tabs={navigationTabs}
+          breadcrumbs={getBreadcrumbs()}
+          projectId={project.id}
+          projectTitle={project.title}
+          onBack={() => navigate('/projects')}
+        >
+          <div className="p-6">
+            <TabTransition activeTab={activeTab} isLoading={isTabLoading(activeTab)}>
+              <TabContentWrapper
+                tabId="overview"
+                activeTab={activeTab}
+                isLoading={isTabLoading('overview')}
+                hasError={hasTabError('overview')}
+              >
+                <div className="space-y-6">
+                  {/* Actions Needed for Current Stage */}
+                  <ProjectSummaryCard
+                    project={project}
+                    workflowStages={workflowStages}
+                    onEdit={() => console.log('Edit project')}
+                    onViewDetails={() => console.log('View details')}
+                  />
 
-          {/* Content Area */}
-          <div className="flex-1 p-6">
-            {activeTab === "overview" && (
-              <div className="space-y-6">
-                {/* Actions Needed for Current Stage */}
-                <ProjectSummaryCard
-                  project={project}
-                  workflowStages={workflowStages}
-                  onEdit={() => console.log('Edit project')}
-                  onViewDetails={() => console.log('View details')}
-                />
-
-                {/* Review Status Section */}
-                <Card>
-                  <CardHeader>
-                    <CardTitle className="text-sm font-semibold text-muted-foreground uppercase tracking-wide">
-                      REVIEW STATUS
-                    </CardTitle>
-                    <p className="text-xs text-muted-foreground">
-                      Internal review progress for Engineering, QA, and Production
-                    </p>
-                  </CardHeader>
-                  <CardContent>
-                    {reviewsLoading ? (
-                      <div className="flex items-center justify-center py-4">
-                        <Loader2 className="h-4 w-4 animate-spin mr-2" />
-                        <span className="text-sm text-muted-foreground">Loading review status...</span>
-                      </div>
-                    ) : (
-                      <div className="space-y-4">
-                        {/* Review Progress Bar */}
-                        <div className="space-y-2">
-                          <div className="flex justify-between text-sm">
-                            <span className="text-muted-foreground">Overall Progress</span>
-                            <span className="font-medium">{getReviewSummary().progress}%</span>
-                          </div>
-                          <div className="w-full bg-muted rounded-full h-2">
-                            <div
-                              className="bg-primary h-2 rounded-full transition-all duration-300"
-                              style={{ width: `${getReviewSummary().progress}%` }}
-                            />
-                          </div>
+                  {/* Review Status Section */}
+                  <Card>
+                    <CardHeader>
+                      <CardTitle className="text-sm font-semibold text-muted-foreground uppercase tracking-wide">
+                        REVIEW STATUS
+                      </CardTitle>
+                      <p className="text-xs text-muted-foreground">
+                        Internal review progress for Engineering, QA, and Production
+                      </p>
+                    </CardHeader>
+                    <CardContent>
+                      {reviewsLoading ? (
+                        <div className="flex items-center justify-center py-4">
+                          <Loader2 className="h-4 w-4 animate-spin mr-2" />
+                          <span className="text-sm text-muted-foreground">Loading review status...</span>
                         </div>
+                      ) : (
+                        <div className="space-y-4">
+                          {/* Review Progress Bar */}
+                          <div className="space-y-2">
+                            <div className="flex justify-between text-sm">
+                              <span className="text-muted-foreground">Overall Progress</span>
+                              <span className="font-medium">{getReviewSummary().progress}%</span>
+                            </div>
+                            <div className="w-full bg-muted rounded-full h-2">
+                              <div
+                                className="bg-primary h-2 rounded-full transition-all duration-300"
+                                style={{ width: `${getReviewSummary().progress}%` }}
+                              />
+                            </div>
+                          </div>
 
-                        {/* Department Review Statuses */}
-                        <div className="grid grid-cols-1 gap-3">
-                          {(['Engineering', 'QA', 'Production'] as const).map((department) => {
-                            const status = getReviewStatuses()[department];
-                            const review = reviews.find(r => r.department === department);
+                          {/* Department Review Statuses */}
+                          <div className="grid grid-cols-1 gap-3">
+                            {(['Engineering', 'QA', 'Production'] as const).map((department) => {
+                              const status = getReviewStatuses()[department];
+                              const review = reviews.find(r => r.department === department);
 
-                            const getStatusIcon = (status: string) => {
-                              switch (status) {
-                                case 'approved': return <CheckCircle2 className="w-4 h-4 text-green-600" />;
-                                case 'rejected': return <X className="w-4 h-4 text-red-600" />;
-                                case 'revision_requested': return <AlertCircle className="w-4 h-4 text-orange-600" />;
-                                default: return <Clock className="w-4 h-4 text-gray-400" />;
-                              }
-                            };
+                              const getStatusIcon = (status: string) => {
+                                switch (status) {
+                                  case 'approved': return <CheckCircle2 className="w-4 h-4 text-green-600" />;
+                                  case 'rejected': return <X className="w-4 h-4 text-red-600" />;
+                                  case 'revision_requested': return <AlertCircle className="w-4 h-4 text-orange-600" />;
+                                  default: return <Clock className="w-4 h-4 text-gray-400" />;
+                                }
+                              };
 
-                            const getStatusColor = (status: string) => {
-                              switch (status) {
-                                case 'approved': return 'bg-green-100 text-green-800 border-green-200';
-                                case 'rejected': return 'bg-red-100 text-red-800 border-red-200';
-                                case 'revision_requested': return 'bg-orange-100 text-orange-800 border-orange-200';
-                                default: return 'bg-yellow-100 text-yellow-800 border-yellow-200';
-                              }
-                            };
+                              const getStatusColor = (status: string) => {
+                                switch (status) {
+                                  case 'approved': return 'bg-green-100 text-green-800 border-green-200';
+                                  case 'rejected': return 'bg-red-100 text-red-800 border-red-200';
+                                  case 'revision_requested': return 'bg-orange-100 text-orange-800 border-orange-200';
+                                  default: return 'bg-yellow-100 text-yellow-800 border-yellow-200';
+                                }
+                              };
 
-                            return (
-                              <div key={department} className="flex items-center justify-between p-3 border rounded-lg">
-                                <div className="flex items-center space-x-3">
-                                  <div className="flex items-center space-x-2">
-                                    {getStatusIcon(status)}
-                                    <span className="font-medium text-sm">{department}</span>
+                              return (
+                                <div key={department} className="flex items-center justify-between p-3 border rounded-lg">
+                                  <div className="flex items-center space-x-3">
+                                    <div className="flex items-center space-x-2">
+                                      {getStatusIcon(status)}
+                                      <span className="font-medium text-sm">{department}</span>
+                                    </div>
+                                    {review?.reviewer_id && (
+                                      <ReviewerDisplay
+                                        reviewerId={review.reviewer_id}
+                                        displayName={reviewerUsers.get(review.reviewer_id)?.display_name || review.reviewer_id}
+                                      />
+                                    )}
                                   </div>
-                                  {review?.reviewer_id && (
-                                    <ReviewerDisplay
-                                      reviewerId={review.reviewer_id}
-                                      displayName={reviewerUsers.get(review.reviewer_id)?.display_name || review.reviewer_id}
-                                    />
-                                  )}
+                                  <div className="flex items-center space-x-2">
+                                    <Badge className={`text-xs ${getStatusColor(status)}`}>
+                                      {status === 'pending' ? 'Pending' :
+                                        status === 'approved' ? 'Approved' :
+                                          status === 'rejected' ? 'Rejected' :
+                                            'Revision Requested'}
+                                    </Badge>
+                                    {review?.submitted_at && (
+                                      <span className="text-xs text-muted-foreground">
+                                        📅 {format(new Date(review.submitted_at), 'MMM dd')}
+                                      </span>
+                                    )}
+                                  </div>
                                 </div>
-                                <div className="flex items-center space-x-2">
-                                  <Badge className={`text-xs ${getStatusColor(status)}`}>
-                                    {status === 'pending' ? 'Pending' :
-                                      status === 'approved' ? 'Approved' :
-                                        status === 'rejected' ? 'Rejected' :
-                                          'Revision Requested'}
-                                  </Badge>
-                                  {review?.submitted_at && (
-                                    <span className="text-xs text-muted-foreground">
-                                      📅 {format(new Date(review.submitted_at), 'MMM dd')}
-                                    </span>
-                                  )}
-                                </div>
-                              </div>
-                            );
-                          })}
-                        </div>
-
-                        {/* Review Summary */}
-                        <div className="pt-3 border-t">
-                          <div className="grid grid-cols-2 gap-4 text-sm">
-                            <div className="text-center">
-                              <div className="font-semibold text-green-600">{getReviewSummary().approved}</div>
-                              <div className="text-muted-foreground">Approved</div>
-                            </div>
-                            <div className="text-center">
-                              <div className="font-semibold text-yellow-600">{getReviewSummary().pending}</div>
-                              <div className="text-muted-foreground">Pending</div>
-                            </div>
+                              );
+                            })}
                           </div>
-                        </div>
 
-                        <Button
-                          variant="outline"
-                          size="sm"
-                          className="w-full"
-                          onClick={() => handleTabChange("reviews")}
-                        >
-                          🔍 View All Reviews
-                        </Button>
-                      </div>
-                    )}
-                  </CardContent>
-                </Card>
-
-                {/* Documents Section */}
-                <Card>
-                  <CardHeader>
-                    <CardTitle className="text-sm font-semibold text-muted-foreground uppercase tracking-wide">
-                      DOCUMENTS
-                    </CardTitle>
-                  </CardHeader>
-                  <CardContent>
-                    {documentsLoading ? (
-                      <div className="flex items-center justify-center py-4">
-                        <Loader2 className="h-4 w-4 animate-spin mr-2" />
-                        <span className="text-sm text-muted-foreground">Loading documents...</span>
-                      </div>
-                    ) : documents.length > 0 ? (
-                      <div className="space-y-3">
-                        {documents.map((doc) => (
-                          <div key={doc.id} className="flex items-center justify-between text-sm">
-                            <div className="flex items-center space-x-2">
-                              <span>📄</span>
-                              <span className="font-medium">{doc.original_file_name || doc.filename || 'N/A'}</span>
-                              <Badge variant="outline" className="text-xs px-1 py-0">
-                                [{doc.version || 'v1'}]
-                              </Badge>
-                              <span className="text-muted-foreground">
-                                📅 {doc.uploaded_at ? format(new Date(doc.uploaded_at), 'MMM dd') : 'N/A'} · 👤 {doc.uploaded_by || 'N/A'}
-                              </span>
-                              {doc.access_level === 'internal' && (
-                                <Badge className="text-xs bg-orange-100 text-orange-800">
-                                  🔒 Internal Only
-                                </Badge>
-                              )}
-                            </div>
-                          </div>
-                        ))}
-                      </div>
-                    ) : (
-                      <div className="text-center py-4 text-sm text-muted-foreground">
-                        No documents uploaded yet
-                      </div>
-                    )}
-                    <Button variant="outline" size="sm" className="mt-3">
-                      <Plus className="w-4 h-4 mr-2" />
-                      Upload New File
-                    </Button>
-                  </CardContent>
-                </Card>
-
-                {/* Supplier RFQ Section */}
-                <Card>
-                  <CardHeader>
-                    <CardTitle className="text-sm font-semibold text-muted-foreground uppercase tracking-wide">
-                      SUPPLIER RFQ SENT
-                    </CardTitle>
-                  </CardHeader>
-                  <CardContent>
-                    {supplierRfqsLoading ? (
-                      <div className="flex items-center justify-center py-4">
-                        <Loader2 className="h-4 w-4 animate-spin mr-2" />
-                        <span className="text-sm text-muted-foreground">Loading supplier RFQs...</span>
-                      </div>
-                    ) : supplierRfqs.length > 0 ? (
-                      <div className="space-y-4">
-                        <p className="text-sm font-medium">📧 Sent to:</p>
-                        <div className="space-y-2">
-                          {supplierRfqs.map((rfq) => (
-                            <div key={rfq.id} className="flex items-center justify-between text-sm">
-                              <div className="flex-1">
-                                <span>• {rfq.supplier?.name || 'N/A'} ({rfq.supplier?.email || 'N/A'})</span>
+                          {/* Review Summary */}
+                          <div className="pt-3 border-t">
+                            <div className="grid grid-cols-2 gap-4 text-sm">
+                              <div className="text-center">
+                                <div className="font-semibold text-green-600">{getReviewSummary().approved}</div>
+                                <div className="text-muted-foreground">Approved</div>
                               </div>
-                              <div>
-                                {rfq.status === 'sent' && (
-                                  <span className="text-yellow-600">– 🟡 Sent (Due: {rfq.due_date ? format(new Date(rfq.due_date), 'MMM dd') : 'N/A'})</span>
-                                )}
-                                {rfq.status === 'quoted' && (
-                                  <span className="text-green-600">– ✅ Quoted</span>
-                                )}
-                                {rfq.status === 'viewed' && (
-                                  <span className="text-blue-600">– 👁️ Viewed</span>
-                                )}
+                              <div className="text-center">
+                                <div className="font-semibold text-yellow-600">{getReviewSummary().pending}</div>
+                                <div className="text-muted-foreground">Pending</div>
                               </div>
                             </div>
-                          ))}
-                        </div>
-                      </div>
-                    ) : (
-                      <div className="text-center py-4 text-sm text-muted-foreground">
-                        No supplier RFQs sent yet
-                      </div>
-                    )}
-                    <div className="flex space-x-2 pt-2">
-                      <Button variant="outline" size="sm">
-                        <Send className="w-4 h-4 mr-1" />
-                        📤 Resend
-                      </Button>
-                      <Button variant="outline" size="sm">
-                        <Plus className="w-4 h-4 mr-1" />
-                        ➕ Add Supplier
-                      </Button>
-                      <Button variant="outline" size="sm">
-                        <Calendar className="w-4 h-4 mr-1" />
-                        📅 Set Deadline
-                      </Button>
-                    </div>
-                  </CardContent>
-                </Card>
-
-                {/* Activity & Comments Section */}
-                <Card>
-                  <CardHeader>
-                    <CardTitle className="text-sm font-semibold text-muted-foreground uppercase tracking-wide">
-                      ACTIVITY & COMMENTS
-                    </CardTitle>
-                  </CardHeader>
-                  <CardContent>
-                    {messagesLoading ? (
-                      <div className="flex items-center justify-center py-4">
-                        <Loader2 className="h-4 w-4 animate-spin mr-2" />
-                        <span className="text-sm text-muted-foreground">Loading messages...</span>
-                      </div>
-                    ) : messages.length > 0 ? (
-                      <div className="space-y-4">
-                        {messages.slice(0, 5).map((message) => (
-                          <div key={message.id} className="text-sm">
-                            <div className="font-medium">
-                              📅 {message.created_at ? format(new Date(message.created_at), 'MMM dd, HH:mm') : 'N/A'} – {message.sender_type || 'N/A'}
-                            </div>
-                            <div className="text-muted-foreground ml-4 mt-1">
-                              {message.content || 'N/A'}
-                            </div>
                           </div>
-                        ))}
-                      </div>
-                    ) : (
-                      <div className="text-center py-4 text-sm text-muted-foreground">
-                        No activity or comments yet
-                      </div>
-                    )}
-                  </CardContent>
-                </Card>
-              </div>
-            )}
 
-            {activeTab === "documents" && (
-              <div className="space-y-6">
-                <Card>
-                  <CardHeader>
-                    <div className="flex items-center justify-between">
+                          <Button
+                            variant="outline"
+                            size="sm"
+                            className="w-full"
+                            onClick={() => handleTabChange("reviews")}
+                          >
+                            🔍 View All Reviews
+                          </Button>
+                        </div>
+                      )}
+                    </CardContent>
+                  </Card>
+
+                  {/* Documents Section */}
+                  <Card>
+                    <CardHeader>
                       <CardTitle className="text-sm font-semibold text-muted-foreground uppercase tracking-wide">
                         DOCUMENTS
                       </CardTitle>
-                      <Button>
-                        <Plus className="w-4 h-4 mr-2" />
-                        Upload New File
-                      </Button>
-                    </div>
-                  </CardHeader>
-                  <CardContent>
-                    {documentsLoading ? (
-                      <div className="flex items-center justify-center py-8">
-                        <Loader2 className="h-6 w-6 animate-spin mr-2" />
-                        <span className="text-muted-foreground">Loading documents...</span>
-                      </div>
-                    ) : documents.length > 0 ? (
-                      <div className="space-y-4">
-                        {documents.map((doc) => (
-                          <div key={doc.id} className="flex items-center justify-between p-4 border rounded-lg hover:bg-muted/50">
-                            <div className="flex items-center space-x-4">
-                              <FileText className="w-5 h-5 text-muted-foreground" />
-                              <div>
-                                <div className="flex items-center space-x-2">
-                                  <span className="font-medium">{doc.original_file_name || doc.filename || 'N/A'}</span>
-                                  <Badge variant="outline" className="text-xs">
-                                    [{doc.version || 'v1'}]
-                                  </Badge>
-                                  <Badge className={`text-xs ${getAccessBadgeColor(doc.access_level || 'public')}`}>
-                                    {doc.access_level === 'internal' ? '🔒 Internal Only' : '🌐 Public'}
-                                  </Badge>
-                                </div>
-                                <div className="flex items-center space-x-4 text-sm text-muted-foreground mt-1">
-                                  <span>📅 {doc.uploaded_at ? format(new Date(doc.uploaded_at), 'MMM dd') : 'N/A'}</span>
-                                  <span>👤 {doc.uploaded_by || 'N/A'}</span>
-                                  <span>📁 {formatFileSize(doc.file_size || 0)}</span>
-                                </div>
-                              </div>
-                            </div>
-                            <div className="flex items-center space-x-2">
-                              <Button variant="ghost" size="sm">
-                                <Download className="w-4 h-4" />
-                              </Button>
-                              <Button variant="ghost" size="sm">
-                                <Edit className="w-4 h-4" />
-                              </Button>
-                            </div>
-                          </div>
-                        ))}
-                      </div>
-                    ) : (
-                      <div className="text-center py-12">
-                        <FileText className="w-12 h-12 mx-auto text-muted-foreground mb-4" />
-                        <h3 className="text-lg font-medium mb-2">No Documents</h3>
-                        <p className="text-muted-foreground">
-                          No documents have been uploaded for this project yet
-                        </p>
-                      </div>
-                    )}
-                  </CardContent>
-                </Card>
-              </div>
-            )}
-
-            {activeTab === "timeline" && (
-              <div className="space-y-6">
-                {/* Visual Timeline Progression */}
-                <VisualTimelineProgression
-                  project={project}
-                  workflowStages={workflowStages}
-                />
-              </div>
-            )}
-
-            {activeTab === "reviews" && (
-              <div className="space-y-6">
-                <Card>
-                  <CardHeader>
-                    <div className="flex items-center justify-between">
-                      <CardTitle className="text-sm font-semibold text-muted-foreground uppercase tracking-wide">
-                        INTERNAL REVIEWS
-                      </CardTitle>
-                      <div className="flex space-x-2">
-                        <Button
-                          variant="outline"
-                          size="sm"
-                          onClick={() => setShowAssignmentModal(true)}
-                        >
-                          <Users className="w-4 h-4 mr-2" />
-                          Assign
-                        </Button>
-                        <Button
-                          variant="outline"
-                          size="sm"
-                          onClick={() => setShowReviewConfig(true)}
-                        >
-                          <Settings className="w-4 h-4 mr-2" />
-                          Configure
-                        </Button>
-                      </div>
-                    </div>
-                  </CardHeader>
-                  <CardContent>
-                    {reviewsLoading ? (
-                      <div className="flex items-center justify-center py-8">
-                        <Loader2 className="h-6 w-6 animate-spin mr-2" />
-                        <span className="text-muted-foreground">Loading reviews...</span>
-                      </div>
-                    ) : (
-                      <div className="space-y-4">
-                        {/* Quick Add Review Buttons */}
-                        <div className="flex gap-2">
-                          {(['Engineering', 'QA', 'Production'] as Department[]).map((department) => {
-                            const existingReview = reviews.find(r => r.department === department);
-                            return (
-                              <Button
-                                key={department}
-                                variant={existingReview ? "outline" : "default"}
-                                size="sm"
-                                onClick={() => handleAddReview(department)}
-                              >
-                                <Plus className="w-4 h-4 mr-2" />
-                                {existingReview ? `Update ${department}` : `Add ${department}`}
-                              </Button>
-                            );
-                          })}
+                    </CardHeader>
+                    <CardContent>
+                      {documentsLoading ? (
+                        <div className="flex items-center justify-center py-4">
+                          <Loader2 className="h-4 w-4 animate-spin mr-2" />
+                          <span className="text-sm text-muted-foreground">Loading documents...</span>
                         </div>
-
-                        {/* Review List */}
-                        <ReviewList
-                          reviews={reviews}
-                          onEditReview={handleEditReview}
-                          onViewReview={handleViewReview}
-                        />
-                      </div>
-                    )}
-                  </CardContent>
-                </Card>
-              </div>
-            )}
-
-            {activeTab === "supplier" && (
-              <div className="space-y-6">
-                <Card>
-                  <CardHeader>
-                    <div className="flex items-center justify-between">
-                      <CardTitle className="text-sm font-semibold text-muted-foreground uppercase tracking-wide">
-                        SUPPLIER RFQ SENT
-                      </CardTitle>
-                      <div className="flex space-x-2">
-                        <Button variant="outline" size="sm">
-                          <Send className="w-4 h-4 mr-2" />
-                          📤 Resend
-                        </Button>
-                        <Button variant="outline" size="sm">
-                          <Plus className="w-4 h-4 mr-2" />
-                          ➕ Add Supplier
-                        </Button>
-                        <Button variant="outline" size="sm">
-                          <Calendar className="w-4 h-4 mr-2" />
-                          📅 Set Deadline
-                        </Button>
-                      </div>
-                    </div>
-                  </CardHeader>
-                  <CardContent>
-                    {supplierRfqsLoading ? (
-                      <div className="flex items-center justify-center py-8">
-                        <Loader2 className="h-6 w-6 animate-spin mr-2" />
-                        <span className="text-muted-foreground">Loading supplier RFQs...</span>
-                      </div>
-                    ) : supplierRfqs.length > 0 ? (
-                      <div className="space-y-4">
-                        <p className="text-sm font-medium">📧 Sent to:</p>
-                        {supplierRfqs.map((rfq) => (
-                          <div key={rfq.id} className="flex items-center justify-between p-3 border rounded-lg">
-                            <div className="flex items-center space-x-3">
-                              <div>
-                                <p className="font-medium">• {rfq.supplier?.name || 'N/A'}</p>
-                                <p className="text-sm text-muted-foreground">({rfq.supplier?.email || 'N/A'})</p>
-                              </div>
-                            </div>
-                            <div className="flex items-center space-x-2">
-                              {rfq.status === 'sent' ? (
-                                <Badge className="bg-yellow-100 text-yellow-800">
-                                  🟡 Sent (Due: {rfq.due_date ? format(new Date(rfq.due_date), 'MMM dd') : 'N/A'})
-                                </Badge>
-                              ) : (
-                                <Badge className="bg-green-100 text-green-800">
-                                  ✅ {rfq.status === 'quoted' ? 'Quoted' : rfq.status === 'viewed' ? 'Viewed' : rfq.status}
-                                </Badge>
-                              )}
-                            </div>
-                          </div>
-                        ))}
-                      </div>
-                    ) : (
-                      <div className="text-center py-12">
-                        <Send className="w-12 h-12 mx-auto text-muted-foreground mb-4" />
-                        <h3 className="text-lg font-medium mb-2">No Supplier RFQs</h3>
-                        <p className="text-muted-foreground">
-                          No supplier RFQs have been sent for this project yet
-                        </p>
-                      </div>
-                    )}
-                  </CardContent>
-                </Card>
-              </div>
-            )}
-
-            {activeTab === "communication" && (
-              <ProjectCommunication
-                projectId={project.id}
-                projectTitle={project.title}
-              />
-            )}
-
-            {activeTab === "timeline" && (
-              <div className="space-y-6">
-                <Card>
-                  <CardHeader>
-                    <CardTitle className="text-sm font-semibold text-muted-foreground uppercase tracking-wide">
-                      ACTIVITY & COMMENTS
-                    </CardTitle>
-                  </CardHeader>
-                  <CardContent>
-                    <div className="space-y-6">
-                      {/* Add Comment Section */}
-                      <div className="border rounded-lg p-4 bg-muted/30">
+                      ) : documents.length > 0 ? (
                         <div className="space-y-3">
-                          <Label htmlFor="comment">Add Comment</Label>
-                          <Textarea
-                            id="comment"
-                            placeholder="Share updates, ask questions, or provide feedback..."
-                            className="min-h-[80px]"
-                          />
-                          <div className="flex justify-end">
-                            <Button>
-                              <MessageSquare className="w-4 h-4 mr-2" />
-                              Add Comment
-                            </Button>
-                          </div>
-                        </div>
-                      </div>
-
-                      {/* Activity Timeline */}
-                      {messagesLoading ? (
-                        <div className="flex items-center justify-center py-8">
-                          <Loader2 className="h-6 w-6 animate-spin mr-2" />
-                          <span className="text-muted-foreground">Loading messages...</span>
-                        </div>
-                      ) : messages.length > 0 ? (
-                        <div className="space-y-4">
-                          {messages.map((message) => (
-                            <div key={message.id} className="border-l-2 border-muted pl-4">
-                              <div className="flex items-center justify-between">
-                                <p className="text-sm font-medium text-foreground">
-                                  📅 {message.created_at ? format(new Date(message.created_at), 'MMM dd, HH:mm') : 'N/A'} – {message.sender_type || 'N/A'}
-                                </p>
+                          {documents.map((doc) => (
+                            <div key={doc.id} className="flex items-center justify-between text-sm">
+                              <div className="flex items-center space-x-2">
+                                <span>📄</span>
+                                <span className="font-medium">{doc.original_file_name || doc.filename || 'N/A'}</span>
+                                <Badge variant="outline" className="text-xs px-1 py-0">
+                                  [{doc.version || 'v1'}]
+                                </Badge>
+                                <span className="text-muted-foreground">
+                                  📅 {doc.uploaded_at ? format(new Date(doc.uploaded_at), 'MMM dd') : 'N/A'} · 👤 {doc.uploaded_by || 'N/A'}
+                                </span>
+                                {doc.access_level === 'internal' && (
+                                  <Badge className="text-xs bg-orange-100 text-orange-800">
+                                    🔒 Internal Only
+                                  </Badge>
+                                )}
                               </div>
-                              <p className="text-sm text-muted-foreground mt-1">
-                                {message.content || 'N/A'}
-                              </p>
                             </div>
                           ))}
                         </div>
                       ) : (
-                        <div className="text-center py-8">
-                          <MessageSquare className="w-12 h-12 mx-auto text-muted-foreground mb-4" />
-                          <h3 className="text-lg font-medium mb-2">No Activity</h3>
+                        <div className="text-center py-4 text-sm text-muted-foreground">
+                          No documents uploaded yet
+                        </div>
+                      )}
+                      <Button variant="outline" size="sm" className="mt-3">
+                        <Plus className="w-4 h-4 mr-2" />
+                        Upload New File
+                      </Button>
+                    </CardContent>
+                  </Card>
+
+                  {/* Supplier RFQ Section */}
+                  <Card>
+                    <CardHeader>
+                      <CardTitle className="text-sm font-semibold text-muted-foreground uppercase tracking-wide">
+                        SUPPLIER RFQ SENT
+                      </CardTitle>
+                    </CardHeader>
+                    <CardContent>
+                      {supplierRfqsLoading ? (
+                        <div className="flex items-center justify-center py-4">
+                          <Loader2 className="h-4 w-4 animate-spin mr-2" />
+                          <span className="text-sm text-muted-foreground">Loading supplier RFQs...</span>
+                        </div>
+                      ) : supplierRfqs.length > 0 ? (
+                        <div className="space-y-4">
+                          <p className="text-sm font-medium">📧 Sent to:</p>
+                          <div className="space-y-2">
+                            {supplierRfqs.map((rfq) => (
+                              <div key={rfq.id} className="flex items-center justify-between text-sm">
+                                <div className="flex-1">
+                                  <span>• {rfq.supplier?.name || 'N/A'} ({rfq.supplier?.email || 'N/A'})</span>
+                                </div>
+                                <div>
+                                  {rfq.status === 'sent' && (
+                                    <span className="text-yellow-600">– 🟡 Sent (Due: {rfq.due_date ? format(new Date(rfq.due_date), 'MMM dd') : 'N/A'})</span>
+                                  )}
+                                  {rfq.status === 'quoted' && (
+                                    <span className="text-green-600">– ✅ Quoted</span>
+                                  )}
+                                  {rfq.status === 'viewed' && (
+                                    <span className="text-blue-600">– 👁️ Viewed</span>
+                                  )}
+                                </div>
+                              </div>
+                            ))}
+                          </div>
+                        </div>
+                      ) : (
+                        <div className="text-center py-4 text-sm text-muted-foreground">
+                          No supplier RFQs sent yet
+                        </div>
+                      )}
+                      <div className="flex space-x-2 pt-2">
+                        <Button variant="outline" size="sm">
+                          <Send className="w-4 h-4 mr-1" />
+                          📤 Resend
+                        </Button>
+                        <Button variant="outline" size="sm">
+                          <Plus className="w-4 h-4 mr-1" />
+                          ➕ Add Supplier
+                        </Button>
+                        <Button variant="outline" size="sm">
+                          <Calendar className="w-4 h-4 mr-1" />
+                          📅 Set Deadline
+                        </Button>
+                      </div>
+                    </CardContent>
+                  </Card>
+
+                  {/* Activity & Comments Section */}
+                  <Card>
+                    <CardHeader>
+                      <CardTitle className="text-sm font-semibold text-muted-foreground uppercase tracking-wide">
+                        ACTIVITY & COMMENTS
+                      </CardTitle>
+                    </CardHeader>
+                    <CardContent>
+                      {messagesLoading ? (
+                        <div className="flex items-center justify-center py-4">
+                          <Loader2 className="h-4 w-4 animate-spin mr-2" />
+                          <span className="text-sm text-muted-foreground">Loading messages...</span>
+                        </div>
+                      ) : messages.length > 0 ? (
+                        <div className="space-y-4">
+                          {messages.slice(0, 5).map((message) => (
+                            <div key={message.id} className="text-sm">
+                              <div className="font-medium">
+                                📅 {message.created_at ? format(new Date(message.created_at), 'MMM dd, HH:mm') : 'N/A'} – {message.sender_type || 'N/A'}
+                              </div>
+                              <div className="text-muted-foreground ml-4 mt-1">
+                                {message.content || 'N/A'}
+                              </div>
+                            </div>
+                          ))}
+                        </div>
+                      ) : (
+                        <div className="text-center py-4 text-sm text-muted-foreground">
+                          No activity or comments yet
+                        </div>
+                      )}
+                    </CardContent>
+                  </Card>
+                </div>
+              </TabContentWrapper>
+
+              <TabContentWrapper
+                tabId="documents"
+                activeTab={activeTab}
+                isLoading={isTabLoading('documents')}
+                hasError={hasTabError('documents')}
+              >
+                <div className="space-y-6">
+                  <Card>
+                    <CardHeader>
+                      <div className="flex items-center justify-between">
+                        <CardTitle className="text-sm font-semibold text-muted-foreground uppercase tracking-wide">
+                          DOCUMENTS
+                        </CardTitle>
+                        <Button>
+                          <Plus className="w-4 h-4 mr-2" />
+                          Upload New File
+                        </Button>
+                      </div>
+                    </CardHeader>
+                    <CardContent>
+                      {documentsLoading ? (
+                        <div className="flex items-center justify-center py-8">
+                          <Loader2 className="h-6 w-6 animate-spin mr-2" />
+                          <span className="text-muted-foreground">Loading documents...</span>
+                        </div>
+                      ) : documents.length > 0 ? (
+                        <div className="space-y-4">
+                          {documents.map((doc) => (
+                            <div key={doc.id} className="flex items-center justify-between p-4 border rounded-lg hover:bg-muted/50">
+                              <div className="flex items-center space-x-4">
+                                <FileText className="w-5 h-5 text-muted-foreground" />
+                                <div>
+                                  <div className="flex items-center space-x-2">
+                                    <span className="font-medium">{doc.original_file_name || doc.filename || 'N/A'}</span>
+                                    <Badge variant="outline" className="text-xs">
+                                      [{doc.version || 'v1'}]
+                                    </Badge>
+                                    <Badge className={`text-xs ${getAccessBadgeColor(doc.access_level || 'public')}`}>
+                                      {doc.access_level === 'internal' ? '🔒 Internal Only' : '🌐 Public'}
+                                    </Badge>
+                                  </div>
+                                  <div className="flex items-center space-x-4 text-sm text-muted-foreground mt-1">
+                                    <span>📅 {doc.uploaded_at ? format(new Date(doc.uploaded_at), 'MMM dd') : 'N/A'}</span>
+                                    <span>👤 {doc.uploaded_by || 'N/A'}</span>
+                                    <span>📁 {formatFileSize(doc.file_size || 0)}</span>
+                                  </div>
+                                </div>
+                              </div>
+                              <div className="flex items-center space-x-2">
+                                <Button variant="ghost" size="sm">
+                                  <Download className="w-4 h-4" />
+                                </Button>
+                                <Button variant="ghost" size="sm">
+                                  <Edit className="w-4 h-4" />
+                                </Button>
+                              </div>
+                            </div>
+                          ))}
+                        </div>
+                      ) : (
+                        <div className="text-center py-12">
+                          <FileText className="w-12 h-12 mx-auto text-muted-foreground mb-4" />
+                          <h3 className="text-lg font-medium mb-2">No Documents</h3>
                           <p className="text-muted-foreground">
-                            No messages or activity for this project yet
+                            No documents have been uploaded for this project yet
                           </p>
                         </div>
                       )}
-                    </div>
-                  </CardContent>
-                </Card>
-              </div>
-            )}
+                    </CardContent>
+                  </Card>
+                </div>
+              </TabContentWrapper>
 
-            {activeTab === "analytics" && (
-              <div className="space-y-6">
-                <Card>
-                  <CardHeader>
-                    <CardTitle className="flex items-center">
-                      <BarChart3 className="w-5 h-5 mr-2" />
-                      Project Analytics
-                    </CardTitle>
-                  </CardHeader>
-                  <CardContent>
-                    <div className="text-center py-12">
-                      <BarChart3 className="w-12 h-12 mx-auto text-muted-foreground mb-4" />
-                      <h3 className="text-lg font-medium mb-2">Analytics Coming Soon</h3>
-                      <p className="text-muted-foreground">
-                        Project analytics and insights will be available here
-                      </p>
-                    </div>
-                  </CardContent>
-                </Card>
-              </div>
-            )}
+              <TabContentWrapper
+                tabId="timeline"
+                activeTab={activeTab}
+                isLoading={isTabLoading('timeline')}
+                hasError={hasTabError('timeline')}
+              >
+                <div className="space-y-6">
+                  {/* Visual Timeline Progression */}
+                  <VisualTimelineProgression
+                    project={project}
+                    workflowStages={workflowStages}
+                  />
+                </div>
+              </TabContentWrapper>
 
-            {activeTab === "settings" && (
-              <div className="space-y-6">
-                <Card>
-                  <CardHeader>
-                    <CardTitle className="flex items-center">
-                      <Settings className="w-5 h-5 mr-2" />
-                      Project Settings
-                    </CardTitle>
-                  </CardHeader>
-                  <CardContent>
-                    <div className="text-center py-12">
-                      <Settings className="w-12 h-12 mx-auto text-muted-foreground mb-4" />
-                      <h3 className="text-lg font-medium mb-2">Settings Coming Soon</h3>
-                      <p className="text-muted-foreground">
-                        Project settings and configuration will be available here
-                      </p>
-                    </div>
-                  </CardContent>
-                </Card>
-              </div>
-            )}
+              <TabContentWrapper
+                tabId="reviews"
+                activeTab={activeTab}
+                isLoading={isTabLoading('reviews')}
+                hasError={hasTabError('reviews')}
+              >
+                <div className="space-y-6">
+                  <Card>
+                    <CardHeader>
+                      <div className="flex items-center justify-between">
+                        <CardTitle className="text-sm font-semibold text-muted-foreground uppercase tracking-wide">
+                          INTERNAL REVIEWS
+                        </CardTitle>
+                        <div className="flex space-x-2">
+                          <Button
+                            variant="outline"
+                            size="sm"
+                            onClick={() => setShowAssignmentModal(true)}
+                          >
+                            <Users className="w-4 h-4 mr-2" />
+                            Assign
+                          </Button>
+                          <Button
+                            variant="outline"
+                            size="sm"
+                            onClick={() => setShowReviewConfig(true)}
+                          >
+                            <Settings className="w-4 h-4 mr-2" />
+                            Configure
+                          </Button>
+                        </div>
+                      </div>
+                    </CardHeader>
+                    <CardContent>
+                      {reviewsLoading ? (
+                        <div className="flex items-center justify-center py-8">
+                          <Loader2 className="h-6 w-6 animate-spin mr-2" />
+                          <span className="text-muted-foreground">Loading reviews...</span>
+                        </div>
+                      ) : (
+                        <div className="space-y-4">
+                          {/* Quick Add Review Buttons */}
+                          <div className="flex gap-2">
+                            {(['Engineering', 'QA', 'Production'] as Department[]).map((department) => {
+                              const existingReview = reviews.find(r => r.department === department);
+                              return (
+                                <Button
+                                  key={department}
+                                  variant={existingReview ? "outline" : "default"}
+                                  size="sm"
+                                  onClick={() => handleAddReview(department)}
+                                >
+                                  <Plus className="w-4 h-4 mr-2" />
+                                  {existingReview ? `Update ${department}` : `Add ${department}`}
+                                </Button>
+                              );
+                            })}
+                          </div>
+
+                          {/* Review List */}
+                          <ReviewList
+                            reviews={reviews}
+                            onEditReview={handleEditReview}
+                            onViewReview={handleViewReview}
+                          />
+                        </div>
+                      )}
+                    </CardContent>
+                  </Card>
+                </div>
+              </TabContentWrapper>
+
+              <TabContentWrapper
+                tabId="supplier"
+                activeTab={activeTab}
+                isLoading={isTabLoading('supplier')}
+                hasError={hasTabError('supplier')}
+              >
+                <div className="space-y-6">
+                  <Card>
+                    <CardHeader>
+                      <div className="flex items-center justify-between">
+                        <CardTitle className="text-sm font-semibold text-muted-foreground uppercase tracking-wide">
+                          SUPPLIER RFQ SENT
+                        </CardTitle>
+                        <div className="flex space-x-2">
+                          <Button variant="outline" size="sm">
+                            <Send className="w-4 h-4 mr-2" />
+                            📤 Resend
+                          </Button>
+                          <Button variant="outline" size="sm">
+                            <Plus className="w-4 h-4 mr-2" />
+                            ➕ Add Supplier
+                          </Button>
+                          <Button variant="outline" size="sm">
+                            <Calendar className="w-4 h-4 mr-2" />
+                            📅 Set Deadline
+                          </Button>
+                        </div>
+                      </div>
+                    </CardHeader>
+                    <CardContent>
+                      {supplierRfqsLoading ? (
+                        <div className="flex items-center justify-center py-8">
+                          <Loader2 className="h-6 w-6 animate-spin mr-2" />
+                          <span className="text-muted-foreground">Loading supplier RFQs...</span>
+                        </div>
+                      ) : supplierRfqs.length > 0 ? (
+                        <div className="space-y-4">
+                          <p className="text-sm font-medium">📧 Sent to:</p>
+                          {supplierRfqs.map((rfq) => (
+                            <div key={rfq.id} className="flex items-center justify-between p-3 border rounded-lg">
+                              <div className="flex items-center space-x-3">
+                                <div>
+                                  <p className="font-medium">• {rfq.supplier?.name || 'N/A'}</p>
+                                  <p className="text-sm text-muted-foreground">({rfq.supplier?.email || 'N/A'})</p>
+                                </div>
+                              </div>
+                              <div className="flex items-center space-x-2">
+                                {rfq.status === 'sent' ? (
+                                  <Badge className="bg-yellow-100 text-yellow-800">
+                                    🟡 Sent (Due: {rfq.due_date ? format(new Date(rfq.due_date), 'MMM dd') : 'N/A'})
+                                  </Badge>
+                                ) : (
+                                  <Badge className="bg-green-100 text-green-800">
+                                    ✅ {rfq.status === 'quoted' ? 'Quoted' : rfq.status === 'viewed' ? 'Viewed' : rfq.status}
+                                  </Badge>
+                                )}
+                              </div>
+                            </div>
+                          ))}
+                        </div>
+                      ) : (
+                        <div className="text-center py-12">
+                          <Send className="w-12 h-12 mx-auto text-muted-foreground mb-4" />
+                          <h3 className="text-lg font-medium mb-2">No Supplier RFQs</h3>
+                          <p className="text-muted-foreground">
+                            No supplier RFQs have been sent for this project yet
+                          </p>
+                        </div>
+                      )}
+                    </CardContent>
+                  </Card>
+                </div>
+              </TabContentWrapper>
+
+              <TabContentWrapper
+                tabId="communication"
+                activeTab={activeTab}
+                isLoading={isTabLoading('communication')}
+                hasError={hasTabError('communication')}
+              >
+                <ProjectCommunication
+                  projectId={project.id}
+                  projectTitle={project.title}
+                />
+              </TabContentWrapper>
+
+              <TabContentWrapper
+                tabId="analytics"
+                activeTab={activeTab}
+                isLoading={isTabLoading('analytics')}
+                hasError={hasTabError('analytics')}
+              >
+                <div className="space-y-6">
+                  <Card>
+                    <CardHeader>
+                      <CardTitle className="text-sm font-semibold text-muted-foreground uppercase tracking-wide">
+                        ACTIVITY & COMMENTS
+                      </CardTitle>
+                    </CardHeader>
+                    <CardContent>
+                      <div className="space-y-6">
+                        {/* Add Comment Section */}
+                        <div className="border rounded-lg p-4 bg-muted/30">
+                          <div className="space-y-3">
+                            <Label htmlFor="comment">Add Comment</Label>
+                            <Textarea
+                              id="comment"
+                              placeholder="Share updates, ask questions, or provide feedback..."
+                              className="min-h-[80px]"
+                            />
+                            <div className="flex justify-end">
+                              <Button>
+                                <MessageSquare className="w-4 h-4 mr-2" />
+                                Add Comment
+                              </Button>
+                            </div>
+                          </div>
+                        </div>
+
+                        {/* Activity Timeline */}
+                        {messagesLoading ? (
+                          <div className="flex items-center justify-center py-8">
+                            <Loader2 className="h-6 w-6 animate-spin mr-2" />
+                            <span className="text-muted-foreground">Loading messages...</span>
+                          </div>
+                        ) : messages.length > 0 ? (
+                          <div className="space-y-4">
+                            {messages.map((message) => (
+                              <div key={message.id} className="border-l-2 border-muted pl-4">
+                                <div className="flex items-center justify-between">
+                                  <p className="text-sm font-medium text-foreground">
+                                    📅 {message.created_at ? format(new Date(message.created_at), 'MMM dd, HH:mm') : 'N/A'} – {message.sender_type || 'N/A'}
+                                  </p>
+                                </div>
+                                <p className="text-sm text-muted-foreground mt-1">
+                                  {message.content || 'N/A'}
+                                </p>
+                              </div>
+                            ))}
+                          </div>
+                        ) : (
+                          <div className="text-center py-8">
+                            <MessageSquare className="w-12 h-12 mx-auto text-muted-foreground mb-4" />
+                            <h3 className="text-lg font-medium mb-2">No Activity</h3>
+                            <p className="text-muted-foreground">
+                              No messages or activity for this project yet
+                            </p>
+                          </div>
+                        )}
+                      </div>
+                    </CardContent>
+                  </Card>
+                </div>
+              </TabContentWrapper>
+
+              <TabContentWrapper
+                tabId="settings"
+                activeTab={activeTab}
+                isLoading={isTabLoading('settings')}
+                hasError={hasTabError('settings')}
+              >
+                <div className="space-y-6">
+                  <Card>
+                    <CardHeader>
+                      <CardTitle className="flex items-center">
+                        <Settings className="w-5 h-5 mr-2" />
+                        Project Settings
+                      </CardTitle>
+                    </CardHeader>
+                    <CardContent>
+                      <div className="text-center py-12">
+                        <Settings className="w-12 h-12 mx-auto text-muted-foreground mb-4" />
+                        <h3 className="text-lg font-medium mb-2">Settings Coming Soon</h3>
+                        <p className="text-muted-foreground">
+                          Project settings and configuration will be available here
+                        </p>
+                      </div>
+                    </CardContent>
+                  </Card>
+                </div>
+              </TabContentWrapper>
+            </TabTransition>
           </div>
-        </div>
+        </ResponsiveNavigationWrapper>
 
         {/* Supplier Modal - Coming Soon */}
         {showSupplierModal && (
@@ -1258,7 +1197,7 @@ export default function ProjectDetail() {
             </div>
           </div>
         )}
-      </div>
+      </div >
     </>
   );
 }
