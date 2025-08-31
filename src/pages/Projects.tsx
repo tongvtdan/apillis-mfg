@@ -354,13 +354,23 @@ export default function Projects() {
                                 }`}
                               onClick={() => handleStageSelect(stage.id)}
                             >
-                              <Card className="h-full">
+                              <Card 
+                                className="h-full border-2"
+                                style={{ 
+                                  borderColor: stage.color || undefined,
+                                  backgroundColor: stage.color ? `${stage.color}10` : undefined 
+                                }}
+                              >
                                 <CardContent className="p-4 text-center w-full">
                                   <div className="space-y-2">
                                     <div className="flex justify-center">
                                       <Badge
-                                        className={`${stage.color || '#6B7280'} text-xs font-medium`}
+                                        className="text-xs font-medium"
                                         variant="outline"
+                                        style={{ 
+                                          backgroundColor: stage.color || '#6B7280',
+                                          color: '#FFFFFF'
+                                        }}
                                       >
                                         {stageCounts[stage.id] || 0}
                                       </Badge>
@@ -382,10 +392,13 @@ export default function Projects() {
                             {index < workflowStages.length - 1 && (
                               <div className="flex-shrink-0">
                                 <svg
-                                  className="h-5 w-5 text-muted-foreground"
+                                  className="h-5 w-5"
                                   fill="none"
                                   viewBox="0 0 24 24"
                                   stroke="currentColor"
+                                  style={{ 
+                                    color: stage.color || '#6B7280'
+                                  }}
                                 >
                                   <path
                                     strokeLinecap="round"
@@ -409,11 +422,14 @@ export default function Projects() {
                       </div>
                       <div className="w-full bg-gray-200 rounded-full h-2">
                         <div
-                          className="bg-primary h-2 rounded-full transition-all duration-300"
+                          className="h-2 rounded-full transition-all duration-300"
                           style={{
                             width: `${selectedStage ?
                               ((workflowStages.findIndex(s => s.id === selectedStage) + 1) / workflowStages.length) * 100 :
-                              0}%`
+                              0}%`,
+                            backgroundColor: selectedStage ? 
+                              workflowStages.find(s => s.id === selectedStage)?.color || '#3B82F6' : 
+                              '#3B82F6'
                           }}
                         ></div>
                       </div>
@@ -423,7 +439,12 @@ export default function Projects() {
 
                 {/* Selected Stage Projects */}
                 {selectedStage && (
-                  <Card>
+                  <Card 
+                    className="border-t-4" 
+                    style={{ 
+                      borderTopColor: workflowStages.find(s => s.id === selectedStage)?.color || '#3B82F6'
+                    }}
+                  >
                     <CardHeader>
                       <CardTitle>
                         {workflowStages.find(s => s.id === selectedStage)?.name} Projects
@@ -435,7 +456,11 @@ export default function Projects() {
                     <CardContent>
                       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
                         {selectedStageProjects.map((project) => (
-                          <Card key={project.id} className="cursor-pointer hover:shadow-md">
+                          <Card key={project.id} className="cursor-pointer hover:shadow-md border-l-4"
+                            style={{
+                              borderLeftColor: workflowStages.find(s => s.id === selectedStage)?.color || '#3B82F6'
+                            }}
+                          >
                             <CardContent className="p-4">
                               <h4 className="font-semibold mb-2">{project.title}</h4>
                               <p className="text-sm text-muted-foreground mb-2">{project.project_id}</p>
@@ -462,7 +487,12 @@ export default function Projects() {
 
                 {/* Enhanced Project Workflow Details */}
                 {selectedStage && selectedStageProjects.length > 0 && (
-                  <Card>
+                  <Card 
+                    className="border-t-4" 
+                    style={{ 
+                      borderTopColor: workflowStages.find(s => s.id === selectedStage)?.color || '#3B82F6'
+                    }}
+                  >
                     <CardHeader>
                       <CardTitle>
                         {workflowStages.find(s => s.id === selectedStage)?.name} - Detailed Project Information
@@ -474,7 +504,13 @@ export default function Projects() {
                     <CardContent>
                       <div className="space-y-6">
                         {selectedStageProjects.map((project) => (
-                          <div key={project.id} className="border rounded-lg p-4 bg-base-50 hover:bg-base-100 transition-colors">
+                          <div 
+                            key={project.id} 
+                            className="border rounded-lg p-4 bg-base-50 hover:bg-base-100 transition-colors border-l-4"
+                            style={{
+                              borderLeftColor: workflowStages.find(s => s.id === selectedStage)?.color || '#3B82F6'
+                            }}
+                          >
                             <div className="mb-4">
                               <h4 className="font-semibold text-lg mb-2 text-base-content">{project.title}</h4>
                               <p className="text-sm text-muted-foreground mb-3">{project.project_id}</p>
@@ -484,7 +520,15 @@ export default function Projects() {
                               <div className="space-y-2">
                                 <div className="text-sm">
                                   <span className="font-medium text-base-content">Current Stage:</span>
-                                  <Badge variant="outline" className="ml-2">{project.current_stage?.name || 'Unknown'}</Badge>
+                                  <Badge 
+                                    variant="outline" 
+                                    className="ml-2"
+                                    style={{
+                                      borderColor: workflowStages.find(s => s.id === selectedStage)?.color || '#3B82F6'
+                                    }}
+                                  >
+                                    {project.current_stage?.name || 'Unknown'}
+                                  </Badge>
                                 </div>
                                 <div className="text-sm">
                                   <span className="font-medium text-base-content">Status:</span>
