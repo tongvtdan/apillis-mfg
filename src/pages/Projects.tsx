@@ -52,7 +52,7 @@ export default function Projects() {
   };
 
   // Helper function to get real sub-stage progress for a project
-  const getSubStageProgress = (projectId: string) => {
+  const getSubStageProgress = (projectId: string, allProjectProgress: any[] = []) => {
     const totalSubStages = subStages.length;
 
     // Get real progress data from the database
@@ -662,14 +662,14 @@ export default function Projects() {
                                     <span className="text-sm font-medium text-base-content">Actions Needed:</span>
                                     <span className="text-xs text-muted-foreground">
                                       {(() => {
-                                        const progress = getSubStageProgress(project.id);
+                                        const progress = getSubStageProgress(project.id, allProjectProgress);
                                         return `${progress.completed}/${progress.total} completed`;
                                       })()}
                                     </span>
                                   </div>
                                   <div className="space-y-1">
                                     {subStages.slice(0, 4).map((subStage, index) => {
-                                      const progress = getSubStageProgress(project.id);
+                                      const progress = getSubStageProgress(project.id, allProjectProgress);
 
                                       // Get real progress status for this specific sub-stage
                                       const projectProgress = allProjectProgress.filter(p =>

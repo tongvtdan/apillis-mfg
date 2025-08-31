@@ -3,13 +3,12 @@ import { cn } from '@/lib/utils';
 import { Button } from '@/components/ui/button';
 import { Sheet, SheetContent, SheetTrigger } from '@/components/ui/sheet';
 import { Menu, X } from 'lucide-react';
-import { InteractiveNavigationSidebar, NavigationTab, BreadcrumbItem } from './InteractiveNavigationSidebar';
+import { InteractiveNavigationSidebar, NavigationTab } from './InteractiveNavigationSidebar';
 
 interface ResponsiveNavigationWrapperProps {
     activeTab: string;
     onTabChange: (tabId: string) => void;
     tabs: NavigationTab[];
-    breadcrumbs?: BreadcrumbItem[];
     projectId?: string;
     projectTitle?: string;
     onBack?: () => void;
@@ -21,7 +20,6 @@ export const ResponsiveNavigationWrapper: React.FC<ResponsiveNavigationWrapperPr
     activeTab,
     onTabChange,
     tabs,
-    breadcrumbs,
     projectId,
     projectTitle,
     onBack,
@@ -76,7 +74,6 @@ export const ResponsiveNavigationWrapper: React.FC<ResponsiveNavigationWrapperPr
                     activeTab={activeTab}
                     onTabChange={handleTabChange}
                     tabs={tabs}
-                    breadcrumbs={breadcrumbs}
                     projectId={projectId}
                     projectTitle={projectTitle}
                     onBack={onBack}
@@ -108,7 +105,6 @@ export const ResponsiveNavigationWrapper: React.FC<ResponsiveNavigationWrapperPr
                         activeTab={activeTab}
                         onTabChange={onTabChange}
                         tabs={tabs}
-                        breadcrumbs={breadcrumbs}
                         projectId={projectId}
                         projectTitle={projectTitle}
                         onBack={onBack}
@@ -128,7 +124,6 @@ export const ResponsiveNavigationWrapper: React.FC<ResponsiveNavigationWrapperPr
             activeTab={activeTab}
             onTabChange={onTabChange}
             tabs={tabs}
-            breadcrumbs={breadcrumbs}
             projectId={projectId}
             projectTitle={projectTitle}
             onBack={onBack}

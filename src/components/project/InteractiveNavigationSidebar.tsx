@@ -28,14 +28,6 @@ import {
     DropdownMenuSeparator,
     DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
-import {
-    Breadcrumb,
-    BreadcrumbItem,
-    BreadcrumbLink,
-    BreadcrumbList,
-    BreadcrumbPage,
-    BreadcrumbSeparator,
-} from '@/components/ui/breadcrumb';
 
 export interface NavigationTab {
     id: string;
@@ -56,17 +48,10 @@ export interface NavigationSubTab {
     disabled?: boolean;
 }
 
-export interface BreadcrumbItem {
-    label: string;
-    href?: string;
-    onClick?: () => void;
-}
-
 interface InteractiveNavigationSidebarProps {
     activeTab: string;
     onTabChange: (tabId: string) => void;
     tabs: NavigationTab[];
-    breadcrumbs?: BreadcrumbItem[];
     projectId?: string;
     projectTitle?: string;
     onBack?: () => void;
@@ -77,7 +62,6 @@ export const InteractiveNavigationSidebar: React.FC<InteractiveNavigationSidebar
     activeTab,
     onTabChange,
     tabs,
-    breadcrumbs = [],
     projectId,
     projectTitle,
     onBack,
@@ -189,49 +173,6 @@ export const InteractiveNavigationSidebar: React.FC<InteractiveNavigationSidebar
         );
     };
 
-    const renderBreadcrumbs = () => {
-        if (breadcrumbs.length === 0) return null;
-
-        return (
-            <div className="px-4 py-2 border-b border-border">
-                <Breadcrumb>
-                    <BreadcrumbList>
-                        <BreadcrumbItem>
-                            <BreadcrumbLink
-                                href="/projects"
-                                className="flex items-center text-xs text-muted-foreground hover:text-foreground"
-                            >
-                                <Home className="w-3 h-3 mr-1" />
-                                Projects
-                            </BreadcrumbLink>
-                        </BreadcrumbItem>
-                        <BreadcrumbSeparator />
-                        {breadcrumbs.map((item, index) => (
-                            <React.Fragment key={index}>
-                                <BreadcrumbItem>
-                                    {item.href || item.onClick ? (
-                                        <BreadcrumbLink
-                                            href={item.href}
-                                            onClick={item.onClick}
-                                            className="text-xs text-muted-foreground hover:text-foreground max-w-[120px] truncate"
-                                        >
-                                            {item.label}
-                                        </BreadcrumbLink>
-                                    ) : (
-                                        <BreadcrumbPage className="text-xs font-medium max-w-[120px] truncate">
-                                            {item.label}
-                                        </BreadcrumbPage>
-                                    )}
-                                </BreadcrumbItem>
-                                {index < breadcrumbs.length - 1 && <BreadcrumbSeparator />}
-                            </React.Fragment>
-                        ))}
-                    </BreadcrumbList>
-                </Breadcrumb>
-            </div>
-        );
-    };
-
     const renderSecondaryActions = () => {
         const activeTabData = tabs.find(tab => tab.id === activeTab);
         if (!activeTabData) return null;
@@ -267,39 +208,6 @@ export const InteractiveNavigationSidebar: React.FC<InteractiveNavigationSidebar
 
     return (
         <div className={cn("w-64 border-r bg-card shadow-sm min-h-screen flex flex-col", className)}>
-            {/* Header with Back Button */}
-            {onBack && (
-                <div className="p-4 border-b border-border">
-                    <Button
-                        variant="ghost"
-                        size="sm"
-                        onClick={onBack}
-                        className="w-full justify-start text-xs"
-                    >
-                        <ArrowLeft className="w-3 h-3 mr-2" />
-                        Back to Projects
-                    </Button>
-                </div>
-            )}
-
-            {/* Project Context */}
-            {projectId && projectTitle && (
-                <div className="px-4 py-3 border-b border-border">
-                    <div className="text-xs font-medium text-muted-foreground uppercase tracking-wider mb-1">
-                        PROJECT
-                    </div>
-                    <div className="text-sm font-semibold truncate" title={projectTitle}>
-                        {projectTitle}
-                    </div>
-                    <div className="text-xs text-muted-foreground">
-                        ID: {projectId}
-                    </div>
-                </div>
-            )}
-
-            {/* Breadcrumbs */}
-            {renderBreadcrumbs()}
-
             {/* Navigation Tabs */}
             <div className="flex-1 overflow-y-auto">
                 <div className="p-4">
