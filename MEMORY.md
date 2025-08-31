@@ -564,6 +564,35 @@ VITE_SUPABASE_ANON_KEY=your_anon_key
   - **Development Workflow Enhancement**: Provides easy way to verify database state after seeding operations
   - **Quality Assurance**: Enables quick validation of seeded organization data
 
+### 2025-08-31 - Auth Display Names Update Script Integration ✅
+
+**Changes Made:**
+- **Auth Display Names Script**: Added `update:auth-display-names` npm script to package.json for updating existing auth user metadata
+  - **New NPM Script**: `npm run update:auth-display-names` - Updates display names and metadata for existing Supabase auth users
+  - **Metadata Management**: Updates name, display_name, full_name, employee_id, department, role, phone, avatar_url from sample data
+  - **Safe Updates**: Preserves existing user metadata while updating specific fields from sample-data/03-users.json
+  - **Comprehensive Reporting**: Provides detailed summary of successful updates, errors, and users not found
+  - **Development Workflow**: Enables updating auth user metadata without recreating accounts
+
+**Technical Details:**
+- **Script Location**: `scripts/update-auth-display-names.js`
+- **Data Source**: Uses `sample-data/03-users.json` for user information
+- **Update Method**: Uses `supabase.auth.admin.updateUserById()` for metadata updates
+- **Error Handling**: Continues processing if individual users fail, reports comprehensive results
+- **Rate Limiting**: Includes delays between operations to avoid API limits
+
+**Usage:**
+```bash
+npm run update:auth-display-names
+```
+
+**Benefits:**
+- ✅ **Non-destructive Updates**: Updates metadata without affecting user authentication
+- ✅ **Selective Updates**: Only updates users that exist in auth.users table
+- ✅ **Comprehensive Reporting**: Shows success count, errors, and missing users
+- ✅ **Development Efficiency**: Quick way to sync auth metadata with sample data changes
+- ✅ **Safe Operation**: Preserves existing metadata while updating specific fields
+
 ### 2025-08-31 - Script Management Cleanup ✅
 
 **Changes Made:**

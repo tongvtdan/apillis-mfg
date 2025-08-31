@@ -14,7 +14,8 @@
         "verify:organizations": "node scripts/verify-organizations.js",
         "seed:workflow-stages": "node scripts/seed-workflow-stages.js",
         "seed:workflow-stages:force": "node scripts/seed-workflow-stages.js --force",
-        "create:auth-users": "node scripts/create-auth-users.js"
+        "create:auth-users": "node scripts/create-auth-users.js",
+        "update:auth-display-names": "node scripts/update-auth-display-names.js"
     },
     "dependencies": {
         "@supabase/supabase-js": "^2.39.0",

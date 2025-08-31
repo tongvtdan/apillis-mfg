@@ -164,3 +164,21 @@ For questions about the seed data structure or import process, refer to:
 - Database schema documentation
 - Supabase CLI documentation
 - Project architecture documentation
+
+
+Database backups created:
+
+factory_pulse_backup_20250831_085425.sql - Full schema backup (most recent)
+factory_pulse_data_backup_20250831_085438.sql - Data-only backup
+The full schema backup includes both the database structure and data, while the data-only backup contains just the data (with some warnings about circular foreign key constraints, which is normal for complex schemas).
+
+To restore from backup later:
+
+
+
+# Restore full backup (schema + data)
+supabase db reset --local
+psql -h 127.0.0.1 -p 54322 -U postgres -d postgres < backups/factory_pulse_backup_20250831_085425.sql
+
+# Or restore just data to existing schema
+psql -h 127.0.0.1 -p 54322 -U postgres -d postgres < backups/factory_pulse_data_backup_20250831_085438.sql

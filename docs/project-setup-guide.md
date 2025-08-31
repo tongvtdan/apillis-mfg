@@ -100,6 +100,9 @@ npm run seed:workflow-stages
 # Create authentication users
 npm run create:auth-users
 
+# Update auth user display names (if needed)
+npm run update:auth-display-names
+
 # Verify seeded data
 npm run verify:organizations
 
@@ -139,6 +142,7 @@ npm run lint
 - `npm run seed:workflow-stages` - Seed workflow stages configuration
 - `npm run seed:workflow-stages:force` - Force reseed workflow stages (overwrites existing)
 - `npm run create:auth-users` - Create Supabase authentication users from sample data
+- `npm run update:auth-display-names` - Update display names and metadata for existing auth users
 - `npm run migrate:users` - Run user migration script
 
 **Administrative Scripts (Manual Execution):**
