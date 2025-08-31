@@ -128,6 +128,86 @@ CREATE TYPE "public"."user_status" AS ENUM (
 ALTER TYPE "public"."user_status" OWNER TO "postgres";
 
 
+CREATE OR REPLACE FUNCTION "public"."can_access_project"("project_id" "uuid") RETURNS boolean
+    LANGUAGE "plpgsql" SECURITY DEFINER
+    AS $_$
+DECLARE
+    user_role TEXT;
+    project_org_id UUID;
+    current_stage_id UUID;
+    responsible_roles user_role[];
+    role_exists BOOLEAN;
+BEGIN
+    -- Get user role and project organization
+    SELECT role::TEXT INTO user_role FROM users WHERE id = auth.uid();
+    SELECT organization_id, current_stage_id INTO project_org_id, current_stage_id 
+    FROM projects WHERE id = project_id;
+    
+    -- Check organization access
+    IF project_org_id != get_current_user_org_id() THEN
+        RETURN FALSE;
+    END IF;
+    
+    -- Admin and management have full access
+    IF user_role IN ('admin', 'management') THEN
+        RETURN TRUE;
+    END IF;
+    
+    -- Check if user is assigned to the project
+    IF EXISTS (
+        SELECT 1 FROM project_assignments 
+        WHERE project_id = $1 AND user_id = auth.uid()
+    ) THEN
+        RETURN TRUE;
+    END IF;
+    
+    -- Check workflow stage responsible roles
+    IF current_stage_id IS NOT NULL THEN
+        SELECT responsible_roles INTO responsible_roles 
+        FROM workflow_stages 
+        WHERE id = current_stage_id;
+        
+        -- Check if user role exists in the responsible roles array
+        SELECT user_role::user_role = ANY(responsible_roles) INTO role_exists;
+        IF role_exists THEN
+            RETURN TRUE;
+        END IF;
+    END IF;
+    
+    -- Sales can access all projects (customer relationship management)
+    IF user_role = 'sales' THEN
+        RETURN TRUE;
+    END IF;
+    
+    -- Portal users can only access their own projects
+    IF user_role IN ('customer', 'supplier') THEN
+        RETURN EXISTS (
+            SELECT 1 FROM projects 
+            WHERE id = $1 AND (
+                (user_role = 'customer' AND customer_id IN (
+                    SELECT id FROM contacts WHERE email = (
+                        SELECT email FROM auth.users WHERE id = auth.uid()
+                    )
+                )) OR
+                (user_role = 'supplier' AND id IN (
+                    SELECT project_id FROM supplier_rfqs WHERE supplier_id IN (
+                        SELECT id FROM contacts WHERE email = (
+                            SELECT email FROM auth.users WHERE id = auth.uid()
+                        )
+                    )
+                ))
+            )
+        );
+    END IF;
+    
+    RETURN FALSE;
+END;
+$_$;
+
+
+ALTER FUNCTION "public"."can_access_project"("project_id" "uuid") OWNER TO "postgres";
+
+
 CREATE OR REPLACE FUNCTION "public"."create_notification"("p_user_id" "uuid", "p_title" "text", "p_message" "text", "p_type" "text", "p_priority" "public"."priority_level" DEFAULT 'medium'::"public"."priority_level", "p_action_url" "text" DEFAULT NULL::"text", "p_action_label" "text" DEFAULT NULL::"text", "p_related_entity_type" "text" DEFAULT NULL::"text", "p_related_entity_id" "uuid" DEFAULT NULL::"uuid") RETURNS "uuid"
     LANGUAGE "plpgsql"
     AS $$
@@ -230,6 +310,38 @@ $$;
 ALTER FUNCTION "public"."generate_project_id"() OWNER TO "postgres";
 
 
+CREATE OR REPLACE FUNCTION "public"."get_current_user_org_id"() RETURNS "uuid"
+    LANGUAGE "plpgsql" SECURITY DEFINER
+    AS $$
+BEGIN
+    RETURN (
+        SELECT organization_id 
+        FROM users 
+        WHERE id = auth.uid()
+    );
+END;
+$$;
+
+
+ALTER FUNCTION "public"."get_current_user_org_id"() OWNER TO "postgres";
+
+
+CREATE OR REPLACE FUNCTION "public"."get_current_user_role"() RETURNS "text"
+    LANGUAGE "plpgsql" SECURITY DEFINER
+    AS $$
+BEGIN
+    RETURN (
+        SELECT role::TEXT
+        FROM users 
+        WHERE id = auth.uid()
+    );
+END;
+$$;
+
+
+ALTER FUNCTION "public"."get_current_user_role"() OWNER TO "postgres";
+
+
 CREATE OR REPLACE FUNCTION "public"."get_user_organization"() RETURNS "uuid"
     LANGUAGE "plpgsql" SECURITY DEFINER
     AS $$
@@ -288,6 +400,38 @@ $$;
 
 
 ALTER FUNCTION "public"."handle_project_stage_change"() OWNER TO "postgres";
+
+
+CREATE OR REPLACE FUNCTION "public"."is_internal_user"() RETURNS boolean
+    LANGUAGE "plpgsql" SECURITY DEFINER
+    AS $$
+BEGIN
+    RETURN (
+        SELECT role IN ('admin', 'management', 'sales', 'procurement', 'engineering', 'qa', 'production')
+        FROM users 
+        WHERE id = auth.uid()
+    );
+END;
+$$;
+
+
+ALTER FUNCTION "public"."is_internal_user"() OWNER TO "postgres";
+
+
+CREATE OR REPLACE FUNCTION "public"."is_portal_user"() RETURNS boolean
+    LANGUAGE "plpgsql" SECURITY DEFINER
+    AS $$
+BEGIN
+    RETURN (
+        SELECT role IN ('customer', 'supplier')
+        FROM users 
+        WHERE id = auth.uid()
+    );
+END;
+$$;
+
+
+ALTER FUNCTION "public"."is_portal_user"() OWNER TO "postgres";
 
 
 CREATE OR REPLACE FUNCTION "public"."log_activity"() RETURNS "trigger"
@@ -1355,27 +1499,49 @@ CREATE POLICY "Admin and management can manage sub-stages" ON "public"."workflow
 
 
 
-CREATE POLICY "Users can modify documents in their org" ON "public"."documents" USING (("organization_id" IN ( SELECT "users"."organization_id"
-   FROM "public"."users"
-  WHERE ("users"."id" = "auth"."uid"()))));
+CREATE POLICY "Users can create profiles" ON "public"."users" FOR INSERT WITH CHECK ((("organization_id" = "public"."get_current_user_org_id"()) AND ("public"."get_current_user_role"() = ANY (ARRAY['admin'::"text", 'management'::"text"]))));
 
 
 
-CREATE POLICY "Users can modify projects in their org" ON "public"."projects" USING (("organization_id" IN ( SELECT "users"."organization_id"
-   FROM "public"."users"
-  WHERE ("users"."id" = "auth"."uid"()))));
+CREATE POLICY "Users can modify contacts" ON "public"."contacts" USING ((("organization_id" = "public"."get_current_user_org_id"()) AND ("public"."get_current_user_role"() = ANY (ARRAY['admin'::"text", 'management'::"text", 'sales'::"text", 'procurement'::"text"]))));
 
 
 
-CREATE POLICY "Users can modify reviews in their org" ON "public"."reviews" USING (("organization_id" IN ( SELECT "users"."organization_id"
-   FROM "public"."users"
-  WHERE ("users"."id" = "auth"."uid"()))));
+CREATE POLICY "Users can modify documents" ON "public"."documents" USING ((("project_id" IN ( SELECT "projects"."id"
+   FROM "public"."projects"
+  WHERE "public"."can_access_project"("projects"."id"))) AND (("public"."get_current_user_role"() = ANY (ARRAY['admin'::"text", 'management'::"text"])) OR ("uploaded_by" = "auth"."uid"()) OR (("public"."get_current_user_role"() = ANY (ARRAY['sales'::"text", 'procurement'::"text", 'engineering'::"text", 'qa'::"text", 'production'::"text"])) AND (("access_level")::"text" <> 'restricted'::"text")))));
 
 
 
-CREATE POLICY "Users can send messages in their org" ON "public"."messages" FOR INSERT WITH CHECK ((("organization_id" IN ( SELECT "users"."organization_id"
-   FROM "public"."users"
-  WHERE ("users"."id" = "auth"."uid"()))) AND ("sender_id" = "auth"."uid"())));
+CREATE POLICY "Users can modify project assignments" ON "public"."project_assignments" USING ((("project_id" IN ( SELECT "projects"."id"
+   FROM "public"."projects"
+  WHERE "public"."can_access_project"("projects"."id"))) AND ("public"."get_current_user_role"() = ANY (ARRAY['admin'::"text", 'management'::"text"]))));
+
+
+
+CREATE POLICY "Users can modify projects" ON "public"."projects" USING (("public"."can_access_project"("id") AND (("public"."get_current_user_role"() = ANY (ARRAY['admin'::"text", 'management'::"text"])) OR (("public"."get_current_user_role"() = 'sales'::"text") AND ("current_stage_id" IN ( SELECT "workflow_stages"."id"
+   FROM "public"."workflow_stages"
+  WHERE (("workflow_stages"."organization_id" = "public"."get_current_user_org_id"()) AND ('sales'::"public"."user_role" = ANY ("workflow_stages"."responsible_roles")))))) OR (("public"."get_current_user_role"() = 'procurement'::"text") AND ("current_stage_id" IN ( SELECT "workflow_stages"."id"
+   FROM "public"."workflow_stages"
+  WHERE (("workflow_stages"."organization_id" = "public"."get_current_user_org_id"()) AND ('procurement'::"public"."user_role" = ANY ("workflow_stages"."responsible_roles")))))) OR (("public"."get_current_user_role"() = 'engineering'::"text") AND ("current_stage_id" IN ( SELECT "workflow_stages"."id"
+   FROM "public"."workflow_stages"
+  WHERE (("workflow_stages"."organization_id" = "public"."get_current_user_org_id"()) AND ('engineering'::"public"."user_role" = ANY ("workflow_stages"."responsible_roles")))))) OR (("public"."get_current_user_role"() = 'qa'::"text") AND ("current_stage_id" IN ( SELECT "workflow_stages"."id"
+   FROM "public"."workflow_stages"
+  WHERE (("workflow_stages"."organization_id" = "public"."get_current_user_org_id"()) AND ('qa'::"public"."user_role" = ANY ("workflow_stages"."responsible_roles")))))) OR (("public"."get_current_user_role"() = 'production'::"text") AND ("current_stage_id" IN ( SELECT "workflow_stages"."id"
+   FROM "public"."workflow_stages"
+  WHERE (("workflow_stages"."organization_id" = "public"."get_current_user_org_id"()) AND ('production'::"public"."user_role" = ANY ("workflow_stages"."responsible_roles")))))))));
+
+
+
+CREATE POLICY "Users can modify supplier quotes" ON "public"."supplier_quotes" USING ((("organization_id" = "public"."get_current_user_org_id"()) AND ("public"."get_current_user_role"() = ANY (ARRAY['admin'::"text", 'management'::"text", 'procurement'::"text"]))));
+
+
+
+CREATE POLICY "Users can modify workflow stages" ON "public"."workflow_stages" USING ((("organization_id" = "public"."get_current_user_org_id"()) AND ("public"."get_current_user_role"() = ANY (ARRAY['admin'::"text", 'management'::"text"]))));
+
+
+
+CREATE POLICY "Users can send messages" ON "public"."messages" FOR INSERT WITH CHECK ((("organization_id" = "public"."get_current_user_org_id"()) AND ("sender_id" = "auth"."uid"()) AND (("public"."get_current_user_role"() = ANY (ARRAY['admin'::"text", 'management'::"text"])) OR ("recipient_id" IS NOT NULL) OR (("recipient_type")::"text" = ANY ((ARRAY['role'::character varying, 'department'::character varying])::"text"[])))));
 
 
 
@@ -1387,9 +1553,7 @@ CREATE POLICY "Users can update assigned sub-stage progress" ON "public"."projec
 
 
 
-CREATE POLICY "Users can update their organization" ON "public"."organizations" FOR UPDATE USING (("id" IN ( SELECT "users"."organization_id"
-   FROM "public"."users"
-  WHERE (("users"."id" = "auth"."uid"()) AND ("users"."role" = ANY (ARRAY['admin'::"public"."user_role", 'management'::"public"."user_role"]))))));
+CREATE POLICY "Users can update their organization" ON "public"."organizations" FOR UPDATE USING ((("id" = "public"."get_current_user_org_id"()) AND ("public"."get_current_user_role"() = ANY (ARRAY['admin'::"text", 'management'::"text"]))));
 
 
 
@@ -1401,47 +1565,33 @@ CREATE POLICY "Users can update their own profile" ON "public"."users" FOR UPDAT
 
 
 
-CREATE POLICY "Users can view activity in their org" ON "public"."activity_log" FOR SELECT USING (("organization_id" IN ( SELECT "users"."organization_id"
-   FROM "public"."users"
-  WHERE ("users"."id" = "auth"."uid"()))));
-
-
-
-CREATE POLICY "Users can view contacts in their org" ON "public"."contacts" USING (("organization_id" IN ( SELECT "users"."organization_id"
-   FROM "public"."users"
-  WHERE ("users"."id" = "auth"."uid"()))));
-
-
-
-CREATE POLICY "Users can view documents in their org" ON "public"."documents" FOR SELECT USING (("organization_id" IN ( SELECT "users"."organization_id"
-   FROM "public"."users"
-  WHERE ("users"."id" = "auth"."uid"()))));
-
-
-
-CREATE POLICY "Users can view messages in their org" ON "public"."messages" FOR SELECT USING (("organization_id" IN ( SELECT "users"."organization_id"
-   FROM "public"."users"
-  WHERE ("users"."id" = "auth"."uid"()))));
-
-
-
-CREATE POLICY "Users can view project assignments in their org" ON "public"."project_assignments" FOR SELECT USING (("project_id" IN ( SELECT "projects"."id"
+CREATE POLICY "Users can view activity in their org" ON "public"."activity_log" FOR SELECT USING ((("organization_id" = "public"."get_current_user_org_id"()) AND (("public"."get_current_user_role"() = ANY (ARRAY['admin'::"text", 'management'::"text"])) OR ("user_id" = "auth"."uid"()) OR ((("entity_type")::"text" = 'projects'::"text") AND ("entity_id" IN ( SELECT "projects"."id"
    FROM "public"."projects"
-  WHERE ("projects"."organization_id" IN ( SELECT "users"."organization_id"
-           FROM "public"."users"
-          WHERE ("users"."id" = "auth"."uid"()))))));
+  WHERE "public"."can_access_project"("projects"."id")))))));
 
 
 
-CREATE POLICY "Users can view projects in their org" ON "public"."projects" FOR SELECT USING (("organization_id" IN ( SELECT "users"."organization_id"
-   FROM "public"."users"
-  WHERE ("users"."id" = "auth"."uid"()))));
+CREATE POLICY "Users can view contacts in their org" ON "public"."contacts" FOR SELECT USING ((("organization_id" = "public"."get_current_user_org_id"()) AND (("public"."get_current_user_role"() = ANY (ARRAY['admin'::"text", 'management'::"text"])) OR (("public"."get_current_user_role"() = 'sales'::"text") AND ("type" = 'customer'::"public"."contact_type")) OR (("public"."get_current_user_role"() = 'procurement'::"text") AND ("type" = 'supplier'::"public"."contact_type")) OR (("public"."get_current_user_role"() = ANY (ARRAY['engineering'::"text", 'qa'::"text", 'production'::"text"])) AND ("type" = ANY (ARRAY['customer'::"public"."contact_type", 'supplier'::"public"."contact_type"]))))));
 
 
 
-CREATE POLICY "Users can view reviews in their org" ON "public"."reviews" FOR SELECT USING (("organization_id" IN ( SELECT "users"."organization_id"
-   FROM "public"."users"
-  WHERE ("users"."id" = "auth"."uid"()))));
+CREATE POLICY "Users can view documents" ON "public"."documents" FOR SELECT USING ((("project_id" IN ( SELECT "projects"."id"
+   FROM "public"."projects"
+  WHERE "public"."can_access_project"("projects"."id"))) AND (("public"."get_current_user_role"() = ANY (ARRAY['admin'::"text", 'management'::"text"])) OR (("access_level")::"text" = ANY ((ARRAY['public'::character varying, 'internal'::character varying])::"text"[])) OR (("public"."get_current_user_role"() = 'customer'::"text") AND (("access_level")::"text" = ANY ((ARRAY['public'::character varying, 'customer'::character varying])::"text"[]))) OR (("public"."get_current_user_role"() = 'supplier'::"text") AND (("access_level")::"text" = ANY ((ARRAY['public'::character varying, 'supplier'::character varying])::"text"[]))))));
+
+
+
+CREATE POLICY "Users can view other users in their org" ON "public"."users" FOR SELECT USING ((("organization_id" = "public"."get_current_user_org_id"()) AND ("id" <> "auth"."uid"()) AND (("public"."get_current_user_role"() = ANY (ARRAY['admin'::"text", 'management'::"text"])) OR (("public"."get_current_user_role"() = 'sales'::"text") AND ("role" = ANY (ARRAY['sales'::"public"."user_role", 'procurement'::"public"."user_role", 'engineering'::"public"."user_role", 'qa'::"public"."user_role", 'production'::"public"."user_role"]))) OR (("public"."get_current_user_role"() = 'procurement'::"text") AND ("role" = ANY (ARRAY['procurement'::"public"."user_role", 'engineering'::"public"."user_role", 'qa'::"public"."user_role", 'production'::"public"."user_role"]))) OR (("public"."get_current_user_role"() = 'engineering'::"text") AND ("role" = ANY (ARRAY['engineering'::"public"."user_role", 'qa'::"public"."user_role", 'production'::"public"."user_role"]))) OR (("public"."get_current_user_role"() = 'qa'::"text") AND ("role" = ANY (ARRAY['qa'::"public"."user_role", 'production'::"public"."user_role"]))) OR (("public"."get_current_user_role"() = 'production'::"text") AND ("role" = 'production'::"public"."user_role")))));
+
+
+
+CREATE POLICY "Users can view project assignments" ON "public"."project_assignments" FOR SELECT USING ((("project_id" IN ( SELECT "projects"."id"
+   FROM "public"."projects"
+  WHERE "public"."can_access_project"("projects"."id"))) AND (("public"."get_current_user_role"() = ANY (ARRAY['admin'::"text", 'management'::"text"])) OR ("user_id" = "auth"."uid"()))));
+
+
+
+CREATE POLICY "Users can view projects" ON "public"."projects" FOR SELECT USING ("public"."can_access_project"("id"));
 
 
 
@@ -1457,15 +1607,15 @@ CREATE POLICY "Users can view sub-stages for their organization" ON "public"."wo
 
 
 
-CREATE POLICY "Users can view supplier quotes in their org" ON "public"."supplier_quotes" USING (("organization_id" IN ( SELECT "users"."organization_id"
-   FROM "public"."users"
-  WHERE ("users"."id" = "auth"."uid"()))));
+CREATE POLICY "Users can view supplier quotes" ON "public"."supplier_quotes" FOR SELECT USING ((("organization_id" = "public"."get_current_user_org_id"()) AND (("public"."get_current_user_role"() = ANY (ARRAY['admin'::"text", 'management'::"text", 'procurement'::"text"])) OR (("public"."get_current_user_role"() = 'sales'::"text") AND ("project_id" IN ( SELECT "projects"."id"
+   FROM "public"."projects"
+  WHERE ("projects"."current_stage_id" IN ( SELECT "workflow_stages"."id"
+           FROM "public"."workflow_stages"
+          WHERE (("workflow_stages"."organization_id" = "public"."get_current_user_org_id"()) AND ('sales'::"public"."user_role" = ANY ("workflow_stages"."responsible_roles")))))))))));
 
 
 
-CREATE POLICY "Users can view their organization" ON "public"."organizations" FOR SELECT USING (("id" IN ( SELECT "users"."organization_id"
-   FROM "public"."users"
-  WHERE ("users"."id" = "auth"."uid"()))));
+CREATE POLICY "Users can view their organization" ON "public"."organizations" FOR SELECT USING (("id" = "public"."get_current_user_org_id"()));
 
 
 
@@ -1473,15 +1623,11 @@ CREATE POLICY "Users can view their own notifications" ON "public"."notification
 
 
 
-CREATE POLICY "Users can view users in their org" ON "public"."users" FOR SELECT USING (("organization_id" IN ( SELECT "users_1"."organization_id"
-   FROM "public"."users" "users_1"
-  WHERE ("users_1"."id" = "auth"."uid"()))));
+CREATE POLICY "Users can view their own profile" ON "public"."users" FOR SELECT USING (("id" = "auth"."uid"()));
 
 
 
-CREATE POLICY "Users can view workflow stages in their org" ON "public"."workflow_stages" FOR SELECT USING (("organization_id" IN ( SELECT "users"."organization_id"
-   FROM "public"."users"
-  WHERE ("users"."id" = "auth"."uid"()))));
+CREATE POLICY "Users can view workflow stages in their org" ON "public"."workflow_stages" FOR SELECT USING (("organization_id" = "public"."get_current_user_org_id"()));
 
 
 
@@ -1530,6 +1676,10 @@ ALTER TABLE "public"."workflow_sub_stages" ENABLE ROW LEVEL SECURITY;
 
 
 ALTER PUBLICATION "supabase_realtime" OWNER TO "postgres";
+
+
+
+
 
 
 
@@ -1698,6 +1848,12 @@ GRANT USAGE ON SCHEMA "public" TO "service_role";
 
 
 
+GRANT ALL ON FUNCTION "public"."can_access_project"("project_id" "uuid") TO "anon";
+GRANT ALL ON FUNCTION "public"."can_access_project"("project_id" "uuid") TO "authenticated";
+GRANT ALL ON FUNCTION "public"."can_access_project"("project_id" "uuid") TO "service_role";
+
+
+
 GRANT ALL ON FUNCTION "public"."create_notification"("p_user_id" "uuid", "p_title" "text", "p_message" "text", "p_type" "text", "p_priority" "public"."priority_level", "p_action_url" "text", "p_action_label" "text", "p_related_entity_type" "text", "p_related_entity_id" "uuid") TO "anon";
 GRANT ALL ON FUNCTION "public"."create_notification"("p_user_id" "uuid", "p_title" "text", "p_message" "text", "p_type" "text", "p_priority" "public"."priority_level", "p_action_url" "text", "p_action_label" "text", "p_related_entity_type" "text", "p_related_entity_id" "uuid") TO "authenticated";
 GRANT ALL ON FUNCTION "public"."create_notification"("p_user_id" "uuid", "p_title" "text", "p_message" "text", "p_type" "text", "p_priority" "public"."priority_level", "p_action_url" "text", "p_action_label" "text", "p_related_entity_type" "text", "p_related_entity_id" "uuid") TO "service_role";
@@ -1716,6 +1872,18 @@ GRANT ALL ON FUNCTION "public"."generate_project_id"() TO "service_role";
 
 
 
+GRANT ALL ON FUNCTION "public"."get_current_user_org_id"() TO "anon";
+GRANT ALL ON FUNCTION "public"."get_current_user_org_id"() TO "authenticated";
+GRANT ALL ON FUNCTION "public"."get_current_user_org_id"() TO "service_role";
+
+
+
+GRANT ALL ON FUNCTION "public"."get_current_user_role"() TO "anon";
+GRANT ALL ON FUNCTION "public"."get_current_user_role"() TO "authenticated";
+GRANT ALL ON FUNCTION "public"."get_current_user_role"() TO "service_role";
+
+
+
 GRANT ALL ON FUNCTION "public"."get_user_organization"() TO "anon";
 GRANT ALL ON FUNCTION "public"."get_user_organization"() TO "authenticated";
 GRANT ALL ON FUNCTION "public"."get_user_organization"() TO "service_role";
@@ -1725,6 +1893,18 @@ GRANT ALL ON FUNCTION "public"."get_user_organization"() TO "service_role";
 GRANT ALL ON FUNCTION "public"."handle_project_stage_change"() TO "anon";
 GRANT ALL ON FUNCTION "public"."handle_project_stage_change"() TO "authenticated";
 GRANT ALL ON FUNCTION "public"."handle_project_stage_change"() TO "service_role";
+
+
+
+GRANT ALL ON FUNCTION "public"."is_internal_user"() TO "anon";
+GRANT ALL ON FUNCTION "public"."is_internal_user"() TO "authenticated";
+GRANT ALL ON FUNCTION "public"."is_internal_user"() TO "service_role";
+
+
+
+GRANT ALL ON FUNCTION "public"."is_portal_user"() TO "anon";
+GRANT ALL ON FUNCTION "public"."is_portal_user"() TO "authenticated";
+GRANT ALL ON FUNCTION "public"."is_portal_user"() TO "service_role";
 
 
 
