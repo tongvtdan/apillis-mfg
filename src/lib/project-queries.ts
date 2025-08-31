@@ -23,7 +23,9 @@ export const PROJECT_FIELDS = {
     current_stage:workflow_stages!current_stage_id(
       id,
       name,
-      stage_order
+      stage_order,
+      created_at,
+      updated_at
     )
   `,
 
@@ -64,7 +66,9 @@ export const PROJECT_FIELDS = {
                 description,
                 stage_order,
                 is_active,
-                estimated_duration_days
+                estimated_duration_days,
+                created_at,
+                updated_at
             )
   `,
 
@@ -81,7 +85,9 @@ export const PROJECT_FIELDS = {
     stage_entered_at,
     current_stage:workflow_stages!current_stage_id(
       name,
-      stage_order
+      stage_order,
+      created_at,
+      updated_at
     )
   `
 };

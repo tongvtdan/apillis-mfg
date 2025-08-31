@@ -102,14 +102,18 @@ export function useProjects() {
             email,
             phone,
             type,
-            is_active
+            is_active,
+            created_at,
+            updated_at
           ),
           current_stage:workflow_stages!current_stage_id(
             id,
             name,
             description,
             stage_order,
-            is_active
+            is_active,
+            created_at,
+            updated_at
           ) 
         `)
         .eq('organization_id', profile.organization_id); // Add organization filter

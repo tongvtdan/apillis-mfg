@@ -190,7 +190,9 @@ class ProjectService {
                             email,
                             phone,
                             type,
-                            is_active
+                            is_active,
+                            created_at,
+                            updated_at
                         ),
                         current_stage:workflow_stages!current_stage_id(
                             id,
@@ -198,7 +200,9 @@ class ProjectService {
                             description,
                             stage_order,
                             is_active,
-                            estimated_duration_days
+                            estimated_duration_days,
+                            created_at,
+                            updated_at
                         )
                     `)
                     .eq('id', id)
@@ -209,7 +213,7 @@ class ProjectService {
                 // This is for debugging purposes and should be restricted in production
                 if (!data && (error?.code === 'PGRST104' || error?.message?.includes('No rows found'))) {
                     console.log('⚠️ Project not found in user organization, trying without organization filter');
-                    
+
                     // Try again without organization filter
                     const result = await supabase
                         .from('projects')
@@ -241,7 +245,9 @@ class ProjectService {
                                 email,
                                 phone,
                                 type,
-                                is_active
+                                is_active,
+                                created_at,
+                                updated_at
                             ),
                             current_stage:workflow_stages!current_stage_id(
                                 id,
@@ -249,12 +255,14 @@ class ProjectService {
                                 description,
                                 stage_order,
                                 is_active,
-                                estimated_duration_days
+                                estimated_duration_days,
+                                created_at,
+                                updated_at
                             )
                         `)
                         .eq('id', id)
                         .single();
-                    
+
                     data = result.data;
                     error = result.error;
                 }
@@ -329,7 +337,9 @@ class ProjectService {
                             email,
                             phone,
                             type,
-                            is_active
+                            is_active,
+                            created_at,
+                            updated_at
                         ),
                         current_stage:workflow_stages!current_stage_id(
                             id,
@@ -337,7 +347,9 @@ class ProjectService {
                             description,
                             stage_order,
                             is_active,
-                            estimated_duration_days
+                            estimated_duration_days,
+                            created_at,
+                            updated_at
                         )
                     `);
 
@@ -598,8 +610,6 @@ class ProjectService {
                         stage_order,
                         is_active,
                         estimated_duration_days,
-                        required_approvals,
-                        auto_advance_conditions,
                         created_at,
                         updated_at
                     )
@@ -878,8 +888,6 @@ class ProjectService {
                         stage_order,
                         is_active,
                         estimated_duration_days,
-                        required_approvals,
-                        auto_advance_conditions,
                         created_at,
                         updated_at
                     )
@@ -962,8 +970,6 @@ class ProjectService {
                         stage_order,
                         is_active,
                         estimated_duration_days,
-                        required_approvals,
-                        auto_advance_conditions,
                         created_at,
                         updated_at
                     )

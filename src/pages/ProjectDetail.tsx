@@ -35,6 +35,7 @@ import ProjectCommunication from "@/components/project/ProjectCommunication";
 import { WorkflowStepper } from "@/components/project/WorkflowStepper";
 import { useDocuments } from "@/hooks/useDocuments";
 import { useProjectMessages } from "@/hooks/useMessages";
+import { useSupplierRfqs } from "@/hooks/useSupplierRfqs";
 
 import { useProjectReviews } from "@/hooks/useProjectReviews";
 import { useProjects } from "@/hooks/useProjects";
@@ -85,6 +86,7 @@ export default function ProjectDetail() {
   // Fetch real data using hooks
   const { data: documents = [], isLoading: documentsLoading } = useDocuments(id || '');
   const { data: messages = [], isLoading: messagesLoading } = useProjectMessages(id || '');
+  const { data: supplierRfqs = [], isLoading: supplierRfqsLoading } = useSupplierRfqs(id || '');
 
   const { reviews, loading: reviewsLoading, getReviewStatuses, getOverallReviewStatus, getReviewSummary, submitReview } = useProjectReviews(id || '');
 
