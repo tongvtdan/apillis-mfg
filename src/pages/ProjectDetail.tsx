@@ -1,4 +1,4 @@
-import { useState, useEffect, memo } from "react";
+import { useState, useEffect, memo, useContext } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -44,6 +44,7 @@ import { ReviewConfiguration } from "@/components/project/ReviewConfiguration";
 import { ReviewList } from "@/components/project/ReviewList";
 import { ReviewAssignmentModal } from "@/components/project/ReviewAssignmentModal";
 import { useUserDisplayName, useUsers } from "@/hooks/useUsers";
+import { useAuth } from "@/contexts/AuthContext";
 
 // Separate component for auto-advance functionality to avoid Rules of Hooks violation
 const ProjectAutoAdvance = memo(({ project }: { project: Project }) => {
@@ -59,6 +60,7 @@ const ProjectAutoAdvance = memo(({ project }: { project: Project }) => {
 export default function ProjectDetail() {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
+  const { profile } = useAuth(); // Add this line to access the profile
 
   const [activeTab, setActiveTab] = useState(() => {
     // Try to restore the active tab from sessionStorage based on project ID
@@ -256,7 +258,20 @@ export default function ProjectDetail() {
                     <li>Database connection issues</li>
                     <li>Sample data hasn't been seeded</li>
                     <li>Project ID format mismatch</li>
+                    <li>Project belongs to a different organization</li>
+                    <li>You don't have permission to access this project</li>
                   </ul>
+                </div>
+
+                <div className="mt-4 pt-4 border-t border-muted">
+                  <p className="font-medium mb-2">Troubleshooting Steps:</p>
+                  <ol className="list-decimal list-inside ml-4 space-y-1 text-muted-foreground">
+                    <li>Verify the project ID is correct</li>
+                    <li>Check that you are logged in with the correct account</li>
+                    <li>Confirm the project belongs to your organization</li>
+                    <li>Try refreshing the projects list and selecting the project again</li>
+                    <li>If you're an administrator, check the database seed data</li>
+                  </ol>
                 </div>
               </CardContent>
             </Card>
@@ -281,6 +296,16 @@ export default function ProjectDetail() {
                   <RefreshCw className="w-4 h-4 mr-2" />
                   Retry Loading
                 </Button>
+                {profile?.role === 'admin' && (
+                  <Button
+                    variant="outline"
+                    onClick={() => navigate('/settings')}
+                    className="w-full"
+                  >
+                    <Settings className="w-4 h-4 mr-2" />
+                    Go to Settings
+                  </Button>
+                )}
               </CardContent>
             </Card>
           </div>
