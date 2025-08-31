@@ -100,9 +100,8 @@ export function useProjects() {
             name,
             description,
             stage_order,
-            is_active,
-            estimated_duration_days
-          )
+            is_active
+          ) 
         `);
 
       // Apply filters if provided
