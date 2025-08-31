@@ -13,6 +13,7 @@
             "sales",
             "procurement"
         ],
+        "sub_stages_count": 3,
         "created_at": "2025-01-27T08:00:00.000Z",
         "updated_at": "2025-01-27T08:00:00.000Z"
     },
@@ -31,6 +32,7 @@
             "qa",
             "production"
         ],
+        "sub_stages_count": 4,
         "created_at": "2025-01-27T08:00:00.000Z",
         "updated_at": "2025-01-27T08:00:00.000Z"
     },
@@ -47,6 +49,7 @@
         "responsible_roles": [
             "procurement"
         ],
+        "sub_stages_count": 4,
         "created_at": "2025-01-27T08:00:00.000Z",
         "updated_at": "2025-01-27T08:00:00.000Z"
     },
@@ -64,6 +67,7 @@
             "sales",
             "procurement"
         ],
+        "sub_stages_count": 4,
         "created_at": "2025-01-27T08:00:00.000Z",
         "updated_at": "2025-01-27T08:00:00.000Z"
     },
@@ -82,6 +86,7 @@
             "procurement",
             "production"
         ],
+        "sub_stages_count": 3,
         "created_at": "2025-01-27T08:00:00.000Z",
         "updated_at": "2025-01-27T08:00:00.000Z"
     },
@@ -99,6 +104,7 @@
             "procurement",
             "production"
         ],
+        "sub_stages_count": 4,
         "created_at": "2025-01-27T08:00:00.000Z",
         "updated_at": "2025-01-27T08:00:00.000Z"
     },
@@ -116,6 +122,7 @@
             "production",
             "qa"
         ],
+        "sub_stages_count": 4,
         "created_at": "2025-01-27T08:00:00.000Z",
         "updated_at": "2025-01-27T08:00:00.000Z"
     },
@@ -133,6 +140,7 @@
             "sales",
             "production"
         ],
+        "sub_stages_count": 4,
         "created_at": "2025-01-27T08:00:00.000Z",
         "updated_at": "2025-01-27T08:00:00.000Z"
     }

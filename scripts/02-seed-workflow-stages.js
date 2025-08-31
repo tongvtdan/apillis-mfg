@@ -134,10 +134,20 @@ async function seedWorkflowStages() {
 
         console.log('✅ Successfully seeded workflow stages:');
         data.forEach((stage) => {
-            console.log(`   ${stage.stage_order}. ${stage.name} (${stage.slug}) - ${stage.color}`);
+            console.log(`   ${stage.stage_order}. ${stage.name} (${stage.slug}) - ${stage.color} - ${stage.sub_stages_count || 0} sub-stages`);
         });
 
         console.log(`\n🎉 Seeding completed! ${data.length} workflow stages added to database`);
+        console.log('\n📋 Sub-stages Summary:');
+        console.log('   • Inquiry Received: 3 sub-stages');
+        console.log('   • Technical Review: 4 sub-stages');
+        console.log('   • Supplier RFQ Sent: 4 sub-stages');
+        console.log('   • Quoted: 4 sub-stages');
+        console.log('   • Order Confirmed: 3 sub-stages');
+        console.log('   • Procurement Planning: 4 sub-stages');
+        console.log('   • In Production: 4 sub-stages');
+        console.log('   • Shipped & Closed: 4 sub-stages');
+        console.log('\n💡 Next step: Run "npm run seed:workflow-sub-stages" to seed the sub-stages data');
 
     } catch (error) {
         console.error('❌ Seeding failed:', error.message);

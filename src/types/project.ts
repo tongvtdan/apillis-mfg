@@ -64,6 +64,49 @@ export interface WorkflowStage {
   estimated_duration_days?: number;
   required_approvals?: any[];
   auto_advance_conditions?: Record<string, any>;
+
+  // New fields for sub-stages support
+  sub_stages_count?: number;
+  sub_stages?: WorkflowSubStage[];
+}
+
+export interface WorkflowSubStage {
+  id: string;
+  organization_id: string;
+  workflow_stage_id: string;
+  name: string;
+  slug: string;
+  description?: string;
+  color?: string;
+  sub_stage_order: number;
+  is_active: boolean;
+  exit_criteria?: string;
+  responsible_roles?: string[];
+  estimated_duration_hours?: number;
+  is_required: boolean;
+  can_skip: boolean;
+  auto_advance: boolean;
+  requires_approval: boolean;
+  approval_roles?: string[];
+  metadata?: Record<string, any>;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface ProjectSubStageProgress {
+  id: string;
+  organization_id: string;
+  project_id: string;
+  workflow_stage_id: string;
+  sub_stage_id: string;
+  status: 'pending' | 'in_progress' | 'completed' | 'skipped' | 'blocked';
+  started_at?: string;
+  completed_at?: string;
+  assigned_to?: string;
+  notes?: string;
+  metadata?: Record<string, any>;
+  created_at: string;
+  updated_at: string;
 }
 
 export interface Project {

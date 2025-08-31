@@ -101,6 +101,7 @@ CREATE TABLE workflow_stages (
     is_active BOOLEAN DEFAULT true,
     exit_criteria TEXT,
     responsible_roles user_role[] DEFAULT '{}',
+    sub_stages_count INTEGER DEFAULT 0,
     created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
     updated_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
     UNIQUE(organization_id, slug),
@@ -114,6 +115,77 @@ CREATE TABLE workflow_stages (
 - **Role Assignment**: Array of responsible roles for each stage
 - **Exit Criteria**: Textual description of requirements to advance to next stage
 - **Ordering**: Numeric ordering for proper workflow sequence
+- **Sub-Stages Support**: Count of sub-stages for quick reference
+
+#### 2a. Workflow Sub-Stages (Granular Process Steps)
+
+Defines detailed sub-stages within each workflow stage for granular process tracking:
+
+```sql
+CREATE TABLE workflow_sub_stages (
+    id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+    organization_id UUID NOT NULL REFERENCES organizations(id) ON DELETE CASCADE,
+    workflow_stage_id UUID NOT NULL REFERENCES workflow_stages(id) ON DELETE CASCADE,
+    name VARCHAR(255) NOT NULL,
+    slug VARCHAR(100) NOT NULL,
+    description TEXT,
+    color VARCHAR(7) DEFAULT '#6B7280',
+    sub_stage_order INTEGER NOT NULL,
+    is_active BOOLEAN DEFAULT true,
+    exit_criteria TEXT,
+    responsible_roles user_role[] DEFAULT '{}',
+    estimated_duration_hours INTEGER,
+    is_required BOOLEAN DEFAULT true,
+    can_skip BOOLEAN DEFAULT false,
+    auto_advance BOOLEAN DEFAULT false,
+    requires_approval BOOLEAN DEFAULT false,
+    approval_roles user_role[] DEFAULT '{}',
+    metadata JSONB DEFAULT '{}',
+    created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
+    updated_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
+    UNIQUE(workflow_stage_id, slug),
+    UNIQUE(workflow_stage_id, sub_stage_order)
+);
+```
+
+**Key Features:**
+- **Granular Tracking**: Detailed steps within each workflow stage
+- **Duration Management**: Estimated hours for each sub-stage
+- **Flexible Requirements**: Optional sub-stages that can be skipped
+- **Auto-Advancement**: Automatic progression based on time or conditions
+- **Approval Workflows**: Some sub-stages require specific role approvals
+- **Role Assignment**: Specific responsible roles for each sub-stage
+- **Metadata Support**: JSONB field for extensible configuration
+
+#### 2b. Project Sub-Stage Progress (Progress Tracking)
+
+Tracks the progress of sub-stages for each project:
+
+```sql
+CREATE TABLE project_sub_stage_progress (
+    id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+    organization_id UUID NOT NULL REFERENCES organizations(id) ON DELETE CASCADE,
+    project_id UUID NOT NULL REFERENCES projects(id) ON DELETE CASCADE,
+    workflow_stage_id UUID NOT NULL REFERENCES workflow_stages(id) ON DELETE CASCADE,
+    sub_stage_id UUID NOT NULL REFERENCES workflow_sub_stages(id) ON DELETE CASCADE,
+    status VARCHAR(50) DEFAULT 'pending' CHECK (status IN ('pending', 'in_progress', 'completed', 'skipped', 'blocked')),
+    started_at TIMESTAMP WITH TIME ZONE,
+    completed_at TIMESTAMP WITH TIME ZONE,
+    assigned_to UUID REFERENCES users(id),
+    notes TEXT,
+    metadata JSONB DEFAULT '{}',
+    created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
+    updated_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
+    UNIQUE(project_id, sub_stage_id)
+);
+```
+
+**Key Features:**
+- **Status Tracking**: Complete lifecycle from pending to completed
+- **Time Tracking**: Start and completion timestamps
+- **Assignment Management**: Track who is working on each sub-stage
+- **Notes Support**: Progress notes and comments
+- **Metadata**: Extensible data storage for custom fields
 
 #### 3. Users (Internal Employees)
 
@@ -246,10 +318,55 @@ CREATE TABLE workflow_stages (
     is_active BOOLEAN DEFAULT true,
     exit_criteria TEXT,
     responsible_roles TEXT[] DEFAULT '{}',
+    sub_stages_count INTEGER DEFAULT 0,
     created_at TIMESTAMPTZ DEFAULT NOW(),
     updated_at TIMESTAMPTZ DEFAULT NOW(),
     UNIQUE(organization_id, slug),
     UNIQUE(organization_id, stage_order)
+);
+
+-- Workflow sub-stages (granular process steps)
+CREATE TABLE workflow_sub_stages (
+    id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+    organization_id UUID NOT NULL REFERENCES organizations(id) ON DELETE CASCADE,
+    workflow_stage_id UUID NOT NULL REFERENCES workflow_stages(id) ON DELETE CASCADE,
+    name VARCHAR(255) NOT NULL,
+    slug VARCHAR(100) NOT NULL,
+    description TEXT,
+    color VARCHAR(7) DEFAULT '#6B7280',
+    sub_stage_order INTEGER NOT NULL,
+    is_active BOOLEAN DEFAULT true,
+    exit_criteria TEXT,
+    responsible_roles user_role[] DEFAULT '{}',
+    estimated_duration_hours INTEGER,
+    is_required BOOLEAN DEFAULT true,
+    can_skip BOOLEAN DEFAULT false,
+    auto_advance BOOLEAN DEFAULT false,
+    requires_approval BOOLEAN DEFAULT false,
+    approval_roles user_role[] DEFAULT '{}',
+    metadata JSONB DEFAULT '{}',
+    created_at TIMESTAMPTZ DEFAULT NOW(),
+    updated_at TIMESTAMPTZ DEFAULT NOW(),
+    UNIQUE(workflow_stage_id, slug),
+    UNIQUE(workflow_stage_id, sub_stage_order)
+);
+
+-- Project sub-stage progress tracking
+CREATE TABLE project_sub_stage_progress (
+    id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+    organization_id UUID NOT NULL REFERENCES organizations(id) ON DELETE CASCADE,
+    project_id UUID NOT NULL REFERENCES projects(id) ON DELETE CASCADE,
+    workflow_stage_id UUID NOT NULL REFERENCES workflow_stages(id) ON DELETE CASCADE,
+    sub_stage_id UUID NOT NULL REFERENCES workflow_sub_stages(id) ON DELETE CASCADE,
+    status VARCHAR(50) DEFAULT 'pending' CHECK (status IN ('pending', 'in_progress', 'completed', 'skipped', 'blocked')),
+    started_at TIMESTAMPTZ,
+    completed_at TIMESTAMPTZ,
+    assigned_to UUID REFERENCES users(id),
+    notes TEXT,
+    metadata JSONB DEFAULT '{}',
+    created_at TIMESTAMPTZ DEFAULT NOW(),
+    updated_at TIMESTAMPTZ DEFAULT NOW(),
+    UNIQUE(project_id, sub_stage_id)
 );
 
 -- Main projects table
@@ -1078,9 +1195,12 @@ ALTER PUBLICATION supabase_realtime ADD TABLE supplier_quotes;
 - External contact management for customers and suppliers
 
 ### 2. **Complete Workflow Tracking**
-- Configurable workflow stages
+- Configurable workflow stages with sub-stages
+- Granular process tracking with detailed sub-stages
 - Stage history with duration tracking
 - Multi-user project assignments
+- Auto-advancement based on time or conditions
+- Approval workflows for critical sub-stages
 
 ### 3. **Real-time Communication**
 - Messages between all stakeholders
@@ -1148,6 +1268,12 @@ erDiagram
     organizations ||--o{ users : "belongs to"
     organizations ||--o{ contacts : "manages"
     organizations ||--o{ workflow_stages : "configures"
+    organizations ||--o{ workflow_sub_stages : "configures"
+    organizations ||--o{ project_sub_stage_progress : "tracks"
+    workflow_stages ||--o{ workflow_sub_stages : "contains"
+    workflow_stages ||--o{ project_sub_stage_progress : "tracks progress"
+    workflow_sub_stages ||--o{ project_sub_stage_progress : "has progress"
+    projects ||--o{ project_sub_stage_progress : "tracks sub-stages"
     organizations ||--o{ projects : "owns"
     organizations ||--o{ organization_settings : "has"
     organizations ||--o{ email_templates : "uses"
@@ -1281,9 +1407,49 @@ erDiagram
         boolean is_active
         text exit_criteria
         text_array responsible_roles
+        integer sub_stages_count
         integer estimated_duration_days
         jsonb required_approvals
         jsonb auto_advance_conditions
+        timestamp created_at
+        timestamp updated_at
+    }
+    
+    workflow_sub_stages {
+        uuid id PK
+        uuid organization_id FK
+        uuid workflow_stage_id FK
+        varchar name
+        varchar slug
+        text description
+        varchar color
+        integer sub_stage_order
+        boolean is_active
+        text exit_criteria
+        text_array responsible_roles
+        integer estimated_duration_hours
+        boolean is_required
+        boolean can_skip
+        boolean auto_advance
+        boolean requires_approval
+        text_array approval_roles
+        jsonb metadata
+        timestamp created_at
+        timestamp updated_at
+    }
+    
+    project_sub_stage_progress {
+        uuid id PK
+        uuid organization_id FK
+        uuid project_id FK
+        uuid workflow_stage_id FK
+        uuid sub_stage_id FK
+        varchar status
+        timestamp started_at
+        timestamp completed_at
+        uuid assigned_to FK
+        text notes
+        jsonb metadata
         timestamp created_at
         timestamp updated_at
     }
@@ -1553,6 +1719,8 @@ sequenceDiagram
     participant WF as Workflow System
     participant PROJ as Projects
     participant HIST as Stage History
+    participant SUB as Sub-Stages
+    participant PROG as Sub-Stage Progress
     participant NOT as Notifications
     participant METRICS as Metrics System
 
@@ -1567,6 +1735,11 @@ sequenceDiagram
         WF->>HIST: Create new stage entry
         HIST->>project_stage_history: Record stage entry
         
+        WF->>SUB: Get sub-stages for new stage
+        SUB->>workflow_sub_stages: Fetch active sub-stages
+        WF->>PROG: Create sub-stage progress records
+        PROG->>project_sub_stage_progress: Create progress entries
+        
         WF->>NOT: Generate stage change notifications
         NOT->>workflow_stages: Get responsible_roles
         NOT->>users: Find users with matching roles
@@ -1578,6 +1751,14 @@ sequenceDiagram
         WF->>activity_log: Log stage change activity
     else Criteria Not Met
         WF-->>U: Return validation error
+    end
+    
+    Note over SUB,PROG: Sub-stage Progress Tracking
+    loop For each sub-stage
+        U->>PROG: Update sub-stage status
+        PROG->>project_sub_stage_progress: Update progress
+        PROG->>NOT: Notify assigned users
+        PROG->>METRICS: Track sub-stage timing
     end
 ```
 
@@ -1650,6 +1831,13 @@ flowchart TD
     T --> U[Shipping]
     U --> V[Project Completion]
     
+    subgraph "Sub-Stages Management"
+        SUB1[Sub-Stage Creation]
+        SUB2[Progress Tracking]
+        SUB3[Auto-Advancement]
+        SUB4[Approval Workflows]
+    end
+    
     subgraph "Data Layer"
         W[Organizations]
         X[Users & Contacts]
@@ -1658,12 +1846,15 @@ flowchart TD
         AA[Messages]
         BB[Notifications]
         CC[Activity Log]
+        DD[Workflow Stages]
+        EE[Workflow Sub-Stages]
+        FF[Sub-Stage Progress]
     end
     
     subgraph "Real-time Layer"
-        DD[Supabase Realtime]
-        EE[WebSocket Connections]
-        FF[Push Notifications]
+        GG[Supabase Realtime]
+        HH[WebSocket Connections]
+        II[Push Notifications]
     end
     
     B --> Y
@@ -1671,14 +1862,24 @@ flowchart TD
     D --> CC
     G --> AA
     G --> BB
-    H --> DD
+    H --> GG
+    GG --> HH
+    HH --> II
+    
     DD --> EE
     EE --> FF
+    FF --> SUB2
+    SUB2 --> SUB3
+    SUB3 --> SUB4
     
     style A fill:#e1f5fe
     style N fill:#c8e6c9
     style O fill:#ffcdd2
     style V fill:#4caf50
+    style SUB1 fill:#fff3e0
+    style SUB2 fill:#fff3e0
+    style SUB3 fill:#fff3e0
+    style SUB4 fill:#fff3e0
 ```
 
 This comprehensive set of diagrams provides a complete visual understanding of the Factory Pulse database schema, relationships, and data flows throughout the system.

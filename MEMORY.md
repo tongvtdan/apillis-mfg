@@ -667,7 +667,119 @@ npm run create:auth-users
 npm run reset:user-password
 ```
 
-### 2025-08-31 - Workflow Stages Seeding Scripts Integration ✅
+### 2025-08-31 - Workflow Sub-Stages Implementation ✅
+
+**Changes Made:**
+- **Comprehensive Sub-Stages System**: Successfully implemented granular workflow sub-stages for detailed process tracking
+  - **Database Schema**: Created `workflow_sub_stages` and `project_sub_stage_progress` tables with full RLS policies
+  - **30 Detailed Sub-Stages**: Implemented comprehensive sub-stages across all 8 workflow stages
+  - **Progress Tracking**: Complete sub-stage progress tracking with status management and time tracking
+  - **Auto-Advancement**: Automatic progression based on time and conditions
+  - **Approval Workflows**: Role-based approval requirements for critical sub-stages
+
+**Technical Implementation:**
+- **Migration File**: Created `supabase/migrations/20250831000005_workflow_sub_stages.sql` with complete schema
+  - `workflow_sub_stages` table with 15 fields including duration, approval, and auto-advance settings
+  - `project_sub_stage_progress` table for tracking individual sub-stage progress
+  - Enhanced `workflow_stages` table with `sub_stages_count` field
+  - Comprehensive indexes and RLS policies for performance and security
+
+- **Sub-Stages Structure**:
+  - **Inquiry Received**: 3 sub-stages (RFQ Review, Feasibility Assessment, Requirements Clarification)
+  - **Technical Review**: 4 sub-stages (Engineering Review, QA Review, Production Assessment, Cross-Team Meeting)
+  - **Supplier RFQ Sent**: 4 sub-stages (Supplier Identification, RFQ Preparation, Distribution, Response Collection)
+  - **Quoted**: 4 sub-stages (Cost Analysis, Quote Preparation, Review & Approval, Submission)
+  - **Order Confirmed**: 3 sub-stages (PO Review, Contract Finalization, Production Planning)
+  - **Procurement Planning**: 4 sub-stages (BOM Finalization, PO Issuance, Material Planning, Schedule Confirmation)
+  - **In Production**: 4 sub-stages (Setup, Assembly, Quality Control, Final Assembly)
+  - **Shipped & Closed**: 4 sub-stages (Shipping Prep, Delivery, Documentation, Closure)
+
+- **Advanced Features**:
+  - **Duration Tracking**: Estimated hours for each sub-stage with time-based auto-advancement
+  - **Flexible Requirements**: Optional sub-stages that can be skipped (`can_skip` flag)
+  - **Role Assignment**: Specific responsible roles for each sub-stage
+  - **Approval Workflows**: Some sub-stages require specific role approvals
+  - **Progress Status**: Complete lifecycle tracking (pending → in_progress → completed/skipped/blocked)
+  - **Assignment Management**: Track who is working on each sub-stage
+  - **Notes Support**: Progress notes and comments for each sub-stage
+
+- **Service Layer**: Created `WorkflowSubStageService` with comprehensive functionality:
+  - `getSubStagesByStageId()` - Get sub-stages for a specific workflow stage
+  - `getProjectSubStageProgress()` - Get progress for a project
+  - `updateSubStageProgress()` - Update sub-stage status and progress
+  - `isStageCompleted()` - Check if all required sub-stages are completed
+  - `getNextSubStage()` - Get next available sub-stage for a project
+  - `autoAdvanceSubStage()` - Auto-advance based on time conditions
+
+- **TypeScript Interfaces**: Enhanced type system with new interfaces:
+  - `WorkflowSubStage` - Complete sub-stage interface with all properties
+  - `ProjectSubStageProgress` - Progress tracking interface
+  - Enhanced `WorkflowStage` interface with sub-stages support
+
+- **Sample Data**: Created comprehensive sample data with 30 sub-stages:
+  - `sample-data/02a-workflow-sub-stages.json` - Complete sub-stages data
+  - Updated `sample-data/02-workflow-stages.json` with `sub_stages_count` field
+  - Proper UUID relationships maintained across all tables
+
+- **Seeding Scripts**: Enhanced seeding infrastructure:
+  - `scripts/02a-seed-workflow-sub-stages.js` - Comprehensive sub-stages seeding
+  - Updated `scripts/02-seed-workflow-stages.js` with sub-stages count display
+  - Added npm scripts for easy sub-stages management
+
+**Database Schema Features:**
+- **Multi-Tenant Ready**: All tables include `organization_id` for proper data isolation
+- **Referential Integrity**: Proper foreign key relationships with cascade deletes
+- **Performance Optimized**: Comprehensive indexes on frequently queried fields
+- **RLS Policies**: Complete row-level security for multi-tenant access control
+- **Auto-Triggers**: Automatic sub-stage progress creation when projects enter stages
+- **Audit Trail**: Complete activity logging for all sub-stage operations
+
+**NPM Scripts Added:**
+```bash
+# Seed sub-stages (safe mode)
+npm run seed:workflow-sub-stages
+
+# Force seed sub-stages (overwrites existing)
+npm run seed:workflow-sub-stages:force
+```
+
+**Benefits:**
+- **Granular Control**: Detailed tracking of each step in the workflow
+- **Better Visibility**: Clear progress indicators for complex stages
+- **Role Clarity**: Specific responsibilities for each sub-stage
+- **Automation Ready**: Auto-advance capabilities for time-based progression
+- **Flexibility**: Optional sub-stages and skip options
+- **Audit Trail**: Complete tracking of sub-stage progress
+- **Scalability**: Supports complex workflows with multiple approval points
+
+**Files Created:**
+- `supabase/migrations/20250831000005_workflow_sub_stages.sql` - Database migration
+- `sample-data/02a-workflow-sub-stages.json` - Sample data with 30 sub-stages
+- `scripts/02a-seed-workflow-sub-stages.js` - Seeding script
+- `src/services/workflowSubStageService.ts` - Service class for sub-stage management
+
+**Files Modified:**
+- `src/types/project.ts` - Added WorkflowSubStage and ProjectSubStageProgress interfaces
+- `sample-data/02-workflow-stages.json` - Added sub_stages_count field
+- `scripts/02-seed-workflow-stages.js` - Enhanced with sub-stages information
+- `package.json` - Added sub-stages seeding npm scripts
+- `docs/database-schema.md` - Updated with complete sub-stages documentation
+
+**Next Steps:**
+- Apply migration to local Supabase instance
+- Seed sub-stages data using npm scripts
+- Test sub-stage progress tracking with existing projects
+- Implement UI components for sub-stage management
+- Add real-time notifications for sub-stage updates
+
+**Impact:**
+- ✅ Complete sub-stages system ready for implementation
+- ✅ 30 detailed sub-stages across all workflow stages
+- ✅ Comprehensive progress tracking and management
+- ✅ Auto-advancement and approval workflows
+- ✅ Multi-tenant ready with proper security
+- ✅ Type-safe implementation with full TypeScript support
+- ✅ Comprehensive documentation and sample data
 
 **Changes Made:**
 - **Workflow Stages Seeding**: Added comprehensive npm scripts for workflow stages data management

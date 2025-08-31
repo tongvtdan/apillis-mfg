@@ -14,6 +14,8 @@
         "verify:organizations": "node scripts/verify-organizations.js",
         "seed:workflow-stages": "node scripts/seed-workflow-stages.js",
         "seed:workflow-stages:force": "node scripts/seed-workflow-stages.js --force",
+        "seed:workflow-sub-stages": "node scripts/02a-seed-workflow-sub-stages.js",
+        "seed:workflow-sub-stages:force": "node scripts/02a-seed-workflow-sub-stages.js --force",
         "create:auth-users": "node scripts/create-auth-users.js",
         "update:auth-display-names": "node scripts/update-auth-display-names.js"
     },
