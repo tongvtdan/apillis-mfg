@@ -437,53 +437,7 @@ export default function Projects() {
                   </CardContent>
                 </Card>
 
-                {/* Selected Stage Projects */}
-                {selectedStage && (
-                  <Card
-                    className="border-t-4"
-                    style={{
-                      borderTopColor: workflowStages.find(s => s.id === selectedStage)?.color || '#3B82F6'
-                    }}
-                  >
-                    <CardHeader>
-                      <CardTitle>
-                        {workflowStages.find(s => s.id === selectedStage)?.name} Projects
-                      </CardTitle>
-                      <CardDescription>
-                        {selectedStageProjects.length} projects in this stage
-                      </CardDescription>
-                    </CardHeader>
-                    <CardContent>
-                      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-                        {selectedStageProjects.map((project) => (
-                          <Card key={project.id} className="cursor-pointer hover:shadow-md border-l-4"
-                            style={{
-                              borderLeftColor: workflowStages.find(s => s.id === selectedStage)?.color || '#3B82F6'
-                            }}
-                          >
-                            <CardContent className="p-4">
-                              <h4 className="font-semibold mb-2">{project.title}</h4>
-                              <p className="text-sm text-muted-foreground mb-2">{project.project_id}</p>
-                              <div className="flex justify-between items-center">
-                                <Badge variant="outline">{project.project_type}</Badge>
-                                <Badge
-                                  variant={project.status === 'active' ? 'default' : 'secondary'}
-                                >
-                                  {project.status}
-                                </Badge>
-                              </div>
-                              {project.estimated_value && (
-                                <p className="text-sm mt-2">
-                                  Value: ${project.estimated_value.toLocaleString()}
-                                </p>
-                              )}
-                            </CardContent>
-                          </Card>
-                        ))}
-                      </div>
-                    </CardContent>
-                  </Card>
-                )}
+
 
                 {/* Enhanced Project Workflow Details */}
                 {selectedStage && selectedStageProjects.length > 0 && (
