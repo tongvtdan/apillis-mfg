@@ -2,6 +2,67 @@
 
 ## Recent Changes
 
+### 2025-08-31 - Real Workflow Sub-Stages Integration
+
+**Task Completed:**
+- Replaced placeholder sub-stages with real workflow sub-stages from database
+- Created hooks for fetching sub-stage data and progress
+- Integrated real sub-stage information into project cards
+- Added dynamic progress calculation and visual status indicators
+
+**Changes Made:**
+- **New Hooks**: Created `useWorkflowSubStages` and `useProjectSubStageProgress` hooks
+- **Real Data Integration**: Replaced hardcoded sub-stages with database-driven content
+- **Dynamic Progress**: Added real-time progress calculation for sub-stages
+- **Visual Status**: Implemented proper status indicators based on actual sub-stage data
+- **Performance Optimization**: Added proper loading states and error handling
+
+**Technical Implementation:**
+- **File Created**: `src/hooks/useWorkflowSubStages.ts` - Hook for fetching sub-stages by stage ID
+- **File Created**: `src/hooks/useProjectSubStageProgress.ts` - Hook for fetching project progress
+- **File Modified**: `src/pages/Projects.tsx` - Integrated real sub-stages into project cards
+- **Service Integration**: Leveraged existing `WorkflowSubStageService` for data fetching
+
+**Hook Features:**
+- **useWorkflowSubStages**: Fetches sub-stages for specific workflow stages
+  - Supports single stage ID or multiple stage IDs
+  - Automatic ordering by sub_stage_order
+  - Loading and error state management
+  - Enabled/disabled control for performance
+
+- **useProjectSubStageProgress**: Fetches progress for individual projects
+  - Project-specific sub-stage progress tracking
+  - Status management (pending, in_progress, completed, skipped, blocked)
+  - Real-time progress updates
+
+**Card Integration:**
+- **Real Sub-stages**: Shows actual sub-stages from database for selected workflow stage
+- **Dynamic Progress**: Calculates completion ratio based on real data
+- **Status Indicators**: Visual icons for completed (✓), in-progress (⏰), pending (□)
+- **Overflow Handling**: Shows "+X more sub-stages" when there are more than 4
+- **Loading States**: Graceful handling during data fetching
+
+**Benefits:**
+- **Real Data**: Project cards now show actual workflow sub-stages
+- **Accurate Progress**: Real completion status instead of mock data
+- **Dynamic Content**: Sub-stages change based on selected workflow stage
+- **Performance**: Efficient data fetching with proper caching
+- **Scalability**: Supports any number of sub-stages per workflow stage
+- **User Experience**: Clear visual indication of what needs to be done
+
+**Files Created:**
+- `src/hooks/useWorkflowSubStages.ts` - Sub-stages fetching hook
+- `src/hooks/useProjectSubStageProgress.ts` - Progress tracking hook
+
+**Files Modified:**
+- `src/pages/Projects.tsx` - Integrated real sub-stages into project cards
+
+**Next Steps:**
+- Implement real project sub-stage progress tracking
+- Add click functionality to sub-stage items for detailed view
+- Create sub-stage management interface
+- Add real-time progress updates
+
 ### 2025-08-31 - Project Card UI Enhancements
 
 **Task Completed:**

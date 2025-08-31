@@ -11,6 +11,8 @@ import { ProjectType, PROJECT_TYPE_LABELS, Project, WorkflowStage } from "@/type
 
 import { useSearchParams, useNavigate } from "react-router-dom";
 import { CheckCircle2, Clock, AlertCircle, Calendar } from "lucide-react";
+import { useWorkflowSubStages } from "@/hooks/useWorkflowSubStages";
+import { useProjectSubStageProgress } from "@/hooks/useProjectSubStageProgress";
 import { ProjectErrorBoundary } from "@/components/error/ProjectErrorBoundary";
 import { DatabaseErrorHandler } from "@/components/error/DatabaseErrorHandler";
 import { LoadingFallback, OfflineState, GracefulDegradation } from "@/components/error/FallbackMechanisms";
@@ -49,6 +51,19 @@ export default function Projects() {
     return days;
   };
 
+  // Helper function to get sub-stage progress for a project
+  const getSubStageProgress = (projectId: string) => {
+    // This would be replaced with real progress data from the database
+    // For now, return a mock progress based on sub-stages
+    const totalSubStages = subStages.length;
+    const completedSubStages = Math.floor(Math.random() * (totalSubStages + 1)); // Mock data
+    return {
+      total: totalSubStages,
+      completed: completedSubStages,
+      progress: totalSubStages > 0 ? (completedSubStages / totalSubStages) * 100 : 0
+    };
+  };
+
   // Log projects data for debugging
   React.useEffect(() => {
     console.log('Projects page - projects data:', projects);
@@ -82,6 +97,12 @@ export default function Projects() {
   const [selectedProject, setSelectedProject] = React.useState<Project | null>(null);
   const [workflowStages, setWorkflowStages] = React.useState<WorkflowStage[]>([]);
   const [stagesLoading, setStagesLoading] = React.useState(true);
+
+  // Fetch sub-stages for the selected stage
+  const { subStages, loading: subStagesLoading } = useWorkflowSubStages({
+    stageId: selectedStage,
+    enabled: !!selectedStage
+  });
 
   // Load workflow stages from database
   React.useEffect(() => {
@@ -579,35 +600,50 @@ export default function Projects() {
                                 </div>
                               )}
 
-                              {/* Actions Needed - Sub-stages Checklist */}
-                              <div className="mb-4">
-                                <div className="flex items-center justify-between mb-2">
-                                  <span className="text-sm font-medium text-base-content">Actions Needed:</span>
-                                  <span className="text-xs text-muted-foreground">
-                                    {/* Placeholder for sub-stage progress */}
-                                    3/4 completed
-                                  </span>
+                              {/* Actions Needed - Real Sub-stages Checklist */}
+                              {subStages.length > 0 && (
+                                <div className="mb-4">
+                                  <div className="flex items-center justify-between mb-2">
+                                    <span className="text-sm font-medium text-base-content">Actions Needed:</span>
+                                    <span className="text-xs text-muted-foreground">
+                                      {(() => {
+                                        const progress = getSubStageProgress(project.id);
+                                        return `${progress.completed}/${progress.total} completed`;
+                                      })()}
+                                    </span>
+                                  </div>
+                                  <div className="space-y-1">
+                                    {subStages.slice(0, 4).map((subStage, index) => {
+                                      const progress = getSubStageProgress(project.id);
+                                      const isCompleted = index < progress.completed;
+                                      const isInProgress = index === progress.completed && progress.completed < progress.total;
+
+                                      return (
+                                        <div key={subStage.id} className="flex items-center gap-2">
+                                          {isCompleted ? (
+                                            <CheckCircle2 className="h-3 w-3 text-green-500" />
+                                          ) : isInProgress ? (
+                                            <Clock className="h-3 w-3 text-yellow-500" />
+                                          ) : (
+                                            <div className="h-3 w-3 border border-gray-300 rounded-sm" />
+                                          )}
+                                          <span className="text-xs text-muted-foreground truncate">
+                                            {subStage.name}
+                                          </span>
+                                        </div>
+                                      );
+                                    })}
+                                    {subStages.length > 4 && (
+                                      <div className="flex items-center gap-2">
+                                        <div className="h-3 w-3 border border-gray-300 rounded-sm" />
+                                        <span className="text-xs text-muted-foreground">
+                                          +{subStages.length - 4} more sub-stages
+                                        </span>
+                                      </div>
+                                    )}
+                                  </div>
                                 </div>
-                                <div className="space-y-1">
-                                  {/* Placeholder sub-stages - these would be fetched from workflow sub-stages */}
-                                  <div className="flex items-center gap-2">
-                                    <CheckCircle2 className="h-3 w-3 text-green-500" />
-                                    <span className="text-xs text-muted-foreground">RFQ Documentation Review</span>
-                                  </div>
-                                  <div className="flex items-center gap-2">
-                                    <CheckCircle2 className="h-3 w-3 text-green-500" />
-                                    <span className="text-xs text-muted-foreground">Initial Feasibility Assessment</span>
-                                  </div>
-                                  <div className="flex items-center gap-2">
-                                    <Clock className="h-3 w-3 text-yellow-500" />
-                                    <span className="text-xs text-muted-foreground">Customer Requirements Clarification</span>
-                                  </div>
-                                  <div className="flex items-center gap-2">
-                                    <div className="h-3 w-3 border border-gray-300 rounded-sm" />
-                                    <span className="text-xs text-muted-foreground">Technical Review</span>
-                                  </div>
-                                </div>
-                              </div>
+                              )}
 
                               {/* Project Tags */}
                               {project.tags && project.tags.length > 0 && (
