@@ -550,13 +550,10 @@ export default function Projects() {
                             onClick={() => navigate(`/project/${project.id}`)}
                           >
                             <CardContent className="p-6">
-                              {/* Project Header with Status Icon */}
+                              {/* Project Header with Status Icon and Customer */}
                               <div className="mb-4">
                                 <div className="flex items-start justify-between mb-2">
                                   <div className="flex items-center gap-2">
-                                    <h4 className="font-semibold text-lg text-base-content group-hover:text-primary transition-colors">
-                                      {project.title}
-                                    </h4>
                                     {project.status === 'active' && (
                                       <CheckCircle2 className="h-4 w-4 text-green-500" />
                                     )}
@@ -566,6 +563,16 @@ export default function Projects() {
                                     {project.status === 'delayed' && (
                                       <AlertCircle className="h-4 w-4 text-red-500" />
                                     )}
+                                    <div className="flex flex-col">
+                                      <h4 className="font-semibold text-base text-base-content group-hover:text-primary transition-colors">
+                                        {project.title}
+                                      </h4>
+                                      {project.customer?.company_name && (
+                                        <p className="text-sm text-muted-foreground">
+                                          {project.customer.company_name}
+                                        </p>
+                                      )}
+                                    </div>
                                   </div>
                                   <Badge
                                     variant="outline"
@@ -610,14 +617,22 @@ export default function Projects() {
                                   </span>
                                 </div>
 
-                                {/* Lead Time or Due Date */}
+                                {/* Timeline Information */}
                                 {project.estimated_delivery_date ? (
-                                  <div className="flex items-center justify-between">
-                                    <span className="text-sm text-muted-foreground">Due Date:</span>
-                                    <div className="flex items-center gap-1">
-                                      <Calendar className="h-3 w-3 text-muted-foreground" />
+                                  <div className="space-y-1">
+                                    <div className="flex items-center justify-between">
+                                      <span className="text-sm text-muted-foreground">Due Date:</span>
+                                      <div className="flex items-center gap-1">
+                                        <Calendar className="h-3 w-3 text-muted-foreground" />
+                                        <span className="text-sm">
+                                          {new Date(project.estimated_delivery_date).toLocaleDateString()}
+                                        </span>
+                                      </div>
+                                    </div>
+                                    <div className="flex items-center justify-between">
+                                      <span className="text-sm text-muted-foreground">Lead Time:</span>
                                       <span className="text-sm">
-                                        {new Date(project.estimated_delivery_date).toLocaleDateString()}
+                                        {calculateLeadTime(project.estimated_delivery_date, project.created_at) || 'TBD'} days
                                       </span>
                                     </div>
                                   </div>

@@ -89,6 +89,8 @@ export function useProjects() {
           assigned_to,
           created_by,
           estimated_value,
+          estimated_delivery_date,
+          actual_delivery_date,
           tags,
           metadata,
           stage_entered_at,

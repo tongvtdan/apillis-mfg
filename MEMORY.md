@@ -2,6 +2,57 @@
 
 ## Recent Changes
 
+### 2025-08-31 - Enhanced Project Timeline Information & Fixed Missing Delivery Date Data
+
+**Task Completed:**
+- Added estimated delivery time alongside lead time in project cards
+- Enhanced timeline information display with both due date and lead time
+- **FIXED CRITICAL BUG**: Missing delivery date data due to incomplete database query
+- Improved project timeline visibility for better project management
+
+**Changes Made:**
+- **Dual Timeline Display**: Shows both due date and lead time when delivery date is available
+- **Enhanced Information**: Projects with delivery dates now show both timeline metrics
+- **Better Context**: Users can see both when project is due and how long it takes
+- **Improved Layout**: Organized timeline information in a structured format
+- **Database Query Fix**: Added missing `estimated_delivery_date` and `actual_delivery_date` fields to useProjects hook
+
+**UI/UX Improvements:**
+- ✅ **Due Date**: Shows actual delivery date with calendar icon
+- ✅ **Lead Time**: Shows calculated lead time in days
+- ✅ **Conditional Display**: Shows both when delivery date exists, only lead time when not
+- ✅ **Visual Hierarchy**: Clear separation between due date and lead time
+- ✅ **Consistent Formatting**: Proper spacing and alignment for timeline information
+
+**Critical Bug Fix:**
+- **Root Cause**: `useProjects` hook SELECT query was missing `estimated_delivery_date` and `actual_delivery_date` fields
+- **Impact**: Project cards showed "Not set" despite database having delivery date values
+- **Solution**: Added missing fields to database query to ensure delivery date data is fetched
+- **Result**: Project cards now correctly display delivery dates from database
+
+**Timeline Information Display:**
+- **With Delivery Date**: Shows both "Due Date: [date]" and "Lead Time: [X] days"
+- **Without Delivery Date**: Shows only "Lead Time: TBD"
+- **Visual Icons**: Calendar icon for due date for better visual recognition
+- **Consistent Units**: Lead time always shows in days for clarity
+
+**Benefits:**
+- **Better Planning**: Users can see both delivery target and project duration
+- **Improved Decision Making**: Clear timeline information for project prioritization
+- **Enhanced Visibility**: Both due date and lead time visible at a glance
+- **Better Project Management**: Comprehensive timeline information for planning
+- **User Experience**: More complete project information without cluttering cards
+- **Data Integrity**: Now correctly displays actual delivery dates from database
+
+**Files Modified:**
+- `src/pages/Projects.tsx` - Enhanced timeline information in project cards
+- `src/hooks/useProjects.ts` - Added missing delivery date fields to database query
+
+**Next Steps:**
+- Consider adding timeline alerts for overdue projects
+- Add timeline comparison with actual vs estimated delivery
+- Implement timeline-based project sorting options
+
 ### 2025-08-31 - Real Sub-Stage Progress Tracking Implementation
 
 **Task Completed:**
