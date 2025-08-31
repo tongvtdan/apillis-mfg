@@ -9,7 +9,7 @@ import { Badge } from "@/components/ui/badge";
 import { useProjects } from "@/hooks/useProjects";
 import { ProjectType, PROJECT_TYPE_LABELS, Project, WorkflowStage } from "@/types/project";
 
-import { useSearchParams } from "react-router-dom";
+import { useSearchParams, useNavigate } from "react-router-dom";
 import { ProjectErrorBoundary } from "@/components/error/ProjectErrorBoundary";
 import { DatabaseErrorHandler } from "@/components/error/DatabaseErrorHandler";
 import { LoadingFallback, OfflineState, GracefulDegradation } from "@/components/error/FallbackMechanisms";
@@ -26,6 +26,7 @@ import { workflowStageService } from "@/services/workflowStageService";
 export default function Projects() {
   const { projects, loading, error, updateProjectStage, updateProjectStatusOptimistic, refetch, getBottleneckAnalysis } = useProjects();
   const [searchParams, setSearchParams] = useSearchParams();
+  const navigate = useNavigate();
 
   // Log projects data for debugging
   React.useEffect(() => {
@@ -439,7 +440,7 @@ export default function Projects() {
 
 
 
-                {/* Enhanced Project Workflow Details */}
+                {/* Project Cards Grid */}
                 {selectedStage && selectedStageProjects.length > 0 && (
                   <Card
                     className="border-t-4"
@@ -449,90 +450,135 @@ export default function Projects() {
                   >
                     <CardHeader>
                       <CardTitle>
-                        {workflowStages.find(s => s.id === selectedStage)?.name} - Detailed Project Information
+                        {workflowStages.find(s => s.id === selectedStage)?.name} Projects
                       </CardTitle>
                       <CardDescription>
-                        Comprehensive workflow and project details for each project in this stage
+                        {selectedStageProjects.length} projects in this stage - Click any card to view details
                       </CardDescription>
                     </CardHeader>
                     <CardContent>
-                      <div className="space-y-6">
+                      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
                         {selectedStageProjects.map((project) => (
-                          <div
+                          <Card
                             key={project.id}
-                            className="border rounded-lg p-4 bg-base-50 hover:bg-base-100 transition-colors border-l-4"
+                            className="cursor-pointer hover:shadow-lg transition-all duration-200 border-l-4 hover:scale-[1.02] group"
                             style={{
                               borderLeftColor: workflowStages.find(s => s.id === selectedStage)?.color || '#3B82F6'
                             }}
+                            onClick={() => navigate(`/project/${project.id}`)}
                           >
-                            <div className="mb-4">
-                              <h4 className="font-semibold text-lg mb-2 text-base-content">{project.title}</h4>
-                              <p className="text-sm text-muted-foreground mb-3">{project.project_id}</p>
-                            </div>
-
-                            <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
-                              <div className="space-y-2">
-                                <div className="text-sm">
-                                  <span className="font-medium text-base-content">Current Stage:</span>
+                            <CardContent className="p-6">
+                              {/* Project Header */}
+                              <div className="mb-4">
+                                <div className="flex items-start justify-between mb-2">
+                                  <h4 className="font-semibold text-lg text-base-content group-hover:text-primary transition-colors">
+                                    {project.title}
+                                  </h4>
                                   <Badge
                                     variant="outline"
-                                    className="ml-2"
+                                    className="text-xs"
                                     style={{
                                       borderColor: workflowStages.find(s => s.id === selectedStage)?.color || '#3B82F6'
                                     }}
                                   >
-                                    {project.current_stage?.name || 'Unknown'}
+                                    {project.project_id}
                                   </Badge>
                                 </div>
-                                <div className="text-sm">
-                                  <span className="font-medium text-base-content">Status:</span>
+
+                                {/* Project Type Badge */}
+                                <div className="mb-3">
+                                  <Badge variant="secondary" className="text-xs">
+                                    {project.project_type}
+                                  </Badge>
+                                </div>
+                              </div>
+
+                              {/* Project Status and Priority */}
+                              <div className="space-y-3 mb-4">
+                                <div className="flex items-center justify-between">
+                                  <span className="text-sm font-medium text-base-content">Status:</span>
                                   <Badge
                                     variant={project.status === 'active' ? 'default' : 'secondary'}
-                                    className="ml-2"
+                                    className="text-xs"
                                   >
                                     {project.status}
                                   </Badge>
                                 </div>
-                                <div className="text-sm">
-                                  <span className="font-medium text-base-content">Priority:</span>
-                                  <Badge variant="outline" className="ml-2">{project.priority_level || 'Not set'}</Badge>
+
+                                <div className="flex items-center justify-between">
+                                  <span className="text-sm font-medium text-base-content">Priority:</span>
+                                  <Badge
+                                    variant="outline"
+                                    className="text-xs"
+                                  >
+                                    {project.priority_level || 'Not set'}
+                                  </Badge>
                                 </div>
                               </div>
 
-                              <div className="space-y-2">
+                              {/* Project Metrics */}
+                              <div className="space-y-2 mb-4">
                                 {project.estimated_value && (
-                                  <div className="text-sm">
-                                    <span className="font-medium text-base-content">Estimated Value:</span>
-                                    <span className="ml-2 text-success font-semibold">${project.estimated_value.toLocaleString()}</span>
+                                  <div className="flex items-center justify-between">
+                                    <span className="text-sm text-muted-foreground">Value:</span>
+                                    <span className="text-sm font-semibold text-success">
+                                      ${project.estimated_value.toLocaleString()}
+                                    </span>
                                   </div>
                                 )}
-                                <div className="text-sm">
-                                  <span className="font-medium text-base-content">Days in Stage:</span>
-                                  <span className={`ml-2 font-semibold ${(project.days_in_stage || 0) > 7 ? 'text-warning' : 'text-success'}`}>
+
+                                <div className="flex items-center justify-between">
+                                  <span className="text-sm text-muted-foreground">Days in Stage:</span>
+                                  <span className={`text-sm font-semibold ${(project.days_in_stage || 0) > 7 ? 'text-warning' : 'text-success'}`}>
                                     {project.days_in_stage || 0}
                                   </span>
                                 </div>
-                                <div className="text-sm">
-                                  <span className="font-medium text-base-content">Created:</span>
-                                  <span className="ml-2">{new Date(project.created_at).toLocaleDateString()}</span>
+
+                                <div className="flex items-center justify-between">
+                                  <span className="text-sm text-muted-foreground">Created:</span>
+                                  <span className="text-sm">
+                                    {new Date(project.created_at).toLocaleDateString()}
+                                  </span>
                                 </div>
                               </div>
-                            </div>
 
-                            {project.description && (
-                              <div className="mb-3">
-                                <span className="font-medium text-base-content text-sm">Description:</span>
-                                <p className="text-sm text-muted-foreground mt-1">{project.description}</p>
+                              {/* Project Description */}
+                              {project.description && (
+                                <div className="mb-4">
+                                  <p className="text-sm text-muted-foreground line-clamp-2">
+                                    {project.description}
+                                  </p>
+                                </div>
+                              )}
+
+                              {/* Project Tags */}
+                              {project.tags && project.tags.length > 0 && (
+                                <div className="flex flex-wrap gap-1 mb-4">
+                                  {project.tags.slice(0, 3).map((tag, index) => (
+                                    <Badge key={index} variant="outline" className="text-xs">
+                                      {tag}
+                                    </Badge>
+                                  ))}
+                                  {project.tags.length > 3 && (
+                                    <Badge variant="outline" className="text-xs">
+                                      +{project.tags.length - 3}
+                                    </Badge>
+                                  )}
+                                </div>
+                              )}
+
+                              {/* Action Button */}
+                              <div className="pt-4 border-t border-border">
+                                <Button
+                                  variant="default"
+                                  size="sm"
+                                  className="w-full group-hover:bg-primary/90 transition-colors"
+                                >
+                                  <span className="text-sm">View Details</span>
+                                </Button>
                               </div>
-                            )}
-
-                            <div className="flex flex-wrap gap-2">
-                              <Badge variant="outline">{project.project_type}</Badge>
-                              {project.tags && project.tags.map((tag, index) => (
-                                <Badge key={index} variant="secondary" className="text-xs">{tag}</Badge>
-                              ))}
-                            </div>
-                          </div>
+                            </CardContent>
+                          </Card>
                         ))}
                       </div>
                     </CardContent>
