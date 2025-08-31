@@ -2,6 +2,71 @@
 
 ## Recent Changes
 
+### 2025-01-27 - Workflow Stages and Sub-Stages Recovery
+
+**Problem Identified:**
+- Workflow stages and sub-stages were accidentally deleted from the database
+- This affected the project workflow functionality in the Factory Pulse system
+- No workflow stages available for project progression tracking
+
+**Root Cause Analysis:**
+- Previous database operations may have cleared workflow-related tables
+- Workflow stages and sub-stages are critical for project management workflow
+- Sample data files contained complete workflow structure but weren't seeded
+
+**Solution Implemented:**
+
+**1. Workflow Stages Recovery (`scripts/02-seed-workflow-stages.js`):**
+- **Force Seeding**: Ran `node scripts/02-seed-workflow-stages.js --force` to restore all workflow stages
+- **Complete Restoration**: Successfully seeded 8 workflow stages for Factory Pulse Vietnam
+- **Data Integrity**: All stages properly linked to organization with correct relationships
+
+**2. Workflow Sub-Stages Recovery (`scripts/02a-seed-workflow-sub-stages.js`):**
+- **Force Seeding**: Ran `node scripts/02a-seed-workflow-sub-stages.js --force` to restore all sub-stages
+- **Complete Restoration**: Successfully seeded 30 workflow sub-stages across all 8 stages
+- **Hierarchical Structure**: All sub-stages properly linked to their parent workflow stages
+
+**Workflow Stages Restored:**
+1. **Inquiry Received** (3 sub-stages) - #3B82F6
+2. **Technical Review** (4 sub-stages) - #F59E0B
+3. **Supplier RFQ Sent** (4 sub-stages) - #F97316
+4. **Quoted** (4 sub-stages) - #10B981
+5. **Order Confirmed** (3 sub-stages) - #6366F1
+6. **Procurement Planning** (4 sub-stages) - #8B5CF6
+7. **In Production** (4 sub-stages) - #84CC16
+8. **Shipped & Closed** (4 sub-stages) - #6B7280
+
+**Key Sub-Stages Examples:**
+- **Inquiry Received**: RFQ Documentation Review, Initial Feasibility Assessment, Customer Requirements Clarification
+- **Technical Review**: Engineering Technical Review, QA Requirements Review, Production Capability Assessment
+- **Supplier RFQ Sent**: Supplier Identification, RFQ Preparation, RFQ Distribution, Supplier Response Collection
+- **Quoted**: Cost Analysis, Quote Preparation, Quote Review and Approval, Quote Submission
+- **Order Confirmed**: Customer PO Review, Contract Finalization, Production Planning Initiation
+- **Procurement Planning**: BOM Finalization, Purchase Order Issuance, Material Planning, Production Schedule Confirmation
+- **In Production**: Manufacturing Setup, Assembly Process, Quality Control Testing, Final Assembly and Packaging
+- **Shipped & Closed**: Shipping Preparation, Product Delivery, Project Documentation, Project Closure
+
+**Results Achieved:**
+- ✅ **8 Workflow Stages**: Complete workflow pipeline restored
+- ✅ **30 Sub-Stages**: Detailed workflow breakdown available
+- ✅ **Organization Linkage**: All stages properly linked to Factory Pulse Vietnam
+- ✅ **Color Coding**: Each stage has distinct color for UI visualization
+- ✅ **Order Structure**: Proper stage_order and sub_stage_order maintained
+- ✅ **Responsible Roles**: Each stage has defined responsible roles (sales, engineering, procurement, etc.)
+
+**Script Execution Order:**
+1. `node scripts/02-seed-workflow-stages.js --force` - Restore workflow stages
+2. `node scripts/02a-seed-workflow-sub-stages.js --force` - Restore workflow sub-stages
+
+**Benefits:**
+- ✅ **Complete Workflow**: Full project lifecycle workflow restored
+- ✅ **Project Management**: Projects can now progress through defined stages
+- ✅ **User Experience**: Clear workflow visualization and progression tracking
+- ✅ **Role Assignment**: Proper role-based responsibilities defined
+- ✅ **Data Consistency**: All workflow data properly seeded and linked
+
+### 2025-01-27 - Database Seeding System Completion
+
 ### 2025-01-27 - Database Seeding System Completion
 
 **Problem Identified:**
