@@ -667,6 +667,81 @@ npm run create:auth-users
 npm run reset:user-password
 ```
 
+### 2025-08-31 - Workflow Stages and Sub-Stages Seeding ✅
+
+**Changes Made:**
+- **Complete Workflow Seeding**: Successfully seeded both workflow stages and sub-stages into the local Supabase database
+  - **8 Workflow Stages**: Complete manufacturing workflow from inquiry to delivery with proper colors, slugs, and ordering
+  - **30 Sub-Stages**: Granular sub-stages across all workflow stages for detailed process tracking
+  - **Database Integration**: All stages and sub-stages properly linked to Factory Pulse Vietnam organization
+  - **Package Scripts Fixed**: Corrected npm script paths to point to actual script files
+
+**Technical Details:**
+- **Workflow Stages Seeded**:
+  1. Inquiry Received (inquiry_received) - Blue (#3B82F6) - 3 sub-stages
+  2. Technical Review (technical_review) - Amber (#F59E0B) - 4 sub-stages
+  3. Supplier RFQ Sent (supplier_rfq_sent) - Orange (#F97316) - 4 sub-stages
+  4. Quoted (quoted) - Emerald (#10B981) - 4 sub-stages
+  5. Order Confirmed (order_confirmed) - Indigo (#6366F1) - 3 sub-stages
+  6. Procurement Planning (procurement_planning) - Violet (#8B5CF6) - 4 sub-stages
+  7. In Production (in_production) - Lime (#84CC16) - 4 sub-stages
+  8. Shipped & Closed (shipped_closed) - Gray (#6B7280) - 4 sub-stages
+
+- **Sub-Stages Structure**:
+  - **Inquiry Received**: RFQ Review, Feasibility Assessment, Requirements Clarification
+  - **Technical Review**: Engineering Review, QA Review, Production Assessment, Cross-Team Meeting
+  - **Supplier RFQ Sent**: Supplier Identification, RFQ Preparation, Distribution, Response Collection
+  - **Quoted**: Cost Analysis, Quote Preparation, Review & Approval, Submission
+  - **Order Confirmed**: PO Review, Contract Finalization, Production Planning
+  - **Procurement Planning**: BOM Finalization, PO Issuance, Material Planning, Schedule Confirmation
+  - **In Production**: Setup, Assembly, Quality Control, Final Assembly
+  - **Shipped & Closed**: Shipping Prep, Delivery, Documentation, Closure
+
+- **Package Scripts Fixed**:
+  - Updated `package.json` to point to correct script files (`02-seed-workflow-stages.js` and `02a-seed-workflow-sub-stages.js`)
+  - Fixed npm script paths that were pointing to non-existent files
+  - Maintained both safe and force seeding options for development flexibility
+
+**Database Status**:
+- ✅ **8 Workflow Stages** successfully seeded with complete metadata
+- ✅ **30 Sub-Stages** successfully seeded with proper workflow stage relationships
+- ✅ **Organization Integration** - All stages linked to Factory Pulse Vietnam
+- ✅ **Color Coding** - Each stage has distinct visual color for UI display
+- ✅ **Slug Generation** - URL-friendly identifiers for all stages and sub-stages
+- ✅ **Ordering System** - Proper stage_order and sub_stage_order for workflow progression
+
+**Usage Commands**:
+```bash
+# Seed workflow stages (safe mode)
+npm run seed:workflow-stages
+
+# Force seed workflow stages (overwrites existing)
+npm run seed:workflow-stages:force
+
+# Seed workflow sub-stages (safe mode)
+npm run seed:workflow-sub-stages
+
+# Force seed workflow sub-stages (overwrites existing)
+npm run seed:workflow-sub-stages:force
+```
+
+**Next Steps**:
+- Test workflow stage progression with existing projects
+- Implement UI components for sub-stage management
+- Add real-time notifications for sub-stage updates
+- Create workflow visualization components using the seeded data
+
+**Files Modified**:
+- `package.json` - Fixed npm script paths for workflow seeding
+- Database tables populated with complete workflow configuration
+
+**Impact**:
+- ✅ Complete workflow system ready for application development
+- ✅ Granular process tracking with 30 detailed sub-stages
+- ✅ Multi-tenant ready with proper organization isolation
+- ✅ Visual workflow system with color coding and proper ordering
+- ✅ Database-driven workflow configuration for future customization
+
 ### 2025-08-31 - Workflow Sub-Stages Implementation ✅
 
 **Changes Made:**
