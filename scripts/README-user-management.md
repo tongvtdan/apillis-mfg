@@ -33,9 +33,31 @@ node scripts/export-updated-users.js
 
 **Output:** Creates `sample-data/03-users-updated.json` with actual database IDs.
 
+### `create-contact-auth-users.js`
+Creates auth.users entries for contacts (customers and suppliers) from the contacts sample data. This script:
+1. Creates users in Supabase auth.users table only
+2. Uses the same IDs as in the contacts table
+3. Sets appropriate roles based on contact type (customer/supplier)
+4. Uses the default password: `FactoryPulse@2025`
+
+**Usage:**
+```bash
+node scripts/create-contact-auth-users.js
+```
+
+**Features:**
+- Preserves contact IDs for consistency
+- Sets user metadata with contact information
+- Assigns roles based on contact type
+- Comprehensive logging and error handling
+
 ## User Credentials
 
-All users are created with the temporary password: `TempPassword123!`
+### Internal Users
+All internal users are created with the temporary password: `TempPassword123!`
+
+### Contact Users (Customers/Suppliers)
+All contact users are created with the password: `FactoryPulse@2025`
 
 Users should reset their passwords on first login.
 
