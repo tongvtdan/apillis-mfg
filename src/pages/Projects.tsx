@@ -10,6 +10,7 @@ import { useProjects } from "@/hooks/useProjects";
 import { ProjectType, PROJECT_TYPE_LABELS, Project, WorkflowStage } from "@/types/project";
 
 import { useSearchParams, useNavigate } from "react-router-dom";
+import { CheckCircle2, Clock, AlertCircle, Calendar } from "lucide-react";
 import { ProjectErrorBoundary } from "@/components/error/ProjectErrorBoundary";
 import { DatabaseErrorHandler } from "@/components/error/DatabaseErrorHandler";
 import { LoadingFallback, OfflineState, GracefulDegradation } from "@/components/error/FallbackMechanisms";
@@ -27,6 +28,26 @@ export default function Projects() {
   const { projects, loading, error, updateProjectStage, updateProjectStatusOptimistic, refetch, getBottleneckAnalysis } = useProjects();
   const [searchParams, setSearchParams] = useSearchParams();
   const navigate = useNavigate();
+
+  // Priority color function
+  const getPriorityColor = (priority: string) => {
+    switch (priority) {
+      case 'urgent': return 'bg-red-100 text-red-800 border-red-200';
+      case 'high': return 'bg-orange-100 text-orange-800 border-orange-200';
+      case 'medium': return 'bg-yellow-100 text-yellow-800 border-yellow-200';
+      case 'low': return 'bg-green-100 text-green-800 border-green-200';
+      default: return 'bg-gray-100 text-gray-800 border-gray-200';
+    }
+  };
+
+  // Calculate lead time function
+  const calculateLeadTime = (dueDate: string | null, createdAt: string) => {
+    if (!dueDate) return null;
+    const days = Math.ceil(
+      (new Date(dueDate).getTime() - new Date(createdAt).getTime()) / (1000 * 60 * 60 * 24)
+    );
+    return days;
+  };
 
   // Log projects data for debugging
   React.useEffect(() => {
@@ -468,12 +489,23 @@ export default function Projects() {
                             onClick={() => navigate(`/project/${project.id}`)}
                           >
                             <CardContent className="p-6">
-                              {/* Project Header */}
+                              {/* Project Header with Status Icon */}
                               <div className="mb-4">
                                 <div className="flex items-start justify-between mb-2">
-                                  <h4 className="font-semibold text-lg text-base-content group-hover:text-primary transition-colors">
-                                    {project.title}
-                                  </h4>
+                                  <div className="flex items-center gap-2">
+                                    <h4 className="font-semibold text-lg text-base-content group-hover:text-primary transition-colors">
+                                      {project.title}
+                                    </h4>
+                                    {project.status === 'active' && (
+                                      <CheckCircle2 className="h-4 w-4 text-green-500" />
+                                    )}
+                                    {project.status === 'on_hold' && (
+                                      <Clock className="h-4 w-4 text-yellow-500" />
+                                    )}
+                                    {project.status === 'delayed' && (
+                                      <AlertCircle className="h-4 w-4 text-red-500" />
+                                    )}
+                                  </div>
                                   <Badge
                                     variant="outline"
                                     className="text-xs"
@@ -484,32 +516,15 @@ export default function Projects() {
                                     {project.project_id}
                                   </Badge>
                                 </div>
-
-                                {/* Project Type Badge */}
-                                <div className="mb-3">
-                                  <Badge variant="secondary" className="text-xs">
-                                    {project.project_type}
-                                  </Badge>
-                                </div>
                               </div>
 
-                              {/* Project Status and Priority */}
-                              <div className="space-y-3 mb-4">
-                                <div className="flex items-center justify-between">
-                                  <span className="text-sm font-medium text-base-content">Status:</span>
-                                  <Badge
-                                    variant={project.status === 'active' ? 'default' : 'secondary'}
-                                    className="text-xs"
-                                  >
-                                    {project.status}
-                                  </Badge>
-                                </div>
-
+                              {/* Priority with Color Coding */}
+                              <div className="mb-4">
                                 <div className="flex items-center justify-between">
                                   <span className="text-sm font-medium text-base-content">Priority:</span>
                                   <Badge
                                     variant="outline"
-                                    className="text-xs"
+                                    className={`text-xs ${getPriorityColor(project.priority_level || 'medium')}`}
                                   >
                                     {project.priority_level || 'Not set'}
                                   </Badge>
@@ -534,12 +549,25 @@ export default function Projects() {
                                   </span>
                                 </div>
 
-                                <div className="flex items-center justify-between">
-                                  <span className="text-sm text-muted-foreground">Created:</span>
-                                  <span className="text-sm">
-                                    {new Date(project.created_at).toLocaleDateString()}
-                                  </span>
-                                </div>
+                                {/* Lead Time or Due Date */}
+                                {project.estimated_delivery_date ? (
+                                  <div className="flex items-center justify-between">
+                                    <span className="text-sm text-muted-foreground">Due Date:</span>
+                                    <div className="flex items-center gap-1">
+                                      <Calendar className="h-3 w-3 text-muted-foreground" />
+                                      <span className="text-sm">
+                                        {new Date(project.estimated_delivery_date).toLocaleDateString()}
+                                      </span>
+                                    </div>
+                                  </div>
+                                ) : (
+                                  <div className="flex items-center justify-between">
+                                    <span className="text-sm text-muted-foreground">Lead Time:</span>
+                                    <span className="text-sm">
+                                      {calculateLeadTime(project.estimated_delivery_date, project.created_at) || 'TBD'}
+                                    </span>
+                                  </div>
+                                )}
                               </div>
 
                               {/* Project Description */}
@@ -550,6 +578,36 @@ export default function Projects() {
                                   </p>
                                 </div>
                               )}
+
+                              {/* Actions Needed - Sub-stages Checklist */}
+                              <div className="mb-4">
+                                <div className="flex items-center justify-between mb-2">
+                                  <span className="text-sm font-medium text-base-content">Actions Needed:</span>
+                                  <span className="text-xs text-muted-foreground">
+                                    {/* Placeholder for sub-stage progress */}
+                                    3/4 completed
+                                  </span>
+                                </div>
+                                <div className="space-y-1">
+                                  {/* Placeholder sub-stages - these would be fetched from workflow sub-stages */}
+                                  <div className="flex items-center gap-2">
+                                    <CheckCircle2 className="h-3 w-3 text-green-500" />
+                                    <span className="text-xs text-muted-foreground">RFQ Documentation Review</span>
+                                  </div>
+                                  <div className="flex items-center gap-2">
+                                    <CheckCircle2 className="h-3 w-3 text-green-500" />
+                                    <span className="text-xs text-muted-foreground">Initial Feasibility Assessment</span>
+                                  </div>
+                                  <div className="flex items-center gap-2">
+                                    <Clock className="h-3 w-3 text-yellow-500" />
+                                    <span className="text-xs text-muted-foreground">Customer Requirements Clarification</span>
+                                  </div>
+                                  <div className="flex items-center gap-2">
+                                    <div className="h-3 w-3 border border-gray-300 rounded-sm" />
+                                    <span className="text-xs text-muted-foreground">Technical Review</span>
+                                  </div>
+                                </div>
+                              </div>
 
                               {/* Project Tags */}
                               {project.tags && project.tags.length > 0 && (
