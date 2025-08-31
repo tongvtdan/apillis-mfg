@@ -421,11 +421,6 @@ export default function Projects() {
                                     <div className="text-sm font-medium leading-tight">
                                       {stage.name}
                                     </div>
-                                    {stage.description && (
-                                      <div className="text-xs text-muted-foreground leading-tight">
-                                        {stage.description}
-                                      </div>
-                                    )}
                                   </div>
                                 </CardContent>
                               </Card>
@@ -494,9 +489,12 @@ export default function Projects() {
                       <CardTitle>
                         {workflowStages.find(s => s.id === selectedStage)?.name} Projects
                       </CardTitle>
-                      <CardDescription>
-                        {selectedStageProjects.length} projects in this stage - Click any card to view details
-                      </CardDescription>
+
+                      {workflowStages.find(s => s.id === selectedStage)?.description && (
+                        <div className="mt-2 text-md text-muted-foreground">
+                          {workflowStages.find(s => s.id === selectedStage)?.description}
+                        </div>
+                      )}
                     </CardHeader>
                     <CardContent>
                       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">

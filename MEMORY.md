@@ -2,6 +2,47 @@
 
 ## Recent Changes
 
+### 2025-08-31 - Workflow Visualization UI Improvements
+
+**Task Completed:**
+- Simplified workflow visualization to show only stage titles
+- Moved stage descriptions to project cards section as subtitles
+- Improved visual hierarchy and readability of workflow stages
+
+**Changes Made:**
+- **Workflow Cards**: Removed stage descriptions from visualization cards
+- **Cleaner Design**: Workflow visualization now shows only stage names and project counts
+- **Better Information Hierarchy**: Stage descriptions moved to relevant project section
+- **Improved Readability**: Reduced visual clutter in workflow flow visualization
+
+**UI/UX Improvements:**
+- ✅ **Simplified Workflow Cards**: Only stage name and project count displayed
+- ✅ **Better Information Placement**: Stage descriptions shown where relevant (with projects)
+- ✅ **Cleaner Visual Flow**: Less text clutter in workflow visualization
+- ✅ **Improved Hierarchy**: Stage descriptions as subtitles under project sections
+- ✅ **Better Context**: Descriptions appear when viewing projects in that stage
+
+**Technical Implementation:**
+- **File Modified**: `src/pages/Projects.tsx`
+- **Workflow Visualization**: Removed description rendering from stage cards
+- **Project Section**: Added stage description as subtitle under project cards
+- **Conditional Display**: Stage descriptions only show when stage has projects
+
+**Benefits:**
+- **Cleaner Workflow View**: Less visual clutter in the main workflow visualization
+- **Better Information Context**: Stage descriptions appear when viewing relevant projects
+- **Improved Scanning**: Easier to quickly scan workflow stages
+- **Logical Information Flow**: Descriptions appear where they're most relevant
+- **Reduced Cognitive Load**: Simplified workflow cards with essential information only
+
+**Files Modified:**
+- `src/pages/Projects.tsx` - Updated workflow visualization and project section layout
+
+**Next Steps:**
+- Consider adding tooltips for stage descriptions on hover
+- Evaluate if stage descriptions need to be more prominent
+- Test user feedback on the new information hierarchy
+
 ### 2025-08-31 - Real Workflow Sub-Stages Integration
 
 **Task Completed:**
