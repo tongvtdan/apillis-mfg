@@ -52,6 +52,7 @@ async function createAuthUsers() {
                     user_metadata: {
                         name: user.name,
                         display_name: user.name,
+                        full_name: user.name,
                         employee_id: user.employee_id,
                         department: user.department,
                         role: user.role,
