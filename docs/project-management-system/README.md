@@ -15,6 +15,7 @@ This directory contains comprehensive documentation for the Factory Pulse projec
 
 ### Key Components
 - **Projects Page Table View** - Simplified HTML table for project listing with filtering
+- **EnhancedProjectOverviewCard** - Comprehensive project header with real-time monitoring and analytics
 - **ProjectDetail** - Detailed project view with workflow management
 - **ProjectIntakeForm** - New project creation form
 - **WorkflowStepper** - Visual workflow progression component

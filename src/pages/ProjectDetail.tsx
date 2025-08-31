@@ -46,6 +46,10 @@ import { ReviewList } from "@/components/project/ReviewList";
 import { ReviewAssignmentModal } from "@/components/project/ReviewAssignmentModal";
 import { useUserDisplayName, useUsers } from "@/hooks/useUsers";
 import { useAuth } from "@/contexts/AuthContext";
+import { ProjectDetailHeader } from "@/components/project/ProjectDetailHeader";
+import { ProjectSummaryCard } from "@/components/project/ProjectSummaryCard";
+import { VisualTimelineProgression } from "@/components/project/VisualTimelineProgression";
+import { useWorkflowStages } from "@/hooks/useWorkflowStages";
 
 // Separate component for auto-advance functionality to avoid Rules of Hooks violation
 const ProjectAutoAdvance = memo(({ project }: { project: Project }) => {
@@ -89,6 +93,9 @@ export default function ProjectDetail() {
   const { data: supplierRfqs = [], isLoading: supplierRfqsLoading } = useSupplierRfqs(id || '');
 
   const { reviews, loading: reviewsLoading, getReviewStatuses, getOverallReviewStatus, getReviewSummary, submitReview } = useProjectReviews(id || '');
+
+  // Get workflow stages
+  const { data: workflowStages = [], isLoading: stagesLoading } = useWorkflowStages();
 
   // Get user display names for project assignee and reviewers
   const assigneeDisplayName = useUserDisplayName(project?.assigned_to);
@@ -485,71 +492,14 @@ export default function ProjectDetail() {
       <ProjectAutoAdvance project={project} />
       {/* Rest of the component content */}
       <div className="min-h-screen bg-background">
-        {/* Header - Match wireframe design */}
-        <div className="border-b bg-card">
-          <div className="p-6">
-            <div className="flex items-center space-x-4 mb-2">
-              <Button variant="ghost" onClick={() => navigate('/projects')}>
-                <ArrowLeft className="w-4 h-4 mr-2" />
-                Back to Projects
-              </Button>
-              <Separator orientation="vertical" className="h-6" />
-            </div>
-
-            {/* Main header info */}
-            <div className="space-y-2">
-              <div className="flex items-center space-x-4 text-lg font-semibold">
-                <span>Project: {project.project_id} – {project.title}</span>
-                <span>|</span>
-                <span className="flex items-center">
-                  Stage: <Badge className={cn("ml-2", getStatusColor(project.status))}>
-                    {getStatusLabel(project.status)}
-                  </Badge>
-                </span>
-                <span>|</span>
-                <span className="flex items-center">
-                  Priority: <Badge className={cn("ml-2", getPriorityColor(project.priority_level))}>
-                    {project.priority_level.charAt(0).toUpperCase() + project.priority_level.slice(1)}
-                  </Badge>
-                </span>
-              </div>
-
-              {/* Secondary info */}
-              <div className="flex items-center space-x-6 text-sm text-muted-foreground">
-                <span className="flex items-center">
-                  <Building2 className="w-4 h-4 mr-1" />
-                  Customer: {getCustomerDisplayName()}
-                </span>
-                <span>|</span>
-                <span className="flex items-center">
-                  <Calendar className="w-4 h-4 mr-1" />
-                  Created: {format(new Date(project.created_at), 'MMM dd, yyyy')}
-                </span>
-                <span>|</span>
-                <span className="flex items-center">
-                  <Users className="w-4 h-4 mr-1" />
-                  Owner: {assigneeDisplayName || 'Unassigned'}
-                </span>
-                {dataSource === 'supabase' && (
-                  <Badge variant="outline" className="bg-green-50 text-green-700 border-green-200">
-                    🔗 Live Data
-                  </Badge>
-                )}
-              </div>
-            </div>
-          </div>
-        </div>
-
-        {/* Workflow Stepper */}
-        {project.status && (
-          <>
-
-            <WorkflowStepper
-              key={`${project.id}-${project.status}-${project.updated_at}`}
-              project={project}
-            />
-          </>
-        )}
+        {/* Enhanced Header Section */}
+        <ProjectDetailHeader
+          project={project}
+          workflowStages={workflowStages}
+          onBack={() => navigate('/projects')}
+          onEdit={() => console.log('Edit project')}
+          onShare={() => console.log('Share project')}
+        />
 
 
 
@@ -658,41 +608,13 @@ export default function ProjectDetail() {
           <div className="flex-1 p-6">
             {activeTab === "overview" && (
               <div className="space-y-6">
-                <Card>
-                  <CardHeader>
-                    <CardTitle className="text-sm font-semibold text-muted-foreground uppercase tracking-wide">
-                      DETAILS
-                    </CardTitle>
-                  </CardHeader>
-                  <CardContent className="space-y-6">
-                    <div className="grid grid-cols-1 gap-4">
-                      <div className="flex">
-                        <div className="w-24 text-sm font-medium text-muted-foreground">Title:</div>
-                        <div className="flex-1 text-sm">{project.title || 'N/A'}</div>
-                      </div>
-                      <div className="flex">
-                        <div className="w-24 text-sm font-medium text-muted-foreground">Description:</div>
-                        <div className="flex-1 text-sm">{project.description || 'N/A'}</div>
-                      </div>
-                      <div className="flex">
-                        <div className="w-24 text-sm font-medium text-muted-foreground">Volume:</div>
-                        <div className="flex-1 text-sm">{getVolume()}</div>
-                      </div>
-                      <div className="flex">
-                        <div className="w-24 text-sm font-medium text-muted-foreground">Target Price:</div>
-                        <div className="flex-1 text-sm">{getTargetPricePerUnit()}</div>
-                      </div>
-                      <div className="flex">
-                        <div className="w-24 text-sm font-medium text-muted-foreground">Delivery:</div>
-                        <div className="flex-1 text-sm">{project.estimated_delivery_date ? format(new Date(project.estimated_delivery_date), 'MMM dd, yyyy') : 'N/A'}</div>
-                      </div>
-                      <div className="flex">
-                        <div className="w-24 text-sm font-medium text-muted-foreground">Notes:</div>
-                        <div className="flex-1 text-sm">{project.notes || 'N/A'}</div>
-                      </div>
-                    </div>
-                  </CardContent>
-                </Card>
+                {/* Actions Needed for Current Stage */}
+                <ProjectSummaryCard
+                  project={project}
+                  workflowStages={workflowStages}
+                  onEdit={() => console.log('Edit project')}
+                  onViewDetails={() => console.log('View details')}
+                />
 
                 {/* Review Status Section */}
                 <Card>
@@ -1016,6 +938,16 @@ export default function ProjectDetail() {
                     )}
                   </CardContent>
                 </Card>
+              </div>
+            )}
+
+            {activeTab === "timeline" && (
+              <div className="space-y-6">
+                {/* Visual Timeline Progression */}
+                <VisualTimelineProgression
+                  project={project}
+                  workflowStages={workflowStages}
+                />
               </div>
             )}
 
