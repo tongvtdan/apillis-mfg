@@ -672,6 +672,153 @@ export function useProjects() {
     await fetchProjects(forceRefresh, filters);
   }, [fetchProjects]); // Add fetchProjects dependency
 
+  // Create new project
+  const createProject = async (projectData: {
+    title: string;
+    description?: string;
+    customer_id?: string;
+    priority?: ProjectPriority;
+    estimated_value?: number;
+    due_date?: string;
+    contact_name?: string;
+    contact_email?: string;
+    contact_phone?: string;
+    notes?: string;
+    tags?: string[];
+  }): Promise<Project> => {
+    if (!user || !profile?.organization_id) {
+      throw new Error('User must be authenticated to create projects');
+    }
+
+    try {
+      const { data, error } = await supabase
+        .from('projects')
+        .insert({
+          organization_id: profile.organization_id,
+          title: projectData.title,
+          description: projectData.description,
+          customer_id: projectData.customer_id,
+          priority_level: projectData.priority || 'medium',
+          estimated_value: projectData.estimated_value,
+          estimated_delivery_date: projectData.due_date,
+          status: 'active',
+          source: 'manual',
+          created_by: user.id,
+          tags: projectData.tags || [],
+          notes: projectData.notes,
+          // Generate project ID
+          project_id: await generateProjectId(),
+          stage_entered_at: new Date().toISOString()
+        })
+        .select(`
+          *,
+          customer:contacts(*),
+          current_stage:workflow_stages(*)
+        `)
+        .single();
+
+      if (error) throw error;
+
+      // Update local state
+      setProjects(prev => [data, ...prev]);
+
+      // Update cache
+      cacheService.setProjects([data, ...projects]);
+
+      toast({
+        title: "Project Created",
+        description: `Project ${data.project_id} has been created successfully.`,
+      });
+
+      return data as Project;
+    } catch (error) {
+      console.error('Error creating project:', error);
+      throw error;
+    }
+  };
+
+  // Create or get customer
+  const createOrGetCustomer = async (customerData: {
+    name: string;
+    company: string;
+    email?: string;
+    phone?: string;
+  }) => {
+    if (!user || !profile?.organization_id) {
+      throw new Error('User must be authenticated to create customers');
+    }
+
+    try {
+      // First, try to find existing customer
+      const { data: existingCustomer } = await supabase
+        .from('contacts')
+        .select('*')
+        .eq('organization_id', profile.organization_id)
+        .eq('type', 'customer')
+        .eq('company_name', customerData.company)
+        .single();
+
+      if (existingCustomer) {
+        return existingCustomer;
+      }
+
+      // Create new customer
+      const { data: newCustomer, error } = await supabase
+        .from('contacts')
+        .insert({
+          organization_id: profile.organization_id,
+          type: 'customer',
+          company_name: customerData.company,
+          contact_name: customerData.name,
+          email: customerData.email,
+          phone: customerData.phone,
+          is_active: true,
+          created_by: user.id
+        })
+        .select()
+        .single();
+
+      if (error) throw error;
+      return newCustomer;
+    } catch (error) {
+      console.error('Error creating/getting customer:', error);
+      throw error;
+    }
+  };
+
+  // Generate unique project ID
+  const generateProjectId = async (): Promise<string> => {
+    try {
+      const now = new Date();
+      const year = now.getFullYear();
+      const month = String(now.getMonth() + 1).padStart(2, '0');
+      const day = String(now.getDate()).padStart(2, '0');
+
+      // Get the count of projects created today to generate sequence
+      const startOfDay = new Date(year, now.getMonth(), now.getDate()).toISOString();
+      const endOfDay = new Date(year, now.getMonth(), now.getDate() + 1).toISOString();
+
+      const { count } = await supabase
+        .from('projects')
+        .select('*', { count: 'exact', head: true })
+        .eq('organization_id', profile?.organization_id)
+        .gte('created_at', startOfDay)
+        .lt('created_at', endOfDay);
+
+      const sequence = String((count || 0) + 1).padStart(2, '0');
+      return `P-${year}${month}${day}${sequence}`;
+    } catch (error) {
+      console.error('Error generating project ID:', error);
+      // Fallback to random sequence
+      const now = new Date();
+      const year = now.getFullYear();
+      const month = String(now.getMonth() + 1).padStart(2, '0');
+      const day = String(now.getDate()).padStart(2, '0');
+      const sequence = String(Math.floor(Math.random() * 100)).padStart(2, '0');
+      return `P-${year}${month}${day}${sequence}`;
+    }
+  };
+
   return {
     projects,
     loading,
@@ -682,6 +829,8 @@ export function useProjects() {
     refetch,
     refetchWithFilters,
     getProjectById,
-    getBottleneckAnalysis
+    getBottleneckAnalysis,
+    createProject,
+    createOrGetCustomer
   };
 }

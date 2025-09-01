@@ -20,6 +20,7 @@ import { useErrorHandling } from "@/hooks/useErrorHandling";
 import { ProjectWorkflowAnalytics } from "@/components/project/ProjectWorkflowAnalytics";
 import { ProjectCalendar } from "@/components/project/ProjectCalendar";
 import { ProjectTable } from "@/components/project/ProjectTable";
+import { EnhancedProjectList } from "@/components/project/EnhancedProjectList";
 import { workflowStageService } from "@/services/workflowStageService";
 
 // This component displays the projects management interface
@@ -27,7 +28,7 @@ import { workflowStageService } from "@/services/workflowStageService";
 // The user profile data is fetched from the public.users table and connected to the auth.users table
 // through the user ID which is consistent between both tables after the migration
 export default function Projects() {
-  const { projects, loading, error, updateProjectStage, updateProjectStatusOptimistic, refetch, getBottleneckAnalysis } = useProjects();
+  const { projects, loading, error, updateProjectStage, updateProjectStatusOptimistic, refetch, getBottleneckAnalysis, createProject } = useProjects();
   const [searchParams, setSearchParams] = useSearchParams();
   const navigate = useNavigate();
 
@@ -196,12 +197,12 @@ export default function Projects() {
   // Get default tab from URL params or localStorage
   const getDefaultTab = () => {
     const tabParam = searchParams.get('tab');
-    if (tabParam === 'calendar' || tabParam === 'table' || tabParam === 'flowchart' || tabParam === 'analytics') {
+    if (tabParam === 'enhanced' || tabParam === 'calendar' || tabParam === 'table' || tabParam === 'flowchart' || tabParam === 'analytics') {
       return tabParam;
     }
-    // Try to restore from localStorage, default to 'flowchart'
+    // Try to restore from localStorage, default to 'enhanced'
     const saved = localStorage.getItem('projects-selected-tab');
-    return saved ? (saved as string) : 'flowchart';
+    return saved ? (saved as string) : 'enhanced';
   };
 
   const defaultTab = getDefaultTab();
@@ -403,7 +404,10 @@ export default function Projects() {
               <p className="text-base-content/70">Track and manage your manufacturing projects from idea to delivery</p>
             </div>
             <div className="flex items-center gap-4">
-              <TabsList className="auth-tabs-list grid-cols-4 w-[600px]">
+              <TabsList className="auth-tabs-list grid-cols-5 w-[750px]">
+                <TabsTrigger value="enhanced" className="auth-tab-trigger" disabled={isRetrying}>
+                  Enhanced List
+                </TabsTrigger>
                 <TabsTrigger value="flowchart" className="auth-tab-trigger" disabled={isRetrying}>
                   Kanban Flow
                 </TabsTrigger>
@@ -461,6 +465,37 @@ export default function Projects() {
               </div>
             </div>
           </div>
+
+          <TabsContent value="enhanced" className="mt-4">
+            <ProjectErrorBoundary context="Enhanced Project List">
+              <EnhancedProjectList
+                projects={activeProjects.filter(p => selectedProjectType === 'all' || p.project_type === selectedProjectType)}
+                workflowStages={workflowStages}
+                loading={loading}
+                onProjectUpdate={async (projectId, updates) => {
+                  // Handle project updates
+                  if (updates.status) {
+                    await updateProjectStatusOptimistic(projectId, updates.status);
+                  }
+                }}
+                onProjectCreate={async (projectData) => {
+                  // Handle project creation using the createProject function
+                  const newProject = await createProject({
+                    title: projectData.title,
+                    description: projectData.description,
+                    customer_id: projectData.customer_id,
+                    priority: projectData.priority_level,
+                    estimated_value: projectData.estimated_value,
+                    due_date: projectData.estimated_delivery_date,
+                    notes: projectData.notes,
+                    tags: projectData.tags
+                  });
+                  await refetch(true);
+                  return newProject;
+                }}
+              />
+            </ProjectErrorBoundary>
+          </TabsContent>
 
           <TabsContent value="flowchart" className="mt-4 space-y-6">
             <ProjectErrorBoundary context="Workflow Flowchart">
