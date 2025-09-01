@@ -44,6 +44,7 @@ class StageHistoryService {
                 user_id: params.userId,
                 entity_type: 'project',
                 entity_id: params.projectId,
+                project_id: params.projectId,  // Add project_id for direct reference
                 action: params.bypassRequired ? 'stage_transition_bypass' : 'stage_transition',
                 description: `Stage changed from ${fromStageName} to ${toStageName}`,
                 metadata: {

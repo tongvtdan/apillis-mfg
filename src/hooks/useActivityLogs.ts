@@ -13,6 +13,7 @@ export interface ActivityLog {
     created_at: string;
     user_id: string | null;
     metadata: Record<string, any> | null;
+    project_id: string | null;  // Add project_id property
 }
 
 export function useActivityLogs(limit: number = 10) {
@@ -34,23 +35,21 @@ export function useActivityLogs(limit: number = 10) {
             console.log('Fetching activities for organization_id:', profile.organization_id);
 
             try {
-                setLoading(true);
-
-                // Fetch recent activity logs for the organization
                 const { data, error: fetchError } = await supabase
                     .from('activity_log')
                     .select(`
-            id,
-            action,
-            entity_type,
-            entity_id,
-            description,
-            old_values,
-            new_values,
-            created_at,
-            user_id,
-            metadata
-          `)
+              id,
+              action,
+              entity_type,
+              entity_id,
+              description,
+              old_values,
+              new_values,
+              created_at,
+              user_id,
+              metadata,
+              project_id  // Include project_id in the select
+            `)
                     .eq('organization_id', profile.organization_id)
                     .order('created_at', { ascending: false })
                     .limit(limit);

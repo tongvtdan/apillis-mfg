@@ -49,6 +49,7 @@ export type Database = {
           organization_id: string
           user_agent: string | null
           user_id: string | null
+          project_id: string | null  // Added project_id column
         }
         Insert: {
           action: string
@@ -64,6 +65,7 @@ export type Database = {
           organization_id: string
           user_agent?: string | null
           user_id?: string | null
+          project_id?: string | null  // Added project_id column
         }
         Update: {
           action?: string
@@ -79,6 +81,7 @@ export type Database = {
           organization_id?: string
           user_agent?: string | null
           user_id?: string | null
+          project_id?: string | null  // Added project_id column
         }
         Relationships: [
           {

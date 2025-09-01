@@ -22,6 +22,7 @@ export interface AuditLogEntry {
     details?: Record<string, any>;
     entityType?: string;
     entityId?: string;
+    projectId?: string;
     ipAddress?: string;
     userAgent?: string;
 }
@@ -48,7 +49,7 @@ export function useAuditLogger() {
             const clientInfo = getClientInfo();
 
             // Prepare audit log data
-            const auditData = {
+            const auditData: any = {
                 action: entry.action,
                 user_id: user?.id || null,
                 organization_id: profile?.organization_id || null,
@@ -63,6 +64,11 @@ export function useAuditLogger() {
                 user_agent: entry.userAgent || clientInfo.userAgent,
                 ip_address: null // Will be populated by server if available
             };
+
+            // Add project_id if available
+            if (entry.projectId) {
+                auditData.project_id = entry.projectId;
+            }
 
             // Insert into activity_log table
             const { error } = await supabase

@@ -298,12 +298,6 @@ export default function Projects() {
     let filtered = projects.filter(p => p.current_stage_id === selectedStage);
     console.log('Projects filtered by stage:', filtered.length);
 
-    // TEMPORARY FIX: If no projects match the selected stage, show all active projects
-    if (filtered.length === 0 && projects.length > 0) {
-      console.warn('⚠️ No projects match selected stage. Showing all active projects as fallback.');
-      filtered = projects.filter(p => p.status !== 'completed');
-    }
-
     // Apply project type filter
     if (selectedProjectType !== 'all') {
       filtered = filtered.filter(p => p.project_type === selectedProjectType);
