@@ -121,7 +121,7 @@ async function assignProjectsToStages() {
 
             for (let i = 0; i < distribution.count && projectIndex < projects.length; i++) {
                 const project = projects[projectIndex];
-                
+
                 try {
                     // Use direct SQL update to avoid trigger issues
                     const updateSQL = `
@@ -131,7 +131,7 @@ async function assignProjectsToStages() {
                             updated_at = '${new Date().toISOString()}'
                         WHERE id = '${project.id}';
                     `;
-                    
+
                     await executeSQL(updateSQL);
                     console.log(`   ✅ ${project.project_id} - ${project.title}`);
                     successCount++;
@@ -199,7 +199,7 @@ $$ LANGUAGE plpgsql;
 
             // Recreate the trigger
             await executeSQL("CREATE TRIGGER handle_project_stage_change_trigger BEFORE UPDATE ON projects FOR EACH ROW EXECUTE FUNCTION handle_project_stage_change();");
-            
+
             console.log('   ✅ Trigger recreated successfully');
         } catch (createError) {
             console.log('   ⚠️  Could not recreate trigger:', createError.message);
