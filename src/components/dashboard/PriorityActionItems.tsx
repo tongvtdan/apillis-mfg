@@ -1,8 +1,9 @@
 import { useMemo } from "react";
 import { Card } from "@/components/ui/card";
-import { AlertTriangle, CheckCircle } from "lucide-react";
+import { AlertTriangle, CheckCircle, Clock, Calendar } from "lucide-react";
 import { Project } from "@/types/project";
 import { ProjectSummaryCard } from "./ProjectSummaryCard";
+import { format, isBefore, parseISO } from "date-fns";
 
 interface PriorityActionItemsProps {
   projects: Project[];
@@ -11,57 +12,92 @@ interface PriorityActionItemsProps {
 export function PriorityActionItems({ projects }: PriorityActionItemsProps) {
   // Get top 3 priority projects that need immediate action
   const getTopPriorityProjects = useMemo(() => {
-    const urgentProjects = projects
-      .filter(p =>
-        // Filter for active projects that need action
-        ['inquiry_received', 'technical_review', 'supplier_rfq_sent', 'quoted'].includes(p.current_stage) &&
-        // Include projects with high priority, overdue, or urgent status  
-        ((p.priority_level === 'high' || p.priority_level === 'urgent') ||
-          (p.days_in_stage && p.days_in_stage > 7))
-      )
-      .sort((a, b) => {
-        // Priority scoring for sorting (higher score = more urgent)
-        const getPriorityScore = (project: Project) => {
-          let score = 0;
-          // Priority weight
-          if (project.priority_level === 'urgent') score += 100;
-          else if (project.priority_level === 'high') score += 80;
-          else if (project.priority_level === 'medium') score += 40;
-          else score += 20;
+    // Enhanced urgency scoring function
+    const getUrgencyScore = (project: Project): { score: number; reasons: string[] } => {
+      let score = 0;
+      const reasons: string[] = [];
 
-          // Days in stage weight (more days = higher urgency)
-          if (project.days_in_stage && project.days_in_stage > 14) score += 50;
-          else if (project.days_in_stage && project.days_in_stage > 7) score += 30;
-          else if (project.days_in_stage && project.days_in_stage > 3) score += 10;
+      // 1. Priority level scoring - highest weight
+      if (project.priority_level === 'urgent') {
+        score += 100;
+        reasons.push('Urgent priority');
+      } else if (project.priority_level === 'high') {
+        score += 80;
+        reasons.push('High priority');
+      } else if (project.priority_level === 'medium') {
+        score += 40;
+      } else {
+        score += 20;
+      }
 
-          // Status urgency weight
-          if (project.current_stage === 'quoted') score += 25; // Needs decision
-          else if (project.current_stage === 'technical_review') score += 20; // Blocking workflow
-          else if (project.current_stage === 'inquiry_received') score += 15; // Needs initial action
+      // 2. Days in stage scoring - significant weight
+      if (project.days_in_stage) {
+        if (project.days_in_stage > 14) {
+          score += 70;
+          reasons.push(`${project.days_in_stage} days in stage`);
+        } else if (project.days_in_stage > 7) {
+          score += 50;
+          reasons.push(`${project.days_in_stage} days in stage`);
+        } else if (project.days_in_stage > 3) {
+          score += 30;
+        }
+      }
 
-          return score;
-        };
+      // 3. Delivery date scoring - critical for deadline-driven urgency
+      if (project.estimated_delivery_date) {
+        const deliveryDate = parseISO(project.estimated_delivery_date);
+        const today = new Date();
+        const daysUntilDelivery = Math.ceil((deliveryDate.getTime() - today.getTime()) / (1000 * 60 * 60 * 24));
 
-        return getPriorityScore(b) - getPriorityScore(a);
-      })
-      .slice(0, 3);
+        if (daysUntilDelivery < 0) {
+          // Overdue
+          score += 90;
+          reasons.push(`Delivery overdue by ${Math.abs(daysUntilDelivery)} days`);
+        } else if (daysUntilDelivery <= 3) {
+          // Due very soon
+          score += 80;
+          reasons.push(`Delivery due in ${daysUntilDelivery} days`);
+        } else if (daysUntilDelivery <= 7) {
+          // Due soon
+          score += 60;
+          reasons.push(`Delivery due in ${daysUntilDelivery} days`);
+        }
+      }
 
-    // If we don't have enough urgent projects, fill with recent active projects
-    if (urgentProjects.length < 3) {
-      const remainingSlots = 3 - urgentProjects.length;
-      const urgentIds = new Set(urgentProjects.map(p => p.id));
-      const recentActiveProjects = projects
-        .filter(p =>
-          ['inquiry_received', 'technical_review', 'supplier_rfq_sent', 'quoted'].includes(p.current_stage) &&
-          !urgentIds.has(p.id)
-        )
-        .sort((a, b) => new Date(b.updated_at || b.created_at).getTime() - new Date(a.updated_at || a.created_at).getTime())
-        .slice(0, remainingSlots);
+      // 4. Workflow stage scoring - certain stages need quicker action
+      if (project.current_stage === 'quoted') {
+        score += 40; // Needs decision
+        reasons.push('Awaiting customer decision');
+      } else if (project.current_stage === 'technical_review') {
+        score += 35; // Blocking workflow
+        reasons.push('Technical review pending');
+      } else if (project.current_stage === 'inquiry_received') {
+        score += 30; // Needs initial action
+        reasons.push('New inquiry needs processing');
+      }
 
-      return [...urgentProjects, ...recentActiveProjects];
-    }
+      return { score, reasons };
+    };
 
-    return urgentProjects;
+    // Score all projects for urgency
+    const scoredProjects = projects.map(project => {
+      const { score, reasons } = getUrgencyScore(project);
+      return { project, score, reasons };
+    });
+
+    // Sort by score (descending) and take top 3
+    const topUrgentProjects = scoredProjects
+      .sort((a, b) => b.score - a.score)
+      .slice(0, 3)
+      .map(item => ({
+        ...item.project,
+        urgency_score: item.score,
+        urgency_reasons: item.reasons
+      }));
+
+    console.log('Top urgent projects:', topUrgentProjects);
+
+    return topUrgentProjects;
   }, [projects]);
 
   return (
@@ -77,7 +113,7 @@ export function PriorityActionItems({ projects }: PriorityActionItemsProps) {
           </span>
         </h2>
         <p className="text-sm text-red-700/70 dark:text-red-400/70 font-medium mt-1">
-          Projects requiring immediate attention based on priority, urgency, and time in stage
+          Projects requiring immediate attention based on priority, delivery date, and time in stage
         </p>
       </div>
       <div className="space-y-3">

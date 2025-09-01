@@ -54,6 +54,22 @@ export function ProjectSummaryCard({ project, showUrgencyIndicators = false }: P
     let level = 'normal';
     let reasons: string[] = [];
 
+    // If we already have urgency reasons from PriorityActionItems, use those
+    if ('urgency_reasons' in project && Array.isArray(project.urgency_reasons)) {
+      // For projects scored by PriorityActionItems
+      const urgencyScore = (project as any).urgency_score || 0;
+
+      if (urgencyScore >= 90) {
+        level = 'critical';
+      } else if (urgencyScore >= 70) {
+        level = 'high';
+      } else if (urgencyScore >= 40) {
+        level = 'medium';
+      }
+
+      return { level, reasons: (project as any).urgency_reasons || [] };
+    }
+
     // Use priority_level with fallback to priority
     const priority = project.priority_level || project.priority;
 
@@ -81,10 +97,13 @@ export function ProjectSummaryCard({ project, showUrgencyIndicators = false }: P
 
       if (daysUntilDelivery < 0) {
         level = 'critical';
-        reasons.push('Delivery overdue');
+        reasons.push(`Delivery overdue by ${Math.abs(daysUntilDelivery)} days`);
       } else if (daysUntilDelivery <= 3) {
         if (level !== 'critical') level = 'high';
-        reasons.push('Delivery due soon');
+        reasons.push(`Delivery due in ${daysUntilDelivery} days`);
+      } else if (daysUntilDelivery <= 7) {
+        if (level !== 'critical' && level !== 'high') level = 'medium';
+        reasons.push(`Delivery due in ${daysUntilDelivery} days`);
       }
     }
 
@@ -112,6 +131,7 @@ export function ProjectSummaryCard({ project, showUrgencyIndicators = false }: P
     switch (urgency.level) {
       case 'critical': return 'enhanced-list-item enhanced-list-item-urgent border-l-4 border-l-red-500 bg-red-50/10 dark:bg-red-950/20 shadow-md';
       case 'high': return 'enhanced-list-item enhanced-list-item-high border-l-4 border-l-orange-500 bg-orange-50/10 dark:bg-orange-950/10';
+      case 'medium': return 'enhanced-list-item enhanced-list-item-medium border-l-4 border-l-yellow-500 bg-yellow-50/10 dark:bg-yellow-950/10';
       default: return 'enhanced-list-item enhanced-list-item-normal';
     }
   };
@@ -170,6 +190,11 @@ export function ProjectSummaryCard({ project, showUrgencyIndicators = false }: P
                 ACTION NEEDED
               </div>
             )}
+            {urgency.level === 'medium' && (
+              <div className="status-badge status-badge-sm status-medium">
+                ATTENTION
+              </div>
+            )}
           </div>
         )}
       </div>
@@ -197,7 +222,7 @@ export function ProjectSummaryCard({ project, showUrgencyIndicators = false }: P
               : 'status-badge status-badge-sm'
             }`}>
             <Clock className="h-3 w-3" />
-            <span>{project.days_in_stage}d</span>
+            <span>{project.days_in_stage}d in stage</span>
           </div>
         )}
 
@@ -208,32 +233,29 @@ export function ProjectSummaryCard({ project, showUrgencyIndicators = false }: P
               : 'bg-blue-100 text-blue-800 dark:bg-blue-900/30 dark:text-blue-400'
             }`}>
             <Truck className="h-3 w-3" />
-            <span>Est. {format(parseISO(project.estimated_delivery_date), 'MMM d')}</span>
+            <span>
+              {isDeliveryOverdue ? 'Due: ' : 'Est: '}
+              {format(parseISO(project.estimated_delivery_date), 'MMM d')}
+            </span>
           </div>
         )}
 
-        {hasRisks && (
-          <div className="flex items-center gap-1 text-warning">
-            <AlertTriangle className="h-3 w-3" />
-            <span>2 risks logged</span>
-          </div>
-        )}
-        {hasApprovals && (
-          <div className="flex items-center gap-1 text-success">
-            <CheckCircle className="h-3 w-3" />
-            <span>Eng: Approved</span>
+        {/* Additional urgency information as tooltip */}
+        {showUrgencyIndicators && urgency.reasons.length > 0 && (
+          <div
+            className="text-xs text-muted-foreground ml-2 cursor-help"
+            title={urgency.reasons.join(' • ')}
+          >
+            <div className="flex items-center gap-1">
+              <AlertTriangle className={`h-4 w-4 ${urgency.level === 'critical' ? 'text-red-500' :
+                  urgency.level === 'high' ? 'text-orange-500' :
+                    'text-yellow-500'
+                }`} />
+              <span className="sr-only">Urgency information</span>
+            </div>
           </div>
         )}
       </div>
-
-      {/* Action reasons tooltip for urgency */}
-      {showUrgencyIndicators && urgency.reasons.length > 0 && (
-        <div className="text-xs text-muted-foreground ml-2">
-          <span title={urgency.reasons.join(' • ')}>
-            ℹ️
-          </span>
-        </div>
-      )}
     </div>
   );
 }
