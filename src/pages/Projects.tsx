@@ -427,13 +427,10 @@ export default function Projects() {
             <div className="flex items-center gap-4">
               <TabsList className="auth-tabs-list grid-cols-5 w-[750px]">
                 <TabsTrigger value="enhanced" className="auth-tab-trigger" disabled={isRetrying}>
-                  Enhanced List
+                  List
                 </TabsTrigger>
                 <TabsTrigger value="flowchart" className="auth-tab-trigger" disabled={isRetrying}>
-                  Kanban Flow
-                </TabsTrigger>
-                <TabsTrigger value="table" className="auth-tab-trigger" disabled={isRetrying}>
-                  Table
+                  Kanban
                 </TabsTrigger>
                 <TabsTrigger value="analytics" className="auth-tab-trigger" disabled={isRetrying}>
                   Analytics
@@ -705,22 +702,6 @@ export default function Projects() {
                   </Card>
                 )}
               </div>
-            </ProjectErrorBoundary>
-          </TabsContent>
-
-          <TabsContent value="table" className="mt-0">
-            <ProjectErrorBoundary context="Project Table">
-              <ProjectTable
-                projects={activeProjects.filter(p => selectedProjectType === 'all' || p.project_type === selectedProjectType)}
-                onProjectSelect={setSelectedProject}
-                onStageUpdate={updateProjectStage}
-                onStatusUpdate={updateProjectStatusOptimistic}
-                loading={loading}
-                error={error}
-                refetch={refetch}
-                getPriorityColor={getPriorityColor}
-                calculateLeadTime={calculateLeadTime}
-              />
             </ProjectErrorBoundary>
           </TabsContent>
 
