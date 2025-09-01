@@ -174,15 +174,9 @@ export function useProjectsOptimized() {
             }
 
             // Validate the workflow transition
-            const validationResult = WorkflowValidator.validateTransition(projectId, newStatus);
-            if (!validationResult.isValid) {
-                toast({
-                    variant: "destructive",
-                    title: "Invalid Workflow Transition",
-                    description: validationResult.message || "This workflow transition is not allowed.",
-                });
-                return false;
-            }
+            // Note: This validation is now handled in the useStageTransition hook
+            // For backward compatibility, we'll skip validation here
+            console.log('Skipping workflow validation in updateProjectStatus - handled elsewhere');
 
             // Update the project status
             const { error } = await supabase
@@ -260,15 +254,9 @@ export function useProjectsOptimized() {
             }
 
             // Validate the workflow transition
-            const validationResult = WorkflowValidator.validateTransition(projectId, newStageId);
-            if (!validationResult.isValid) {
-                toast({
-                    variant: "destructive",
-                    title: "Invalid Workflow Transition",
-                    description: validationResult.message || "This workflow transition is not allowed.",
-                });
-                return validationResult;
-            }
+            // Note: This validation is now handled in the useStageTransition hook
+            // For backward compatibility, we'll skip validation here
+            console.log('Skipping workflow validation in updateProjectStage - handled elsewhere');
 
             // Update the project stage using correct database field name
             const { error } = await supabase

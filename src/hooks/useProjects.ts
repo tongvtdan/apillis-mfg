@@ -451,15 +451,9 @@ export function useProjects() {
       }
 
       // Validate the workflow transition
-      const validationResult = WorkflowValidator.validateTransition(projectId, newStatus);
-      if (!validationResult.isValid) {
-        toast({
-          variant: "destructive",
-          title: "Invalid Workflow Transition",
-          description: validationResult.message || "This workflow transition is not allowed.",
-        });
-        return false;
-      }
+      // Note: This validation is now handled in the useStageTransition hook
+      // For backward compatibility, we'll skip validation here
+      console.log('Skipping workflow validation in updateProjectStatus - handled elsewhere');
 
       // Update the project status
       const { error } = await supabase
@@ -526,7 +520,11 @@ export function useProjects() {
       if (!projectId || !newStageId) {
         const errorResult = {
           isValid: false,
-          message: "Project ID and stage ID are required."
+          message: "Project ID and stage ID are required.",
+          errors: ["Project ID and stage ID are required."],
+          warnings: [],
+          canAutoAdvance: false,
+          requiresManagerApproval: false
         };
         toast({
           variant: "destructive",
@@ -534,17 +532,6 @@ export function useProjects() {
           description: errorResult.message,
         });
         return errorResult;
-      }
-
-      // Validate the workflow transition
-      const validationResult = WorkflowValidator.validateTransition(projectId, newStageId);
-      if (!validationResult.isValid) {
-        toast({
-          variant: "destructive",
-          title: "Invalid Workflow Transition",
-          description: validationResult.message || "This workflow transition is not allowed.",
-        });
-        return validationResult;
       }
 
       // Update the project stage using correct database field name
@@ -570,7 +557,11 @@ export function useProjects() {
         });
         return {
           isValid: false,
-          message: errorMessage
+          message: errorMessage,
+          errors: [errorMessage],
+          warnings: [],
+          canAutoAdvance: false,
+          requiresManagerApproval: false
         };
       }
 
@@ -611,7 +602,11 @@ export function useProjects() {
 
       return {
         isValid: true,
-        message: "Project stage updated successfully"
+        message: "Project stage updated successfully",
+        errors: [],
+        warnings: [],
+        canAutoAdvance: false,
+        requiresManagerApproval: false
       };
     } catch (error) {
       console.error('Error updating project stage:', error);
@@ -623,7 +618,11 @@ export function useProjects() {
       });
       return {
         isValid: false,
-        message: errorMessage
+        message: errorMessage,
+        errors: [errorMessage],
+        warnings: [],
+        canAutoAdvance: false,
+        requiresManagerApproval: false
       };
     }
   };

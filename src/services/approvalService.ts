@@ -154,9 +154,9 @@ export class ApprovalService {
 
             const { data: subStage, error: subStageError } = await supabase
                 .from('workflow_sub_stages')
-                .select('approval_roles, requires_approval')
+                .select('approval_roles,requires_approval')
                 .eq('id', stageId)
-                .single();
+                .maybeSingle();
 
             if (!subStageError && subStage) {
                 stage = subStage;
@@ -164,9 +164,9 @@ export class ApprovalService {
                 // If not found in workflow_sub_stages, try workflow_stages
                 const { data: workflowStage, error: workflowStageError } = await supabase
                     .from('workflow_stages')
-                    .select('approval_roles, requires_approval')
+                    .select('approval_roles,requires_approval')
                     .eq('id', stageId)
-                    .single();
+                    .maybeSingle();
 
                 if (!workflowStageError && workflowStage) {
                     stage = workflowStage as unknown as { approval_roles: string[]; requires_approval: boolean };
@@ -323,9 +323,9 @@ export class ApprovalService {
 
             const { data: subStage, error: subStageError } = await supabase
                 .from('workflow_sub_stages')
-                .select('approval_roles, requires_approval, name')
+                .select('approval_roles,requires_approval,name')
                 .eq('id', stageId)
-                .single();
+                .maybeSingle();
 
             if (!subStageError && subStage) {
                 stage = subStage;
@@ -333,9 +333,9 @@ export class ApprovalService {
                 // If not found in workflow_sub_stages, try workflow_stages
                 const { data: workflowStage, error: workflowStageError } = await supabase
                     .from('workflow_stages')
-                    .select('approval_roles, requires_approval, name')
+                    .select('approval_roles,requires_approval,name')
                     .eq('id', stageId)
-                    .single();
+                    .maybeSingle();
 
                 if (!workflowStageError && workflowStage) {
                     stage = workflowStage as unknown as { approval_roles: string[]; requires_approval: boolean; name: string };
@@ -414,9 +414,9 @@ export class ApprovalService {
             // Get project details for notification
             const { data: project, error } = await supabase
                 .from('projects')
-                .select('title, current_stage_id, organization_id')
+                .select('title,current_stage_id,organization_id')
                 .eq('id', projectId)
-                .single();
+                .maybeSingle();
 
             if (error) throw error;
 
@@ -425,7 +425,7 @@ export class ApprovalService {
                 .from('workflow_sub_stages')
                 .select('name')
                 .eq('id', project.current_stage_id)
-                .single();
+                .maybeSingle();
 
             if (stageError) console.warn('Could not fetch stage name:', stageError);
 
@@ -463,7 +463,7 @@ export class ApprovalService {
                     )
                 `)
                 .eq('id', approvalId)
-                .single();
+                .maybeSingle();
 
             if (error) throw error;
 
