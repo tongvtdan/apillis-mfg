@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -55,7 +55,23 @@ export function ProjectStatusManager({
     const [showConfirmDialog, setShowConfirmDialog] = useState(false);
     const [selectedTransition, setSelectedTransition] = useState<StatusTransition | null>(null);
     const [reason, setReason] = useState('');
+    const [optimisticProject, setOptimisticProject] = useState<Project>(project);
+    const [isUpdating, setIsUpdating] = useState(false);
     const { toast } = useToast();
+
+    // Update optimistic project when prop changes
+    useEffect(() => {
+        setOptimisticProject(project);
+    }, [project]);
+
+    // Optimistic update function
+    const updateOptimisticProject = useCallback((updates: Partial<Project>) => {
+        setOptimisticProject(prev => ({
+            ...prev,
+            ...updates,
+            updated_at: new Date().toISOString()
+        }));
+    }, []);
 
     // Define status transitions with validation rules
     const statusTransitions: StatusTransition[] = [
@@ -99,7 +115,7 @@ export function ProjectStatusManager({
             requiresConfirmation: true,
             requiresReason: true,
             validationRules: (project) => {
-                // Can always cancel active projects, but warn if in progress
+                // Can always cancel active projects
                 return null;
             }
         },
@@ -111,20 +127,7 @@ export function ProjectStatusManager({
             color: 'text-green-600',
             requiresConfirmation: false,
             validationRules: (project) => {
-                // Can always resume on-hold projects
-                return null;
-            }
-        },
-        {
-            from: 'on_hold',
-            to: 'cancelled',
-            label: 'Cancel Project',
-            icon: XCircle,
-            color: 'text-red-600',
-            requiresConfirmation: true,
-            requiresReason: true,
-            validationRules: (project) => {
-                // Can always cancel on-hold projects
+                // Can always resume projects on hold
                 return null;
             }
         },
@@ -137,70 +140,36 @@ export function ProjectStatusManager({
             requiresConfirmation: true,
             requiresReason: true,
             validationRules: (project) => {
-                // Can reactivate cancelled projects with reason
-                return null;
-            }
-        },
-        {
-            from: 'completed',
-            to: 'active',
-            label: 'Reopen Project',
-            icon: RotateCcw,
-            color: 'text-blue-600',
-            requiresConfirmation: true,
-            requiresReason: true,
-            validationRules: (project) => {
-                // Can reopen completed projects with reason
+                // Can always reactivate cancelled projects
                 return null;
             }
         }
     ];
 
     // Get available transitions for current status
-    const availableTransitions = statusTransitions.filter(
-        transition => transition.from === project.status
+    const availableTransitions = statusTransitions.filter(transition =>
+        transition.from === optimisticProject.status
     );
 
-    // Get status display info
+    // Get status info for display
     const getStatusInfo = (status: ProjectStatus) => {
-        const statusConfig = {
-            active: {
-                label: 'Active',
-                icon: Play,
-                color: 'bg-green-100 text-green-800 border-green-200',
-                description: 'Project is actively being worked on'
-            },
-            on_hold: {
-                label: 'On Hold',
-                icon: Pause,
-                color: 'bg-yellow-100 text-yellow-800 border-yellow-200',
-                description: 'Project is temporarily paused'
-            },
-            cancelled: {
-                label: 'Cancelled',
-                icon: XCircle,
-                color: 'bg-red-100 text-red-800 border-red-200',
-                description: 'Project has been cancelled'
-            },
-            completed: {
-                label: 'Completed',
-                icon: CheckCircle2,
-                color: 'bg-blue-100 text-blue-800 border-blue-200',
-                description: 'Project has been successfully completed'
-            }
+        const statusMap = {
+            active: { label: 'Active', color: 'bg-green-100 text-green-800', icon: Play },
+            on_hold: { label: 'On Hold', color: 'bg-yellow-100 text-yellow-800', icon: Pause },
+            completed: { label: 'Completed', color: 'bg-blue-100 text-blue-800', icon: CheckCircle2 },
+            cancelled: { label: 'Cancelled', color: 'bg-red-100 text-red-800', icon: XCircle }
         };
-
-        return statusConfig[status];
+        return statusMap[status] || { label: status, color: 'bg-gray-100 text-gray-800', icon: Clock };
     };
 
-    // Handle status transition
-    const handleStatusTransition = (transition: StatusTransition) => {
-        // Validate transition
+    // Handle status change with optimistic updates
+    const handleStatusChange = async (transition: StatusTransition) => {
+        // Validate the transition
         if (transition.validationRules) {
-            const validationError = transition.validationRules(project);
+            const validationError = transition.validationRules(optimisticProject);
             if (validationError) {
                 toast({
-                    title: "Cannot Change Status",
+                    title: "Validation Error",
                     description: validationError,
                     variant: "destructive",
                 });
@@ -210,16 +179,22 @@ export function ProjectStatusManager({
 
         if (transition.requiresConfirmation) {
             setSelectedTransition(transition);
-            setReason('');
             setShowConfirmDialog(true);
-        } else {
-            executeStatusChange(transition, '');
+            return;
         }
+
+        // Execute the status change immediately
+        await executeStatusChange(transition, '');
     };
 
     // Execute the status change
     const executeStatusChange = async (transition: StatusTransition, reason: string) => {
         setIsLoading(true);
+        setIsUpdating(true);
+
+        // Optimistic update - immediately update UI
+        const optimisticUpdate = { status: transition.to };
+        updateOptimisticProject(optimisticUpdate);
 
         try {
             // Prepare update data
@@ -231,9 +206,12 @@ export function ProjectStatusManager({
             if (reason.trim()) {
                 const timestamp = new Date().toISOString();
                 const statusChangeNote = `[${timestamp}] Status changed from ${transition.from} to ${transition.to}: ${reason}`;
-                updateData.notes = project.notes
-                    ? `${project.notes}\n\n${statusChangeNote}`
+                updateData.notes = optimisticProject.notes
+                    ? `${optimisticProject.notes}\n\n${statusChangeNote}`
                     : statusChangeNote;
+
+                // Also update notes optimistically
+                updateOptimisticProject({ notes: updateData.notes });
             }
 
             // Update project
@@ -254,6 +232,13 @@ export function ProjectStatusManager({
             setReason('');
         } catch (error) {
             console.error('Failed to update project status:', error);
+
+            // Rollback optimistic update on error
+            updateOptimisticProject({
+                status: project.status,
+                notes: project.notes
+            });
+
             toast({
                 title: "Update Failed",
                 description: error instanceof Error ? error.message : "Failed to update status",
@@ -261,136 +246,131 @@ export function ProjectStatusManager({
             });
         } finally {
             setIsLoading(false);
+            setIsUpdating(false);
         }
     };
 
-    const currentStatusInfo = getStatusInfo(project.status);
+    const currentStatusInfo = getStatusInfo(optimisticProject.status);
 
     return (
         <>
-            <Card className={className}>
+            <Card className={cn("transition-all duration-300", className)}>
                 <CardHeader>
-                    <CardTitle className="text-lg flex items-center space-x-2">
-                        <currentStatusInfo.icon className="w-5 h-5" />
-                        <span>Project Status</span>
-                    </CardTitle>
+                    <CardTitle className="text-lg">Project Status</CardTitle>
                 </CardHeader>
                 <CardContent className="space-y-4">
                     {/* Current Status Display */}
-                    <div className="flex items-center justify-between">
-                        <div className="space-y-1">
-                            <Badge className={cn("text-sm", currentStatusInfo.color)}>
+                    <div className="space-y-2">
+                        <Label className="text-sm font-medium text-muted-foreground">
+                            Current Status
+                        </Label>
+                        <div className={cn(
+                            "flex items-center space-x-2 transition-all duration-200",
+                            isUpdating && "opacity-75"
+                        )}>
+                            <Badge className={currentStatusInfo.color}>
+                                <currentStatusInfo.icon className="w-3 h-3 mr-1" />
                                 {currentStatusInfo.label}
                             </Badge>
-                            <p className="text-sm text-muted-foreground">
-                                {currentStatusInfo.description}
-                            </p>
                         </div>
                     </div>
 
-                    {/* Status Transition Actions */}
+                    {/* Available Actions */}
                     {availableTransitions.length > 0 && (
-                        <div className="space-y-3">
-                            <Label className="text-sm font-medium">Available Actions</Label>
-                            <div className="grid grid-cols-1 gap-2">
-                                {availableTransitions.map((transition) => (
-                                    <Button
-                                        key={`${transition.from}-${transition.to}`}
-                                        variant="outline"
-                                        size="sm"
-                                        onClick={() => handleStatusTransition(transition)}
-                                        disabled={isLoading}
-                                        className="justify-start"
-                                    >
-                                        <transition.icon className={cn("w-4 h-4 mr-2", transition.color)} />
-                                        {transition.label}
-                                    </Button>
-                                ))}
+                        <div className="space-y-2">
+                            <Label className="text-sm font-medium text-muted-foreground">
+                                Available Actions
+                            </Label>
+                            <div className="flex flex-wrap gap-2">
+                                {availableTransitions.map((transition) => {
+                                    const IconComponent = transition.icon;
+                                    return (
+                                        <Button
+                                            key={transition.to}
+                                            variant="outline"
+                                            size="sm"
+                                            onClick={() => handleStatusChange(transition)}
+                                            disabled={isLoading}
+                                            className={cn(
+                                                "transition-all duration-200",
+                                                transition.color,
+                                                isUpdating && "opacity-75"
+                                            )}
+                                        >
+                                            <IconComponent className="w-4 h-4 mr-1" />
+                                            {transition.label}
+                                        </Button>
+                                    );
+                                })}
                             </div>
                         </div>
                     )}
 
-                    {/* Status History Preview */}
-                    <div className="pt-3 border-t">
-                        <Label className="text-sm font-medium text-muted-foreground">
-                            Last Updated
-                        </Label>
-                        <p className="text-sm text-muted-foreground">
-                            {project.updated_at
-                                ? new Date(project.updated_at).toLocaleString()
-                                : 'Unknown'
-                            }
-                        </p>
-                    </div>
+                    {/* No Actions Available */}
+                    {availableTransitions.length === 0 && (
+                        <div className="text-sm text-muted-foreground">
+                            No status changes available for current state.
+                        </div>
+                    )}
                 </CardContent>
             </Card>
 
             {/* Confirmation Dialog */}
-            {showConfirmDialog && (
-                <div className="fixed inset-0 bg-background/95 backdrop-blur-lg flex items-center justify-center p-4 z-50">
-                    <div className="w-full max-w-lg">
-                        <Card>
-                            <CardHeader>
-                                <CardTitle className="flex items-center space-x-2">
-                                    {selectedTransition && (
-                                        <>
-                                            <selectedTransition.icon className={cn("w-5 h-5", selectedTransition.color)} />
-                                            <span>Confirm Status Change</span>
-                                        </>
-                                    )}
-                                </CardTitle>
-                            </CardHeader>
-                            <CardContent className="space-y-4">
-                                <p className="text-sm text-muted-foreground">
-                                    {selectedTransition && (
-                                        <>
-                                            Are you sure you want to change the project status from{' '}
-                                            <strong>{getStatusInfo(selectedTransition.from).label}</strong> to{' '}
-                                            <strong>{getStatusInfo(selectedTransition.to).label}</strong>?
-                                        </>
-                                    )}
-                                </p>
+            {showConfirmDialog && selectedTransition && (
+                <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 animate-in fade-in duration-200">
+                    <div className="bg-background p-6 rounded-lg shadow-lg max-w-md w-full mx-4 animate-in slide-in-from-bottom-4 duration-200">
+                        <h3 className="text-lg font-semibold mb-4">
+                            Confirm Status Change
+                        </h3>
+                        <p className="text-muted-foreground mb-4">
+                            Are you sure you want to change the project status from{' '}
+                            <span className="font-medium">{getStatusInfo(selectedTransition.from).label}</span> to{' '}
+                            <span className="font-medium">{getStatusInfo(selectedTransition.to).label}</span>?
+                        </p>
 
-                                {selectedTransition?.requiresReason && (
-                                    <div className="space-y-2">
-                                        <Label htmlFor="reason">
-                                            Reason for status change {selectedTransition.requiresReason && '*'}
-                                        </Label>
-                                        <Textarea
-                                            id="reason"
-                                            value={reason}
-                                            onChange={(e) => setReason(e.target.value)}
-                                            placeholder="Please provide a reason for this status change..."
-                                            className="min-h-[80px]"
-                                        />
-                                    </div>
+                        {selectedTransition.requiresReason && (
+                            <div className="space-y-2 mb-4">
+                                <Label className="text-sm font-medium">
+                                    Reason for Change
+                                </Label>
+                                <Textarea
+                                    value={reason}
+                                    onChange={(e) => setReason(e.target.value)}
+                                    placeholder="Please provide a reason for this status change..."
+                                    className="min-h-[80px] transition-all duration-200"
+                                />
+                            </div>
+                        )}
+
+                        <div className="flex justify-end space-x-2">
+                            <Button
+                                variant="outline"
+                                onClick={() => {
+                                    setShowConfirmDialog(false);
+                                    setSelectedTransition(null);
+                                    setReason('');
+                                }}
+                                disabled={isLoading}
+                                className="transition-all duration-200"
+                            >
+                                Cancel
+                            </Button>
+                            <Button
+                                onClick={() => executeStatusChange(selectedTransition, reason)}
+                                disabled={isLoading || (selectedTransition.requiresReason && !reason.trim())}
+                                className={cn(
+                                    "transition-all duration-200",
+                                    selectedTransition.color
                                 )}
-
-                                <div className="flex gap-2 pt-4">
-                                    <Button
-                                        variant="outline"
-                                        onClick={() => setShowConfirmDialog(false)}
-                                        disabled={isLoading}
-                                    >
-                                        Cancel
-                                    </Button>
-                                    <Button
-                                        onClick={() => selectedTransition && executeStatusChange(selectedTransition, reason)}
-                                        disabled={
-                                            isLoading ||
-                                            (selectedTransition?.requiresReason && !reason.trim())
-                                        }
-                                    >
-                                        {isLoading ? (
-                                            <Loader2 className="w-4 h-4 animate-spin mr-2" />
-                                        ) : (
-                                            selectedTransition && <selectedTransition.icon className="w-4 h-4 mr-2" />
-                                        )}
-                                        Confirm Change
-                                    </Button>
-                                </div>
-                            </CardContent>
-                        </Card>
+                            >
+                                {isLoading ? (
+                                    <Loader2 className="w-4 h-4 animate-spin mr-2" />
+                                ) : (
+                                    <selectedTransition.icon className="w-4 h-4 mr-2" />
+                                )}
+                                Confirm
+                            </Button>
+                        </div>
                     </div>
                 </div>
             )}

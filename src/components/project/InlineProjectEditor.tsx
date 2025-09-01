@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
@@ -54,7 +54,14 @@ export function InlineProjectEditor({
     const [editValue, setEditValue] = useState<any>('');
     const [isLoading, setIsLoading] = useState(false);
     const [validationError, setValidationError] = useState<string | null>(null);
+    const [optimisticProject, setOptimisticProject] = useState<Project>(project);
+    const [isUpdating, setIsUpdating] = useState<string | null>(null);
     const { toast } = useToast();
+
+    // Update optimistic project when prop changes
+    useEffect(() => {
+        setOptimisticProject(project);
+    }, [project]);
 
     // Editable fields configuration - removed status since it's in Project Status card
     const editableFields: EditableField[] = [
@@ -108,7 +115,7 @@ export function InlineProjectEditor({
     // Start editing a field
     const startEditing = (fieldKey: keyof Project) => {
         setEditingField(fieldKey);
-        setEditValue(project[fieldKey] || '');
+        setEditValue(optimisticProject[fieldKey] || '');
         setValidationError(null);
     };
 
@@ -119,7 +126,16 @@ export function InlineProjectEditor({
         setValidationError(null);
     };
 
-    // Save field changes
+    // Optimistic update function
+    const updateOptimisticProject = useCallback((updates: Partial<Project>) => {
+        setOptimisticProject(prev => ({
+            ...prev,
+            ...updates,
+            updated_at: new Date().toISOString()
+        }));
+    }, []);
+
+    // Save field changes with optimistic updates
     const saveField = async () => {
         if (!editingField) return;
 
@@ -137,6 +153,11 @@ export function InlineProjectEditor({
 
         setIsLoading(true);
         setValidationError(null);
+        setIsUpdating(editingField);
+
+        // Optimistic update - immediately update UI
+        const optimisticUpdate = { [editingField]: editValue };
+        updateOptimisticProject(optimisticUpdate);
 
         try {
             // Prepare update data
@@ -161,6 +182,10 @@ export function InlineProjectEditor({
             setEditValue('');
         } catch (error) {
             console.error('Failed to update project field:', error);
+
+            // Rollback optimistic update on error
+            updateOptimisticProject({ [editingField]: project[editingField] });
+
             toast({
                 title: "Update Failed",
                 description: error instanceof Error ? error.message : "Failed to update field",
@@ -168,12 +193,18 @@ export function InlineProjectEditor({
             });
         } finally {
             setIsLoading(false);
+            setIsUpdating(null);
         }
     };
 
-    // Handle priority change in header
+    // Handle priority change in header with optimistic updates
     const handlePriorityChange = async (newPriority: string) => {
         setIsLoading(true);
+        setIsUpdating('priority_level');
+
+        // Optimistic update - immediately update UI
+        updateOptimisticProject({ priority_level: newPriority as ProjectPriority });
+
         try {
             const updateData: Partial<Project> = {
                 priority_level: newPriority as ProjectPriority
@@ -188,6 +219,10 @@ export function InlineProjectEditor({
             });
         } catch (error) {
             console.error('Failed to update priority:', error);
+
+            // Rollback optimistic update on error
+            updateOptimisticProject({ priority_level: project.priority_level });
+
             toast({
                 title: "Update Failed",
                 description: error instanceof Error ? error.message : "Failed to update priority",
@@ -195,6 +230,7 @@ export function InlineProjectEditor({
             });
         } finally {
             setIsLoading(false);
+            setIsUpdating(null);
         }
     };
 
@@ -208,26 +244,42 @@ export function InlineProjectEditor({
         }
     };
 
-    // Render field value
+    // Render field value with smooth transitions
     const renderFieldValue = (field: EditableField) => {
-        const value = project[field.key];
+        const value = optimisticProject[field.key];
+        const isFieldUpdating = isUpdating === field.key;
 
         if (field.type === 'select' && field.options) {
             const option = field.options.find(opt => opt.value === value);
             return (
-                <Badge className={getFieldBadgeColor(field.key, value)}>
-                    {option?.label || value || 'Not set'}
-                </Badge>
+                <div className={cn(
+                    "transition-all duration-200",
+                    isFieldUpdating && "opacity-75"
+                )}>
+                    <Badge className={getFieldBadgeColor(field.key, value)}>
+                        {option?.label || value || 'Not set'}
+                    </Badge>
+                </div>
             );
         }
 
         if (field.type === 'number') {
-            return value ? formatCurrency(Number(value)) : 'Not set';
+            return (
+                <div className={cn(
+                    "transition-all duration-200",
+                    isFieldUpdating && "opacity-75"
+                )}>
+                    {value ? formatCurrency(Number(value)) : 'Not set'}
+                </div>
+            );
         }
 
         if (field.key === 'description' || field.key === 'notes') {
             return (
-                <div className="text-sm text-muted-foreground max-w-md">
+                <div className={cn(
+                    "text-sm text-muted-foreground max-w-md transition-all duration-200",
+                    isFieldUpdating && "opacity-75"
+                )}>
                     {value ? (
                         <span className="whitespace-pre-wrap">{String(value)}</span>
                     ) : (
@@ -238,12 +290,13 @@ export function InlineProjectEditor({
         }
 
         return (
-            <span className={cn(
-                "text-sm",
+            <div className={cn(
+                "text-sm transition-all duration-200",
+                isFieldUpdating && "opacity-75",
                 !value && "text-muted-foreground italic"
             )}>
                 {value || `No ${field.label.toLowerCase()} set`}
-            </span>
+            </div>
         );
     };
 
@@ -256,7 +309,7 @@ export function InlineProjectEditor({
                     onChange={(e) => setEditValue(e.target.value)}
                     onKeyDown={handleKeyDown}
                     placeholder={`Enter ${field.label.toLowerCase()}...`}
-                    className="min-h-[80px]"
+                    className="min-h-[80px] transition-all duration-200"
                     autoFocus
                 />
             );
@@ -287,6 +340,7 @@ export function InlineProjectEditor({
                     onChange={(e) => setEditValue(e.target.value ? Number(e.target.value) : null)}
                     onKeyDown={handleKeyDown}
                     placeholder={`Enter ${field.label.toLowerCase()}...`}
+                    className="transition-all duration-200"
                     autoFocus
                 />
             );
@@ -298,38 +352,44 @@ export function InlineProjectEditor({
                 onChange={(e) => setEditValue(e.target.value)}
                 onKeyDown={handleKeyDown}
                 placeholder={`Enter ${field.label.toLowerCase()}...`}
+                className="transition-all duration-200"
                 autoFocus
             />
         );
     };
 
     return (
-        <Card className={className}>
+        <Card className={cn("transition-all duration-300", className)}>
             <CardHeader>
                 <div className="flex items-center justify-between">
                     <CardTitle className="text-lg">Project Information</CardTitle>
                     <div className="flex items-center space-x-2">
                         <Label className="text-sm font-medium text-muted-foreground">Priority:</Label>
-                        <Select
-                            value={project.priority_level || 'medium'}
-                            onValueChange={handlePriorityChange}
-                            disabled={isLoading}
-                        >
-                            <SelectTrigger className="w-32">
-                                <SelectValue />
-                            </SelectTrigger>
-                            <SelectContent>
-                                {priorityOptions.map((option) => (
-                                    <SelectItem key={option.value} value={option.value}>
-                                        <div className="flex items-center space-x-2">
-                                            <Badge className={getFieldBadgeColor('priority_level', option.value)}>
-                                                {option.label}
-                                            </Badge>
-                                        </div>
-                                    </SelectItem>
-                                ))}
-                            </SelectContent>
-                        </Select>
+                        <div className={cn(
+                            "transition-all duration-200",
+                            isUpdating === 'priority_level' && "opacity-75"
+                        )}>
+                            <Select
+                                value={optimisticProject.priority_level || 'medium'}
+                                onValueChange={handlePriorityChange}
+                                disabled={isLoading}
+                            >
+                                <SelectTrigger className="w-32">
+                                    <SelectValue />
+                                </SelectTrigger>
+                                <SelectContent>
+                                    {priorityOptions.map((option) => (
+                                        <SelectItem key={option.value} value={option.value}>
+                                            <div className="flex items-center space-x-2">
+                                                <Badge className={getFieldBadgeColor('priority_level', option.value)}>
+                                                    {option.label}
+                                                </Badge>
+                                            </div>
+                                        </SelectItem>
+                                    ))}
+                                </SelectContent>
+                            </Select>
+                        </div>
                     </div>
                 </div>
             </CardHeader>
@@ -341,11 +401,11 @@ export function InlineProjectEditor({
                         </Label>
 
                         {editingField === field.key ? (
-                            <div className="space-y-2">
+                            <div className="space-y-2 animate-in slide-in-from-top-2 duration-200">
                                 {renderEditInput(field)}
 
                                 {validationError && (
-                                    <div className="flex items-center space-x-1 text-sm text-red-600">
+                                    <div className="flex items-center space-x-1 text-sm text-red-600 animate-in slide-in-from-top-2 duration-200">
                                         <AlertCircle className="w-4 h-4" />
                                         <span>{validationError}</span>
                                     </div>
@@ -356,6 +416,7 @@ export function InlineProjectEditor({
                                         size="sm"
                                         onClick={saveField}
                                         disabled={isLoading || !!validationError}
+                                        className="transition-all duration-200"
                                     >
                                         {isLoading ? (
                                             <Loader2 className="w-4 h-4 animate-spin" />
@@ -369,6 +430,7 @@ export function InlineProjectEditor({
                                         variant="outline"
                                         onClick={cancelEditing}
                                         disabled={isLoading}
+                                        className="transition-all duration-200"
                                     >
                                         <X className="w-4 h-4" />
                                         Cancel
@@ -384,10 +446,17 @@ export function InlineProjectEditor({
                                     size="sm"
                                     variant="ghost"
                                     onClick={() => startEditing(field.key)}
-                                    className="opacity-0 group-hover:opacity-100 transition-opacity"
-                                    disabled={field.disabled}
+                                    className={cn(
+                                        "opacity-0 group-hover:opacity-100 transition-all duration-200",
+                                        isUpdating === field.key && "opacity-100"
+                                    )}
+                                    disabled={field.disabled || isUpdating === field.key}
                                 >
-                                    <Edit className="w-4 h-4" />
+                                    {isUpdating === field.key ? (
+                                        <Loader2 className="w-4 h-4 animate-spin" />
+                                    ) : (
+                                        <Edit className="w-4 h-4" />
+                                    )}
                                 </Button>
                             </div>
                         )}

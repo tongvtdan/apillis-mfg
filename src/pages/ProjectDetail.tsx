@@ -52,6 +52,7 @@ import { useWorkflowStages } from "@/hooks/useWorkflowStages";
 import { ResponsiveNavigationWrapper } from "@/components/project/ResponsiveNavigationWrapper";
 import { TabTransition, TabContentWrapper } from "@/components/project/TabTransition";
 import { useProjectNavigation } from "@/hooks/useProjectNavigation";
+import { useSmoothProjectUpdates } from "@/hooks/useSmoothProjectUpdates";
 
 // Import new enhanced components
 import { InlineProjectEditor } from "@/components/project/InlineProjectEditor";
@@ -121,8 +122,25 @@ export default function ProjectDetail() {
   // Get the project from the projects array - SINGLE DATA SOURCE
   const project = projects.find(p => p.id === id) || null;
 
+  // Use smooth project updates hook for better UX
+  const {
+    project: smoothProject,
+    isUpdating: isProjectUpdating,
+    updateProject,
+    updateField,
+    refreshProject
+  } = useSmoothProjectUpdates({
+    projectId: id || '',
+    initialProject: project || {} as Project,
+    onUpdate: (updatedProject) => {
+      console.log('🔄 ProjectDetail: Smooth update received:', updatedProject);
+    },
+    debounceMs: 500, // Increased debounce for better stability
+    enableOptimisticUpdates: true
+  });
+
   // Get user display names for project assignee and reviewers
-  const assigneeDisplayName = useUserDisplayName(project?.assigned_to);
+  const assigneeDisplayName = useUserDisplayName(smoothProject?.assigned_to);
 
   // Collect all unique reviewer IDs
   const reviewerIds = reviews ? [...new Set(reviews.map(review => review.reviewer_id).filter(Boolean))] : [];
@@ -305,134 +323,64 @@ export default function ProjectDetail() {
       order_confirmed: 'Order Confirmed',
       procurement_planning: 'Procurement Planning',
       in_production: 'In Production',
-      shipped_closed: 'Shipped & Closed'
+      shipped_closed: 'Shipped/Closed'
     };
     return labels[status as keyof typeof labels] || status;
   };
 
-  // Helper function to get customer display name
-  const getCustomerDisplayName = () => {
-    if (project.customer?.company_name) return project.customer.company_name;
-    if (project.customer?.contact_name) return project.customer.contact_name;
-    return 'N/A';
-  };
-
-  // Helper function to get assignee display name
-  const getAssigneeDisplayName = () => {
-    const assigneeId = project.assigned_to || project.assignee_id;
-    if (!assigneeId) return 'N/A';
-
-    // Use the useUserDisplayName hook to get the display name
-    return useUserDisplayName(assigneeId);
-  };
-
-  // Helper function to get volume from estimated value or default
-  const getVolume = () => {
-    if (project.estimated_value) {
-      // Calculate volume based on estimated value and target price
-      const targetPrice = 8.50; // Default target price per unit
-      return Math.round(project.estimated_value / targetPrice).toLocaleString();
-    }
-    return 'N/A';
-  };
-
-  // Helper function to get target price per unit
-  const getTargetPricePerUnit = () => {
-    if (project.estimated_value) {
-      const volume = 5000; // Default volume
-      return `$${(project.estimated_value / volume).toFixed(2)}/unit`;
-    }
-    return '$8.50/unit';
-  };
-
-  // Review handling functions
-  const handleAddReview = (department: Department) => {
-    setShowReviewForm(department);
-  };
-
-  const handleEditReview = (review: InternalReview) => {
-    setSelectedReview(review);
-    setShowReviewForm(review.department);
-  };
-
-  const handleViewReview = (review: InternalReview) => {
-    setSelectedReview(review);
-    // For now, just show the review form in read-only mode
-    setShowReviewForm(review.department);
-  };
-
-  const handleReviewSubmit = async (submission: ReviewSubmission) => {
-    if (!id) return false;
-
+  const handleReviewSubmit = async (reviewData: ReviewSubmission) => {
     try {
-      await submitReview(showReviewForm!, submission);
+      await submitReview(showReviewForm!, reviewData);
       setShowReviewForm(null);
-      setSelectedReview(null);
-
-      // Check for auto-advance after review submission
-      if (project?.status === 'technical_review' as any) {
-
-        // Small delay to allow review data to update
-        setTimeout(() => {
-          // The autoAdvanceHook is now rendered conditionally, so we can call it directly
-          // or rely on the hook's internal state updates if it's still active.
-          // For now, we'll just log the call.
-          // If the hook is not active, this will be a no-op.
-          // If the hook is active, it will check and potentially advance.
-        }, 500);
-      }
-
       return true;
     } catch (error) {
-      console.error('Failed to submit review:', error);
+      console.error('Error submitting review:', error);
       return false;
     }
   };
 
-  const handleReviewConfigSave = async (config: any) => {
-    // TODO: Implement actual configuration saving
-
-    setShowReviewConfig(false);
+  const handleReviewAssignment = async (reviewId: string, assigneeId: string) => {
+    try {
+      // Handle review assignment logic here
+      setShowAssignmentModal(false);
+    } catch (error) {
+      console.error('Error assigning review:', error);
+    }
   };
 
-  const handleAssignmentSave = async (assignments: any[]) => {
-    // TODO: Implement actual assignment saving
+  // Handle project updates from inline editor and status manager with smooth updates
+  const handleProjectUpdate = async (updatedProject: Project) => {
+    console.log('🔄 ProjectDetail: Project update received, applying smooth update');
 
-    setShowAssignmentModal(false);
-  };
-
-  // Handle project updates from inline editor and status manager
-  const handleProjectUpdate = (updatedProject: Project) => {
-    // Project state is now managed by useProjects hook
-    // Real-time subscription will automatically pick up changes
-    console.log('🔄 ProjectDetail: Project update received, real-time subscription will handle UI update');
+    // Use the smooth update hook to handle the update
+    try {
+      await updateProject(updatedProject);
+    } catch (error) {
+      console.error('Failed to update project:', error);
+    }
   };
 
   return (
     <>
-      <ProjectAutoAdvance project={project} />
-      {/* Debug components removed - real-time workflow is now working correctly */}
-      {/* Rest of the component content */}
+      <ProjectAutoAdvance project={smoothProject} />
       <div className="min-h-screen bg-background">
         {/* Enhanced Header Section */}
         <ProjectDetailHeader
-          project={project}
+          project={smoothProject}
           workflowStages={workflowStages as any}
           onBack={() => navigate('/projects')}
           onEdit={() => console.log('Edit project')}
           onShare={() => console.log('Share project')}
         />
 
-
-
         {/* Enhanced Interactive Navigation */}
-        {project && (
+        {smoothProject && (
           <ResponsiveNavigationWrapper
             activeTab={activeTab}
             onTabChange={handleTabChange}
             tabs={navigationTabs}
-            projectId={project.id}
-            projectTitle={project.title}
+            projectId={smoothProject.id}
+            projectTitle={smoothProject.title}
             onBack={() => navigate('/projects')}
           >
             <div className="p-6">
@@ -448,13 +396,13 @@ export default function ProjectDetail() {
                     <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
                       {/* Inline Project Editor */}
                       <InlineProjectEditor
-                        project={project}
+                        project={smoothProject}
                         onUpdate={handleProjectUpdate}
                       />
 
                       {/* Project Status Manager */}
                       <ProjectStatusManager
-                        project={project}
+                        project={smoothProject}
                         workflowStages={workflowStages as any}
                         onUpdate={handleProjectUpdate}
                       />
@@ -462,7 +410,7 @@ export default function ProjectDetail() {
 
                     {/* Actions Needed for Current Stage */}
                     <ProjectSummaryCard
-                      project={project}
+                      project={smoothProject}
                       workflowStages={workflowStages as any}
                       onEdit={() => console.log('Edit project')}
                       onViewDetails={() => console.log('View details')}
@@ -522,7 +470,7 @@ export default function ProjectDetail() {
                   <div className="space-y-6">
                     {/* Visual Timeline Progression */}
                     <VisualTimelineProgression
-                      project={project}
+                      project={smoothProject}
                       workflowStages={workflowStages as any}
                     />
                   </div>
@@ -578,7 +526,7 @@ export default function ProjectDetail() {
                                     key={department}
                                     variant={existingReview ? "outline" : "default"}
                                     size="sm"
-                                    onClick={() => handleAddReview(department)}
+                                    onClick={() => setShowReviewForm(department)}
                                   >
                                     <Plus className="w-4 h-4 mr-2" />
                                     {existingReview ? `Update ${department}` : `Add ${department}`}
@@ -590,8 +538,8 @@ export default function ProjectDetail() {
                             {/* Review List */}
                             <ReviewList
                               reviews={reviews}
-                              onEditReview={handleEditReview}
-                              onViewReview={handleViewReview}
+                              onEditReview={() => { }} // No direct edit from here, handled by inline editor
+                              onViewReview={() => { }} // No direct view from here, handled by inline editor
                             />
                           </div>
                         )}
@@ -633,8 +581,8 @@ export default function ProjectDetail() {
                   hasError={hasTabError('communication')}
                 >
                   <ProjectCommunication
-                    projectId={project.id}
-                    projectTitle={project.title}
+                    projectId={smoothProject.id}
+                    projectTitle={smoothProject.title}
                   />
                 </TabContentWrapper>
 
@@ -738,61 +686,38 @@ export default function ProjectDetail() {
           </ResponsiveNavigationWrapper>
         )}
 
-        {/* Supplier Modal - Coming Soon */}
-        {showSupplierModal && (
-          <div className="fixed inset-0 bg-background/95 backdrop-blur-lg flex items-center justify-center z-50">
-            <div className="bg-card p-6 rounded-lg border shadow-lg">
-              <h3 className="text-lg font-semibold mb-4 text-card-foreground">Supplier RFQ</h3>
-              <p className="text-muted-foreground mb-4">Supplier RFQ functionality coming soon...</p>
-              <Button onClick={() => setShowSupplierModal(false)}>Close</Button>
-            </div>
-          </div>
-        )}
-
-        {/* Review Form Modal */}
+        {/* Review Forms and Modals */}
         {showReviewForm && (
-          <div className="fixed inset-0 bg-background/95 backdrop-blur-lg flex items-center justify-center p-4 z-50">
-            <div className="w-full max-w-4xl max-h-[90vh] overflow-y-auto">
-              <ProjectReviewForm
-                projectId={id || ''}
-                department={showReviewForm}
-                existingReview={selectedReview || undefined}
-                onSubmit={handleReviewSubmit}
-                onCancel={() => {
-                  setShowReviewForm(null);
-                  setSelectedReview(null);
-                }}
-              />
-            </div>
-          </div>
+          <ProjectReviewForm
+            department={showReviewForm}
+            projectId={smoothProject.id}
+            onSubmit={handleReviewSubmit}
+            onCancel={() => setShowReviewForm(null)}
+          />
         )}
 
-        {/* Review Configuration Modal */}
         {showReviewConfig && (
-          <div className="fixed inset-0 bg-background/95 backdrop-blur-lg flex items-center justify-center p-4 z-50">
-            <div className="w-full max-w-6xl max-h-[90vh] overflow-y-auto">
-              <ReviewConfiguration
-                projectId={id || ''}
-                onClose={() => setShowReviewConfig(false)}
-                onSave={handleReviewConfigSave}
-              />
-            </div>
-          </div>
+          <ReviewConfiguration
+            projectId={smoothProject.id}
+            onClose={() => setShowReviewConfig(false)}
+            onSave={async (config) => {
+              // TODO: Implement configuration saving
+              console.log('Saving review configuration:', config);
+            }}
+          />
         )}
 
-        {/* Review Assignment Modal */}
-        {showAssignmentModal && (
-          <div className="fixed inset-0 bg-background/95 backdrop-blur-lg flex items-center justify-center p-4 z-50">
-            <div className="w-full max-w-2xl max-h-[90vh] overflow-y-auto">
-              <ReviewAssignmentModal
-                projectId={id || ''}
-                onClose={() => setShowAssignmentModal(false)}
-                onSave={handleAssignmentSave}
-              />
-            </div>
-          </div>
+        {showAssignmentModal && selectedReview && (
+          <ReviewAssignmentModal
+            projectId={smoothProject.id}
+            onClose={() => setShowAssignmentModal(false)}
+            onSave={async (assignments) => {
+              // TODO: Implement assignment saving
+              console.log('Saving review assignments:', assignments);
+            }}
+          />
         )}
-      </div >
+      </div>
     </>
   );
 }

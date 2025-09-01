@@ -28,6 +28,7 @@ import Profile from "./pages/Profile";
 import Approvals from "./pages/Approvals";
 
 import { applyAdaptiveTheme } from "@/lib/theme";
+import "@/styles/smooth-transitions.css";
 
 // Temporary debug - remove this later
 console.log('🔍 Environment Variables Debug:');
