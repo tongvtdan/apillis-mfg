@@ -351,6 +351,7 @@ DECLARE
     project_counts JSONB;
     recent_projects JSONB;
     status_counts JSONB;
+    type_counts JSONB;
     project_record RECORD;
 BEGIN
     -- Get user's organization ID
@@ -361,7 +362,7 @@ BEGIN
     -- If no organization found, return empty result
     IF user_org_id IS NULL THEN
         RETURN jsonb_build_object(
-            'projects', jsonb_build_object('total', 0, 'by_status', '{}'),
+            'projects', jsonb_build_object('total', 0, 'by_status', '{}', 'by_type', '{}'),
             'recent_projects', '[]',
             'generated_at', extract(epoch from now())
         );
@@ -380,10 +381,24 @@ BEGIN
         status_counts := status_counts || jsonb_build_object(project_record.status, project_record.count);
     END LOOP;
 
+    -- Get project counts by type
+    type_counts := '{}';
+    FOR project_record IN 
+        SELECT 
+            project_type,
+            COUNT(*) as count
+        FROM projects 
+        WHERE organization_id = user_org_id
+        GROUP BY project_type
+    LOOP
+        type_counts := type_counts || jsonb_build_object(COALESCE(project_record.project_type, 'unspecified'), project_record.count);
+    END LOOP;
+
     -- Build project counts object
     project_counts := jsonb_build_object(
         'total', (SELECT COUNT(*) FROM projects WHERE organization_id = user_org_id),
-        'by_status', status_counts
+        'by_status', status_counts,
+        'by_type', type_counts
     );
 
     -- Get recent projects with customer information
@@ -395,6 +410,7 @@ BEGIN
                 'title', p.title,
                 'status', p.status,
                 'priority', p.priority_level,
+                'project_type', p.project_type,
                 'created_at', p.created_at,
                 'customer_name', c.company_name
             )
@@ -429,7 +445,7 @@ $$;
 ALTER FUNCTION "public"."get_dashboard_summary"() OWNER TO "postgres";
 
 
-COMMENT ON FUNCTION "public"."get_dashboard_summary"() IS 'Returns dashboard summary data including project counts by status and recent projects with customer information. 
+COMMENT ON FUNCTION "public"."get_dashboard_summary"() IS 'Returns enhanced dashboard summary data including project counts by status and type, and recent projects with customer information. 
 Requires user to be authenticated and have an organization_id.';
 
 
@@ -912,11 +928,16 @@ CREATE TABLE IF NOT EXISTS "public"."workflow_stages" (
     "exit_criteria" "text",
     "responsible_roles" "public"."user_role"[] DEFAULT '{}'::"public"."user_role"[],
     "created_at" timestamp with time zone DEFAULT "now"(),
-    "updated_at" timestamp with time zone DEFAULT "now"()
+    "updated_at" timestamp with time zone DEFAULT "now"(),
+    "estimated_duration_days" integer DEFAULT 0
 );
 
 
 ALTER TABLE "public"."workflow_stages" OWNER TO "postgres";
+
+
+COMMENT ON COLUMN "public"."workflow_stages"."estimated_duration_days" IS 'Estimated duration of this stage in days for project planning';
+
 
 
 CREATE TABLE IF NOT EXISTS "public"."workflow_sub_stages" (
@@ -1298,10 +1319,6 @@ CREATE INDEX "idx_workflow_sub_stages_workflow_stage_id" ON "public"."workflow_s
 
 
 CREATE OR REPLACE TRIGGER "generate_project_id_trigger" BEFORE INSERT ON "public"."projects" FOR EACH ROW EXECUTE FUNCTION "public"."generate_project_id"();
-
-
-
-CREATE OR REPLACE TRIGGER "handle_project_stage_change_trigger" BEFORE UPDATE ON "public"."projects" FOR EACH ROW EXECUTE FUNCTION "public"."handle_project_stage_change"();
 
 
 
