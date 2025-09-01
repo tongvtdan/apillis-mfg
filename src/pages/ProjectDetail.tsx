@@ -187,8 +187,9 @@ export default function ProjectDetail() {
         currentId: id,
         projectsCount: projects.length,
         currentProjectStatus: project?.status,
+        currentProjectStage: project?.current_stage_id,
         currentProjectUpdatedAt: project?.updated_at,
-        availableProjectIds: projects.map(p => ({ id: p.id, status: p.status, updated_at: p.updated_at }))
+        availableProjectIds: projects.map(p => ({ id: p.id, status: p.status, stage: p.current_stage_id, updated_at: p.updated_at }))
       });
 
       const updatedProject = projects.find(p => p.id === id);
@@ -196,20 +197,25 @@ export default function ProjectDetail() {
         console.log('✅ ProjectDetail: Found matching project:', {
           projectId: updatedProject.id,
           projectStatus: updatedProject.status,
+          projectStage: updatedProject.current_stage_id,
           projectUpdatedAt: updatedProject.updated_at
         });
 
         // Only update if the project has actually changed
         if (!project ||
           project.status !== updatedProject.status ||
+          project.current_stage_id !== updatedProject.current_stage_id ||
           project.updated_at !== updatedProject.updated_at) {
 
           console.log('🔄 ProjectDetail: Project updated from real-time subscription:', {
             oldStatus: project?.status,
             newStatus: updatedProject.status,
+            oldStage: project?.current_stage_id,
+            newStage: updatedProject.current_stage_id,
             oldUpdatedAt: project?.updated_at,
             newUpdatedAt: updatedProject.updated_at,
             statusChanged: project?.status !== updatedProject.status,
+            stageChanged: project?.current_stage_id !== updatedProject.current_stage_id,
             timestampChanged: project?.updated_at !== updatedProject.updated_at
           });
 
@@ -217,6 +223,7 @@ export default function ProjectDetail() {
         } else {
           console.log('ℹ️ ProjectDetail: No changes detected, skipping update', {
             statusMatch: project?.status === updatedProject.status,
+            stageMatch: project?.current_stage_id === updatedProject.current_stage_id,
             timestampMatch: project?.updated_at === updatedProject.updated_at,
             currentProject: project,
             updatedProject: updatedProject
