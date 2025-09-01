@@ -1,5 +1,5 @@
 import { useAuth } from '@/contexts/AuthContext';
-import { Navigate, useLocation } from 'react-router-dom';
+import { Navigate, useLocation, useNavigate } from 'react-router-dom';
 import { Loader2, Shield, AlertTriangle } from 'lucide-react';
 import { useRoleBasedNavigation } from '@/hooks/useRoleBasedNavigation';
 import { useAuditLogger } from '@/hooks/useAuditLogger';
@@ -17,6 +17,7 @@ interface ProtectedRouteProps {
 export function ProtectedRoute({ children, requiredRoles, requiredPermissions }: ProtectedRouteProps) {
   const { user, profile, loading, signOut } = useAuth();
   const location = useLocation();
+  const navigate = useNavigate();
   const { canAccessRoute, hasAccess, getDefaultRoute } = useRoleBasedNavigation();
   const { logPermissionDenied, logUnauthorizedAccess } = useAuditLogger();
   const { isSessionValid } = useSessionManager();
@@ -87,7 +88,7 @@ export function ProtectedRoute({ children, requiredRoles, requiredPermissions }:
                 Go Back
               </Button>
               <Button
-                onClick={() => window.location.href = getDefaultRoute()}
+                onClick={() => navigate(getDefaultRoute())}
                 className="w-full"
               >
                 Go to Dashboard
@@ -129,7 +130,7 @@ export function ProtectedRoute({ children, requiredRoles, requiredPermissions }:
                 Go Back
               </Button>
               <Button
-                onClick={() => window.location.href = getDefaultRoute()}
+                onClick={() => navigate(getDefaultRoute())}
                 className="w-full"
               >
                 Go to Dashboard
@@ -177,7 +178,7 @@ export function ProtectedRoute({ children, requiredRoles, requiredPermissions }:
                   Go Back
                 </Button>
                 <Button
-                  onClick={() => window.location.href = getDefaultRoute()}
+                  onClick={() => navigate(getDefaultRoute())}
                   className="w-full"
                 >
                   Go to Dashboard

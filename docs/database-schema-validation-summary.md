@@ -140,6 +140,12 @@ Created comprehensive validation scripts:
 
 ## Latest Updates (2025-09-01)
 
+### Access Denied Routing Fix
+- **Issue**: Management and admin users were redirected to non-existent `/admin/dashboard` route
+- **Solution**: Updated `ROLE_DEFAULT_ROUTES` to use existing `/dashboard` route for all user roles
+- **Impact**: Eliminates 404 errors and provides consistent navigation experience
+- **Files**: `src/lib/auth-constants.ts`, `src/components/auth/ProtectedRoute.tsx`
+
 ### Project Interface Schema Alignment
 - **organization_id**: Changed from optional to required to match database constraint
 - **priority_score**: Added new optional number field for enhanced priority calculations

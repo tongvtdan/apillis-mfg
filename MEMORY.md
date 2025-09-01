@@ -2,6 +2,65 @@
 
 ## Recent Changes
 
+### 2025-09-01 - Access Denied Routing Fix
+
+**Task Completed:**
+- Fixed "Go to Dashboard" button in Access Denied dialog causing 404 errors
+- Updated role-based default routes configuration to use existing dashboard route
+- Improved navigation implementation using React Router instead of direct window location changes
+
+**Issue Resolved:**
+- **Problem**: Management and admin users were being redirected to `/admin/dashboard` route which doesn't exist
+- **Root Cause**: `ROLE_DEFAULT_ROUTES` configuration pointed to non-existent admin dashboard route
+- **Impact**: Users clicking "Go to Dashboard" from access denied dialog received 404 errors
+
+**Solution Implemented:**
+- **Route Configuration**: Updated `ROLE_DEFAULT_ROUTES` in `src/lib/auth-constants.ts`
+  - Changed `management: '/admin/dashboard'` to `management: '/dashboard'`
+  - Changed `admin: '/admin/dashboard'` to `admin: '/dashboard'`
+- **Navigation Method**: Enhanced `ProtectedRoute.tsx` to use React Router's `useNavigate` hook
+- **Consistency**: All user roles now use the same `/dashboard` route for unified experience
+
+**Technical Changes:**
+```typescript
+// Before
+export const ROLE_DEFAULT_ROUTES = {
+    // ... other roles
+    management: '/admin/dashboard',  // Non-existent route
+    admin: '/admin/dashboard',       // Non-existent route
+} as const;
+
+// After
+export const ROLE_DEFAULT_ROUTES = {
+    // ... other roles  
+    management: '/dashboard',        // Existing route
+    admin: '/dashboard',             // Existing route
+} as const;
+```
+
+**Benefits:**
+- ✅ **Eliminates 404 Errors**: All users redirect to existing dashboard route
+- ✅ **Consistent UX**: Unified dashboard experience for all user roles
+- ✅ **Better Navigation**: Uses React Router for smooth SPA transitions
+- ✅ **Maintainable**: Simplified route configuration with single dashboard
+
+**Files Modified:**
+- `src/lib/auth-constants.ts` - Updated default routes configuration
+- `src/components/auth/ProtectedRoute.tsx` - Enhanced navigation implementation
+- `docs/access-denied-routing-fix.md` - Comprehensive fix documentation
+
+**Testing Verified:**
+- ✅ Management users can navigate to dashboard from access denied dialog
+- ✅ Admin users can navigate to dashboard from access denied dialog
+- ✅ All user roles have consistent navigation behavior
+- ✅ No 404 errors when using "Go to Dashboard" button
+
+**Current Status:**
+- Access denied routing issue completely resolved
+- All user roles use unified dashboard route
+- Navigation system uses proper React Router implementation
+- Ready for production deployment
+
 ### 2025-09-01 - Project Type Schema Alignment
 
 **Task Completed:**
