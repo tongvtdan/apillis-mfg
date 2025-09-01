@@ -8,21 +8,12 @@ import { QuickStats } from "@/components/dashboard/QuickStats";
 import { OverviewCard } from "@/components/dashboard/OverviewCard";
 import { Card, CardContent } from "@/components/ui/card";
 import { useDashboardData } from '@/hooks/useDashboardData';
-import { useCustomers } from "@/hooks/useCustomers";
-import { useSuppliers } from "@/hooks/useSuppliers";
-import { usePurchaseOrders } from "@/hooks/usePurchaseOrders";
-import { useInventory } from "@/hooks/useInventory";
-import { useProductionOrders } from "@/hooks/useProductionOrders";
 import { useAuth } from "@/contexts/AuthContext";
 import {
   TrendingUp,
   Users,
   Bell,
   FolderOpen,
-  Truck,
-  ShoppingCart,
-  Package,
-  Factory,
   AlertTriangle
 } from "lucide-react";
 
@@ -32,11 +23,6 @@ import {
 // through the user ID which is consistent between both tables after the migration
 export default function Dashboard() {
   const { data: dashboardData, isLoading: dashboardLoading } = useDashboardData();
-  const { customers } = useCustomers();
-  const { suppliers } = useSuppliers();
-  const { purchaseOrders } = usePurchaseOrders();
-  const { inventory } = useInventory();
-  const { productionOrders } = useProductionOrders();
   const { profile } = useAuth();
   const navigate = useNavigate();
 
@@ -75,34 +61,12 @@ export default function Dashboard() {
   // Calculate detailed stats with attention-grabbing details
   const activeProjects = Object.entries(projectsByStatus)
     .filter(([status]) => !['shipped_closed', 'cancelled'].includes(status))
-    .reduce((sum, [, count]) => sum + count, 0);
+    .reduce((sum, [, count]) => sum + (count as number), 0);
 
   const highPriorityProjects = 0; // Will be available when priority data is added
   const overdueProjects = 0; // Will be calculated from stage tracking
 
-  // Purchase Orders analysis
-  const pendingPOs = purchaseOrders.filter(po => po.status === 'pending').length;
-  const urgentPOs = purchaseOrders.filter(po => po.priority === 'urgent').length;
-  const overduePOs = purchaseOrders.filter(po => {
-    if (!po.due_date) return false;
-    return new Date(po.due_date) < new Date();
-  }).length;
-
-  // Inventory analysis
-  const lowStockItems = inventory.filter(item =>
-    item.current_stock <= (item.min_stock_level || 10)
-  ).length;
-  const outOfStockItems = inventory.filter(item => item.current_stock === 0).length;
-  const criticalItems = inventory.filter(item =>
-    item.current_stock < (item.min_stock_level || 10) * 0.5
-  ).length;
-
-  // Production analysis
-  const activeProduction = productionOrders.filter(po => po.status === 'in_progress').length;
-  const onHoldProduction = productionOrders.filter(po => po.status === 'on_hold').length;
-  const urgentProduction = productionOrders.filter(po => po.priority === 'urgent').length;
-
-  // Enhanced overview data with real data and important alerts
+  // Enhanced overview data with real data and important alerts - only Projects section
   const overviewData = [
     {
       title: "Projects",
@@ -117,74 +81,6 @@ export default function Dashboard() {
       bgColor: highPriorityProjects > 0 ? "bg-destructive/10" : "bg-primary/10",
       borderColor: highPriorityProjects > 0 ? "border-destructive/20" : "border-primary/20",
       alert: overdueProjects > 0 ? `${overdueProjects} overdue` : null
-    },
-    {
-      title: "Purchase Orders",
-      count: purchaseOrders.length,
-      activeCount: pendingPOs,
-      description: urgentPOs > 0
-        ? `🚨 ${urgentPOs} urgent orders`
-        : `${pendingPOs} pending orders`,
-      icon: ShoppingCart,
-      route: "/purchase-orders",
-      color: urgentPOs > 0 ? "text-destructive" : "text-warning",
-      bgColor: urgentPOs > 0 ? "bg-destructive/10" : "bg-warning/10",
-      borderColor: urgentPOs > 0 ? "border-destructive/20" : "border-warning/20",
-      alert: overduePOs > 0 ? `${overduePOs} overdue` : null
-    },
-    {
-      title: "Production",
-      count: productionOrders.length,
-      activeCount: activeProduction,
-      description: urgentProduction > 0
-        ? `🚨 ${urgentProduction} urgent jobs`
-        : `${activeProduction} in production`,
-      icon: Factory,
-      route: "/production",
-      color: urgentProduction > 0 ? "text-destructive" : "text-accent",
-      bgColor: urgentProduction > 0 ? "bg-destructive/10" : "bg-accent/10",
-      borderColor: urgentProduction > 0 ? "border-destructive/20" : "border-accent/20",
-      alert: onHoldProduction > 0 ? `${onHoldProduction} on hold` : null
-    },
-    {
-      title: "Inventory",
-      count: inventory.length,
-      activeCount: lowStockItems,
-      description: criticalItems > 0
-        ? `🔴 ${criticalItems} critical items`
-        : lowStockItems > 0
-          ? `⚠️ ${lowStockItems} low stock`
-          : `${inventory.length} items tracked`,
-      icon: Package,
-      route: "/inventory",
-      color: criticalItems > 0 ? "text-destructive" : lowStockItems > 0 ? "text-warning" : "text-info",
-      bgColor: criticalItems > 0 ? "bg-destructive/10" : lowStockItems > 0 ? "bg-warning/10" : "bg-info/10",
-      borderColor: criticalItems > 0 ? "border-destructive/20" : lowStockItems > 0 ? "border-warning/20" : "border-info/20",
-      alert: outOfStockItems > 0 ? `${outOfStockItems} out of stock` : null
-    },
-    {
-      title: "Customers",
-      count: customers?.length || 0,
-      activeCount: customers?.filter(c => c.name).length || 0,
-      description: `${customers?.length || 0} total customers`,
-      icon: Users,
-      route: "/customers",
-      color: "text-success",
-      bgColor: "bg-success/10",
-      borderColor: "border-success/20",
-      alert: null
-    },
-    {
-      title: "Suppliers",
-      count: suppliers?.length || 0,
-      activeCount: suppliers?.filter(s => s.is_active).length || 0,
-      description: `${suppliers?.filter(s => s.is_active).length || 0} active suppliers`,
-      icon: Truck,
-      route: "/suppliers",
-      color: "text-secondary",
-      bgColor: "bg-secondary/10",
-      borderColor: "border-secondary/20",
-      alert: null
     }
   ];
 
@@ -209,16 +105,15 @@ export default function Dashboard() {
               <span>{profile?.display_name} ({profile?.role})</span>
             </div>
             <div className="hidden lg:flex items-center gap-4 text-sm text-muted-foreground">
-              <span>🌐 Projects</span>
-              <span>📂 Documents</span>
-              <span>📊 Analytics</span>
+              <span>🌐 Projects Overview</span>
+              {/* Other sections are accessible through the sidebar menu */}
             </div>
           </div>
         </div>
       </div>
 
       <div className="px-4 sm:px-6">
-        {/* Search and Filter Bar */}
+        {/* Search and Filter Bar - focused on projects */}
         <SearchFilterBar
           searchQuery={searchQuery}
           onSearchChange={setSearchQuery}
@@ -234,40 +129,38 @@ export default function Dashboard() {
         {/* Priority Action Items */}
         <PriorityActionItems projects={[]} />
 
-        {/* Overview Cards */}
+        {/* Projects Overview Section */}
         <div className="mt-8">
           <div className="mb-6">
             <h2 className="text-xl font-semibold text-foreground flex items-center gap-2">
               <TrendingUp className="h-6 w-6 text-primary" />
-              System Overview
+              Projects Overview
             </h2>
             <p className="text-sm text-muted-foreground mt-1">
-              Quick overview of projects, customers, suppliers, and operations
+              Quick overview of your projects and their status. Other sections can be accessed through the sidebar menu.
             </p>
           </div>
 
           <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-4 lg:gap-6 mb-8">
             {loading ? (
-              // Loading skeleton for overview cards
-              Array.from({ length: 6 }).map((_, index) => (
-                <Card key={index} className="animate-pulse">
-                  <CardContent className="p-6">
-                    <div className="flex items-center justify-between">
-                      <div>
-                        <div className="flex items-center gap-2 mb-2">
-                          <div className="w-5 h-5 bg-muted rounded"></div>
-                          <div className="w-20 h-4 bg-muted rounded"></div>
-                        </div>
-                        <div className="space-y-1">
-                          <div className="w-12 h-8 bg-muted rounded"></div>
-                          <div className="w-32 h-3 bg-muted rounded"></div>
-                        </div>
+              // Loading skeleton for projects overview card
+              <Card className="animate-pulse">
+                <CardContent className="p-6">
+                  <div className="flex items-center justify-between">
+                    <div>
+                      <div className="flex items-center gap-2 mb-2">
+                        <div className="w-5 h-5 bg-muted rounded"></div>
+                        <div className="w-20 h-4 bg-muted rounded"></div>
                       </div>
-                      <div className="w-8 h-6 bg-muted rounded"></div>
+                      <div className="space-y-1">
+                        <div className="w-12 h-8 bg-muted rounded"></div>
+                        <div className="w-32 h-3 bg-muted rounded"></div>
+                      </div>
                     </div>
-                  </CardContent>
-                </Card>
-              ))
+                    <div className="w-8 h-6 bg-muted rounded"></div>
+                  </div>
+                </CardContent>
+              </Card>
             ) : (
               overviewData.map((item) => (
                 <OverviewCard
@@ -289,9 +182,9 @@ export default function Dashboard() {
           </div>
         </div>
 
-        {/* Stats & Activities Grid */}
+        {/* Projects Stats and Activities */}
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-          {/* Quick Stats */}
+          {/* Quick Stats for Projects */}
           <QuickStats
             activeProjects={activeProjects}
             highPriorityProjects={highPriorityProjects}
