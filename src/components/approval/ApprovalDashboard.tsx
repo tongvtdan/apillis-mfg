@@ -3,9 +3,12 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { Checkbox } from '@/components/ui/checkbox';
 import { useApprovals } from '@/hooks/useApprovals';
 import { ApprovalModal } from './ApprovalModal';
 import { ApprovalHistoryList } from './ApprovalHistoryList';
+import { BulkApprovalModal } from './BulkApprovalModal';
+import { ApprovalDelegationModal } from './ApprovalDelegationModal';
 import {
     Clock,
     CheckCircle,
@@ -13,13 +16,20 @@ import {
     AlertCircle,
     Calendar,
     User,
-    FileText
+    FileText,
+    CheckSquare,
+    Square,
+    UserCheck
 } from 'lucide-react';
 import { formatDistanceToNow } from 'date-fns';
 
 export function ApprovalDashboard() {
     const { pendingApprovals, approvalHistory, loading } = useApprovals();
     const [selectedApproval, setSelectedApproval] = useState<string | null>(null);
+    const [selectedApprovals, setSelectedApprovals] = useState<string[]>([]);
+    const [showBulkModal, setShowBulkModal] = useState(false);
+    const [bulkSelectionMode, setBulkSelectionMode] = useState(false);
+    const [showDelegationModal, setShowDelegationModal] = useState(false);
 
     const getPriorityColor = (priority: string) => {
         switch (priority) {
@@ -47,6 +57,46 @@ export function ApprovalDashboard() {
             default:
                 return <AlertCircle className="w-4 h-4 text-gray-500" />;
         }
+    };
+
+    const handleSelectApproval = (approvalId: string, checked: boolean) => {
+        if (checked) {
+            setSelectedApprovals(prev => [...prev, approvalId]);
+        } else {
+            setSelectedApprovals(prev => prev.filter(id => id !== approvalId));
+        }
+    };
+
+    const handleSelectAll = (checked: boolean) => {
+        if (checked) {
+            setSelectedApprovals(pendingApprovals.map(a => a.id));
+        } else {
+            setSelectedApprovals([]);
+        }
+    };
+
+    const handleBulkApproval = () => {
+        if (selectedApprovals.length > 0) {
+            setShowBulkModal(true);
+        }
+    };
+
+    const handleBulkApprovalComplete = () => {
+        setSelectedApprovals([]);
+        setBulkSelectionMode(false);
+        setShowBulkModal(false);
+    };
+
+    const handleDelegateApprovals = () => {
+        if (selectedApprovals.length > 0) {
+            setShowDelegationModal(true);
+        }
+    };
+
+    const handleDelegationComplete = () => {
+        setSelectedApprovals([]);
+        setBulkSelectionMode(false);
+        setShowDelegationModal(false);
     };
 
     if (loading) {
@@ -133,62 +183,137 @@ export function ApprovalDashboard() {
                             </CardContent>
                         </Card>
                     ) : (
-                        <div className="grid gap-4">
-                            {pendingApprovals.map((approval) => (
-                                <Card key={approval.id} className="hover:shadow-md transition-shadow">
-                                    <CardContent className="p-6">
-                                        <div className="flex items-start justify-between">
-                                            <div className="flex-1 space-y-3">
-                                                <div className="flex items-center gap-3">
-                                                    {getStatusIcon(approval.status)}
-                                                    <div>
-                                                        <h3 className="font-semibold">
-                                                            Stage Approval Required
-                                                        </h3>
-                                                        <p className="text-sm text-muted-foreground">
-                                                            Project: {approval.project_id}
-                                                        </p>
+                        <div className="space-y-4">
+                            {/* Bulk Actions Header */}
+                            <div className="flex items-center justify-between p-4 bg-muted/50 rounded-lg">
+                                <div className="flex items-center gap-4">
+                                    <div className="flex items-center gap-2">
+                                        <Checkbox
+                                            checked={selectedApprovals.length === pendingApprovals.length}
+                                            onCheckedChange={handleSelectAll}
+                                            disabled={!bulkSelectionMode}
+                                        />
+                                        <span className="text-sm font-medium">
+                                            {bulkSelectionMode ? 'Select All' : 'Bulk Actions'}
+                                        </span>
+                                    </div>
+                                    {selectedApprovals.length > 0 && (
+                                        <Badge variant="secondary">
+                                            {selectedApprovals.length} selected
+                                        </Badge>
+                                    )}
+                                </div>
+                                <div className="flex items-center gap-2">
+                                    {selectedApprovals.length > 0 && (
+                                        <>
+                                            <Button
+                                                onClick={handleBulkApproval}
+                                                size="sm"
+                                                variant="default"
+                                            >
+                                                Bulk Review ({selectedApprovals.length})
+                                            </Button>
+                                            <Button
+                                                onClick={handleDelegateApprovals}
+                                                size="sm"
+                                                variant="outline"
+                                            >
+                                                <UserCheck className="w-4 h-4 mr-1" />
+                                                Delegate ({selectedApprovals.length})
+                                            </Button>
+                                        </>
+                                    )}
+                                    <Button
+                                        onClick={() => setBulkSelectionMode(!bulkSelectionMode)}
+                                        size="sm"
+                                        variant="outline"
+                                    >
+                                        {bulkSelectionMode ? 'Cancel' : 'Select Multiple'}
+                                    </Button>
+                                    {!bulkSelectionMode && (
+                                        <Button
+                                            onClick={() => setShowDelegationModal(true)}
+                                            size="sm"
+                                            variant="outline"
+                                        >
+                                            <UserCheck className="w-4 h-4 mr-1" />
+                                            Delegate All
+                                        </Button>
+                                    )}
+                                </div>
+                            </div>
+
+                            {/* Approval Cards */}
+                            <div className="grid gap-4">
+                                {pendingApprovals.map((approval) => (
+                                    <Card key={approval.id} className="hover:shadow-md transition-shadow">
+                                        <CardContent className="p-6">
+                                            <div className="flex items-start justify-between">
+                                                <div className="flex items-start gap-3 flex-1">
+                                                    {bulkSelectionMode && (
+                                                        <Checkbox
+                                                            checked={selectedApprovals.includes(approval.id)}
+                                                            onCheckedChange={(checked) =>
+                                                                handleSelectApproval(approval.id, checked as boolean)
+                                                            }
+                                                            className="mt-1"
+                                                        />
+                                                    )}
+                                                    <div className="flex-1 space-y-3">
+                                                        <div className="flex items-center gap-3">
+                                                            {getStatusIcon(approval.status)}
+                                                            <div>
+                                                                <h3 className="font-semibold">
+                                                                    Stage Approval Required
+                                                                </h3>
+                                                                <p className="text-sm text-muted-foreground">
+                                                                    Project: {approval.project_id}
+                                                                </p>
+                                                            </div>
+                                                        </div>
+
+                                                        <div className="flex items-center gap-4 text-sm text-muted-foreground">
+                                                            <div className="flex items-center gap-1">
+                                                                <User className="w-4 h-4" />
+                                                                Role: {approval.approver_role}
+                                                            </div>
+                                                            {approval.due_date && (
+                                                                <div className="flex items-center gap-1">
+                                                                    <Calendar className="w-4 h-4" />
+                                                                    Due: {formatDistanceToNow(new Date(approval.due_date), { addSuffix: true })}
+                                                                </div>
+                                                            )}
+                                                        </div>
+
+                                                        {approval.comments && (
+                                                            <div className="flex items-start gap-2">
+                                                                <FileText className="w-4 h-4 mt-0.5 text-muted-foreground" />
+                                                                <p className="text-sm text-muted-foreground">
+                                                                    {approval.comments}
+                                                                </p>
+                                                            </div>
+                                                        )}
                                                     </div>
                                                 </div>
 
-                                                <div className="flex items-center gap-4 text-sm text-muted-foreground">
-                                                    <div className="flex items-center gap-1">
-                                                        <User className="w-4 h-4" />
-                                                        Role: {approval.approver_role}
-                                                    </div>
-                                                    {approval.due_date && (
-                                                        <div className="flex items-center gap-1">
-                                                            <Calendar className="w-4 h-4" />
-                                                            Due: {formatDistanceToNow(new Date(approval.due_date), { addSuffix: true })}
-                                                        </div>
+                                                <div className="flex items-center gap-2">
+                                                    {approval.due_date && new Date(approval.due_date) < new Date() && (
+                                                        <Badge variant="destructive">Overdue</Badge>
+                                                    )}
+                                                    {!bulkSelectionMode && (
+                                                        <Button
+                                                            onClick={() => setSelectedApproval(approval.id)}
+                                                            size="sm"
+                                                        >
+                                                            Review
+                                                        </Button>
                                                     )}
                                                 </div>
-
-                                                {approval.comments && (
-                                                    <div className="flex items-start gap-2">
-                                                        <FileText className="w-4 h-4 mt-0.5 text-muted-foreground" />
-                                                        <p className="text-sm text-muted-foreground">
-                                                            {approval.comments}
-                                                        </p>
-                                                    </div>
-                                                )}
                                             </div>
-
-                                            <div className="flex items-center gap-2">
-                                                {approval.due_date && new Date(approval.due_date) < new Date() && (
-                                                    <Badge variant="destructive">Overdue</Badge>
-                                                )}
-                                                <Button
-                                                    onClick={() => setSelectedApproval(approval.id)}
-                                                    size="sm"
-                                                >
-                                                    Review
-                                                </Button>
-                                            </div>
-                                        </div>
-                                    </CardContent>
-                                </Card>
-                            ))}
+                                        </CardContent>
+                                    </Card>
+                                ))}
+                            </div>
                         </div>
                     )}
                 </TabsContent>
@@ -204,6 +329,26 @@ export function ApprovalDashboard() {
                     approvalId={selectedApproval}
                     isOpen={!!selectedApproval}
                     onClose={() => setSelectedApproval(null)}
+                />
+            )}
+
+            {/* Bulk Approval Modal */}
+            {showBulkModal && (
+                <BulkApprovalModal
+                    approvalIds={selectedApprovals}
+                    isOpen={showBulkModal}
+                    onClose={() => setShowBulkModal(false)}
+                    onComplete={handleBulkApprovalComplete}
+                />
+            )}
+
+            {/* Delegation Modal */}
+            {showDelegationModal && (
+                <ApprovalDelegationModal
+                    isOpen={showDelegationModal}
+                    onClose={() => setShowDelegationModal(false)}
+                    onComplete={handleDelegationComplete}
+                    approvalIds={selectedApprovals.length > 0 ? selectedApprovals : undefined}
                 />
             )}
         </div>
