@@ -64,6 +64,80 @@ graph TB
 
 ## Core Components
 
+### ProjectDetailLayout Component
+
+**Purpose**: Foundation layout component for project detail pages with tabbed interface and status monitoring
+
+**Location**: `src/components/project/ProjectDetailLayout.tsx`
+
+**Status**: ✅ **Core component implemented and ready for integration**
+
+**Component Features:**
+- **Tabbed Interface**: Six main tabs (Overview, Documents, Communication, Reviews, Analytics, Settings) with dynamic badge support
+- **Project Status Summary**: Real-time status card with progress indicators, health metrics, and time tracking
+- **Health Monitoring**: Automated health scoring system with risk level assessment (Good/At Risk/Critical)
+- **Progress Visualization**: Stage-based progress calculation with animated progress bar
+- **Responsive Design**: Mobile-friendly layout with grid-based responsive breakpoints
+- **Tab Management**: Internal and external tab state management with callback support
+
+**Component Interface:**
+```typescript
+interface ProjectDetailLayoutProps {
+  project: Project;
+  workflowStages?: WorkflowStage[];
+  activeTab?: string;
+  onTabChange?: (tab: string) => void;
+  children?: React.ReactNode;
+  className?: string;
+}
+
+interface TabConfig {
+  id: string;
+  label: string;
+  icon: React.ElementType;
+  badge?: number;
+  badgeVariant?: 'default' | 'secondary' | 'destructive' | 'outline';
+  disabled?: boolean;
+}
+```
+
+**Health Scoring System:**
+- **Algorithm**: Analyzes time in stage, priority level, and delivery date proximity
+- **Risk Thresholds**: Critical (>3 days for critical projects), At Risk (>7 days for high priority, >14 days general)
+- **Visual Indicators**: Color-coded health icons (CheckCircle2, AlertCircle) with descriptive status text
+- **Real-time Updates**: Recalculates health metrics based on current project state
+
+**Progress Calculation Features:**
+- **Stage-Based Progress**: Calculates completion percentage based on current workflow stage position
+- **Visual Progress Bar**: Animated progress indicator with smooth transitions and percentage display
+- **Stage Information**: Current stage display with color-coded badges and entry date tracking
+- **Time Tracking**: Days in current stage with formatted entry date display
+
+**Tab System Features:**
+- **Dynamic Badges**: Support for notification badges with overflow handling (99+ for large numbers)
+- **Icon Integration**: Lucide React icons for each tab with consistent sizing
+- **State Management**: Internal tab state with external control support via onTabChange callback
+- **Accessibility**: Proper ARIA labels and keyboard navigation support
+
+**Integration Points:**
+- **EnhancedProjectDetail**: Main container component that uses this layout
+- **ProjectStatusManager**: Status management component for status transitions
+- **InlineProjectEditor**: Inline editing component for project information
+- **Tab Content Components**: DocumentManager, ProjectCommunication, ReviewList for tab content
+- **WorkflowStage System**: Integration with workflow stages for progress calculation
+
+**Performance Optimizations:**
+- **Memoized Calculations**: Efficient progress and health score calculations with helper functions
+- **Callback Optimization**: Proper event handler optimization to prevent unnecessary re-renders
+- **Conditional Rendering**: Smart rendering of badges and status indicators
+- **Responsive Breakpoints**: Optimized layout for different screen sizes
+
+**Dependencies:**
+- **UI Components**: Card, Tabs, Badge, Button, Separator from shadcn/ui
+- **Icons**: Lucide React icons (FileText, MessageSquare, Users, BarChart3, Settings, Clock, CheckCircle2, AlertCircle, Activity)
+- **Types**: Project and WorkflowStage interfaces from project types
+- **Utilities**: cn utility function for conditional class names
+
 ### DocumentManager Component
 
 **Purpose**: Comprehensive document management interface for project files with advanced filtering and organization

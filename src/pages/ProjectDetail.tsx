@@ -55,6 +55,10 @@ import { ResponsiveNavigationWrapper } from "@/components/project/ResponsiveNavi
 import { TabTransition, TabContentWrapper } from "@/components/project/TabTransition";
 import { useProjectNavigation } from "@/hooks/useProjectNavigation";
 
+// Import new enhanced components
+import { InlineProjectEditor } from "@/components/project/InlineProjectEditor";
+import { ProjectStatusManager } from "@/components/project/ProjectStatusManager";
+
 // Separate component for auto-advance functionality to avoid Rules of Hooks violation
 const ProjectAutoAdvance = memo(({ project }: { project: Project }) => {
   const autoAdvanceHook = useWorkflowAutoAdvance(project);
@@ -504,6 +508,12 @@ export default function ProjectDetail() {
     setShowAssignmentModal(false);
   };
 
+  // Handle project updates from inline editor and status manager
+  const handleProjectUpdate = (updatedProject: Project) => {
+    setProject(updatedProject);
+    // The real-time subscription will also pick up changes, but this provides immediate feedback
+  };
+
   return (
     <>
       <ProjectAutoAdvance project={project} />
@@ -539,6 +549,22 @@ export default function ProjectDetail() {
                   hasError={hasTabError('overview')}
                 >
                   <div className="space-y-6">
+                    {/* Enhanced Project Management Section */}
+                    <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                      {/* Inline Project Editor */}
+                      <InlineProjectEditor
+                        project={project}
+                        onUpdate={handleProjectUpdate}
+                      />
+
+                      {/* Project Status Manager */}
+                      <ProjectStatusManager
+                        project={project}
+                        workflowStages={workflowStages}
+                        onUpdate={handleProjectUpdate}
+                      />
+                    </div>
+
                     {/* Actions Needed for Current Stage */}
                     <ProjectSummaryCard
                       project={project}
