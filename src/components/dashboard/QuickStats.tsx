@@ -1,6 +1,7 @@
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { FileText } from "lucide-react";
+import { FileText, AlertTriangle, Clock } from "lucide-react";
+import { PRIORITY_COLORS } from "@/types/project";
 
 interface QuickStatsProps {
   activeProjects: number;
@@ -64,6 +65,9 @@ export function QuickStats({ activeProjects, highPriorityProjects, overdueProjec
           <div className="flex items-center gap-2">
             <div className={`priority-indicator-high ${getIconBgClass('high', highPriorityProjects)}`}></div>
             <span className={getTextClass('high', highPriorityProjects)}>High Priority</span>
+            <Badge className={`${PRIORITY_COLORS.high} ml-2`}>
+              High & Urgent
+            </Badge>
           </div>
           <div className={highPriorityProjects > 0 ? "status-badge status-badge-sm status-high" : "status-badge status-badge-sm"}>
             {highPriorityProjects}
@@ -73,6 +77,7 @@ export function QuickStats({ activeProjects, highPriorityProjects, overdueProjec
           <div className="flex items-center gap-2">
             <div className={`priority-indicator-urgent ${getIconBgClass('overdue', overdueProjects)}`}></div>
             <span className={getTextClass('overdue', overdueProjects)}>Overdue</span>
+            <AlertTriangle className="h-4 w-4 text-red-500 ml-1" />
           </div>
           <div className={overdueProjects > 0 ? "status-badge status-badge-sm status-overdue" : "status-badge status-badge-sm"}>
             {overdueProjects}

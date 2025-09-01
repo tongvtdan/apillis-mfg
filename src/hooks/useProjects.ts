@@ -21,18 +21,25 @@ export function useProjects() {
   const [projects, setProjects] = useState<Project[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  const { user } = useAuth();
+  const { user, profile } = useAuth(); // Also get profile
   const { toast } = useToast();
   const realtimeChannelRef = useRef<any>(null);
+  const lastFetchTimeRef = useRef<number>(0);
 
-  const fetchProjects = async (forceRefresh = false, options?: ProjectQueryOptions) => {
-    if (!user) {
+  const fetchProjects = useCallback(async (forceRefresh = false, options?: ProjectQueryOptions) => {
+    // Check if user is authenticated and has a profile with organization
+    if (!user || !profile?.organization_id) {
+      console.log('⚠️ No authenticated user or organization, returning empty projects array');
+      console.log('User:', user);
+      console.log('Profile:', profile);
       setProjects([]);
       setLoading(false);
       return;
     }
 
     try {
+      console.log('🔍 Fetching projects for user:', user.id, 'organization:', profile.organization_id);
+
       // Check cache based on whether options are applied
       if (!forceRefresh) {
         if (options && Object.keys(options).length > 0) {
@@ -41,6 +48,7 @@ export function useProjects() {
           if (cacheService.isQueryCacheValid(queryKey)) {
             const cachedResult = cacheService.getQueryResult(queryKey);
             if (cachedResult) {
+              console.log('📦 Using cached query result for:', queryKey);
               setProjects(cachedResult);
               setLoading(false);
               return;
@@ -51,6 +59,7 @@ export function useProjects() {
           if (cacheService.isCacheValid() && cacheService.validateCacheConsistency()) {
             const cachedProjects = cacheService.getProjects();
             if (cachedProjects) {
+              console.log('📦 Using cached projects:', cachedProjects.length);
               setProjects(cachedProjects);
               setLoading(false);
               return;
@@ -62,7 +71,8 @@ export function useProjects() {
       setLoading(true);
       setError(null);
 
-      // Use optimized query with selective field specification
+      // Use optimized query with selective field specification and organization filtering
+      console.log('📡 Fetching projects from database...');
       let query = supabase
         .from('projects')
         .select(`
@@ -79,6 +89,8 @@ export function useProjects() {
           assigned_to,
           created_by,
           estimated_value,
+          estimated_delivery_date,
+          actual_delivery_date,
           tags,
           metadata,
           stage_entered_at,
@@ -93,17 +105,21 @@ export function useProjects() {
             email,
             phone,
             type,
-            is_active
+            is_active,
+            created_at,
+            updated_at
           ),
           current_stage:workflow_stages!current_stage_id(
             id,
             name,
             description,
-            order_index,
+            stage_order,
             is_active,
-            estimated_duration_days
-          )
-        `);
+            created_at,
+            updated_at
+          ) 
+        `)
+        .eq('organization_id', profile.organization_id); // Add organization filter
 
       // Apply filters if provided
       if (options?.status) {
@@ -123,10 +139,17 @@ export function useProjects() {
         query = query.range(options.offset, options.offset + (options.limit || 50) - 1);
       }
 
-      const { data, error: fetchError } = await query;
+      const { data, error: fetchError, count } = await query;
+
+      console.log('📊 Projects query result:', {
+        dataLength: data?.length,
+        count,
+        hasError: !!fetchError,
+        error: fetchError
+      });
 
       if (fetchError) {
-        console.error('Error fetching projects:', fetchError);
+        console.error('❌ Error fetching projects:', fetchError);
         const errorMessage = fetchError.code === 'PGRST116'
           ? 'Database connection error. Please check your connection and try again.'
           : fetchError.message || 'Failed to fetch projects';
@@ -151,32 +174,34 @@ export function useProjects() {
         // Add computed fields for compatibility
         due_date: project.estimated_delivery_date, // Map estimated_delivery_date to due_date for compatibility
         priority: project.priority_level, // Map priority_level to priority for legacy compatibility
-        // Add order_index to current_stage if it exists
+        // Add stage_order to current_stage if it exists
         current_stage: project.current_stage ? {
           ...project.current_stage,
-          order_index: project.current_stage.stage_order
+          stage_order: project.current_stage.stage_order
         } : undefined
       }));
 
+      console.log('✅ Successfully mapped projects:', mappedProjects.length);
+      console.log('Mapped projects data:', mappedProjects);
       setProjects(mappedProjects as Project[]);
 
       // Cache the data appropriately
       if (options) {
         // Cache filtered results with query-specific key
-        const queryKey = cacheService.generateQueryKey(options);
+        const queryKey = generateProjectQueryKey('list', options);
         cacheService.setQueryResult(queryKey, mappedProjects as Project[]);
       } else {
         // Cache full dataset in main cache
         cacheService.setProjects(mappedProjects as Project[]);
       }
     } catch (err) {
-      console.error('Error in fetchProjects:', err);
+      console.error('💥 Error in fetchProjects:', err);
       const errorMessage = err instanceof Error ? err.message : 'Failed to fetch projects';
       setError(errorMessage);
     } finally {
       setLoading(false);
     }
-  };
+  }, [user, profile]);
 
   // Selective real-time subscription for specific projects
   const subscribeToProjectUpdates = useCallback((projectIds: string[]) => {
@@ -257,10 +282,13 @@ export function useProjects() {
       });
 
     return realtimeChannelRef.current;
-  }, []);
+  }, [fetchProjects]); // Add fetchProjects dependency
 
   // Set up real-time subscription - only for project detail pages
   useEffect(() => {
+    console.log('🔄 useProjects useEffect triggered');
+    console.log('User:', user);
+    console.log('Profile:', profile);
     fetchProjects();
 
     // Only subscribe to real-time updates on specific routes
@@ -286,13 +314,23 @@ export function useProjects() {
       return;
     }
 
-    // Subscribe to the global real-time manager
+    // Subscribe to the global real-time manager with rate limiting
     const unsubscribe = realtimeManager.subscribe(() => {
+      // Rate limit real-time updates to prevent excessive API calls
+      const now = Date.now();
+      const timeSinceLastFetch = now - lastFetchTimeRef.current;
+
+      if (timeSinceLastFetch < 2000) { // Minimum 2 seconds between fetches
+        console.log('🔔 useProjects: Rate limiting real-time update (last fetch was', timeSinceLastFetch, 'ms ago)');
+        return;
+      }
+
       // When we receive a notification, refetch projects to get the latest data
       if (shouldLog) {
         console.log('🔔 useProjects: Received real-time update notification, refetching projects');
       }
-      fetchProjects();
+      lastFetchTimeRef.current = now;
+      fetchProjects(true);
     });
 
     return () => {
@@ -301,11 +339,17 @@ export function useProjects() {
       }
       unsubscribe();
     };
-  }, [user]); // Remove projects.length dependency to prevent infinite loops
+  }, [user, profile]); // Remove fetchProjects from dependency array to prevent circular dependency
 
   // Get project by ID
   const getProjectById = async (id: string): Promise<Project | null> => {
     console.log('🔍 Fetching project with ID:', id);
+
+    // Check if user is authenticated and has a profile with organization
+    if (!user || !profile?.organization_id) {
+      console.log('⚠️ No authenticated user or organization, cannot fetch project');
+      return null;
+    }
 
     try {
       // First, log all projects to see what's available
@@ -315,7 +359,8 @@ export function useProjects() {
           *,
           customer:contacts(*),
           current_stage:workflow_stages(*)
-        `);
+        `)
+        .eq('organization_id', profile.organization_id); // Add organization filter
 
       if (allProjectsError) {
         console.error('❌ Error fetching all projects:', allProjectsError);
@@ -336,6 +381,7 @@ export function useProjects() {
           current_stage:workflow_stages(*)
         `)
         .eq('id', id)
+        .eq('organization_id', profile.organization_id) // Add organization filter
         .single();
 
       if (error) {
@@ -349,6 +395,7 @@ export function useProjects() {
             current_stage:workflow_stages(*)
           `)
           .eq('project_id', id)
+          .eq('organization_id', profile.organization_id) // Add organization filter
           .single();
 
         if (altError) {
@@ -601,7 +648,7 @@ export function useProjects() {
   // Manual refetch function
   const refetch = useCallback(async (forceRefresh = false) => {
     await fetchProjects(forceRefresh);
-  }, []);
+  }, [fetchProjects]); // Add fetchProjects dependency
 
   // Get bottleneck analysis for projects
   const getBottleneckAnalysis = async (): Promise<BottleneckAlert[]> => {
@@ -623,7 +670,7 @@ export function useProjects() {
     offset?: number;
   }, forceRefresh = false) => {
     await fetchProjects(forceRefresh, filters);
-  }, []);
+  }, [fetchProjects]); // Add fetchProjects dependency
 
   return {
     projects,

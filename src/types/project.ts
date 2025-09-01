@@ -60,10 +60,53 @@ export interface WorkflowStage {
   updated_at: string;
 
   // Computed fields for compatibility
-  order_index?: number; // Computed from stage_order
+  order_index?: number; // Computed from stage_order for backward compatibility
   estimated_duration_days?: number;
   required_approvals?: any[];
   auto_advance_conditions?: Record<string, any>;
+
+  // New fields for sub-stages support
+  sub_stages_count?: number;
+  sub_stages?: WorkflowSubStage[];
+}
+
+export interface WorkflowSubStage {
+  id: string;
+  organization_id: string;
+  workflow_stage_id: string;
+  name: string;
+  slug: string;
+  description?: string;
+  color?: string;
+  sub_stage_order: number;
+  is_active: boolean;
+  exit_criteria?: string;
+  responsible_roles?: string[];
+  estimated_duration_hours?: number;
+  is_required: boolean;
+  can_skip: boolean;
+  auto_advance: boolean;
+  requires_approval: boolean;
+  approval_roles?: string[];
+  metadata?: Record<string, any>;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface ProjectSubStageProgress {
+  id: string;
+  organization_id: string;
+  project_id: string;
+  workflow_stage_id: string;
+  sub_stage_id: string;
+  status: 'pending' | 'in_progress' | 'completed' | 'skipped' | 'blocked';
+  started_at?: string;
+  completed_at?: string;
+  assigned_to?: string;
+  notes?: string;
+  metadata?: Record<string, any>;
+  created_at: string;
+  updated_at: string;
 }
 
 export interface Project {
@@ -143,20 +186,19 @@ export interface ProjectAssignment {
 export interface ProjectDocument {
   id: string;
   project_id: string;
-  filename: string;
-  original_file_name?: string;
+  file_name: string;
+  title: string;
+  description?: string;
   file_size?: number;
   file_type?: string;
-  file_url?: string;
-  storage_path: string;
+  file_path: string;
   mime_type?: string;
   version?: number;
-  is_latest?: boolean;
-  document_type?: 'rfq' | 'drawing' | 'specification' | 'quote' | 'po' | 'invoice' | 'certificate' | 'report' | 'bom' | 'other';
-  access_level?: 'public' | 'customer' | 'supplier' | 'internal' | 'restricted';
-  checksum?: string;
+  is_current_version?: boolean;
+  category?: string;
+  access_level?: string;
   metadata?: Record<string, any>;
-  uploaded_at: string;
+  created_at: string;
   uploaded_by?: string;
 }
 

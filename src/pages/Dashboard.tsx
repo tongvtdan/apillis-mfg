@@ -1,4 +1,4 @@
-import { useState, useMemo } from "react";
+import { useState, useMemo, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { RecentActivities } from "@/components/dashboard/RecentActivities";
 import { PendingTasks } from "@/components/dashboard/PendingTasks";
@@ -6,25 +6,20 @@ import { SearchFilterBar } from "@/components/dashboard/SearchFilterBar";
 import { PriorityActionItems } from "@/components/dashboard/PriorityActionItems";
 import { QuickStats } from "@/components/dashboard/QuickStats";
 import { OverviewCard } from "@/components/dashboard/OverviewCard";
+import { ProjectTypeChart } from "@/components/dashboard/ProjectTypeChart";
 import { Card, CardContent } from "@/components/ui/card";
 import { useDashboardData } from '@/hooks/useDashboardData';
-import { useCustomers } from "@/hooks/useCustomers";
-import { useSuppliers } from "@/hooks/useSuppliers";
-import { usePurchaseOrders } from "@/hooks/usePurchaseOrders";
-import { useInventory } from "@/hooks/useInventory";
-import { useProductionOrders } from "@/hooks/useProductionOrders";
 import { useAuth } from "@/contexts/AuthContext";
+import { DashboardDebugger } from "@/components/dashboard/DashboardDebugger";
 import {
   TrendingUp,
   Users,
   Bell,
   FolderOpen,
-  Truck,
-  ShoppingCart,
-  Package,
-  Factory,
-  AlertTriangle
+  AlertTriangle,
+  Bug
 } from "lucide-react";
+import { supabase } from "@/integrations/supabase/client";
 
 // This component displays the main dashboard with overview statistics and user-specific data
 // It uses the authenticated user's profile data from the AuthContext
@@ -32,19 +27,49 @@ import {
 // through the user ID which is consistent between both tables after the migration
 export default function Dashboard() {
   const { data: dashboardData, isLoading: dashboardLoading } = useDashboardData();
-  const { customers } = useCustomers();
-  const { suppliers } = useSuppliers();
-  const { purchaseOrders } = usePurchaseOrders();
-  const { inventory } = useInventory();
-  const { productionOrders } = useProductionOrders();
-  const { profile } = useAuth();
+  const { profile, user } = useAuth();
   const navigate = useNavigate();
+  const [debugMode, setDebugMode] = useState(false);
+  const [directProjects, setDirectProjects] = useState([]);
 
   // Extract project data from dashboard summary
   const projects = dashboardData?.recent_projects || [];
   const projectsTotal = dashboardData?.projects?.total || 0;
   const projectsByStatus = dashboardData?.projects?.by_status || {};
+  const projectsByType = dashboardData?.projects?.by_type || {};
+  const projectsByPriority = dashboardData?.projects?.by_priority || {};
   const loading = dashboardLoading;
+
+  useEffect(() => {
+    // Debug logging
+    console.log("Dashboard Data:", dashboardData);
+    console.log("Auth Context User:", user);
+    console.log("Auth Context Profile:", profile);
+
+    // Attempt to directly query projects for debugging
+    const fetchProjects = async () => {
+      if (profile?.organization_id) {
+        try {
+          const { data, error } = await supabase
+            .from('projects')
+            .select('*')
+            .eq('organization_id', profile.organization_id)
+            .limit(10);
+
+          if (error) {
+            console.error("Direct projects query error:", error);
+          } else {
+            console.log("Direct projects query result:", data);
+            setDirectProjects(data || []);
+          }
+        } catch (err) {
+          console.error("Failed to fetch projects directly:", err);
+        }
+      }
+    };
+
+    fetchProjects();
+  }, [dashboardData, profile, user]);
 
   // Search and filter states
   const [searchQuery, setSearchQuery] = useState("");
@@ -75,118 +100,18 @@ export default function Dashboard() {
   // Calculate detailed stats with attention-grabbing details
   const activeProjects = Object.entries(projectsByStatus)
     .filter(([status]) => !['shipped_closed', 'cancelled'].includes(status))
-    .reduce((sum, [, count]) => sum + count, 0);
+    .reduce((sum, [, count]) => sum + (count as number), 0);
 
-  const highPriorityProjects = 0; // Will be available when priority data is added
-  const overdueProjects = 0; // Will be calculated from stage tracking
+  const highPriorityProjects = Object.entries(projectsByPriority)
+    .filter(([priority]) => ['high', 'urgent'].includes(priority))
+    .reduce((sum, [, count]) => sum + (count as number), 0);
 
-  // Purchase Orders analysis
-  const pendingPOs = purchaseOrders.filter(po => po.status === 'pending').length;
-  const urgentPOs = purchaseOrders.filter(po => po.priority === 'urgent').length;
-  const overduePOs = purchaseOrders.filter(po => {
-    if (!po.due_date) return false;
-    return new Date(po.due_date) < new Date();
-  }).length;
-
-  // Inventory analysis
-  const lowStockItems = inventory.filter(item =>
-    item.current_stock <= (item.min_stock_level || 10)
-  ).length;
-  const outOfStockItems = inventory.filter(item => item.current_stock === 0).length;
-  const criticalItems = inventory.filter(item =>
-    item.current_stock < (item.min_stock_level || 10) * 0.5
+  const overdueProjects = projects.filter(p =>
+    p.days_in_stage && p.days_in_stage > 7
   ).length;
 
-  // Production analysis
-  const activeProduction = productionOrders.filter(po => po.status === 'in_progress').length;
-  const onHoldProduction = productionOrders.filter(po => po.status === 'on_hold').length;
-  const urgentProduction = productionOrders.filter(po => po.priority === 'urgent').length;
-
-  // Enhanced overview data with real data and important alerts
-  const overviewData = [
-    {
-      title: "Projects",
-      count: projectsTotal,
-      activeCount: activeProjects,
-      description: highPriorityProjects > 0
-        ? `⚠️ ${highPriorityProjects} high priority`
-        : `${activeProjects} active projects`,
-      icon: FolderOpen,
-      route: "/projects",
-      color: highPriorityProjects > 0 ? "text-destructive" : "text-primary",
-      bgColor: highPriorityProjects > 0 ? "bg-destructive/10" : "bg-primary/10",
-      borderColor: highPriorityProjects > 0 ? "border-destructive/20" : "border-primary/20",
-      alert: overdueProjects > 0 ? `${overdueProjects} overdue` : null
-    },
-    {
-      title: "Purchase Orders",
-      count: purchaseOrders.length,
-      activeCount: pendingPOs,
-      description: urgentPOs > 0
-        ? `🚨 ${urgentPOs} urgent orders`
-        : `${pendingPOs} pending orders`,
-      icon: ShoppingCart,
-      route: "/purchase-orders",
-      color: urgentPOs > 0 ? "text-destructive" : "text-warning",
-      bgColor: urgentPOs > 0 ? "bg-destructive/10" : "bg-warning/10",
-      borderColor: urgentPOs > 0 ? "border-destructive/20" : "border-warning/20",
-      alert: overduePOs > 0 ? `${overduePOs} overdue` : null
-    },
-    {
-      title: "Production",
-      count: productionOrders.length,
-      activeCount: activeProduction,
-      description: urgentProduction > 0
-        ? `🚨 ${urgentProduction} urgent jobs`
-        : `${activeProduction} in production`,
-      icon: Factory,
-      route: "/production",
-      color: urgentProduction > 0 ? "text-destructive" : "text-accent",
-      bgColor: urgentProduction > 0 ? "bg-destructive/10" : "bg-accent/10",
-      borderColor: urgentProduction > 0 ? "border-destructive/20" : "border-accent/20",
-      alert: onHoldProduction > 0 ? `${onHoldProduction} on hold` : null
-    },
-    {
-      title: "Inventory",
-      count: inventory.length,
-      activeCount: lowStockItems,
-      description: criticalItems > 0
-        ? `🔴 ${criticalItems} critical items`
-        : lowStockItems > 0
-          ? `⚠️ ${lowStockItems} low stock`
-          : `${inventory.length} items tracked`,
-      icon: Package,
-      route: "/inventory",
-      color: criticalItems > 0 ? "text-destructive" : lowStockItems > 0 ? "text-warning" : "text-info",
-      bgColor: criticalItems > 0 ? "bg-destructive/10" : lowStockItems > 0 ? "bg-warning/10" : "bg-info/10",
-      borderColor: criticalItems > 0 ? "border-destructive/20" : lowStockItems > 0 ? "border-warning/20" : "border-info/20",
-      alert: outOfStockItems > 0 ? `${outOfStockItems} out of stock` : null
-    },
-    {
-      title: "Customers",
-      count: customers?.length || 0,
-      activeCount: customers?.filter(c => c.name).length || 0,
-      description: `${customers?.length || 0} total customers`,
-      icon: Users,
-      route: "/customers",
-      color: "text-success",
-      bgColor: "bg-success/10",
-      borderColor: "border-success/20",
-      alert: null
-    },
-    {
-      title: "Suppliers",
-      count: suppliers?.length || 0,
-      activeCount: suppliers?.filter(s => s.is_active).length || 0,
-      description: `${suppliers?.filter(s => s.is_active).length || 0} active suppliers`,
-      icon: Truck,
-      route: "/suppliers",
-      color: "text-secondary",
-      bgColor: "bg-secondary/10",
-      borderColor: "border-secondary/20",
-      alert: null
-    }
-  ];
+  // Enhanced overview data with real data and important alerts - only Projects section
+  const overviewData = [];
 
   // Sample notification count - in real app this would come from a notifications service
   const notificationCount = 3;
@@ -206,19 +131,32 @@ export default function Dashboard() {
             </div>
             <div className="flex items-center gap-2 text-sm text-muted-foreground">
               <Users className="h-4 w-4" />
-              <span>{profile?.display_name} ({profile?.role})</span>
+              <span>{profile?.name || 'User'} ({profile?.role || 'Unknown'})</span>
             </div>
             <div className="hidden lg:flex items-center gap-4 text-sm text-muted-foreground">
-              <span>🌐 Projects</span>
-              <span>📂 Documents</span>
-              <span>📊 Analytics</span>
+              <span>🌐 Projects Overview</span>
+              {/* Other sections are accessible through the sidebar menu */}
             </div>
+            <button
+              onClick={() => setDebugMode(!debugMode)}
+              className="text-sm flex items-center gap-1 text-muted-foreground hover:text-foreground"
+            >
+              <Bug className="h-4 w-4" />
+              <span>{debugMode ? 'Hide Debug' : 'Debug'}</span>
+            </button>
           </div>
         </div>
       </div>
 
       <div className="px-4 sm:px-6">
-        {/* Search and Filter Bar */}
+        {/* Debugging Info */}
+        {debugMode && (
+          <div className="mb-6">
+            <DashboardDebugger />
+          </div>
+        )}
+
+        {/* Search and Filter Bar - focused on projects */}
         <SearchFilterBar
           searchQuery={searchQuery}
           onSearchChange={setSearchQuery}
@@ -232,70 +170,35 @@ export default function Dashboard() {
         />
 
         {/* Priority Action Items */}
-        <PriorityActionItems projects={[]} />
+        <PriorityActionItems projects={projects} />
 
-        {/* Overview Cards */}
+        {/* Projects Overview Section */}
         <div className="mt-8">
           <div className="mb-6">
             <h2 className="text-xl font-semibold text-foreground flex items-center gap-2">
               <TrendingUp className="h-6 w-6 text-primary" />
-              System Overview
+              Projects Overview
             </h2>
             <p className="text-sm text-muted-foreground mt-1">
-              Quick overview of projects, customers, suppliers, and operations
+              Quick overview of your projects and their status. Other sections can be accessed through the sidebar menu.
             </p>
           </div>
 
-          <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-4 lg:gap-6 mb-8">
-            {loading ? (
-              // Loading skeleton for overview cards
-              Array.from({ length: 6 }).map((_, index) => (
-                <Card key={index} className="animate-pulse">
-                  <CardContent className="p-6">
-                    <div className="flex items-center justify-between">
-                      <div>
-                        <div className="flex items-center gap-2 mb-2">
-                          <div className="w-5 h-5 bg-muted rounded"></div>
-                          <div className="w-20 h-4 bg-muted rounded"></div>
-                        </div>
-                        <div className="space-y-1">
-                          <div className="w-12 h-8 bg-muted rounded"></div>
-                          <div className="w-32 h-3 bg-muted rounded"></div>
-                        </div>
-                      </div>
-                      <div className="w-8 h-6 bg-muted rounded"></div>
-                    </div>
-                  </CardContent>
-                </Card>
-              ))
-            ) : (
-              overviewData.map((item) => (
-                <OverviewCard
-                  key={item.title}
-                  title={item.title}
-                  count={item.count}
-                  activeCount={item.activeCount}
-                  description={item.description}
-                  icon={item.icon}
-                  route={item.route}
-                  color={item.color}
-                  bgColor={item.bgColor}
-                  borderColor={item.borderColor}
-                  alert={item.alert}
-                  onClick={() => navigate(item.route)}
-                />
-              ))
-            )}
-          </div>
+          {/* Project Type Visualization */}
+          {!loading && Object.keys(projectsByType).length > 0 && (
+            <div className="mb-8">
+              <ProjectTypeChart data={projectsByType} />
+            </div>
+          )}
         </div>
 
-        {/* Stats & Activities Grid */}
+        {/* Projects Stats and Activities */}
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-          {/* Quick Stats */}
+          {/* Quick Stats for Projects */}
           <QuickStats
             activeProjects={activeProjects}
             highPriorityProjects={highPriorityProjects}
-            overdueProjects={0}
+            overdueProjects={overdueProjects}
           />
 
           {/* Pending Tasks */}
@@ -308,6 +211,45 @@ export default function Dashboard() {
             <RecentActivities />
           </div>
         </div>
+
+        {/* Debug Section - Direct Projects Query Result */}
+        {debugMode && directProjects.length > 0 && (
+          <div className="mt-8 bg-yellow-50 p-4 rounded-lg border border-yellow-200">
+            <h3 className="text-lg font-semibold text-yellow-800 mb-2">Direct Projects Query Result ({directProjects.length})</h3>
+            <div className="overflow-x-auto">
+              <table className="min-w-full divide-y divide-yellow-200">
+                <thead>
+                  <tr>
+                    <th className="px-4 py-2 text-left text-yellow-700">ID</th>
+                    <th className="px-4 py-2 text-left text-yellow-700">Project ID</th>
+                    <th className="px-4 py-2 text-left text-yellow-700">Title</th>
+                    <th className="px-4 py-2 text-left text-yellow-700">Organization ID</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {directProjects.map((project: any) => (
+                    <tr key={project.id} className="border-t border-yellow-100">
+                      <td className="px-4 py-2 text-yellow-800">{project.id}</td>
+                      <td className="px-4 py-2 text-yellow-800">{project.project_id}</td>
+                      <td className="px-4 py-2 text-yellow-800">{project.title}</td>
+                      <td className="px-4 py-2 text-yellow-800">{project.organization_id}</td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          </div>
+        )}
+
+        {/* Debug Info for Dashboard Data */}
+        {debugMode && dashboardData?.debug && (
+          <div className="mt-4 bg-blue-50 p-4 rounded-lg border border-blue-200">
+            <h3 className="text-lg font-semibold text-blue-800 mb-2">Dashboard Function Debug Info</h3>
+            <pre className="text-xs overflow-auto max-h-96 bg-blue-100 p-2 rounded">
+              {JSON.stringify(dashboardData.debug, null, 2)}
+            </pre>
+          </div>
+        )}
       </div>
     </div>
   );

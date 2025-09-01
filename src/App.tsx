@@ -98,7 +98,7 @@ const App = () => {
           } />
           <Route path="/project/:id" element={
             <ProtectedRoute>
-              <AppLayout><ProjectDetail /></AppLayout>
+              <ProjectDetail />
             </ProtectedRoute>
           } />
           <Route path="/production" element={

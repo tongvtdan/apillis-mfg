@@ -25,7 +25,7 @@ export default function Customers() {
   const totalCustomers = customers.length;
   const activeCustomers = customers.filter(c => c.email).length; // Customers with email are considered active
   const countries = [...new Set(customers.map(c => c.country).filter(Boolean))].length;
-  const companiesCount = customers.filter(c => c.company).length;
+  const companiesCount = customers.filter(c => c.company_name).length;
 
   const handleCustomerSelect = (customer: Customer) => {
     setSelectedCustomer(customer);

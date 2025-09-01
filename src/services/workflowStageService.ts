@@ -12,6 +12,7 @@ class WorkflowStageService {
 
         // Return cached data if still valid
         if (!forceRefresh && this.cachedStages && (now - this.cacheTimestamp) < this.CACHE_DURATION) {
+            console.log('Returning cached workflow stages');
             return this.cachedStages;
         }
 
@@ -30,6 +31,7 @@ class WorkflowStageService {
             this.cachedStages = data || [];
             this.cacheTimestamp = now;
 
+            console.log('Fetched workflow stages:', this.cachedStages);
             return this.cachedStages;
         } catch (error) {
             console.error('Error in getWorkflowStages:', error);
@@ -48,6 +50,67 @@ class WorkflowStageService {
     async getWorkflowStageByName(name: string): Promise<WorkflowStage | null> {
         const stages = await this.getWorkflowStages();
         return stages.find(stage => stage.name === name) || null;
+    }
+
+    // Update estimated duration days for a workflow stage
+    async updateStageEstimatedDuration(stageId: string, estimatedDurationDays: number): Promise<WorkflowStage | null> {
+        try {
+            const { data, error } = await supabase
+                .from('workflow_stages')
+                .update({
+                    estimated_duration_days: estimatedDurationDays,
+                    updated_at: new Date().toISOString()
+                })
+                .eq('id', stageId)
+                .select()
+                .single();
+
+            if (error) {
+                console.error('Error updating workflow stage duration:', error);
+                throw new Error(`Failed to update workflow stage duration: ${error.message}`);
+            }
+
+            // Clear cache to force refresh on next fetch
+            this.clearCache();
+
+            return data;
+        } catch (error) {
+            console.error('Error in updateStageEstimatedDuration:', error);
+            return null;
+        }
+    }
+
+    // Update multiple stage durations at once
+    async updateMultipleStageDurations(stageDurations: { stageId: string; duration: number }[]): Promise<boolean> {
+        try {
+            const updates = stageDurations.map(async ({ stageId, duration }) => {
+                return await supabase
+                    .from('workflow_stages')
+                    .update({
+                        estimated_duration_days: duration,
+                        updated_at: new Date().toISOString()
+                    })
+                    .eq('id', stageId);
+            });
+
+            const results = await Promise.all(updates);
+
+            // Check if any update failed
+            const hasError = results.some(result => result.error);
+
+            if (hasError) {
+                const errors = results.filter(result => result.error).map(result => result.error?.message);
+                console.error('Some updates failed:', errors);
+            }
+
+            // Clear cache to force refresh on next fetch
+            this.clearCache();
+
+            return !hasError;
+        } catch (error) {
+            console.error('Error in updateMultipleStageDurations:', error);
+            return false;
+        }
     }
 
     // Convert legacy ProjectStage enum to workflow stage ID

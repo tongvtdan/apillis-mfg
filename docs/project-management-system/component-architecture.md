@@ -64,6 +64,73 @@ graph TB
 
 ## Core Components
 
+### DocumentManager Component
+
+**Purpose**: Comprehensive document management interface for project files with advanced filtering and organization
+
+**Location**: `src/components/project/DocumentManager.tsx`
+
+**Status**: ✅ **Core component implemented, dependencies required**
+
+**Component Features:**
+- **Dual View Modes**: Seamless switching between grid and list views
+- **Advanced Filtering**: Multi-criteria filtering by search, type, access level, date range, tags, and uploader
+- **Smart Sorting**: Sort by name, date, size, or type with ascending/descending order control
+- **Bulk Operations**: Multi-select documents for batch download, tagging, and deletion
+- **Upload Integration**: Modal-based file upload with drag-and-drop support
+- **Empty States**: Contextual messaging for no documents and filtered results
+- **Loading States**: Proper loading indicators during data fetching
+
+**Component Interface:**
+```typescript
+interface DocumentManagerProps {
+  projectId: string;
+}
+
+interface DocumentFiltersState {
+  search: string;
+  type: string[];
+  accessLevel: string[];
+  dateRange: {
+    from?: Date;
+    to?: Date;
+  };
+  tags: string[];
+  uploadedBy: string[];
+}
+
+export type ViewMode = 'grid' | 'list';
+export type SortField = 'name' | 'date' | 'size' | 'type';
+export type SortOrder = 'asc' | 'desc';
+```
+
+**State Management Features:**
+- **Filter State**: Complex filtering state with multiple criteria
+- **Selection State**: Multi-document selection for bulk operations
+- **View State**: Toggle between grid and list presentation modes
+- **Sort State**: Dynamic sorting with field and order control
+- **UI State**: Modal visibility and filter panel toggle states
+
+**Performance Optimizations:**
+- **Memoized Filtering**: Efficient document filtering with useMemo
+- **Memoized Sorting**: Optimized sorting operations
+- **Callback Optimization**: useCallback for event handlers to prevent re-renders
+- **Computed Values**: Derived state for filter options and active filter detection
+
+**Dependencies Required:**
+- **useDocuments Hook**: Data fetching hook for project documents
+- **DocumentUploadZone**: Modal component for file uploads
+- **DocumentGrid**: Grid view component for document display
+- **DocumentList**: List view component for document display
+- **DocumentFilters**: Advanced filtering component
+- **ProjectDocument Type**: TypeScript interface for document data
+
+**Integration Points:**
+- **Project Detail Tabs**: Integrates as Documents tab in project detail page
+- **File Upload System**: Connects to Supabase storage for file management
+- **Permission System**: Respects document access levels and user permissions
+- **Search System**: Integrates with global search functionality
+
 ### Projects Table View
 
 **Purpose**: Simplified project listing with filtering and basic information display
@@ -119,30 +186,302 @@ sequenceDiagram
 
 **Purpose**: Comprehensive project view with workflow management
 
-**Location**: `src/components/project/ProjectDetail.tsx`
+**Location**: `src/pages/ProjectDetail.tsx`
+
+**Current Implementation**: Simplified layout with enhanced project summary
 
 **Component Hierarchy**:
 ```mermaid
 graph TD
-    A[ProjectDetail] --> B[ProjectTabs]
-    B --> C[OverviewTab]
-    B --> D[WorkflowTab]
-    B --> E[CommunicationTab]
-    B --> F[DocumentsTab]
+    A[ProjectDetail] --> B[ProjectDetailHeader]
+    A --> C[ProjectTabs]
     
-    C --> G[ProjectSummary]
-    C --> H[CustomerInfo]
-    C --> I[AssignmentInfo]
+    B --> D[ProjectMetrics]
+    B --> E[WorkflowStepper]
+    B --> F[QuickActions]
     
-    D --> J[WorkflowStepper]
-    D --> K[StageActions]
-    D --> L[ReviewList]
+    C --> G[OverviewTab]
+    C --> H[ReviewsTab]
+    C --> I[DocumentsTab]
+    C --> J[CommunicationTab]
     
-    E --> M[MessageList]
-    E --> N[MessageForm]
+    G --> K[ProjectSummaryCard]
+    G --> L[ReviewStatus]
     
-    F --> O[DocumentList]
-    F --> P[FileUpload]
+    H --> M[ReviewList]
+    H --> N[ReviewForm]
+    
+    I --> O[DocumentList]
+    I --> P[FileUpload]
+    
+    J --> Q[MessageList]
+    J --> R[MessageForm]
+```
+
+### ProjectSummaryCard Component
+
+**Purpose**: Enhanced project summary with stage-specific action items and workflow guidance
+
+**Location**: `src/components/project/ProjectSummaryCard.tsx`
+
+**Current Implementation**: Comprehensive project summary with dynamic action items based on workflow stage
+
+**Props Interface**:
+```typescript
+interface ProjectSummaryCardProps {
+  project: Project;
+  workflowStages?: WorkflowStage[];
+  onEdit?: () => void;
+  onViewDetails?: () => void;
+  className?: string;
+}
+
+interface ActionItem {
+  id: string;
+  title: string;
+  description: string;
+  priority: 'high' | 'medium' | 'low';
+  icon: React.ElementType;
+  action: () => void;
+  completed?: boolean;
+  dueDate?: string;
+}
+```
+
+**Recent Updates**:
+- Fixed missing `Calendar` icon import to resolve compilation issues
+- All Lucide React icons properly imported and functional
+
+**Key Features**:
+- **Stage-Specific Actions**: Dynamic action items that change based on current workflow stage
+- **Priority System**: Color-coded priority indicators (high/medium/low)
+- **Comprehensive Coverage**: Action items for all 8 workflow stages
+- **Interactive Elements**: Clickable actions with tooltips and descriptions
+- **Visual Hierarchy**: Clear organization of project information and next steps
+
+**Action Item System**:
+- **Inquiry Received**: Customer verification, document upload, reviewer assignment
+- **Technical Review**: Engineering, QA, and Production reviews
+- **Supplier RFQ**: BOM creation, supplier selection, RFQ distribution
+- **Quoted**: Quote compilation, customer quote preparation, quote delivery
+- **Order Confirmed**: PO processing, work order creation, delivery confirmation
+- **Procurement Planning**: Supplier finalization, production scheduling, material tracking
+- **In Production**: Progress monitoring, quality inspections, shipping preparation
+- **Shipped & Closed**: Delivery confirmation, feedback collection, project closure
+
+**Priority Color System**:
+```typescript
+const getPriorityColor = (priority: 'high' | 'medium' | 'low'): string => {
+  const colors = {
+    high: 'bg-red-100 text-red-800 border-red-200',
+    medium: 'bg-yellow-100 text-yellow-800 border-yellow-200',
+    low: 'bg-green-100 text-green-800 border-green-200'
+  };
+  return colors[priority];
+};
+```
+
+**Available Enhanced Components** (not currently integrated):
+- `EnhancedProjectOverviewCard` - Advanced project overview with health scoring
+- `VisualTimelineProgression` - Interactive timeline visualization
+
+### InteractiveNavigationSidebar Component
+
+**Purpose**: Enhanced project detail navigation with hierarchical tabs and interactive features
+
+**Location**: `src/components/project/InteractiveNavigationSidebar.tsx`
+
+**Status**: ✅ **Component implemented and ready for integration**
+
+**Key Features:**
+- **Hierarchical Navigation**: Main tabs with expandable sub-tabs for detailed navigation
+- **Session Persistence**: Remembers expanded tab states across browser sessions using `project-${projectId}-expanded-tabs`
+- **Interactive States**: Loading, error, and notification indicators with visual feedback
+- **Breadcrumb Navigation**: Contextual breadcrumbs with clickable navigation links
+- **Project Context Display**: Shows current project title and ID in sidebar header
+- **Secondary Actions**: Contextual dropdown menu with export, notification, and configuration options
+- **Responsive Design**: Optimized layout with proper spacing and overflow handling
+
+**Component Interface:**
+```typescript
+interface InteractiveNavigationSidebarProps {
+  activeTab: string;
+  onTabChange: (tabId: string) => void;
+  tabs: NavigationTab[];
+  breadcrumbs?: BreadcrumbItem[];
+  projectId?: string;
+  projectTitle?: string;
+  onBack?: () => void;
+  className?: string;
+}
+
+interface NavigationTab {
+  id: string;
+  label: string;
+  icon: React.ComponentType<{ className?: string }>;
+  badge?: number;
+  disabled?: boolean;
+  loading?: boolean;
+  error?: boolean;
+  hasNotifications?: boolean;
+  subTabs?: NavigationSubTab[];
+}
+
+interface NavigationSubTab {
+  id: string;
+  label: string;
+  badge?: number;
+  disabled?: boolean;
+}
+```
+
+**State Management Features:**
+- **Tab Expansion**: Persistent expandable sub-tabs with session storage
+- **Loading States**: Visual loading indicators during tab transitions
+- **Error Handling**: Error states with visual indicators and fallback UI
+- **Badge System**: Notification badges and counters for tabs and sub-tabs
+- **Auto-Expansion**: Automatic expansion when activating tabs with sub-tabs
+
+**Visual Features:**
+- **Interactive Icons**: Dynamic icons based on tab state (loading spinner, error alert, normal icon)
+- **Badge Display**: Smart badge rendering with overflow handling (99+ for large numbers)
+- **Hover Effects**: Smooth transitions and hover states for better UX
+- **Active States**: Clear visual indication of active tabs and sub-tabs
+- **Notification Indicators**: Animated pulse dots for urgent notifications
+
+**Integration Points:**
+- **Navigation Hook**: Designed to work with `useProjectNavigation` hook
+- **Tab Content System**: Connects to project detail tab content management
+- **Breadcrumb System**: Integrates with routing and navigation context
+- **Action System**: Provides contextual actions based on active tab selection
+
+### EnhancedProjectOverviewCard Component
+
+**Purpose**: Comprehensive project header with real-time monitoring and analytics
+
+**Location**: `src/components/project/EnhancedProjectOverviewCard.tsx`
+
+**Status**: ⏸️ **Component created but temporarily not integrated in ProjectDetail page**
+
+**Key Features**:
+- **Real-time Status**: Live connection indicator with project health monitoring
+- **Intelligent Alerts**: Dynamic alert generation based on project conditions
+- **Health Scoring**: Automated project health calculation (0-100 scale)
+- **Risk Assessment**: Automatic risk level determination (low/medium/high)
+- **Timeline Visualization**: Mini workflow progression with stage indicators
+- **Sub-stage Integration**: Real workflow sub-stage display with completion status
+- **Interactive Elements**: Tooltips, dropdown menus, and action buttons
+
+**Current Implementation**: ProjectDetail page uses simplified project summary layout instead of enhanced components
+
+**Component Interface**:
+```typescript
+interface EnhancedProjectOverviewCardProps {
+  project: Project;
+  workflowStages?: WorkflowStage[];
+  onEdit?: () => void;
+  onViewDetails?: () => void;
+  className?: string;
+}
+
+interface ProjectMetrics {
+  healthScore: number;        // 0-100 calculated health score
+  daysInStage: number;       // Days in current workflow stage
+  totalDuration: number;     // Total project duration in days
+  estimatedCompletion: string | null; // Formatted completion date
+  riskLevel: 'low' | 'medium' | 'high'; // Calculated risk level
+  progressPercentage: number; // Overall workflow progress (0-100)
+}
+
+interface ProjectAlert {
+  id: string;
+  type: 'warning' | 'error' | 'info' | 'success';
+  title: string;
+  message: string;
+  actionable: boolean;
+  action?: () => void;
+  dismissible: boolean;
+}
+```
+
+**Health Score Algorithm**:
+```typescript
+// Base score: 100 points
+let healthScore = 100;
+
+// Stage duration penalties
+if (daysInStage > 14) healthScore -= 20;
+else if (daysInStage > 7) healthScore -= 10;
+
+// Delivery date penalties
+if (project.estimated_delivery_date) {
+  const daysToDelivery = differenceInDays(parseISO(project.estimated_delivery_date), new Date());
+  if (daysToDelivery < 0) healthScore -= 30; // Overdue
+  else if (daysToDelivery < 7) healthScore -= 15; // Due soon
+}
+
+// Priority adjustments
+if (project.priority_level === 'urgent') healthScore -= 10;
+else if (project.priority_level === 'high') healthScore -= 5;
+
+// Risk level determination
+let riskLevel = 'low';
+if (healthScore < 50) riskLevel = 'high';
+else if (healthScore < 75) riskLevel = 'medium';
+```
+
+**Alert Generation System**:
+```typescript
+// Dynamic alert generation based on project conditions
+const alerts: ProjectAlert[] = [];
+
+// Stage duration alert
+if (metrics.daysInStage > 14) {
+  alerts.push({
+    id: 'stage-duration',
+    type: 'warning',
+    title: 'Long Stage Duration',
+    message: `Project has been in ${project.current_stage?.name} for ${metrics.daysInStage} days`,
+    actionable: true,
+    action: () => navigateToWorkflowManagement(),
+    dismissible: true
+  });
+}
+
+// Overdue project alert
+if (daysToDelivery < 0) {
+  alerts.push({
+    id: 'overdue',
+    type: 'error',
+    title: 'Project Overdue',
+    message: `Delivery was due ${Math.abs(daysToDelivery)} days ago`,
+    actionable: true,
+    action: () => updateDeliveryDate(),
+    dismissible: false
+  });
+}
+```
+
+**Visual Timeline Implementation**:
+```typescript
+// Mini workflow progression with stage indicators
+{workflowStages.slice(0, 6).map((stage, index) => {
+  const currentIndex = workflowStages.findIndex(s => s.id === project.current_stage_id);
+  const isCompleted = index < currentIndex;
+  const isCurrent = index === currentIndex;
+  const isUpcoming = index > currentIndex;
+
+  return (
+    <div className={cn(
+      "w-6 h-6 rounded-full flex items-center justify-center",
+      isCompleted && "bg-green-600 text-white",
+      isCurrent && "bg-blue-600 text-white ring-2 ring-blue-200",
+      isUpcoming && "bg-muted text-muted-foreground"
+    )}>
+      {isCompleted ? <CheckCircle2 className="w-3 h-3" /> : <span>{index + 1}</span>}
+    </div>
+  );
+})}
 ```
 
 **Data Dependencies**:

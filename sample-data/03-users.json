@@ -1,0 +1,422 @@
+[
+    {
+        "id": "550e8400-e29b-41d4-a716-446655440002",
+        "organization_id": "550e8400-e29b-41d4-a716-446655440001",
+        "email": "ceo@factorypulse.vn",
+        "name": "Nguyễn Quang Minh",
+        "role": "management",
+        "department": "Executive",
+        "phone": "+84-28-7300-0001",
+        "avatar_url": "https://storage.googleapis.com/factory-pulse-assets/avatars/ceo.jpg",
+        "status": "active",
+        "description": "CEO and General Manager with 20+ years in manufacturing",
+        "employee_id": "EMP-NVM-550e",
+        "direct_reports": [
+            "550e8400-e29b-41d4-a716-446655440003",
+            "550e8400-e29b-41d4-a716-446655440004",
+            "550e8400-e29b-41d4-a716-446655440012",
+            "550e8400-e29b-41d4-a716-446655440013"
+        ],
+        "last_login_at": "2025-01-27T07:30:00.000Z",
+        "preferences": {
+            "language": "vi",
+            "timezone": "Asia/Ho_Chi_Minh",
+            "theme": "dark",
+            "notifications": {
+                "email": true,
+                "sms": true,
+                "push": true
+            }
+        },
+        "created_at": "2025-01-27T08:00:00.000Z",
+        "updated_at": "2025-01-27T08:00:00.000Z"
+    },
+    {
+        "id": "550e8400-e29b-41d4-a716-446655440003",
+        "organization_id": "550e8400-e29b-41d4-a716-446655440001",
+        "email": "operations@factorypulse.vn",
+        "name": "Trần Ngọc Hương",
+        "role": "management",
+        "department": "Operations",
+        "phone": "+84-28-7300-0002",
+        "avatar_url": "https://storage.googleapis.com/factory-pulse-assets/avatars/operations.jpg",
+        "status": "active",
+        "description": "Operations Manager overseeing production and quality",
+        "employee_id": "EMP-TTH-550e",
+        "direct_manager_id": "550e8400-e29b-41d4-a716-446655440002",
+        "direct_reports": [
+            "550e8400-e29b-41d4-a716-446655440009",
+            "550e8400-e29b-41d4-a716-446655440010",
+            "550e8400-e29b-41d4-a716-446655440008",
+            "550e8400-e29b-41d4-a716-446655440011"
+        ],
+        "last_login_at": "2025-01-27T07:45:00.000Z",
+        "preferences": {
+            "language": "vi",
+            "timezone": "Asia/Ho_Chi_Minh",
+            "theme": "light",
+            "notifications": {
+                "email": true,
+                "sms": false,
+                "push": true
+            }
+        },
+        "created_at": "2025-01-27T08:00:00.000Z",
+        "updated_at": "2025-01-27T08:00:00.000Z"
+    },
+    {
+        "id": "550e8400-e29b-41d4-a716-446655440004",
+        "organization_id": "550e8400-e29b-41d4-a716-446655440001",
+        "email": "quality@factorypulse.vn",
+        "name": "Lê Viết Tuấn",
+        "role": "management",
+        "department": "Quality",
+        "phone": "+84-28-7300-0003",
+        "avatar_url": "https://storage.googleapis.com/factory-pulse-assets/avatars/quality.jpg",
+        "status": "active",
+        "description": "Quality Manager ensuring compliance and standards",
+        "employee_id": "EMP-LVT-550e",
+        "direct_manager_id": "550e8400-e29b-41d4-a716-446655440002",
+        "direct_reports": [
+            "550e8400-e29b-41d4-a716-446655440008",
+            "550e8400-e29b-41d4-a716-446655440011"
+        ],
+        "last_login_at": "2025-01-27T07:50:00.000Z",
+        "preferences": {
+            "language": "vi",
+            "timezone": "Asia/Ho_Chi_Minh",
+            "theme": "light",
+            "notifications": {
+                "email": true,
+                "sms": true,
+                "push": true
+            }
+        },
+        "created_at": "2025-01-27T08:00:00.000Z",
+        "updated_at": "2025-01-27T08:00:00.000Z"
+    },
+    {
+        "id": "550e8400-e29b-41d4-a716-446655440005",
+        "organization_id": "550e8400-e29b-41d4-a716-446655440001",
+        "email": "senior.engineer@factorypulse.vn",
+        "name": "Phạm Văn Dũng",
+        "role": "engineering",
+        "department": "Engineering",
+        "phone": "+84-28-7300-0004",
+        "avatar_url": "https://storage.googleapis.com/factory-pulse-assets/avatars/senior-engineer.jpg",
+        "status": "active",
+        "description": "Senior Engineer with expertise in mechanical design and manufacturing",
+        "employee_id": "EMP-PVD-550e",
+        "direct_manager_id": "550e8400-e29b-41d4-a716-446655440003",
+        "last_login_at": "2025-01-27T08:00:00.000Z",
+        "preferences": {
+            "language": "vi",
+            "timezone": "Asia/Ho_Chi_Minh",
+            "theme": "light",
+            "notifications": {
+                "email": true,
+                "sms": false,
+                "push": true
+            }
+        },
+        "created_at": "2025-01-27T08:00:00.000Z",
+        "updated_at": "2025-01-27T08:00:00.000Z"
+    },
+    {
+        "id": "550e8400-e29b-41d4-a716-446655440006",
+        "organization_id": "550e8400-e29b-41d4-a716-446655440001",
+        "email": "mechanical.engineer@factorypulse.vn",
+        "name": "Hoàng Thị Lan",
+        "role": "engineering",
+        "department": "Engineering",
+        "phone": "+84-28-7300-0005",
+        "avatar_url": "https://storage.googleapis.com/factory-pulse-assets/avatars/mechanical-engineer.jpg",
+        "status": "active",
+        "description": "Mechanical Engineer specializing in fabrication and assembly",
+        "employee_id": "EMP-HTL-550e",
+        "direct_manager_id": "550e8400-e29b-41d4-a716-446655440003",
+        "last_login_at": "2025-01-27T08:05:00.000Z",
+        "preferences": {
+            "language": "vi",
+            "timezone": "Asia/Ho_Chi_Minh",
+            "theme": "dark",
+            "notifications": {
+                "email": true,
+                "sms": true,
+                "push": false
+            }
+        },
+        "created_at": "2025-01-27T08:00:00.000Z",
+        "updated_at": "2025-01-27T08:00:00.000Z"
+    },
+    {
+        "id": "550e8400-e29b-41d4-a716-446655440007",
+        "organization_id": "550e8400-e29b-41d4-a716-446655440001",
+        "email": "electrical.engineer@factorypulse.vn",
+        "name": "Vũ Đình Nam",
+        "role": "engineering",
+        "department": "Engineering",
+        "phone": "+84-28-7300-0006",
+        "avatar_url": "https://storage.googleapis.com/factory-pulse-assets/avatars/electrical-engineer.jpg",
+        "status": "active",
+        "description": "Electrical Engineer focusing on control systems and automation",
+        "employee_id": "EMP-VDN-550e",
+        "direct_manager_id": "550e8400-e29b-41d4-a716-446655440003",
+        "last_login_at": "2025-01-27T08:10:00.000Z",
+        "preferences": {
+            "language": "vi",
+            "timezone": "Asia/Ho_Chi_Minh",
+            "theme": "light",
+            "notifications": {
+                "email": true,
+                "sms": false,
+                "push": true
+            }
+        },
+        "created_at": "2025-01-27T08:00:00.000Z",
+        "updated_at": "2025-01-27T08:00:00.000Z"
+    },
+    {
+        "id": "550e8400-e29b-41d4-a716-446655440008",
+        "organization_id": "550e8400-e29b-41d4-a716-446655440001",
+        "email": "qa.engineer@factorypulse.vn",
+        "name": "Ngô Thị Hà",
+        "role": "qa",
+        "department": "Quality",
+        "phone": "+84-28-7300-0007",
+        "avatar_url": "https://storage.googleapis.com/factory-pulse-assets/avatars/qa-engineer.jpg",
+        "status": "active",
+        "description": "QA Engineer ensuring product quality and compliance",
+        "employee_id": "EMP-NTH-550e",
+        "direct_manager_id": "550e8400-e29b-41d4-a716-446655440004",
+        "last_login_at": "2025-01-27T08:15:00.000Z",
+        "preferences": {
+            "language": "vi",
+            "timezone": "Asia/Ho_Chi_Minh",
+            "theme": "light",
+            "notifications": {
+                "email": true,
+                "sms": true,
+                "push": true
+            }
+        },
+        "created_at": "2025-01-27T08:00:00.000Z",
+        "updated_at": "2025-01-27T08:00:00.000Z"
+    },
+    {
+        "id": "550e8400-e29b-41d4-a716-446655440009",
+        "organization_id": "550e8400-e29b-41d4-a716-446655440001",
+        "email": "production.supervisor@factorypulse.vn",
+        "name": "Trịnh Văn Sơn",
+        "role": "production",
+        "department": "Production",
+        "phone": "+84-28-7300-0008",
+        "avatar_url": "https://storage.googleapis.com/factory-pulse-assets/avatars/production-supervisor.jpg",
+        "status": "active",
+        "description": "Production Supervisor managing manufacturing operations",
+        "employee_id": "EMP-TVS-550e",
+        "direct_manager_id": "550e8400-e29b-41d4-a716-446655440003",
+        "last_login_at": "2025-01-27T08:20:00.000Z",
+        "preferences": {
+            "language": "vi",
+            "timezone": "Asia/Ho_Chi_Minh",
+            "theme": "light",
+            "notifications": {
+                "email": true,
+                "sms": true,
+                "push": true
+            }
+        },
+        "created_at": "2025-01-27T08:00:00.000Z",
+        "updated_at": "2025-01-27T08:00:00.000Z"
+    },
+    {
+        "id": "550e8400-e29b-41d4-a716-446655440010",
+        "organization_id": "550e8400-e29b-41d4-a716-446655440001",
+        "email": "team.lead@factorypulse.vn",
+        "name": "Lý Thị Mai",
+        "role": "production",
+        "department": "Production",
+        "phone": "+84-28-7300-0009",
+        "avatar_url": "https://storage.googleapis.com/factory-pulse-assets/avatars/team-lead.jpg",
+        "status": "active",
+        "description": "Team Lead coordinating assembly and production activities",
+        "employee_id": "EMP-LTM-550e",
+        "direct_manager_id": "550e8400-e29b-41d4-a716-446655440003",
+        "last_login_at": "2025-01-27T08:25:00.000Z",
+        "preferences": {
+            "language": "vi",
+            "timezone": "Asia/Ho_Chi_Minh",
+            "theme": "dark",
+            "notifications": {
+                "email": true,
+                "sms": false,
+                "push": true
+            }
+        },
+        "created_at": "2025-01-27T08:00:00.000Z",
+        "updated_at": "2025-01-27T08:00:00.000Z"
+    },
+    {
+        "id": "550e8400-e29b-41d4-a716-446655440011",
+        "organization_id": "550e8400-e29b-41d4-a716-446655440001",
+        "email": "quality.inspector@factorypulse.vn",
+        "name": "Đặng Văn Hùng",
+        "role": "qa",
+        "department": "Quality",
+        "phone": "+84-28-7300-0010",
+        "avatar_url": "https://storage.googleapis.com/factory-pulse-assets/avatars/quality-inspector.jpg",
+        "status": "active",
+        "description": "Quality Inspector performing final quality checks",
+        "employee_id": "EMP-DVH-550e",
+        "direct_manager_id": "550e8400-e29b-41d4-a716-446655440004",
+        "last_login_at": "2025-01-27T08:30:00.000Z",
+        "preferences": {
+            "language": "vi",
+            "timezone": "Asia/Ho_Chi_Minh",
+            "theme": "light",
+            "notifications": {
+                "email": true,
+                "sms": true,
+                "push": true
+            }
+        },
+        "created_at": "2025-01-27T08:00:00.000Z",
+        "updated_at": "2025-01-27T08:00:00.000Z"
+    },
+    {
+        "id": "550e8400-e29b-41d4-a716-446655440012",
+        "organization_id": "550e8400-e29b-41d4-a716-446655440001",
+        "email": "sales.manager@factorypulse.vn",
+        "name": "Bùi Thị Thu",
+        "role": "sales",
+        "department": "Sales",
+        "phone": "+84-28-7300-0011",
+        "avatar_url": "https://storage.googleapis.com/factory-pulse-assets/avatars/sales-manager.jpg",
+        "status": "active",
+        "description": "Sales Manager managing customer relationships and orders",
+        "employee_id": "EMP-BTT-550e",
+        "direct_manager_id": "550e8400-e29b-41d4-a716-446655440002",
+        "last_login_at": "2025-01-27T08:35:00.000Z",
+        "preferences": {
+            "language": "vi",
+            "timezone": "Asia/Ho_Chi_Minh",
+            "theme": "light",
+            "notifications": {
+                "email": true,
+                "sms": true,
+                "push": true
+            }
+        },
+        "created_at": "2025-01-27T08:00:00.000Z",
+        "updated_at": "2025-01-27T08:00:00.000Z"
+    },
+    {
+        "id": "550e8400-e29b-41d4-a716-446655440013",
+        "organization_id": "550e8400-e29b-41d4-a716-446655440001",
+        "email": "procurement@factorypulse.vn",
+        "name": "Lê Văn Phúc",
+        "role": "procurement",
+        "department": "Procurement",
+        "phone": "+84-28-7300-0012",
+        "avatar_url": "https://storage.googleapis.com/factory-pulse-assets/avatars/procurement.jpg",
+        "status": "active",
+        "description": "Procurement Specialist managing supplier relationships and sourcing",
+        "employee_id": "EMP-LVP-550e",
+        "direct_manager_id": "550e8400-e29b-41d4-a716-446655440002",
+        "last_login_at": "2025-01-27T08:40:00.000Z",
+        "preferences": {
+            "language": "vi",
+            "timezone": "Asia/Ho_Chi_Minh",
+            "theme": "light",
+            "notifications": {
+                "email": true,
+                "sms": false,
+                "push": true
+            }
+        },
+        "created_at": "2025-01-27T08:00:00.000Z",
+        "updated_at": "2025-01-27T08:00:00.000Z"
+    },
+    {
+        "id": "550e8400-e29b-41d4-a716-446655440014",
+        "organization_id": "550e8400-e29b-41d4-a716-446655440001",
+        "email": "project.coordinator@factorypulse.vn",
+        "name": "Phan Thị Kim",
+        "role": "management",
+        "department": "Project Management",
+        "phone": "+84-28-7300-0013",
+        "avatar_url": "https://storage.googleapis.com/factory-pulse-assets/avatars/project-coordinator.jpg",
+        "status": "active",
+        "description": "Project Coordinator tracking project progress and coordination",
+        "employee_id": "EMP-PTK-550e",
+        "direct_manager_id": "550e8400-e29b-41d4-a716-446655440003",
+        "last_login_at": "2025-01-27T08:45:00.000Z",
+        "preferences": {
+            "language": "vi",
+            "timezone": "Asia/Ho_Chi_Minh",
+            "theme": "light",
+            "notifications": {
+                "email": true,
+                "sms": true,
+                "push": true
+            }
+        },
+        "created_at": "2025-01-27T08:00:00.000Z",
+        "updated_at": "2025-01-27T08:00:00.000Z"
+    },
+    {
+        "id": "550e8400-e29b-41d4-a716-446655440015",
+        "organization_id": "550e8400-e29b-41d4-a716-446655440001",
+        "email": "admin@factorypulse.vn",
+        "name": "Võ Đình Tài",
+        "role": "admin",
+        "department": "IT",
+        "phone": "+84-28-7300-0014",
+        "avatar_url": "https://storage.googleapis.com/factory-pulse-assets/avatars/admin.jpg",
+        "status": "active",
+        "description": "System Administrator managing technical infrastructure",
+        "employee_id": "EMP-VDT-550e",
+        "direct_manager_id": "550e8400-e29b-41d4-a716-446655440002",
+        "last_login_at": "2025-01-27T08:50:00.000Z",
+        "preferences": {
+            "language": "vi",
+            "timezone": "Asia/Ho_Chi_Minh",
+            "theme": "dark",
+            "notifications": {
+                "email": true,
+                "sms": false,
+                "push": true
+            }
+        },
+        "created_at": "2025-01-27T08:00:00.000Z",
+        "updated_at": "2025-01-27T08:00:00.000Z"
+    },
+    {
+        "id": "550e8400-e29b-41d4-a716-446655440016",
+        "organization_id": "550e8400-e29b-41d4-a716-446655440001",
+        "email": "customer.service@factorypulse.vn",
+        "name": "Nguyễn Thị Hoa",
+        "role": "sales",
+        "department": "Customer Service",
+        "phone": "+84-28-7300-0015",
+        "avatar_url": "https://storage.googleapis.com/factory-pulse-assets/avatars/customer-service.jpg",
+        "status": "active",
+        "description": "Customer Service Representative providing support and assistance",
+        "employee_id": "EMP-NTH-550e",
+        "direct_manager_id": "550e8400-e29b-41d4-a716-446655440012",
+        "last_login_at": "2025-01-27T08:55:00.000Z",
+        "preferences": {
+            "language": "vi",
+            "timezone": "Asia/Ho_Chi_Minh",
+            "theme": "light",
+            "notifications": {
+                "email": true,
+                "sms": true,
+                "push": true
+            }
+        },
+        "created_at": "2025-01-27T08:00:00.000Z",
+        "updated_at": "2025-01-27T08:00:00.000Z"
+    }
+]

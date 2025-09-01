@@ -23,7 +23,9 @@ export const PROJECT_FIELDS = {
     current_stage:workflow_stages!current_stage_id(
       id,
       name,
-      order_index
+      stage_order,
+      created_at,
+      updated_at
     )
   `,
 
@@ -58,14 +60,16 @@ export const PROJECT_FIELDS = {
       type,
       is_active
     ),
-    current_stage:workflow_stages!current_stage_id(
-      id,
-      name,
-      description,
-      order_index,
-      is_active,
-      estimated_duration_days
-    )
+                current_stage:workflow_stages!current_stage_id(
+                id,
+                name,
+                description,
+                stage_order,
+                is_active,
+                estimated_duration_days,
+                created_at,
+                updated_at
+            )
   `,
 
     // Summary fields for dashboard/analytics
@@ -81,7 +85,9 @@ export const PROJECT_FIELDS = {
     stage_entered_at,
     current_stage:workflow_stages!current_stage_id(
       name,
-      order_index
+      stage_order,
+      created_at,
+      updated_at
     )
   `
 };
@@ -114,6 +120,7 @@ export class ProjectQueryBuilder {
 
     // Apply filters
     applyFilters(options: ProjectQueryOptions) {
+        console.log('Applying filters:', options);
         if (options.status) {
             if (Array.isArray(options.status)) {
                 this.query = this.query.in('status', options.status);
@@ -207,6 +214,7 @@ export class ProjectQueryBuilder {
 export const projectQueries = {
     // Get all projects with basic info
     getProjectsList: async (options: ProjectQueryOptions = {}) => {
+        console.log('Fetching projects list with options:', options);
         const builder = new ProjectQueryBuilder(PROJECT_FIELDS.LIST);
         return builder
             .applyFilters(options)

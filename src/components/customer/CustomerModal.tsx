@@ -29,12 +29,16 @@ interface CustomerModalProps {
 }
 
 interface CustomerFormData {
-    name: string;
-    company: string;
+    company_name: string;
+    contact_name: string;
     email: string;
     phone: string;
     address: string;
+    city: string;
+    state: string;
     country: string;
+    postal_code: string;
+    website: string;
 }
 
 const COUNTRIES = [
@@ -62,6 +66,7 @@ const COUNTRIES = [
     'India',
     'Brazil',
     'Mexico',
+    'Vietnam',
     'Other'
 ];
 
@@ -79,12 +84,16 @@ export function CustomerModal({ open, onClose, customer }: CustomerModalProps) {
     } = useForm<CustomerFormData>({
         mode: 'onChange',
         defaultValues: {
-            name: '',
-            company: '',
+            company_name: '',
+            contact_name: '',
             email: '',
             phone: '',
             address: '',
-            country: ''
+            city: '',
+            state: '',
+            country: '',
+            postal_code: '',
+            website: ''
         }
     });
 
@@ -93,21 +102,29 @@ export function CustomerModal({ open, onClose, customer }: CustomerModalProps) {
     useEffect(() => {
         if (customer) {
             reset({
-                name: customer.name || '',
-                company: customer.company || '',
+                company_name: customer.company_name || '',
+                contact_name: customer.contact_name || '',
                 email: customer.email || '',
                 phone: customer.phone || '',
                 address: customer.address || '',
-                country: customer.country || ''
+                city: customer.city || '',
+                state: customer.state || '',
+                country: customer.country || '',
+                postal_code: customer.postal_code || '',
+                website: customer.website || ''
             });
         } else {
             reset({
-                name: '',
-                company: '',
+                company_name: '',
+                contact_name: '',
                 email: '',
                 phone: '',
                 address: '',
-                country: ''
+                city: '',
+                state: '',
+                country: '',
+                postal_code: '',
+                website: ''
             });
         }
     }, [customer, reset]);
@@ -117,12 +134,16 @@ export function CustomerModal({ open, onClose, customer }: CustomerModalProps) {
             setLoading(true);
 
             const customerData: CreateCustomerRequest = {
-                name: data.name.trim(),
-                company: data.company.trim() || undefined,
+                company_name: data.company_name.trim(),
+                contact_name: data.contact_name.trim() || undefined,
                 email: data.email.trim() || undefined,
                 phone: data.phone.trim() || undefined,
                 address: data.address.trim() || undefined,
-                country: data.country || undefined
+                city: data.city.trim() || undefined,
+                state: data.state.trim() || undefined,
+                country: data.country || undefined,
+                postal_code: data.postal_code.trim() || undefined,
+                website: data.website.trim() || undefined
             };
 
             if (isEditing && customer) {
@@ -147,7 +168,7 @@ export function CustomerModal({ open, onClose, customer }: CustomerModalProps) {
 
     return (
         <Dialog open={open} onOpenChange={handleClose}>
-            <DialogContent className="sm:max-w-[500px] modal-dialog">
+            <DialogContent className="sm:max-w-[600px] modal-dialog">
                 <DialogHeader className="modal-dialog-header">
                     <DialogTitle className="modal-dialog-title">
                         {isEditing ? 'Edit Customer' : 'Add New Customer'}
@@ -163,27 +184,27 @@ export function CustomerModal({ open, onClose, customer }: CustomerModalProps) {
                 <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
                     <div className="grid grid-cols-2 gap-4">
                         <div className="space-y-2">
-                            <Label htmlFor="name">Name *</Label>
+                            <Label htmlFor="company_name">Company Name *</Label>
                             <Input
-                                id="name"
-                                {...register('name', {
-                                    required: 'Name is required',
-                                    minLength: { value: 2, message: 'Name must be at least 2 characters' }
+                                id="company_name"
+                                {...register('company_name', {
+                                    required: 'Company name is required',
+                                    minLength: { value: 2, message: 'Company name must be at least 2 characters' }
                                 })}
-                                placeholder="John Smith"
+                                placeholder="Acme Manufacturing"
                                 className="modal-form-input"
                             />
-                            {errors.name && (
-                                <p className="text-sm text-destructive">{errors.name.message}</p>
+                            {errors.company_name && (
+                                <p className="text-sm text-destructive">{errors.company_name.message}</p>
                             )}
                         </div>
 
                         <div className="space-y-2">
-                            <Label htmlFor="company">Company</Label>
+                            <Label htmlFor="contact_name">Contact Name</Label>
                             <Input
-                                id="company"
-                                {...register('company')}
-                                placeholder="Acme Manufacturing"
+                                id="contact_name"
+                                {...register('contact_name')}
+                                placeholder="John Smith"
                                 className="modal-form-input"
                             />
                         </div>
@@ -225,29 +246,74 @@ export function CustomerModal({ open, onClose, customer }: CustomerModalProps) {
                         <Textarea
                             id="address"
                             {...register('address')}
-                            placeholder="123 Industrial Ave, Detroit, MI 48201"
+                            placeholder="123 Industrial Ave"
                             rows={2}
                             className="modal-form-textarea"
                         />
                     </div>
 
-                    <div className="space-y-2">
-                        <Label htmlFor="country">Country</Label>
-                        <Select
-                            value={watch('country')}
-                            onValueChange={(value) => setValue('country', value)}
-                        >
-                            <SelectTrigger className="modal-select-trigger">
-                                <SelectValue placeholder="Select country" />
-                            </SelectTrigger>
-                            <SelectContent>
-                                {COUNTRIES.map((country) => (
-                                    <SelectItem key={country} value={country}>
-                                        {country}
-                                    </SelectItem>
-                                ))}
-                            </SelectContent>
-                        </Select>
+                    <div className="grid grid-cols-3 gap-4">
+                        <div className="space-y-2">
+                            <Label htmlFor="city">City</Label>
+                            <Input
+                                id="city"
+                                {...register('city')}
+                                placeholder="Detroit"
+                                className="modal-form-input"
+                            />
+                        </div>
+
+                        <div className="space-y-2">
+                            <Label htmlFor="state">State/Province</Label>
+                            <Input
+                                id="state"
+                                {...register('state')}
+                                placeholder="MI"
+                                className="modal-form-input"
+                            />
+                        </div>
+
+                        <div className="space-y-2">
+                            <Label htmlFor="postal_code">Postal Code</Label>
+                            <Input
+                                id="postal_code"
+                                {...register('postal_code')}
+                                placeholder="48201"
+                                className="modal-form-input"
+                            />
+                        </div>
+                    </div>
+
+                    <div className="grid grid-cols-2 gap-4">
+                        <div className="space-y-2">
+                            <Label htmlFor="country">Country</Label>
+                            <Select
+                                value={watch('country')}
+                                onValueChange={(value) => setValue('country', value)}
+                            >
+                                <SelectTrigger className="modal-select-trigger">
+                                    <SelectValue placeholder="Select country" />
+                                </SelectTrigger>
+                                <SelectContent>
+                                    {COUNTRIES.map((country) => (
+                                        <SelectItem key={country} value={country}>
+                                            {country}
+                                        </SelectItem>
+                                    ))}
+                                </SelectContent>
+                            </Select>
+                        </div>
+
+                        <div className="space-y-2">
+                            <Label htmlFor="website">Website</Label>
+                            <Input
+                                id="website"
+                                type="url"
+                                {...register('website')}
+                                placeholder="https://acme.com"
+                                className="modal-form-input"
+                            />
+                        </div>
                     </div>
 
                     <DialogFooter>

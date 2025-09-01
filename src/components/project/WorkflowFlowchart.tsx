@@ -316,7 +316,7 @@ export function WorkflowFlowchart({
                                 {workflowStages.map((stage) => {
                                     const stageStatus = getProjectStageStatus(selectedProject, stage.id);
                                     const currentStage = workflowStages.find(s => s.id === selectedProject.current_stage_id);
-                                    const canMoveToStage = !currentStage || stage.stage_order > currentStage.stage_order;
+                                    const canMoveToStage = !currentStage || stage.order_index > currentStage.order_index;
 
                                     return (
                                         <div key={stage.id} className="flex items-center space-x-3">

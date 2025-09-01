@@ -1,43 +1,68 @@
-# Factory Pulse Database Schema – Updated & Revised
+# Factory Pulse Database Schema - Initial Foundation
 
+This document describes the initial database schema for Factory Pulse, a Manufacturing Execution System (MES) designed for multi-tenant SaaS deployment with Vietnam localization support.
 
-This revised document consolidates, corrects, and enhances the schema to ensure:
-- Full alignment with the PRD workflow and user roles
-- Consistent naming, data types, and constraints
-- SaaS-ready multi-tenancy and auditability
-- Real-time communication and traceability
-- AI/automation extensibility
-- Vietnam and Southeast Asia localization support
+## Schema Overview
 
----
-
-## ✅ Key Improvements Made
-
-| Area                        | Issue in Original                                 | Fix Implemented                                                                       |
-| --------------------------- | ------------------------------------------------- | ------------------------------------------------------------------------------------- |
-| **UUID Generation**         | Mixed `gen_random_uuid()` vs `uuid_generate_v4()` | Standardized to `uuid_generate_v4()`                                                  |
-| **Project Status vs Stage** | Confused in schema                                | Separated `status` (active/delayed/cancelled) from `current_stage_id` (workflow step) |
-| **Organization-User Link**  | Inconsistent                                      | Enforced `organization_id` on all core tables                                         |
-| **Document Versioning**     | Parent-child model                                | Improved with `document_versions` table                                               |
-| **Message System**          | Overly complex                                    | Simplified with thread-based messaging                                                |
-| **AI & Automation**         | Scattered fields                                  | Unified in `ai_processing_queue` and metadata                                         |
-| **Vietnam Support**         | Missing                                           | Added VND, Asia/Ho_Chi_Minh, Vietnamese language                                      |
-| **Realtime & Sync**         | Incomplete                                        | Enhanced triggers and subscriptions                                                   |
+The initial schema establishes the foundational structure for:
+- Multi-tenant organization management
+- User authentication and role-based access control  
+- Configurable workflow stages for manufacturing processes
+- Customer and supplier contact management
+- Project lifecycle management with workflow tracking
 
 ---
 
-## Core Entities
+## Current Implementation Status
 
-### 1. Organizations & Users
+| Component                | Status        | Description                                                   |
+| ------------------------ | ------------- | ------------------------------------------------------------- |
+| **Core Tables**          | ✅ Implemented | Organizations, users, contacts, workflow_stages, projects     |
+| **Extended Tables**      | ✅ Implemented | Documents, reviews, messages, notifications, activity_log     |
+| **Custom Types**         | ✅ Implemented | User roles, statuses, contact types, priority levels          |
+| **Multi-Tenancy**        | ✅ Implemented | Organization-based data isolation with RLS policies           |
+| **Authentication**       | ✅ Ready       | Extends Supabase auth.users with organizational context       |
+| **Workflow Engine**      | ✅ Foundation  | Configurable stages with role assignments                     |
+| **Functions & Triggers** | ✅ Enhanced    | Auto-timestamps, project IDs, activity logging, notifications |
 
-**Multi-Tenant Architecture**: The system supports multiple organizations where:
-- **Factory Pulse Vietnam** is the main organization containing internal users (employees, management, etc.)
-- **Customer Organizations** represent external companies that purchase from Factory Pulse
-- **Supplier Organizations** represent external companies that supply materials/services to Factory Pulse
-- Each organization has its own settings, preferences, and data isolation
+---
+
+## Database Schema Structure
+
+### Custom Types
+
+The schema defines several custom PostgreSQL types for data consistency:
 
 ```sql
--- Organizations (Multi-tenancy support)
+-- User roles covering all manufacturing workflow participants
+CREATE TYPE user_role AS ENUM (
+    'admin', 'management', 'sales', 'engineering', 
+    'qa', 'production', 'procurement', 'supplier', 'customer'
+);
+
+-- User account status for access control
+CREATE TYPE user_status AS ENUM ('active', 'inactive', 'pending', 'suspended');
+
+-- Contact classification for external entities
+CREATE TYPE contact_type AS ENUM ('customer', 'supplier', 'partner', 'internal');
+
+-- Project lifecycle status (separate from workflow stages)
+CREATE TYPE project_status AS ENUM ('active', 'completed', 'cancelled', 'on_hold');
+
+-- Priority levels for projects and tasks
+CREATE TYPE priority_level AS ENUM ('low', 'medium', 'high', 'critical');
+
+-- Subscription tiers for SaaS model
+CREATE TYPE subscription_plan AS ENUM ('starter', 'growth', 'enterprise');
+```
+
+### Core Tables
+
+#### 1. Organizations (Multi-Tenancy Root)
+
+The organizations table serves as the foundation for multi-tenant architecture:
+
+```sql
 CREATE TABLE organizations (
     id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
     name VARCHAR(255) NOT NULL,
@@ -47,45 +72,162 @@ CREATE TABLE organizations (
     description TEXT,
     industry VARCHAR(100),
     settings JSONB DEFAULT '{}',
-    subscription_plan VARCHAR(50) DEFAULT 'starter' 
-      CHECK (subscription_plan IN ('starter', 'growth', 'enterprise', 'trial', 'suspended', 'cancelled')),
+    subscription_plan subscription_plan DEFAULT 'starter',
     is_active BOOLEAN DEFAULT true,
-    created_at TIMESTAMPTZ DEFAULT NOW(),
-    updated_at TIMESTAMPTZ DEFAULT NOW()
+    created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
+    updated_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
 );
+```
 
--- User profiles with role-based access (internal users only)
-CREATE TABLE users (
+**Key Features:**
+- **Multi-Tenant Root**: All other tables reference organization_id for data isolation
+- **Flexible Settings**: JSONB field for organization-specific configuration
+- **SaaS Ready**: Subscription plan tracking for billing and feature access
+- **URL-Friendly**: Slug field for clean URLs and API endpoints
+
+#### 2. Workflow Stages (Configurable Process Flow)
+
+Defines the manufacturing workflow stages that projects progress through:
+
+```sql
+CREATE TABLE workflow_stages (
     id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
-    organization_id UUID REFERENCES organizations(id) ON DELETE CASCADE,
+    organization_id UUID NOT NULL REFERENCES organizations(id) ON DELETE CASCADE,
+    name VARCHAR(255) NOT NULL,
+    slug VARCHAR(100) NOT NULL,
+    description TEXT,
+    color VARCHAR(7) DEFAULT '#3B82F6',
+    stage_order INTEGER NOT NULL,
+    is_active BOOLEAN DEFAULT true,
+    exit_criteria TEXT,
+    responsible_roles user_role[] DEFAULT '{}',
+    sub_stages_count INTEGER DEFAULT 0,
+    created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
+    updated_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
+    UNIQUE(organization_id, slug),
+    UNIQUE(organization_id, stage_order)
+);
+```
+
+**Key Features:**
+- **Configurable Workflow**: Organizations can customize their manufacturing process
+- **Visual Coding**: Color field for UI representation
+- **Role Assignment**: Array of responsible roles for each stage
+- **Exit Criteria**: Textual description of requirements to advance to next stage
+- **Ordering**: Numeric ordering for proper workflow sequence
+- **Sub-Stages Support**: Count of sub-stages for quick reference
+
+#### 2a. Workflow Sub-Stages (Granular Process Steps)
+
+Defines detailed sub-stages within each workflow stage for granular process tracking:
+
+```sql
+CREATE TABLE workflow_sub_stages (
+    id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+    organization_id UUID NOT NULL REFERENCES organizations(id) ON DELETE CASCADE,
+    workflow_stage_id UUID NOT NULL REFERENCES workflow_stages(id) ON DELETE CASCADE,
+    name VARCHAR(255) NOT NULL,
+    slug VARCHAR(100) NOT NULL,
+    description TEXT,
+    color VARCHAR(7) DEFAULT '#6B7280',
+    sub_stage_order INTEGER NOT NULL,
+    is_active BOOLEAN DEFAULT true,
+    exit_criteria TEXT,
+    responsible_roles user_role[] DEFAULT '{}',
+    estimated_duration_hours INTEGER,
+    is_required BOOLEAN DEFAULT true,
+    can_skip BOOLEAN DEFAULT false,
+    auto_advance BOOLEAN DEFAULT false,
+    requires_approval BOOLEAN DEFAULT false,
+    approval_roles user_role[] DEFAULT '{}',
+    metadata JSONB DEFAULT '{}',
+    created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
+    updated_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
+    UNIQUE(workflow_stage_id, slug),
+    UNIQUE(workflow_stage_id, sub_stage_order)
+);
+```
+
+**Key Features:**
+- **Granular Tracking**: Detailed steps within each workflow stage
+- **Duration Management**: Estimated hours for each sub-stage
+- **Flexible Requirements**: Optional sub-stages that can be skipped
+- **Auto-Advancement**: Automatic progression based on time or conditions
+- **Approval Workflows**: Some sub-stages require specific role approvals
+- **Role Assignment**: Specific responsible roles for each sub-stage
+- **Metadata Support**: JSONB field for extensible configuration
+
+#### 2b. Project Sub-Stage Progress (Progress Tracking)
+
+Tracks the progress of sub-stages for each project:
+
+```sql
+CREATE TABLE project_sub_stage_progress (
+    id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+    organization_id UUID NOT NULL REFERENCES organizations(id) ON DELETE CASCADE,
+    project_id UUID NOT NULL REFERENCES projects(id) ON DELETE CASCADE,
+    workflow_stage_id UUID NOT NULL REFERENCES workflow_stages(id) ON DELETE CASCADE,
+    sub_stage_id UUID NOT NULL REFERENCES workflow_sub_stages(id) ON DELETE CASCADE,
+    status VARCHAR(50) DEFAULT 'pending' CHECK (status IN ('pending', 'in_progress', 'completed', 'skipped', 'blocked')),
+    started_at TIMESTAMP WITH TIME ZONE,
+    completed_at TIMESTAMP WITH TIME ZONE,
+    assigned_to UUID REFERENCES users(id),
+    notes TEXT,
+    metadata JSONB DEFAULT '{}',
+    created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
+    updated_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
+    UNIQUE(project_id, sub_stage_id)
+);
+```
+
+**Key Features:**
+- **Status Tracking**: Complete lifecycle from pending to completed
+- **Time Tracking**: Start and completion timestamps
+- **Assignment Management**: Track who is working on each sub-stage
+- **Notes Support**: Progress notes and comments
+- **Metadata**: Extensible data storage for custom fields
+
+#### 3. Users (Internal Employees)
+
+Extends Supabase authentication with organizational context and role-based access:
+
+```sql
+CREATE TABLE users (
+    id UUID PRIMARY KEY REFERENCES auth.users(id) ON DELETE CASCADE,
+    organization_id UUID NOT NULL REFERENCES organizations(id) ON DELETE CASCADE,
     email VARCHAR(255) UNIQUE NOT NULL,
     name VARCHAR(255) NOT NULL,
-    role VARCHAR(50) NOT NULL 
-      CHECK (role IN ('sales', 'procurement', 'engineering', 'qa', 'production', 'management', 'admin')),
+    role user_role NOT NULL,
     department VARCHAR(100),
     phone VARCHAR(50),
     avatar_url TEXT,
-    status VARCHAR(20) DEFAULT 'active' 
-      CHECK (status IN ('active', 'dismiss')),
+    status user_status DEFAULT 'active',
     description TEXT,
     employee_id VARCHAR(50),
     direct_manager_id UUID REFERENCES users(id),
     direct_reports UUID[] DEFAULT '{}',
-    last_login_at TIMESTAMPTZ,
+    last_login_at TIMESTAMP WITH TIME ZONE,
     preferences JSONB DEFAULT '{}',
-    created_at TIMESTAMPTZ DEFAULT NOW(),
-    updated_at TIMESTAMPTZ DEFAULT NOW()
+    created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
+    updated_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
 );
+```
 
--- External contacts (customers and suppliers)
--- Note: Each contact references their own organization, not Factory Pulse's organization
--- This enables proper multi-tenant separation between external companies and Factory Pulse
--- IMPORTANT: External customers and suppliers are managed in this table, NOT in the users table
--- The users table is reserved for internal Factory Pulse employees only
+**Key Features:**
+- **Supabase Integration**: Extends auth.users with business context
+- **Organizational Hierarchy**: Manager-report relationships
+- **Role-Based Access**: Manufacturing-specific roles (engineering, qa, production, etc.)
+- **Flexible Preferences**: JSONB field for user-specific settings
+
+#### 4. Contacts (External Entities)
+
+Manages customers, suppliers, and other external business contacts:
+
+```sql
 CREATE TABLE contacts (
     id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
-    organization_id UUID REFERENCES organizations(id) ON DELETE CASCADE,
-    type VARCHAR(20) NOT NULL CHECK (type IN ('customer', 'supplier')),
+    organization_id UUID NOT NULL REFERENCES organizations(id) ON DELETE CASCADE,
+    type contact_type NOT NULL,
     company_name VARCHAR(255) NOT NULL,
     contact_name VARCHAR(255),
     email VARCHAR(255),
@@ -93,25 +235,72 @@ CREATE TABLE contacts (
     address TEXT,
     city VARCHAR(100),
     state VARCHAR(100),
-    country VARCHAR(100) DEFAULT 'Vietnam',
+    country VARCHAR(100),
     postal_code VARCHAR(20),
     website VARCHAR(255),
-    tax_id VARCHAR(100),
+    tax_id VARCHAR(50),
     payment_terms VARCHAR(100),
     credit_limit DECIMAL(15,2),
     is_active BOOLEAN DEFAULT true,
     notes TEXT,
     metadata JSONB DEFAULT '{}',
-    -- AI-ready fields
     ai_category JSONB DEFAULT '{}',
-    ai_capabilities JSONB DEFAULT '[]',
-    ai_risk_score DECIMAL(5,2), -- 0-100
-    ai_last_analyzed TIMESTAMPTZ,
-    created_at TIMESTAMPTZ DEFAULT NOW(),
-    updated_at TIMESTAMPTZ DEFAULT NOW(),
+    ai_capabilities TEXT[] DEFAULT '{}',
+    ai_risk_score DECIMAL(5,2),
+    ai_last_analyzed TIMESTAMP WITH TIME ZONE,
+    created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
+    updated_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
     created_by UUID REFERENCES users(id)
 );
 ```
+
+**Key Features:**
+- **External Entity Management**: Separate from internal users table
+- **Business Information**: Complete company and contact details
+- **AI Integration Ready**: Fields for automated categorization and risk assessment
+- **Financial Tracking**: Credit limits and payment terms
+- **Audit Trail**: Created by tracking for accountability
+
+#### 5. Projects (Core Business Entity)
+
+Central table for managing manufacturing projects through the workflow:
+
+```sql
+CREATE TABLE projects (
+    id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+    organization_id UUID NOT NULL REFERENCES organizations(id) ON DELETE CASCADE,
+    project_id VARCHAR(50) UNIQUE NOT NULL,
+    title VARCHAR(255) NOT NULL,
+    description TEXT,
+    customer_id UUID REFERENCES contacts(id),
+    current_stage_id UUID REFERENCES workflow_stages(id),
+    status project_status DEFAULT 'active',
+    priority_score INTEGER DEFAULT 50,
+    priority_level priority_level DEFAULT 'medium',
+    estimated_value DECIMAL(15,2),
+    estimated_delivery_date TIMESTAMP WITH TIME ZONE,
+    actual_delivery_date TIMESTAMP WITH TIME ZONE,
+    source VARCHAR(50),
+    tags TEXT[] DEFAULT '{}',
+    metadata JSONB DEFAULT '{}',
+    stage_entered_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
+    project_type VARCHAR(100),
+    notes TEXT,
+    created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
+    updated_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
+    created_by UUID REFERENCES users(id),
+    assigned_to UUID REFERENCES users(id)
+);
+```
+
+**Key Features:**
+- **Unique Project IDs**: Human-readable project identifiers (P-YYMMDDXX format)
+- **Workflow Integration**: Links to current workflow stage
+- **Dual Status System**: Project status (active/cancelled) separate from workflow stage
+- **Priority Management**: Both numeric score and categorical priority levels
+- **Customer Relationship**: Links to customer contacts
+- **Assignment Tracking**: Created by and assigned to users
+- **Flexible Metadata**: JSONB for project-specific data
 
 ### 2. Projects & Workflow
 
@@ -129,10 +318,55 @@ CREATE TABLE workflow_stages (
     is_active BOOLEAN DEFAULT true,
     exit_criteria TEXT,
     responsible_roles TEXT[] DEFAULT '{}',
+    sub_stages_count INTEGER DEFAULT 0,
     created_at TIMESTAMPTZ DEFAULT NOW(),
     updated_at TIMESTAMPTZ DEFAULT NOW(),
     UNIQUE(organization_id, slug),
     UNIQUE(organization_id, stage_order)
+);
+
+-- Workflow sub-stages (granular process steps)
+CREATE TABLE workflow_sub_stages (
+    id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+    organization_id UUID NOT NULL REFERENCES organizations(id) ON DELETE CASCADE,
+    workflow_stage_id UUID NOT NULL REFERENCES workflow_stages(id) ON DELETE CASCADE,
+    name VARCHAR(255) NOT NULL,
+    slug VARCHAR(100) NOT NULL,
+    description TEXT,
+    color VARCHAR(7) DEFAULT '#6B7280',
+    sub_stage_order INTEGER NOT NULL,
+    is_active BOOLEAN DEFAULT true,
+    exit_criteria TEXT,
+    responsible_roles user_role[] DEFAULT '{}',
+    estimated_duration_hours INTEGER,
+    is_required BOOLEAN DEFAULT true,
+    can_skip BOOLEAN DEFAULT false,
+    auto_advance BOOLEAN DEFAULT false,
+    requires_approval BOOLEAN DEFAULT false,
+    approval_roles user_role[] DEFAULT '{}',
+    metadata JSONB DEFAULT '{}',
+    created_at TIMESTAMPTZ DEFAULT NOW(),
+    updated_at TIMESTAMPTZ DEFAULT NOW(),
+    UNIQUE(workflow_stage_id, slug),
+    UNIQUE(workflow_stage_id, sub_stage_order)
+);
+
+-- Project sub-stage progress tracking
+CREATE TABLE project_sub_stage_progress (
+    id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+    organization_id UUID NOT NULL REFERENCES organizations(id) ON DELETE CASCADE,
+    project_id UUID NOT NULL REFERENCES projects(id) ON DELETE CASCADE,
+    workflow_stage_id UUID NOT NULL REFERENCES workflow_stages(id) ON DELETE CASCADE,
+    sub_stage_id UUID NOT NULL REFERENCES workflow_sub_stages(id) ON DELETE CASCADE,
+    status VARCHAR(50) DEFAULT 'pending' CHECK (status IN ('pending', 'in_progress', 'completed', 'skipped', 'blocked')),
+    started_at TIMESTAMPTZ,
+    completed_at TIMESTAMPTZ,
+    assigned_to UUID REFERENCES users(id),
+    notes TEXT,
+    metadata JSONB DEFAULT '{}',
+    created_at TIMESTAMPTZ DEFAULT NOW(),
+    updated_at TIMESTAMPTZ DEFAULT NOW(),
+    UNIQUE(project_id, sub_stage_id)
 );
 
 -- Main projects table
@@ -961,9 +1195,12 @@ ALTER PUBLICATION supabase_realtime ADD TABLE supplier_quotes;
 - External contact management for customers and suppliers
 
 ### 2. **Complete Workflow Tracking**
-- Configurable workflow stages
+- Configurable workflow stages with sub-stages
+- Granular process tracking with detailed sub-stages
 - Stage history with duration tracking
 - Multi-user project assignments
+- Auto-advancement based on time or conditions
+- Approval workflows for critical sub-stages
 
 ### 3. **Real-time Communication**
 - Messages between all stakeholders
@@ -1031,6 +1268,12 @@ erDiagram
     organizations ||--o{ users : "belongs to"
     organizations ||--o{ contacts : "manages"
     organizations ||--o{ workflow_stages : "configures"
+    organizations ||--o{ workflow_sub_stages : "configures"
+    organizations ||--o{ project_sub_stage_progress : "tracks"
+    workflow_stages ||--o{ workflow_sub_stages : "contains"
+    workflow_stages ||--o{ project_sub_stage_progress : "tracks progress"
+    workflow_sub_stages ||--o{ project_sub_stage_progress : "has progress"
+    projects ||--o{ project_sub_stage_progress : "tracks sub-stages"
     organizations ||--o{ projects : "owns"
     organizations ||--o{ organization_settings : "has"
     organizations ||--o{ email_templates : "uses"
@@ -1164,6 +1407,49 @@ erDiagram
         boolean is_active
         text exit_criteria
         text_array responsible_roles
+        integer sub_stages_count
+        integer estimated_duration_days
+        jsonb required_approvals
+        jsonb auto_advance_conditions
+        timestamp created_at
+        timestamp updated_at
+    }
+    
+    workflow_sub_stages {
+        uuid id PK
+        uuid organization_id FK
+        uuid workflow_stage_id FK
+        varchar name
+        varchar slug
+        text description
+        varchar color
+        integer sub_stage_order
+        boolean is_active
+        text exit_criteria
+        text_array responsible_roles
+        integer estimated_duration_hours
+        boolean is_required
+        boolean can_skip
+        boolean auto_advance
+        boolean requires_approval
+        text_array approval_roles
+        jsonb metadata
+        timestamp created_at
+        timestamp updated_at
+    }
+    
+    project_sub_stage_progress {
+        uuid id PK
+        uuid organization_id FK
+        uuid project_id FK
+        uuid workflow_stage_id FK
+        uuid sub_stage_id FK
+        varchar status
+        timestamp started_at
+        timestamp completed_at
+        uuid assigned_to FK
+        text notes
+        jsonb metadata
         timestamp created_at
         timestamp updated_at
     }
@@ -1433,6 +1719,8 @@ sequenceDiagram
     participant WF as Workflow System
     participant PROJ as Projects
     participant HIST as Stage History
+    participant SUB as Sub-Stages
+    participant PROG as Sub-Stage Progress
     participant NOT as Notifications
     participant METRICS as Metrics System
 
@@ -1447,6 +1735,11 @@ sequenceDiagram
         WF->>HIST: Create new stage entry
         HIST->>project_stage_history: Record stage entry
         
+        WF->>SUB: Get sub-stages for new stage
+        SUB->>workflow_sub_stages: Fetch active sub-stages
+        WF->>PROG: Create sub-stage progress records
+        PROG->>project_sub_stage_progress: Create progress entries
+        
         WF->>NOT: Generate stage change notifications
         NOT->>workflow_stages: Get responsible_roles
         NOT->>users: Find users with matching roles
@@ -1458,6 +1751,14 @@ sequenceDiagram
         WF->>activity_log: Log stage change activity
     else Criteria Not Met
         WF-->>U: Return validation error
+    end
+    
+    Note over SUB,PROG: Sub-stage Progress Tracking
+    loop For each sub-stage
+        U->>PROG: Update sub-stage status
+        PROG->>project_sub_stage_progress: Update progress
+        PROG->>NOT: Notify assigned users
+        PROG->>METRICS: Track sub-stage timing
     end
 ```
 
@@ -1530,6 +1831,13 @@ flowchart TD
     T --> U[Shipping]
     U --> V[Project Completion]
     
+    subgraph "Sub-Stages Management"
+        SUB1[Sub-Stage Creation]
+        SUB2[Progress Tracking]
+        SUB3[Auto-Advancement]
+        SUB4[Approval Workflows]
+    end
+    
     subgraph "Data Layer"
         W[Organizations]
         X[Users & Contacts]
@@ -1538,12 +1846,15 @@ flowchart TD
         AA[Messages]
         BB[Notifications]
         CC[Activity Log]
+        DD[Workflow Stages]
+        EE[Workflow Sub-Stages]
+        FF[Sub-Stage Progress]
     end
     
     subgraph "Real-time Layer"
-        DD[Supabase Realtime]
-        EE[WebSocket Connections]
-        FF[Push Notifications]
+        GG[Supabase Realtime]
+        HH[WebSocket Connections]
+        II[Push Notifications]
     end
     
     B --> Y
@@ -1551,14 +1862,24 @@ flowchart TD
     D --> CC
     G --> AA
     G --> BB
-    H --> DD
+    H --> GG
+    GG --> HH
+    HH --> II
+    
     DD --> EE
     EE --> FF
+    FF --> SUB2
+    SUB2 --> SUB3
+    SUB3 --> SUB4
     
     style A fill:#e1f5fe
     style N fill:#c8e6c9
     style O fill:#ffcdd2
     style V fill:#4caf50
+    style SUB1 fill:#fff3e0
+    style SUB2 fill:#fff3e0
+    style SUB3 fill:#fff3e0
+    style SUB4 fill:#fff3e0
 ```
 
 This comprehensive set of diagrams provides a complete visual understanding of the Factory Pulse database schema, relationships, and data flows throughout the system.
@@ -1729,8 +2050,99 @@ LANGUAGE plpgsql
 - `enable_fk_checks_temporarily()`
 - `fix_user_id_mismatch()`
 
+**Trigger Functions**:
+- `log_activity()` - Enhanced activity logging with multi-tenant safety
+- `generate_project_id()` - Automatic project ID generation
+- `handle_project_stage_change()` - Stage transition management
+- `create_notification()` - Notification creation helper
+- `update_updated_at_column()` - Automatic timestamp updates
+
 **Standard Functions**:
 - `update_updated_at_column()`
+
+### Trigger Functions
+
+#### 10. `log_activity()` - Enhanced Activity Logging
+**Purpose**: Automatically logs all database changes for audit trail and compliance
+**Returns**: Trigger (NEW or OLD record)
+**Security**: Standard function with enhanced error handling
+
+**Function Signature**:
+```sql
+CREATE OR REPLACE FUNCTION log_activity()
+RETURNS TRIGGER AS $
+DECLARE
+    user_org_id UUID;
+    entity_org_id UUID;
+BEGIN
+    -- Enhanced organization ID resolution with fallback logic
+    SELECT organization_id INTO user_org_id 
+    FROM users WHERE id = auth.uid();
+    
+    entity_org_id := COALESCE(NEW.organization_id, OLD.organization_id, user_org_id);
+    
+    -- Only log if we have an organization ID (prevents logging failures)
+    IF entity_org_id IS NOT NULL THEN
+        INSERT INTO activity_log (...);
+    END IF;
+    
+    RETURN COALESCE(NEW, OLD);
+END;
+$ language 'plpgsql';
+```
+
+**Enhanced Features**:
+- **Multi-Tenant Safety**: Robust organization ID resolution with fallback chain
+- **Null Safety**: Conditional logging prevents failures when organization context is missing
+- **Error Resilience**: Database operations continue even if activity logging encounters issues
+- **Comprehensive Coverage**: Tracks INSERT, UPDATE, and DELETE operations
+
+**Organization ID Resolution Logic**:
+1. **Primary**: Uses entity's `organization_id` field (NEW or OLD record)
+2. **Fallback**: Uses current user's organization ID from users table
+3. **Safety Check**: Only logs when organization ID is available
+
+**Applied to Tables**:
+- `projects` - Project lifecycle tracking
+- `contacts` - Customer/supplier management tracking
+- `reviews` - Review process audit trail
+
+#### 11. `generate_project_id()`
+**Purpose**: Automatically generates unique project IDs in P-YYMMDDXX format
+**Returns**: Trigger (NEW record with generated project_id)
+**Security**: Standard function
+
+**Function Signature**:
+```sql
+CREATE OR REPLACE FUNCTION generate_project_id()
+RETURNS TRIGGER AS $
+BEGIN
+    IF NEW.project_id IS NULL THEN
+        NEW.project_id := 'P-' || TO_CHAR(NOW(), 'YYMMDD') || 
+                         LPAD((SELECT COALESCE(MAX(...), 0) + 1)::TEXT, 2, '0');
+    END IF;
+    RETURN NEW;
+END;
+$ language 'plpgsql';
+```
+
+#### 12. `handle_project_stage_change()`
+**Purpose**: Manages project stage transitions and creates notifications
+**Returns**: Trigger (NEW record with updated stage_entered_at)
+**Security**: Standard function
+
+**Features**:
+- Updates `stage_entered_at` timestamp when stage changes
+- Creates notifications for assigned users
+- Integrates with notification system for real-time updates
+
+#### 13. `create_notification()`
+**Purpose**: Helper function to create user notifications
+**Parameters**: user_id, title, message, type, priority, action_url, etc.
+**Returns**: UUID of created notification
+**Security**: Standard function
+
+**Usage**: Called by other triggers and functions to create user notifications
 
 **Permissions**:
 - All functions are granted EXECUTE permission to authenticated users
@@ -1762,4 +2174,55 @@ LANGUAGE plpgsql
 - Query execution plans available for optimization
 - Error logging through standard PostgreSQL mechanisms
 
-This functions layer provides the business logic foundation for the Factory Pulse application, ensuring secure, efficient, and maintainable database operations.
+This functions layer provides the business logic foundation for the Factory Pulse application, ensuring secure, efficient, and maintainable database operations.## 
+Sample Data Integration
+
+The schema is designed to work seamlessly with the sample data structure:
+
+### Organizations Sample Data
+- **Factory Pulse Vietnam**: Primary organization with enterprise subscription
+- **Customer Organizations**: Toyota Vietnam, Honda Vietnam, Boeing Vietnam
+- **Supplier Organizations**: Precision Machining Co.
+
+### Workflow Stages Sample Data
+The schema supports the standard 8-stage manufacturing workflow:
+1. **Inquiry Received** - Initial customer inquiry
+2. **Under Review** - Internal technical review
+3. **Quoted** - Quote provided to customer
+4. **Order Confirmed** - Customer accepts quote
+5. **In Production** - Manufacturing in progress
+6. **Quality Check** - QA inspection and testing
+7. **Ready for Delivery** - Completed and packaged
+8. **Delivered** - Shipped to customer
+
+### User Roles Sample Data
+- **Management**: Directors and managers
+- **Sales**: Account managers and sales representatives
+- **Engineering**: Design engineers and technical specialists
+- **QA**: Quality assurance engineers and inspectors
+- **Production**: Production supervisors and operators
+- **Procurement**: Purchasing and supplier management
+
+## Future Extensions
+
+The initial schema provides a solid foundation for additional tables:
+
+### Planned Extensions
+- **Documents**: File management with versioning
+- **Reviews**: Internal approval workflows
+- **Messages**: Communication and notifications
+- **Activity Log**: Audit trail and system events
+- **Supplier RFQs**: Request for quote management
+- **AI Processing**: Automated document processing
+
+### Integration Points
+- **Supabase Auth**: Seamless authentication integration
+- **Real-time Subscriptions**: Live updates for collaborative workflows
+- **Storage Integration**: Document and file management
+- **API Ready**: RESTful and GraphQL API support
+
+## Migration Information
+
+**Migration File**: `supabase/migrations/20250831000001_initial_schema.sql`
+**Status**: Initial foundation implemented
+**Next Steps**: Add extended tables for complete business functionality
