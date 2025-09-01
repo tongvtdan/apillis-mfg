@@ -429,12 +429,13 @@ export default function Projects() {
                 <TabsTrigger value="flowchart" className="auth-tab-trigger" disabled={isRetrying}>
                   Workflow
                 </TabsTrigger>
-                <TabsTrigger value="analytics" className="auth-tab-trigger" disabled={isRetrying}>
-                  Analytics
-                </TabsTrigger>
                 <TabsTrigger value="calendar" className="auth-tab-trigger" disabled={isRetrying}>
                   Calendar
                 </TabsTrigger>
+                <TabsTrigger value="analytics" className="auth-tab-trigger" disabled={isRetrying}>
+                  Analytics
+                </TabsTrigger>
+
               </TabsList>
 
 
