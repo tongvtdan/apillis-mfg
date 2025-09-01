@@ -2,6 +2,50 @@
 
 ## Recent Changes
 
+### 2025-09-01 - Project Details Page UI/UX Improvements
+
+**Task Completed:**
+- Redesigned project details page layout for better user experience
+- Removed redundant sections to reduce cognitive load
+- Improved information hierarchy and visual organization
+- Streamlined project information display
+
+**Design Changes Applied:**
+
+1. **Project Information Card** (`src/components/project/InlineProjectEditor.tsx`):
+   - **Removed Status field**: Status is already displayed in Project Status card
+   - **Moved Priority to header**: Priority is now prominently displayed in card header with dropdown selector
+   - **Simplified editable fields**: Focused on core project information (title, description, estimated value, notes)
+   - **Enhanced header layout**: Added priority selector with visual badges for better UX
+
+2. **Project Details Page** (`src/pages/ProjectDetail.tsx`):
+   - **Removed Review Status section**: Redundant with "Actions Needed" section
+   - **Removed Documents section**: Documents are accessible via dedicated Documents tab
+   - **Removed Supplier RFQ section**: Supplier RFQs are accessible via dedicated Supplier tab
+   - **Kept Activity & Comments**: Maintained for quick project communication overview
+   - **Cleaned up imports**: Removed unused imports and variables
+
+3. **Actions Needed Section** (`src/components/project/ProjectSummaryCard.tsx`):
+   - **Removed Project Details area**: Eliminated redundant project information display
+   - **Removed Specifications section**: Project specifications are available in Project Information card
+   - **Focused on actions**: Section now purely focuses on actionable items for current stage
+   - **Cleaned up code**: Removed unused helper functions (getVolume, getTargetPricePerUnit)
+   - **Removed unused imports**: Cleaned up FileText, MessageSquare, Package icons
+
+**Key Improvements:**
+- ✅ **Reduced redundancy**: Eliminated duplicate information display
+- ✅ **Better information hierarchy**: Priority now prominently displayed in header
+- ✅ **Cleaner layout**: Fewer sections reduce cognitive load
+- ✅ **Improved navigation**: Users can access detailed sections via tabs
+- ✅ **Enhanced UX**: Priority changes are now more accessible and visible
+- ✅ **Focused actions**: Actions Needed section now purely focuses on actionable items
+
+**Technical Changes:**
+- Updated InlineProjectEditor to handle priority changes in header
+- Removed unused imports (useDocuments, useSupplierRfqs, FileText, MessageSquare, Package)
+- Cleaned up unused variables and helper functions
+- Maintained all existing functionality while improving layout
+
 ### 2025-09-01 - Long-term Stability Fix for Stage Transition UI Updates
 
 **Task Completed:**

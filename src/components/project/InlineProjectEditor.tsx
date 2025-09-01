@@ -56,7 +56,7 @@ export function InlineProjectEditor({
     const [validationError, setValidationError] = useState<string | null>(null);
     const { toast } = useToast();
 
-    // Editable fields configuration
+    // Editable fields configuration - removed status since it's in Project Status card
     const editableFields: EditableField[] = [
         {
             key: 'title',
@@ -78,38 +78,6 @@ export function InlineProjectEditor({
             }
         },
         {
-            key: 'status',
-            label: 'Status',
-            type: 'select',
-            options: [
-                { value: 'active', label: 'Active' },
-                { value: 'on_hold', label: 'On Hold' },
-                { value: 'cancelled', label: 'Cancelled' },
-                { value: 'completed', label: 'Completed' }
-            ],
-            validation: (value) => {
-                const validStatuses = ['active', 'on_hold', 'cancelled', 'completed'];
-                if (!validStatuses.includes(value)) return 'Invalid status';
-                return null;
-            }
-        },
-        {
-            key: 'priority_level',
-            label: 'Priority',
-            type: 'select',
-            options: [
-                { value: 'low', label: 'Low' },
-                { value: 'medium', label: 'Medium' },
-                { value: 'high', label: 'High' },
-                { value: 'critical', label: 'Critical' }
-            ],
-            validation: (value) => {
-                const validPriorities = ['low', 'medium', 'high', 'critical'];
-                if (!validPriorities.includes(value)) return 'Invalid priority';
-                return null;
-            }
-        },
-        {
             key: 'estimated_value',
             label: 'Estimated Value',
             type: 'number',
@@ -127,6 +95,14 @@ export function InlineProjectEditor({
                 return null;
             }
         }
+    ];
+
+    // Priority options for header
+    const priorityOptions = [
+        { value: 'low', label: 'Low' },
+        { value: 'medium', label: 'Medium' },
+        { value: 'high', label: 'High' },
+        { value: 'critical', label: 'Critical' }
     ];
 
     // Start editing a field
@@ -188,6 +164,33 @@ export function InlineProjectEditor({
             toast({
                 title: "Update Failed",
                 description: error instanceof Error ? error.message : "Failed to update field",
+                variant: "destructive",
+            });
+        } finally {
+            setIsLoading(false);
+        }
+    };
+
+    // Handle priority change in header
+    const handlePriorityChange = async (newPriority: string) => {
+        setIsLoading(true);
+        try {
+            const updateData: Partial<Project> = {
+                priority_level: newPriority as ProjectPriority
+            };
+
+            const updatedProject = await projectService.updateProject(project.id, updateData);
+            onUpdate?.(updatedProject);
+
+            toast({
+                title: "Priority Updated",
+                description: `Project priority has been updated to ${newPriority}.`,
+            });
+        } catch (error) {
+            console.error('Failed to update priority:', error);
+            toast({
+                title: "Update Failed",
+                description: error instanceof Error ? error.message : "Failed to update priority",
                 variant: "destructive",
             });
         } finally {
@@ -303,7 +306,32 @@ export function InlineProjectEditor({
     return (
         <Card className={className}>
             <CardHeader>
-                <CardTitle className="text-lg">Project Information</CardTitle>
+                <div className="flex items-center justify-between">
+                    <CardTitle className="text-lg">Project Information</CardTitle>
+                    <div className="flex items-center space-x-2">
+                        <Label className="text-sm font-medium text-muted-foreground">Priority:</Label>
+                        <Select
+                            value={project.priority_level || 'medium'}
+                            onValueChange={handlePriorityChange}
+                            disabled={isLoading}
+                        >
+                            <SelectTrigger className="w-32">
+                                <SelectValue />
+                            </SelectTrigger>
+                            <SelectContent>
+                                {priorityOptions.map((option) => (
+                                    <SelectItem key={option.value} value={option.value}>
+                                        <div className="flex items-center space-x-2">
+                                            <Badge className={getFieldBadgeColor('priority_level', option.value)}>
+                                                {option.label}
+                                            </Badge>
+                                        </div>
+                                    </SelectItem>
+                                ))}
+                            </SelectContent>
+                        </Select>
+                    </div>
+                </div>
             </CardHeader>
             <CardContent className="space-y-4">
                 {editableFields.map((field) => (

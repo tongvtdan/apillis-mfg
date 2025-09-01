@@ -1,4 +1,4 @@
-import { useState, useEffect, memo, useContext } from "react";
+import { useState, useEffect, memo } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -33,9 +33,7 @@ import { Department, ReviewSubmission, InternalReview } from "@/types/review";
 import { projectService } from "@/services/projectService";
 import ProjectCommunication from "@/components/project/ProjectCommunication";
 import { WorkflowStepper } from "@/components/project/WorkflowStepper";
-import { useDocuments } from "@/hooks/useDocuments";
 import { useProjectMessages } from "@/hooks/useMessages";
-import { useSupplierRfqs } from "@/hooks/useSupplierRfqs";
 import { DocumentManager } from "@/components/project/DocumentManager";
 
 import { useProjectReviews } from "@/hooks/useProjectReviews";
@@ -80,11 +78,9 @@ export default function ProjectDetail() {
   console.log('🔍 ProjectDetail: Profile:', profile);
 
   // Fetch real data using hooks first
-  const { data: documents = [], isLoading: documentsLoading } = useDocuments(id || '');
   const { data: messages = [], isLoading: messagesLoading } = useProjectMessages(id || '');
-  const { data: supplierRfqs = [], isLoading: supplierRfqsLoading } = useSupplierRfqs(id || '');
 
-  const { reviews, loading: reviewsLoading, getReviewStatuses, getOverallReviewStatus, getReviewSummary, submitReview } = useProjectReviews(id || '');
+  const { reviews, loading: reviewsLoading, submitReview } = useProjectReviews(id || '');
 
   // Use the new navigation hook after data is fetched
   const {
@@ -96,13 +92,13 @@ export default function ProjectDetail() {
     hasTabError,
   } = useProjectNavigation({
     projectId: id || 'temp',
-    documentsCount: documents.length,
+    documentsCount: 0, // Removed documents section
     messagesCount: messages.length,
     unreadMessagesCount: messages.filter(m => !m.read_at).length,
     reviewsCount: reviews?.length || 0,
     pendingReviewsCount: reviews?.filter(r => r.status === 'pending').length || 0,
-    supplierRfqsCount: supplierRfqs.length,
-    activeSupplierRfqsCount: supplierRfqs.filter(rfq => rfq.status === 'sent').length,
+    supplierRfqsCount: 0, // Removed supplier RFQ section
+    activeSupplierRfqsCount: 0, // Removed supplier RFQ section
   });
 
   const [showSupplierModal, setShowSupplierModal] = useState(false);
@@ -472,227 +468,6 @@ export default function ProjectDetail() {
                       onViewDetails={() => console.log('View details')}
                     />
 
-                    {/* Review Status Section */}
-                    <Card>
-                      <CardHeader>
-                        <CardTitle className="text-sm font-semibold text-muted-foreground uppercase tracking-wide">
-                          REVIEW STATUS
-                        </CardTitle>
-                        <p className="text-xs text-muted-foreground">
-                          Internal review progress for Engineering, QA, and Production
-                        </p>
-                      </CardHeader>
-                      <CardContent>
-                        {reviewsLoading ? (
-                          <div className="flex items-center justify-center py-4">
-                            <Loader2 className="h-4 w-4 animate-spin mr-2" />
-                            <span className="text-sm text-muted-foreground">Loading review status...</span>
-                          </div>
-                        ) : (
-                          <div className="space-y-4">
-                            {/* Review Progress Bar */}
-                            <div className="space-y-2">
-                              <div className="flex justify-between text-sm">
-                                <span className="text-muted-foreground">Overall Progress</span>
-                                <span className="font-medium">{getReviewSummary().progress}%</span>
-                              </div>
-                              <div className="w-full bg-muted rounded-full h-2">
-                                <div
-                                  className="bg-primary h-2 rounded-full transition-all duration-300"
-                                  style={{ width: `${getReviewSummary().progress}%` }}
-                                />
-                              </div>
-                            </div>
-
-                            {/* Department Review Statuses */}
-                            <div className="grid grid-cols-1 gap-3">
-                              {(['Engineering', 'QA', 'Production'] as const).map((department) => {
-                                const status = getReviewStatuses()[department];
-                                const review = reviews.find(r => r.department === department);
-
-                                const getStatusIcon = (status: string) => {
-                                  switch (status) {
-                                    case 'approved': return <CheckCircle2 className="w-4 h-4 text-green-600" />;
-                                    case 'rejected': return <X className="w-4 h-4 text-red-600" />;
-                                    case 'revision_requested': return <AlertCircle className="w-4 h-4 text-orange-600" />;
-                                    default: return <Clock className="w-4 h-4 text-gray-400" />;
-                                  }
-                                };
-
-                                const getStatusColor = (status: string) => {
-                                  switch (status) {
-                                    case 'approved': return 'bg-green-100 text-green-800 border-green-200';
-                                    case 'rejected': return 'bg-red-100 text-red-800 border-red-200';
-                                    case 'revision_requested': return 'bg-orange-100 text-orange-800 border-orange-200';
-                                    default: return 'bg-yellow-100 text-yellow-800 border-yellow-200';
-                                  }
-                                };
-
-                                return (
-                                  <div key={department} className="flex items-center justify-between p-3 border rounded-lg">
-                                    <div className="flex items-center space-x-3">
-                                      <div className="flex items-center space-x-2">
-                                        {getStatusIcon(status)}
-                                        <span className="font-medium text-sm">{department}</span>
-                                      </div>
-                                      {review?.reviewer_id && (
-                                        <ReviewerDisplay
-                                          reviewerId={review.reviewer_id}
-                                          displayName={reviewerUsers.get(review.reviewer_id)?.display_name || review.reviewer_id}
-                                        />
-                                      )}
-                                    </div>
-                                    <div className="flex items-center space-x-2">
-                                      <Badge className={`text-xs ${getStatusColor(status)}`}>
-                                        {status === 'pending' ? 'Pending' :
-                                          status === 'approved' ? 'Approved' :
-                                            status === 'rejected' ? 'Rejected' :
-                                              'Revision Requested'}
-                                      </Badge>
-                                      {review?.submitted_at && (
-                                        <span className="text-xs text-muted-foreground">
-                                          📅 {format(new Date(review.submitted_at), 'MMM dd')}
-                                        </span>
-                                      )}
-                                    </div>
-                                  </div>
-                                );
-                              })}
-                            </div>
-
-                            {/* Review Summary */}
-                            <div className="pt-3 border-t">
-                              <div className="grid grid-cols-2 gap-4 text-sm">
-                                <div className="text-center">
-                                  <div className="font-semibold text-green-600">{getReviewSummary().approved}</div>
-                                  <div className="text-muted-foreground">Approved</div>
-                                </div>
-                                <div className="text-center">
-                                  <div className="font-semibold text-yellow-600">{getReviewSummary().pending}</div>
-                                  <div className="text-muted-foreground">Pending</div>
-                                </div>
-                              </div>
-                            </div>
-
-                            <Button
-                              variant="outline"
-                              size="sm"
-                              className="w-full"
-                              onClick={() => handleTabChange("reviews")}
-                            >
-                              🔍 View All Reviews
-                            </Button>
-                          </div>
-                        )}
-                      </CardContent>
-                    </Card>
-
-                    {/* Documents Section */}
-                    <Card>
-                      <CardHeader>
-                        <CardTitle className="text-sm font-semibold text-muted-foreground uppercase tracking-wide">
-                          DOCUMENTS
-                        </CardTitle>
-                      </CardHeader>
-                      <CardContent>
-                        {documentsLoading ? (
-                          <div className="flex items-center justify-center py-4">
-                            <Loader2 className="h-4 w-4 animate-spin mr-2" />
-                            <span className="text-sm text-muted-foreground">Loading documents...</span>
-                          </div>
-                        ) : documents.length > 0 ? (
-                          <div className="space-y-3">
-                            {documents.map((doc) => (
-                              <div key={doc.id} className="flex items-center justify-between text-sm">
-                                <div className="flex items-center space-x-2">
-                                  <span>📄</span>
-                                  <span className="font-medium">{doc.file_name || 'N/A'}</span>
-                                  <Badge variant="outline" className="text-xs px-1 py-0">
-                                    [{doc.metadata?.version || 'v1'}]
-                                  </Badge>
-                                  <span className="text-muted-foreground">
-                                    📅 {doc.created_at ? format(new Date(doc.created_at), 'MMM dd') : 'N/A'} · 👤 {doc.uploaded_by || 'N/A'}
-                                  </span>
-                                  {doc.access_level === 'internal' && (
-                                    <Badge className="text-xs bg-orange-100 text-orange-800">
-                                      🔒 Internal Only
-                                    </Badge>
-                                  )}
-                                </div>
-                              </div>
-                            ))}
-                          </div>
-                        ) : (
-                          <div className="text-center py-4 text-sm text-muted-foreground">
-                            No documents uploaded yet
-                          </div>
-                        )}
-                        <Button variant="outline" size="sm" className="mt-3">
-                          <Plus className="w-4 h-4 mr-2" />
-                          Upload New File
-                        </Button>
-                      </CardContent>
-                    </Card>
-
-                    {/* Supplier RFQ Section */}
-                    <Card>
-                      <CardHeader>
-                        <CardTitle className="text-sm font-semibold text-muted-foreground uppercase tracking-wide">
-                          SUPPLIER RFQ SENT
-                        </CardTitle>
-                      </CardHeader>
-                      <CardContent>
-                        {supplierRfqsLoading ? (
-                          <div className="flex items-center justify-center py-4">
-                            <Loader2 className="h-4 w-4 animate-spin mr-2" />
-                            <span className="text-sm text-muted-foreground">Loading supplier RFQs...</span>
-                          </div>
-                        ) : supplierRfqs.length > 0 ? (
-                          <div className="space-y-4">
-                            <p className="text-sm font-medium">📧 Sent to:</p>
-                            <div className="space-y-2">
-                              {supplierRfqs.map((rfq) => (
-                                <div key={rfq.id} className="flex items-center justify-between text-sm">
-                                  <div className="flex-1">
-                                    <span>• {rfq.supplier?.name || 'N/A'} ({rfq.supplier?.email || 'N/A'})</span>
-                                  </div>
-                                  <div>
-                                    {rfq.status === 'sent' && (
-                                      <span className="text-yellow-600">– 🟡 Sent (Due: {rfq.due_date ? format(new Date(rfq.due_date), 'MMM dd') : 'N/A'})</span>
-                                    )}
-                                    {rfq.status === 'quoted' && (
-                                      <span className="text-green-600">– ✅ Quoted</span>
-                                    )}
-                                    {rfq.status === 'viewed' && (
-                                      <span className="text-blue-600">– 👁️ Viewed</span>
-                                    )}
-                                  </div>
-                                </div>
-                              ))}
-                            </div>
-                          </div>
-                        ) : (
-                          <div className="text-center py-4 text-sm text-muted-foreground">
-                            No supplier RFQs sent yet
-                          </div>
-                        )}
-                        <div className="flex space-x-2 pt-2">
-                          <Button variant="outline" size="sm">
-                            <Send className="w-4 h-4 mr-1" />
-                            📤 Resend
-                          </Button>
-                          <Button variant="outline" size="sm">
-                            <Plus className="w-4 h-4 mr-1" />
-                            ➕ Add Supplier
-                          </Button>
-                          <Button variant="outline" size="sm">
-                            <Calendar className="w-4 h-4 mr-1" />
-                            📅 Set Deadline
-                          </Button>
-                        </div>
-                      </CardContent>
-                    </Card>
-
                     {/* Activity & Comments Section */}
                     <Card>
                       <CardHeader>
@@ -834,66 +609,18 @@ export default function ProjectDetail() {
                   <div className="space-y-6">
                     <Card>
                       <CardHeader>
-                        <div className="flex items-center justify-between">
-                          <CardTitle className="text-sm font-semibold text-muted-foreground uppercase tracking-wide">
-                            SUPPLIER RFQ SENT
-                          </CardTitle>
-                          <div className="flex space-x-2">
-                            <Button variant="outline" size="sm">
-                              <Send className="w-4 h-4 mr-2" />
-                              📤 Resend
-                            </Button>
-                            <Button variant="outline" size="sm">
-                              <Plus className="w-4 h-4 mr-2" />
-                              ➕ Add Supplier
-                            </Button>
-                            <Button variant="outline" size="sm">
-                              <Calendar className="w-4 h-4 mr-2" />
-                              📅 Set Deadline
-                            </Button>
-                          </div>
-                        </div>
+                        <CardTitle className="text-sm font-semibold text-muted-foreground uppercase tracking-wide">
+                          SUPPLIER MANAGEMENT
+                        </CardTitle>
                       </CardHeader>
                       <CardContent>
-                        {supplierRfqsLoading ? (
-                          <div className="flex items-center justify-center py-8">
-                            <Loader2 className="h-6 w-6 animate-spin mr-2" />
-                            <span className="text-muted-foreground">Loading supplier RFQs...</span>
-                          </div>
-                        ) : supplierRfqs.length > 0 ? (
-                          <div className="space-y-4">
-                            <p className="text-sm font-medium">📧 Sent to:</p>
-                            {supplierRfqs.map((rfq) => (
-                              <div key={rfq.id} className="flex items-center justify-between p-3 border rounded-lg">
-                                <div className="flex items-center space-x-3">
-                                  <div>
-                                    <p className="font-medium">• {rfq.supplier?.name || 'N/A'}</p>
-                                    <p className="text-sm text-muted-foreground">({rfq.supplier?.email || 'N/A'})</p>
-                                  </div>
-                                </div>
-                                <div className="flex items-center space-x-2">
-                                  {rfq.status === 'sent' ? (
-                                    <Badge className="bg-yellow-100 text-yellow-800">
-                                      🟡 Sent (Due: {rfq.due_date ? format(new Date(rfq.due_date), 'MMM dd') : 'N/A'})
-                                    </Badge>
-                                  ) : (
-                                    <Badge className="bg-green-100 text-green-800">
-                                      ✅ {rfq.status === 'quoted' ? 'Quoted' : rfq.status === 'viewed' ? 'Viewed' : rfq.status}
-                                    </Badge>
-                                  )}
-                                </div>
-                              </div>
-                            ))}
-                          </div>
-                        ) : (
-                          <div className="text-center py-12">
-                            <Send className="w-12 h-12 mx-auto text-muted-foreground mb-4" />
-                            <h3 className="text-lg font-medium mb-2">No Supplier RFQs</h3>
-                            <p className="text-muted-foreground">
-                              No supplier RFQs have been sent for this project yet
-                            </p>
-                          </div>
-                        )}
+                        <div className="text-center py-12">
+                          <Send className="w-12 h-12 mx-auto text-muted-foreground mb-4" />
+                          <h3 className="text-lg font-medium mb-2">Supplier Management</h3>
+                          <p className="text-muted-foreground">
+                            Supplier RFQ and management features coming soon
+                          </p>
+                        </div>
                       </CardContent>
                     </Card>
                   </div>
@@ -1070,14 +797,7 @@ export default function ProjectDetail() {
   );
 }
 
-// Helper component to display reviewer name
-function ReviewerDisplay({ reviewerId, displayName }: { reviewerId: string; displayName: string }) {
-  return (
-    <span className="text-xs text-muted-foreground">
-      👤 {displayName}
-    </span>
-  );
-}
+
 
 // Helper component to display assignee name
 function AssigneeDisplay({ assigneeId, displayName }: { assigneeId?: string; displayName: string }) {
