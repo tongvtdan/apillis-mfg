@@ -129,10 +129,36 @@ export default function Projects() {
     return saved || null;
   });
 
-  const [selectedProjectType, setSelectedProjectType] = React.useState<ProjectType | 'all'>('all');
+  // Get project type from URL params or default to 'all'
+  const getInitialProjectType = (): ProjectType | 'all' => {
+    const typeParam = searchParams.get('type');
+    if (typeParam && (typeParam === 'system_build' || typeParam === 'fabrication' || typeParam === 'manufacturing')) {
+      return typeParam;
+    }
+    return 'all';
+  };
+
+  const [selectedProjectType, setSelectedProjectType] = React.useState<ProjectType | 'all'>(getInitialProjectType());
   const [selectedProject, setSelectedProject] = React.useState<Project | null>(null);
   const [workflowStages, setWorkflowStages] = React.useState<WorkflowStage[]>([]);
   const [stagesLoading, setStagesLoading] = React.useState(true);
+
+  // Update URL when project type changes
+  React.useEffect(() => {
+    if (selectedProjectType === 'all') {
+      setSearchParams(prev => {
+        const newParams = new URLSearchParams(prev);
+        newParams.delete('type');
+        return newParams;
+      });
+    } else {
+      setSearchParams(prev => {
+        const newParams = new URLSearchParams(prev);
+        newParams.set('type', selectedProjectType);
+        return newParams;
+      });
+    }
+  }, [selectedProjectType, setSearchParams]);
 
   // Fetch sub-stages for the selected stage
   const { subStages, loading: subStagesLoading } = useWorkflowSubStages({
@@ -598,178 +624,7 @@ export default function Projects() {
                                       )}
                                     </div>
                                   </div>
-                                  <Badge
-                                    variant="outline"
-                                    className="text-xs"
-                                    style={{
-                                      borderColor: workflowStages.find(s => s.id === selectedStage)?.color || '#3B82F6'
-                                    }}
-                                  >
-                                    {project.project_id}
-                                  </Badge>
                                 </div>
-                              </div>
-
-                              {/* Priority with Color Coding */}
-                              <div className="mb-4">
-                                <div className="flex items-center justify-between">
-                                  <span className="text-sm font-medium text-base-content">Priority:</span>
-                                  <Badge
-                                    variant="outline"
-                                    className={`text-xs ${getPriorityColor(project.priority_level || 'medium')}`}
-                                  >
-                                    {project.priority_level || 'Not set'}
-                                  </Badge>
-                                </div>
-                              </div>
-
-                              {/* Project Metrics */}
-                              <div className="space-y-2 mb-4">
-                                {project.estimated_value && (
-                                  <div className="flex items-center justify-between">
-                                    <span className="text-sm text-muted-foreground">Value:</span>
-                                    <span className="text-sm font-semibold text-success">
-                                      ${project.estimated_value.toLocaleString()}
-                                    </span>
-                                  </div>
-                                )}
-
-                                <div className="flex items-center justify-between">
-                                  <span className="text-sm text-muted-foreground">Days in Stage:</span>
-                                  <span className={`text-sm font-semibold ${(project.days_in_stage || 0) > 7 ? 'text-warning' : 'text-success'}`}>
-                                    {project.days_in_stage || 0}
-                                  </span>
-                                </div>
-
-                                {/* Timeline Information */}
-                                {project.estimated_delivery_date ? (
-                                  <div className="space-y-1">
-                                    <div className="flex items-center justify-between">
-                                      <span className="text-sm text-muted-foreground">Due Date:</span>
-                                      <div className="flex items-center gap-1">
-                                        <Calendar className="h-3 w-3 text-muted-foreground" />
-                                        <span className="text-sm">
-                                          {new Date(project.estimated_delivery_date).toLocaleDateString()}
-                                        </span>
-                                      </div>
-                                    </div>
-                                    <div className="flex items-center justify-between">
-                                      <span className="text-sm text-muted-foreground">Lead Time:</span>
-                                      <span className="text-sm">
-                                        {calculateLeadTime(project.estimated_delivery_date, project.created_at) || 'TBD'} days
-                                      </span>
-                                    </div>
-                                  </div>
-                                ) : (
-                                  <div className="flex items-center justify-between">
-                                    <span className="text-sm text-muted-foreground">Lead Time:</span>
-                                    <span className="text-sm">
-                                      {calculateLeadTime(project.estimated_delivery_date, project.created_at) || 'TBD'}
-                                    </span>
-                                  </div>
-                                )}
-                              </div>
-
-                              {/* Project Description */}
-                              {project.description && (
-                                <div className="mb-4">
-                                  <p className="text-sm text-muted-foreground line-clamp-2">
-                                    {project.description}
-                                  </p>
-                                </div>
-                              )}
-
-                              {/* Actions Needed - Real Sub-stages Checklist */}
-                              {subStages.length > 0 && (
-                                <div className="mb-4">
-                                  <div className="flex items-center justify-between mb-2">
-                                    <span className="text-sm font-medium text-base-content">Actions Needed:</span>
-                                    <span className="text-xs text-muted-foreground">
-                                      {(() => {
-                                        const progress = getSubStageProgress(project.id, allProjectProgress);
-                                        return `${progress.completed}/${progress.total} completed`;
-                                      })()}
-                                    </span>
-                                  </div>
-                                  <div className="space-y-1">
-                                    {subStages.slice(0, 4).map((subStage, index) => {
-                                      const progress = getSubStageProgress(project.id, allProjectProgress);
-
-                                      // Get real progress status for this specific sub-stage
-                                      const projectProgress = allProjectProgress.filter(p =>
-                                        p.project_id === project.id && p.sub_stage_id === subStage.id
-                                      );
-
-                                      let status: 'completed' | 'in_progress' | 'pending' = 'pending';
-
-                                      if (projectProgress.length > 0) {
-                                        const subStageProgress = projectProgress[0];
-                                        if (subStageProgress.status === 'completed' || subStageProgress.status === 'skipped') {
-                                          status = 'completed';
-                                        } else if (subStageProgress.status === 'in_progress') {
-                                          status = 'in_progress';
-                                        }
-                                      } else {
-                                        // Fallback to estimated progress based on index
-                                        if (index < progress.completed) {
-                                          status = 'completed';
-                                        } else if (index === progress.completed && progress.completed < progress.total) {
-                                          status = 'in_progress';
-                                        }
-                                      }
-
-                                      return (
-                                        <div key={subStage.id} className="flex items-center gap-2">
-                                          {status === 'completed' ? (
-                                            <CheckCircle2 className="h-3 w-3 text-green-500" />
-                                          ) : status === 'in_progress' ? (
-                                            <Clock className="h-3 w-3 text-yellow-500" />
-                                          ) : (
-                                            <div className="h-3 w-3 border border-gray-300 rounded-sm" />
-                                          )}
-                                          <span className="text-xs text-muted-foreground truncate">
-                                            {subStage.name}
-                                          </span>
-                                        </div>
-                                      );
-                                    })}
-                                    {subStages.length > 4 && (
-                                      <div className="flex items-center gap-2">
-                                        <div className="h-3 w-3 border border-gray-300 rounded-sm" />
-                                        <span className="text-xs text-muted-foreground">
-                                          +{subStages.length - 4} more sub-stages
-                                        </span>
-                                      </div>
-                                    )}
-                                  </div>
-                                </div>
-                              )}
-
-                              {/* Project Tags */}
-                              {project.tags && project.tags.length > 0 && (
-                                <div className="flex flex-wrap gap-1 mb-4">
-                                  {project.tags.slice(0, 3).map((tag, index) => (
-                                    <Badge key={index} variant="outline" className="text-xs">
-                                      {tag}
-                                    </Badge>
-                                  ))}
-                                  {project.tags.length > 3 && (
-                                    <Badge variant="outline" className="text-xs">
-                                      +{project.tags.length - 3}
-                                    </Badge>
-                                  )}
-                                </div>
-                              )}
-
-                              {/* Action Button */}
-                              <div className="pt-4 border-t border-border">
-                                <Button
-                                  variant="default"
-                                  size="sm"
-                                  className="w-full group-hover:bg-primary/90 transition-colors"
-                                >
-                                  <span className="text-sm">View Details</span>
-                                </Button>
                               </div>
                             </CardContent>
                           </Card>
@@ -778,135 +633,75 @@ export default function Projects() {
                     </CardContent>
                   </Card>
                 )}
+
+                {/* Empty State */}
+                {selectedStage && selectedStageProjects.length === 0 && (
+                  <Card>
+                    <CardContent className="p-8 text-center">
+                      <div className="mx-auto w-16 h-16 rounded-full bg-muted flex items-center justify-center mb-4">
+                        <CheckCircle2 className="h-8 w-8 text-muted-foreground" />
+                      </div>
+                      <h3 className="text-lg font-medium mb-2">No projects found</h3>
+                      <p className="text-muted-foreground mb-4">
+                        {selectedProjectType === 'all'
+                          ? "There are no projects in this workflow stage."
+                          : `There are no ${PROJECT_TYPE_LABELS[selectedProjectType]} projects in this workflow stage.`}
+                      </p>
+                      <Button
+                        variant="outline"
+                        onClick={() => setSelectedProjectType('all')}
+                        className="mr-2"
+                      >
+                        Clear filters
+                      </Button>
+                      <Button
+                        variant="outline"
+                        onClick={() => handleStageSelect(workflowStages[0]?.id || null)}
+                      >
+                        View all stages
+                      </Button>
+                    </CardContent>
+                  </Card>
+                )}
               </div>
             </ProjectErrorBoundary>
           </TabsContent>
 
-          <TabsContent value="table" className="mt-4 space-y-6">
-            <ProjectTable
-              projects={activeProjects.filter(p => selectedProjectType === 'all' || p.project_type === selectedProjectType)}
-              updateProjectStatusOptimistic={updateProjectStatusOptimistic}
-              refetch={refetch}
-            />
+          <TabsContent value="table" className="mt-0">
+            <ProjectErrorBoundary context="Project Table">
+              <ProjectTable
+                projects={activeProjects.filter(p => selectedProjectType === 'all' || p.project_type === selectedProjectType)}
+                onProjectSelect={setSelectedProject}
+                onStageUpdate={updateProjectStage}
+                onStatusUpdate={updateProjectStatusOptimistic}
+                loading={loading}
+                error={error}
+                refetch={refetch}
+                getPriorityColor={getPriorityColor}
+                calculateLeadTime={calculateLeadTime}
+              />
+            </ProjectErrorBoundary>
           </TabsContent>
 
-          <TabsContent value="analytics" className="mt-4 space-y-6">
+          <TabsContent value="analytics" className="mt-0">
             <ProjectErrorBoundary context="Project Analytics">
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-                {/* Project Status Summary */}
-                <Card>
-                  <CardHeader>
-                    <CardTitle>Project Status</CardTitle>
-                  </CardHeader>
-                  <CardContent>
-                    <div className="space-y-2">
-                      <div className="flex justify-between">
-                        <span>Active</span>
-                        <Badge>{projects.filter(p => p.status === 'active').length}</Badge>
-                      </div>
-                      <div className="flex justify-between">
-                        <span>On Hold</span>
-                        <Badge variant="secondary">{projects.filter(p => p.status === 'on_hold').length}</Badge>
-                      </div>
-                      <div className="flex justify-between">
-                        <span>Delayed</span>
-                        <Badge variant="destructive">{projects.filter(p => p.status === 'delayed').length}</Badge>
-                      </div>
-                      <div className="flex justify-between">
-                        <span>Completed</span>
-                        <Badge variant="outline">{projects.filter(p => p.status === 'completed').length}</Badge>
-                      </div>
-                    </div>
-                  </CardContent>
-                </Card>
-
-                {/* Project Types */}
-                <Card>
-                  <CardHeader>
-                    <CardTitle>Project Types</CardTitle>
-                  </CardHeader>
-                  <CardContent>
-                    <div className="space-y-2">
-                      <div className="flex justify-between">
-                        <span>System Build</span>
-                        <Badge>{projects.filter(p => p.project_type === 'system_build').length}</Badge>
-                      </div>
-                      <div className="flex justify-between">
-                        <span>Fabrication</span>
-                        <Badge>{projects.filter(p => p.project_type === 'fabrication').length}</Badge>
-                      </div>
-                      <div className="flex justify-between">
-                        <span>Manufacturing</span>
-                        <Badge>{projects.filter(p => p.project_type === 'manufacturing').length}</Badge>
-                      </div>
-                    </div>
-                  </CardContent>
-                </Card>
-
-                {/* Workflow Stages */}
-                <Card>
-                  <CardHeader>
-                    <CardTitle>Workflow Stages</CardTitle>
-                  </CardHeader>
-                  <CardContent>
-                    <div className="space-y-2">
-                      {workflowStages.slice(0, 4).map((stage) => (
-                        <div key={stage.id} className="flex justify-between">
-                          <span className="text-sm">{stage.name}</span>
-                          <Badge variant="outline">{stageCounts[stage.id] || 0}</Badge>
-                        </div>
-                      ))}
-                    </div>
-                  </CardContent>
-                </Card>
-
-                {/* Total Value */}
-                <Card>
-                  <CardHeader>
-                    <CardTitle>Total Value</CardTitle>
-                  </CardHeader>
-                  <CardContent>
-                    <div className="text-2xl font-bold">
-                      ${projects
-                        .filter(p => p.estimated_value)
-                        .reduce((sum, p) => sum + (p.estimated_value || 0), 0)
-                        .toLocaleString()}
-                    </div>
-                    <p className="text-sm text-muted-foreground">
-                      Across {projects.filter(p => p.estimated_value).length} projects
-                    </p>
-                  </CardContent>
-                </Card>
-              </div>
+              <ProjectWorkflowAnalytics
+                projects={activeProjects.filter(p => selectedProjectType === 'all' || p.project_type === selectedProjectType)}
+                workflowStages={workflowStages}
+                onStageSelect={handleStageSelect}
+                selectedStage={selectedStage}
+                loading={loading}
+              />
             </ProjectErrorBoundary>
           </TabsContent>
 
-          <TabsContent value="calendar" className="mt-4 space-y-6">
+          <TabsContent value="calendar" className="mt-0">
             <ProjectErrorBoundary context="Project Calendar">
-              <Card>
-                <CardHeader>
-                  <CardTitle>Project Calendar</CardTitle>
-                  <CardDescription>Calendar view of projects (Coming Soon)</CardDescription>
-                </CardHeader>
-                <CardContent>
-                  <p className="text-muted-foreground">
-                    Calendar view will be available after component updates are completed.
-                  </p>
-                  <div className="mt-4 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-                    {projects.slice(0, 6).map((project) => (
-                      <Card key={project.id}>
-                        <CardContent className="p-4">
-                          <h4 className="font-semibold mb-2">{project.title}</h4>
-                          <p className="text-sm text-muted-foreground mb-2">{project.project_id}</p>
-                          <p className="text-xs text-muted-foreground">
-                            Created: {new Date(project.created_at).toLocaleDateString()}
-                          </p>
-                        </CardContent>
-                      </Card>
-                    ))}
-                  </div>
-                </CardContent>
-              </Card>
+              <ProjectCalendar
+                projects={activeProjects.filter(p => selectedProjectType === 'all' || p.project_type === selectedProjectType)}
+                onProjectSelect={setSelectedProject}
+                loading={loading}
+              />
             </ProjectErrorBoundary>
           </TabsContent>
         </Tabs>

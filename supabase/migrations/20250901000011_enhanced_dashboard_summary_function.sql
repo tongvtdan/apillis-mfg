@@ -1,4 +1,4 @@
--- Enhanced Dashboard Summary Function
+h-- Enhanced Dashboard Summary Function
 -- This function provides enhanced dashboard data including project counts by type and status
 -- It returns project statistics and recent activity in a structured JSON format
 

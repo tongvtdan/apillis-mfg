@@ -69,22 +69,7 @@ export default function Dashboard() {
   const overdueProjects = 0; // Will be calculated from stage tracking
 
   // Enhanced overview data with real data and important alerts - only Projects section
-  const overviewData = [
-    {
-      title: "Projects",
-      count: projectsTotal,
-      activeCount: activeProjects,
-      description: highPriorityProjects > 0
-        ? `⚠️ ${highPriorityProjects} high priority`
-        : `${activeProjects} active projects`,
-      icon: FolderOpen,
-      route: "/projects",
-      color: highPriorityProjects > 0 ? "text-destructive" : "text-primary",
-      bgColor: highPriorityProjects > 0 ? "bg-destructive/10" : "bg-primary/10",
-      borderColor: highPriorityProjects > 0 ? "border-destructive/20" : "border-primary/20",
-      alert: overdueProjects > 0 ? `${overdueProjects} overdue` : null
-    }
-  ];
+  const overviewData = [];
 
   // Sample notification count - in real app this would come from a notifications service
   const notificationCount = 3;
@@ -129,7 +114,7 @@ export default function Dashboard() {
         />
 
         {/* Priority Action Items */}
-        <PriorityActionItems projects={[]} />
+        <PriorityActionItems projects={projects} />
 
         {/* Projects Overview Section */}
         <div className="mt-8">
@@ -141,46 +126,6 @@ export default function Dashboard() {
             <p className="text-sm text-muted-foreground mt-1">
               Quick overview of your projects and their status. Other sections can be accessed through the sidebar menu.
             </p>
-          </div>
-
-          <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-4 lg:gap-6 mb-8">
-            {loading ? (
-              // Loading skeleton for projects overview card
-              <Card className="animate-pulse">
-                <CardContent className="p-6">
-                  <div className="flex items-center justify-between">
-                    <div>
-                      <div className="flex items-center gap-2 mb-2">
-                        <div className="w-5 h-5 bg-muted rounded"></div>
-                        <div className="w-20 h-4 bg-muted rounded"></div>
-                      </div>
-                      <div className="space-y-1">
-                        <div className="w-12 h-8 bg-muted rounded"></div>
-                        <div className="w-32 h-3 bg-muted rounded"></div>
-                      </div>
-                    </div>
-                    <div className="w-8 h-6 bg-muted rounded"></div>
-                  </div>
-                </CardContent>
-              </Card>
-            ) : (
-              overviewData.map((item) => (
-                <OverviewCard
-                  key={item.title}
-                  title={item.title}
-                  count={item.count}
-                  activeCount={item.activeCount}
-                  description={item.description}
-                  icon={item.icon}
-                  route={item.route}
-                  color={item.color}
-                  bgColor={item.bgColor}
-                  borderColor={item.borderColor}
-                  alert={item.alert}
-                  onClick={() => navigate(item.route)}
-                />
-              ))
-            )}
           </div>
 
           {/* Project Type Visualization */}
