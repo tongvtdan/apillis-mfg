@@ -22,6 +22,7 @@ import {
 import { useProjectUpdate } from "@/hooks/useProjectUpdate";
 import { useToast } from "@/hooks/use-toast";
 import { WorkflowBypassDialog } from './WorkflowBypassDialog';
+import { StageTransitionValidator } from './StageTransitionValidator';
 import { usePermissions } from '@/hooks/usePermissions';
 import { WorkflowBypassRequest } from '@/lib/workflow-validator';
 import { useWorkflowAutoAdvance } from '@/hooks/useWorkflowAutoAdvance';
@@ -170,6 +171,13 @@ export const WorkflowStepper = React.memo(({ project }: WorkflowStepperProps) =>
     isOpen: false,
     targetStage: null,
     warnings: []
+  });
+  const [validationDialog, setValidationDialog] = useState<{
+    isOpen: boolean;
+    targetStage: WorkflowStage | null;
+  }>({
+    isOpen: false,
+    targetStage: null
   });
   const [isLocalUpdating, setIsLocalUpdating] = useState(false);
   const [workflowStages, setWorkflowStages] = useState<WorkflowStage[]>([]);
@@ -367,58 +375,54 @@ export const WorkflowStepper = React.memo(({ project }: WorkflowStepperProps) =>
   const handleStageClick = useCallback(async (stage: WorkflowStage) => {
     if (stage.id === project.current_stage_id) return;
 
+    // Show validation dialog for stage transition
+    setValidationDialog({
+      isOpen: true,
+      targetStage: stage
+    });
+  }, [project]);
+
+  const handleValidationConfirm = useCallback(async (bypassRequired: boolean, reason?: string) => {
+    if (!validationDialog.targetStage) return;
+
     try {
-      // Check if user can bypass workflow
-      const canBypass = checkPermission('workflow', 'bypass').allowed;
-
-      // Validate the stage transition using workflow stage service
-      const validationResult = await workflowStageService.validateStageTransition(
-        project.current_stage_id || '',
-        stage.id
-      );
-
-      if (!validationResult.isValid) {
-        toast({
-          variant: "destructive",
-          title: "Validation Error",
-          description: validationResult.message || "Invalid stage transition",
+      if (bypassRequired) {
+        // Show bypass dialog for additional confirmation
+        setBypassDialog({
+          isOpen: true,
+          targetStage: validationDialog.targetStage.id,
+          warnings: [reason || "This transition requires manager approval"]
         });
-        return;
+      } else {
+        // Proceed with normal stage update
+        await updateProjectStage(validationDialog.targetStage.id);
+        toast({
+          title: "Stage Updated",
+          description: `Project stage changed to ${validationDialog.targetStage.name}`,
+        });
       }
 
-      // Check if manager approval is required
-      if (validationResult.requiresApproval) {
-        if (canBypass) {
-          // Show bypass dialog
-          setBypassDialog({
-            isOpen: true,
-            targetStage: stage.id,
-            warnings: [validationResult.message || "This transition requires approval"]
-          });
-          return;
-        } else {
-          toast({
-            variant: "destructive",
-            title: "Manager Approval Required",
-            description: validationResult.message || "This stage change requires manager approval. Please contact your manager.",
-          });
-          return;
-        }
-      }
-
-      // Proceed with normal stage update
-      await updateProjectStage(stage.id);
-
+      // Close validation dialog
+      setValidationDialog({
+        isOpen: false,
+        targetStage: null
+      });
     } catch (err) {
-      console.error('Error updating project status:', err);
-      setError("An unexpected error occurred while updating the project status.");
+      console.error('Error processing stage transition:', err);
       toast({
         variant: "destructive",
         title: "Error",
-        description: "An unexpected error occurred while updating the project status.",
+        description: "Failed to update project stage. Please try again.",
       });
     }
-  }, [project, checkPermission, toast, updateStatus]);
+  }, [validationDialog.targetStage, toast]);
+
+  const handleValidationClose = useCallback(() => {
+    setValidationDialog({
+      isOpen: false,
+      targetStage: null
+    });
+  }, []);
 
   const handleBypassConfirm = useCallback(async (reason: string, comment: string) => {
     if (!bypassDialog.targetStage) return;
@@ -821,6 +825,17 @@ export const WorkflowStepper = React.memo(({ project }: WorkflowStepperProps) =>
           )}
         </CardContent>
       </Card>
+
+      {/* Stage Transition Validator */}
+      {validationDialog.targetStage && (
+        <StageTransitionValidator
+          project={project}
+          targetStage={validationDialog.targetStage}
+          isOpen={validationDialog.isOpen}
+          onClose={handleValidationClose}
+          onConfirm={handleValidationConfirm}
+        />
+      )}
 
       {/* Bypass Dialog */}
       <WorkflowBypassDialog
