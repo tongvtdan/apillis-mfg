@@ -2,6 +2,90 @@
 
 ## Recent Changes
 
+### 2025-09-01 - Long-term Stability Fix for Stage Transition UI Updates
+
+**Task Completed:**
+- Implemented comprehensive fix for stage transition UI update issues
+- Refactored ProjectDetail component to use single data source
+- Improved real-time subscription handling for better reliability
+- Added debugging tools for real-time update verification
+
+**Root Cause Analysis:**
+- **Dual Data Source Problem**: ProjectDetail maintained separate local project state and projects array from useProjects hook
+- **Real-time Subscription Timing**: Updates were not properly propagating between data sources
+- **Cache Inconsistency**: Multiple data sources created synchronization issues
+
+**Technical Fixes Applied:**
+
+1. **ProjectDetail.tsx Refactor** (`src/pages/ProjectDetail.tsx`):
+   - **Removed local project state**: Eliminated `useState<Project | null>(null)` 
+   - **Single data source**: Now uses `projects.find(p => p.id === id)` from useProjects hook
+   - **Simplified real-time handling**: Removed complex useEffect chains for state synchronization
+   - **Added ensureProjectSubscription**: Ensures real-time subscription is properly set up
+
+2. **useProjects.ts Improvements** (`src/hooks/useProjects.ts`):
+   - **Enhanced real-time subscription**: Improved logging and error handling
+   - **Added ensureProjectSubscription function**: Guarantees subscription setup for specific projects
+   - **Better update propagation**: Improved timing for stage updates with setTimeout
+   - **Reduced rate limiting**: Changed from 2 seconds to 1 second for better responsiveness
+
+3. **Debug Components**:
+   - **ProjectUpdateDebugger** (`src/components/project/ProjectUpdateDebugger.tsx`):
+     - **Real-time update monitoring**: Tracks all project data changes
+     - **Subscription status**: Shows real-time subscription status
+     - **Update log**: Displays timestamped update history
+   - **RealtimeTest** (`src/components/project/RealtimeTest.tsx`):
+     - **Subscription verification**: Tests if real-time subscriptions are working
+     - **Update counter**: Shows number of real-time updates received
+     - **Status checker**: Button to check current subscription status
+   - **Enhanced logging**: Added comprehensive console logging throughout real-time system
+
+**Key Changes Made:**
+```typescript
+// Before: Dual data sources causing sync issues
+const [project, setProject] = useState<Project | null>(null);
+const { projects } = useProjects();
+
+// After: Single data source for consistency
+const { projects, ensureProjectSubscription } = useProjects();
+const project = projects.find(p => p.id === id) || null;
+
+// Before: Complex real-time update handling
+useEffect(() => {
+  // Multiple useEffects trying to sync two data sources
+}, [projects, project]);
+
+// After: Simple, reliable real-time updates
+useEffect(() => {
+  ensureProjectSubscription(project.id);
+}, [project?.id, ensureProjectSubscription]);
+```
+
+**Benefits:**
+- ✅ **Eliminated synchronization issues** between dual data sources
+- ✅ **Improved real-time update reliability** with better subscription handling
+- ✅ **Simplified codebase** by removing complex state management
+- ✅ **Added debugging capabilities** for real-time update verification
+- ✅ **Better performance** with optimized re-rendering
+
+**Testing:**
+- Added ProjectUpdateDebugger component for real-time update verification
+- Debug component shows project state changes in real-time
+- Can be used to verify that stage transitions update UI immediately
+
+**Current Status:**
+- ✅ Stage transitions should now update UI immediately
+- ✅ Real-time subscriptions are more reliable
+- ✅ Single data source eliminates sync issues
+- ✅ Debug tools available for verification
+- ✅ **CRITICAL FIX**: Added projects table to supabase_realtime publication
+
+**Root Cause Found and Fixed:**
+- **Issue**: The `projects` table was not included in the `supabase_realtime` publication
+- **Diagnosis**: Real-time subscriptions were set up correctly, but database changes weren't being published
+- **Fix**: Added `projects` table to real-time publication with `ALTER PUBLICATION supabase_realtime ADD TABLE projects;`
+- **Additional**: Added other important tables (messages, notifications, reviews, supplier_quotes) to real-time publication
+
 ### 2025-09-01 - Admin Page Fix and Database Recovery
 
 **CRITICAL ERROR RECOVERY:**

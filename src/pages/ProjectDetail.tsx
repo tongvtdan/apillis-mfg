@@ -58,6 +58,8 @@ import { useProjectNavigation } from "@/hooks/useProjectNavigation";
 // Import new enhanced components
 import { InlineProjectEditor } from "@/components/project/InlineProjectEditor";
 import { ProjectStatusManager } from "@/components/project/ProjectStatusManager";
+import { ProjectUpdateDebugger } from "@/components/project/ProjectUpdateDebugger";
+import { RealtimeTest } from "@/components/project/RealtimeTest";
 
 // Separate component for auto-advance functionality to avoid Rules of Hooks violation
 const ProjectAutoAdvance = memo(({ project }: { project: Project }) => {
@@ -106,13 +108,12 @@ export default function ProjectDetail() {
   });
 
   const [showSupplierModal, setShowSupplierModal] = useState(false);
-  const [project, setProject] = useState<Project | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [dataSource, setDataSource] = useState<'supabase' | 'mock' | 'unknown'>('unknown');
 
-  // Use the projects hook to get real-time updates
-  const { projects, subscribeToProjectUpdates } = useProjects();
+  // Use the projects hook to get real-time updates - SINGLE DATA SOURCE
+  const { projects, loading: projectsLoading, error: projectsError, fetchProjects, ensureProjectSubscription } = useProjects();
 
   // Review state management
   const [showReviewForm, setShowReviewForm] = useState<Department | null>(null);
@@ -123,6 +124,9 @@ export default function ProjectDetail() {
   // Get workflow stages
   const { data: workflowStages = [], isLoading: stagesLoading } = useWorkflowStages();
 
+  // Get the project from the projects array - SINGLE DATA SOURCE
+  const project = projects.find(p => p.id === id) || null;
+
   // Get user display names for project assignee and reviewers
   const assigneeDisplayName = useUserDisplayName(project?.assigned_to);
 
@@ -130,8 +134,9 @@ export default function ProjectDetail() {
   const reviewerIds = reviews ? [...new Set(reviews.map(review => review.reviewer_id).filter(Boolean))] : [];
   const { users: reviewerUsers } = useUsers(reviewerIds);
 
+  // Initialize and fetch projects if needed
   useEffect(() => {
-    const fetchProject = async () => {
+    const initializeProject = async () => {
       if (!id) {
         setError("No project ID provided");
         setLoading(false);
@@ -150,122 +155,48 @@ export default function ProjectDetail() {
           // Handle connection test failure
         }
 
-        const projectData = await projectService.getProjectById(id);
-        setProject(projectData);
+        // Fetch projects to ensure we have the latest data
+        await fetchProjects(true); // Force refresh to get latest data
 
       } catch (err) {
-        console.error('❌ ProjectDetail: Error loading project:', err);
+        console.error('❌ ProjectDetail: Error initializing project:', err);
         setError(err instanceof Error ? err.message : 'Failed to load project');
       } finally {
         setLoading(false);
       }
     };
 
-    fetchProject();
-  }, [id]);
+    initializeProject();
+  }, [id, fetchProjects]);
 
   // Set up selective real-time subscription for the specific project
   useEffect(() => {
     if (project?.id) {
       console.log('🔔 Setting up selective real-time subscription for project:', project.id);
-      const subscription = subscribeToProjectUpdates([project.id]);
 
-      // Clean up subscription on unmount
-      return () => {
-        if (subscription) {
-          console.log('🔔 Cleaning up selective real-time subscription for project:', project.id);
-          // The subscription cleanup is handled by the useProjects hook
-        }
-      };
+      // Ensure real-time subscription is set up for this project
+      ensureProjectSubscription(project.id);
+      console.log('✅ ProjectDetail: Project is being monitored by useProjects hook');
     }
-  }, [project?.id, subscribeToProjectUpdates]);
+  }, [project?.id, ensureProjectSubscription]);
 
-  // Update project when projects list changes (for real-time updates)
+  // Debug logging for project changes
   useEffect(() => {
-    if (id && projects.length > 0) {
-      console.log('🔄 ProjectDetail: Checking for project updates:', {
-        currentId: id,
-        projectsCount: projects.length,
-        currentProjectStatus: project?.status,
-        currentProjectStage: project?.current_stage_id,
-        currentProjectUpdatedAt: project?.updated_at,
-        availableProjectIds: projects.map(p => ({ id: p.id, status: p.status, stage: p.current_stage_id, updated_at: p.updated_at }))
+    if (project) {
+      console.log('🔄 ProjectDetail: Project data updated:', {
+        id: project.id,
+        current_stage_id: project.current_stage_id,
+        status: project.status,
+        updated_at: project.updated_at,
+        projectsCount: projects.length
       });
-
-      const updatedProject = projects.find(p => p.id === id);
-      if (updatedProject) {
-        console.log('✅ ProjectDetail: Found matching project:', {
-          projectId: updatedProject.id,
-          projectStatus: updatedProject.status,
-          projectStage: updatedProject.current_stage_id,
-          projectUpdatedAt: updatedProject.updated_at
-        });
-
-        // Only update if the project has actually changed
-        if (!project ||
-          project.status !== updatedProject.status ||
-          project.current_stage_id !== updatedProject.current_stage_id ||
-          project.updated_at !== updatedProject.updated_at) {
-
-          console.log('🔄 ProjectDetail: Project updated from real-time subscription:', {
-            oldStatus: project?.status,
-            newStatus: updatedProject.status,
-            oldStage: project?.current_stage_id,
-            newStage: updatedProject.current_stage_id,
-            oldUpdatedAt: project?.updated_at,
-            newUpdatedAt: updatedProject.updated_at,
-            statusChanged: project?.status !== updatedProject.status,
-            stageChanged: project?.current_stage_id !== updatedProject.current_stage_id,
-            timestampChanged: project?.updated_at !== updatedProject.updated_at
-          });
-
-          setProject(updatedProject);
-        } else {
-          console.log('ℹ️ ProjectDetail: No changes detected, skipping update', {
-            statusMatch: project?.status === updatedProject.status,
-            stageMatch: project?.current_stage_id === updatedProject.current_stage_id,
-            timestampMatch: project?.updated_at === updatedProject.updated_at,
-            currentProject: project,
-            updatedProject: updatedProject
-          });
-        }
-      } else {
-        console.log('⚠️ ProjectDetail: No matching project found in projects list for ID:', id);
-      }
     }
-  }, [projects, id, project]);
+  }, [project?.current_stage_id, project?.status, project?.updated_at, projects.length]);
 
-  // Fallback mechanism: Force refresh project data if no real-time update received
-  useEffect(() => {
-    if (!project || !id) return;
+  // Loading state - check both projects loading and individual project loading
+  const isLoading = loading || projectsLoading || !project;
 
-    // Set up a timer to force refresh if no real-time update is received
-    const refreshTimer = setTimeout(async () => {
-      console.log('🔄 ProjectDetail: Fallback refresh triggered - fetching latest project data');
-      try {
-        const latestProject = await projectService.getProjectById(id);
-        if (latestProject && (
-          latestProject.status !== project.status ||
-          latestProject.updated_at !== project.updated_at
-        )) {
-          console.log('🔄 ProjectDetail: Fallback refresh found updated data:', {
-            oldStatus: project.status,
-            newStatus: latestProject.status,
-            oldUpdatedAt: project.updated_at,
-            newUpdatedAt: latestProject.updated_at
-          });
-          setProject(latestProject);
-        }
-      } catch (error) {
-        console.error('❌ ProjectDetail: Fallback refresh failed:', error);
-      }
-    }, 10000); // Increased to 10 seconds to prevent interference with real-time updates
-
-    return () => clearTimeout(refreshTimer);
-  }, [id]); // Only depend on id, not on project properties to prevent infinite loops
-
-  // Loading state
-  if (loading) {
+  if (isLoading) {
     return (
       <div className="min-h-screen bg-background flex items-center justify-center">
         <div className="text-center space-y-4">
@@ -279,93 +210,35 @@ export default function ProjectDetail() {
     );
   }
 
-  // Error state with diagnostic tools
-  if (error || !project) {
+  // Error state
+  if (error || projectsError) {
     return (
-      <div className="min-h-screen bg-background">
-        <div className="p-6">
-          <div className="flex items-center space-x-4 mb-6">
-            <Button variant="ghost" onClick={() => navigate('/projects')}>
-              <ArrowLeft className="w-4 h-4 mr-2" />
-              Back to Projects
-            </Button>
-            <Separator orientation="vertical" className="h-6" />
-            <div>
-              <h1 className="text-2xl font-bold text-red-600">Project Not Found</h1>
-              <p className="text-muted-foreground">Project ID: {id}</p>
-            </div>
+      <div className="min-h-screen bg-background flex items-center justify-center">
+        <div className="text-center space-y-4">
+          <div className="text-red-600">
+            <h2 className="text-lg font-semibold">Error Loading Project</h2>
+            <p className="text-muted-foreground">{error || projectsError}</p>
           </div>
+          <Button onClick={() => window.location.reload()}>
+            Retry
+          </Button>
+        </div>
+      </div>
+    );
+  }
 
-          <div className="space-y-6">
-            <Card className="border-red-200">
-              <CardHeader>
-                <CardTitle className="flex items-center text-red-600">
-                  <AlertCircle className="w-5 h-5 mr-2" />
-                  Error Details
-                </CardTitle>
-              </CardHeader>
-              <CardContent>
-                <p className="text-sm text-muted-foreground mb-4">{error}</p>
-
-                <div className="space-y-2 text-sm">
-                  <p><strong>Requested Project ID:</strong> {id}</p>
-                  <p><strong>Possible Causes:</strong></p>
-                  <ul className="list-disc list-inside ml-4 space-y-1 text-muted-foreground">
-                    <li>Project doesn't exist in the database</li>
-                    <li>Database connection issues</li>
-                    <li>Sample data hasn't been seeded</li>
-                    <li>Project ID format mismatch</li>
-                    <li>Project belongs to a different organization</li>
-                    <li>You don't have permission to access this project</li>
-                  </ul>
-                </div>
-
-                <div className="mt-4 pt-4 border-t border-muted">
-                  <p className="font-medium mb-2">Troubleshooting Steps:</p>
-                  <ol className="list-decimal list-inside ml-4 space-y-1 text-muted-foreground">
-                    <li>Verify the project ID is correct</li>
-                    <li>Check that you are logged in with the correct account</li>
-                    <li>Confirm the project belongs to your organization</li>
-                    <li>Try refreshing the projects list and selecting the project again</li>
-                    <li>If you're an administrator, check the database seed data</li>
-                  </ol>
-                </div>
-              </CardContent>
-            </Card>
-
-            <Card>
-              <CardHeader>
-                <CardTitle>Quick Actions</CardTitle>
-              </CardHeader>
-              <CardContent className="space-y-3">
-                <Button
-                  onClick={() => navigate('/projects')}
-                  className="w-full"
-                >
-                  <ArrowLeft className="w-4 h-4 mr-2" />
-                  Go Back to Projects List
-                </Button>
-                <Button
-                  variant="outline"
-                  onClick={() => window.location.reload()}
-                  className="w-full"
-                >
-                  <RefreshCw className="w-4 h-4 mr-2" />
-                  Retry Loading
-                </Button>
-                {profile?.role === 'admin' && (
-                  <Button
-                    variant="outline"
-                    onClick={() => navigate('/settings')}
-                    className="w-full"
-                  >
-                    <Settings className="w-4 h-4 mr-2" />
-                    Go to Settings
-                  </Button>
-                )}
-              </CardContent>
-            </Card>
+  // Project not found
+  if (!project) {
+    return (
+      <div className="min-h-screen bg-background flex items-center justify-center">
+        <div className="text-center space-y-4">
+          <div className="text-yellow-600">
+            <h2 className="text-lg font-semibold">Project Not Found</h2>
+            <p className="text-muted-foreground">The requested project could not be found.</p>
           </div>
+          <Button onClick={() => navigate('/projects')}>
+            Back to Projects
+          </Button>
         </div>
       </div>
     );
@@ -536,13 +409,21 @@ export default function ProjectDetail() {
 
   // Handle project updates from inline editor and status manager
   const handleProjectUpdate = (updatedProject: Project) => {
-    setProject(updatedProject);
-    // The real-time subscription will also pick up changes, but this provides immediate feedback
+    // Project state is now managed by useProjects hook
+    // Real-time subscription will automatically pick up changes
+    console.log('🔄 ProjectDetail: Project update received, real-time subscription will handle UI update');
   };
 
   return (
     <>
       <ProjectAutoAdvance project={project} />
+      {/* Debug components for real-time updates */}
+      {process.env.NODE_ENV === 'development' && (
+        <>
+          <ProjectUpdateDebugger projectId={id || ''} />
+          <RealtimeTest />
+        </>
+      )}
       {/* Rest of the component content */}
       <div className="min-h-screen bg-background">
         {/* Enhanced Header Section */}

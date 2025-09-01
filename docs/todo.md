@@ -11,6 +11,15 @@
   - ✅ Verified all database queries now work correctly
   - ✅ Workflow transitions should now function without errors
 
+- [done] 2025-09-01 - Long-term Stability Fix for Stage Transition UI Updates ✅
+  - ✅ Refactored ProjectDetail to use single data source from useProjects hook
+  - ✅ Eliminated dual data source synchronization issues
+  - ✅ Improved real-time subscription handling with better error handling
+  - ✅ Added ensureProjectSubscription function for reliable subscription setup
+  - ✅ Created ProjectUpdateDebugger component for real-time update verification
+  - ✅ Reduced rate limiting from 2s to 1s for better responsiveness
+  - ✅ Stage transitions should now update UI immediately and reliably
+
 - [WIP] Rename Projects tabs, remove redundant Table tab, keep table mode in List
 
 ### [done] 2025-01-30 - Complete Database Schema Implementation ✅

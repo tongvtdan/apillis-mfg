@@ -32,7 +32,9 @@
         "test:auth:verbose": "node scripts/test-auth-signin.js --verbose",
         "workflow:list": "node scripts/list-workflow-stages.js",
         "workflow:update-durations": "node scripts/update-workflow-stage-durations.js",
-        "workflow:update-stage-duration": "node scripts/update-stage-duration.js"
+        "workflow:update-stage-duration": "node scripts/update-stage-duration.js",
+        "delete:debug-projects": "node scripts/delete-debug-projects.cjs",
+        "delete:debug-projects:dry-run": "node scripts/delete-debug-projects.cjs --dry-run"
     },
     "dependencies": {
         "@supabase/supabase-js": "^2.39.0",
