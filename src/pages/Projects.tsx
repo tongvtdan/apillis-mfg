@@ -422,7 +422,7 @@ export default function Projects() {
           <div className="mb-6 flex justify-between items-center">
 
             <div className="flex items-center gap-6">
-              <TabsList className="auth-tabs-list grid-cols-4 w-[600px]">
+              <TabsList className="auth-tabs-list grid-cols-4 min-w-[300px]">
                 <TabsTrigger value="enhanced" className="auth-tab-trigger" disabled={isRetrying}>
                   List
                 </TabsTrigger>
@@ -436,7 +436,6 @@ export default function Projects() {
                   Calendar
                 </TabsTrigger>
               </TabsList>
-
 
 
               {/* Project Type Filter */}
