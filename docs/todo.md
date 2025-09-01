@@ -2,6 +2,8 @@
 
 ## Current Sprint
 
+- [WIP] Rename Projects tabs, remove redundant Table tab, keep table mode in List
+
 ### [done] 2025-01-30 - Complete Database Schema Implementation ✅
 - ✅ Created comprehensive database schema with 17 core tables
 - ✅ Implemented multi-tenant organization structure with proper foreign key relationships
@@ -67,6 +69,13 @@
 - [ ] Security testing for RLS policies
 
 ## Recently Completed
+
+### [done] 2025-09-01 - Projects Tabs Simplification ✅
+- ✅ Renamed tabs: "Enhanced List" → "List", "Kanban Flow" → "Kanban"
+- ✅ Removed standalone "Table" tab; retained table mode toggle in List view
+- ✅ Sanitized legacy `tab=table` URLs to default to List
+- ✅ Adjusted tabs layout to 4 columns; cleaned unused imports
+- ✅ Added `tsconfig.json` alias `@/*` to resolve modules
 
 ### [done] 2025-01-30 - Complete Database Schema Implementation ✅
 **Objective**: Create comprehensive database schema for Factory Pulse manufacturing system  

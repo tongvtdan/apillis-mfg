@@ -1592,8 +1592,8 @@ interface ProjectMetrics {
 - **Backup Files Created**:
   - `factory_pulse_schema_backup_20250831_143747.sql` (71KB)
   - `factory_pulse_data_backup_20250831_143747.sql` (202KB)
-  - `factory_pulse_complete_backup_20250831_143747.sql` (71KB)
-  - `backup-summary-20250831-143747.md` (5.9KB)
+  - `factory_pulse_complete_backup_20250831_143747.sql` (70KB)
+  - `backup-summary-20250831-143747.md` (comprehensive documentation)
 
 **Backup Context:**
 This backup captures the database state after successfully fixing critical RLS policy issues:
@@ -1603,20 +1603,13 @@ This backup captures the database state after successfully fixing critical RLS p
 
 **Current Database State Captured:**
 - **8 Organizations** with complete organizational structure
-- **25 Users** with proper role assignments and RLS policies
+- **25 Users** with proper role assignments and authentication (15 internal + 10 contacts)
 - **8 Workflow Stages** with complete manufacturing workflow
 - **30 Workflow Sub-Stages** for detailed process tracking
 - **17 Projects** with customer relationships and stage progression
 - **10 Contacts** (customer and supplier information)
 - **27 Activity Log Entries** for audit trail
 - **40 RLS Policies** across 14 tables (properly configured)
-
-**Security State:**
-- ✅ **Multi-Tenant Isolation**: Organization-based data separation
-- ✅ **Role-Based Access Control**: Hierarchical role system working
-- ✅ **Workflow Stage Integration**: Dynamic access based on project stage
-- ✅ **Helper Functions**: All 5 helper functions properly implemented
-- ✅ **No Circular Dependencies**: RLS policies optimized for performance
 
 **Technical Specifications:**
 - **Database**: PostgreSQL 15.1 (Supabase local)
@@ -1625,22 +1618,25 @@ This backup captures the database state after successfully fixing critical RLS p
 - **Functions**: SECURITY DEFINER for optimal performance
 - **Indexes**: Properly configured for RLS policy evaluation
 
+**Backup System Features:**
+- **Automated Script**: `scripts/backup-database.sh` with automatic cleanup
+- **Multiple Backup Types**: Schema-only, data-only, and complete backups
+- **Cleanup Management**: Automatically removes old backups, keeps only latest set
+- **Comprehensive Documentation**: Detailed backup summary with restore instructions
+- **Local Supabase Integration**: Works exclusively with local Supabase instance
+
 **Restore Instructions Documented:**
-- Complete restore process for full database recovery
+- Complete database restore process
 - Schema-only restore for structure recovery
-- Data-only restore for content recovery
+- Data-only restore for content recovery (with circular foreign key warnings)
 - All commands tested and verified
 
-**Backup Summary Features:**
-- Detailed issue resolution documentation
-- Current database state with data counts
-- RLS policy status and configuration
-- Workflow stages configuration
-- Security features and capabilities
-- Migration files applied
-- Technical specifications
-- Restore instructions
-- Key improvements achieved
+**Benefits:**
+- ✅ **Data Protection**: Complete backup of current database state
+- ✅ **Disaster Recovery**: Full database restoration capability
+- ✅ **Development Safety**: Safe experimentation with database changes
+- ✅ **Documentation**: Comprehensive backup summary for troubleshooting
+- ✅ **Automation**: Easy-to-use backup script for regular backups
 
 **Files Created:**
 - `backups/factory_pulse_schema_backup_20250831_143747.sql` - Schema backup
@@ -1648,17 +1644,10 @@ This backup captures the database state after successfully fixing critical RLS p
 - `backups/factory_pulse_complete_backup_20250831_143747.sql` - Complete backup
 - `backups/backup-summary-20250831-143747.md` - Comprehensive summary
 
-**Benefits:**
-- ✅ **Recovery Point**: Safe restore point after RLS fixes
-- ✅ **Documentation**: Complete technical documentation
-- ✅ **Verification**: Confirmed all fixes are properly applied
-- ✅ **Future Reference**: Detailed backup summary for troubleshooting
-- ✅ **Deployment Ready**: Database state ready for production deployment
-
 **Next Steps:**
-- Test user profile fetching functionality
-- Verify all RLS policies are working correctly
-- Proceed with application testing
+- Regular backup schedule can be established for ongoing data protection
+- Backup verification process can be implemented to ensure backup integrity
+- Automated backup cleanup is already in place for backup file management
 
 ### 2025-08-31 - RLS Policy Fixes and Circular Dependency Resolution
 
@@ -3590,3 +3579,16 @@ The project has completed transition from a legacy enum-based stage system to a 
 - Map database field names to expected component field names during data transformation
 - Maintain both new database-aligned fields and legacy compatibility fields
 - Ensure computed fields (like `order_index`) are available for existing sorting logic
+
+---
+
+2025-09-01: Updated Projects tabs and alias config
+- Changed Projects tabs: "Enhanced List" → "List"; "Kanban Flow" → "Kanban"; removed standalone "Table" tab (table view remains via EnhancedProjectList toggle)
+- Adjusted default tab logic to ignore legacy 'table' values
+- Updated tabs layout to 4 columns and widths
+- Added tsconfig.json with path alias "@/*" to fix module resolution
+- Cleaned unused imports in `src/pages/Projects.tsx`
+
+Challenges ➜ Solutions
+- Lint/type errors for missing modules ➜ Added `tsconfig.json` paths and removed invalid props to analytics/calendar components
+- Legacy URLs with `tab=table` ➜ Sanitized to default to `enhanced`

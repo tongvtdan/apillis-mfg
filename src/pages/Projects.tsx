@@ -19,7 +19,6 @@ import { LoadingFallback, OfflineState, GracefulDegradation } from "@/components
 import { useErrorHandling } from "@/hooks/useErrorHandling";
 import { ProjectWorkflowAnalytics } from "@/components/project/ProjectWorkflowAnalytics";
 import { ProjectCalendar } from "@/components/project/ProjectCalendar";
-import { ProjectTable } from "@/components/project/ProjectTable";
 import { EnhancedProjectList } from "@/components/project/EnhancedProjectList";
 import { AnimatedProjectCard } from "@/components/project/AnimatedProjectCard";
 import { workflowStageService } from "@/services/workflowStageService";
@@ -218,11 +217,12 @@ export default function Projects() {
   // Get default tab from URL params or localStorage
   const getDefaultTab = () => {
     const tabParam = searchParams.get('tab');
-    if (tabParam === 'enhanced' || tabParam === 'calendar' || tabParam === 'table' || tabParam === 'flowchart' || tabParam === 'analytics') {
+    if (tabParam === 'enhanced' || tabParam === 'calendar' || tabParam === 'flowchart' || tabParam === 'analytics') {
       return tabParam;
     }
     // Try to restore from localStorage, default to 'enhanced'
     const saved = localStorage.getItem('projects-selected-tab');
+    if (saved === 'table') return 'enhanced';
     return saved ? (saved as string) : 'enhanced';
   };
 
@@ -425,7 +425,7 @@ export default function Projects() {
               <p className="text-base-content/70">Track and manage your manufacturing projects from idea to delivery</p>
             </div>
             <div className="flex items-center gap-4">
-              <TabsList className="auth-tabs-list grid-cols-5 w-[750px]">
+              <TabsList className="auth-tabs-list grid-cols-4 w-[600px]">
                 <TabsTrigger value="enhanced" className="auth-tab-trigger" disabled={isRetrying}>
                   List
                 </TabsTrigger>
@@ -709,10 +709,6 @@ export default function Projects() {
             <ProjectErrorBoundary context="Project Analytics">
               <ProjectWorkflowAnalytics
                 projects={activeProjects.filter(p => selectedProjectType === 'all' || p.project_type === selectedProjectType)}
-                workflowStages={workflowStages}
-                onStageSelect={handleStageSelect}
-                selectedStage={selectedStage}
-                loading={loading}
               />
             </ProjectErrorBoundary>
           </TabsContent>
@@ -721,8 +717,6 @@ export default function Projects() {
             <ProjectErrorBoundary context="Project Calendar">
               <ProjectCalendar
                 projects={activeProjects.filter(p => selectedProjectType === 'all' || p.project_type === selectedProjectType)}
-                onProjectSelect={setSelectedProject}
-                loading={loading}
               />
             </ProjectErrorBoundary>
           </TabsContent>
