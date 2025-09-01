@@ -2,6 +2,40 @@
 
 ## Recent Changes
 
+### 2025-09-01 - Project Status Change Dialog Visibility Improvement
+
+**Task Completed:**
+- Fixed low visibility issue in project status change confirmation dialog
+- Reduced dialog overlay opacity from 80% to 40% for better background content visibility
+- Enhanced dialog styling with backdrop blur and improved visual hierarchy
+- Created reusable light dialog components for better UX across the application
+
+**Issue Identified:**
+- Project status change confirmation dialog had `bg-black/80` overlay causing poor background visibility
+- Users couldn't see project details behind the modal, making context switching difficult
+- Dialog styling needed improvement for better visual hierarchy and modern appearance
+
+**Technical Fix:**
+- Created `DialogOverlayLight` component with reduced opacity (`bg-black/40`)
+- Added `DialogContentLight` component that uses the light overlay
+- Enhanced dialog styling with backdrop blur and improved borders
+- Applied light dialog variant to ProjectStatusManager confirmation dialog
+
+**Files Modified:**
+- `src/components/ui/dialog.tsx` - Added light dialog variants with reduced opacity
+- `src/components/project/ProjectStatusManager.tsx` - Updated to use light dialog variant
+
+**Benefits:**
+- **Better Visibility**: Background content is now clearly visible through the dialog
+- **Improved UX**: Users can maintain context while confirming status changes
+- **Modern Design**: Enhanced dialog styling with backdrop blur and better visual hierarchy
+- **Reusable Components**: Light dialog variants can be used across the application
+
+**Testing Status:**
+- ✅ Reduced dialog overlay opacity for better background visibility
+- ✅ Enhanced dialog styling with backdrop blur and improved borders
+- ✅ Created reusable light dialog components for future use
+
 ### 2025-09-01 - Kanban View Project Card Assignee Display Fix
 
 **Task Completed:**

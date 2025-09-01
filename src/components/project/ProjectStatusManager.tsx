@@ -12,6 +12,7 @@ import {
 import {
     Dialog,
     DialogContent,
+    DialogContentLight,
     DialogDescription,
     DialogFooter,
     DialogHeader,
@@ -336,7 +337,7 @@ export function ProjectStatusManager({
 
             {/* Confirmation Dialog */}
             <Dialog open={showConfirmDialog} onOpenChange={setShowConfirmDialog}>
-                <DialogContent>
+                <DialogContentLight className="bg-background/95 backdrop-blur-sm border-2 border-border/50 shadow-2xl">
                     <DialogHeader>
                         <DialogTitle className="flex items-center space-x-2">
                             {selectedTransition && (
@@ -395,7 +396,7 @@ export function ProjectStatusManager({
                             Confirm Change
                         </Button>
                     </DialogFooter>
-                </DialogContent>
+                </DialogContentLight>
             </Dialog>
         </>
     );
