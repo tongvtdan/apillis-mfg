@@ -18,17 +18,19 @@ import {
     XCircle,
     Play,
     Pause,
-    Square,
     RotateCcw,
     Loader2,
-    ArrowRight
+    ArrowRight,
+    Star,
+    TrendingUp,
+    AlertCircle
 } from "lucide-react";
 import { cn } from "@/lib/utils";
-import type { Project, ProjectStatus, WorkflowStage } from "@/types/project";
+import type { Project, ProjectStatus, ProjectPriority, WorkflowStage } from "@/types/project";
 import { projectService } from "@/services/projectService";
 import { useToast } from "@/hooks/use-toast";
 
-interface ProjectStatusManagerProps {
+interface ProjectAttributesManagerProps {
     project: Project;
     workflowStages?: WorkflowStage[];
     onUpdate?: (updatedProject: Project) => void;
@@ -46,18 +48,18 @@ interface StatusTransition {
     validationRules?: (project: Project) => string | null;
 }
 
-export function ProjectStatusManager({
+export function ProjectAttributesManager({
     project,
     workflowStages = [],
     onUpdate,
     className
-}: ProjectStatusManagerProps) {
+}: ProjectAttributesManagerProps) {
     const [isLoading, setIsLoading] = useState(false);
     const [showConfirmDialog, setShowConfirmDialog] = useState(false);
     const [selectedTransition, setSelectedTransition] = useState<StatusTransition | null>(null);
     const [reason, setReason] = useState('');
     const [optimisticProject, setOptimisticProject] = useState<Project>(project);
-    const [isUpdating, setIsUpdating] = useState(false);
+    const [isUpdating, setIsUpdating] = useState<string | null>(null);
     const { toast } = useToast();
 
     // Update optimistic project when prop changes
@@ -74,6 +76,14 @@ export function ProjectStatusManager({
         }));
     }, []);
 
+    // Priority options
+    const priorityOptions = [
+        { value: 'low', label: 'Low', icon: TrendingUp, color: 'text-green-600' },
+        { value: 'medium', label: 'Medium', icon: Star, color: 'text-yellow-600' },
+        { value: 'high', label: 'High', icon: AlertTriangle, color: 'text-orange-600' },
+        { value: 'critical', label: 'Critical', icon: AlertCircle, color: 'text-red-600' }
+    ];
+
     // Define status transitions with validation rules
     const statusTransitions: StatusTransition[] = [
         {
@@ -84,10 +94,7 @@ export function ProjectStatusManager({
             color: 'text-yellow-600',
             requiresConfirmation: true,
             requiresReason: true,
-            validationRules: (project) => {
-                // Can always put active projects on hold
-                return null;
-            }
+            validationRules: (project) => null
         },
         {
             from: 'active',
@@ -97,10 +104,8 @@ export function ProjectStatusManager({
             color: 'text-green-600',
             requiresConfirmation: true,
             validationRules: (project) => {
-                // Check if project is in final stage
                 const currentStage = workflowStages.find(s => s.id === project.current_stage_id);
                 const finalStage = workflowStages[workflowStages.length - 1];
-
                 if (currentStage?.id !== finalStage?.id) {
                     return 'Project must be in the final workflow stage to be marked as complete';
                 }
@@ -115,10 +120,7 @@ export function ProjectStatusManager({
             color: 'text-red-600',
             requiresConfirmation: true,
             requiresReason: true,
-            validationRules: (project) => {
-                // Can always cancel active projects
-                return null;
-            }
+            validationRules: (project) => null
         },
         {
             from: 'on_hold',
@@ -127,10 +129,7 @@ export function ProjectStatusManager({
             icon: Play,
             color: 'text-green-600',
             requiresConfirmation: false,
-            validationRules: (project) => {
-                // Can always resume projects on hold
-                return null;
-            }
+            validationRules: (project) => null
         },
         {
             from: 'cancelled',
@@ -140,10 +139,7 @@ export function ProjectStatusManager({
             color: 'text-blue-600',
             requiresConfirmation: true,
             requiresReason: true,
-            validationRules: (project) => {
-                // Can always reactivate cancelled projects
-                return null;
-            }
+            validationRules: (project) => null
         }
     ];
 
@@ -163,9 +159,45 @@ export function ProjectStatusManager({
         return statusMap[status] || { label: status, color: 'bg-gray-100 text-gray-800', icon: Clock };
     };
 
-    // Handle status change with optimistic updates
+    // Handle priority change
+    const handlePriorityChange = async (newPriority: string) => {
+        setIsLoading(true);
+        setIsUpdating('priority_level');
+
+        // Optimistic update - immediately update UI
+        updateOptimisticProject({ priority_level: newPriority as ProjectPriority });
+
+        try {
+            const updateData: Partial<Project> = {
+                priority_level: newPriority as ProjectPriority
+            };
+
+            const updatedProject = await projectService.updateProject(project.id, updateData);
+            onUpdate?.(updatedProject);
+
+            toast({
+                title: "Priority Updated",
+                description: `Project priority has been updated to ${newPriority}.`,
+            });
+        } catch (error) {
+            console.error('Failed to update priority:', error);
+
+            // Rollback optimistic update on error
+            updateOptimisticProject({ priority_level: project.priority_level });
+
+            toast({
+                title: "Update Failed",
+                description: error instanceof Error ? error.message : "Failed to update priority",
+                variant: "destructive",
+            });
+        } finally {
+            setIsLoading(false);
+            setIsUpdating(null);
+        }
+    };
+
+    // Handle status change
     const handleStatusChange = async (transition: StatusTransition) => {
-        // Validate the transition
         if (transition.validationRules) {
             const validationError = transition.validationRules(optimisticProject);
             if (validationError) {
@@ -184,26 +216,22 @@ export function ProjectStatusManager({
             return;
         }
 
-        // Execute the status change immediately
         await executeStatusChange(transition, '');
     };
 
     // Execute the status change
     const executeStatusChange = async (transition: StatusTransition, reason: string) => {
         setIsLoading(true);
-        setIsUpdating(true);
+        setIsUpdating('status');
 
         // Optimistic update - immediately update UI
-        const optimisticUpdate = { status: transition.to };
-        updateOptimisticProject(optimisticUpdate);
+        updateOptimisticProject({ status: transition.to });
 
         try {
-            // Prepare update data
             const updateData: Partial<Project> = {
                 status: transition.to
             };
 
-            // Add reason to notes if provided
             if (reason.trim()) {
                 const timestamp = new Date().toISOString();
                 const statusChangeNote = `[${timestamp}] Status changed from ${transition.from} to ${transition.to}: ${reason}`;
@@ -211,30 +239,23 @@ export function ProjectStatusManager({
                     ? `${optimisticProject.notes}\n\n${statusChangeNote}`
                     : statusChangeNote;
 
-                // Also update notes optimistically
                 updateOptimisticProject({ notes: updateData.notes });
             }
 
-            // Update project
             const updatedProject = await projectService.updateProject(project.id, updateData);
-
-            // Notify parent component
             onUpdate?.(updatedProject);
 
-            // Show success message
             toast({
                 title: "Status Updated",
                 description: `Project status changed to ${getStatusInfo(transition.to).label}`,
             });
 
-            // Close dialog
             setShowConfirmDialog(false);
             setSelectedTransition(null);
             setReason('');
         } catch (error) {
             console.error('Failed to update project status:', error);
 
-            // Rollback optimistic update on error
             updateOptimisticProject({
                 status: project.status,
                 notes: project.notes
@@ -247,82 +268,109 @@ export function ProjectStatusManager({
             });
         } finally {
             setIsLoading(false);
-            setIsUpdating(false);
+            setIsUpdating(null);
         }
     };
 
     const currentStatusInfo = getStatusInfo(optimisticProject.status);
+    const currentPriority = priorityOptions.find(p => p.value === optimisticProject.priority_level) || priorityOptions[1];
 
     return (
         <>
             <Card className={cn("transition-all duration-300", className)}>
                 <CardHeader>
-                    <CardTitle className="text-lg">Status Management</CardTitle>
+                    <CardTitle className="text-lg">Project Attributes</CardTitle>
                 </CardHeader>
-                <CardContent className="space-y-4">
-                    {/* Current Status Summary */}
-                    <div className="space-y-2">
+                <CardContent className="space-y-6">
+                    {/* Priority Management */}
+                    <div className="space-y-3">
+                        <Label className="text-sm font-medium text-muted-foreground">
+                            Priority Level
+                        </Label>
+                        <div className={cn(
+                            "transition-all duration-200",
+                            isUpdating === 'priority_level' && "opacity-75"
+                        )}>
+                            <Select
+                                value={optimisticProject.priority_level || 'medium'}
+                                onValueChange={handlePriorityChange}
+                                disabled={isLoading}
+                            >
+                                <SelectTrigger className="w-full">
+                                    <SelectValue />
+                                </SelectTrigger>
+                                <SelectContent>
+                                    {priorityOptions.map((option) => {
+                                        const IconComponent = option.icon;
+                                        return (
+                                            <SelectItem key={option.value} value={option.value}>
+                                                <div className="flex items-center space-x-2">
+                                                    <IconComponent className={cn("w-4 h-4", option.color)} />
+                                                    <span>{option.label}</span>
+                                                </div>
+                                            </SelectItem>
+                                        );
+                                    })}
+                                </SelectContent>
+                            </Select>
+                        </div>
+                    </div>
+
+                    {/* Status Management */}
+                    <div className="space-y-3">
                         <Label className="text-sm font-medium text-muted-foreground">
                             Current Status
                         </Label>
                         <div className={cn(
                             "flex items-center space-x-2 transition-all duration-200",
-                            isUpdating && "opacity-75"
+                            isUpdating === 'status' && "opacity-75"
                         )}>
                             <Badge className={currentStatusInfo.color}>
                                 <currentStatusInfo.icon className="w-3 h-3 mr-1" />
                                 {currentStatusInfo.label}
                             </Badge>
-                            <span className="text-sm text-muted-foreground">
-                                • Status is also displayed in the project header above
-                            </span>
                         </div>
+
+                        {/* Status Actions */}
+                        {availableTransitions.length > 0 && (
+                            <div className="space-y-2">
+                                <Label className="text-sm font-medium text-muted-foreground">
+                                    Status Actions
+                                </Label>
+                                <div className="flex flex-wrap gap-2">
+                                    {availableTransitions.map((transition) => {
+                                        const IconComponent = transition.icon;
+                                        return (
+                                            <Button
+                                                key={transition.to}
+                                                variant="outline"
+                                                size="sm"
+                                                onClick={() => handleStatusChange(transition)}
+                                                disabled={isLoading}
+                                                className={cn(
+                                                    "transition-all duration-200",
+                                                    transition.color
+                                                )}
+                                            >
+                                                <IconComponent className="w-4 h-4 mr-1" />
+                                                {transition.label}
+                                                <ArrowRight className="w-3 h-3 ml-1" />
+                                            </Button>
+                                        );
+                                    })}
+                                </div>
+                            </div>
+                        )}
+
+                        {availableTransitions.length === 0 && (
+                            <div className="text-sm text-muted-foreground">
+                                No status changes available for current state.
+                            </div>
+                        )}
                     </div>
 
-                    {/* Available Actions */}
-                    {availableTransitions.length > 0 && (
-                        <div className="space-y-2">
-                            <Label className="text-sm font-medium text-muted-foreground">
-                                Available Actions
-                            </Label>
-                            <div className="flex flex-wrap gap-2">
-                                {availableTransitions.map((transition) => {
-                                    const IconComponent = transition.icon;
-                                    return (
-                                        <Button
-                                            key={transition.to}
-                                            variant="outline"
-                                            size="sm"
-                                            onClick={() => handleStatusChange(transition)}
-                                            disabled={isLoading}
-                                            className={cn(
-                                                "transition-all duration-200",
-                                                transition.color,
-                                                isUpdating && "opacity-75"
-                                            )}
-                                        >
-                                            <IconComponent className="w-4 h-4 mr-1" />
-                                            {transition.label}
-                                            <ArrowRight className="w-3 h-3 ml-1" />
-                                        </Button>
-                                    );
-                                })}
-                            </div>
-                        </div>
-                    )}
-
-                    {/* No Actions Available */}
-                    {availableTransitions.length === 0 && (
-                        <div className="text-sm text-muted-foreground">
-                            No status changes available for current state.
-                        </div>
-                    )}
-
-                    {/* Status Change History */}
-                    <div className="space-y-2">
-                        <Label className="text-sm font-medium text-muted-foreground">
-                            Quick Status History
-                        </Label>
+                    {/* Last Updated */}
+                    <div className="pt-2 border-t">
                         <div className="text-xs text-muted-foreground">
                             Last updated: {optimisticProject.updated_at ?
                                 new Date(optimisticProject.updated_at).toLocaleString() :

@@ -63,7 +63,7 @@ export function InlineProjectEditor({
         setOptimisticProject(project);
     }, [project]);
 
-    // Editable fields configuration - removed status since it's in Project Status card
+    // Editable fields configuration - removed priority since it's in Project Header
     const editableFields: EditableField[] = [
         {
             key: 'title',
@@ -102,14 +102,6 @@ export function InlineProjectEditor({
                 return null;
             }
         }
-    ];
-
-    // Priority options for header
-    const priorityOptions = [
-        { value: 'low', label: 'Low' },
-        { value: 'medium', label: 'Medium' },
-        { value: 'high', label: 'High' },
-        { value: 'critical', label: 'Critical' }
     ];
 
     // Start editing a field
@@ -189,43 +181,6 @@ export function InlineProjectEditor({
             toast({
                 title: "Update Failed",
                 description: error instanceof Error ? error.message : "Failed to update field",
-                variant: "destructive",
-            });
-        } finally {
-            setIsLoading(false);
-            setIsUpdating(null);
-        }
-    };
-
-    // Handle priority change in header with optimistic updates
-    const handlePriorityChange = async (newPriority: string) => {
-        setIsLoading(true);
-        setIsUpdating('priority_level');
-
-        // Optimistic update - immediately update UI
-        updateOptimisticProject({ priority_level: newPriority as ProjectPriority });
-
-        try {
-            const updateData: Partial<Project> = {
-                priority_level: newPriority as ProjectPriority
-            };
-
-            const updatedProject = await projectService.updateProject(project.id, updateData);
-            onUpdate?.(updatedProject);
-
-            toast({
-                title: "Priority Updated",
-                description: `Project priority has been updated to ${newPriority}.`,
-            });
-        } catch (error) {
-            console.error('Failed to update priority:', error);
-
-            // Rollback optimistic update on error
-            updateOptimisticProject({ priority_level: project.priority_level });
-
-            toast({
-                title: "Update Failed",
-                description: error instanceof Error ? error.message : "Failed to update priority",
                 variant: "destructive",
             });
         } finally {
@@ -361,37 +316,7 @@ export function InlineProjectEditor({
     return (
         <Card className={cn("transition-all duration-300", className)}>
             <CardHeader>
-                <div className="flex items-center justify-between">
-                    <CardTitle className="text-lg">Project Information</CardTitle>
-                    <div className="flex items-center space-x-2">
-                        <Label className="text-sm font-medium text-muted-foreground">Priority:</Label>
-                        <div className={cn(
-                            "transition-all duration-200",
-                            isUpdating === 'priority_level' && "opacity-75"
-                        )}>
-                            <Select
-                                value={optimisticProject.priority_level || 'medium'}
-                                onValueChange={handlePriorityChange}
-                                disabled={isLoading}
-                            >
-                                <SelectTrigger className="w-32">
-                                    <SelectValue />
-                                </SelectTrigger>
-                                <SelectContent>
-                                    {priorityOptions.map((option) => (
-                                        <SelectItem key={option.value} value={option.value}>
-                                            <div className="flex items-center space-x-2">
-                                                <Badge className={getFieldBadgeColor('priority_level', option.value)}>
-                                                    {option.label}
-                                                </Badge>
-                                            </div>
-                                        </SelectItem>
-                                    ))}
-                                </SelectContent>
-                            </Select>
-                        </div>
-                    </div>
-                </div>
+                <CardTitle className="text-lg">Project Information</CardTitle>
             </CardHeader>
             <CardContent className="space-y-4">
                 {editableFields.map((field) => (

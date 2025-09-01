@@ -56,7 +56,7 @@ import { useSmoothProjectUpdates } from "@/hooks/useSmoothProjectUpdates";
 
 // Import new enhanced components
 import { InlineProjectEditor } from "@/components/project/InlineProjectEditor";
-import { ProjectStatusManager } from "@/components/project/ProjectStatusManager";
+import { ProjectAttributesManager } from "@/components/project/ProjectAttributesManager";
 
 // Separate component for auto-advance functionality to avoid Rules of Hooks violation
 const ProjectAutoAdvance = memo(({ project }: { project: Project }) => {
@@ -400,8 +400,8 @@ export default function ProjectDetail() {
                         onUpdate={handleProjectUpdate}
                       />
 
-                      {/* Project Status Manager */}
-                      <ProjectStatusManager
+                      {/* Project Attributes Manager */}
+                      <ProjectAttributesManager
                         project={smoothProject}
                         workflowStages={workflowStages as any}
                         onUpdate={handleProjectUpdate}
