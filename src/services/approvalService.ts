@@ -162,14 +162,21 @@ export class ApprovalService {
                 stage = subStage;
             } else {
                 // If not found in workflow_sub_stages, try workflow_stages
+                // Note: workflow_stages table doesn't have approval_roles or requires_approval columns
+                // So we fetch the basic stage info and assume no approvals required
                 const { data: workflowStage, error: workflowStageError } = await supabase
                     .from('workflow_stages')
-                    .select('approval_roles,requires_approval')
+                    .select('id')
                     .eq('id', stageId)
                     .maybeSingle();
 
                 if (!workflowStageError && workflowStage) {
-                    stage = workflowStage as unknown as { approval_roles: string[]; requires_approval: boolean };
+                    // If we found a workflow stage, it means no approvals are required
+                    // since those fields don't exist on workflow_stages
+                    stage = {
+                        approval_roles: [],
+                        requires_approval: false
+                    };
                 } else {
                     stageError = workflowStageError || subStageError;
                 }
@@ -331,14 +338,22 @@ export class ApprovalService {
                 stage = subStage;
             } else {
                 // If not found in workflow_sub_stages, try workflow_stages
+                // Note: workflow_stages table doesn't have approval_roles or requires_approval columns
+                // So we fetch the basic stage info and assume no approvals required
                 const { data: workflowStage, error: workflowStageError } = await supabase
                     .from('workflow_stages')
-                    .select('approval_roles,requires_approval,name')
+                    .select('id,name')
                     .eq('id', stageId)
                     .maybeSingle();
 
                 if (!workflowStageError && workflowStage) {
-                    stage = workflowStage as unknown as { approval_roles: string[]; requires_approval: boolean; name: string };
+                    // If we found a workflow stage, it means no approvals are required
+                    // since those fields don't exist on workflow_stages
+                    stage = {
+                        approval_roles: [],
+                        requires_approval: false,
+                        name: workflowStage.name
+                    };
                 } else {
                     stageError = workflowStageError || subStageError;
                 }
