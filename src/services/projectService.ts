@@ -506,8 +506,6 @@ class ProjectService {
                 estimated_duration_days: data.estimated_duration_days !== undefined ?
                     this.validateOptionalNumber(data.estimated_duration_days) : 0,
                 // Other fields
-                required_approvals: this.transformJsonbArrayField(data.required_approvals),
-                auto_advance_conditions: this.transformJsonbField(data.auto_advance_conditions),
                 created_at: this.transformTimestamp(data.created_at, true)!,
                 updated_at: this.transformTimestamp(data.updated_at, true)!
             };
@@ -762,8 +760,6 @@ class ProjectService {
                         slug,
                         exit_criteria,
                         color,
-                        required_approvals,
-                        auto_advance_conditions,
                         created_at,
                         updated_at
                     )

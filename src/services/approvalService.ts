@@ -147,15 +147,16 @@ export class ApprovalService {
         isComplete: boolean;
     }> {
         try {
-            // Get stage approval requirements - FIX: Query workflow_stages instead of workflow_sub_stages
+            // Get stage approval requirements - Query workflow_sub_stages instead of workflow_stages
+            // since workflow_stages doesn't have approval_roles or requires_approval columns
             const { data: stage, error: stageError } = await supabase
-                .from('workflow_stages')
+                .from('workflow_sub_stages')
                 .select('approval_roles, requires_approval')
                 .eq('id', stageId)
                 .single();
 
             if (stageError) {
-                // FIX: Handle case where stage doesn't exist gracefully
+                // Handle case where stage doesn't exist gracefully
                 console.warn(`Stage ${stageId} not found, assuming no approvals required`);
                 return {
                     required: [],

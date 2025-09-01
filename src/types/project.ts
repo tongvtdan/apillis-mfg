@@ -47,23 +47,21 @@ export interface Contact {
 export interface WorkflowStage {
   // Core database fields - must match database schema exactly
   id: string;
+  organization_id: string;
   name: string;
-  description?: string;
   slug: string;
-  stage_order: number;
+  description?: string;
   color?: string;
+  stage_order: number;
+  is_active?: boolean;
   exit_criteria?: string;
-  responsible_roles?: string[];
-  is_active?: boolean; // Optional in database (has default)
-  organization_id: string; // Required in database
-  estimated_duration_days?: number; // Added from database schema
+  responsible_roles?: string[]; // Array of user roles
+  estimated_duration_days?: number; // Optional in database (has default)
   created_at?: string; // Optional in database (has default)
   updated_at?: string;
 
   // Computed fields for compatibility
   order_index?: number; // Computed from stage_order for backward compatibility
-  required_approvals?: any[];
-  auto_advance_conditions?: Record<string, any>;
 
   // New fields for sub-stages support
   sub_stages_count?: number;
