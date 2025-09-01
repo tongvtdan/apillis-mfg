@@ -8,6 +8,16 @@ This document provides testing steps to verify that the long-term stability fix 
 - **Real-time Subscription Issues**: Improved subscription handling and error recovery
 - **Synchronization Problems**: Eliminated complex state management between multiple data sources
 - **CRITICAL DATABASE ISSUE**: Added projects table to supabase_realtime publication (this was the root cause!)
+- **NEW: Duplicate Subscription Prevention**: Added deduplication mechanisms to prevent multiple subscriptions
+- **NEW: Improved Rate Limiting**: Increased debounce delay to 300ms and rate limiting to 2 seconds for better stability
+- **NEW: Better Dependency Management**: Using specific object properties instead of entire objects to prevent unnecessary re-runs
+
+## Recent Improvements (Latest Update)
+- **Fixed Excessive Re-renders**: Optimized useEffect dependencies to use `user?.id` and `profile?.organization_id` instead of entire objects
+- **Improved Subscription Management**: Added proper cleanup and deduplication in realtime manager
+- **Enhanced Rate Limiting**: Increased debounce delay from 100ms to 300ms and rate limiting from 1s to 2s
+- **Better Error Handling**: Improved subscription cleanup and retry mechanisms
+- **Reduced Console Noise**: Optimized logging to prevent spam while maintaining debugging capability
 
 ## Test Steps
 

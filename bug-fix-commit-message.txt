@@ -1,21 +1,21 @@
-fix(workflow): Resolve stage transition RLS policy error
+fix: optimize real-time subscription management to prevent duplicate subscriptions and excessive re-renders
 
-Triaging [bug]: Provide reproduction, likely cause, fix patch, and regression tests. Add a guard (type or runtime) to prevent recurrence.
+- Optimized useEffect dependencies in useProjects hook to use specific object properties (user?.id, profile?.organization_id) instead of entire objects to prevent unnecessary re-runs
+- Improved subscription deduplication in realtime manager to prevent multiple subscriptions from the same callback
+- Enhanced rate limiting: increased debounce delay from 100ms to 300ms and rate limiting from 1s to 2s for better stability
+- Added proper cleanup and error handling for subscription management
+- Reduced console noise while maintaining debugging capability
+- Fixed excessive re-renders that were causing multiple database calls and UI flickering
 
-Root Cause:
-- Missing INSERT policy on activity_log table causing 403 Forbidden errors
-- RLS was enabled but only SELECT policy existed
-- Workflow transitions failed when trying to record activity
+This addresses the issue where pressing "Test Direct Update" was causing multiple duplicate subscriptions and excessive re-renders, leading to performance issues and potential memory leaks.
 
-Fix:
-- Added INSERT policy for activity_log table in new migration
-- Improved error handling in frontend to be resilient to non-critical failures
-- Modified StageHistoryService to warn but continue on logging failures
-- Updated StageTransitionValidator and useStageTransition hook for better error handling
+Files changed:
+- src/hooks/useProjects.ts: Optimized useEffect dependencies and subscription management
+- src/lib/realtime-manager.ts: Improved subscription deduplication and rate limiting
+- scripts/test-stage-transition-fix.md: Updated test guide with new improvements
 
-Prevention:
-- Added validation script to check for proper RLS policies
-- Created comprehensive tests for error scenarios
-- Added documentation explaining the issue and fix
-
-The workflow transitions now work reliably, and the system is more resilient to non-critical database errors.
+Testing:
+- Verify stage transitions update UI immediately without page refresh
+- Check console for reduced duplicate subscription messages
+- Confirm proper rate limiting prevents excessive API calls
+- Test navigation between project detail pages for clean subscription management

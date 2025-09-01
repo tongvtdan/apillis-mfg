@@ -331,7 +331,7 @@ export function useProjects() {
       const now = Date.now();
       const timeSinceLastFetch = now - lastFetchTimeRef.current;
 
-      if (timeSinceLastFetch < 1000) { // Reduced to 1 second for better responsiveness
+      if (timeSinceLastFetch < 2000) { // Increased to 2 seconds for better stability
         console.log('🔔 useProjects: Rate limiting real-time update (last fetch was', timeSinceLastFetch, 'ms ago)');
         return;
       }
@@ -346,7 +346,7 @@ export function useProjects() {
       console.log('🔔 useProjects: Unsubscribing from real-time manager');
       unsubscribe();
     };
-  }, [user, profile]); // Remove fetchProjects from dependency array to prevent circular dependency
+  }, [user?.id, profile?.organization_id]); // Use specific properties instead of entire objects to prevent unnecessary re-runs
 
   // Get project by ID
   const getProjectById = async (id: string): Promise<Project | null> => {
