@@ -9,16 +9,6 @@ import {
     SelectTrigger,
     SelectValue,
 } from "@/components/ui/select";
-import {
-    Dialog,
-    DialogContent,
-    DialogContentLight,
-    DialogDescription,
-    DialogFooter,
-    DialogHeader,
-    DialogTitle,
-    DialogTrigger,
-} from "@/components/ui/dialog";
 import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
 import {
@@ -336,68 +326,74 @@ export function ProjectStatusManager({
             </Card>
 
             {/* Confirmation Dialog */}
-            <Dialog open={showConfirmDialog} onOpenChange={setShowConfirmDialog}>
-                <DialogContentLight className="bg-background/95 backdrop-blur-sm border-2 border-border/50 shadow-2xl">
-                    <DialogHeader>
-                        <DialogTitle className="flex items-center space-x-2">
-                            {selectedTransition && (
-                                <>
-                                    <selectedTransition.icon className={cn("w-5 h-5", selectedTransition.color)} />
-                                    <span>Confirm Status Change</span>
-                                </>
-                            )}
-                        </DialogTitle>
-                        <DialogDescription>
-                            {selectedTransition && (
-                                <>
-                                    Are you sure you want to change the project status from{' '}
-                                    <strong>{getStatusInfo(selectedTransition.from).label}</strong> to{' '}
-                                    <strong>{getStatusInfo(selectedTransition.to).label}</strong>?
-                                </>
-                            )}
-                        </DialogDescription>
-                    </DialogHeader>
+            {showConfirmDialog && (
+                <div className="fixed inset-0 bg-background/95 backdrop-blur-lg flex items-center justify-center p-4 z-50">
+                    <div className="w-full max-w-lg">
+                        <Card>
+                            <CardHeader>
+                                <CardTitle className="flex items-center space-x-2">
+                                    {selectedTransition && (
+                                        <>
+                                            <selectedTransition.icon className={cn("w-5 h-5", selectedTransition.color)} />
+                                            <span>Confirm Status Change</span>
+                                        </>
+                                    )}
+                                </CardTitle>
+                            </CardHeader>
+                            <CardContent className="space-y-4">
+                                <p className="text-sm text-muted-foreground">
+                                    {selectedTransition && (
+                                        <>
+                                            Are you sure you want to change the project status from{' '}
+                                            <strong>{getStatusInfo(selectedTransition.from).label}</strong> to{' '}
+                                            <strong>{getStatusInfo(selectedTransition.to).label}</strong>?
+                                        </>
+                                    )}
+                                </p>
 
-                    {selectedTransition?.requiresReason && (
-                        <div className="space-y-2">
-                            <Label htmlFor="reason">
-                                Reason for status change {selectedTransition.requiresReason && '*'}
-                            </Label>
-                            <Textarea
-                                id="reason"
-                                value={reason}
-                                onChange={(e) => setReason(e.target.value)}
-                                placeholder="Please provide a reason for this status change..."
-                                className="min-h-[80px]"
-                            />
-                        </div>
-                    )}
+                                {selectedTransition?.requiresReason && (
+                                    <div className="space-y-2">
+                                        <Label htmlFor="reason">
+                                            Reason for status change {selectedTransition.requiresReason && '*'}
+                                        </Label>
+                                        <Textarea
+                                            id="reason"
+                                            value={reason}
+                                            onChange={(e) => setReason(e.target.value)}
+                                            placeholder="Please provide a reason for this status change..."
+                                            className="min-h-[80px]"
+                                        />
+                                    </div>
+                                )}
 
-                    <DialogFooter>
-                        <Button
-                            variant="outline"
-                            onClick={() => setShowConfirmDialog(false)}
-                            disabled={isLoading}
-                        >
-                            Cancel
-                        </Button>
-                        <Button
-                            onClick={() => selectedTransition && executeStatusChange(selectedTransition, reason)}
-                            disabled={
-                                isLoading ||
-                                (selectedTransition?.requiresReason && !reason.trim())
-                            }
-                        >
-                            {isLoading ? (
-                                <Loader2 className="w-4 h-4 animate-spin mr-2" />
-                            ) : (
-                                selectedTransition && <selectedTransition.icon className="w-4 h-4 mr-2" />
-                            )}
-                            Confirm Change
-                        </Button>
-                    </DialogFooter>
-                </DialogContentLight>
-            </Dialog>
+                                <div className="flex gap-2 pt-4">
+                                    <Button
+                                        variant="outline"
+                                        onClick={() => setShowConfirmDialog(false)}
+                                        disabled={isLoading}
+                                    >
+                                        Cancel
+                                    </Button>
+                                    <Button
+                                        onClick={() => selectedTransition && executeStatusChange(selectedTransition, reason)}
+                                        disabled={
+                                            isLoading ||
+                                            (selectedTransition?.requiresReason && !reason.trim())
+                                        }
+                                    >
+                                        {isLoading ? (
+                                            <Loader2 className="w-4 h-4 animate-spin mr-2" />
+                                        ) : (
+                                            selectedTransition && <selectedTransition.icon className="w-4 h-4 mr-2" />
+                                        )}
+                                        Confirm Change
+                                    </Button>
+                                </div>
+                            </CardContent>
+                        </Card>
+                    </div>
+                </div>
+            )}
         </>
     );
 }
