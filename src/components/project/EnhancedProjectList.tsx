@@ -23,7 +23,6 @@ import {
 } from 'lucide-react';
 import { Project, ProjectStatus, ProjectPriority, WorkflowStage } from '@/types/project';
 import { ProjectTable } from './ProjectTable';
-import { AnimatedProjectCard } from './AnimatedProjectCard';
 import { ProjectIntakeForm } from './ProjectIntakeForm';
 import { useUsers } from '@/hooks/useUsers';
 import { useNavigate } from 'react-router-dom';
@@ -684,30 +683,105 @@ export function EnhancedProjectList({
             ) : viewMode === 'cards' ? (
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
                     {sortedProjects.map((project) => (
-                        <AnimatedProjectCard
+                        <Card
                             key={project.id}
-                            project={project}
-                            onStatusChange={async (projectId, newStatus) => {
-                                if (onProjectUpdate) {
-                                    await onProjectUpdate(projectId, { status: newStatus });
-                                }
+                            className="cursor-pointer hover:shadow-lg transition-all duration-200 border-l-4 hover:scale-[1.02] group"
+                            style={{
+                                borderLeftColor: workflowStages.find(s => s.id === project.current_stage_id)?.color || '#3B82F6'
                             }}
-                            getAvailableStages={(project) => {
-                                // Return available stages based on workflow
-                                return workflowStages.map(stage => ({
-                                    id: stage.id as ProjectStatus,
-                                    name: stage.name,
-                                    color: stage.color || '#3B82F6',
-                                    count: 0,
-                                    canMoveTo: true,
-                                    isNextStage: false,
-                                    isCurrentStage: stage.id === project.current_stage_id
-                                }));
-                            }}
-                            getPriorityColor={getPriorityColor}
-                            formatCurrency={formatCurrency}
-                            formatDate={formatDate}
-                        />
+                        >
+                            <CardContent className="p-6">
+                                {/* Project Header */}
+                                <div className="mb-4">
+                                    <div className="flex items-start justify-between mb-2">
+                                        <div className="flex items-center gap-2">
+                                            <div className="flex flex-col">
+                                                <h4 className="font-semibold text-base text-base-content group-hover:text-primary transition-colors">
+                                                    {project.project_id} - {project.title}
+                                                </h4>
+                                                {project.customer?.company_name && (
+                                                    <p className="text-sm text-muted-foreground flex items-center gap-1">
+                                                        <Building2 className="h-3 w-3" />
+                                                        {project.customer.company_name}
+                                                    </p>
+                                                )}
+                                            </div>
+                                        </div>
+                                        <Badge
+                                            variant="outline"
+                                            className={`text-xs ${getPriorityColor(project.priority_level || project.priority || 'medium')}`}
+                                        >
+                                            {(project.priority_level || project.priority || 'medium').toUpperCase()}
+                                        </Badge>
+                                    </div>
+                                </div>
+
+                                {/* Project Details */}
+                                <div className="space-y-2 text-xs">
+                                    <div className="flex items-center justify-between">
+                                        <div className="flex items-center space-x-1 text-muted-foreground">
+                                            <User className="h-3 w-3 flex-shrink-0" />
+                                            <span>{project.contact_name || project.customer?.contact_name || 'Unassigned'}</span>
+                                        </div>
+                                        {project.estimated_value && (
+                                            <div className="flex items-center space-x-1 font-medium">
+                                                <DollarSign className="h-3 w-3 flex-shrink-0 text-green-600" />
+                                                <span>{formatCurrency(project.estimated_value)}</span>
+                                            </div>
+                                        )}
+                                    </div>
+
+                                    <div className="flex items-center justify-between">
+                                        {project.estimated_delivery_date && (
+                                            <div className="flex items-center space-x-1 text-muted-foreground">
+                                                <Calendar className="h-3 w-3 flex-shrink-0" />
+                                                <span>{formatDate(project.estimated_delivery_date)}</span>
+                                            </div>
+                                        )}
+                                        {project.days_in_stage && (
+                                            <div className="flex items-center space-x-1 text-muted-foreground">
+                                                <Clock className="h-3 w-3 flex-shrink-0" />
+                                                <span>{project.days_in_stage} days in stage</span>
+                                            </div>
+                                        )}
+                                    </div>
+                                </div>
+
+                                {/* Current Stage */}
+                                {project.current_stage && (
+                                    <div className="mt-3 pt-3 border-t">
+                                        <div className="flex items-center justify-between">
+                                            <span className="text-xs text-muted-foreground">Current Stage:</span>
+                                            <Badge
+                                                variant="outline"
+                                                style={{
+                                                    backgroundColor: project.current_stage.color + '20',
+                                                    borderColor: project.current_stage.color,
+                                                    color: project.current_stage.color
+                                                }}
+                                            >
+                                                {project.current_stage.name}
+                                            </Badge>
+                                        </div>
+                                    </div>
+                                )}
+
+                                {/* View Details Button */}
+                                <div className="mt-4 pt-3 border-t">
+                                    <Button
+                                        variant="outline"
+                                        size="sm"
+                                        className="w-full"
+                                        onClick={(e) => {
+                                            e.stopPropagation();
+                                            navigate(`/project/${project.id}`);
+                                        }}
+                                    >
+                                        View Details
+                                    </Button>
+                                </div>
+                            </CardContent>
+                        </Card>
                     ))}
                 </div>
             ) : (

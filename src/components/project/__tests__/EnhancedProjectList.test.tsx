@@ -25,15 +25,7 @@ vi.mock('react-router-dom', async () => {
     };
 });
 
-// Mock AnimatedProjectCard component
-vi.mock('../AnimatedProjectCard', () => ({
-    AnimatedProjectCard: ({ project }: { project: any }) => (
-        <div data-testid="animated-project-card">
-            <span>{project.project_id}</span>
-            <span>{project.title}</span>
-        </div>
-    )
-}));
+// No need to mock AnimatedProjectCard since we use custom card implementation
 
 // Test data
 const mockProjects: Project[] = [
@@ -156,8 +148,8 @@ describe('EnhancedProjectList', () => {
         );
 
         expect(screen.getByText('Projects')).toBeInTheDocument();
-        expect(screen.getByText('P-25090101')).toBeInTheDocument();
-        expect(screen.getByText('P-25090102')).toBeInTheDocument();
+        expect(screen.getByText('P-25090101 - Test Project 1')).toBeInTheDocument();
+        expect(screen.getByText('P-25090102 - Test Project 2')).toBeInTheDocument();
     });
 
     it('filters projects by search text', async () => {
@@ -178,8 +170,8 @@ describe('EnhancedProjectList', () => {
         await user.type(searchInput, 'Test Project 1');
 
         await waitFor(() => {
-            expect(screen.getByText('P-25090101')).toBeInTheDocument();
-            expect(screen.queryByText('P-25090102')).not.toBeInTheDocument();
+            expect(screen.getByText('P-25090101 - Test Project 1')).toBeInTheDocument();
+            expect(screen.queryByText('P-25090102 - Test Project 2')).not.toBeInTheDocument();
         });
     });
 
@@ -198,7 +190,7 @@ describe('EnhancedProjectList', () => {
         );
 
         // Should start in cards view
-        expect(screen.getByText('P-25090101')).toBeInTheDocument();
+        expect(screen.getByText('P-25090101 - Test Project 1')).toBeInTheDocument();
 
         // Switch to table view
         const tableViewButton = screen.getByRole('button', { name: /table/i });
@@ -254,8 +246,8 @@ describe('EnhancedProjectList', () => {
         await user.click(prioritySortButton);
 
         // Projects should be sorted by priority (high priority first)
-        const projectCards = screen.getAllByText(/P-2509010/);
-        expect(projectCards[0]).toHaveTextContent('P-25090101'); // High priority project first
+        const projectCards = screen.getAllByText(/P-25090101 - Test Project 1|P-25090102 - Test Project 2/);
+        expect(projectCards[0]).toHaveTextContent('P-25090101 - Test Project 1'); // High priority project first
     });
 
     it('shows empty state when no projects match filters', async () => {

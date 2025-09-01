@@ -21,6 +21,7 @@ import { ProjectWorkflowAnalytics } from "@/components/project/ProjectWorkflowAn
 import { ProjectCalendar } from "@/components/project/ProjectCalendar";
 import { ProjectTable } from "@/components/project/ProjectTable";
 import { EnhancedProjectList } from "@/components/project/EnhancedProjectList";
+import { AnimatedProjectCard } from "@/components/project/AnimatedProjectCard";
 import { workflowStageService } from "@/services/workflowStageService";
 
 // This component displays the projects management interface
@@ -50,6 +51,26 @@ export default function Projects() {
       (new Date(dueDate).getTime() - new Date(createdAt).getTime()) / (1000 * 60 * 60 * 24)
     );
     return days;
+  };
+
+  // Format currency function
+  const formatCurrency = (value: number | null) => {
+    if (!value) return null;
+    return new Intl.NumberFormat('en-US', {
+      style: 'currency',
+      currency: 'USD',
+      minimumFractionDigits: 0,
+      maximumFractionDigits: 0,
+    }).format(value);
+  };
+
+  // Format date function
+  const formatDate = (date: string) => {
+    return new Date(date).toLocaleDateString('en-US', {
+      month: 'short',
+      day: 'numeric',
+      year: 'numeric'
+    });
   };
 
   // Helper function to get real sub-stage progress for a project
@@ -626,43 +647,28 @@ export default function Projects() {
                     <CardContent>
                       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
                         {selectedStageProjects.map((project) => (
-                          <Card
+                          <AnimatedProjectCard
                             key={project.id}
-                            className="cursor-pointer hover:shadow-lg transition-all duration-200 border-l-4 hover:scale-[1.02] group"
-                            style={{
-                              borderLeftColor: workflowStages.find(s => s.id === selectedStage)?.color || '#3B82F6'
+                            project={project}
+                            onStatusChange={async (projectId, newStatus) => {
+                              await updateProjectStatusOptimistic(projectId, newStatus);
                             }}
-                            onClick={() => navigate(`/project/${project.id}`)}
-                          >
-                            <CardContent className="p-6">
-                              {/* Project Header with Status Icon and Customer */}
-                              <div className="mb-4">
-                                <div className="flex items-start justify-between mb-2">
-                                  <div className="flex items-center gap-2">
-                                    {project.status === 'active' && (
-                                      <CheckCircle2 className="h-4 w-4 text-green-500" />
-                                    )}
-                                    {project.status === 'on_hold' && (
-                                      <Clock className="h-4 w-4 text-yellow-500" />
-                                    )}
-                                    {project.status === 'delayed' && (
-                                      <AlertCircle className="h-4 w-4 text-red-500" />
-                                    )}
-                                    <div className="flex flex-col">
-                                      <h4 className="font-semibold text-base text-base-content group-hover:text-primary transition-colors">
-                                        {project.title}
-                                      </h4>
-                                      {project.customer?.company_name && (
-                                        <p className="text-sm text-muted-foreground">
-                                          {project.customer.company_name}
-                                        </p>
-                                      )}
-                                    </div>
-                                  </div>
-                                </div>
-                              </div>
-                            </CardContent>
-                          </Card>
+                            getAvailableStages={(project) => {
+                              // Return available stages based on workflow
+                              return workflowStages.map(stage => ({
+                                id: stage.id as any,
+                                name: stage.name,
+                                color: stage.color || '#3B82F6',
+                                count: stageCounts[stage.id] || 0,
+                                canMoveTo: true,
+                                isNextStage: false,
+                                isCurrentStage: stage.id === project.current_stage_id
+                              }));
+                            }}
+                            getPriorityColor={getPriorityColor}
+                            formatCurrency={formatCurrency}
+                            formatDate={formatDate}
+                          />
                         ))}
                       </div>
                     </CardContent>
