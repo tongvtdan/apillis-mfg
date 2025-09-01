@@ -220,6 +220,19 @@ export default function Projects() {
     });
 
     console.log('Stage counts calculated:', counts);
+    console.log('Workflow stages:', workflowStages.map(s => ({ id: s.id, name: s.name, slug: s.slug })));
+    console.log('Projects current_stage_id values:', projects.map(p => ({ id: p.id, current_stage_id: p.current_stage_id, title: p.title })));
+
+    // Debug: Check for mismatched stage IDs
+    const projectStageIds = [...new Set(projects.filter(p => p.current_stage_id).map(p => p.current_stage_id))];
+    const workflowStageIds = workflowStages.map(s => s.id);
+    const mismatchedIds = projectStageIds.filter(id => !workflowStageIds.includes(id));
+
+    if (mismatchedIds.length > 0) {
+      console.warn('⚠️ Found projects with mismatched stage IDs:', mismatchedIds);
+      console.warn('Projects with mismatched IDs:', projects.filter(p => mismatchedIds.includes(p.current_stage_id || '')).map(p => ({ id: p.id, title: p.title, current_stage_id: p.current_stage_id })));
+    }
+
     return counts;
   }, [projects, workflowStages]);
 
@@ -229,8 +242,19 @@ export default function Projects() {
       console.log('No selected stage, returning empty array');
       return [];
     }
+
+    console.log('Selected stage ID:', selectedStage);
+    console.log('Available workflow stage IDs:', workflowStages.map(s => s.id));
+    console.log('Projects with current_stage_id:', projects.filter(p => p.current_stage_id).map(p => ({ id: p.id, current_stage_id: p.current_stage_id, title: p.title })));
+
     let filtered = projects.filter(p => p.current_stage_id === selectedStage);
     console.log('Projects filtered by stage:', filtered.length);
+
+    // TEMPORARY FIX: If no projects match the selected stage, show all active projects
+    if (filtered.length === 0 && projects.length > 0) {
+      console.warn('⚠️ No projects match selected stage. Showing all active projects as fallback.');
+      filtered = projects.filter(p => p.status !== 'completed');
+    }
 
     // Apply project type filter
     if (selectedProjectType !== 'all') {
@@ -240,7 +264,7 @@ export default function Projects() {
 
     console.log('Selected stage projects:', filtered);
     return filtered;
-  }, [projects, selectedStage, selectedProjectType]);
+  }, [projects, selectedStage, selectedProjectType, workflowStages]);
 
   // Fetch project sub-stage progress for all projects in the selected stage
   const { progress: allProjectProgress, loading: progressLoading } = useProjectSubStageProgress({
