@@ -186,20 +186,19 @@ export interface ProjectAssignment {
 export interface ProjectDocument {
   id: string;
   project_id: string;
-  filename: string;
-  original_file_name?: string;
+  file_name: string;
+  title: string;
+  description?: string;
   file_size?: number;
   file_type?: string;
-  file_url?: string;
-  storage_path: string;
+  file_path: string;
   mime_type?: string;
   version?: number;
-  is_latest?: boolean;
-  document_type?: 'rfq' | 'drawing' | 'specification' | 'quote' | 'po' | 'invoice' | 'certificate' | 'report' | 'bom' | 'other';
-  access_level?: 'public' | 'customer' | 'supplier' | 'internal' | 'restricted';
-  checksum?: string;
+  is_current_version?: boolean;
+  category?: string;
+  access_level?: string;
   metadata?: Record<string, any>;
-  uploaded_at: string;
+  created_at: string;
   uploaded_by?: string;
 }
 

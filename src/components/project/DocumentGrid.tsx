@@ -91,25 +91,25 @@ export const DocumentGrid: React.FC<DocumentGridProps> = ({
 
                             {/* Document info */}
                             <div className="space-y-2">
-                                <h4 className="font-medium text-sm truncate" title={document.original_file_name}>
-                                    {document.original_file_name}
+                                <h4 className="font-medium text-sm truncate" title={doc.title}>
+                                    {doc.title}
                                 </h4>
 
                                 <div className="flex items-center gap-2">
                                     <Badge
                                         variant="secondary"
-                                        className={`text-xs ${getDocumentTypeColor(document.document_type)}`}
+                                        className={`text-xs ${getDocumentTypeColor(doc.category)}`}
                                     >
-                                        {document.document_type}
+                                        {doc.category}
                                     </Badge>
                                     <Badge variant="outline" className="text-xs">
-                                        {document.access_level}
+                                        {doc.access_level}
                                     </Badge>
                                 </div>
 
                                 <div className="text-xs text-muted-foreground space-y-1">
-                                    <div>{formatFileSize(document.file_size)}</div>
-                                    <div>{format(new Date(document.uploaded_at), 'MMM d, yyyy')}</div>
+                                    <div>{formatFileSize(doc.file_size)}</div>
+                                    <div>{format(new Date(doc.created_at), 'MMM d, yyyy')}</div>
                                 </div>
 
                                 {/* Tags */}

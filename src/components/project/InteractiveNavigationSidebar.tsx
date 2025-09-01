@@ -106,20 +106,8 @@ export const InteractiveNavigationSidebar: React.FC<InteractiveNavigationSidebar
     const handleTabClick = (tab: NavigationTab) => {
         if (tab.disabled) return;
 
-        // Set loading state
-        setTabStates(prev => ({
-            ...prev,
-            [tab.id]: { loading: true, error: false }
-        }));
-
-        // Simulate tab loading (in real implementation, this would be handled by the parent)
-        setTimeout(() => {
-            setTabStates(prev => ({
-                ...prev,
-                [tab.id]: { loading: false, error: false }
-            }));
-            onTabChange(tab.id);
-        }, 200);
+        // Call onTabChange immediately since data is already loaded
+        onTabChange(tab.id);
 
         // Auto-expand if tab has sub-tabs and is being activated
         if (tab.subTabs && tab.subTabs.length > 0) {

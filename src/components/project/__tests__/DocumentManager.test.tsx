@@ -48,14 +48,15 @@ const mockDocuments = [
     {
         id: '1',
         project_id: 'test-project',
-        filename: 'test-document.pdf',
-        original_file_name: 'Test Document.pdf',
+        file_name: 'test-document.pdf',
+        title: 'Test Document.pdf',
+        description: 'Test document description',
         file_size: 1024000,
         file_type: 'application/pdf',
         mime_type: 'application/pdf',
-        document_type: 'rfq',
+        category: 'rfq',
         access_level: 'internal',
-        uploaded_at: '2024-01-01T00:00:00Z',
+        created_at: '2024-01-01T00:00:00Z',
         uploaded_by: 'test-user',
         metadata: {
             tags: ['important', 'rfq']
@@ -64,14 +65,15 @@ const mockDocuments = [
     {
         id: '2',
         project_id: 'test-project',
-        filename: 'drawing.dwg',
-        original_file_name: 'Technical Drawing.dwg',
+        file_name: 'drawing.dwg',
+        title: 'Technical Drawing.dwg',
+        description: 'Technical drawing description',
         file_size: 2048000,
         file_type: 'application/dwg',
         mime_type: 'application/dwg',
-        document_type: 'drawing',
+        category: 'drawing',
         access_level: 'public',
-        uploaded_at: '2024-01-02T00:00:00Z',
+        created_at: '2024-01-02T00:00:00Z',
         uploaded_by: 'engineer',
         metadata: {
             tags: ['technical', 'drawing']

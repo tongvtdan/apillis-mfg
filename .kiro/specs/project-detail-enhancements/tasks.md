@@ -51,6 +51,8 @@
   - ✅ **ADVANCED FILTERING**: Search, type, access level, date range, and tag filtering
   - ✅ **BULK OPERATIONS**: Multi-select documents for batch operations (download, tag, delete)
   - ✅ **SMART SORTING**: Sort by name, date, size, or type with order control
+  - ✅ **NAVIGATION FIX**: Resolved loading screen issue when switching between side menu items
+  - ✅ **DATABASE FIX**: Resolved table name mismatch - updated useDocuments hook to use correct 'documents' table
   - 🔄 **DEPENDENCIES**: Missing supporting components (DocumentUploadZone, DocumentGrid, DocumentList, DocumentFilters)
   - 🔄 **DATA LAYER**: Missing useDocuments hook for data fetching
   - _Requirements: B1.1, B1.2_ - **CORE INTERFACE COMPLETED**

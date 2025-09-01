@@ -2,6 +2,185 @@
 
 ## Recent Changes
 
+### 2025-09-01 - Database Schema Mismatch Fix
+
+**Task Completed:**
+- Fixed database table name mismatch causing "Failed to load documents" error
+- Updated useDocuments hook to use correct table name and column names
+- Resolved schema inconsistencies between code and database
+
+**Issue Identified:**
+- Error message: "Failed to fetch documents: Could not find the table 'public.project_documents' in the schema cache"
+- useDocuments hook was trying to query non-existent `project_documents` table
+- Actual database table is called `documents` with different column names
+- Column name mismatches between code expectations and actual database schema
+
+**Root Cause:**
+- **Table Name Mismatch**: Code expected `project_documents` table, but database has `documents` table
+- **Column Name Mismatches**:
+  - Code expected: `filename`, `original_file_name`, `document_type`, `storage_path`, `uploaded_at`
+  - Database has: `file_name`, `title`, `category`, `file_path`, `created_at`
+- **Storage Bucket Mismatch**: Code used `project-documents` bucket, but should use `documents` bucket
+
+**Solution Implemented:**
+
+**Files Modified:**
+- `src/hooks/useDocuments.ts` - Updated table name, column names, and storage bucket
+- `src/types/project.ts` - Updated ProjectDocument interface to match database schema
+- `src/components/project/DocumentManager.tsx` - Updated filtering logic to use correct column names
+- `src/components/project/DocumentGrid.tsx` - Updated display logic to use correct column names
+- `src/components/project/DocumentList.tsx` - Updated display logic to use correct column names
+- `src/components/project/__tests__/DocumentManager.test.tsx` - Updated mock data to match schema
+
+**Key Changes:**
+
+1. **Table Name Fix**:
+```typescript
+// Before
+.from('project_documents')
+
+// After  
+.from('documents')
+```
+
+2. **Column Name Updates**:
+```typescript
+// Before
+filename, original_file_name, document_type, storage_path, uploaded_at
+
+// After
+file_name, title, category, file_path, created_at
+```
+
+3. **Storage Bucket Fix**:
+```typescript
+// Before
+.from('project-documents')
+
+// After
+.from('documents')
+```
+
+4. **Interface Updates**:
+```typescript
+// Updated ProjectDocument interface to match actual database schema
+export interface ProjectDocument {
+  id: string;
+  project_id: string;
+  file_name: string;
+  title: string;
+  description?: string;
+  file_size?: number;
+  file_type?: string;
+  file_path: string;
+  mime_type?: string;
+  version?: number;
+  is_current_version?: boolean;
+  category?: string;
+  access_level?: string;
+  metadata?: Record<string, any>;
+  created_at: string;
+  uploaded_by?: string;
+}
+```
+
+**Database Schema Alignment:**
+- **Table**: `documents` (not `project_documents`)
+- **Key Columns**: `file_name`, `title`, `category`, `file_path`, `created_at`
+- **Storage**: `documents` bucket (not `project-documents`)
+- **Relationships**: Links to `projects` table via `project_id`
+
+**Benefits:**
+- **Error Resolution**: Documents tab now loads without database errors
+- **Schema Consistency**: Code now matches actual database structure
+- **Data Integrity**: Proper column mapping ensures data is displayed correctly
+- **Future-Proof**: Aligned with existing database migrations
+
+**Testing:**
+- Verified that Documents tab loads without errors
+- Confirmed that document data is fetched correctly from `documents` table
+- Tested that column names are properly mapped in UI components
+- Validated that storage operations use correct bucket name
+
+**Status:**
+- ✅ **Database Error Resolved**: Documents tab loads successfully
+- ✅ **Schema Alignment**: Code matches database structure
+- ✅ **Component Updates**: All document-related components updated
+- ✅ **Type Safety**: TypeScript interfaces match database schema
+- 📋 **Task 5 Updated**: Added database fix to task completion status
+
+### 2025-09-01 - Navigation Loading Issue Fix
+
+**Task Completed:**
+- Fixed loading screen issue when selecting side menu items (Reviews, Documents, etc.)
+- Removed artificial loading delays from navigation system
+- Improved user experience with immediate tab switching
+
+**Issue Identified:**
+- Side menu items were showing loading screen for 200-300ms when clicked
+- Artificial delays in `useProjectNavigation` hook (300ms) and `InteractiveNavigationSidebar` component (200ms)
+- Loading screen appeared even though data was already loaded by hooks
+
+**Root Cause:**
+- `handleTabChange` function in `useProjectNavigation` hook had artificial delay: `await new Promise(resolve => setTimeout(resolve, 300))`
+- `handleTabClick` function in `InteractiveNavigationSidebar` had artificial delay: `setTimeout(() => {...}, 200)`
+- These delays were intended to simulate async loading but caused unnecessary loading screens
+
+**Solution Implemented:**
+- **useProjectNavigation Hook**: Removed artificial delay and made tab switching immediate
+- **InteractiveNavigationSidebar**: Removed artificial delay and made tab switching immediate
+- **Data Loading**: Relied on existing hooks (`useDocuments`, `useProjectMessages`, `useSupplierRfqs`, `useProjectReviews`) for actual data loading
+
+**Files Modified:**
+- `src/hooks/useProjectNavigation.ts` - Removed 300ms artificial delay from `handleTabChange`
+- `src/components/project/InteractiveNavigationSidebar.tsx` - Removed 200ms artificial delay from `handleTabClick`
+
+**Technical Changes:**
+```typescript
+// Before: Artificial delay causing loading screen
+const handleTabChange = async (tabId: string) => {
+    setNavigationState(prev => ({
+        ...prev,
+        tabLoadingStates: { ...prev.tabLoadingStates, [tabId]: true }
+    }));
+    
+    await new Promise(resolve => setTimeout(resolve, 300)); // Artificial delay
+    
+    setNavigationState(prev => ({
+        ...prev,
+        activeTab: tabId,
+        tabLoadingStates: { ...prev.tabLoadingStates, [tabId]: false }
+    }));
+};
+
+// After: Immediate tab switching
+const handleTabChange = async (tabId: string) => {
+    setNavigationState(prev => ({
+        ...prev,
+        activeTab: tabId,
+        tabLoadingStates: { ...prev.tabLoadingStates, [tabId]: false }
+    }));
+    return true;
+};
+```
+
+**Benefits:**
+- **Immediate Response**: Tab switching is now instant without artificial delays
+- **Better UX**: No unnecessary loading screens when data is already available
+- **Consistent Behavior**: Navigation feels responsive and natural
+- **Data Integrity**: Still relies on proper loading states from data hooks
+
+**Testing:**
+- Verified that tab switching is now immediate
+- Confirmed that loading states still work properly for actual data fetching
+- Tested navigation between all side menu items (Reviews, Documents, Supplier RFQs, etc.)
+
+**Status:**
+- ✅ **Issue Resolved**: Loading screen no longer appears when switching tabs
+- ✅ **Performance Improved**: Immediate tab switching response
+- ✅ **User Experience Enhanced**: Smooth navigation without artificial delays
+- 📋 **Task 5 Updated**: Added navigation fix to task completion status
+
 ### 2025-09-01 - Document Management System Implementation
 
 **Task Completed:**

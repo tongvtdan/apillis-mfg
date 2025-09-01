@@ -209,58 +209,27 @@ export const useProjectNavigation = ({
         activeSupplierRfqsCount,
     ]);
 
-    // Tab change handler with loading state management
+    // Tab change handler with immediate state update
     const handleTabChange = async (tabId: string) => {
-        // Set loading state
+        // Update active tab immediately since data is already loaded
         setNavigationState(prev => ({
             ...prev,
+            activeTab: tabId,
             tabLoadingStates: {
                 ...prev.tabLoadingStates,
-                [tabId]: true,
+                [tabId]: false,
             },
             tabErrorStates: {
                 ...prev.tabErrorStates,
                 [tabId]: false,
             },
+            lastVisitedTabs: {
+                ...prev.lastVisitedTabs,
+                [tabId]: new Date().toISOString(),
+            },
         }));
 
-        try {
-            // Simulate async tab loading (replace with actual data loading logic)
-            await new Promise(resolve => setTimeout(resolve, 300));
-
-            // Update active tab and clear loading state
-            setNavigationState(prev => ({
-                ...prev,
-                activeTab: tabId,
-                tabLoadingStates: {
-                    ...prev.tabLoadingStates,
-                    [tabId]: false,
-                },
-                lastVisitedTabs: {
-                    ...prev.lastVisitedTabs,
-                    [tabId]: new Date().toISOString(),
-                },
-            }));
-
-            return true;
-        } catch (error) {
-            console.error('Failed to load tab:', tabId, error);
-
-            // Set error state
-            setNavigationState(prev => ({
-                ...prev,
-                tabLoadingStates: {
-                    ...prev.tabLoadingStates,
-                    [tabId]: false,
-                },
-                tabErrorStates: {
-                    ...prev.tabErrorStates,
-                    [tabId]: true,
-                },
-            }));
-
-            return false;
-        }
+        return true;
     };
 
     // Clear error state for a tab

@@ -7,31 +7,32 @@ import { toast } from 'sonner';
 export interface ProjectDocument {
   id: string;
   project_id: string;
-  filename: string;
-  original_file_name: string;
-  file_size: number;
-  file_type: string;
-  mime_type: string;
-  document_type: 'rfq' | 'drawing' | 'specification' | 'quote' | 'contract' | 'other';
-  access_level: 'public' | 'internal' | 'confidential' | 'restricted';
-  uploaded_at: string;
-  uploaded_by: string;
+  file_name: string;
+  title: string;
+  description?: string;
+  file_size?: number;
+  file_type?: string;
+  mime_type?: string;
+  category?: string;
+  access_level: string;
+  created_at: string;
+  uploaded_by?: string;
   updated_at: string;
   metadata: {
-    tags: string[];
+    tags?: string[];
     description?: string;
     version?: string;
     category?: string;
   };
-  storage_path: string;
+  file_path: string;
   download_url?: string;
   thumbnail_url?: string;
 }
 
 // Document metadata for uploads
 export interface DocumentMetadata {
-  document_type: ProjectDocument['document_type'];
-  access_level: ProjectDocument['access_level'];
+  document_type: string;
+  access_level: string;
   tags: string[];
   description?: string;
   version?: string;
@@ -73,25 +74,26 @@ export function useDocuments(projectId: string): UseDocumentsReturn {
       setError(null);
 
       const { data: documents, error: fetchError } = await supabase
-        .from('project_documents')
+        .from('documents')
         .select(`
           id,
           project_id,
-          filename,
-          original_file_name,
+          file_name,
+          title,
+          description,
           file_size,
           file_type,
           mime_type,
-          document_type,
+          category,
           access_level,
-          uploaded_at,
+          created_at,
           uploaded_by,
           updated_at,
           metadata,
-          storage_path
+          file_path
         `)
         .eq('project_id', projectId)
-        .order('uploaded_at', { ascending: false });
+        .order('created_at', { ascending: false });
 
       if (fetchError) {
         throw new Error(`Failed to fetch documents: ${fetchError.message}`);
@@ -123,7 +125,7 @@ export function useDocuments(projectId: string): UseDocumentsReturn {
 
       // Upload file to Supabase Storage
       const { data: uploadData, error: uploadError } = await supabase.storage
-        .from('project-documents')
+        .from('documents')
         .upload(storagePath, file);
 
       if (uploadError) {
@@ -132,17 +134,19 @@ export function useDocuments(projectId: string): UseDocumentsReturn {
 
       // Create document record in database
       const { data: document, error: dbError } = await supabase
-        .from('project_documents')
+        .from('documents')
         .insert({
           project_id: projectId,
-          filename: uniqueFilename,
-          original_file_name: file.name,
+          organization_id: profile.organization_id,
+          file_name: uniqueFilename,
+          title: file.name,
+          description: metadata.description,
           file_size: file.size,
           file_type: file.type,
           mime_type: file.type,
-          document_type: metadata.document_type,
+          category: metadata.document_type,
           access_level: metadata.access_level,
-          storage_path: storagePath,
+          file_path: storagePath,
           uploaded_by: user.id,
           metadata: {
             tags: metadata.tags,
@@ -157,7 +161,7 @@ export function useDocuments(projectId: string): UseDocumentsReturn {
       if (dbError) {
         // Clean up uploaded file if database insert fails
         await supabase.storage
-          .from('project-documents')
+          .from('documents')
           .remove([storagePath]);
 
         throw new Error(`Failed to create document record: ${dbError.message}`);
@@ -184,7 +188,7 @@ export function useDocuments(projectId: string): UseDocumentsReturn {
   const updateDocument = async (id: string, updates: Partial<ProjectDocument>): Promise<ProjectDocument> => {
     try {
       const { data: document, error } = await supabase
-        .from('project_documents')
+        .from('documents')
         .update({
           ...updates,
           updated_at: new Date().toISOString()
@@ -222,7 +226,7 @@ export function useDocuments(projectId: string): UseDocumentsReturn {
 
       // Delete from database
       const { error: dbError } = await supabase
-        .from('project_documents')
+        .from('documents')
         .delete()
         .eq('id', id);
 
@@ -232,8 +236,8 @@ export function useDocuments(projectId: string): UseDocumentsReturn {
 
       // Delete file from storage
       const { error: storageError } = await supabase.storage
-        .from('project-documents')
-        .remove([document.storage_path]);
+        .from('documents')
+        .remove([document.file_path]);
 
       if (storageError) {
         console.warn('Failed to delete file from storage:', storageError);
@@ -258,11 +262,11 @@ export function useDocuments(projectId: string): UseDocumentsReturn {
     try {
       // Get documents for file cleanup
       const documentsToDelete = data.filter(doc => ids.includes(doc.id));
-      const storagePaths = documentsToDelete.map(doc => doc.storage_path);
+      const storagePaths = documentsToDelete.map(doc => doc.file_path);
 
       // Delete from database
       const { error: dbError } = await supabase
-        .from('project_documents')
+        .from('documents')
         .delete()
         .in('id', ids);
 
@@ -273,7 +277,7 @@ export function useDocuments(projectId: string): UseDocumentsReturn {
       // Delete files from storage
       if (storagePaths.length > 0) {
         const { error: storageError } = await supabase.storage
-          .from('project-documents')
+          .from('documents')
           .remove(storagePaths);
 
         if (storageError) {
@@ -312,7 +316,7 @@ export function useDocuments(projectId: string): UseDocumentsReturn {
         {
           event: '*',
           schema: 'public',
-          table: 'project_documents',
+          table: 'documents',
           filter: `project_id=eq.${projectId}`
         },
         (payload) => {

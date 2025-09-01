@@ -110,12 +110,12 @@ export const DocumentList: React.FC<DocumentListProps> = ({
                             </TableCell>
                             <TableCell>
                                 <div className="space-y-1">
-                                    <div className="font-medium text-sm" title={document.original_file_name}>
-                                        {document.original_file_name}
+                                    <div className="font-medium text-sm" title={doc.title}>
+                                        {doc.title}
                                     </div>
-                                    {document.metadata?.description && (
+                                    {doc.description && (
                                         <div className="text-xs text-muted-foreground truncate max-w-xs">
-                                            {document.metadata.description}
+                                            {doc.description}
                                         </div>
                                     )}
                                 </div>
@@ -123,9 +123,9 @@ export const DocumentList: React.FC<DocumentListProps> = ({
                             <TableCell>
                                 <Badge
                                     variant="secondary"
-                                    className={`text-xs ${getDocumentTypeColor(document.document_type)}`}
+                                    className={`text-xs ${getDocumentTypeColor(doc.category)}`}
                                 >
-                                    {document.document_type}
+                                    {doc.category}
                                 </Badge>
                             </TableCell>
                             <TableCell>

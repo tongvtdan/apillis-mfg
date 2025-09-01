@@ -83,7 +83,7 @@ export const DocumentManager: React.FC<DocumentManagerProps> = ({ projectId }) =
             // Search filter
             if (filters.search) {
                 const searchLower = filters.search.toLowerCase();
-                const matchesName = (doc.original_file_name || doc.filename || '').toLowerCase().includes(searchLower);
+                const matchesName = (doc.title || doc.file_name || '').toLowerCase().includes(searchLower);
                 const matchesTags = doc.metadata?.tags?.some((tag: string) =>
                     tag.toLowerCase().includes(searchLower)
                 );
@@ -91,7 +91,7 @@ export const DocumentManager: React.FC<DocumentManagerProps> = ({ projectId }) =
             }
 
             // Type filter
-            if (filters.type.length > 0 && !filters.type.includes(doc.document_type || 'other')) {
+            if (filters.type.length > 0 && !filters.type.includes(doc.category || 'other')) {
                 return false;
             }
 
@@ -102,7 +102,7 @@ export const DocumentManager: React.FC<DocumentManagerProps> = ({ projectId }) =
 
             // Date range filter
             if (filters.dateRange.from || filters.dateRange.to) {
-                const docDate = new Date(doc.uploaded_at);
+                const docDate = new Date(doc.created_at);
                 if (filters.dateRange.from && docDate < filters.dateRange.from) return false;
                 if (filters.dateRange.to && docDate > filters.dateRange.to) return false;
             }
