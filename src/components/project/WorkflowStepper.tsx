@@ -374,6 +374,35 @@ export const WorkflowStepper = React.memo(({ project }: WorkflowStepperProps) =>
     }
   }, [project?.current_stage_id, project?.current_stage, workflowStages]);
 
+  const updateProjectStage = useCallback(async (stageId: string) => {
+    setError(null);
+
+    try {
+      // Use the project service to update the stage
+      const updatedProject = await projectService.updateProject(project.id, {
+        current_stage_id: stageId,
+        stage_entered_at: new Date().toISOString()
+      });
+
+      const targetStage = workflowStages.find(s => s.id === stageId);
+      toast({
+        title: "Stage Updated",
+        description: `Project stage changed to ${targetStage?.name || 'Unknown Stage'}`,
+      });
+
+      return true;
+    } catch (error) {
+      console.error('Error updating project stage:', error);
+      setError("Failed to update project stage. Please try again.");
+      toast({
+        variant: "destructive",
+        title: "Update Failed",
+        description: "Failed to update project stage. Please try again.",
+      });
+      return false;
+    }
+  }, [project.id, workflowStages, toast]);
+
   const handleStageClick = useCallback(async (stage: WorkflowStage) => {
     if (stage.id === project.current_stage_id) return;
 
@@ -425,7 +454,7 @@ export const WorkflowStepper = React.memo(({ project }: WorkflowStepperProps) =>
         description: "Failed to update project stage. Please try again.",
       });
     }
-  }, [validationDialog.targetStage, executeTransition, project, updateProjectStage, toast]);
+  }, [validationDialog.targetStage, executeTransition, project, toast]);
 
   const handleValidationClose = useCallback(() => {
     setValidationDialog({
@@ -471,35 +500,6 @@ export const WorkflowStepper = React.memo(({ project }: WorkflowStepperProps) =>
       });
     }
   }, [bypassDialog.targetStage, project, workflowStages, executeTransition, updateProjectStage, toast]);
-
-  const updateProjectStage = useCallback(async (stageId: string) => {
-    setError(null);
-
-    try {
-      // Use the project service to update the stage
-      const updatedProject = await projectService.updateProject(project.id, {
-        current_stage_id: stageId,
-        stage_entered_at: new Date().toISOString()
-      });
-
-      const targetStage = workflowStages.find(s => s.id === stageId);
-      toast({
-        title: "Stage Updated",
-        description: `Project stage changed to ${targetStage?.name || 'Unknown Stage'}`,
-      });
-
-      return true;
-    } catch (error) {
-      console.error('Error updating project stage:', error);
-      setError("Failed to update project stage. Please try again.");
-      toast({
-        variant: "destructive",
-        title: "Update Failed",
-        description: "Failed to update project stage. Please try again.",
-      });
-      return false;
-    }
-  }, [project.id, workflowStages, toast]);
 
   const handleAutoAdvance = useCallback(async () => {
     if (autoAdvanceAvailable && nextStage) {

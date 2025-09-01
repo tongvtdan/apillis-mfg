@@ -75,6 +75,10 @@ export default function ProjectDetail() {
   const navigate = useNavigate();
   const { profile } = useAuth(); // Add this line to access the profile
 
+  // Debug logging
+  console.log('🔍 ProjectDetail: Component rendered with ID:', id);
+  console.log('🔍 ProjectDetail: Profile:', profile);
+
   // Fetch real data using hooks first
   const { data: documents = [], isLoading: documentsLoading } = useDocuments(id || '');
   const { data: messages = [], isLoading: messagesLoading } = useProjectMessages(id || '');
