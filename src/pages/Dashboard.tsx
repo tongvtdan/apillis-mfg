@@ -1,4 +1,4 @@
-import { useState, useMemo } from "react";
+import { useState, useMemo, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { RecentActivities } from "@/components/dashboard/RecentActivities";
 import { PendingTasks } from "@/components/dashboard/PendingTasks";
@@ -10,13 +10,16 @@ import { ProjectTypeChart } from "@/components/dashboard/ProjectTypeChart";
 import { Card, CardContent } from "@/components/ui/card";
 import { useDashboardData } from '@/hooks/useDashboardData';
 import { useAuth } from "@/contexts/AuthContext";
+import { DashboardDebugger } from "@/components/dashboard/DashboardDebugger";
 import {
   TrendingUp,
   Users,
   Bell,
   FolderOpen,
-  AlertTriangle
+  AlertTriangle,
+  Bug
 } from "lucide-react";
+import { supabase } from "@/integrations/supabase/client";
 
 // This component displays the main dashboard with overview statistics and user-specific data
 // It uses the authenticated user's profile data from the AuthContext
@@ -24,8 +27,10 @@ import {
 // through the user ID which is consistent between both tables after the migration
 export default function Dashboard() {
   const { data: dashboardData, isLoading: dashboardLoading } = useDashboardData();
-  const { profile } = useAuth();
+  const { profile, user } = useAuth();
   const navigate = useNavigate();
+  const [debugMode, setDebugMode] = useState(false);
+  const [directProjects, setDirectProjects] = useState([]);
 
   // Extract project data from dashboard summary
   const projects = dashboardData?.recent_projects || [];
@@ -34,6 +39,37 @@ export default function Dashboard() {
   const projectsByType = dashboardData?.projects?.by_type || {};
   const projectsByPriority = dashboardData?.projects?.by_priority || {};
   const loading = dashboardLoading;
+
+  useEffect(() => {
+    // Debug logging
+    console.log("Dashboard Data:", dashboardData);
+    console.log("Auth Context User:", user);
+    console.log("Auth Context Profile:", profile);
+
+    // Attempt to directly query projects for debugging
+    const fetchProjects = async () => {
+      if (profile?.organization_id) {
+        try {
+          const { data, error } = await supabase
+            .from('projects')
+            .select('*')
+            .eq('organization_id', profile.organization_id)
+            .limit(10);
+
+          if (error) {
+            console.error("Direct projects query error:", error);
+          } else {
+            console.log("Direct projects query result:", data);
+            setDirectProjects(data || []);
+          }
+        } catch (err) {
+          console.error("Failed to fetch projects directly:", err);
+        }
+      }
+    };
+
+    fetchProjects();
+  }, [dashboardData, profile, user]);
 
   // Search and filter states
   const [searchQuery, setSearchQuery] = useState("");
@@ -95,17 +131,31 @@ export default function Dashboard() {
             </div>
             <div className="flex items-center gap-2 text-sm text-muted-foreground">
               <Users className="h-4 w-4" />
-              <span>{profile?.display_name} ({profile?.role})</span>
+              <span>{profile?.name || 'User'} ({profile?.role || 'Unknown'})</span>
             </div>
             <div className="hidden lg:flex items-center gap-4 text-sm text-muted-foreground">
               <span>🌐 Projects Overview</span>
               {/* Other sections are accessible through the sidebar menu */}
             </div>
+            <button
+              onClick={() => setDebugMode(!debugMode)}
+              className="text-sm flex items-center gap-1 text-muted-foreground hover:text-foreground"
+            >
+              <Bug className="h-4 w-4" />
+              <span>{debugMode ? 'Hide Debug' : 'Debug'}</span>
+            </button>
           </div>
         </div>
       </div>
 
       <div className="px-4 sm:px-6">
+        {/* Debugging Info */}
+        {debugMode && (
+          <div className="mb-6">
+            <DashboardDebugger />
+          </div>
+        )}
+
         {/* Search and Filter Bar - focused on projects */}
         <SearchFilterBar
           searchQuery={searchQuery}
@@ -161,6 +211,45 @@ export default function Dashboard() {
             <RecentActivities />
           </div>
         </div>
+
+        {/* Debug Section - Direct Projects Query Result */}
+        {debugMode && directProjects.length > 0 && (
+          <div className="mt-8 bg-yellow-50 p-4 rounded-lg border border-yellow-200">
+            <h3 className="text-lg font-semibold text-yellow-800 mb-2">Direct Projects Query Result ({directProjects.length})</h3>
+            <div className="overflow-x-auto">
+              <table className="min-w-full divide-y divide-yellow-200">
+                <thead>
+                  <tr>
+                    <th className="px-4 py-2 text-left text-yellow-700">ID</th>
+                    <th className="px-4 py-2 text-left text-yellow-700">Project ID</th>
+                    <th className="px-4 py-2 text-left text-yellow-700">Title</th>
+                    <th className="px-4 py-2 text-left text-yellow-700">Organization ID</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {directProjects.map((project: any) => (
+                    <tr key={project.id} className="border-t border-yellow-100">
+                      <td className="px-4 py-2 text-yellow-800">{project.id}</td>
+                      <td className="px-4 py-2 text-yellow-800">{project.project_id}</td>
+                      <td className="px-4 py-2 text-yellow-800">{project.title}</td>
+                      <td className="px-4 py-2 text-yellow-800">{project.organization_id}</td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          </div>
+        )}
+
+        {/* Debug Info for Dashboard Data */}
+        {debugMode && dashboardData?.debug && (
+          <div className="mt-4 bg-blue-50 p-4 rounded-lg border border-blue-200">
+            <h3 className="text-lg font-semibold text-blue-800 mb-2">Dashboard Function Debug Info</h3>
+            <pre className="text-xs overflow-auto max-h-96 bg-blue-100 p-2 rounded">
+              {JSON.stringify(dashboardData.debug, null, 2)}
+            </pre>
+          </div>
+        )}
       </div>
     </div>
   );
