@@ -109,15 +109,20 @@ export function useStageTransition() {
             }
 
             // Record the stage transition in history
-            await stageHistoryService.recordStageTransition({
-                projectId: project.id,
-                fromStageId: project.current_stage_id || undefined,
-                toStageId: targetStage.id,
-                userId: user.id,
-                reason: options.reason || (options.bypassValidation ? 'Manager bypass' : 'Normal transition'),
-                bypassRequired: options.bypassValidation || false,
-                bypassReason: options.bypassReason
-            });
+            try {
+                await stageHistoryService.recordStageTransition({
+                    projectId: project.id,
+                    fromStageId: project.current_stage_id || undefined,
+                    toStageId: targetStage.id,
+                    userId: user.id,
+                    reason: options.reason || (options.bypassValidation ? 'Manager bypass' : 'Normal transition'),
+                    bypassRequired: options.bypassValidation || false,
+                    bypassReason: options.bypassReason
+                });
+            } catch (error) {
+                console.warn('Failed to record stage transition in activity log:', error);
+                // Continue with transition even if logging fails
+            }
 
             // Execute the actual stage update
             await updateProjectStage(targetStage.id);

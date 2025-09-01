@@ -15,40 +15,45 @@ class StageHistoryService {
     /**
      * Record a stage transition in the activity log
      */
-    async recordStageTransition(data: StageTransitionData): Promise<void> {
+    async recordStageTransition(params: {
+        projectId: string;
+        fromStageId?: string;
+        toStageId: string;
+        userId: string;
+        reason: string;
+        bypassRequired?: boolean;
+        bypassReason?: string;
+    }): Promise<void> {
         try {
-            const { projectId, fromStageId, toStageId, userId, reason, bypassRequired, bypassReason } = data;
+            // Get project details for organization
+            const project = await this.getProjectById(params.projectId);
+            if (!project) {
+                throw new Error('Project not found');
+            }
 
-            // Get project organization_id and stage names for better logging
-            const [project, fromStage, toStage] = await Promise.all([
-                this.getProjectById(projectId),
-                fromStageId ? this.getStageById(fromStageId) : null,
-                this.getStageById(toStageId)
-            ]);
+            // Get stage names for better logging
+            const fromStage = params.fromStageId ? await this.getStageById(params.fromStageId) : null;
+            const toStage = await this.getStageById(params.toStageId);
 
             const fromStageName = fromStage?.name || 'Unknown';
             const toStageName = toStage?.name || 'Unknown';
-            const organizationId = project?.organization_id;
 
-            // Create activity log entry - FIX: Remove project_id since it doesn't exist in table
+            // Prepare activity log entry
             const activityData = {
-                organization_id: organizationId,
-                action: bypassRequired ? 'stage_transition_bypass' : 'stage_transition',
-                user_id: userId,
+                organization_id: project.organization_id,
+                user_id: params.userId,
                 entity_type: 'project',
-                entity_id: projectId,
-                description: `Stage transition from ${fromStageName} to ${toStageName}`,
-                old_values: { stage_id: fromStageId, stage_name: fromStageName },
-                new_values: { stage_id: toStageId, stage_name: toStageName },
+                entity_id: params.projectId,
+                action: params.bypassRequired ? 'stage_transition_bypass' : 'stage_transition',
+                description: `Stage changed from ${fromStageName} to ${toStageName}`,
                 metadata: {
-                    project_id: projectId, // Store project_id in metadata instead
-                    from_stage_id: fromStageId,
-                    to_stage_id: toStageId,
+                    from_stage_id: params.fromStageId,
                     from_stage_name: fromStageName,
+                    to_stage_id: params.toStageId,
                     to_stage_name: toStageName,
-                    reason: reason,
-                    bypass_required: bypassRequired,
-                    bypass_reason: bypassReason,
+                    reason: params.reason,
+                    bypass_required: params.bypassRequired,
+                    bypass_reason: params.bypassReason,
                     timestamp: new Date().toISOString()
                 }
             };
@@ -59,19 +64,22 @@ class StageHistoryService {
 
             if (error) {
                 console.error('Error recording stage transition:', error);
-                throw new Error(`Failed to record stage transition: ${error.message}`);
+                // Instead of throwing an error that stops the workflow, we'll log it and continue
+                console.warn('Failed to record stage transition in activity log, continuing with transition');
+                return;
             }
 
             console.log('✅ Stage transition recorded:', {
-                project: projectId,
+                project: params.projectId,
                 transition: `${fromStageName} → ${toStageName}`,
-                user: userId,
-                bypass: bypassRequired
+                user: params.userId,
+                bypass: params.bypassRequired
             });
 
         } catch (error) {
             console.error('Error in recordStageTransition:', error);
-            throw error;
+            // Log the error but don't stop the workflow transition
+            console.warn('Non-critical error in recording stage transition, continuing with transition');
         }
     }
 

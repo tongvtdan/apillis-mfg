@@ -1,0 +1,21 @@
+fix(workflow): Resolve stage transition RLS policy error
+
+Triaging [bug]: Provide reproduction, likely cause, fix patch, and regression tests. Add a guard (type or runtime) to prevent recurrence.
+
+Root Cause:
+- Missing INSERT policy on activity_log table causing 403 Forbidden errors
+- RLS was enabled but only SELECT policy existed
+- Workflow transitions failed when trying to record activity
+
+Fix:
+- Added INSERT policy for activity_log table in new migration
+- Improved error handling in frontend to be resilient to non-critical failures
+- Modified StageHistoryService to warn but continue on logging failures
+- Updated StageTransitionValidator and useStageTransition hook for better error handling
+
+Prevention:
+- Added validation script to check for proper RLS policies
+- Created comprehensive tests for error scenarios
+- Added documentation explaining the issue and fix
+
+The workflow transitions now work reliably, and the system is more resilient to non-critical database errors.

@@ -146,6 +146,13 @@ export function StageTransitionValidator({
             }
         } catch (error) {
             console.error('Error recording stage transition:', error);
+            // Show a warning but still proceed with the transition
+            toast({
+                title: "Warning",
+                description: "Could not record transition in activity log, but proceeding with stage change",
+                variant: "warning"
+            });
+
             // Still proceed with the transition even if history recording fails
             if (validation.requiresBypass) {
                 onConfirm(true, bypassReason);

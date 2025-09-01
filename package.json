@@ -8,6 +8,7 @@
         "build:dev": "vite build --mode development",
         "preview": "vite preview",
         "lint": "eslint .",
+        "validate:policies": "node scripts/validate-activity-log-policy.js",
         "seed:organizations": "node scripts/01-seed-organizations.js",
         "seed:organizations:force": "node scripts/01-seed-organizations.js --force",
         "seed:contacts": "node scripts/02-seed-contacts.js",
