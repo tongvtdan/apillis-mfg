@@ -168,12 +168,12 @@ class PrerequisiteChecker {
         const checks: PrerequisiteCheck[] = [];
 
         try {
-            // Get documents for this project
+            // Get documents for this project - FIX: Use correct column names
             const { data: documents, error } = await supabase
                 .from('documents')
-                .select('id, document_type, file_name, status')
+                .select('id, category, file_name, is_active')
                 .eq('project_id', project.id)
-                .eq('status', 'active');
+                .eq('is_active', true);
 
             if (error) {
                 console.error('Error fetching documents:', error);
@@ -194,7 +194,7 @@ class PrerequisiteChecker {
 
             documentRequirements.forEach(requirement => {
                 const hasDocument = documents?.some(doc =>
-                    doc.document_type === requirement.type ||
+                    doc.category === requirement.type ||
                     doc.file_name?.toLowerCase().includes(requirement.type.toLowerCase())
                 );
 

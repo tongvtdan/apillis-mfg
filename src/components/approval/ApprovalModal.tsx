@@ -2,13 +2,6 @@ import React, { useState, useEffect } from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import * as z from 'zod';
-import {
-    Dialog,
-    DialogContent,
-    DialogHeader,
-    DialogTitle,
-    DialogFooter,
-} from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
 import { Textarea } from '@/components/ui/textarea';
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
@@ -25,7 +18,8 @@ import {
     Calendar,
     User,
     FileText,
-    Building
+    Building,
+    Loader2
 } from 'lucide-react';
 import { formatDistanceToNow } from 'date-fns';
 
@@ -152,210 +146,219 @@ export function ApprovalModal({ approvalId, isOpen, onClose }: ApprovalModalProp
 
     if (loading) {
         return (
-            <Dialog open={isOpen} onOpenChange={onClose}>
-                <DialogContent className="max-w-2xl">
-                    <div className="flex items-center justify-center p-8">
-                        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
-                    </div>
-                </DialogContent>
-            </Dialog>
+            <div className="fixed inset-0 bg-background/95 backdrop-blur-lg flex items-center justify-center p-4 z-50">
+                <div className="w-full max-w-4xl">
+                    <Card>
+                        <CardContent className="flex items-center justify-center p-8">
+                            <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
+                        </CardContent>
+                    </Card>
+                </div>
+            </div>
         );
     }
 
     return (
-        <Dialog open={isOpen} onOpenChange={onClose}>
-            <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
-                <DialogHeader>
-                    <DialogTitle className="flex items-center gap-2">
-                        <AlertCircle className="w-5 h-5 text-orange-500" />
-                        Approval Required
-                    </DialogTitle>
-                </DialogHeader>
+        <div className="fixed inset-0 bg-background/95 backdrop-blur-lg flex items-center justify-center p-4 z-50">
+            <div className="w-full max-w-4xl max-h-[90vh] overflow-y-auto">
+                <Card>
+                    <CardHeader>
+                        <CardTitle className="flex items-center space-x-2">
+                            <AlertCircle className="w-5 h-5 text-orange-500" />
+                            <span>Approval Required</span>
+                        </CardTitle>
+                    </CardHeader>
 
-                <div className="space-y-6">
-                    {/* Project Information */}
-                    {projectDetails && (
-                        <Card>
-                            <CardHeader>
-                                <CardTitle className="text-lg">Project Information</CardTitle>
-                            </CardHeader>
-                            <CardContent className="space-y-4">
-                                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                                    <div>
-                                        <Label className="text-sm font-medium text-muted-foreground">Project ID</Label>
-                                        <p className="font-mono">{projectDetails.project_id}</p>
-                                    </div>
-                                    <div>
-                                        <Label className="text-sm font-medium text-muted-foreground">Title</Label>
-                                        <p>{projectDetails.title}</p>
-                                    </div>
-                                    <div>
-                                        <Label className="text-sm font-medium text-muted-foreground">Customer</Label>
-                                        <p>{projectDetails.customer?.name || 'Unknown'}</p>
-                                    </div>
-                                    <div>
-                                        <Label className="text-sm font-medium text-muted-foreground">Current Stage</Label>
-                                        <p>{projectDetails.current_stage?.name || 'Unknown'}</p>
-                                    </div>
-                                </div>
-
-                                {projectDetails.description && (
-                                    <div>
-                                        <Label className="text-sm font-medium text-muted-foreground">Description</Label>
-                                        <p className="text-sm bg-muted p-3 rounded mt-1">
-                                            {projectDetails.description}
-                                        </p>
-                                    </div>
-                                )}
-                            </CardContent>
-                        </Card>
-                    )}
-
-                    {/* Approval Details */}
-                    {approvalDetails && (
-                        <Card>
-                            <CardHeader>
-                                <CardTitle className="text-lg">Approval Details</CardTitle>
-                            </CardHeader>
-                            <CardContent className="space-y-4">
-                                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                                    <div>
-                                        <Label className="text-sm font-medium text-muted-foreground">Approval Type</Label>
-                                        <p>{approvalDetails.review_type?.replace('stage_approval_', '').toUpperCase()}</p>
-                                    </div>
-                                    <div>
-                                        <Label className="text-sm font-medium text-muted-foreground">Assigned To</Label>
-                                        <div className="flex items-center gap-2">
-                                            <User className="w-4 h-4" />
-                                            <span>{approvalDetails.reviewer?.display_name || 'You'}</span>
-                                            <Badge variant="secondary">{approvalDetails.reviewer?.role}</Badge>
+                    <CardContent className="space-y-6">
+                        {/* Project Information */}
+                        {projectDetails && (
+                            <Card>
+                                <CardHeader>
+                                    <CardTitle className="text-lg">Project Information</CardTitle>
+                                </CardHeader>
+                                <CardContent className="space-y-4">
+                                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                        <div>
+                                            <Label className="text-sm font-medium text-muted-foreground">Project ID</Label>
+                                            <p className="font-mono">{projectDetails.project_id}</p>
+                                        </div>
+                                        <div>
+                                            <Label className="text-sm font-medium text-muted-foreground">Title</Label>
+                                            <p>{projectDetails.title}</p>
+                                        </div>
+                                        <div>
+                                            <Label className="text-sm font-medium text-muted-foreground">Customer</Label>
+                                            <p>{projectDetails.customer?.name || 'Unknown'}</p>
+                                        </div>
+                                        <div>
+                                            <Label className="text-sm font-medium text-muted-foreground">Current Stage</Label>
+                                            <p>{projectDetails.current_stage?.name || 'Unknown'}</p>
                                         </div>
                                     </div>
-                                    <div>
-                                        <Label className="text-sm font-medium text-muted-foreground">Priority</Label>
-                                        <Badge variant={approvalDetails.priority === 'high' ? 'destructive' : 'secondary'}>
-                                            {approvalDetails.priority}
-                                        </Badge>
-                                    </div>
-                                    {approvalDetails.due_date && (
+
+                                    {projectDetails.description && (
                                         <div>
-                                            <Label className="text-sm font-medium text-muted-foreground">Due Date</Label>
-                                            <div className="flex items-center gap-2">
-                                                <Calendar className="w-4 h-4" />
-                                                <span>{formatDistanceToNow(new Date(approvalDetails.due_date), { addSuffix: true })}</span>
-                                            </div>
+                                            <Label className="text-sm font-medium text-muted-foreground">Description</Label>
+                                            <p className="text-sm bg-muted p-3 rounded mt-1">
+                                                {projectDetails.description}
+                                            </p>
                                         </div>
                                     )}
-                                </div>
+                                </CardContent>
+                            </Card>
+                        )}
+
+                        {/* Approval Details */}
+                        {approvalDetails && (
+                            <Card>
+                                <CardHeader>
+                                    <CardTitle className="text-lg">Approval Details</CardTitle>
+                                </CardHeader>
+                                <CardContent className="space-y-4">
+                                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                        <div>
+                                            <Label className="text-sm font-medium text-muted-foreground">Approval Type</Label>
+                                            <p>{approvalDetails.review_type?.replace('stage_approval_', '').toUpperCase()}</p>
+                                        </div>
+                                        <div>
+                                            <Label className="text-sm font-medium text-muted-foreground">Assigned To</Label>
+                                            <div className="flex items-center gap-2">
+                                                <User className="w-4 h-4" />
+                                                <span>{approvalDetails.reviewer?.display_name || 'You'}</span>
+                                                <Badge variant="secondary">{approvalDetails.reviewer?.role}</Badge>
+                                            </div>
+                                        </div>
+                                        <div>
+                                            <Label className="text-sm font-medium text-muted-foreground">Priority</Label>
+                                            <Badge variant={approvalDetails.priority === 'high' ? 'destructive' : 'secondary'}>
+                                                {approvalDetails.priority}
+                                            </Badge>
+                                        </div>
+                                        {approvalDetails.due_date && (
+                                            <div>
+                                                <Label className="text-sm font-medium text-muted-foreground">Due Date</Label>
+                                                <div className="flex items-center gap-2">
+                                                    <Calendar className="w-4 h-4" />
+                                                    <span>{formatDistanceToNow(new Date(approvalDetails.due_date), { addSuffix: true })}</span>
+                                                </div>
+                                            </div>
+                                        )}
+                                    </div>
+                                </CardContent>
+                            </Card>
+                        )}
+
+                        {/* Approval Form */}
+                        <Card>
+                            <CardHeader>
+                                <CardTitle className="text-lg">Your Decision</CardTitle>
+                            </CardHeader>
+                            <CardContent>
+                                <Form {...form}>
+                                    <form onSubmit={form.handleSubmit(handleSubmit)} className="space-y-6">
+                                        {/* Decision */}
+                                        <FormField
+                                            control={form.control}
+                                            name="decision"
+                                            render={({ field }) => (
+                                                <FormItem>
+                                                    <FormLabel>Approval Decision</FormLabel>
+                                                    <FormControl>
+                                                        <RadioGroup
+                                                            value={field.value}
+                                                            onValueChange={field.onChange}
+                                                            className="flex gap-6"
+                                                        >
+                                                            <div className="flex items-center space-x-2">
+                                                                <RadioGroupItem value="approved" id="approved" />
+                                                                <Label htmlFor="approved" className="flex items-center gap-2 cursor-pointer">
+                                                                    <CheckCircle className="w-4 h-4 text-green-600" />
+                                                                    Approve
+                                                                </Label>
+                                                            </div>
+                                                            <div className="flex items-center space-x-2">
+                                                                <RadioGroupItem value="rejected" id="rejected" />
+                                                                <Label htmlFor="rejected" className="flex items-center gap-2 cursor-pointer">
+                                                                    <XCircle className="w-4 h-4 text-red-600" />
+                                                                    Reject
+                                                                </Label>
+                                                            </div>
+                                                        </RadioGroup>
+                                                    </FormControl>
+                                                    <FormMessage />
+                                                </FormItem>
+                                            )}
+                                        />
+
+                                        {/* Comments */}
+                                        <FormField
+                                            control={form.control}
+                                            name="comments"
+                                            render={({ field }) => (
+                                                <FormItem>
+                                                    <FormLabel>Comments *</FormLabel>
+                                                    <FormControl>
+                                                        <Textarea
+                                                            {...field}
+                                                            placeholder="Provide detailed feedback about your decision..."
+                                                            rows={4}
+                                                        />
+                                                    </FormControl>
+                                                    <FormMessage />
+                                                </FormItem>
+                                            )}
+                                        />
+
+                                        {/* Decision Reason (optional) */}
+                                        <FormField
+                                            control={form.control}
+                                            name="decisionReason"
+                                            render={({ field }) => (
+                                                <FormItem>
+                                                    <FormLabel>Decision Rationale (Optional)</FormLabel>
+                                                    <FormControl>
+                                                        <Textarea
+                                                            {...field}
+                                                            placeholder="Explain the reasoning behind your decision..."
+                                                            rows={3}
+                                                        />
+                                                    </FormControl>
+                                                    <FormMessage />
+                                                </FormItem>
+                                            )}
+                                        />
+                                    </form>
+                                </Form>
                             </CardContent>
                         </Card>
-                    )}
 
-                    {/* Approval Form */}
-                    <Card>
-                        <CardHeader>
-                            <CardTitle className="text-lg">Your Decision</CardTitle>
-                        </CardHeader>
-                        <CardContent>
-                            <Form {...form}>
-                                <form onSubmit={form.handleSubmit(handleSubmit)} className="space-y-6">
-                                    {/* Decision */}
-                                    <FormField
-                                        control={form.control}
-                                        name="decision"
-                                        render={({ field }) => (
-                                            <FormItem>
-                                                <FormLabel>Approval Decision</FormLabel>
-                                                <FormControl>
-                                                    <RadioGroup
-                                                        value={field.value}
-                                                        onValueChange={field.onChange}
-                                                        className="flex gap-6"
-                                                    >
-                                                        <div className="flex items-center space-x-2">
-                                                            <RadioGroupItem value="approved" id="approved" />
-                                                            <Label htmlFor="approved" className="flex items-center gap-2 cursor-pointer">
-                                                                <CheckCircle className="w-4 h-4 text-green-600" />
-                                                                Approve
-                                                            </Label>
-                                                        </div>
-                                                        <div className="flex items-center space-x-2">
-                                                            <RadioGroupItem value="rejected" id="rejected" />
-                                                            <Label htmlFor="rejected" className="flex items-center gap-2 cursor-pointer">
-                                                                <XCircle className="w-4 h-4 text-red-600" />
-                                                                Reject
-                                                            </Label>
-                                                        </div>
-                                                    </RadioGroup>
-                                                </FormControl>
-                                                <FormMessage />
-                                            </FormItem>
-                                        )}
-                                    />
-
-                                    {/* Comments */}
-                                    <FormField
-                                        control={form.control}
-                                        name="comments"
-                                        render={({ field }) => (
-                                            <FormItem>
-                                                <FormLabel>Comments *</FormLabel>
-                                                <FormControl>
-                                                    <Textarea
-                                                        {...field}
-                                                        placeholder="Provide detailed feedback about your decision..."
-                                                        rows={4}
-                                                    />
-                                                </FormControl>
-                                                <FormMessage />
-                                            </FormItem>
-                                        )}
-                                    />
-
-                                    {/* Decision Reason (optional) */}
-                                    <FormField
-                                        control={form.control}
-                                        name="decisionReason"
-                                        render={({ field }) => (
-                                            <FormItem>
-                                                <FormLabel>Decision Rationale (Optional)</FormLabel>
-                                                <FormControl>
-                                                    <Textarea
-                                                        {...field}
-                                                        placeholder="Explain the reasoning behind your decision..."
-                                                        rows={3}
-                                                    />
-                                                </FormControl>
-                                                <FormMessage />
-                                            </FormItem>
-                                        )}
-                                    />
-                                </form>
-                            </Form>
-                        </CardContent>
-                    </Card>
-                </div>
-
-                <DialogFooter>
-                    <Button variant="outline" onClick={onClose} disabled={submitting}>
-                        Cancel
-                    </Button>
-                    <Button
-                        onClick={form.handleSubmit(handleSubmit)}
-                        disabled={submitting}
-                        className="min-w-[100px]"
-                    >
-                        {submitting ? (
-                            <div className="flex items-center gap-2">
-                                <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white"></div>
-                                Submitting...
-                            </div>
-                        ) : (
-                            'Submit Decision'
-                        )}
-                    </Button>
-                </DialogFooter>
-            </DialogContent>
-        </Dialog>
+                        {/* Action Buttons */}
+                        <div className="flex gap-2 pt-4">
+                            <Button
+                                variant="outline"
+                                onClick={onClose}
+                                disabled={submitting}
+                            >
+                                Cancel
+                            </Button>
+                            <Button
+                                onClick={form.handleSubmit(handleSubmit)}
+                                disabled={submitting}
+                                className="min-w-[100px]"
+                            >
+                                {submitting ? (
+                                    <div className="flex items-center gap-2">
+                                        <Loader2 className="w-4 h-4 animate-spin" />
+                                        Submitting...
+                                    </div>
+                                ) : (
+                                    'Submit Decision'
+                                )}
+                            </Button>
+                        </div>
+                    </CardContent>
+                </Card>
+            </div>
+        </div>
     );
 }

@@ -19,21 +19,29 @@ class StageHistoryService {
         try {
             const { projectId, fromStageId, toStageId, userId, reason, bypassRequired, bypassReason } = data;
 
-            // Get stage names for better logging
-            const [fromStage, toStage] = await Promise.all([
+            // Get project organization_id and stage names for better logging
+            const [project, fromStage, toStage] = await Promise.all([
+                this.getProjectById(projectId),
                 fromStageId ? this.getStageById(fromStageId) : null,
                 this.getStageById(toStageId)
             ]);
 
             const fromStageName = fromStage?.name || 'Unknown';
             const toStageName = toStage?.name || 'Unknown';
+            const organizationId = project?.organization_id;
 
-            // Create activity log entry
+            // Create activity log entry - FIX: Use correct column name
             const activityData = {
+                organization_id: organizationId,
                 action: bypassRequired ? 'stage_transition_bypass' : 'stage_transition',
                 user_id: userId,
                 project_id: projectId,
-                details: {
+                entity_type: 'project',
+                entity_id: projectId,
+                description: `Stage transition from ${fromStageName} to ${toStageName}`,
+                old_values: { stage_id: fromStageId, stage_name: fromStageName },
+                new_values: { stage_id: toStageId, stage_name: toStageName },
+                metadata: {
                     from_stage_id: fromStageId,
                     to_stage_id: toStageId,
                     from_stage_name: fromStageName,
@@ -78,7 +86,7 @@ class StageHistoryService {
           id,
           action,
           user_id,
-          details,
+          metadata,
           created_at,
           users!activity_log_user_id_fkey (
             first_name,
@@ -97,7 +105,7 @@ class StageHistoryService {
 
             // Transform activity log entries to stage history format
             const stageHistory: ProjectStageHistory[] = (data || []).map(entry => {
-                const details = entry.details as any;
+                const details = entry.metadata as any;
                 const user = entry.users as any;
 
                 return {
@@ -199,6 +207,29 @@ class StageHistoryService {
     }
 
     /**
+     * Helper method to get project by ID
+     */
+    private async getProjectById(projectId: string) {
+        try {
+            const { data, error } = await supabase
+                .from('projects')
+                .select('id, organization_id, title')
+                .eq('id', projectId)
+                .single();
+
+            if (error) {
+                console.error('Error fetching project:', error);
+                return null;
+            }
+
+            return data;
+        } catch (error) {
+            console.error('Error in getProjectById:', error);
+            return null;
+        }
+    }
+
+    /**
      * Helper method to get stage by ID
      */
     private async getStageById(stageId: string) {
@@ -232,7 +263,7 @@ class StageHistoryService {
           id,
           action,
           project_id,
-          details,
+          metadata,
           created_at,
           users!activity_log_user_id_fkey (
             first_name,
@@ -255,7 +286,7 @@ class StageHistoryService {
             }
 
             return data?.map(entry => {
-                const details = entry.details as any;
+                const details = entry.metadata as any;
                 const user = entry.users as any;
                 const project = entry.projects as any;
 

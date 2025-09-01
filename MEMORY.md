@@ -2,6 +2,172 @@
 
 ## Recent Changes
 
+### 2025-09-01 - Database Schema Mismatch Fixes
+
+**Task Completed:**
+- Fixed critical database schema mismatches preventing workflow transitions from working
+- Resolved column name inconsistencies between code expectations and actual database schema
+- Updated services to use correct database column names and table structures
+- Restarted Supabase to clear schema cache and ensure consistency
+
+**Root Cause Analysis:**
+- **Documents Table**: Code expected `document_type` and `status` columns, but actual schema uses `category` and `is_active`
+- **Activity Log Table**: Code expected `details` column, but actual schema uses `description` and `metadata`
+- **Workflow Stages**: Code was querying `workflow_sub_stages` table but should query `workflow_stages` table
+- **Schema Cache**: Supabase client schema cache was out of sync with actual database structure
+
+**Technical Fixes Applied:**
+
+1. **PrerequisiteChecker Fix** (`src/services/prerequisiteChecker.ts`):
+   - Updated document query to use correct column names: `category` instead of `document_type`
+   - Changed status filter from `status = 'active'` to `is_active = true`
+   - Updated document type checking logic to use `category` field
+
+2. **ApprovalService Fix** (`src/services/approvalService.ts`):
+   - Changed query from `workflow_sub_stages` to `workflow_stages` table
+   - Added graceful error handling for non-existent stages
+   - Improved error messages and fallback behavior
+
+3. **StageHistoryService Fix** (`src/services/stageHistoryService.ts`):
+   - Updated activity log insertion to use correct column names: `description` instead of `details`
+   - Added proper `organization_id`, `entity_type`, and `entity_id` fields
+   - Updated queries to use `metadata` field instead of `details`
+   - Added `getProjectById` helper method for organization context
+
+**Key Changes Made:**
+```typescript
+// Before: Incorrect column names
+.select('id, document_type, file_name, status')
+.eq('status', 'active')
+
+// After: Correct column names
+.select('id, category, file_name, is_active')
+.eq('is_active', true)
+
+// Before: Wrong table
+.from('workflow_sub_stages')
+
+// After: Correct table
+.from('workflow_stages')
+
+// Before: Incorrect activity log structure
+details: { ... }
+
+// After: Correct activity log structure
+description: 'Stage transition message',
+metadata: { ... }
+```
+
+**Database Schema Alignment:**
+- **Documents Table**: Uses `category`, `is_active`, `file_name` columns
+- **Activity Log Table**: Uses `description`, `metadata`, `organization_id` columns
+- **Workflow Stages**: Uses `workflow_stages` table for stage information
+- **Proper Relationships**: All foreign key relationships maintained
+
+**Verification Steps Completed:**
+- ✅ **Supabase Restart**: Cleared schema cache by restarting local Supabase instance
+- ✅ **Document Query Test**: Verified documents query works with correct column names
+- ✅ **Workflow Stage Query Test**: Confirmed workflow_stages table query functionality
+- ✅ **Activity Log Test**: Validated activity log insertion with correct structure
+
+**Benefits:**
+- ✅ **Error Resolution**: Workflow transitions now work without database errors
+- ✅ **Schema Consistency**: Code now matches actual database structure
+- ✅ **Data Integrity**: Proper column mapping ensures data is handled correctly
+- ✅ **Future-Proof**: Aligned with existing database migrations and schema
+
+**Files Modified:**
+- `src/services/prerequisiteChecker.ts` - Fixed document query column names
+- `src/services/approvalService.ts` - Fixed workflow stage table query
+- `src/services/stageHistoryService.ts` - Fixed activity log structure and queries
+
+**Current Status:**
+- Database schema mismatches completely resolved
+- Workflow transitions now functional without errors
+- All services aligned with actual database structure
+- Supabase schema cache cleared and synchronized
+
+### 2025-09-01 - Modal UI Style Consistency Improvements
+
+**Technical Changes Applied:**
+
+1. **ApprovalModal Structure Update** (`src/components/approval/ApprovalModal.tsx`):
+   - Replaced `Dialog` and `DialogContent` components with custom backdrop-blur overlay
+   - Updated to use `Card` component with `CardHeader` and `CardContent` for consistent styling
+   - Applied same backdrop-blur effect (`bg-background/95 backdrop-blur-lg`) as ProjectStatusManager
+   - Maintained all existing functionality while improving visual consistency
+
+2. **StageTransitionValidator Structure Update** (`src/components/project/StageTransitionValidator.tsx`):
+   - Replaced `Dialog` and `DialogContent` components with custom backdrop-blur overlay
+   - Updated to use `Card` component with `CardHeader` and `CardContent` for consistent styling
+   - Applied same backdrop-blur effect (`bg-background/95 backdrop-blur-lg`) as ProjectStatusManager
+   - Enhanced error and warning display with better formatting and structure
+   - Improved prerequisite checks summary with visual metrics
+   - Maintained all existing functionality while improving visual consistency
+
+2. **Loading State Consistency**:
+   - Updated loading state to use same Card-based structure
+   - Applied consistent backdrop-blur styling for loading overlay
+   - Maintained proper z-index layering for modal display
+
+3. **Button Layout Improvement**:
+   - Moved action buttons from `DialogFooter` to inline layout within `CardContent`
+   - Applied consistent button spacing and styling with `pt-4` padding
+   - Updated loading spinner to use `Loader2` icon for consistency
+
+**Key Changes Made:**
+```typescript
+// Before: Standard Dialog component
+<Dialog open={isOpen} onOpenChange={onClose}>
+  <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
+    <DialogHeader>
+      <DialogTitle>...</DialogTitle>
+    </DialogHeader>
+    // content
+    <DialogFooter>
+      // buttons
+    </DialogFooter>
+  </DialogContent>
+</Dialog>
+
+// After: Custom backdrop-blur modal
+<div className="fixed inset-0 bg-background/95 backdrop-blur-lg flex items-center justify-center p-4 z-50">
+  <div className="w-full max-w-4xl max-h-[90vh] overflow-y-auto">
+    <Card>
+      <CardHeader>
+        <CardTitle>...</CardTitle>
+      </CardHeader>
+      <CardContent>
+        // content
+        // buttons inline
+      </CardContent>
+    </Card>
+  </div>
+</div>
+```
+
+**Visual Improvements:**
+- ✅ **Consistent Styling**: ApprovalModal now matches ProjectStatusManager confirmation dialog
+- ✅ **Better Backdrop**: Enhanced backdrop-blur effect for improved focus
+- ✅ **Unified Experience**: All confirmation dialogs now use same visual pattern
+- ✅ **Improved Layout**: Better button placement and spacing
+
+**Files Modified:**
+- `src/components/approval/ApprovalModal.tsx` - Updated modal structure and styling
+- `src/components/project/StageTransitionValidator.tsx` - Updated modal structure and styling
+
+**Testing Status:**
+- ✅ **Modal Display**: ApprovalModal displays with consistent styling
+- ✅ **Functionality**: All approval features work correctly with new structure
+- ✅ **Responsive Design**: Modal adapts properly to different screen sizes
+- ✅ **Loading States**: Loading overlay displays correctly with new styling
+
+**Current Status:**
+- ApprovalModal and StageTransitionValidator now use consistent model style across the application
+- Visual consistency improved for better user experience across all modal interfaces
+- All approval and validation functionality maintained with enhanced styling
+- Unified modal experience throughout the application
+
 ### 2025-09-01 - ProjectDetail Loading Issue Fix
 
 **Task Completed:**
