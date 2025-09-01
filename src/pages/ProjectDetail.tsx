@@ -45,7 +45,7 @@ import { ProjectReviewForm } from "@/components/project/ProjectReviewForm";
 import { ReviewConfiguration } from "@/components/project/ReviewConfiguration";
 import { ReviewList } from "@/components/project/ReviewList";
 import { ReviewAssignmentModal } from "@/components/project/ReviewAssignmentModal";
-import { useUserDisplayName, useUsers } from "@/hooks/useUsers";
+import { useUserDisplayName, useUsers, useUser } from "@/hooks/useUsers";
 import { useAuth } from "@/contexts/AuthContext";
 import { ProjectDetailHeader } from "@/components/project/ProjectDetailHeader";
 import { ProjectSummaryCard } from "@/components/project/ProjectSummaryCard";
@@ -422,7 +422,11 @@ export default function ProjectDetail() {
 
   // Helper function to get assignee display name
   const getAssigneeDisplayName = () => {
-    return project.assigned_to || 'N/A';
+    const assigneeId = project.assigned_to || project.assignee_id;
+    if (!assigneeId) return 'N/A';
+
+    // Use the useUserDisplayName hook to get the display name
+    return useUserDisplayName(assigneeId);
   };
 
   // Helper function to get volume from estimated value or default

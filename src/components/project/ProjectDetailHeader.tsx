@@ -28,6 +28,7 @@ import { format, formatDistanceToNow, differenceInDays, parseISO } from "date-fn
 import type { Project, WorkflowStage, ProjectPriority } from "@/types/project";
 import { EnhancedProjectOverviewCard } from "./EnhancedProjectOverviewCard";
 import { WorkflowStepper } from "./WorkflowStepper";
+import { useUserDisplayName } from "@/hooks/useUsers";
 import {
     Tooltip,
     TooltipContent,
@@ -327,7 +328,11 @@ export function ProjectDetailHeader({
 
                                 <div className="flex items-center space-x-1">
                                     <Users className="w-4 h-4" />
-                                    <span>Owner: {project.assigned_to || 'Unassigned'}</span>
+                                    <span>Owner: {(() => {
+                                        const assigneeId = project.assigned_to || project.assignee_id;
+                                        const assigneeDisplayName = useUserDisplayName(assigneeId);
+                                        return assigneeId ? assigneeDisplayName : 'Unassigned';
+                                    })()}</span>
                                 </div>
 
                                 {project.estimated_value && (

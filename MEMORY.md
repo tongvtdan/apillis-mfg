@@ -2,6 +2,41 @@
 
 ## Recent Changes
 
+### 2025-09-01 - Kanban View Project Card Assignee Display Fix
+
+**Task Completed:**
+- Fixed assignee display issue in Kanban view project cards showing "Unassigned" when projects have assigned users
+- Updated `AnimatedProjectCard` component to use current `assigned_to` field with fallback to legacy `assignee_id`
+- Fixed assignee display in `EnhancedProjectOverviewCard` and `ProjectDetailHeader` components
+- Ensured consistent assignee display across all project card components
+
+**Issue Identified:**
+- `ProjectContactDisplay` component in `AnimatedProjectCard.tsx` was using legacy `project.assignee_id` field
+- Database schema uses `assigned_to` as the current field for project assignments
+- Some components were displaying raw user IDs instead of user display names
+
+**Technical Fix:**
+- Updated `ProjectContactDisplay` to use `project.assigned_to || project.assignee_id` pattern
+- Added `useUserDisplayName` hook to display proper user names instead of IDs
+- Applied consistent pattern across all project card components
+- Added proper imports for `useUserDisplayName` hook where missing
+
+**Files Modified:**
+- `src/components/project/AnimatedProjectCard.tsx` - Fixed assignee display logic
+- `src/components/project/EnhancedProjectOverviewCard.tsx` - Added user display name support
+- `src/components/project/ProjectDetailHeader.tsx` - Fixed assignee display in header
+
+**Benefits:**
+- **Correct Display**: Project cards now show actual assignee names instead of "Unassigned"
+- **Consistent UX**: All project components display assignee information consistently
+- **Backward Compatibility**: Maintains support for legacy `assignee_id` field during migration
+- **User-Friendly**: Shows readable user names instead of UUIDs
+
+**Testing Status:**
+- ✅ Fixed assignee display in Kanban view project cards
+- ✅ Verified consistent behavior across all project card components
+- ✅ Maintained backward compatibility with legacy field names
+
 ### 2025-09-01 - Enhanced Project List Implementation
 
 **Task Completed:**

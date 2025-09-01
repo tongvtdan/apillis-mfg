@@ -31,8 +31,9 @@ export function AnimatedTableRow({
     formatCurrency,
     isUpdating = false
 }: AnimatedTableRowProps) {
-    // Get assignee display name using correct database field name
-    const assigneeDisplayName = useUserDisplayName(project.assigned_to);
+    // Get assignee display name using correct database field name with fallback
+    const assigneeId = project.assigned_to || project.assignee_id;
+    const assigneeDisplayName = useUserDisplayName(assigneeId);
     const [workflowStages, setWorkflowStages] = useState<WorkflowStage[]>([]);
 
     // Load workflow stages
@@ -121,7 +122,7 @@ export function AnimatedTableRow({
                     </Badge>
                 </TableCell>
                 <TableCell>
-                    <AssigneeCell assigneeId={project.assigned_to} displayName={assigneeDisplayName} />
+                    <AssigneeCell assigneeId={assigneeId} displayName={assigneeDisplayName} />
                 </TableCell>
                 <TableCell>
                     <div className="text-sm">
