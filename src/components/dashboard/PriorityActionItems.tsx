@@ -16,22 +16,23 @@ export function PriorityActionItems({ projects }: PriorityActionItemsProps) {
         // Filter for active projects that need action
         ['inquiry_received', 'technical_review', 'supplier_rfq_sent', 'quoted'].includes(p.current_stage) &&
         // Include projects with high priority, overdue, or urgent status  
-        (p.priority === 'high' || p.priority === 'urgent' || p.days_in_stage > 7)
+        ((p.priority_level === 'high' || p.priority_level === 'urgent') ||
+          (p.days_in_stage && p.days_in_stage > 7))
       )
       .sort((a, b) => {
         // Priority scoring for sorting (higher score = more urgent)
         const getPriorityScore = (project: Project) => {
           let score = 0;
           // Priority weight
-          if (project.priority === 'urgent') score += 100;
-          else if (project.priority === 'high') score += 80;
-          else if (project.priority === 'medium') score += 40;
+          if (project.priority_level === 'urgent') score += 100;
+          else if (project.priority_level === 'high') score += 80;
+          else if (project.priority_level === 'medium') score += 40;
           else score += 20;
 
           // Days in stage weight (more days = higher urgency)
-          if (project.days_in_stage > 14) score += 50;
-          else if (project.days_in_stage > 7) score += 30;
-          else if (project.days_in_stage > 3) score += 10;
+          if (project.days_in_stage && project.days_in_stage > 14) score += 50;
+          else if (project.days_in_stage && project.days_in_stage > 7) score += 30;
+          else if (project.days_in_stage && project.days_in_stage > 3) score += 10;
 
           // Status urgency weight
           if (project.current_stage === 'quoted') score += 25; // Needs decision

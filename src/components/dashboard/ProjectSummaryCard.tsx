@@ -6,10 +6,13 @@ import {
   Paperclip,
   Clock,
   AlertTriangle,
-  CheckCircle
+  CheckCircle,
+  Truck
 } from "lucide-react";
 import { Project } from "@/types/project";
-import { useUserDisplayName, useUsers } from "@/hooks/useUsers";
+import { useUserDisplayName } from "@/hooks/useUsers";
+import { format, isBefore, parseISO } from "date-fns";
+import { PRIORITY_COLORS } from "@/types/project";
 
 interface ProjectSummaryCardProps {
   project: Project;
@@ -49,7 +52,7 @@ export function ProjectSummaryCard({ project, showUrgencyIndicators = false }: P
 
   const getUrgencyLevel = () => {
     let level = 'normal';
-    let reasons = [];
+    let reasons: string[] = [];
 
     // Use priority_level with fallback to priority
     const priority = project.priority_level || project.priority;
@@ -62,12 +65,27 @@ export function ProjectSummaryCard({ project, showUrgencyIndicators = false }: P
       reasons.push('High priority');
     }
 
-    if (project.days_in_stage > 14) {
+    if (project.days_in_stage && project.days_in_stage > 14) {
       level = 'critical';
       reasons.push(`${project.days_in_stage} days in stage`);
-    } else if (project.days_in_stage > 7) {
+    } else if (project.days_in_stage && project.days_in_stage > 7) {
       if (level !== 'critical') level = 'high';
       reasons.push(`${project.days_in_stage} days overdue`);
+    }
+
+    // Check if delivery date is approaching or past due
+    if (project.estimated_delivery_date) {
+      const deliveryDate = parseISO(project.estimated_delivery_date);
+      const today = new Date();
+      const daysUntilDelivery = Math.ceil((deliveryDate.getTime() - today.getTime()) / (1000 * 60 * 60 * 24));
+
+      if (daysUntilDelivery < 0) {
+        level = 'critical';
+        reasons.push('Delivery overdue');
+      } else if (daysUntilDelivery <= 3) {
+        if (level !== 'critical') level = 'high';
+        reasons.push('Delivery due soon');
+      }
     }
 
     // Check current stage status for urgency indicators
@@ -120,6 +138,10 @@ export function ProjectSummaryCard({ project, showUrgencyIndicators = false }: P
     }
   };
 
+  // Check if delivery date is overdue
+  const isDeliveryOverdue = project.estimated_delivery_date &&
+    isBefore(parseISO(project.estimated_delivery_date), new Date());
+
   return (
     <div
       className={`flex items-center gap-4 ${getListItemClasses()} cursor-pointer hover:shadow-md`}
@@ -167,7 +189,7 @@ export function ProjectSummaryCard({ project, showUrgencyIndicators = false }: P
         </div>
 
         {/* Time in stage indicator */}
-        {showUrgencyIndicators && (
+        {showUrgencyIndicators && project.days_in_stage && (
           <div className={`flex items-center gap-1 rounded-full text-xs ${project.days_in_stage > 7
             ? 'status-badge status-badge-sm status-overdue'
             : project.days_in_stage > 3
@@ -176,6 +198,17 @@ export function ProjectSummaryCard({ project, showUrgencyIndicators = false }: P
             }`}>
             <Clock className="h-3 w-3" />
             <span>{project.days_in_stage}d</span>
+          </div>
+        )}
+
+        {/* Estimated delivery date */}
+        {project.estimated_delivery_date && (
+          <div className={`flex items-center gap-1 rounded-full text-xs px-2 py-0.5 ${isDeliveryOverdue
+              ? 'bg-red-100 text-red-800 dark:bg-red-900/30 dark:text-red-400'
+              : 'bg-blue-100 text-blue-800 dark:bg-blue-900/30 dark:text-blue-400'
+            }`}>
+            <Truck className="h-3 w-3" />
+            <span>Est. {format(parseISO(project.estimated_delivery_date), 'MMM d')}</span>
           </div>
         )}
 

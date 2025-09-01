@@ -1,8 +1,9 @@
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { useProjects } from "@/hooks/useProjects";
 import { useNavigate } from "react-router-dom";
-import { formatDistanceToNow } from "date-fns";
-import { Clock, AlertCircle, FileText, Users, CheckCircle } from "lucide-react";
+import { formatDistanceToNow, format } from "date-fns";
+import { Clock, AlertCircle, FileText, Users, CheckCircle, Calendar } from "lucide-react";
+import { PRIORITY_COLORS } from "@/types/project";
 
 interface Task {
   id: string;
@@ -12,6 +13,7 @@ interface Task {
   status: string;
   type: 'review' | 'project' | 'rfq';
   projectId?: string;
+  estimatedDeliveryDate?: string;
 }
 
 export function PendingTasks() {
@@ -38,7 +40,8 @@ export function PendingTasks() {
       dueDate: formatDistanceToNow(new Date(project.updated_at), { addSuffix: true }),
       status: project.current_stage,
       type: 'project' as const,
-      projectId: project.id
+      projectId: project.id,
+      estimatedDeliveryDate: project.estimated_delivery_date
     }));
 
   const getPriorityClass = (priority: string) => {
@@ -120,15 +123,24 @@ export function PendingTasks() {
               <p className="text-sm font-medium text-foreground truncate">
                 {task.title}
               </p>
-              <div className="flex items-center space-x-2 mt-1">
+              <div className="flex flex-wrap items-center gap-2 mt-1">
                 <div className="flex items-center text-xs text-muted-foreground">
                   {getPriorityIcon(task.priority)}
                   <span className="ml-1 capitalize">{task.priority}</span>
+                </div>
+                <div className={`text-xs px-2 py-0.5 rounded-full ${PRIORITY_COLORS[task.priority as keyof typeof PRIORITY_COLORS]}`}>
+                  Priority
                 </div>
                 <div className="flex items-center text-xs text-muted-foreground">
                   <Clock className="h-3 w-3 mr-1" />
                   {task.dueDate}
                 </div>
+                {task.estimatedDeliveryDate && (
+                  <div className="flex items-center text-xs text-muted-foreground">
+                    <Calendar className="h-3 w-3 mr-1" />
+                    <span>Est. Delivery: {format(new Date(task.estimatedDeliveryDate), 'MMM d')}</span>
+                  </div>
+                )}
               </div>
             </div>
           </div>

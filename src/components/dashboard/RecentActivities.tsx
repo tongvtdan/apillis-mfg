@@ -36,6 +36,14 @@ export function RecentActivities() {
   const { activities, loading, error } = useActivityLogs(10);
   const navigate = useNavigate();
 
+  // Debug log activities
+  useEffect(() => {
+    if (activities.length > 0) {
+      console.log('Activities loaded:', activities);
+      console.log('Sample activity structure:', activities[0]);
+    }
+  }, [activities]);
+
   // Map activities to a more user-friendly format
   const mappedActivities = activities
     .map(activity => {
@@ -46,6 +54,24 @@ export function RecentActivities() {
         let status = '';
         let priority = 'medium';
         let projectId: string | undefined;
+
+        // Extract project ID from various sources
+        if (activity.metadata?.project_id) {
+          projectId = activity.metadata.project_id;
+          console.log(`Found project ID ${projectId} in metadata for activity ${activity.id}`);
+        }
+        else if (activity.entity_type === 'projects' && activity.entity_id) {
+          projectId = activity.entity_id;
+          console.log(`Using entity_id ${projectId} as project ID for activity ${activity.id}`);
+        }
+        else if (activity.new_values?.project_id) {
+          projectId = activity.new_values.project_id;
+          console.log(`Found project ID ${projectId} in new_values for activity ${activity.id}`);
+        }
+        else if (activity.old_values?.project_id) {
+          projectId = activity.old_values.project_id;
+          console.log(`Found project ID ${projectId} in old_values for activity ${activity.id}`);
+        }
 
         // Process the activity
 
@@ -58,7 +84,7 @@ export function RecentActivities() {
             description = `${activity.action === 'INSERT' ? 'Created' : activity.action === 'UPDATE' ? 'Updated' : activity.action} project`;
             status = activity.new_values?.status || activity.old_values?.status || 'active';
             priority = activity.new_values?.priority_level || activity.old_values?.priority_level || 'medium';
-            projectId = activity.entity_id;
+            // Project ID is already set above
             break;
           case 'contacts':
             type = 'contact';
@@ -71,7 +97,7 @@ export function RecentActivities() {
             type = 'project';
             title = activity.description || activity.entity_type || 'Activity';
             description = activity.action || 'Unknown action';
-          // Handle unknown entity types
+          // Project ID is already set above
         }
 
         // If we still don't have a title, use a fallback
@@ -168,7 +194,10 @@ export function RecentActivities() {
 
   const handleActivityClick = (activity: Activity) => {
     if (activity.project_id) {
-      navigate(`/projects/${activity.project_id}`);
+      console.log(`Navigating to project ${activity.project_id} from activity ${activity.id}`);
+      navigate(`/project/${activity.project_id}`);
+    } else {
+      console.warn(`No project_id available for activity ${activity.id}`, activity);
     }
   };
 

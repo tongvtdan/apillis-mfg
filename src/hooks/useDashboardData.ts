@@ -1,22 +1,28 @@
 import { useQuery } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 
+export interface DashboardProject {
+  id: string;
+  project_id: string;
+  title: string;
+  status: string;
+  priority_level: string;
+  project_type?: string;
+  created_at: string;
+  customer_name?: string;
+  estimated_delivery_date?: string;
+  days_in_stage?: number;
+  current_stage?: string;
+}
+
 export interface DashboardSummary {
   projects: {
     total: number;
     by_status: Record<string, number>;
     by_type: Record<string, number>;
+    by_priority: Record<string, number>;
   };
-  recent_projects: Array<{
-    id: string;
-    project_id: string;
-    title: string;
-    status: string;
-    priority: string;
-    project_type?: string;
-    created_at: string;
-    customer_name?: string;
-  }>;
+  recent_projects: DashboardProject[];
   generated_at: number;
 }
 
@@ -47,6 +53,7 @@ export function useProjectsCount() {
     total: data?.projects?.total ?? 0,
     byStatus: data?.projects?.by_status ?? {},
     byType: data?.projects?.by_type ?? {},
+    byPriority: data?.projects?.by_priority ?? {},
     isLoading: !data
   };
 }

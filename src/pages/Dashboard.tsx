@@ -32,6 +32,7 @@ export default function Dashboard() {
   const projectsTotal = dashboardData?.projects?.total || 0;
   const projectsByStatus = dashboardData?.projects?.by_status || {};
   const projectsByType = dashboardData?.projects?.by_type || {};
+  const projectsByPriority = dashboardData?.projects?.by_priority || {};
   const loading = dashboardLoading;
 
   // Search and filter states
@@ -65,8 +66,13 @@ export default function Dashboard() {
     .filter(([status]) => !['shipped_closed', 'cancelled'].includes(status))
     .reduce((sum, [, count]) => sum + (count as number), 0);
 
-  const highPriorityProjects = 0; // Will be available when priority data is added
-  const overdueProjects = 0; // Will be calculated from stage tracking
+  const highPriorityProjects = Object.entries(projectsByPriority)
+    .filter(([priority]) => ['high', 'urgent'].includes(priority))
+    .reduce((sum, [, count]) => sum + (count as number), 0);
+
+  const overdueProjects = projects.filter(p =>
+    p.days_in_stage && p.days_in_stage > 7
+  ).length;
 
   // Enhanced overview data with real data and important alerts - only Projects section
   const overviewData = [];
@@ -142,7 +148,7 @@ export default function Dashboard() {
           <QuickStats
             activeProjects={activeProjects}
             highPriorityProjects={highPriorityProjects}
-            overdueProjects={0}
+            overdueProjects={overdueProjects}
           />
 
           {/* Pending Tasks */}

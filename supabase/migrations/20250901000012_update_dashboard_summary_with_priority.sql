@@ -1,6 +1,5 @@
--- Enhanced Dashboard Summary Function
--- This function provides enhanced dashboard data including project counts by type and status
--- It returns project statistics and recent activity in a structured JSON format
+-- Update Dashboard Summary Function with Priority Counts
+-- This migration enhances the dashboard summary function to include priority counts and more project details
 
 CREATE OR REPLACE FUNCTION public.get_dashboard_summary()
 RETURNS JSONB
@@ -131,5 +130,5 @@ GRANT EXECUTE ON FUNCTION public.get_dashboard_summary() TO authenticated;
 
 -- Add comment for documentation
 COMMENT ON FUNCTION public.get_dashboard_summary() IS 
-'Returns enhanced dashboard summary data including project counts by status and type, and recent projects with customer information. 
+'Returns enhanced dashboard summary data including project counts by status, type, and priority, and recent projects with customer information. 
 Requires user to be authenticated and have an organization_id.';
