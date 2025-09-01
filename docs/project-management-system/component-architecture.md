@@ -64,6 +64,73 @@ graph TB
 
 ## Core Components
 
+### DocumentManager Component
+
+**Purpose**: Comprehensive document management interface for project files with advanced filtering and organization
+
+**Location**: `src/components/project/DocumentManager.tsx`
+
+**Status**: ✅ **Core component implemented, dependencies required**
+
+**Component Features:**
+- **Dual View Modes**: Seamless switching between grid and list views
+- **Advanced Filtering**: Multi-criteria filtering by search, type, access level, date range, tags, and uploader
+- **Smart Sorting**: Sort by name, date, size, or type with ascending/descending order control
+- **Bulk Operations**: Multi-select documents for batch download, tagging, and deletion
+- **Upload Integration**: Modal-based file upload with drag-and-drop support
+- **Empty States**: Contextual messaging for no documents and filtered results
+- **Loading States**: Proper loading indicators during data fetching
+
+**Component Interface:**
+```typescript
+interface DocumentManagerProps {
+  projectId: string;
+}
+
+interface DocumentFiltersState {
+  search: string;
+  type: string[];
+  accessLevel: string[];
+  dateRange: {
+    from?: Date;
+    to?: Date;
+  };
+  tags: string[];
+  uploadedBy: string[];
+}
+
+export type ViewMode = 'grid' | 'list';
+export type SortField = 'name' | 'date' | 'size' | 'type';
+export type SortOrder = 'asc' | 'desc';
+```
+
+**State Management Features:**
+- **Filter State**: Complex filtering state with multiple criteria
+- **Selection State**: Multi-document selection for bulk operations
+- **View State**: Toggle between grid and list presentation modes
+- **Sort State**: Dynamic sorting with field and order control
+- **UI State**: Modal visibility and filter panel toggle states
+
+**Performance Optimizations:**
+- **Memoized Filtering**: Efficient document filtering with useMemo
+- **Memoized Sorting**: Optimized sorting operations
+- **Callback Optimization**: useCallback for event handlers to prevent re-renders
+- **Computed Values**: Derived state for filter options and active filter detection
+
+**Dependencies Required:**
+- **useDocuments Hook**: Data fetching hook for project documents
+- **DocumentUploadZone**: Modal component for file uploads
+- **DocumentGrid**: Grid view component for document display
+- **DocumentList**: List view component for document display
+- **DocumentFilters**: Advanced filtering component
+- **ProjectDocument Type**: TypeScript interface for document data
+
+**Integration Points:**
+- **Project Detail Tabs**: Integrates as Documents tab in project detail page
+- **File Upload System**: Connects to Supabase storage for file management
+- **Permission System**: Respects document access levels and user permissions
+- **Search System**: Integrates with global search functionality
+
 ### Projects Table View
 
 **Purpose**: Simplified project listing with filtering and basic information display

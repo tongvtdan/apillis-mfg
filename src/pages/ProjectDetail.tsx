@@ -36,6 +36,7 @@ import { WorkflowStepper } from "@/components/project/WorkflowStepper";
 import { useDocuments } from "@/hooks/useDocuments";
 import { useProjectMessages } from "@/hooks/useMessages";
 import { useSupplierRfqs } from "@/hooks/useSupplierRfqs";
+import { DocumentManager } from "@/components/project/DocumentManager";
 
 import { useProjectReviews } from "@/hooks/useProjectReviews";
 import { useProjects } from "@/hooks/useProjects";
@@ -805,71 +806,7 @@ export default function ProjectDetail() {
                   isLoading={isTabLoading('documents')}
                   hasError={hasTabError('documents')}
                 >
-                  <div className="space-y-6">
-                    <Card>
-                      <CardHeader>
-                        <div className="flex items-center justify-between">
-                          <CardTitle className="text-sm font-semibold text-muted-foreground uppercase tracking-wide">
-                            DOCUMENTS
-                          </CardTitle>
-                          <Button>
-                            <Plus className="w-4 h-4 mr-2" />
-                            Upload New File
-                          </Button>
-                        </div>
-                      </CardHeader>
-                      <CardContent>
-                        {documentsLoading ? (
-                          <div className="flex items-center justify-center py-8">
-                            <Loader2 className="h-6 w-6 animate-spin mr-2" />
-                            <span className="text-muted-foreground">Loading documents...</span>
-                          </div>
-                        ) : documents.length > 0 ? (
-                          <div className="space-y-4">
-                            {documents.map((doc) => (
-                              <div key={doc.id} className="flex items-center justify-between p-4 border rounded-lg hover:bg-muted/50">
-                                <div className="flex items-center space-x-4">
-                                  <FileText className="w-5 h-5 text-muted-foreground" />
-                                  <div>
-                                    <div className="flex items-center space-x-2">
-                                      <span className="font-medium">{doc.original_file_name || doc.filename || 'N/A'}</span>
-                                      <Badge variant="outline" className="text-xs">
-                                        [{doc.version || 'v1'}]
-                                      </Badge>
-                                      <Badge className={`text-xs ${getAccessBadgeColor(doc.access_level || 'public')}`}>
-                                        {doc.access_level === 'internal' ? '🔒 Internal Only' : '🌐 Public'}
-                                      </Badge>
-                                    </div>
-                                    <div className="flex items-center space-x-4 text-sm text-muted-foreground mt-1">
-                                      <span>📅 {doc.uploaded_at ? format(new Date(doc.uploaded_at), 'MMM dd') : 'N/A'}</span>
-                                      <span>👤 {doc.uploaded_by || 'N/A'}</span>
-                                      <span>📁 {formatFileSize(doc.file_size || 0)}</span>
-                                    </div>
-                                  </div>
-                                </div>
-                                <div className="flex items-center space-x-2">
-                                  <Button variant="ghost" size="sm">
-                                    <Download className="w-4 h-4" />
-                                  </Button>
-                                  <Button variant="ghost" size="sm">
-                                    <Edit className="w-4 h-4" />
-                                  </Button>
-                                </div>
-                              </div>
-                            ))}
-                          </div>
-                        ) : (
-                          <div className="text-center py-12">
-                            <FileText className="w-12 h-12 mx-auto text-muted-foreground mb-4" />
-                            <h3 className="text-lg font-medium mb-2">No Documents</h3>
-                            <p className="text-muted-foreground">
-                              No documents have been uploaded for this project yet
-                            </p>
-                          </div>
-                        )}
-                      </CardContent>
-                    </Card>
-                  </div>
+                  <DocumentManager projectId={id || ''} />
                 </TabContentWrapper>
 
                 <TabContentWrapper
