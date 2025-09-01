@@ -312,24 +312,24 @@ export const WorkflowStepper = React.memo(({ project }: WorkflowStepperProps) =>
 
   // Debug logging for project changes - only log when status actually changes
   useEffect(() => {
-    const currentStatus = project.current_stage || project.status;
+    const currentStatus = project.current_stage_id || project.status;
     const currentUpdatedAt = project.updated_at;
 
     if (lastStatusLogged.current !== currentStatus || lastUpdatedAtLogged.current !== currentUpdatedAt) {
       console.log('🔄 WorkflowStepper: Project status changed:', {
         id: project.id,
-        current_stage: project.current_stage,
+        current_stage_id: project.current_stage_id,
         status: project.status,
         updated_at: currentUpdatedAt
       });
-      lastStatusLogged.current = currentStatus;
-      lastUpdatedAtLogged.current = currentUpdatedAt;
+      lastStatusLogged.current = currentStatus || '';
+      lastUpdatedAtLogged.current = currentUpdatedAt || '';
     }
-  }, [project.id, project.current_stage, project.status, project.updated_at]);
+  }, [project.id, project.current_stage_id, project.status, project.updated_at]);
 
   // Debug logging for stage calculations - only log when calculations change
   useEffect(() => {
-    const currentStatus = project.current_stage;
+    const currentStatus = project.current_stage_id || '';
 
     if (lastStageCalculationsLogged.current !== currentStatus) {
       console.log('🔄 WorkflowStepper: Stage calculations updated:', {
@@ -340,7 +340,7 @@ export const WorkflowStepper = React.memo(({ project }: WorkflowStepperProps) =>
       });
       lastStageCalculationsLogged.current = currentStatus;
     }
-  }, [project.current_stage, stageCalculations]);
+  }, [project.current_stage_id, stageCalculations]);
 
   // Debug logging to help identify status mapping issues - only log once per status
   useEffect(() => {
@@ -378,19 +378,16 @@ export const WorkflowStepper = React.memo(({ project }: WorkflowStepperProps) =>
     setError(null);
 
     try {
-      // Use the project service to update the stage
-      const updatedProject = await projectService.updateProject(project.id, {
-        current_stage_id: stageId,
-        stage_entered_at: new Date().toISOString()
-      });
+      // Use the useProjectUpdate hook's updateStatus function for proper optimistic updates
+      const success = await updateStatus(stageId);
 
-      const targetStage = workflowStages.find(s => s.id === stageId);
-      toast({
-        title: "Stage Updated",
-        description: `Project stage changed to ${targetStage?.name || 'Unknown Stage'}`,
-      });
-
-      return true;
+      if (success) {
+        const targetStage = workflowStages.find(s => s.id === stageId);
+        toast({
+          title: "Stage Updated",
+          description: `Project stage changed to ${targetStage?.name || 'Unknown Stage'}`,
+        });
+      }
     } catch (error) {
       console.error('Error updating project stage:', error);
       setError("Failed to update project stage. Please try again.");
@@ -399,9 +396,8 @@ export const WorkflowStepper = React.memo(({ project }: WorkflowStepperProps) =>
         title: "Update Failed",
         description: "Failed to update project stage. Please try again.",
       });
-      return false;
     }
-  }, [project.id, workflowStages, toast]);
+  }, [updateStatus, workflowStages, toast]);
 
   const handleStageClick = useCallback(async (stage: WorkflowStage) => {
     if (stage.id === project.current_stage_id) return;
@@ -683,7 +679,7 @@ export const WorkflowStepper = React.memo(({ project }: WorkflowStepperProps) =>
                             }`}
                           onClick={() => isClickable && handleStageClick(stage)}
                           onKeyDown={(e) => isClickable && handleKeyDown(e, stage)}
-                          onMouseEnter={() => setHoveredStage(stage)}
+                          onMouseEnter={() => setHoveredStage(stage.id)}
                           onMouseLeave={() => setHoveredStage(null)}
                           tabIndex={isClickable ? 0 : -1}
                           role={isClickable ? "button" : "status"}
@@ -703,7 +699,7 @@ export const WorkflowStepper = React.memo(({ project }: WorkflowStepperProps) =>
                             }}
                           >
                             {getStatusIcon(stage)}
-                            {hoveredStage === stage && status !== 'current' && (
+                            {hoveredStage === stage.id && status !== 'current' && (
                               <div className="absolute -top-1 -right-1 w-4 h-4 rounded-full bg-blue-500 flex items-center justify-center">
                                 <AlertCircle className="w-2 h-2 text-white" />
                               </div>
@@ -835,8 +831,8 @@ export const WorkflowStepper = React.memo(({ project }: WorkflowStepperProps) =>
     </>
   );
 }, (prevProps, nextProps) => {
-  // Only re-render if the project current_stage or updated_at changes
+  // Only re-render if the project current_stage_id or updated_at changes
   // This prevents unnecessary re-renders when other project properties change
-  return prevProps.project.current_stage === nextProps.project.current_stage &&
+  return prevProps.project.current_stage_id === nextProps.project.current_stage_id &&
     prevProps.project.updated_at === nextProps.project.updated_at;
 });

@@ -831,6 +831,7 @@ export function useProjects() {
     getProjectById,
     getBottleneckAnalysis,
     createProject,
-    createOrGetCustomer
+    createOrGetCustomer,
+    subscribeToProjectUpdates
   };
 }

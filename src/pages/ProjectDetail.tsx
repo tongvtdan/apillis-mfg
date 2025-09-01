@@ -112,7 +112,7 @@ export default function ProjectDetail() {
   const [dataSource, setDataSource] = useState<'supabase' | 'mock' | 'unknown'>('unknown');
 
   // Use the projects hook to get real-time updates
-  const { projects } = useProjects();
+  const { projects, subscribeToProjectUpdates } = useProjects();
 
   // Review state management
   const [showReviewForm, setShowReviewForm] = useState<Department | null>(null);
@@ -142,13 +142,12 @@ export default function ProjectDetail() {
         setLoading(true);
         setError(null);
 
-
         // Test connection first
         const connectionTest = await projectService.testConnection();
         setDataSource(connectionTest.source);
 
         if (!connectionTest.success) {
-
+          // Handle connection test failure
         }
 
         const projectData = await projectService.getProjectById(id);
@@ -164,6 +163,22 @@ export default function ProjectDetail() {
 
     fetchProject();
   }, [id]);
+
+  // Set up selective real-time subscription for the specific project
+  useEffect(() => {
+    if (project?.id) {
+      console.log('🔔 Setting up selective real-time subscription for project:', project.id);
+      const subscription = subscribeToProjectUpdates([project.id]);
+
+      // Clean up subscription on unmount
+      return () => {
+        if (subscription) {
+          console.log('🔔 Cleaning up selective real-time subscription for project:', project.id);
+          // The subscription cleanup is handled by the useProjects hook
+        }
+      };
+    }
+  }, [project?.id, subscribeToProjectUpdates]);
 
   // Update project when projects list changes (for real-time updates)
   useEffect(() => {

@@ -50,7 +50,7 @@ export class ApprovalService {
                 .from('users')
                 .select('id, role')
                 .eq('organization_id', organizationId)
-                .in('role', approvalRoles)
+                .in('role', approvalRoles as any) // Type assertion to avoid TS error
                 .eq('is_active', true);
 
             if (usersError) throw usersError;
@@ -138,6 +138,7 @@ export class ApprovalService {
 
     /**
      * Get approval status for a project stage
+     * Handles both workflow_stages and workflow_sub_stages IDs
      */
     async getApprovalStatus(projectId: string, stageId: string): Promise<{
         required: string[];
@@ -147,13 +148,32 @@ export class ApprovalService {
         isComplete: boolean;
     }> {
         try {
-            // Get stage approval requirements - Query workflow_sub_stages instead of workflow_stages
-            // since workflow_stages doesn't have approval_roles or requires_approval columns
-            const { data: stage, error: stageError } = await supabase
+            // First, try to get stage approval requirements from workflow_sub_stages
+            let stage: { approval_roles: string[]; requires_approval: boolean } | null = null;
+            let stageError: any = null;
+
+            const { data: subStage, error: subStageError } = await supabase
                 .from('workflow_sub_stages')
                 .select('approval_roles, requires_approval')
                 .eq('id', stageId)
                 .single();
+
+            if (!subStageError && subStage) {
+                stage = subStage;
+            } else {
+                // If not found in workflow_sub_stages, try workflow_stages
+                const { data: workflowStage, error: workflowStageError } = await supabase
+                    .from('workflow_stages')
+                    .select('approval_roles, requires_approval')
+                    .eq('id', stageId)
+                    .single();
+
+                if (!workflowStageError && workflowStage) {
+                    stage = workflowStage as unknown as { approval_roles: string[]; requires_approval: boolean };
+                } else {
+                    stageError = workflowStageError || subStageError;
+                }
+            }
 
             if (stageError) {
                 // Handle case where stage doesn't exist gracefully
@@ -289,6 +309,7 @@ export class ApprovalService {
 
     /**
      * Auto-assign approvers based on stage requirements
+     * Handles both workflow_stages and workflow_sub_stages IDs
      */
     async autoAssignApprovers(
         projectId: string,
@@ -296,12 +317,32 @@ export class ApprovalService {
         organizationId: string
     ): Promise<{ success: boolean; message: string; approvals?: ApprovalRequest[] }> {
         try {
-            // Get stage approval requirements
-            const { data: stage, error: stageError } = await supabase
+            // First, try to get stage approval requirements from workflow_sub_stages
+            let stage: { approval_roles: string[]; requires_approval: boolean; name: string } | null = null;
+            let stageError: any = null;
+
+            const { data: subStage, error: subStageError } = await supabase
                 .from('workflow_sub_stages')
                 .select('approval_roles, requires_approval, name')
                 .eq('id', stageId)
                 .single();
+
+            if (!subStageError && subStage) {
+                stage = subStage;
+            } else {
+                // If not found in workflow_sub_stages, try workflow_stages
+                const { data: workflowStage, error: workflowStageError } = await supabase
+                    .from('workflow_stages')
+                    .select('approval_roles, requires_approval, name')
+                    .eq('id', stageId)
+                    .single();
+
+                if (!workflowStageError && workflowStage) {
+                    stage = workflowStage as unknown as { approval_roles: string[]; requires_approval: boolean; name: string };
+                } else {
+                    stageError = workflowStageError || subStageError;
+                }
+            }
 
             if (stageError) throw stageError;
 
