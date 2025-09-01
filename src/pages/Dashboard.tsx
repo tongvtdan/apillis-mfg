@@ -6,6 +6,7 @@ import { SearchFilterBar } from "@/components/dashboard/SearchFilterBar";
 import { PriorityActionItems } from "@/components/dashboard/PriorityActionItems";
 import { QuickStats } from "@/components/dashboard/QuickStats";
 import { OverviewCard } from "@/components/dashboard/OverviewCard";
+import { ProjectTypeChart } from "@/components/dashboard/ProjectTypeChart";
 import { Card, CardContent } from "@/components/ui/card";
 import { useDashboardData } from '@/hooks/useDashboardData';
 import { useAuth } from "@/contexts/AuthContext";
@@ -30,6 +31,7 @@ export default function Dashboard() {
   const projects = dashboardData?.recent_projects || [];
   const projectsTotal = dashboardData?.projects?.total || 0;
   const projectsByStatus = dashboardData?.projects?.by_status || {};
+  const projectsByType = dashboardData?.projects?.by_type || {};
   const loading = dashboardLoading;
 
   // Search and filter states
@@ -180,6 +182,13 @@ export default function Dashboard() {
               ))
             )}
           </div>
+
+          {/* Project Type Visualization */}
+          {!loading && Object.keys(projectsByType).length > 0 && (
+            <div className="mb-8">
+              <ProjectTypeChart data={projectsByType} />
+            </div>
+          )}
         </div>
 
         {/* Projects Stats and Activities */}

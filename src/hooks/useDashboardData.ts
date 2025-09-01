@@ -5,6 +5,7 @@ export interface DashboardSummary {
   projects: {
     total: number;
     by_status: Record<string, number>;
+    by_type: Record<string, number>;
   };
   recent_projects: Array<{
     id: string;
@@ -12,6 +13,7 @@ export interface DashboardSummary {
     title: string;
     status: string;
     priority: string;
+    project_type?: string;
     created_at: string;
     customer_name?: string;
   }>;
@@ -44,6 +46,7 @@ export function useProjectsCount() {
   return {
     total: data?.projects?.total ?? 0,
     byStatus: data?.projects?.by_status ?? {},
+    byType: data?.projects?.by_type ?? {},
     isLoading: !data
   };
 }
