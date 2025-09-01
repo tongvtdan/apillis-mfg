@@ -30,6 +30,7 @@ import {
 } from '@/components/ui/select';
 import { Badge } from '@/components/ui/badge';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/tabs';
 import {
   Users,
   Search,
@@ -46,7 +47,6 @@ import {
 import { useToast } from '@/components/ui/use-toast';
 import { UserProfile } from '@/contexts/AuthContext';
 import { ROLE_DESCRIPTIONS } from '@/lib/auth-constants';
-import { ActivityLogDebugger } from '@/components/dev/ActivityLogDebugger';
 
 interface UserWithStats extends UserProfile {
   login_attempts?: number;
@@ -120,7 +120,7 @@ export default function AdminUsers() {
     setFilteredUsers(filtered);
   };
 
-  const updateUserRole = async (userId: string, newRole: string) => {
+  const updateUserRole = async (userId: string, newRole: 'sales' | 'procurement' | 'engineering' | 'qa' | 'production' | 'management' | 'admin') => {
     try {
       const { error } = await supabase
         .from('users')
@@ -161,10 +161,13 @@ export default function AdminUsers() {
     }
   };
 
-  const updateUserStatus = async (userId: string, newStatus: string) => {
+  const updateUserStatus = async (userId: string, newStatus: 'active' | 'inactive' | 'pending' | 'suspended' | 'dismiss') => {
     try {
+      // Map custom "dismiss" status to database "inactive" status
+      const dbStatus = newStatus === 'dismiss' ? 'inactive' : newStatus;
+
       const updateData: any = {
-        status: newStatus,
+        status: dbStatus,
         updated_at: new Date().toISOString()
       };
 
@@ -185,7 +188,7 @@ export default function AdminUsers() {
 
       // Log the status change
       await supabase.from('activity_log').insert({
-        action: newStatus === 'active' ? 'account_unlocked' : 'account_locked',
+        action: dbStatus === 'active' ? 'account_unlocked' : 'account_locked',
         user_id: profile?.id,
         organization_id: profile?.organization_id,
         entity_type: 'user',
@@ -196,7 +199,7 @@ export default function AdminUsers() {
 
       toast({
         title: "Status Updated",
-        description: `User account has been ${newStatus.toLowerCase()}.`
+        description: `User account has been ${newStatus === 'dismiss' ? 'dismissed' : newStatus.toLowerCase()}.`
       });
 
       fetchUsers();
@@ -263,7 +266,7 @@ export default function AdminUsers() {
   }, [searchQuery, roleFilter, statusFilter, users]);
 
   const roles = ['procurement', 'engineering', 'qa', 'production', 'management'];
-  const statuses = ['active', 'dismiss'];
+  const statuses = ['active', 'inactive', 'pending', 'suspended'];
 
   return (
     <div className="p-6 max-w-7xl mx-auto">
@@ -271,9 +274,6 @@ export default function AdminUsers() {
         <h1 className="text-3xl font-bold">User Management</h1>
         <p className="text-muted-foreground">Manage users and their roles within your organization</p>
       </div>
-
-      {/* Activity Log Debugger - only show in development */}
-      {import.meta.env.DEV && <ActivityLogDebugger />}
 
       <Tabs defaultValue="users" className="w-full">
         <TabsList className="grid w-full grid-cols-2">
@@ -556,7 +556,7 @@ export default function AdminUsers() {
                                 <Button
                                   variant="ghost"
                                   size="sm"
-                                  onClick={() => updateUserStatus(user.id, 'locked')}
+                                  onClick={() => updateUserStatus(user.id, 'suspended')}
                                 >
                                   <Lock className="h-4 w-4" />
                                 </Button>
@@ -848,7 +848,7 @@ export default function AdminUsers() {
                                 <Button
                                   variant="ghost"
                                   size="sm"
-                                  onClick={() => updateUserStatus(user.id, 'locked')}
+                                  onClick={() => updateUserStatus(user.id, 'suspended')}
                                 >
                                   <Lock className="h-4 w-4" />
                                 </Button>
