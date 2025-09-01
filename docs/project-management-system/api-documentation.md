@@ -564,6 +564,155 @@ interface RecentStageTransition {
 }
 ```
 
+## Approval System Endpoints
+
+### POST /projects/:id/approvals - Create Approval Requests
+
+**Purpose**: Create approval requests for a project stage transition with automatic approver assignment.
+
+**Request Body**:
+```typescript
+interface CreateApprovalRequestsRequest {
+  stage_id: string;
+  approval_roles: string[];
+  organization_id: string;
+}
+```
+
+**Implementation**:
+```typescript
+import { approvalService } from '@/services/approvalService';
+
+async function createApprovalRequests(
+  projectId: string,
+  { stage_id, approval_roles, organization_id }: CreateApprovalRequestsRequest
+) {
+  const approvals = await approvalService.createApprovalRequests(
+    projectId,
+    stage_id,
+    approval_roles,
+    organization_id
+  );
+  
+  return approvals;
+}
+```
+
+**Response**: Array of `ApprovalRequest` objects with assigned approvers.
+
+### GET /users/:id/approvals/pending - Get Pending Approvals for User
+
+**Purpose**: Retrieve all pending approval requests assigned to a specific user.
+
+**Implementation**:
+```typescript
+async function getPendingApprovalsForUser(userId: string) {
+  const approvals = await approvalService.getPendingApprovalsForUser(userId);
+  return approvals;
+}
+```
+
+**Response**: Array of `ApprovalRequest` objects with project context.
+
+### GET /projects/:id/stages/:stageId/approval-status - Get Approval Status
+
+**Purpose**: Get comprehensive approval status for a project stage transition.
+
+**Implementation**:
+```typescript
+async function getApprovalStatus(projectId: string, stageId: string) {
+  const status = await approvalService.getApprovalStatus(projectId, stageId);
+  return status;
+}
+```
+
+**Response**:
+```typescript
+interface ApprovalStatusResponse {
+  required: string[];           // Required approval roles
+  pending: ApprovalRequest[];   // Pending approval requests
+  approved: ApprovalRequest[];  // Approved requests
+  rejected: ApprovalRequest[];  // Rejected requests
+  isComplete: boolean;          // Whether all required approvals are complete
+}
+```
+
+### PUT /approvals/:id/decision - Submit Approval Decision
+
+**Purpose**: Submit an approval decision (approve or reject) with optional comments.
+
+**Request Body**:
+```typescript
+interface SubmitApprovalDecisionRequest {
+  decision: 'approved' | 'rejected';
+  comments?: string;
+  decision_reason?: string;
+}
+```
+
+**Implementation**:
+```typescript
+async function submitApprovalDecision(
+  approvalId: string,
+  { decision, comments, decision_reason }: SubmitApprovalDecisionRequest
+) {
+  const success = await approvalService.submitApproval(
+    approvalId,
+    decision,
+    comments,
+    decision_reason
+  );
+  
+  return { success };
+}
+```
+
+**Response**: Success boolean indicating if the decision was recorded.
+
+### GET /projects/:id/approval-history - Get Approval History
+
+**Purpose**: Retrieve complete approval history for a project.
+
+**Implementation**:
+```typescript
+async function getProjectApprovalHistory(projectId: string) {
+  const history = await approvalService.getApprovalHistory(projectId);
+  return history;
+}
+```
+
+**Response**: Array of `ApprovalHistory` objects with approver details and decisions.
+
+### POST /projects/:id/stages/:stageId/auto-assign-approvers - Auto-Assign Approvers
+
+**Purpose**: Automatically assign approvers based on stage requirements and user roles.
+
+**Implementation**:
+```typescript
+async function autoAssignApprovers(
+  projectId: string,
+  stageId: string,
+  organizationId: string
+) {
+  const result = await approvalService.autoAssignApprovers(
+    projectId,
+    stageId,
+    organizationId
+  );
+  
+  return result;
+}
+```
+
+**Response**:
+```typescript
+interface AutoAssignApproversResponse {
+  success: boolean;
+  message: string;
+  approvals?: ApprovalRequest[];
+}
+```
+
 ## Review System Endpoints
 
 ### GET /projects/:id/reviews - Get Project Reviews

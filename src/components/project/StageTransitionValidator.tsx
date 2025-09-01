@@ -22,6 +22,8 @@ import { prerequisiteChecker, PrerequisiteResult } from "@/services/prerequisite
 import { stageHistoryService } from "@/services/stageHistoryService";
 import { usePermissions } from "@/hooks/usePermissions";
 import { useAuth } from "@/contexts/AuthContext";
+import { useApprovals } from "@/hooks/useApprovals";
+import { ApprovalStatusWidget } from "@/components/approval/ApprovalStatusWidget";
 import {
     Dialog,
     DialogContent,
@@ -63,6 +65,7 @@ export function StageTransitionValidator({
     const [currentStage, setCurrentStage] = useState<WorkflowStage | null>(null);
     const { checkPermission } = usePermissions();
     const { user } = useAuth();
+    const { autoAssignApprovers } = useApprovals();
 
     useEffect(() => {
         if (isOpen && project && targetStage) {
@@ -372,6 +375,20 @@ export function StageTransitionValidator({
                                         </Tabs>
                                     </CardContent>
                                 </Card>
+                            )}
+
+                            {/* Approval Status Widget */}
+                            {targetStage.requires_approval && (
+                                <ApprovalStatusWidget
+                                    projectId={project.id}
+                                    stageId={targetStage.id}
+                                    showRequestButton={true}
+                                    onRequestApprovals={async () => {
+                                        await autoAssignApprovers(project.id, targetStage.id, project.organization_id);
+                                        // Refresh validation after requesting approvals
+                                        validateTransition();
+                                    }}
+                                />
                             )}
 
                             {/* Bypass Section */}

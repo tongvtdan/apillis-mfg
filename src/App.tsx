@@ -25,6 +25,7 @@ import ProjectDetail from "./pages/ProjectDetail";
 import NewRFQ from "./pages/NewRFQ";
 import Settings from "./pages/Settings";
 import Profile from "./pages/Profile";
+import Approvals from "./pages/Approvals";
 
 import { applyAdaptiveTheme } from "@/lib/theme";
 
@@ -102,6 +103,11 @@ const App = () => {
             <Route path="/reviews" element={
               <ProtectedRoute requiredRoles={['engineering', 'qa', 'production', 'management', 'admin', 'procurement']}>
                 <AppLayout><div className="p-6">Reviews - Coming Soon</div></AppLayout>
+              </ProtectedRoute>
+            } />
+            <Route path="/approvals" element={
+              <ProtectedRoute requiredRoles={['engineering', 'qa', 'production', 'management', 'admin', 'procurement']}>
+                <AppLayout><Approvals /></AppLayout>
               </ProtectedRoute>
             } />
             <Route path="/project/:id" element={

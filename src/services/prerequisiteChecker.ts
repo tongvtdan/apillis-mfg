@@ -1,5 +1,6 @@
 import { supabase } from '@/integrations/supabase/client';
 import { Project, WorkflowStage } from '@/types/project';
+import { approvalService } from './approvalService';
 
 export interface PrerequisiteCheck {
     id: string;
@@ -247,47 +248,10 @@ class PrerequisiteChecker {
         const checks: PrerequisiteCheck[] = [];
 
         try {
-            // Check if target stage requires approval
-            if (targetStage.requires_approval && targetStage.approval_roles && targetStage.approval_roles.length > 0) {
-                // Get existing approvals for this project and stage
-                const { data: reviews, error } = await supabase
-                    .from('reviews')
-                    .select('id, reviewer_id, status, review_type')
-                    .eq('project_id', project.id)
-                    .eq('status', 'approved');
+            // Use the approval service to get comprehensive approval status
+            const approvalStatus = await approvalService.getApprovalStatus(project.id, targetStage.id);
 
-                if (error) {
-                    console.error('Error fetching reviews:', error);
-                    checks.push({
-                        id: 'approval_fetch_error',
-                        name: 'Approval Check Error',
-                        description: 'Failed to check approval requirements',
-                        status: 'warning',
-                        required: false,
-                        details: 'Could not verify approval status',
-                        category: 'approvals'
-                    });
-                    return checks;
-                }
-
-                // Check each required approval role
-                targetStage.approval_roles.forEach(role => {
-                    const hasApproval = reviews?.some(review =>
-                        review.review_type === role ||
-                        review.review_type?.toLowerCase().includes(role.toLowerCase())
-                    );
-
-                    checks.push({
-                        id: `approval_${role}`,
-                        name: `${role} Approval`,
-                        description: `Approval from ${role} role`,
-                        status: hasApproval ? 'passed' : 'failed',
-                        required: true,
-                        details: hasApproval ? undefined : `${role} approval is required for this stage`,
-                        category: 'approvals'
-                    });
-                });
-            } else {
+            if (approvalStatus.required.length === 0) {
                 // No approvals required
                 checks.push({
                     id: 'no_approvals_required',
@@ -298,6 +262,70 @@ class PrerequisiteChecker {
                     details: 'This stage does not require approvals',
                     category: 'approvals'
                 });
+            } else {
+                // Check each required approval role
+                approvalStatus.required.forEach(role => {
+                    const hasApproval = approvalStatus.approved.some(a => a.approver_role === role);
+                    const isRejected = approvalStatus.rejected.some(a => a.approver_role === role);
+                    const isPending = approvalStatus.pending.some(a => a.approver_role === role);
+
+                    let status: 'passed' | 'failed' | 'warning' = 'failed';
+                    let details = `${role} approval is required for this stage`;
+
+                    if (hasApproval) {
+                        status = 'passed';
+                        details = `${role} approval granted`;
+                    } else if (isRejected) {
+                        status = 'failed';
+                        details = `${role} approval was rejected`;
+                    } else if (isPending) {
+                        status = 'warning';
+                        details = `${role} approval is pending`;
+                    }
+
+                    checks.push({
+                        id: `approval_${role}`,
+                        name: `${role} Approval`,
+                        description: `Approval from ${role} role`,
+                        status,
+                        required: true,
+                        details,
+                        category: 'approvals'
+                    });
+                });
+
+                // Add overall approval status check
+                if (approvalStatus.isComplete) {
+                    checks.push({
+                        id: 'all_approvals_complete',
+                        name: 'All Approvals Complete',
+                        description: 'All required approvals have been obtained',
+                        status: 'passed',
+                        required: true,
+                        details: 'Stage transition can proceed',
+                        category: 'approvals'
+                    });
+                } else if (approvalStatus.rejected.length > 0) {
+                    checks.push({
+                        id: 'approvals_rejected',
+                        name: 'Approvals Rejected',
+                        description: 'Some approvals have been rejected',
+                        status: 'failed',
+                        required: true,
+                        details: 'Address rejected approvals before proceeding',
+                        category: 'approvals'
+                    });
+                } else if (approvalStatus.pending.length > 0) {
+                    checks.push({
+                        id: 'approvals_pending',
+                        name: 'Approvals Pending',
+                        description: 'Waiting for approval decisions',
+                        status: 'warning',
+                        required: true,
+                        details: `${approvalStatus.pending.length} approval(s) still pending`,
+                        category: 'approvals'
+                    });
+                }
             }
 
         } catch (error) {

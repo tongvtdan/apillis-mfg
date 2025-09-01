@@ -70,6 +70,12 @@ export function useRoleBasedNavigation() {
             requiredRoles: [UserRole.ENGINEERING, UserRole.QA, UserRole.PRODUCTION, UserRole.MANAGEMENT, UserRole.ADMIN, UserRole.PROCUREMENT]
         },
         {
+            path: '/approvals',
+            label: 'Approvals',
+            icon: 'Shield',
+            requiredRoles: [UserRole.ENGINEERING, UserRole.QA, UserRole.PRODUCTION, UserRole.MANAGEMENT, UserRole.ADMIN, UserRole.PROCUREMENT]
+        },
+        {
             path: '/analytics',
             label: 'Analytics',
             icon: 'BarChart3',
