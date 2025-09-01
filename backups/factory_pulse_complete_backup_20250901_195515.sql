@@ -354,6 +354,7 @@ DECLARE
     status_counts JSONB;
     type_counts JSONB;
     priority_counts JSONB;
+    stage_counts JSONB;
     project_record RECORD;
     debug_info JSONB;
 BEGIN
@@ -383,7 +384,7 @@ BEGIN
         -- If still no organization, return empty result with debug info
         IF user_org_id IS NULL THEN
             RETURN jsonb_build_object(
-                'projects', jsonb_build_object('total', 0, 'by_status', '{}', 'by_type', '{}', 'by_priority', '{}'),
+                'projects', jsonb_build_object('total', 0, 'by_status', '{}', 'by_type', '{}', 'by_priority', '{}', 'by_stage', '{}'),
                 'recent_projects', '[]',
                 'generated_at', extract(epoch from now()),
                 'debug', debug_info
@@ -434,12 +435,26 @@ BEGIN
         priority_counts := priority_counts || jsonb_build_object(project_record.priority, project_record.count);
     END LOOP;
 
+    -- Get project counts by stage
+    stage_counts := '{}';
+    FOR project_record IN 
+        SELECT 
+            current_stage_id,
+            COUNT(*) as count
+        FROM projects 
+        WHERE organization_id = user_org_id AND current_stage_id IS NOT NULL
+        GROUP BY current_stage_id
+    LOOP
+        stage_counts := stage_counts || jsonb_build_object(project_record.current_stage_id, project_record.count);
+    END LOOP;
+
     -- Build project counts object
     project_counts := jsonb_build_object(
         'total', (SELECT COUNT(*) FROM projects WHERE organization_id = user_org_id),
         'by_status', status_counts,
         'by_type', type_counts,
-        'by_priority', priority_counts
+        'by_priority', priority_counts,
+        'by_stage', stage_counts
     );
 
     -- Get recent projects with customer information
@@ -447,6 +462,7 @@ BEGIN
         SELECT jsonb_agg(
             jsonb_build_object(
                 'id', p.id,
+                'organization_id', p.organization_id,
                 'project_id', p.project_id,
                 'title', p.title,
                 'status', p.status,

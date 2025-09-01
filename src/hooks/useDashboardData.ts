@@ -2,19 +2,21 @@ import { useQuery } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
 import { useEffect } from 'react';
+import { ProjectStatus, ProjectPriority } from '@/types/project';
 
 export interface DashboardProject {
   id: string;
+  organization_id: string;
   project_id: string;
   title: string;
-  status: string;
-  priority_level: string;
+  status: ProjectStatus;
+  priority_level: ProjectPriority;
   project_type?: string;
   created_at: string;
   customer_name?: string;
   estimated_delivery_date?: string;
   days_in_stage?: number;
-  current_stage?: string;
+  current_stage?: string | WorkflowStage;
 }
 
 export interface DashboardSummary {
@@ -23,6 +25,7 @@ export interface DashboardSummary {
     by_status: Record<string, number>;
     by_type: Record<string, number>;
     by_priority: Record<string, number>;
+    by_stage: Record<string, number>;
   };
   recent_projects: DashboardProject[];
   generated_at: number;

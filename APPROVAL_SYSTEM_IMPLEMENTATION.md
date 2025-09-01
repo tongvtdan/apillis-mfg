@@ -8,7 +8,7 @@ Successfully implemented a comprehensive approval workflow system for the MVP Pr
 
 ### 1. Core Services
 
-#### ApprovalService (`src/services/approvalService.ts`)
+#### ApprovalService ([src/services/approvalService.ts](file:///Volumes/Work/Projects/Apillis/Apillis-MFG/source/src/services/approvalService.ts))
 - **createApprovalRequests**: Creates approval requests for required roles when a stage transition needs approval
 - **getPendingApprovalsForUser**: Retrieves pending approvals for a specific user
 - **getApprovalStatus**: Gets comprehensive approval status for a project stage
@@ -16,7 +16,7 @@ Successfully implemented a comprehensive approval workflow system for the MVP Pr
 - **getApprovalHistory**: Retrieves complete approval history for a project
 - **autoAssignApprovers**: Automatically assigns approvers based on stage requirements
 
-#### NotificationService (`src/services/notificationService.ts`)
+#### NotificationService ([src/services/notificationService.ts](file:///Volumes/Work/Projects/Apillis/Apillis-MFG/source/src/services/notificationService.ts))
 - **sendApprovalRequestNotifications**: Sends notifications when approval is requested
 - **sendApprovalDecisionNotifications**: Sends notifications when approval decisions are made
 - **sendOverdueApprovalReminders**: Sends reminders for overdue approvals
@@ -25,36 +25,36 @@ Successfully implemented a comprehensive approval workflow system for the MVP Pr
 
 ### 2. React Hooks
 
-#### useApprovals (`src/hooks/useApprovals.ts`)
+#### useApprovals ([src/hooks/useApprovals.ts](file:///Volumes/Work/Projects/Apillis/Apillis-MFG/source/src/hooks/useApprovals.ts))
 - Manages approval state and operations
 - Provides methods for submitting approvals, getting status, and auto-assigning approvers
 - Handles loading states and error management
 
-#### useProjectApprovalStatus (`src/hooks/useApprovals.ts`)
+#### useProjectApprovalStatus ([src/hooks/useApprovals.ts](file:///Volumes/Work/Projects/Apillis/Apillis-MFG/source/src/hooks/useApprovals.ts))
 - Specialized hook for tracking approval status of a specific project stage
 - Real-time updates of approval progress
 
 ### 3. UI Components
 
-#### ApprovalDashboard (`src/components/approval/ApprovalDashboard.tsx`)
+#### ApprovalDashboard ([src/components/approval/ApprovalDashboard.tsx](file:///Volumes/Work/Projects/Apillis/Apillis-MFG/source/src/components/approval/ApprovalDashboard.tsx))
 - Main dashboard showing pending approvals and approval history
 - Summary cards with counts and metrics
 - Tabbed interface for pending vs. history views
 - Integration with approval modal for decision making
 
-#### ApprovalModal (`src/components/approval/ApprovalModal.tsx`)
+#### ApprovalModal ([src/components/approval/ApprovalModal.tsx](file:///Volumes/Work/Projects/Apillis/Apillis-MFG/source/src/components/approval/ApprovalModal.tsx))
 - Modal for reviewing and making approval decisions
 - Shows project context and approval details
 - Form for submitting approval/rejection with comments and rationale
 - Validation and error handling
 
-#### ApprovalStatusWidget (`src/components/approval/ApprovalStatusWidget.tsx`)
+#### ApprovalStatusWidget ([src/components/approval/ApprovalStatusWidget.tsx](file:///Volumes/Work/Projects/Apillis/Apillis-MFG/source/src/components/approval/ApprovalStatusWidget.tsx))
 - Compact widget showing approval status for a project stage
 - Progress indicators and role-based status tracking
 - Integration with stage transition validation
 - Request approvals functionality
 
-#### ApprovalHistoryList (`src/components/approval/ApprovalHistoryList.tsx`)
+#### ApprovalHistoryList ([src/components/approval/ApprovalHistoryList.tsx](file:///Volumes/Work/Projects/Apillis/Apillis-MFG/source/src/components/approval/ApprovalHistoryList.tsx))
 - Displays chronological list of approval decisions
 - Shows approver details, timestamps, and comments
 - Status indicators and decision rationale
@@ -62,8 +62,8 @@ Successfully implemented a comprehensive approval workflow system for the MVP Pr
 ### 4. Integration Points
 
 #### Stage Transition Integration
-- Updated `StageTransitionValidator.tsx` to include approval status widget
-- Enhanced `prerequisiteChecker.ts` to use the new approval service
+- Updated [StageTransitionValidator.tsx](file:///Volumes/Work/Projects/Apillis/Apillis-MFG/source/src/components/project/StageTransitionValidator.tsx) to include approval status widget
+- Enhanced [prerequisiteChecker.ts](file:///Volumes/Work/Projects/Apillis/Apillis-MFG/source/src/services/prerequisiteChecker.ts) to use the new approval service
 - Seamless integration with existing workflow stage system
 
 #### Navigation and Routing
@@ -107,8 +107,8 @@ Successfully implemented a comprehensive approval workflow system for the MVP Pr
 
 ## Database Integration
 
-The system leverages the existing `reviews` table in the database:
-- Uses `review_type` field to identify approval types
+The system leverages the existing [reviews](file:///Volumes/Work/Projects/Apillis/Apillis-MFG/source/src/components/project/ReviewList.tsx#L21-L21) table in the database:
+- Uses [review_type](file:///Volumes/Work/Projects/Apillis/Apillis-MFG/source/src/hooks/useReviews.ts#L11-L11) field to identify approval types
 - Stores approval metadata in JSON format
 - Integrates with existing user and project relationships
 - Maintains data consistency with existing workflow system
@@ -116,8 +116,8 @@ The system leverages the existing `reviews` table in the database:
 ## Testing
 
 Implemented comprehensive test suites:
-- Unit tests for ApprovalService (`src/services/__tests__/approvalService.test.ts`)
-- Integration tests for UI components (`src/components/approval/__tests__/ApprovalWorkflow.test.tsx`)
+- Unit tests for ApprovalService ([src/services/__tests__/approvalService.test.ts](file:///Volumes/Work/Projects/Apillis/Apillis-MFG/source/src/services/__tests__/approvalService.test.ts))
+- Integration tests for UI components ([src/components/approval/__tests__/ApprovalWorkflow.test.tsx](file:///Volumes/Work/Projects/Apillis/Apillis-MFG/source/src/components/approval/__tests__/ApprovalWorkflow.test.tsx))
 - Mock implementations for testing isolation
 - Test coverage for all major approval workflows
 
@@ -177,3 +177,40 @@ The system is designed to support future enhancements:
 4. Manage overdue approvals and escalations
 
 The approval workflow system is now fully functional and integrated into the existing MVP Project Workflow Management system, providing a robust foundation for managing project stage transitions with proper approval controls.
+
+## Approval System Relationship Diagram
+
+```mermaid
+graph TD
+    A[Project] --> B[Workflow Stage]
+    B --> C[Stage Transition]
+    C --> D[Approval Requirement]
+    D --> E[ApprovalService]
+    E --> F[createApprovalRequests]
+    F --> G[Reviews Table - review_type: approval]
+    
+    H[User Roles] --> I[autoAssignApprovers]
+    E --> I
+    I --> J[Pending Approvals]
+    
+    K[useApprovals Hook] --> L[getPendingApprovalsForUser]
+    L --> M[Approver Dashboard]
+    
+    N[ApprovalDashboard Component] --> O[Pending Approvals View]
+    N --> P[Approval History View]
+    
+    Q[ApprovalModal] --> R[submitApproval]
+    R --> S[Approval Decision - Approved/Rejected]
+    
+    T[NotificationService] --> U[sendApprovalRequestNotifications]
+    T --> V[sendApprovalDecisionNotifications]
+    
+    E --> T
+    S --> T
+    
+    W[ApprovalStatusWidget] --> X[useProjectApprovalStatus]
+    X --> Y[Real-time Status Tracking]
+    
+    Z[ApprovalHistoryList] --> AA[getApprovalHistory]
+    AA --> AB[Approval Audit Trail]
+```
