@@ -18,7 +18,10 @@ import {
     Settings,
     Play,
     Target,
-    Calendar
+    Calendar,
+    Package,
+    FileText,
+    MessageSquare
 } from "lucide-react";
 import { format, parseISO } from "date-fns";
 import type { Project, WorkflowStage } from "@/types/project";

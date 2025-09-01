@@ -231,23 +231,20 @@ export const InteractiveNavigationSidebar: React.FC<InteractiveNavigationSidebar
                                             </div>
                                             <div className="flex items-center space-x-2">
                                                 {getTabBadge(tab)}
-                                                {hasSubTabs && (
-                                                    <button
-                                                        onClick={(e) => {
-                                                            e.stopPropagation();
-                                                            toggleTabExpansion(tab.id);
-                                                        }}
-                                                        className="p-0.5 rounded hover:bg-primary-foreground/20"
-                                                    >
-                                                        {isExpanded ? (
-                                                            <ChevronDown className="w-3 h-3" />
-                                                        ) : (
-                                                            <ChevronRight className="w-3 h-3" />
-                                                        )}
-                                                    </button>
-                                                )}
                                             </div>
                                         </button>
+                                        {hasSubTabs && (
+                                            <button
+                                                onClick={() => toggleTabExpansion(tab.id)}
+                                                className="p-1 rounded hover:bg-muted transition-colors"
+                                            >
+                                                {isExpanded ? (
+                                                    <ChevronDown className="w-3 h-3" />
+                                                ) : (
+                                                    <ChevronRight className="w-3 h-3" />
+                                                )}
+                                            </button>
+                                        )}
                                     </div>
 
                                     {/* Sub Tabs */}
