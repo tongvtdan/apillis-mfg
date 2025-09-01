@@ -390,11 +390,23 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         console.error('SignIn error:', error);
         // Handle failed login
         await handleFailedLogin(email);
-        await logAuditEvent('login_failure', false, { error: error.message });
+        await logAuditEvent('login_failure', false, {
+          error: error.message,
+          email,
+          attempt_time: new Date().toISOString()
+        });
         throw error;
       }
 
       console.log('SignIn successful, user:', data.user);
+
+      // Log successful login
+      await logAuditEvent('login_success', true, {
+        email,
+        login_time: new Date().toISOString(),
+        user_agent: navigator.userAgent
+      });
+
       toast({
         title: "Welcome back!",
         description: "You have been successfully signed in.",
@@ -456,6 +468,12 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const signOut = async () => {
     setLoading(true);
     try {
+      // Log logout before signing out
+      await logAuditEvent('logout', true, {
+        logout_time: new Date().toISOString(),
+        user_agent: navigator.userAgent
+      });
+
       const { error } = await supabase.auth.signOut();
 
       if (error) {

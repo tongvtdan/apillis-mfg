@@ -13,6 +13,7 @@ import {
 import { Badge } from "@/components/ui/badge";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { useAuth } from "@/contexts/AuthContext";
+import { SessionStatus } from "@/components/auth/SessionStatus";
 import { Link, useLocation } from "react-router-dom";
 
 
@@ -72,6 +73,8 @@ export function AppHeader() {
               3
             </Badge>
           </Button>
+
+          <SessionStatus />
 
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
