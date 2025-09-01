@@ -108,8 +108,8 @@ export function PendingTasks() {
       </CardHeader>
       <CardContent className="space-y-4">
         {pendingTasks.map((task) => (
-          <div 
-            key={task.id} 
+          <div
+            key={task.id}
             className={`flex items-start space-x-3 p-3 rounded-lg border hover:bg-muted/50 transition-colors cursor-pointer ${getPriorityClass(task.priority)}`}
             onClick={() => handleTaskClick(task)}
           >

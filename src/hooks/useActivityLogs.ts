@@ -3,39 +3,43 @@ import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
 
 export interface ActivityLog {
-  id: string;
-  action: string;
-  entity_type: string;
-  entity_id: string;
-  description: string;
-  old_values: Record<string, any> | null;
-  new_values: Record<string, any> | null;
-  created_at: string;
-  user_id: string | null;
-  project_id: string | null;
-  contact_id: string | null;
+    id: string;
+    action: string;
+    entity_type: string;
+    entity_id: string;
+    description: string;
+    old_values: Record<string, any> | null;
+    new_values: Record<string, any> | null;
+    created_at: string;
+    user_id: string | null;
+    metadata: Record<string, any> | null;
 }
 
 export function useActivityLogs(limit: number = 10) {
-  const [activities, setActivities] = useState<ActivityLog[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
-  const { profile } = useAuth();
+    const [activities, setActivities] = useState<ActivityLog[]>([]);
+    const [loading, setLoading] = useState(true);
+    const [error, setError] = useState<string | null>(null);
+    const { profile } = useAuth();
 
-  useEffect(() => {
-    const fetchActivities = async () => {
-      if (!profile?.organization_id) {
-        setLoading(false);
-        return;
-      }
+    useEffect(() => {
+        const fetchActivities = async () => {
+            console.log('Fetching activities for profile:', profile);
 
-      try {
-        setLoading(true);
-        
-        // Fetch recent activity logs for the organization
-        const { data, error: fetchError } = await supabase
-          .from('activity_log')
-          .select(`
+            if (!profile?.organization_id) {
+                console.log('No organization_id found in profile');
+                setLoading(false);
+                return;
+            }
+
+            console.log('Fetching activities for organization_id:', profile.organization_id);
+
+            try {
+                setLoading(true);
+
+                // Fetch recent activity logs for the organization
+                const { data, error: fetchError } = await supabase
+                    .from('activity_log')
+                    .select(`
             id,
             action,
             entity_type,
@@ -45,49 +49,52 @@ export function useActivityLogs(limit: number = 10) {
             new_values,
             created_at,
             user_id,
-            project_id,
-            contact_id
+            metadata
           `)
-          .eq('organization_id', profile.organization_id)
-          .order('created_at', { ascending: false })
-          .limit(limit);
+                    .eq('organization_id', profile.organization_id)
+                    .order('created_at', { ascending: false })
+                    .limit(limit);
 
-        if (fetchError) {
-          setError(fetchError.message);
-          return;
-        }
+                console.log('Activity logs query result:', { data, error: fetchError });
 
-        setActivities(data || []);
-      } catch (err) {
-        setError(err instanceof Error ? err.message : 'Failed to fetch activities');
-      } finally {
-        setLoading(false);
-      }
-    };
+                if (fetchError) {
+                    console.error('Error fetching activities:', fetchError);
+                    setError(fetchError.message);
+                    return;
+                }
 
-    fetchActivities();
-  }, [profile?.organization_id, limit]);
+                setActivities(data || []);
+            } catch (err) {
+                console.error('Exception in fetchActivities:', err);
+                setError(err instanceof Error ? err.message : 'Failed to fetch activities');
+            } finally {
+                setLoading(false);
+            }
+        };
 
-  return {
-    activities,
-    loading,
-    error,
-    refetch: () => {
-      // Reset loading state and refetch
-      setLoading(true);
-      setError(null);
-      
-      // Re-run the effect
-      const fetchActivities = async () => {
-        if (!profile?.organization_id) {
-          setLoading(false);
-          return;
-        }
+        fetchActivities();
+    }, [profile?.organization_id, limit]);
 
-        try {
-          const { data, error: fetchError } = await supabase
-            .from('activity_log')
-            .select(`
+    return {
+        activities,
+        loading,
+        error,
+        refetch: () => {
+            // Reset loading state and refetch
+            setLoading(true);
+            setError(null);
+
+            // Re-run the effect
+            const fetchActivities = async () => {
+                if (!profile?.organization_id) {
+                    setLoading(false);
+                    return;
+                }
+
+                try {
+                    const { data, error: fetchError } = await supabase
+                        .from('activity_log')
+                        .select(`
               id,
               action,
               entity_type,
@@ -97,27 +104,26 @@ export function useActivityLogs(limit: number = 10) {
               new_values,
               created_at,
               user_id,
-              project_id,
-              contact_id
+              metadata
             `)
-            .eq('organization_id', profile.organization_id)
-            .order('created_at', { ascending: false })
-            .limit(limit);
+                        .eq('organization_id', profile.organization_id)
+                        .order('created_at', { ascending: false })
+                        .limit(limit);
 
-          if (fetchError) {
-            setError(fetchError.message);
-            return;
-          }
+                    if (fetchError) {
+                        setError(fetchError.message);
+                        return;
+                    }
 
-          setActivities(data || []);
-        } catch (err) {
-          setError(err instanceof Error ? err.message : 'Failed to fetch activities');
-        } finally {
-          setLoading(false);
+                    setActivities(data || []);
+                } catch (err) {
+                    setError(err instanceof Error ? err.message : 'Failed to fetch activities');
+                } finally {
+                    setLoading(false);
+                }
+            };
+
+            fetchActivities();
         }
-      };
-
-      fetchActivities();
-    }
-  };
+    };
 }
