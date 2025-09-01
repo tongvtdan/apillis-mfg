@@ -1,7 +1,7 @@
-Chapter 1 — React with TypeScript (Web)
+# Chapter 1 — React with TypeScript (Web)
 
-Tool: Lovable
-- Prompt 1 — Best Practices Primer
+## Tool: Lovable
+- ***Prompt 1 — Best Practices Primer***
 ```
 Role: Senior React + TypeScript engineer. Goal: Review and enforce modern best practices for a React 18 app using TypeScript 5.x.
 
@@ -23,7 +23,7 @@ Output:
 - “Pitfalls + fixes”
 ```
 
-- Prompt 2 — Feature/Component Generator
+- ***Prompt 2 — Feature/Component Generator***
 ```
 Role: Feature engineer. Goal: Implement a production-ready feature with types-first design.
 
@@ -49,7 +49,7 @@ Deliver:
 Return code as complete files with import paths relative to src/.
 ```
 
-- Prompt 3 — Debug & Fix
+- ***Prompt 3 — Debug & Fix***
 ```
 Role: Debugger. Goal: Diagnose and fix an issue quickly with minimal changes.
 
@@ -73,7 +73,7 @@ Output:
 - “Verification steps”
 ```
 
-- Prompt 4 — Refactor & Architecture Strategy
+- ***Prompt 4 — Refactor & Architecture Strategy***
 ```
 Role: Architect. Goal: Refactor toward scalable patterns with measurable benefits.
 
@@ -95,7 +95,7 @@ Deliver:
 - Checklist
 ```
 
-- Prompt 5 — Dev Strategy & Quality Gates
+- ***Prompt 5 — Dev Strategy & Quality Gates***
 ```
 Role: Tech lead. Goal: Establish quality gates and delivery strategy.
 
@@ -118,7 +118,7 @@ Output:
 - Checklists
 ```
 
-Tool: Cursor
+## Tool: Cursor
 - Prompt 1 — Best Practices Primer (Cursor-optimized)
 ```
 Act as a React+TS reviewer. Scan the current files I select. Summarize issues and propose fixes using modern best practices (strict typing, idiomatic hooks, Suspense/error boundaries, server-state vs UI-state, a11y, security). Output:

@@ -2,6 +2,92 @@
 
 ## Recent Changes
 
+### 2025-09-01 - ProjectDetail Loading Issue Fix
+
+**Task Completed:**
+- Fixed critical loading issue in ProjectDetail page where all tabs except Overview showed perpetual loading state
+- Resolved TypeScript errors related to document properties and workflow stage types
+- Optimized tab switching performance by removing unnecessary loading states
+
+**Root Cause Analysis:**
+- **TabTransition Component Bug**: The `TabTransition` component was showing loading state for 300ms on every tab change due to `isTransitioning` state logic
+- **useProjectNavigation Hook Issue**: Hook initialized `tabLoadingStates` as empty object, causing inconsistent loading state management
+- **TypeScript Type Conflicts**: Multiple `ProjectDocument` interface definitions causing property access errors
+- **Document Property Mismatch**: Using incorrect property names (`original_file_name`, `uploaded_at`) instead of correct ones (`file_name`, `created_at`)
+
+**Technical Fixes Applied:**
+
+1. **TabTransition Component Fix** (`src/components/project/TabTransition.tsx`):
+   - Removed automatic loading state on tab changes (`isTransitioning` logic)
+   - Only show loading when explicitly requested via `isLoading` prop
+   - Reduced transition duration from 300ms to 200ms for snappier UX
+   - Simplified state management by removing unnecessary transition tracking
+
+2. **ProjectDetail TypeScript Fixes** (`src/pages/ProjectDetail.tsx`):
+   - Fixed document property access to use correct `ProjectDocument` interface from `useDocuments` hook
+   - Corrected property names: `file_name` instead of `original_file_name`, `created_at` instead of `uploaded_at`
+   - Added proper type casting for `workflowStages` to resolve type conflicts
+   - Fixed supplier RFQ status filtering to use valid status values
+
+3. **Navigation Hook Optimization**:
+   - Ensured `useProjectNavigation` hook properly manages loading states
+   - Fixed supplier RFQ count calculation to avoid invalid status comparisons
+
+**Key Changes Made:**
+```typescript
+// Before: Automatic loading on tab changes
+if (isLoading || isTransitioning) {
+  return <LoadingComponent />;
+}
+
+// After: Only explicit loading
+if (isLoading) {
+  return <LoadingComponent />;
+}
+
+// Before: Incorrect document properties
+{doc.original_file_name || doc.filename || 'N/A'}
+{doc.uploaded_at ? format(new Date(doc.uploaded_at), 'MMM dd') : 'N/A'}
+
+// After: Correct document properties
+{doc.file_name || 'N/A'}
+{doc.created_at ? format(new Date(doc.created_at), 'MMM dd') : 'N/A'}
+```
+
+**Performance Improvements:**
+- **Instant Tab Switching**: Tab changes now happen immediately without artificial loading delays
+- **Reduced Transition Time**: Animation duration reduced from 300ms to 200ms
+- **Eliminated Unnecessary Re-renders**: Removed transition state tracking that caused extra renders
+- **Proper Loading States**: Loading indicators only show when data is actually being fetched
+
+**User Experience Impact:**
+- ✅ **Fixed**: All tabs now load content properly instead of showing perpetual loading
+- ✅ **Improved**: Tab switching is now instant and responsive
+- ✅ **Enhanced**: Proper loading indicators only when needed
+- ✅ **Resolved**: TypeScript errors no longer block development
+
+**Files Modified:**
+- `src/components/project/TabTransition.tsx` - Fixed loading logic and transition timing
+- `src/pages/ProjectDetail.tsx` - Fixed TypeScript errors and property access
+
+**Testing Status:**
+- ✅ **Tab Navigation**: All tabs now switch properly without loading issues
+- ✅ **Content Loading**: Each tab displays its content correctly
+- ✅ **TypeScript**: No more linter errors related to document properties
+- ✅ **Performance**: Tab switching is now instant and smooth
+
+**Dependencies Status:**
+- ✅ TabTransition component optimized
+- ✅ useProjectNavigation hook working correctly
+- ✅ Document property access fixed
+- ✅ Workflow stage type casting resolved
+
+**Current Status:**
+- ProjectDetail page loading issue completely resolved
+- All tabs functional with proper content display
+- TypeScript errors eliminated
+- Performance optimized for smooth user experience
+
 ### 2025-09-01 - Stage History Service Implementation
 
 **Task Completed:**

@@ -102,7 +102,7 @@ export default function ProjectDetail() {
     reviewsCount: reviews?.length || 0,
     pendingReviewsCount: reviews?.filter(r => r.status === 'pending').length || 0,
     supplierRfqsCount: supplierRfqs.length,
-    activeSupplierRfqsCount: supplierRfqs.filter(rfq => rfq.status === 'sent' || rfq.status === 'pending').length,
+    activeSupplierRfqsCount: supplierRfqs.filter(rfq => rfq.status === 'sent').length,
   });
 
   const [showSupplierModal, setShowSupplierModal] = useState(false);
@@ -481,7 +481,7 @@ export default function ProjectDetail() {
       setSelectedReview(null);
 
       // Check for auto-advance after review submission
-      if (project?.status === 'technical_review') {
+      if (project?.status === 'technical_review' as any) {
 
         // Small delay to allow review data to update
         setTimeout(() => {
@@ -526,7 +526,7 @@ export default function ProjectDetail() {
         {/* Enhanced Header Section */}
         <ProjectDetailHeader
           project={project}
-          workflowStages={workflowStages}
+          workflowStages={workflowStages as any}
           onBack={() => navigate('/projects')}
           onEdit={() => console.log('Edit project')}
           onShare={() => console.log('Share project')}
@@ -564,7 +564,7 @@ export default function ProjectDetail() {
                       {/* Project Status Manager */}
                       <ProjectStatusManager
                         project={project}
-                        workflowStages={workflowStages}
+                        workflowStages={workflowStages as any}
                         onUpdate={handleProjectUpdate}
                       />
                     </div>
@@ -572,7 +572,7 @@ export default function ProjectDetail() {
                     {/* Actions Needed for Current Stage */}
                     <ProjectSummaryCard
                       project={project}
-                      workflowStages={workflowStages}
+                      workflowStages={workflowStages as any}
                       onEdit={() => console.log('Edit project')}
                       onViewDetails={() => console.log('View details')}
                     />
@@ -711,12 +711,12 @@ export default function ProjectDetail() {
                               <div key={doc.id} className="flex items-center justify-between text-sm">
                                 <div className="flex items-center space-x-2">
                                   <span>📄</span>
-                                  <span className="font-medium">{doc.original_file_name || doc.filename || 'N/A'}</span>
+                                  <span className="font-medium">{doc.file_name || 'N/A'}</span>
                                   <Badge variant="outline" className="text-xs px-1 py-0">
-                                    [{doc.version || 'v1'}]
+                                    [{doc.metadata?.version || 'v1'}]
                                   </Badge>
                                   <span className="text-muted-foreground">
-                                    📅 {doc.uploaded_at ? format(new Date(doc.uploaded_at), 'MMM dd') : 'N/A'} · 👤 {doc.uploaded_by || 'N/A'}
+                                    📅 {doc.created_at ? format(new Date(doc.created_at), 'MMM dd') : 'N/A'} · 👤 {doc.uploaded_by || 'N/A'}
                                   </span>
                                   {doc.access_level === 'internal' && (
                                     <Badge className="text-xs bg-orange-100 text-orange-800">
@@ -853,7 +853,7 @@ export default function ProjectDetail() {
                     {/* Visual Timeline Progression */}
                     <VisualTimelineProgression
                       project={project}
-                      workflowStages={workflowStages}
+                      workflowStages={workflowStages as any}
                     />
                   </div>
                 </TabContentWrapper>

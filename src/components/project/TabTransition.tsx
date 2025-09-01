@@ -19,19 +19,10 @@ export const TabTransition: React.FC<TabTransitionProps> = ({
     direction = 'horizontal'
 }) => {
     const [previousTab, setPreviousTab] = useState<string>(activeTab);
-    const [isTransitioning, setIsTransitioning] = useState(false);
 
     useEffect(() => {
         if (activeTab !== previousTab) {
-            setIsTransitioning(true);
             setPreviousTab(activeTab);
-
-            // Reset transition state after animation completes
-            const timer = setTimeout(() => {
-                setIsTransitioning(false);
-            }, 300);
-
-            return () => clearTimeout(timer);
         }
     }, [activeTab, previousTab]);
 
@@ -53,7 +44,8 @@ export const TabTransition: React.FC<TabTransitionProps> = ({
 
     const variants = getVariants();
 
-    if (isLoading || isTransitioning) {
+    // Only show loading when explicitly requested, not on tab transitions
+    if (isLoading) {
         return (
             <div className={cn("flex items-center justify-center p-8", className)}>
                 <div className="text-center space-y-4">
@@ -77,8 +69,8 @@ export const TabTransition: React.FC<TabTransitionProps> = ({
                     animate="animate"
                     exit="exit"
                     transition={{
-                        duration: 0.3,
-                        ease: [0.4, 0.0, 0.2, 1], // Custom easing for smooth transitions
+                        duration: 0.2, // Reduced duration for snappier transitions
+                        ease: [0.4, 0.0, 0.2, 1],
                     }}
                     className="w-full"
                 >
