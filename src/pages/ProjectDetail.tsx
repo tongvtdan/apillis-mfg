@@ -58,8 +58,6 @@ import { useProjectNavigation } from "@/hooks/useProjectNavigation";
 // Import new enhanced components
 import { InlineProjectEditor } from "@/components/project/InlineProjectEditor";
 import { ProjectStatusManager } from "@/components/project/ProjectStatusManager";
-import { ProjectUpdateDebugger } from "@/components/project/ProjectUpdateDebugger";
-import { RealtimeTest } from "@/components/project/RealtimeTest";
 
 // Separate component for auto-advance functionality to avoid Rules of Hooks violation
 const ProjectAutoAdvance = memo(({ project }: { project: Project }) => {
@@ -417,13 +415,7 @@ export default function ProjectDetail() {
   return (
     <>
       <ProjectAutoAdvance project={project} />
-      {/* Debug components for real-time updates */}
-      {process.env.NODE_ENV === 'development' && (
-        <>
-          <ProjectUpdateDebugger projectId={id || ''} />
-          <RealtimeTest />
-        </>
-      )}
+      {/* Debug components removed - real-time workflow is now working correctly */}
       {/* Rest of the component content */}
       <div className="min-h-screen bg-background">
         {/* Enhanced Header Section */}
