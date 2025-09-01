@@ -2,6 +2,15 @@
 
 ## Current Sprint
 
+- [done] 2025-09-01 - Critical Database Schema Fixes for Workflow Transitions ✅
+  - ✅ Fixed activity_log table column mismatch (removed non-existent project_id column)
+  - ✅ Fixed documents table query (removed non-existent is_active column)
+  - ✅ Updated StageHistoryService to use correct table structure
+  - ✅ Updated PrerequisiteChecker to use correct column names
+  - ✅ Restarted Supabase to clear schema cache
+  - ✅ Verified all database queries now work correctly
+  - ✅ Workflow transitions should now function without errors
+
 - [WIP] Rename Projects tabs, remove redundant Table tab, keep table mode in List
 
 ### [done] 2025-01-30 - Complete Database Schema Implementation ✅

@@ -30,18 +30,18 @@ class StageHistoryService {
             const toStageName = toStage?.name || 'Unknown';
             const organizationId = project?.organization_id;
 
-            // Create activity log entry - FIX: Use correct column name
+            // Create activity log entry - FIX: Remove project_id since it doesn't exist in table
             const activityData = {
                 organization_id: organizationId,
                 action: bypassRequired ? 'stage_transition_bypass' : 'stage_transition',
                 user_id: userId,
-                project_id: projectId,
                 entity_type: 'project',
                 entity_id: projectId,
                 description: `Stage transition from ${fromStageName} to ${toStageName}`,
                 old_values: { stage_id: fromStageId, stage_name: fromStageName },
                 new_values: { stage_id: toStageId, stage_name: toStageName },
                 metadata: {
+                    project_id: projectId, // Store project_id in metadata instead
                     from_stage_id: fromStageId,
                     to_stage_id: toStageId,
                     from_stage_name: fromStageName,
@@ -94,7 +94,8 @@ class StageHistoryService {
             email
           )
         `)
-                .eq('project_id', projectId)
+                .eq('entity_id', projectId)
+                .eq('entity_type', 'project')
                 .in('action', ['stage_transition', 'stage_transition_bypass'])
                 .order('created_at', { ascending: true });
 

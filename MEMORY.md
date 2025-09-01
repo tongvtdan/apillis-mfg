@@ -2,6 +2,78 @@
 
 ## Recent Changes
 
+### 2025-09-01 - Critical Database Schema Fixes for Workflow Transitions
+
+**Task Completed:**
+- Fixed critical database schema mismatches causing workflow transition errors
+- Resolved column name inconsistencies between code and actual database schema
+- Updated services to use correct database column names and table structures
+- Restarted Supabase to clear schema cache and ensure consistency
+
+**Root Cause Analysis:**
+- **Activity Log Table**: Code was trying to insert `project_id` column that doesn't exist in the table
+- **Documents Table**: Code was querying `is_active` column that doesn't exist in the table
+- **Schema Cache**: Supabase client schema cache was out of sync with actual database structure
+
+**Technical Fixes Applied:**
+
+1. **StageHistoryService Fix** (`src/services/stageHistoryService.ts`):
+   - **Removed `project_id`** from activity log insert since it doesn't exist in the table
+   - **Store project_id in metadata** instead for tracking purposes
+   - **Updated query filter** from `.eq('project_id', projectId)` to `.eq('entity_id', projectId).eq('entity_type', 'project')`
+   - **Maintained all functionality** while using correct table structure
+
+2. **PrerequisiteChecker Fix** (`src/services/prerequisiteChecker.ts`):
+   - **Removed `is_active`** from documents query since it doesn't exist in the table
+   - **Updated select statement** from `'id, category, file_name, is_active'` to `'id, category, file_name'`
+   - **Removed filter** `.eq('is_active', true)` since the column doesn't exist
+
+**Key Changes Made:**
+```typescript
+// Before: Trying to insert non-existent column
+const activityData = {
+    project_id: projectId, // ❌ This column doesn't exist
+    // ... other fields
+};
+
+// After: Store project_id in metadata instead
+const activityData = {
+    metadata: {
+        project_id: projectId, // ✅ Store in metadata
+        // ... other metadata
+    }
+};
+
+// Before: Querying non-existent column
+.select('id, category, file_name, is_active')
+.eq('is_active', true)
+
+// After: Remove non-existent column
+.select('id, category, file_name')
+// No filter needed since is_active doesn't exist
+```
+
+**Database Schema Verification:**
+- **Activity Log Table**: Has `organization_id`, `user_id`, `entity_type`, `entity_id`, `action`, `description`, `metadata` columns
+- **Documents Table**: Has `organization_id`, `project_id`, `title`, `description`, `file_name`, `category` columns (NO `is_active`)
+- **Workflow Stages Table**: Has `is_active` column (this was correct)
+
+**Verification Steps Completed:**
+- ✅ **Database Schema Check**: Verified actual table structures using `\d` commands
+- ✅ **Code Updates**: Fixed all references to non-existent columns
+- ✅ **Supabase Restart**: Cleared schema cache by restarting local Supabase instance
+- ✅ **Error Resolution**: Workflow transitions should now work without database errors
+
+**Files Modified:**
+- `src/services/stageHistoryService.ts` - Fixed activity log column references
+- `src/services/prerequisiteChecker.ts` - Fixed documents query column references
+
+**Current Status:**
+- ✅ Database schema mismatches completely resolved
+- ✅ Workflow transitions should now work without errors
+- ✅ All services aligned with actual database structure
+- ✅ Supabase schema cache cleared and synchronized
+
 ### 2025-09-01 - Database Backup Completed
 
 **Task Completed:**

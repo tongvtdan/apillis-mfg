@@ -168,12 +168,11 @@ class PrerequisiteChecker {
         const checks: PrerequisiteCheck[] = [];
 
         try {
-            // Get documents for this project - FIX: Use correct column names
+            // Get documents for this project - FIX: Remove is_active since it doesn't exist in table
             const { data: documents, error } = await supabase
                 .from('documents')
-                .select('id, category, file_name, is_active')
-                .eq('project_id', project.id)
-                .eq('is_active', true);
+                .select('id, category, file_name')
+                .eq('project_id', project.id);
 
             if (error) {
                 console.error('Error fetching documents:', error);
