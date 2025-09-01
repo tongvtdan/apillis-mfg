@@ -209,7 +209,12 @@ INSERT INTO "auth"."audit_log_entries" ("instance_id", "id", "payload", "created
 	('00000000-0000-0000-0000-000000000000', 'fb027cbb-16f9-493a-a6aa-efb3ecbf232b', '{"action":"login","actor_id":"a3b8e7b3-f0d9-4edd-abd4-ec78f3816d11","actor_name":"Võ Đình Tài","actor_username":"admin@factorypulse.vn","actor_via_sso":false,"log_type":"account","traits":{"provider":"email"}}', '2025-08-31 07:30:52.685725+00', ''),
 	('00000000-0000-0000-0000-000000000000', '28095c13-f985-41fe-902a-07935c905546', '{"action":"login","actor_id":"a3b8e7b3-f0d9-4edd-abd4-ec78f3816d11","actor_name":"Võ Đình Tài","actor_username":"admin@factorypulse.vn","actor_via_sso":false,"log_type":"account","traits":{"provider":"email"}}', '2025-09-01 00:35:22.429234+00', ''),
 	('00000000-0000-0000-0000-000000000000', 'cf3a7a27-c6f4-4a3d-b5eb-95eb4d00bc71', '{"action":"token_refreshed","actor_id":"a3b8e7b3-f0d9-4edd-abd4-ec78f3816d11","actor_name":"Võ Đình Tài","actor_username":"admin@factorypulse.vn","actor_via_sso":false,"log_type":"token"}', '2025-09-01 01:59:00.450519+00', ''),
-	('00000000-0000-0000-0000-000000000000', 'b185b4a5-8a7c-4f0d-b064-79bc067799d6', '{"action":"token_revoked","actor_id":"a3b8e7b3-f0d9-4edd-abd4-ec78f3816d11","actor_name":"Võ Đình Tài","actor_username":"admin@factorypulse.vn","actor_via_sso":false,"log_type":"token"}', '2025-09-01 01:59:00.451383+00', '');
+	('00000000-0000-0000-0000-000000000000', 'b185b4a5-8a7c-4f0d-b064-79bc067799d6', '{"action":"token_revoked","actor_id":"a3b8e7b3-f0d9-4edd-abd4-ec78f3816d11","actor_name":"Võ Đình Tài","actor_username":"admin@factorypulse.vn","actor_via_sso":false,"log_type":"token"}', '2025-09-01 01:59:00.451383+00', ''),
+	('00000000-0000-0000-0000-000000000000', '0bea71e5-510c-4504-9c46-347f37b9c480', '{"action":"login","actor_id":"a3b8e7b3-f0d9-4edd-abd4-ec78f3816d11","actor_name":"Võ Đình Tài","actor_username":"admin@factorypulse.vn","actor_via_sso":false,"log_type":"account","traits":{"provider":"email"}}', '2025-09-01 02:33:44.487989+00', ''),
+	('00000000-0000-0000-0000-000000000000', 'c3c67df6-266e-47fa-b33b-b1838ff94891', '{"action":"token_refreshed","actor_id":"a3b8e7b3-f0d9-4edd-abd4-ec78f3816d11","actor_name":"Võ Đình Tài","actor_username":"admin@factorypulse.vn","actor_via_sso":false,"log_type":"token"}', '2025-09-01 02:57:46.565644+00', ''),
+	('00000000-0000-0000-0000-000000000000', '24f4a20e-9fe7-471d-a3d4-6f088bc9c9de', '{"action":"token_revoked","actor_id":"a3b8e7b3-f0d9-4edd-abd4-ec78f3816d11","actor_name":"Võ Đình Tài","actor_username":"admin@factorypulse.vn","actor_via_sso":false,"log_type":"token"}', '2025-09-01 02:57:46.566227+00', ''),
+	('00000000-0000-0000-0000-000000000000', 'aec4ef85-5279-4c76-84d9-e55473e0e43d', '{"action":"token_refreshed","actor_id":"a3b8e7b3-f0d9-4edd-abd4-ec78f3816d11","actor_name":"Võ Đình Tài","actor_username":"admin@factorypulse.vn","actor_via_sso":false,"log_type":"token"}', '2025-09-01 03:57:28.891327+00', ''),
+	('00000000-0000-0000-0000-000000000000', '23b4cd1a-1472-4868-a472-600d86d8a589', '{"action":"token_revoked","actor_id":"a3b8e7b3-f0d9-4edd-abd4-ec78f3816d11","actor_name":"Võ Đình Tài","actor_username":"admin@factorypulse.vn","actor_via_sso":false,"log_type":"token"}', '2025-09-01 03:57:28.896439+00', '');
 
 
 --
@@ -247,7 +252,7 @@ INSERT INTO "auth"."users" ("instance_id", "id", "aud", "role", "email", "encryp
 	('00000000-0000-0000-0000-000000000000', 'da918e06-7480-4b36-8368-456db3fba638', 'authenticated', 'authenticated', 'electrical.engineer@factorypulse.vn', '$2a$10$fU9HMBc.AkTQiYTY/URJNew80EPY6HXedfocjw88I3KXuHxWYezJO', '2025-08-30 23:52:10.211199+00', NULL, '', NULL, '', NULL, '', '', NULL, '2025-08-31 02:55:38.107339+00', '{"provider": "email", "providers": ["email"]}', '{"name": "Vũ Đình Nam", "role": "engineering", "phone": "+84-28-7300-0006", "full_name": "Vũ Đình Nam", "avatar_url": "https://storage.googleapis.com/factory-pulse-assets/avatars/electrical-engineer.jpg", "department": "Engineering", "employee_id": "EMP-VDN-550e", "display_name": "Vũ Đình Nam", "email_verified": true}', NULL, '2025-08-30 23:52:10.210031+00', '2025-08-31 02:55:38.108145+00', NULL, NULL, '', '', NULL, '', 0, NULL, '', NULL, false, NULL, false),
 	('00000000-0000-0000-0000-000000000000', '550e8400-e29b-41d4-a716-446655440102', 'authenticated', 'authenticated', 'purchasing@honda.vn', '$2a$10$HeO13cli1XfYllyXgGNakOi4BvqcuvzBuVWwj4KwLhNa276uOLsEa', '2025-08-31 00:16:48.302028+00', NULL, '', NULL, '', NULL, '', '', NULL, '2025-08-31 02:55:40.477852+00', '{"provider": "email", "providers": ["email"]}', '{"name": "Trần Thị Bình", "role": "customer", "phone": "+84-28-7300-1002", "full_name": "Trần Thị Bình", "company_name": "Honda Vietnam", "contact_type": "customer", "display_name": "Trần Thị Bình", "email_verified": true}', NULL, '2025-08-31 00:16:48.300448+00', '2025-08-31 02:55:40.478958+00', NULL, NULL, '', '', NULL, '', 0, NULL, '', NULL, false, NULL, false),
 	('00000000-0000-0000-0000-000000000000', '550e8400-e29b-41d4-a716-446655440106', 'authenticated', 'authenticated', 'sales@precision-machining.vn', '$2a$10$DzT3y5YnVww6LZ9Yg3IA7eB/vK6TWIcTZYX18vnGVlB15tyqSkp/q', '2025-08-31 00:16:48.521384+00', NULL, '', NULL, '', NULL, '', '', NULL, '2025-08-31 02:55:41.33304+00', '{"provider": "email", "providers": ["email"]}', '{"name": "Trần Văn Phúc", "role": "supplier", "phone": "+84-28-7300-2001", "full_name": "Trần Văn Phúc", "company_name": "Precision Machining Co.", "contact_type": "supplier", "display_name": "Trần Văn Phúc", "email_verified": true}', NULL, '2025-08-31 00:16:48.519592+00', '2025-08-31 02:55:41.333766+00', NULL, NULL, '', '', NULL, '', 0, NULL, '', NULL, false, NULL, false),
-	('00000000-0000-0000-0000-000000000000', 'a3b8e7b3-f0d9-4edd-abd4-ec78f3816d11', 'authenticated', 'authenticated', 'admin@factorypulse.vn', '$2a$10$xvX5akXuK7C4MyV19j0BS.7wYRf63zjkOowMbqrmD.Hy88tYydutq', '2025-08-30 23:52:10.639627+00', NULL, '', NULL, '', NULL, '', '', NULL, '2025-09-01 00:35:22.430181+00', '{"provider": "email", "providers": ["email"]}', '{"name": "Võ Đình Tài", "role": "admin", "phone": "+84-28-7300-0014", "full_name": "Võ Đình Tài", "avatar_url": "https://storage.googleapis.com/factory-pulse-assets/avatars/admin.jpg", "department": "IT", "employee_id": "EMP-VDT-550e", "display_name": "Võ Đình Tài", "email_verified": true}', NULL, '2025-08-30 23:52:10.638335+00', '2025-09-01 01:59:00.453235+00', NULL, NULL, '', '', NULL, '', 0, NULL, '', NULL, false, NULL, false);
+	('00000000-0000-0000-0000-000000000000', 'a3b8e7b3-f0d9-4edd-abd4-ec78f3816d11', 'authenticated', 'authenticated', 'admin@factorypulse.vn', '$2a$10$xvX5akXuK7C4MyV19j0BS.7wYRf63zjkOowMbqrmD.Hy88tYydutq', '2025-08-30 23:52:10.639627+00', NULL, '', NULL, '', NULL, '', '', NULL, '2025-09-01 02:33:44.48852+00', '{"provider": "email", "providers": ["email"]}', '{"name": "Võ Đình Tài", "role": "admin", "phone": "+84-28-7300-0014", "full_name": "Võ Đình Tài", "avatar_url": "https://storage.googleapis.com/factory-pulse-assets/avatars/admin.jpg", "department": "IT", "employee_id": "EMP-VDT-550e", "display_name": "Võ Đình Tài", "email_verified": true}', NULL, '2025-08-30 23:52:10.638335+00', '2025-09-01 03:57:28.903685+00', NULL, NULL, '', '', NULL, '', 0, NULL, '', NULL, false, NULL, false);
 
 
 --
@@ -294,7 +299,8 @@ INSERT INTO "auth"."identities" ("provider_id", "user_id", "identity_data", "pro
 
 INSERT INTO "auth"."sessions" ("id", "user_id", "created_at", "updated_at", "factor_id", "aal", "not_after", "refreshed_at", "user_agent", "ip", "tag") VALUES
 	('42d974f2-5f0c-4795-afa7-a895c9891322', 'a3b8e7b3-f0d9-4edd-abd4-ec78f3816d11', '2025-08-31 07:30:52.686085+00', '2025-08-31 07:30:52.686085+00', NULL, 'aal1', NULL, NULL, 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/139.0.0.0 Safari/537.36', '172.217.70.95', NULL),
-	('2be08609-ec06-42f4-83a1-fff178e4814d', 'a3b8e7b3-f0d9-4edd-abd4-ec78f3816d11', '2025-09-01 00:35:22.430229+00', '2025-09-01 01:59:00.453901+00', NULL, 'aal1', NULL, '2025-09-01 01:59:00.453877', 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/139.0.0.0 Safari/537.36', '172.217.70.95', NULL);
+	('eabec4d6-d127-4078-9624-ada16fe2f63d', 'a3b8e7b3-f0d9-4edd-abd4-ec78f3816d11', '2025-09-01 02:33:44.488574+00', '2025-09-01 02:33:44.488574+00', NULL, 'aal1', NULL, NULL, 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Qoder/0.1.20 Chrome/132.0.6834.210 Electron/34.5.1 Safari/537.36', '172.217.70.95', NULL),
+	('2be08609-ec06-42f4-83a1-fff178e4814d', 'a3b8e7b3-f0d9-4edd-abd4-ec78f3816d11', '2025-09-01 00:35:22.430229+00', '2025-09-01 03:57:28.922907+00', NULL, 'aal1', NULL, '2025-09-01 03:57:28.922877', 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/139.0.0.0 Safari/537.36', '172.217.70.95', NULL);
 
 
 --
@@ -303,7 +309,8 @@ INSERT INTO "auth"."sessions" ("id", "user_id", "created_at", "updated_at", "fac
 
 INSERT INTO "auth"."mfa_amr_claims" ("session_id", "created_at", "updated_at", "authentication_method", "id") VALUES
 	('42d974f2-5f0c-4795-afa7-a895c9891322', '2025-08-31 07:30:52.687921+00', '2025-08-31 07:30:52.687921+00', 'password', 'c25951b3-9450-49de-bbc8-05c5616d3d0a'),
-	('2be08609-ec06-42f4-83a1-fff178e4814d', '2025-09-01 00:35:22.432158+00', '2025-09-01 00:35:22.432158+00', 'password', 'ea1e56c0-c303-4d64-84af-6891f5fba379');
+	('2be08609-ec06-42f4-83a1-fff178e4814d', '2025-09-01 00:35:22.432158+00', '2025-09-01 00:35:22.432158+00', 'password', 'ea1e56c0-c303-4d64-84af-6891f5fba379'),
+	('eabec4d6-d127-4078-9624-ada16fe2f63d', '2025-09-01 02:33:44.489851+00', '2025-09-01 02:33:44.489851+00', 'password', '609cf9d1-7a2d-4bed-b0dc-ffb9440bc95a');
 
 
 --
@@ -331,7 +338,10 @@ INSERT INTO "auth"."mfa_amr_claims" ("session_id", "created_at", "updated_at", "
 INSERT INTO "auth"."refresh_tokens" ("instance_id", "id", "token", "user_id", "revoked", "created_at", "updated_at", "parent", "session_id") VALUES
 	('00000000-0000-0000-0000-000000000000', 50, '6hdxzoqu7yy4', 'a3b8e7b3-f0d9-4edd-abd4-ec78f3816d11', false, '2025-08-31 07:30:52.686787+00', '2025-08-31 07:30:52.686787+00', NULL, '42d974f2-5f0c-4795-afa7-a895c9891322'),
 	('00000000-0000-0000-0000-000000000000', 51, 'freznv3qmxmt', 'a3b8e7b3-f0d9-4edd-abd4-ec78f3816d11', true, '2025-09-01 00:35:22.430877+00', '2025-09-01 01:59:00.451803+00', NULL, '2be08609-ec06-42f4-83a1-fff178e4814d'),
-	('00000000-0000-0000-0000-000000000000', 52, 'r3xxvemk62yz', 'a3b8e7b3-f0d9-4edd-abd4-ec78f3816d11', false, '2025-09-01 01:59:00.45267+00', '2025-09-01 01:59:00.45267+00', 'freznv3qmxmt', '2be08609-ec06-42f4-83a1-fff178e4814d');
+	('00000000-0000-0000-0000-000000000000', 53, '3jy56aneehwo', 'a3b8e7b3-f0d9-4edd-abd4-ec78f3816d11', false, '2025-09-01 02:33:44.489177+00', '2025-09-01 02:33:44.489177+00', NULL, 'eabec4d6-d127-4078-9624-ada16fe2f63d'),
+	('00000000-0000-0000-0000-000000000000', 52, 'r3xxvemk62yz', 'a3b8e7b3-f0d9-4edd-abd4-ec78f3816d11', true, '2025-09-01 01:59:00.45267+00', '2025-09-01 02:57:46.566584+00', 'freznv3qmxmt', '2be08609-ec06-42f4-83a1-fff178e4814d'),
+	('00000000-0000-0000-0000-000000000000', 54, 'w76vzn7wthf2', 'a3b8e7b3-f0d9-4edd-abd4-ec78f3816d11', true, '2025-09-01 02:57:46.566918+00', '2025-09-01 03:57:28.89681+00', 'r3xxvemk62yz', '2be08609-ec06-42f4-83a1-fff178e4814d'),
+	('00000000-0000-0000-0000-000000000000', 55, 'vdwavntua2sa', 'a3b8e7b3-f0d9-4edd-abd4-ec78f3816d11', false, '2025-09-01 03:57:28.901596+00', '2025-09-01 03:57:28.901596+00', 'w76vzn7wthf2', '2be08609-ec06-42f4-83a1-fff178e4814d');
 
 
 --
@@ -873,7 +883,7 @@ INSERT INTO "public"."project_sub_stage_progress" ("id", "organization_id", "pro
 -- Name: refresh_tokens_id_seq; Type: SEQUENCE SET; Schema: auth; Owner: supabase_auth_admin
 --
 
-SELECT pg_catalog.setval('"auth"."refresh_tokens_id_seq"', 52, true);
+SELECT pg_catalog.setval('"auth"."refresh_tokens_id_seq"', 55, true);
 
 
 --
