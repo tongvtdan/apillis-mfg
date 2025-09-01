@@ -28,7 +28,10 @@
         "seed:inventory": "node scripts/13-seed-inventory.js",
         "seed:inventory:force": "node scripts/13-seed-inventory.js --force",
         "test:auth": "node scripts/test-auth-signin.js",
-        "test:auth:verbose": "node scripts/test-auth-signin.js --verbose"
+        "test:auth:verbose": "node scripts/test-auth-signin.js --verbose",
+        "workflow:list": "node scripts/list-workflow-stages.js",
+        "workflow:update-durations": "node scripts/update-workflow-stage-durations.js",
+        "workflow:update-stage-duration": "node scripts/update-stage-duration.js"
     },
     "dependencies": {
         "@supabase/supabase-js": "^2.39.0",
