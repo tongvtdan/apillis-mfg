@@ -2,7 +2,7 @@
 
 ## Overview
 
-The Factory Pulse workflow stage system provides comprehensive stage management capabilities for manufacturing projects, enabling automated requirement tracking, stage advancement validation, and intelligent workflow progression.
+The Factory Pulse workflow stage system provides comprehensive stage management capabilities for manufacturing projects, enabling automated requirement tracking, stage advancement validation, intelligent workflow progression, and complete stage transition history tracking.
 
 ## Core Components
 

@@ -5,6 +5,7 @@ export { StageTransitionValidator } from '../StageTransitionValidator';
 export { EnhancedStageProgression } from '../EnhancedStageProgression';
 export { ExitCriteriaIndicator } from '../ExitCriteriaIndicator';
 export { WorkflowBypassDialog } from '../WorkflowBypassDialog';
+export { StageHistoryTimeline } from '../StageHistoryTimeline';
 
 // Re-export existing workflow components for convenience
 export { VisualTimelineProgression } from '../VisualTimelineProgression';

@@ -26,6 +26,7 @@ import { StageTransitionValidator } from './StageTransitionValidator';
 import { usePermissions } from '@/hooks/usePermissions';
 import { WorkflowBypassRequest } from '@/lib/workflow-validator';
 import { useWorkflowAutoAdvance } from '@/hooks/useWorkflowAutoAdvance';
+import { useStageTransition } from '@/hooks/useStageTransition';
 import { projectService } from '@/services/projectService';
 import { workflowStageService } from '@/services/workflowStageService';
 
@@ -161,6 +162,7 @@ export const WorkflowStepper = React.memo(({ project }: WorkflowStepperProps) =>
   const { updateStatus, isUpdating } = useProjectUpdate(project.id);
   const { checkPermission } = usePermissions();
   const { autoAdvanceAvailable, nextStage, autoAdvanceReason, executeAutoAdvance } = useWorkflowAutoAdvance(project);
+  const { executeTransition, isTransitioning } = useStageTransition();
   const [hoveredStage, setHoveredStage] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [bypassDialog, setBypassDialog] = useState<{
@@ -394,12 +396,20 @@ export const WorkflowStepper = React.memo(({ project }: WorkflowStepperProps) =>
           warnings: [reason || "This transition requires manager approval"]
         });
       } else {
-        // Proceed with normal stage update
-        await updateProjectStage(validationDialog.targetStage.id);
-        toast({
-          title: "Stage Updated",
-          description: `Project stage changed to ${validationDialog.targetStage.name}`,
-        });
+        // Use the new stage transition service for normal transitions
+        const success = await executeTransition(
+          project,
+          validationDialog.targetStage,
+          updateProjectStage,
+          {
+            reason: reason || 'Normal stage transition'
+          }
+        );
+
+        if (!success) {
+          // Error handling is done in the executeTransition function
+          return;
+        }
       }
 
       // Close validation dialog
@@ -415,7 +425,7 @@ export const WorkflowStepper = React.memo(({ project }: WorkflowStepperProps) =>
         description: "Failed to update project stage. Please try again.",
       });
     }
-  }, [validationDialog.targetStage, toast]);
+  }, [validationDialog.targetStage, executeTransition, project, updateProjectStage, toast]);
 
   const handleValidationClose = useCallback(() => {
     setValidationDialog({
@@ -428,54 +438,30 @@ export const WorkflowStepper = React.memo(({ project }: WorkflowStepperProps) =>
     if (!bypassDialog.targetStage) return;
 
     try {
-      const bypassRequest: WorkflowBypassRequest = {
-        reason,
-        comment,
-        requestedBy: 'Current User', // Get from auth context
-        requestedAt: new Date()
-      };
-
-      // For bypass, we skip validation and proceed directly
-      console.log('🔄 WorkflowStepper: Bypass requested, updating stage');
-      await updateProjectStage(bypassDialog.targetStage);
-
-      console.log('✅ WorkflowStepper: Bypass stage update completed');
-
-      // Close the bypass dialog
-      setBypassDialog({
-        isOpen: false,
-        targetStage: null,
-        warnings: []
-      });
-
       const targetStage = workflowStages.find(s => s.id === bypassDialog.targetStage);
-      toast({
-        title: "Stage Updated",
-        description: `Project stage changed to ${targetStage?.name || 'Unknown Stage'} (bypassed)`,
-      });
+      if (!targetStage) return;
 
-      // Force a manual refresh of the project data since real-time update might not be working
-      console.log('🔄 WorkflowStepper: Triggering manual project refresh');
-      setTimeout(async () => {
-        try {
-          // Prevent multiple rapid updates
-          if (isLocalUpdating) {
-            console.log('🔄 WorkflowStepper: Skipping manual refresh - already updating');
-            return;
-          }
-
-          setIsLocalUpdating(true);
-          const latestProject = await projectService.getProjectById(project.id);
-          if (latestProject && latestProject.current_stage === bypassDialog.targetStage) {
-            console.log('✅ WorkflowStepper: Manual refresh successful, updating local state');
-            // Note: We don't need to update local state here since the parent component should handle this
-          }
-        } catch (error) {
-          console.error('❌ WorkflowStepper: Manual refresh failed:', error);
-        } finally {
-          setIsLocalUpdating(false);
+      // Use the new stage transition service for bypass transitions
+      const success = await executeTransition(
+        project,
+        targetStage,
+        updateProjectStage,
+        {
+          bypassValidation: true,
+          bypassReason: reason,
+          reason: comment || 'Manager bypass'
         }
-      }, 1000); // Wait 1 second for database to settle
+      );
+
+      if (success) {
+        // Close the bypass dialog
+        setBypassDialog({
+          isOpen: false,
+          targetStage: null,
+          warnings: []
+        });
+      }
+
     } catch (err) {
       console.error('Error processing bypass:', err);
       toast({
@@ -484,7 +470,7 @@ export const WorkflowStepper = React.memo(({ project }: WorkflowStepperProps) =>
         description: "Failed to process workflow bypass. Please try again.",
       });
     }
-  }, [bypassDialog.targetStage, project, toast, isLocalUpdating]);
+  }, [bypassDialog.targetStage, project, workflowStages, executeTransition, updateProjectStage, toast]);
 
   const updateProjectStage = useCallback(async (stageId: string) => {
     setError(null);
@@ -656,7 +642,7 @@ export const WorkflowStepper = React.memo(({ project }: WorkflowStepperProps) =>
     <>
       <Card className="w-full mb-6 relative" role="region" aria-label="Project Workflow Stepper">
         <CardContent className="p-6">
-          {isUpdating && (
+          {(isUpdating || isTransitioning) && (
             <div className="absolute inset-0 bg-background/80 flex items-center justify-center rounded-lg z-10">
               <div className="flex flex-col items-center">
                 <Loader2 className="w-6 h-6 animate-spin text-primary" />
@@ -684,7 +670,7 @@ export const WorkflowStepper = React.memo(({ project }: WorkflowStepperProps) =>
           <div className="hidden md:flex items-center justify-between relative">
             {workflowStages.map((stage, index) => {
               const status = getStageStatus(stage);
-              const isClickable = status !== 'current' && !isUpdating;
+              const isClickable = status !== 'current' && !isUpdating && !isTransitioning;
               const stageTitle = stage.name;
 
               return (
@@ -747,7 +733,7 @@ export const WorkflowStepper = React.memo(({ project }: WorkflowStepperProps) =>
           <div className="md:hidden space-y-4">
             {workflowStages.map((stage, index) => {
               const status = getStageStatus(stage);
-              const isClickable = status !== 'current' && !isUpdating;
+              const isClickable = status !== 'current' && !isUpdating && !isTransitioning;
               const stageTitle = stage.name;
 
               return (

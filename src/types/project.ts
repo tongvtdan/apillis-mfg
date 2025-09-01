@@ -172,6 +172,12 @@ export interface ProjectStageHistory {
   exit_reason?: string;
   notes?: string;
   created_at: string;
+  // Enhanced fields for display
+  stage_name?: string;
+  user_name?: string;
+  user_email?: string;
+  bypass_required?: boolean;
+  bypass_reason?: string;
 }
 
 export interface ProjectAssignment {
