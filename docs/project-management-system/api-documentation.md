@@ -385,7 +385,7 @@ async function getWorkflowStages() {
 
 ### PUT /projects/:id/stage - Update Project Stage
 
-**Purpose**: Advance or revert project to a different workflow stage.
+**Purpose**: Advance or revert project to a different workflow stage with comprehensive history tracking.
 
 **Request Body**:
 ```typescript
@@ -393,15 +393,28 @@ interface UpdateStageRequest {
   stage_id: string;
   notes?: string;
   bypass_validation?: boolean;
+  bypass_reason?: string;
 }
 ```
 
 **Implementation**:
 ```typescript
+import { stageHistoryService } from '@/services/stageHistoryService';
+
 async function updateProjectStage(
   projectId: string, 
-  { stage_id, notes, bypass_validation = false }: UpdateStageRequest
+  { stage_id, notes, bypass_validation = false, bypass_reason }: UpdateStageRequest
 ) {
+  const { data: { user } } = await supabase.auth.getUser();
+  if (!user) throw new Error('Authentication required');
+
+  // Get current project stage for transition tracking
+  const { data: currentProject } = await supabase
+    .from('projects')
+    .select('current_stage_id')
+    .eq('id', projectId)
+    .single();
+
   // Validate stage transition if not bypassing
   if (!bypass_validation) {
     const isValidTransition = await validateStageTransition(projectId, stage_id);
@@ -426,14 +439,128 @@ async function updateProjectStage(
 
   if (error) throw error;
 
-  // Log stage change activity
-  await logActivity({
-    project_id: projectId,
-    action: 'stage_change',
-    details: { stage_id, notes },
+  // Record stage transition in history
+  await stageHistoryService.recordStageTransition({
+    projectId,
+    fromStageId: currentProject?.current_stage_id,
+    toStageId: stage_id,
+    userId: user.id,
+    reason: notes,
+    bypassRequired: bypass_validation,
+    bypassReason: bypass_reason
   });
 
   return data;
+}
+```
+
+### GET /projects/:id/stage-history - Get Project Stage History
+
+**Purpose**: Retrieve complete stage transition history for a project.
+
+**Implementation**:
+```typescript
+import { stageHistoryService } from '@/services/stageHistoryService';
+
+async function getProjectStageHistory(projectId: string) {
+  const history = await stageHistoryService.getProjectStageHistory(projectId);
+  return history;
+}
+```
+
+**Response**:
+```typescript
+interface ProjectStageHistory {
+  id: string;
+  project_id: string;
+  stage_id: string;
+  stage_name: string;
+  entered_at: string;
+  exited_at?: string;
+  duration_minutes?: number;
+  entered_by: string;
+  user_name: string;
+  user_email: string;
+  exit_reason?: string;
+  notes?: string;
+  bypass_required: boolean;
+  bypass_reason?: string;
+  created_at: string;
+}
+```
+
+### GET /organizations/:id/stage-transitions - Get Organization Stage Transition Analytics
+
+**Purpose**: Retrieve stage transition statistics and analytics for an organization.
+
+**Query Parameters**:
+```typescript
+interface StageTransitionStatsParams {
+  from?: string;  // ISO date string
+  to?: string;    // ISO date string
+}
+```
+
+**Implementation**:
+```typescript
+import { stageHistoryService } from '@/services/stageHistoryService';
+
+async function getStageTransitionStats(
+  organizationId: string, 
+  dateRange?: { from: string; to: string }
+) {
+  const stats = await stageHistoryService.getStageTransitionStats(organizationId, dateRange);
+  return stats;
+}
+```
+
+**Response**:
+```typescript
+interface StageTransitionStats {
+  totalTransitions: number;
+  bypassTransitions: number;
+  stageTransitionCounts: Record<string, number>;
+  averageStageTime: Record<string, number>;
+  bypassReasons: string[];
+}
+```
+
+### GET /organizations/:id/recent-transitions - Get Recent Stage Transitions
+
+**Purpose**: Retrieve recent stage transitions across all projects in an organization.
+
+**Query Parameters**:
+```typescript
+interface RecentTransitionsParams {
+  limit?: number;  // Default: 10, Max: 50
+}
+```
+
+**Implementation**:
+```typescript
+import { stageHistoryService } from '@/services/stageHistoryService';
+
+async function getRecentStageTransitions(
+  organizationId: string, 
+  limit: number = 10
+) {
+  const transitions = await stageHistoryService.getRecentStageTransitions(organizationId, limit);
+  return transitions;
+}
+```
+
+**Response**:
+```typescript
+interface RecentStageTransition {
+  id: string;
+  action: 'stage_transition' | 'stage_transition_bypass';
+  project_id: string;
+  project_title: string;
+  project_number: string;
+  stage_name: string;
+  user_name: string;
+  bypass_required: boolean;
+  created_at: string;
 }
 ```
 
