@@ -420,17 +420,14 @@ export default function Projects() {
 
         <Tabs value={defaultTab} onValueChange={handleTabChange} className="w-full relative">
           <div className="mb-6 flex justify-between items-center">
-            <div>
-              <h1 className="text-2xl font-bold text-base-content">Factory Pulse - Project Flow</h1>
-              <p className="text-base-content/70">Track and manage your manufacturing projects from idea to delivery</p>
-            </div>
-            <div className="flex items-center gap-4">
+
+            <div className="flex items-center gap-6">
               <TabsList className="auth-tabs-list grid-cols-4 w-[600px]">
                 <TabsTrigger value="enhanced" className="auth-tab-trigger" disabled={isRetrying}>
                   List
                 </TabsTrigger>
                 <TabsTrigger value="flowchart" className="auth-tab-trigger" disabled={isRetrying}>
-                  Kanban
+                  Workflow
                 </TabsTrigger>
                 <TabsTrigger value="analytics" className="auth-tab-trigger" disabled={isRetrying}>
                   Analytics
@@ -440,21 +437,7 @@ export default function Projects() {
                 </TabsTrigger>
               </TabsList>
 
-              {/* Manual refresh button with error handling */}
-              <Button
-                variant="outline"
-                size="sm"
-                onClick={() => {
-                  clearError();
-                  retry(async () => {
-                    await refetch(true);
-                  });
-                }}
-                className="text-xs"
-                disabled={isRetrying}
-              >
-                {isRetrying ? '🔄 Refreshing...' : '🔄 Refresh'}
-              </Button>
+
 
               {/* Project Type Filter */}
               <div className="flex items-center space-x-3">
