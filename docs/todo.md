@@ -2,6 +2,16 @@
 
 ## Current Sprint
 
+- [done] 2025-09-02 - Projects Page New Project Button Consolidation ✅
+  - ✅ Added New Project button to Projects page header with ProjectIntakePortal integration
+  - ✅ Removed redundant New Project button from EnhancedProjectList List view
+  - ✅ Updated AppHeader to remove duplicate New Project button
+  - ✅ Standardized project creation flow using ProjectIntakePortal with project type selection
+  - ✅ Updated ProjectActions component to use ProjectIntakePortal instead of EnhancedProjectCreationModal
+  - ✅ Consolidated project creation to single entry point with comprehensive form
+  - ✅ Added proper success handling with toast notifications and project list refresh
+  - ✅ Cleaned up unused imports and state management
+
 - [done] 2025-09-02 - Project Actions Implementation Completed ✅
   - ✅ Implemented comprehensive project action system for adding new projects and editing existing projects
   - ✅ Created unified ProjectActions component with bulk operations support
