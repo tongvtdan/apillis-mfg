@@ -290,6 +290,21 @@ $$;
 ALTER FUNCTION "public"."create_project_sub_stage_progress"() OWNER TO "postgres";
 
 
+CREATE OR REPLACE FUNCTION "public"."expire_approval_delegations"() RETURNS "void"
+    LANGUAGE "plpgsql"
+    AS $$
+BEGIN
+    UPDATE approval_delegations 
+    SET status = 'expired', updated_at = NOW()
+    WHERE status = 'active' 
+    AND end_date < NOW();
+END;
+$$;
+
+
+ALTER FUNCTION "public"."expire_approval_delegations"() OWNER TO "postgres";
+
+
 CREATE OR REPLACE FUNCTION "public"."generate_project_id"() RETURNS "trigger"
     LANGUAGE "plpgsql"
     AS $$
@@ -354,6 +369,7 @@ DECLARE
     status_counts JSONB;
     type_counts JSONB;
     priority_counts JSONB;
+    stage_counts JSONB;
     project_record RECORD;
     debug_info JSONB;
 BEGIN
@@ -383,7 +399,7 @@ BEGIN
         -- If still no organization, return empty result with debug info
         IF user_org_id IS NULL THEN
             RETURN jsonb_build_object(
-                'projects', jsonb_build_object('total', 0, 'by_status', '{}', 'by_type', '{}', 'by_priority', '{}'),
+                'projects', jsonb_build_object('total', 0, 'by_status', '{}', 'by_type', '{}', 'by_priority', '{}', 'by_stage', '{}'),
                 'recent_projects', '[]',
                 'generated_at', extract(epoch from now()),
                 'debug', debug_info
@@ -434,12 +450,26 @@ BEGIN
         priority_counts := priority_counts || jsonb_build_object(project_record.priority, project_record.count);
     END LOOP;
 
+    -- Get project counts by stage
+    stage_counts := '{}';
+    FOR project_record IN 
+        SELECT 
+            current_stage_id,
+            COUNT(*) as count
+        FROM projects 
+        WHERE organization_id = user_org_id AND current_stage_id IS NOT NULL
+        GROUP BY current_stage_id
+    LOOP
+        stage_counts := stage_counts || jsonb_build_object(project_record.current_stage_id, project_record.count);
+    END LOOP;
+
     -- Build project counts object
     project_counts := jsonb_build_object(
         'total', (SELECT COUNT(*) FROM projects WHERE organization_id = user_org_id),
         'by_status', status_counts,
         'by_type', type_counts,
-        'by_priority', priority_counts
+        'by_priority', priority_counts,
+        'by_stage', stage_counts
     );
 
     -- Get recent projects with customer information
@@ -447,6 +477,7 @@ BEGIN
         SELECT jsonb_agg(
             jsonb_build_object(
                 'id', p.id,
+                'organization_id', p.organization_id,
                 'project_id', p.project_id,
                 'title', p.title,
                 'status', p.status,
@@ -678,6 +709,19 @@ COMMENT ON FUNCTION "public"."log_activity"() IS 'Enhanced activity logging func
 
 
 
+CREATE OR REPLACE FUNCTION "public"."update_approval_delegations_updated_at"() RETURNS "trigger"
+    LANGUAGE "plpgsql"
+    AS $$
+BEGIN
+    NEW.updated_at = NOW();
+    RETURN NEW;
+END;
+$$;
+
+
+ALTER FUNCTION "public"."update_approval_delegations_updated_at"() OWNER TO "postgres";
+
+
 CREATE OR REPLACE FUNCTION "public"."update_updated_at_column"() RETURNS "trigger"
     LANGUAGE "plpgsql"
     AS $$
@@ -740,6 +784,36 @@ ALTER TABLE "public"."activity_log" OWNER TO "postgres";
 
 COMMENT ON COLUMN "public"."activity_log"."project_id" IS 'Optional reference to the project associated with this activity for analytics purposes';
 
+
+
+CREATE TABLE IF NOT EXISTS "public"."approval_delegation_mappings" (
+    "id" "uuid" DEFAULT "gen_random_uuid"() NOT NULL,
+    "delegation_id" "uuid" NOT NULL,
+    "approval_id" "uuid" NOT NULL,
+    "created_at" timestamp with time zone DEFAULT "now"()
+);
+
+
+ALTER TABLE "public"."approval_delegation_mappings" OWNER TO "postgres";
+
+
+CREATE TABLE IF NOT EXISTS "public"."approval_delegations" (
+    "id" "uuid" DEFAULT "gen_random_uuid"() NOT NULL,
+    "delegator_id" "uuid" NOT NULL,
+    "delegate_id" "uuid" NOT NULL,
+    "start_date" timestamp with time zone NOT NULL,
+    "end_date" timestamp with time zone NOT NULL,
+    "reason" "text" NOT NULL,
+    "include_new_approvals" boolean DEFAULT true,
+    "status" "text" DEFAULT 'active'::"text",
+    "organization_id" "uuid" NOT NULL,
+    "created_at" timestamp with time zone DEFAULT "now"(),
+    "updated_at" timestamp with time zone DEFAULT "now"(),
+    CONSTRAINT "approval_delegations_status_check" CHECK (("status" = ANY (ARRAY['active'::"text", 'inactive'::"text", 'expired'::"text"])))
+);
+
+
+ALTER TABLE "public"."approval_delegations" OWNER TO "postgres";
 
 
 CREATE TABLE IF NOT EXISTS "public"."contacts" (
@@ -983,6 +1057,29 @@ CREATE TABLE IF NOT EXISTS "public"."supplier_quotes" (
 ALTER TABLE "public"."supplier_quotes" OWNER TO "postgres";
 
 
+CREATE TABLE IF NOT EXISTS "public"."supplier_rfqs" (
+    "id" "uuid" DEFAULT "extensions"."uuid_generate_v4"() NOT NULL,
+    "project_id" "uuid",
+    "supplier_id" "uuid",
+    "rfq_number" character varying(50) NOT NULL,
+    "status" character varying(20) DEFAULT 'draft'::character varying,
+    "sent_at" timestamp with time zone,
+    "viewed_at" timestamp with time zone,
+    "due_date" timestamp with time zone,
+    "expected_response_date" "date",
+    "priority" character varying(10) DEFAULT 'medium'::character varying,
+    "requirements" "text",
+    "special_instructions" "text",
+    "created_by" "uuid",
+    "created_at" timestamp with time zone DEFAULT "now"(),
+    "updated_at" timestamp with time zone DEFAULT "now"(),
+    CONSTRAINT "supplier_rfqs_status_check" CHECK ((("status")::"text" = ANY ((ARRAY['draft'::character varying, 'sent'::character varying, 'viewed'::character varying, 'quoted'::character varying, 'declined'::character varying, 'expired'::character varying, 'cancelled'::character varying])::"text"[])))
+);
+
+
+ALTER TABLE "public"."supplier_rfqs" OWNER TO "postgres";
+
+
 CREATE TABLE IF NOT EXISTS "public"."users" (
     "id" "uuid" NOT NULL,
     "organization_id" "uuid" NOT NULL,
@@ -1063,6 +1160,21 @@ ALTER TABLE ONLY "public"."activity_log"
 
 
 
+ALTER TABLE ONLY "public"."approval_delegation_mappings"
+    ADD CONSTRAINT "approval_delegation_mappings_delegation_id_approval_id_key" UNIQUE ("delegation_id", "approval_id");
+
+
+
+ALTER TABLE ONLY "public"."approval_delegation_mappings"
+    ADD CONSTRAINT "approval_delegation_mappings_pkey" PRIMARY KEY ("id");
+
+
+
+ALTER TABLE ONLY "public"."approval_delegations"
+    ADD CONSTRAINT "approval_delegations_pkey" PRIMARY KEY ("id");
+
+
+
 ALTER TABLE ONLY "public"."contacts"
     ADD CONSTRAINT "contacts_pkey" PRIMARY KEY ("id");
 
@@ -1133,6 +1245,16 @@ ALTER TABLE ONLY "public"."supplier_quotes"
 
 
 
+ALTER TABLE ONLY "public"."supplier_rfqs"
+    ADD CONSTRAINT "supplier_rfqs_pkey" PRIMARY KEY ("id");
+
+
+
+ALTER TABLE ONLY "public"."supplier_rfqs"
+    ADD CONSTRAINT "supplier_rfqs_rfq_number_key" UNIQUE ("rfq_number");
+
+
+
 ALTER TABLE ONLY "public"."users"
     ADD CONSTRAINT "users_email_key" UNIQUE ("email");
 
@@ -1190,6 +1312,34 @@ CREATE INDEX "idx_activity_log_org_id" ON "public"."activity_log" USING "btree" 
 
 
 CREATE INDEX "idx_activity_log_user_id" ON "public"."activity_log" USING "btree" ("user_id");
+
+
+
+CREATE INDEX "idx_approval_delegation_mappings_approval" ON "public"."approval_delegation_mappings" USING "btree" ("approval_id");
+
+
+
+CREATE INDEX "idx_approval_delegation_mappings_delegation" ON "public"."approval_delegation_mappings" USING "btree" ("delegation_id");
+
+
+
+CREATE INDEX "idx_approval_delegations_dates" ON "public"."approval_delegations" USING "btree" ("start_date", "end_date");
+
+
+
+CREATE INDEX "idx_approval_delegations_delegate" ON "public"."approval_delegations" USING "btree" ("delegate_id");
+
+
+
+CREATE INDEX "idx_approval_delegations_delegator" ON "public"."approval_delegations" USING "btree" ("delegator_id");
+
+
+
+CREATE INDEX "idx_approval_delegations_org" ON "public"."approval_delegations" USING "btree" ("organization_id");
+
+
+
+CREATE INDEX "idx_approval_delegations_status" ON "public"."approval_delegations" USING "btree" ("status");
 
 
 
@@ -1365,6 +1515,18 @@ CREATE INDEX "idx_supplier_quotes_supplier" ON "public"."supplier_quotes" USING 
 
 
 
+CREATE INDEX "idx_supplier_rfqs_project_id" ON "public"."supplier_rfqs" USING "btree" ("project_id");
+
+
+
+CREATE INDEX "idx_supplier_rfqs_status" ON "public"."supplier_rfqs" USING "btree" ("status");
+
+
+
+CREATE INDEX "idx_supplier_rfqs_supplier_id" ON "public"."supplier_rfqs" USING "btree" ("supplier_id");
+
+
+
 CREATE INDEX "idx_users_email" ON "public"."users" USING "btree" ("email");
 
 
@@ -1445,6 +1607,10 @@ CREATE OR REPLACE TRIGGER "trigger_update_workflow_stage_sub_stages_count" AFTER
 
 
 
+CREATE OR REPLACE TRIGGER "update_approval_delegations_updated_at" BEFORE UPDATE ON "public"."approval_delegations" FOR EACH ROW EXECUTE FUNCTION "public"."update_approval_delegations_updated_at"();
+
+
+
 CREATE OR REPLACE TRIGGER "update_contacts_updated_at" BEFORE UPDATE ON "public"."contacts" FOR EACH ROW EXECUTE FUNCTION "public"."update_updated_at_column"();
 
 
@@ -1497,6 +1663,26 @@ ALTER TABLE ONLY "public"."activity_log"
 
 ALTER TABLE ONLY "public"."activity_log"
     ADD CONSTRAINT "activity_log_user_id_fkey" FOREIGN KEY ("user_id") REFERENCES "public"."users"("id");
+
+
+
+ALTER TABLE ONLY "public"."approval_delegation_mappings"
+    ADD CONSTRAINT "approval_delegation_mappings_approval_id_fkey" FOREIGN KEY ("approval_id") REFERENCES "public"."reviews"("id") ON DELETE CASCADE;
+
+
+
+ALTER TABLE ONLY "public"."approval_delegation_mappings"
+    ADD CONSTRAINT "approval_delegation_mappings_delegation_id_fkey" FOREIGN KEY ("delegation_id") REFERENCES "public"."approval_delegations"("id") ON DELETE CASCADE;
+
+
+
+ALTER TABLE ONLY "public"."approval_delegations"
+    ADD CONSTRAINT "approval_delegations_delegate_id_fkey" FOREIGN KEY ("delegate_id") REFERENCES "auth"."users"("id") ON DELETE CASCADE;
+
+
+
+ALTER TABLE ONLY "public"."approval_delegations"
+    ADD CONSTRAINT "approval_delegations_delegator_id_fkey" FOREIGN KEY ("delegator_id") REFERENCES "auth"."users"("id") ON DELETE CASCADE;
 
 
 
@@ -1665,6 +1851,21 @@ ALTER TABLE ONLY "public"."supplier_quotes"
 
 
 
+ALTER TABLE ONLY "public"."supplier_rfqs"
+    ADD CONSTRAINT "supplier_rfqs_created_by_fkey" FOREIGN KEY ("created_by") REFERENCES "public"."users"("id");
+
+
+
+ALTER TABLE ONLY "public"."supplier_rfqs"
+    ADD CONSTRAINT "supplier_rfqs_project_id_fkey" FOREIGN KEY ("project_id") REFERENCES "public"."projects"("id") ON DELETE CASCADE;
+
+
+
+ALTER TABLE ONLY "public"."supplier_rfqs"
+    ADD CONSTRAINT "supplier_rfqs_supplier_id_fkey" FOREIGN KEY ("supplier_id") REFERENCES "public"."contacts"("id");
+
+
+
 ALTER TABLE ONLY "public"."users"
     ADD CONSTRAINT "users_direct_manager_id_fkey" FOREIGN KEY ("direct_manager_id") REFERENCES "public"."users"("id");
 
@@ -1707,11 +1908,33 @@ CREATE POLICY "Admin and management can manage sub-stages" ON "public"."workflow
 
 
 
+CREATE POLICY "Delegators can update their delegations" ON "public"."approval_delegations" FOR UPDATE USING (("auth"."uid"() = "delegator_id"));
+
+
+
 CREATE POLICY "Users can create activity logs" ON "public"."activity_log" FOR INSERT WITH CHECK ((("organization_id" = "public"."get_current_user_org_id"()) AND (("user_id" = "auth"."uid"()) OR ("user_id" IS NULL))));
 
 
 
+CREATE POLICY "Users can create delegation mappings" ON "public"."approval_delegation_mappings" FOR INSERT WITH CHECK ((EXISTS ( SELECT 1
+   FROM "public"."approval_delegations"
+  WHERE (("approval_delegations"."id" = "approval_delegation_mappings"."delegation_id") AND ("auth"."uid"() = "approval_delegations"."delegator_id")))));
+
+
+
 CREATE POLICY "Users can create profiles" ON "public"."users" FOR INSERT WITH CHECK ((("organization_id" = "public"."get_current_user_org_id"()) AND ("public"."get_current_user_role"() = ANY (ARRAY['admin'::"text", 'management'::"text"]))));
+
+
+
+CREATE POLICY "Users can create supplier RFQs in their org" ON "public"."supplier_rfqs" FOR INSERT WITH CHECK (("project_id" IN ( SELECT "projects"."id"
+   FROM "public"."projects"
+  WHERE ("projects"."organization_id" = "public"."get_current_user_org_id"()))));
+
+
+
+CREATE POLICY "Users can create their own delegations" ON "public"."approval_delegations" FOR INSERT WITH CHECK ((("auth"."uid"() = "delegator_id") AND (EXISTS ( SELECT 1
+   FROM "public"."users"
+  WHERE (("users"."id" = "auth"."uid"()) AND ("users"."organization_id" = "approval_delegations"."organization_id"))))));
 
 
 
@@ -1845,6 +2068,14 @@ CREATE POLICY "Users can view contacts in their org" ON "public"."contacts" USIN
 
 
 
+CREATE POLICY "Users can view delegation mappings" ON "public"."approval_delegation_mappings" FOR SELECT USING ((EXISTS ( SELECT 1
+   FROM "public"."approval_delegations"
+  WHERE (("approval_delegations"."id" = "approval_delegation_mappings"."delegation_id") AND (("auth"."uid"() = "approval_delegations"."delegator_id") OR ("auth"."uid"() = "approval_delegations"."delegate_id") OR (EXISTS ( SELECT 1
+           FROM "public"."users"
+          WHERE (("users"."id" = "auth"."uid"()) AND ("users"."organization_id" = "approval_delegations"."organization_id") AND ("users"."role" = ANY (ARRAY['admin'::"public"."user_role", 'management'::"public"."user_role"]))))))))));
+
+
+
 CREATE POLICY "Users can view documents" ON "public"."documents" FOR SELECT USING ((("project_id" IN ( SELECT "projects"."id"
    FROM "public"."projects"
   WHERE "public"."can_access_project"("projects"."id"))) AND (("public"."get_current_user_role"() = ANY (ARRAY['admin'::"text", 'management'::"text"])) OR (("access_level")::"text" = ANY (ARRAY[('public'::character varying)::"text", ('internal'::character varying)::"text"])) OR (("public"."get_current_user_role"() = 'customer'::"text") AND (("access_level")::"text" = ANY (ARRAY[('public'::character varying)::"text", ('customer'::character varying)::"text"]))) OR (("public"."get_current_user_role"() = 'supplier'::"text") AND (("access_level")::"text" = ANY (ARRAY[('public'::character varying)::"text", ('supplier'::character varying)::"text"]))))));
@@ -1923,6 +2154,12 @@ CREATE POLICY "Users can view sub-stages for their organization" ON "public"."wo
 
 
 
+CREATE POLICY "Users can view supplier RFQs in their org" ON "public"."supplier_rfqs" FOR SELECT USING (("project_id" IN ( SELECT "projects"."id"
+   FROM "public"."projects"
+  WHERE ("projects"."organization_id" = "public"."get_current_user_org_id"()))));
+
+
+
 CREATE POLICY "Users can view supplier quotes" ON "public"."supplier_quotes" FOR SELECT USING ((("organization_id" = "public"."get_current_user_org_id"()) AND (("public"."get_current_user_role"() = ANY (ARRAY['admin'::"text", 'management'::"text", 'procurement'::"text"])) OR (("public"."get_current_user_role"() = 'sales'::"text") AND ("project_id" IN ( SELECT "projects"."id"
    FROM "public"."projects"
   WHERE ("projects"."current_stage_id" IN ( SELECT "workflow_stages"."id"
@@ -1943,6 +2180,12 @@ CREATE POLICY "Users can view their organization" ON "public"."organizations" FO
 
 
 
+CREATE POLICY "Users can view their own delegations" ON "public"."approval_delegations" FOR SELECT USING ((("auth"."uid"() = "delegator_id") OR ("auth"."uid"() = "delegate_id") OR (EXISTS ( SELECT 1
+   FROM "public"."users"
+  WHERE (("users"."id" = "auth"."uid"()) AND ("users"."organization_id" = "approval_delegations"."organization_id") AND ("users"."role" = ANY (ARRAY['admin'::"public"."user_role", 'management'::"public"."user_role"])))))));
+
+
+
 CREATE POLICY "Users can view their own notifications" ON "public"."notifications" FOR SELECT USING (("user_id" = "auth"."uid"()));
 
 
@@ -1958,6 +2201,12 @@ CREATE POLICY "Users can view workflow stages in their org" ON "public"."workflo
 
 
 ALTER TABLE "public"."activity_log" ENABLE ROW LEVEL SECURITY;
+
+
+ALTER TABLE "public"."approval_delegation_mappings" ENABLE ROW LEVEL SECURITY;
+
+
+ALTER TABLE "public"."approval_delegations" ENABLE ROW LEVEL SECURITY;
 
 
 ALTER TABLE "public"."contacts" ENABLE ROW LEVEL SECURITY;
@@ -1990,6 +2239,9 @@ ALTER TABLE "public"."reviews" ENABLE ROW LEVEL SECURITY;
 ALTER TABLE "public"."supplier_quotes" ENABLE ROW LEVEL SECURITY;
 
 
+ALTER TABLE "public"."supplier_rfqs" ENABLE ROW LEVEL SECURITY;
+
+
 ALTER TABLE "public"."users" ENABLE ROW LEVEL SECURITY;
 
 
@@ -2005,6 +2257,34 @@ ALTER PUBLICATION "supabase_realtime" OWNER TO "postgres";
 
 
 
+
+
+
+ALTER PUBLICATION "supabase_realtime" ADD TABLE ONLY "public"."approval_delegation_mappings";
+
+
+
+ALTER PUBLICATION "supabase_realtime" ADD TABLE ONLY "public"."approval_delegations";
+
+
+
+ALTER PUBLICATION "supabase_realtime" ADD TABLE ONLY "public"."messages";
+
+
+
+ALTER PUBLICATION "supabase_realtime" ADD TABLE ONLY "public"."notifications";
+
+
+
+ALTER PUBLICATION "supabase_realtime" ADD TABLE ONLY "public"."projects";
+
+
+
+ALTER PUBLICATION "supabase_realtime" ADD TABLE ONLY "public"."reviews";
+
+
+
+ALTER PUBLICATION "supabase_realtime" ADD TABLE ONLY "public"."supplier_quotes";
 
 
 
@@ -2192,6 +2472,12 @@ GRANT ALL ON FUNCTION "public"."create_project_sub_stage_progress"() TO "service
 
 
 
+GRANT ALL ON FUNCTION "public"."expire_approval_delegations"() TO "anon";
+GRANT ALL ON FUNCTION "public"."expire_approval_delegations"() TO "authenticated";
+GRANT ALL ON FUNCTION "public"."expire_approval_delegations"() TO "service_role";
+
+
+
 GRANT ALL ON FUNCTION "public"."generate_project_id"() TO "anon";
 GRANT ALL ON FUNCTION "public"."generate_project_id"() TO "authenticated";
 GRANT ALL ON FUNCTION "public"."generate_project_id"() TO "service_role";
@@ -2246,6 +2532,12 @@ GRANT ALL ON FUNCTION "public"."log_activity"() TO "service_role";
 
 
 
+GRANT ALL ON FUNCTION "public"."update_approval_delegations_updated_at"() TO "anon";
+GRANT ALL ON FUNCTION "public"."update_approval_delegations_updated_at"() TO "authenticated";
+GRANT ALL ON FUNCTION "public"."update_approval_delegations_updated_at"() TO "service_role";
+
+
+
 GRANT ALL ON FUNCTION "public"."update_updated_at_column"() TO "anon";
 GRANT ALL ON FUNCTION "public"."update_updated_at_column"() TO "authenticated";
 GRANT ALL ON FUNCTION "public"."update_updated_at_column"() TO "service_role";
@@ -2276,6 +2568,18 @@ GRANT ALL ON FUNCTION "public"."update_workflow_stage_sub_stages_count"() TO "se
 GRANT ALL ON TABLE "public"."activity_log" TO "anon";
 GRANT ALL ON TABLE "public"."activity_log" TO "authenticated";
 GRANT ALL ON TABLE "public"."activity_log" TO "service_role";
+
+
+
+GRANT ALL ON TABLE "public"."approval_delegation_mappings" TO "anon";
+GRANT ALL ON TABLE "public"."approval_delegation_mappings" TO "authenticated";
+GRANT ALL ON TABLE "public"."approval_delegation_mappings" TO "service_role";
+
+
+
+GRANT ALL ON TABLE "public"."approval_delegations" TO "anon";
+GRANT ALL ON TABLE "public"."approval_delegations" TO "authenticated";
+GRANT ALL ON TABLE "public"."approval_delegations" TO "service_role";
 
 
 
@@ -2336,6 +2640,12 @@ GRANT ALL ON TABLE "public"."reviews" TO "service_role";
 GRANT ALL ON TABLE "public"."supplier_quotes" TO "anon";
 GRANT ALL ON TABLE "public"."supplier_quotes" TO "authenticated";
 GRANT ALL ON TABLE "public"."supplier_quotes" TO "service_role";
+
+
+
+GRANT ALL ON TABLE "public"."supplier_rfqs" TO "anon";
+GRANT ALL ON TABLE "public"."supplier_rfqs" TO "authenticated";
+GRANT ALL ON TABLE "public"."supplier_rfqs" TO "service_role";
 
 
 
