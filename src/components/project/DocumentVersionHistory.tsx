@@ -19,7 +19,8 @@ import {
     AlertTriangle,
     CheckCircle,
     ArrowUpDown,
-    Plus
+    Plus,
+    Info
 } from 'lucide-react';
 import { format } from 'date-fns';
 import { ProjectDocument } from '@/types/project';
@@ -239,12 +240,12 @@ export const DocumentVersionHistory: React.FC<DocumentVersionHistoryProps> = ({
             >
                 <div className="space-y-4">
                     {/* Header Actions */}
-                    <div className="flex items-center justify-between">
+                    <div className="flex items-center justify-between p-4 bg-slate-50 dark:bg-slate-800 rounded-lg border border-slate-200 dark:border-slate-700">
                         <div className="flex items-center gap-2">
-                            <FileText className="w-4 h-4 text-muted-foreground" />
-                            <span className="text-sm font-medium">{document.title}</span>
+                            <FileText className="w-4 h-4 text-slate-600 dark:text-slate-400" />
+                            <span className="text-sm font-medium text-slate-900 dark:text-slate-100">{document.title}</span>
                             {versionHistory && (
-                                <Badge variant="outline" className="text-xs">
+                                <Badge variant="secondary" className="text-xs bg-slate-200 dark:bg-slate-700 text-slate-700 dark:text-slate-300">
                                     {versionHistory.total_versions} version{versionHistory.total_versions !== 1 ? 's' : ''}
                                 </Badge>
                             )}
@@ -257,6 +258,7 @@ export const DocumentVersionHistory: React.FC<DocumentVersionHistoryProps> = ({
                                     size="sm"
                                     onClick={handleCompareVersions}
                                     disabled={isLoading}
+                                    className="border-slate-300 dark:border-slate-600 text-slate-700 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-700"
                                 >
                                     <ArrowUpDown className="w-4 h-4 mr-2" />
                                     Compare
@@ -268,6 +270,7 @@ export const DocumentVersionHistory: React.FC<DocumentVersionHistoryProps> = ({
                                 size="sm"
                                 onClick={() => setShowUploadModal(true)}
                                 disabled={isLoading}
+                                className="border-slate-300 dark:border-slate-600 text-slate-700 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-700"
                             >
                                 <Plus className="w-4 h-4 mr-2" />
                                 New Version
@@ -277,15 +280,15 @@ export const DocumentVersionHistory: React.FC<DocumentVersionHistoryProps> = ({
 
                     {/* Error State */}
                     {error && (
-                        <Alert variant="destructive">
+                        <Alert variant="destructive" className="border-red-200 dark:border-red-800 bg-red-50 dark:bg-red-900/20">
                             <AlertTriangle className="h-4 w-4" />
-                            <AlertDescription>{error}</AlertDescription>
+                            <AlertDescription className="text-red-800 dark:text-red-200">{error}</AlertDescription>
                         </Alert>
                     )}
 
                     {/* Loading State */}
                     {isLoading && !versionHistory && (
-                        <div className="flex items-center justify-center py-8">
+                        <div className="flex items-center justify-center py-8 text-slate-600 dark:text-slate-400">
                             <Clock className="w-6 h-6 animate-spin mr-2" />
                             <span>Loading version history...</span>
                         </div>
@@ -297,9 +300,13 @@ export const DocumentVersionHistory: React.FC<DocumentVersionHistoryProps> = ({
                             {versionHistory.versions.map((version, index) => (
                                 <Card
                                     key={version.id}
-                                    className={`transition-all ${version.is_current ? 'ring-2 ring-blue-500 bg-blue-50' : ''
-                                        } ${selectedVersions.includes(version.id) ? 'ring-2 ring-green-500' : ''
-                                        }`}
+                                    className={`transition-all border-2 ${version.is_current
+                                            ? 'border-emerald-500 bg-emerald-50 dark:bg-emerald-900/20 dark:border-emerald-600'
+                                            : 'border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800'
+                                        } ${selectedVersions.includes(version.id)
+                                            ? 'ring-2 ring-blue-500 dark:ring-blue-400 shadow-lg'
+                                            : ''
+                                        } hover:shadow-md dark:hover:shadow-slate-900/50`}
                                 >
                                     <CardContent className="p-4">
                                         <div className="flex items-start justify-between">
@@ -309,27 +316,30 @@ export const DocumentVersionHistory: React.FC<DocumentVersionHistoryProps> = ({
                                                     type="checkbox"
                                                     checked={selectedVersions.includes(version.id)}
                                                     onChange={() => toggleVersionSelection(version.id)}
-                                                    className="mt-1"
+                                                    className="mt-1 w-4 h-4 text-blue-600 bg-slate-100 dark:bg-slate-700 border-slate-300 dark:border-slate-600 rounded focus:ring-blue-500 dark:focus:ring-blue-400"
                                                 />
 
                                                 <div className="flex-1">
                                                     <div className="flex items-center gap-2 mb-2">
-                                                        <h4 className="font-medium">
+                                                        <h4 className={`font-medium ${version.is_current
+                                                                ? 'text-emerald-800 dark:text-emerald-200'
+                                                                : 'text-slate-900 dark:text-slate-100'
+                                                            }`}>
                                                             Version {version.version_number}
                                                         </h4>
                                                         {version.is_current && (
-                                                            <Badge variant="default" className="text-xs">
+                                                            <Badge className="text-xs bg-emerald-100 dark:bg-emerald-800 text-emerald-800 dark:text-emerald-200 border-emerald-200 dark:border-emerald-700">
                                                                 Current
                                                             </Badge>
                                                         )}
                                                         {index === 0 && !version.is_current && (
-                                                            <Badge variant="outline" className="text-xs">
+                                                            <Badge variant="outline" className="text-xs border-slate-300 dark:border-slate-600 text-slate-700 dark:text-slate-300">
                                                                 Latest
                                                             </Badge>
                                                         )}
                                                     </div>
 
-                                                    <div className="space-y-1 text-sm text-muted-foreground">
+                                                    <div className="space-y-1 text-sm text-slate-600 dark:text-slate-400">
                                                         <div className="flex items-center gap-4">
                                                             <div className="flex items-center gap-1">
                                                                 <User className="w-3 h-3" />
@@ -345,8 +355,9 @@ export const DocumentVersionHistory: React.FC<DocumentVersionHistoryProps> = ({
                                                         </div>
 
                                                         {version.change_summary && (
-                                                            <div className="mt-2 p-2 bg-muted rounded text-xs">
-                                                                <strong>Changes:</strong> {version.change_summary}
+                                                            <div className="mt-2 p-2 bg-slate-100 dark:bg-slate-700 rounded text-xs border border-slate-200 dark:border-slate-600">
+                                                                <strong className="text-slate-700 dark:text-slate-300">Changes:</strong>
+                                                                <span className="text-slate-600 dark:text-slate-400 ml-1">{version.change_summary}</span>
                                                             </div>
                                                         )}
                                                     </div>
@@ -360,6 +371,7 @@ export const DocumentVersionHistory: React.FC<DocumentVersionHistoryProps> = ({
                                                     size="sm"
                                                     onClick={() => handleDownloadVersion(version.id)}
                                                     title="Download"
+                                                    className="text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-100 hover:bg-slate-100 dark:hover:bg-slate-700"
                                                 >
                                                     <Download className="w-4 h-4" />
                                                 </Button>
@@ -371,6 +383,7 @@ export const DocumentVersionHistory: React.FC<DocumentVersionHistoryProps> = ({
                                                         onClick={() => handleSetCurrentVersion(version.id)}
                                                         title="Set as current"
                                                         disabled={isLoading}
+                                                        className="text-slate-600 dark:text-slate-400 hover:text-emerald-700 dark:hover:text-emerald-300 hover:bg-emerald-50 dark:hover:bg-emerald-900/20"
                                                     >
                                                         <RotateCcw className="w-4 h-4" />
                                                     </Button>
@@ -383,7 +396,7 @@ export const DocumentVersionHistory: React.FC<DocumentVersionHistoryProps> = ({
                                                         onClick={() => handleDeleteVersion(version.id)}
                                                         title="Delete version"
                                                         disabled={isLoading}
-                                                        className="text-red-600 hover:text-red-700"
+                                                        className="text-red-600 dark:text-red-400 hover:text-red-700 dark:hover:text-red-300 hover:bg-red-50 dark:hover:bg-red-900/20"
                                                     >
                                                         <Trash2 className="w-4 h-4" />
                                                     </Button>
@@ -398,7 +411,7 @@ export const DocumentVersionHistory: React.FC<DocumentVersionHistoryProps> = ({
 
                     {/* Empty State */}
                     {versionHistory && versionHistory.versions.length === 0 && (
-                        <div className="text-center py-8 text-muted-foreground">
+                        <div className="text-center py-8 text-slate-500 dark:text-slate-400">
                             <History className="w-12 h-12 mx-auto mb-4 opacity-50" />
                             <p>No version history available</p>
                         </div>
@@ -415,23 +428,24 @@ export const DocumentVersionHistory: React.FC<DocumentVersionHistoryProps> = ({
             >
                 <div className="space-y-4">
                     <div>
-                        <Label htmlFor="version-file">Select File</Label>
+                        <Label htmlFor="version-file" className="text-slate-700 dark:text-slate-300">Select File</Label>
                         <input
                             id="version-file"
                             type="file"
                             onChange={(e) => setUploadFile(e.target.files?.[0] || null)}
-                            className="mt-1 block w-full text-sm text-muted-foreground file:mr-4 file:py-2 file:px-4 file:rounded-md file:border-0 file:text-sm file:font-medium file:bg-primary file:text-primary-foreground hover:file:bg-primary/90"
+                            className="mt-1 block w-full text-sm text-slate-600 dark:text-slate-400 file:mr-4 file:py-2 file:px-4 file:rounded-md file:border-0 file:text-sm file:font-medium file:bg-slate-600 file:text-white hover:file:bg-slate-700 dark:file:bg-slate-500 dark:hover:file:bg-slate-600"
                         />
                     </div>
 
                     <div>
-                        <Label htmlFor="change-summary">Change Summary (Optional)</Label>
+                        <Label htmlFor="change-summary" className="text-slate-700 dark:text-slate-300">Change Summary (Optional)</Label>
                         <Textarea
                             id="change-summary"
                             placeholder="Describe what changed in this version..."
                             value={changeSummary}
                             onChange={(e) => setChangeSummary(e.target.value)}
                             rows={3}
+                            className="border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-800 text-slate-900 dark:text-slate-100 placeholder-slate-500 dark:placeholder-slate-400"
                         />
                     </div>
 
@@ -440,12 +454,14 @@ export const DocumentVersionHistory: React.FC<DocumentVersionHistoryProps> = ({
                             variant="outline"
                             onClick={() => setShowUploadModal(false)}
                             disabled={isLoading}
+                            className="border-slate-300 dark:border-slate-600 text-slate-700 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-700"
                         >
                             Cancel
                         </Button>
                         <Button
                             onClick={handleUploadNewVersion}
                             disabled={!uploadFile || isLoading}
+                            className="bg-slate-600 hover:bg-slate-700 dark:bg-slate-500 dark:hover:bg-slate-600 text-white"
                         >
                             {isLoading ? (
                                 <>
@@ -474,22 +490,22 @@ export const DocumentVersionHistory: React.FC<DocumentVersionHistoryProps> = ({
                 {comparisonResult && (
                     <div className="space-y-4">
                         <div className="grid grid-cols-2 gap-4">
-                            <Card>
+                            <Card className="border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800">
                                 <CardHeader className="pb-2">
-                                    <CardTitle className="text-sm">Version {comparisonResult.version_a.version_number}</CardTitle>
+                                    <CardTitle className="text-sm text-slate-900 dark:text-slate-100">Version {comparisonResult.version_a.version_number}</CardTitle>
                                 </CardHeader>
-                                <CardContent className="text-xs space-y-1">
+                                <CardContent className="text-xs space-y-1 text-slate-600 dark:text-slate-400">
                                     <div>Size: {formatFileSize(comparisonResult.version_a.file_size)}</div>
                                     <div>Date: {format(new Date(comparisonResult.version_a.uploaded_at), 'MMM d, yyyy')}</div>
                                     <div>By: {comparisonResult.version_a.uploader_name}</div>
                                 </CardContent>
                             </Card>
 
-                            <Card>
+                            <Card className="border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800">
                                 <CardHeader className="pb-2">
-                                    <CardTitle className="text-sm">Version {comparisonResult.version_b.version_number}</CardTitle>
+                                    <CardTitle className="text-sm text-slate-900 dark:text-slate-100">Version {comparisonResult.version_b.version_number}</CardTitle>
                                 </CardHeader>
-                                <CardContent className="text-xs space-y-1">
+                                <CardContent className="text-xs space-y-1 text-slate-600 dark:text-slate-400">
                                     <div>Size: {formatFileSize(comparisonResult.version_b.file_size)}</div>
                                     <div>Date: {format(new Date(comparisonResult.version_b.uploaded_at), 'MMM d, yyyy')}</div>
                                     <div>By: {comparisonResult.version_b.uploader_name}</div>
@@ -497,12 +513,12 @@ export const DocumentVersionHistory: React.FC<DocumentVersionHistoryProps> = ({
                             </Card>
                         </div>
 
-                        <Card>
+                        <Card className="border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800">
                             <CardHeader>
-                                <CardTitle className="text-sm">Differences</CardTitle>
+                                <CardTitle className="text-sm text-slate-900 dark:text-slate-100">Differences</CardTitle>
                             </CardHeader>
                             <CardContent className="space-y-2">
-                                <div className="text-sm">
+                                <div className="text-sm text-slate-700 dark:text-slate-300">
                                     <strong>File Size Change:</strong> {
                                         comparisonResult.differences.file_size_change > 0 ? '+' : ''
                                     }{formatFileSize(Math.abs(comparisonResult.differences.file_size_change))}
@@ -510,23 +526,23 @@ export const DocumentVersionHistory: React.FC<DocumentVersionHistoryProps> = ({
                                 </div>
 
                                 {comparisonResult.differences.title_changed && (
-                                    <div className="text-sm text-yellow-600">
+                                    <div className="text-sm text-amber-600 dark:text-amber-400">
                                         <AlertTriangle className="w-4 h-4 inline mr-1" />
                                         Title was changed
                                     </div>
                                 )}
 
                                 {comparisonResult.differences.description_changed && (
-                                    <div className="text-sm text-yellow-600">
+                                    <div className="text-sm text-amber-600 dark:text-amber-400">
                                         <AlertTriangle className="w-4 h-4 inline mr-1" />
                                         Description was changed
                                     </div>
                                 )}
 
                                 {comparisonResult.differences.metadata_changes.length > 0 && (
-                                    <div className="text-sm">
+                                    <div className="text-sm text-slate-700 dark:text-slate-300">
                                         <strong>Metadata Changes:</strong>
-                                        <ul className="list-disc list-inside mt-1 text-xs">
+                                        <ul className="list-disc list-inside mt-1 text-xs text-slate-600 dark:text-slate-400">
                                             {comparisonResult.differences.metadata_changes.map((change, index) => (
                                                 <li key={index}>{change}</li>
                                             ))}
@@ -535,9 +551,9 @@ export const DocumentVersionHistory: React.FC<DocumentVersionHistoryProps> = ({
                                 )}
 
                                 {!comparisonResult.can_compare_content && (
-                                    <Alert>
-                                        <Info className="h-4 w-4" />
-                                        <AlertDescription className="text-xs">
+                                    <Alert className="border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800">
+                                        <Info className="h-4 w-4 text-slate-600 dark:text-slate-400" />
+                                        <AlertDescription className="text-xs text-slate-600 dark:text-slate-400">
                                             Content comparison is not available for these file types.
                                         </AlertDescription>
                                     </Alert>
