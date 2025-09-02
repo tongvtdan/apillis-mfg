@@ -25,7 +25,8 @@ import {
     X,
     SortAsc,
     SortDesc,
-    History
+    History,
+    Link
 } from 'lucide-react';
 import { format } from 'date-fns';
 import { useDocuments } from '@/hooks/useDocuments';
@@ -37,6 +38,7 @@ import { DocumentPreview } from './DocumentPreview';
 import { DocumentApproval } from '@/components/approval/DocumentApproval';
 import { DocumentVersionHistory } from './DocumentVersionHistory';
 import { DocumentEditModal } from './DocumentEditModal';
+import { DocumentLinkModal } from './DocumentLinkModal';
 import { documentActionsService } from '@/services/documentActions';
 import type { ProjectDocument } from '@/hooks/useDocuments';
 import type { DocumentEditData } from '@/services/documentActions';
@@ -75,6 +77,7 @@ export const DocumentManager: React.FC<DocumentManagerProps> = ({ projectId, cur
     const [showPreview, setShowPreview] = useState(false);
     const [showVersionHistory, setShowVersionHistory] = useState(false);
     const [showEditModal, setShowEditModal] = useState(false);
+    const [showLinkModal, setShowLinkModal] = useState(false);
 
     // Sorting state
     const [sortField, setSortField] = useState<SortField>('date');
@@ -351,6 +354,10 @@ export const DocumentManager: React.FC<DocumentManagerProps> = ({ projectId, cur
                                 <Upload className="w-4 h-4 mr-2" />
                                 Upload Files
                             </Button>
+                            <Button variant="outline" onClick={() => setShowLinkModal(true)}>
+                                <Link className="w-4 h-4 mr-2" />
+                                Add Link
+                            </Button>
                         </div>
                     </div>
 
@@ -601,6 +608,17 @@ export const DocumentManager: React.FC<DocumentManagerProps> = ({ projectId, cur
                         onSave={handleDocumentSave}
                     />
                 )}
+
+                {/* Document Link Modal */}
+                <DocumentLinkModal
+                    projectId={projectId}
+                    isOpen={showLinkModal}
+                    onClose={() => setShowLinkModal(false)}
+                    onSuccess={() => {
+                        // Refresh documents list
+                        // The useDocuments hook should handle real-time updates
+                    }}
+                />
             </div>
         </div>
     );

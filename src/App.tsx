@@ -26,6 +26,7 @@ import NewRFQ from "./pages/NewRFQ";
 import Settings from "./pages/Settings";
 import Profile from "./pages/Profile";
 import Approvals from "./pages/Approvals";
+import { GoogleDriveCallback } from "./pages/GoogleDriveCallback";
 
 import { applyAdaptiveTheme } from "@/lib/theme";
 import "@/styles/smooth-transitions.css";
@@ -149,6 +150,13 @@ const App = () => {
             <Route path="/rfq/new" element={
               <ProtectedRoute>
                 <AppLayout><NewRFQ /></AppLayout>
+              </ProtectedRoute>
+            } />
+
+            {/* Google Drive OAuth Callback */}
+            <Route path="/auth/google-drive/callback" element={
+              <ProtectedRoute>
+                <GoogleDriveCallback />
               </ProtectedRoute>
             } />
 

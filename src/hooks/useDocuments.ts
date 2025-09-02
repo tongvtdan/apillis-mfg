@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
 import { toast } from 'sonner';
+import type { DocumentLinkData } from '@/types/googleDrive';
 
 // Helper function to convert MIME types to shorter file type identifiers
 const getFileTypeFromMimeType = (mimeType: string): string => {
@@ -74,6 +75,7 @@ interface UseDocumentsReturn {
   error: Error | null;
   refetch: () => Promise<void>;
   uploadDocument: (file: File, metadata: DocumentMetadata) => Promise<ProjectDocument>;
+  addDocumentLink: (linkData: DocumentLinkData) => Promise<ProjectDocument>;
   updateDocument: (id: string, updates: Partial<ProjectDocument>) => Promise<ProjectDocument>;
   deleteDocument: (id: string) => Promise<void>;
   bulkDelete: (ids: string[]) => Promise<void>;
@@ -212,6 +214,75 @@ export function useDocuments(projectId: string): UseDocumentsReturn {
     } catch (err) {
       const errorMessage = err instanceof Error ? err.message : 'Failed to upload document';
       toast.error('Upload failed', {
+        description: errorMessage
+      });
+      throw new Error(errorMessage);
+    }
+  };
+
+  // Add a document link (Google Drive, external URL, etc.)
+  const addDocumentLink = async (linkData: DocumentLinkData): Promise<ProjectDocument> => {
+    if (!user || !profile?.organization_id) {
+      throw new Error('User not authenticated');
+    }
+
+    try {
+      // Prepare document data for link
+      const documentData = {
+        project_id: projectId,
+        organization_id: profile.organization_id,
+        file_name: linkData.title,
+        title: linkData.title,
+        description: linkData.description || '',
+        file_size: 0, // Links don't have file size
+        file_type: linkData.document_type || 'other',
+        mime_type: 'application/link',
+        category: linkData.document_type || 'other',
+        access_level: linkData.access_level || 'internal',
+        file_path: '', // No local file path for links
+        uploaded_by: user.id,
+        // Link-specific fields
+        storage_provider: linkData.storage_provider,
+        external_id: linkData.external_id,
+        external_url: linkData.external_url,
+        link_type: linkData.link_type,
+        link_permissions: linkData.link_permissions,
+        link_expires_at: linkData.link_expires_at,
+        metadata: {
+          tags: linkData.tags || [],
+          description: linkData.description || '',
+          version: '1.0',
+          category: linkData.document_type || 'other',
+          link_type: linkData.link_type,
+          storage_provider: linkData.storage_provider,
+        }
+      };
+
+      // Create document record in database
+      const { data: document, error: dbError } = await supabase
+        .from('documents')
+        .insert(documentData)
+        .select()
+        .single();
+
+      if (dbError) {
+        throw new Error(`Failed to add document link: ${dbError.message}`);
+      }
+
+      // Log document access
+      await supabase
+        .from('document_access_log')
+        .insert({
+          document_id: document.id,
+          user_id: user.id,
+          action: 'upload',
+        });
+
+      toast.success('Document link added successfully');
+      return document;
+    } catch (err) {
+      const errorMessage = err instanceof Error ? err.message : 'Failed to add document link';
+      toast.error('Failed to add document link', {
         description: errorMessage
       });
       throw new Error(errorMessage);
@@ -382,6 +453,7 @@ export function useDocuments(projectId: string): UseDocumentsReturn {
     error,
     refetch,
     uploadDocument,
+    addDocumentLink,
     updateDocument,
     deleteDocument,
     bulkDelete
