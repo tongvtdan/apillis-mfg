@@ -205,7 +205,15 @@ export const DocumentUploadZone: React.FC<DocumentUploadZoneProps> = ({
                         ));
                     }, 200);
 
-                    await uploadDocument(fileItem.file, fileItem.metadata);
+                    // Upload with timeout handling
+                    const uploadPromise = uploadDocument(fileItem.file, fileItem.metadata);
+
+                    // Add timeout to the upload promise
+                    const timeoutPromise = new Promise((_, reject) => {
+                        setTimeout(() => reject(new Error('Upload timeout - please try again')), 60000);
+                    });
+
+                    await Promise.race([uploadPromise, timeoutPromise]);
 
                     clearInterval(progressInterval);
 
@@ -224,6 +232,13 @@ export const DocumentUploadZone: React.FC<DocumentUploadZoneProps> = ({
                             ? { ...f, status: 'error', error: errorMessage }
                             : f
                     ));
+
+                    // Show specific error message for timeouts
+                    if (errorMessage.includes('timeout')) {
+                        toast.error('Upload timeout', {
+                            description: 'The upload is taking too long. Please try with a smaller file or check your connection.'
+                        });
+                    }
                 }
             }
 

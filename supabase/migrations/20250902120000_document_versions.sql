@@ -122,7 +122,7 @@ BEGIN
     
     RETURN NEW;
 END;
-$ LANGUAGE plpgsql SECURITY DEFINER;
+$$ LANGUAGE plpgsql SECURITY DEFINER;
 
 -- Create trigger to automatically create initial version
 DROP TRIGGER IF EXISTS trigger_create_initial_document_version ON documents;
@@ -156,7 +156,7 @@ BEGIN
     
     RETURN NEW;
 END;
-$ LANGUAGE plpgsql SECURITY DEFINER;
+$$ LANGUAGE plpgsql SECURITY DEFINER;
 
 -- Create trigger for version changes
 DROP TRIGGER IF EXISTS trigger_update_document_on_version_change ON document_versions;
@@ -203,7 +203,7 @@ BEGIN
     WHERE dv.document_id = p_document_id
     ORDER BY dv.version_number DESC;
 END;
-$ LANGUAGE plpgsql SECURITY DEFINER;
+$$ LANGUAGE plpgsql SECURITY DEFINER;
 
 -- Function to cleanup old document versions (keep only N latest)
 CREATE OR REPLACE FUNCTION cleanup_old_document_versions(
@@ -238,7 +238,7 @@ BEGIN
     
     RETURN v_deleted_count;
 END;
-$ LANGUAGE plpgsql SECURITY DEFINER;
+$$ LANGUAGE plpgsql SECURITY DEFINER;
 
 -- Add comments for documentation
 COMMENT ON TABLE document_versions IS 'Version history for documents with file tracking and metadata';
@@ -253,7 +253,7 @@ COMMENT ON FUNCTION get_document_version_history(UUID) IS 'Returns complete vers
 COMMENT ON FUNCTION cleanup_old_document_versions(UUID, INTEGER) IS 'Removes old document versions keeping only the specified number of latest versions';
 
 -- Create initial versions for existing documents (if any)
-DO $
+DO $$
 DECLARE
     doc_record RECORD;
 BEGIN
@@ -292,4 +292,4 @@ BEGIN
             COALESCE(doc_record.metadata, '{}')
         );
     END LOOP;
-END $;
+END $$;

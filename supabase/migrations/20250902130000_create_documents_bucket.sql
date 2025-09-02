@@ -9,7 +9,7 @@ CREATE POLICY "Users can upload documents to their organization's folder" ON sto
     auth.uid() IS NOT NULL AND
     (storage.foldername(name))[1] = (
       SELECT organization_id::text 
-      FROM profiles 
+      FROM users 
       WHERE id = auth.uid()
     )
   );
@@ -20,7 +20,7 @@ CREATE POLICY "Users can view documents from their organization" ON storage.obje
     auth.uid() IS NOT NULL AND
     (storage.foldername(name))[1] = (
       SELECT organization_id::text 
-      FROM profiles 
+      FROM users 
       WHERE id = auth.uid()
     )
   );
@@ -31,7 +31,7 @@ CREATE POLICY "Users can update documents from their organization" ON storage.ob
     auth.uid() IS NOT NULL AND
     (storage.foldername(name))[1] = (
       SELECT organization_id::text 
-      FROM profiles 
+      FROM users 
       WHERE id = auth.uid()
     )
   );
@@ -42,7 +42,7 @@ CREATE POLICY "Users can delete documents from their organization" ON storage.ob
     auth.uid() IS NOT NULL AND
     (storage.foldername(name))[1] = (
       SELECT organization_id::text 
-      FROM profiles 
+      FROM users 
       WHERE id = auth.uid()
     )
   );
