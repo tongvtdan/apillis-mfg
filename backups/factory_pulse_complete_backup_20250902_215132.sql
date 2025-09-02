@@ -117,6 +117,17 @@ CREATE TYPE "public"."contact_type" AS ENUM (
 ALTER TYPE "public"."contact_type" OWNER TO "postgres";
 
 
+CREATE TYPE "public"."intake_type" AS ENUM (
+    'rfq',
+    'purchase_order',
+    'project_idea',
+    'direct_request'
+);
+
+
+ALTER TYPE "public"."intake_type" OWNER TO "postgres";
+
+
 CREATE TYPE "public"."priority_level" AS ENUM (
     'low',
     'medium',
@@ -1706,11 +1717,21 @@ CREATE TABLE IF NOT EXISTS "public"."projects" (
     "created_at" timestamp with time zone DEFAULT "now"(),
     "updated_at" timestamp with time zone DEFAULT "now"(),
     "created_by" "uuid",
-    "assigned_to" "uuid"
+    "assigned_to" "uuid",
+    "intake_type" "public"."intake_type",
+    "intake_source" character varying(50) DEFAULT 'portal'::character varying
 );
 
 
 ALTER TABLE "public"."projects" OWNER TO "postgres";
+
+
+COMMENT ON COLUMN "public"."projects"."intake_type" IS 'Classification of how the project was submitted (RFQ, Purchase Order, Project Idea, etc.)';
+
+
+
+COMMENT ON COLUMN "public"."projects"."intake_source" IS 'Source of the project intake (portal, email, api, etc.)';
+
 
 
 CREATE TABLE IF NOT EXISTS "public"."reviews" (
@@ -2314,6 +2335,14 @@ CREATE INDEX "idx_projects_created_by" ON "public"."projects" USING "btree" ("cr
 
 
 CREATE INDEX "idx_projects_customer" ON "public"."projects" USING "btree" ("customer_id");
+
+
+
+CREATE INDEX "idx_projects_intake_source" ON "public"."projects" USING "btree" ("intake_source");
+
+
+
+CREATE INDEX "idx_projects_intake_type" ON "public"."projects" USING "btree" ("intake_type");
 
 
 
