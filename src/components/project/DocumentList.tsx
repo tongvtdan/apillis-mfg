@@ -149,9 +149,14 @@ export const DocumentList: React.FC<DocumentListProps> = ({
                             </TableCell>
                             <TableCell className="text-sm">
                                 <div className="space-y-1">
-                                    <div>{format(new Date(document.uploaded_at), 'MMM d, yyyy')}</div>
+                                    <div>
+                                        {documentActionsService.formatDate(document.created_at, 'MMM d, yyyy')}
+                                    </div>
                                     <div className="text-xs text-muted-foreground">
-                                        {format(new Date(document.uploaded_at), 'h:mm a')}
+                                        {document.created_at ?
+                                            documentActionsService.formatDate(document.created_at, 'h:mm a') :
+                                            ''
+                                        }
                                     </div>
                                 </div>
                             </TableCell>

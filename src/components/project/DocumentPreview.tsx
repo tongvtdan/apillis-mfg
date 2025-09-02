@@ -276,8 +276,8 @@ export const DocumentPreview: React.FC<DocumentPreviewProps> = ({
 
                     <div className="space-y-2">
                         <div className="text-sm space-y-1">
-                            <div><strong>Uploaded:</strong> {format(new Date(document.created_at), 'PPP')}</div>
-                            <div><strong>Modified:</strong> {format(new Date(document.updated_at), 'PPP')}</div>
+                            <div><strong>Uploaded:</strong> {documentActionsService.formatDate(document.created_at, 'PPP')}</div>
+                            <div><strong>Modified:</strong> {documentActionsService.formatDate(document.updated_at, 'PPP')}</div>
                             {document.uploaded_by && (
                                 <div><strong>Uploaded by:</strong> {document.uploaded_by}</div>
                             )}

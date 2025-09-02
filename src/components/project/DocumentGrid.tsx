@@ -146,7 +146,9 @@ export const DocumentGrid: React.FC<DocumentGridProps> = ({
 
                                 <div className="text-xs text-muted-foreground space-y-1">
                                     <div>{formatFileSize(document.file_size)}</div>
-                                    <div>{format(new Date(document.created_at), 'MMM d, yyyy')}</div>
+                                    <div>
+                                        {documentActionsService.formatDate(document.created_at, 'MMM d, yyyy')}
+                                    </div>
                                 </div>
 
                                 {/* Tags */}

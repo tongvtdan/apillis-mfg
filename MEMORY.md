@@ -2,6 +2,72 @@
 
 ## Recent Changes
 
+### 2025-09-02 - Document Management Date Formatting Bug Fix
+
+**Bug Fixed:**
+- Fixed "Invalid time value" error when switching from grid view to list view in document management
+- Resolved date formatting inconsistency between DocumentList and DocumentGrid components
+- Added safe date formatting utility to prevent future date-related errors
+
+**Root Cause Analysis:**
+The error occurred because:
+1. **Field Name Inconsistency**: DocumentList was using `document.uploaded_at` while DocumentGrid was using `document.created_at`
+2. **Missing Field**: The `uploaded_at` field doesn't exist in the ProjectDocument interface, only `created_at` exists
+3. **No Date Validation**: Direct use of `new Date()` without checking for null/undefined values
+4. **Invalid Date Values**: Some documents might have null or invalid date strings
+
+**Technical Fixes Applied:**
+
+1. **Field Name Correction** (`src/components/project/DocumentList.tsx`):
+   - Changed `document.uploaded_at` to `document.created_at` to match the interface
+   - Added null/undefined checks before date formatting
+
+2. **Safe Date Formatting** (`src/services/documentActions.ts`):
+   - Added `formatDate()` utility function with comprehensive error handling
+   - Validates date strings before creating Date objects
+   - Returns fallback values for invalid dates
+   - Includes try-catch error handling
+
+3. **Component Updates**:
+   - **DocumentList**: Updated to use safe date formatting
+   - **DocumentGrid**: Updated to use safe date formatting  
+   - **DocumentPreview**: Updated to use safe date formatting
+
+**Key Changes Made:**
+```typescript
+// Safe date formatting utility
+formatDate(dateString: string | null | undefined, formatString: string): string {
+  if (!dateString) {
+    return 'Unknown date';
+  }
+
+  try {
+    const date = new Date(dateString);
+    if (isNaN(date.getTime())) {
+      return 'Invalid date';
+    }
+    return format(date, formatString);
+  } catch (error) {
+    console.warn('Error formatting date:', error);
+    return 'Invalid date';
+  }
+}
+```
+
+**User Experience Improvements:**
+- **Error Prevention**: No more crashes when switching between document views
+- **Consistent Display**: Both list and grid views show dates consistently
+- **Graceful Degradation**: Invalid dates show "Unknown date" instead of crashing
+- **Better Debugging**: Console warnings for date formatting issues
+
+**Current Status:**
+- ✅ Date formatting error fixed in DocumentList component
+- ✅ Date formatting error fixed in DocumentGrid component
+- ✅ Date formatting error fixed in DocumentPreview component
+- ✅ Safe date formatting utility implemented
+- ✅ Field name consistency resolved
+- ✅ Error handling improved
+
 ### 2025-09-02 - Document Management Actions Implementation Completed
 
 **Task Completed:**

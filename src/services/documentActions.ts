@@ -1,5 +1,6 @@
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
+import { format } from 'date-fns';
 import type { ProjectDocument } from '@/hooks/useDocuments';
 
 export interface DocumentEditData {
@@ -192,8 +193,8 @@ class DocumentActionsService {
     }
 
     /**
-     * Check if file type can be previewed
-     */
+ * Check if file type can be previewed
+ */
     canPreview(mimeType: string): boolean {
         const previewableTypes = [
             'image/jpeg',
@@ -206,6 +207,26 @@ class DocumentActionsService {
             'text/csv'
         ];
         return previewableTypes.includes(mimeType);
+    }
+
+    /**
+     * Safely format a date string
+     */
+    formatDate(dateString: string | null | undefined, formatString: string): string {
+        if (!dateString) {
+            return 'Unknown date';
+        }
+
+        try {
+            const date = new Date(dateString);
+            if (isNaN(date.getTime())) {
+                return 'Invalid date';
+            }
+            return format(date, formatString);
+        } catch (error) {
+            console.warn('Error formatting date:', error);
+            return 'Invalid date';
+        }
     }
 }
 
