@@ -5396,3 +5396,81 @@ The project has completed transition from a legacy enum-based stage system to a 
 Challenges ➜ Solutions
 - Lint/type errors for missing modules ➜ Added `tsconfig.json` paths and removed invalid props to analytics/calendar components
 - Legacy URLs with `tab=table` ➜ Sanitized to default to `enhanced`
+
+### 2025-09-02 - Add Document Count Information to Navigation Menu Completed
+
+**Task Completed:**
+- Added real document count information to the Documents navigation menu item
+- Enhanced navigation with notification indicators for documents requiring attention
+- Integrated with existing navigation badge system for consistency
+- Improved user experience by showing actual document statistics
+
+**Implementation Details:**
+
+1. **ProjectDetail Component Updates** (`src/pages/ProjectDetail.tsx`):
+   - **Added useDocuments Hook**: Integrated `useDocuments` hook to fetch actual document data
+   - **Real Document Count**: Replaced hardcoded `documentsCount: 0` with `documents.length`
+   - **Pending Approval Calculation**: Added logic to identify documents uploaded in last 24 hours
+   - **Memoized Calculation**: Used `useMemo` for efficient document filtering
+
+2. **Navigation Hook Enhancement** (`src/hooks/useProjectNavigation.ts`):
+   - **Added documentsPendingApproval Parameter**: New prop for documents requiring attention
+   - **Enhanced Documents Tab**: Added `hasNotifications` property for visual indicators
+   - **Consistent Badge System**: Maintained same pattern as Reviews navigation
+   - **Updated Dependencies**: Added new parameter to useMemo dependency array
+
+**Key Features Implemented:**
+
+```typescript
+// Real document count integration
+const { data: documents = [], isLoading: documentsLoading } = useDocuments(id || '');
+
+// Documents pending attention calculation
+const documentsPendingApproval = useMemo(() => {
+    const now = new Date();
+    const oneDayAgo = new Date(now.getTime() - 24 * 60 * 60 * 1000);
+    
+    return documents.filter(doc => {
+        const uploadDate = new Date(doc.created_at);
+        return uploadDate > oneDayAgo;
+    }).length;
+}, [documents]);
+
+// Navigation with enhanced document information
+useProjectNavigation({
+    projectId: id || 'temp',
+    documentsCount: documents.length,
+    documentsPendingApproval,
+    // ... other parameters
+});
+```
+
+**Visual Enhancements:**
+- **Document Count Badge**: Shows total number of documents when > 0
+- **Notification Indicator**: Red dot for documents uploaded in last 24 hours
+- **Consistent Design**: Matches Reviews navigation pattern exactly
+- **Real-time Updates**: Updates automatically when documents are added/removed
+
+**User Experience Improvements:**
+- **Immediate Feedback**: Users can see document count at a glance
+- **Attention Indicators**: Visual cues for documents requiring review
+- **Consistent Navigation**: Same pattern across all navigation items
+- **Performance Optimized**: Efficient calculations with proper memoization
+
+**Technical Benefits:**
+- **Data-Driven**: Real document counts instead of hardcoded values
+- **Real-time Integration**: Works with existing document management system
+- **Scalable Logic**: Easy to extend for different attention criteria
+- **Type Safety**: Proper TypeScript integration with existing interfaces
+
+**Current Status:**
+- ✅ Document count integration completed
+- ✅ Notification indicators implemented
+- ✅ Navigation consistency maintained
+- ✅ Performance optimizations applied
+- ✅ User experience enhanced
+- ✅ Real-time updates working
+
+### 2025-09-02 - Remove Sub-menu Navigation from Project Details Completed
+
+// ... existing code ...

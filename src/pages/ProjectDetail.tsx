@@ -1,4 +1,4 @@
-import { useState, useEffect, memo } from "react";
+import { useState, useEffect, memo, useMemo } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -35,6 +35,7 @@ import ProjectCommunication from "@/components/project/ProjectCommunication";
 import { WorkflowStepper } from "@/components/project/WorkflowStepper";
 import { useProjectMessages } from "@/hooks/useMessages";
 import { DocumentManager } from "@/components/project/DocumentManager";
+import { useDocuments } from "@/hooks/useDocuments";
 
 import { useProjectReviews } from "@/hooks/useProjectReviews";
 import { useProjects } from "@/hooks/useProjects";
@@ -83,6 +84,20 @@ export default function ProjectDetail() {
 
   const { reviews, loading: reviewsLoading, submitReview } = useProjectReviews(id || '');
 
+  const { data: documents = [], isLoading: documentsLoading } = useDocuments(id || '');
+
+  // Calculate documents that might need attention (recent uploads, pending approval, etc.)
+  const documentsPendingApproval = useMemo(() => {
+    const now = new Date();
+    const oneDayAgo = new Date(now.getTime() - 24 * 60 * 60 * 1000);
+
+    return documents.filter(doc => {
+      const uploadDate = new Date(doc.created_at);
+      // Consider documents uploaded in the last 24 hours as "pending attention"
+      return uploadDate > oneDayAgo;
+    }).length;
+  }, [documents]);
+
   // Use the new navigation hook after data is fetched
   const {
     activeTab,
@@ -93,7 +108,8 @@ export default function ProjectDetail() {
     hasTabError,
   } = useProjectNavigation({
     projectId: id || 'temp',
-    documentsCount: 0, // Removed documents section
+    documentsCount: documents.length,
+    documentsPendingApproval,
     messagesCount: messages.length,
     unreadMessagesCount: messages.filter(m => !m.read_at).length,
     reviewsCount: reviews?.length || 0,

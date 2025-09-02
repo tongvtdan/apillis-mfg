@@ -2,6 +2,22 @@
 
 ## Current Sprint
 
+- [done] 2025-09-02 - Add Document Count Information to Navigation Menu ✅
+  - ✅ Added useDocuments hook to ProjectDetail component to get actual document count
+  - ✅ Updated navigation to show real document count instead of hardcoded 0
+  - ✅ Added documentsPendingApproval calculation for recent uploads (24h)
+  - ✅ Enhanced Documents navigation item with notification indicator
+  - ✅ Integrated with existing navigation badge system
+  - ✅ Maintained consistency with Reviews navigation pattern
+
+- [done] 2025-09-02 - Remove Sub-menu Navigation from Project Details ✅
+  - ✅ Removed all sub-menu configurations from useProjectNavigation hook
+  - ✅ Simplified InteractiveNavigationSidebar component by removing sub-tab logic
+  - ✅ Updated breadcrumb generation to work without sub-tabs
+  - ✅ Cleaned up unused imports and state management
+  - ✅ Streamlined navigation interface for better user experience
+  - ✅ Maintained all main navigation functionality while removing complexity
+
 - [done] 2025-09-02 - Document Type Tabs Implementation ✅
   - ✅ Implemented document type tabs for filtering documents by type
   - ✅ Added dynamic tab generation based on available document types
