@@ -1,5 +1,5 @@
 import React from "react";
-import { Bell, Search, LogOut, Settings, HelpCircle, UserCircle, Plus } from "lucide-react";
+import { Bell, Search, LogOut, Settings, HelpCircle, UserCircle } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import {
@@ -14,13 +14,11 @@ import { Badge } from "@/components/ui/badge";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { useAuth } from "@/contexts/AuthContext";
 import { SessionStatus } from "@/components/auth/SessionStatus";
-import { Link, useLocation } from "react-router-dom";
+import { Link } from "react-router-dom";
 
 
 export function AppHeader() {
   const { profile, signOut } = useAuth();
-  const location = useLocation();
-  const isProjectsPage = location.pathname === '/projects';
 
 
   const handleLogout = async () => {
@@ -58,15 +56,6 @@ export function AppHeader() {
         </div>
 
         <div className="flex items-center space-x-4">
-          {isProjectsPage && (
-            <Button asChild size="sm" className="bg-primary hover:bg-primary/90 text-primary-foreground">
-              <Link to="/projects">
-                <Plus className="mr-2 h-4 w-4" />
-                New Project
-              </Link>
-            </Button>
-          )}
-
           <Button variant="ghost" size="sm" className="relative h-8 w-8 rounded-full border-2 border-sky-200 hover:border-sky-300 hover:bg-sky-100">
             <Bell className="h-4 w-4 text-sky-700" />
             <Badge className="absolute -top-1 -right-1 h-5 w-5 rounded-full p-0 flex items-center justify-center text-xs bg-red-600 text-white border-2 border-white">

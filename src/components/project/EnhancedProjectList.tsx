@@ -24,7 +24,6 @@ import {
 } from 'lucide-react';
 import { Project, ProjectStatus, ProjectPriority, WorkflowStage } from '@/types/project';
 import { ProjectTable } from './ProjectTable';
-import { ProjectIntakeForm } from './ProjectIntakeForm';
 import { useUsers } from '@/hooks/useUsers';
 import { useNavigate } from 'react-router-dom';
 import { useToast } from '@/hooks/use-toast';
@@ -59,7 +58,6 @@ export function EnhancedProjectList({
     const navigate = useNavigate();
     const { toast } = useToast();
     const [viewMode, setViewMode] = useState<'cards' | 'table'>('cards');
-    const [showCreateForm, setShowCreateForm] = useState(false);
     const [showFilters, setShowFilters] = useState(false);
 
     // Filter state
@@ -253,27 +251,6 @@ export function EnhancedProjectList({
         ).length;
     }, [filters]);
 
-    // Handle project creation
-    const handleProjectCreate = async (projectData: any) => {
-        try {
-            if (onProjectCreate) {
-                await onProjectCreate(projectData);
-                setShowCreateForm(false);
-                toast({
-                    title: "Project Created",
-                    description: "New project has been created successfully.",
-                });
-            }
-        } catch (error) {
-            console.error('Error creating project:', error);
-            toast({
-                variant: "destructive",
-                title: "Creation Failed",
-                description: "Failed to create project. Please try again.",
-            });
-        }
-    };
-
     // Format currency
     const formatCurrency = (value: number | null) => {
         if (!value) return null;
@@ -336,30 +313,6 @@ export function EnhancedProjectList({
                             <List className="h-4 w-4" />
                         </Button>
                     </div>
-
-                    {/* Create Project Button */}
-                    <Button onClick={() => setShowCreateForm(true)}>
-                        <Plus className="h-4 w-4 mr-2" />
-                        New Project
-                    </Button>
-
-                    {/* Create Project Modal */}
-                    <Modal
-                        isOpen={showCreateForm}
-                        onClose={() => setShowCreateForm(false)}
-                        title={
-                            <div className="flex items-center gap-2">
-                                <Plus className="w-5 h-5" />
-                                Create New Project
-                            </div>
-                        }
-                        maxWidth="max-w-4xl"
-                    >
-                        <ProjectIntakeForm
-                            submissionType="Project Idea"
-                            onSuccess={handleProjectCreate}
-                        />
-                    </Modal>
                 </div>
             </div>
 

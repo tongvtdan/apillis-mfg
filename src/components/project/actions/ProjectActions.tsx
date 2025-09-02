@@ -10,9 +10,10 @@ import {
 } from '@/components/ui/dropdown-menu';
 import { useToast } from '@/hooks/use-toast';
 import { Project } from '@/types/project';
-import { EnhancedProjectCreationModal } from '../EnhancedProjectCreationModal';
+import { ProjectIntakePortal } from '../ProjectIntakePortal';
 import { EditProjectModal } from '../EditProjectModal';
 import { useProjects } from '@/hooks/useProjects';
+import { Modal } from '@/components/ui/modal';
 
 interface ProjectActionsProps {
     // For creating new projects
@@ -245,11 +246,19 @@ export function ProjectActions({
             )}
 
             {/* Create Project Modal */}
-            <EnhancedProjectCreationModal
-                open={showCreateModal}
-                onOpenChange={setShowCreateModal}
-                onProjectCreated={handleCreateProject}
-            />
+            <Modal
+                isOpen={showCreateModal}
+                onClose={() => setShowCreateModal(false)}
+                title="Create New Project"
+                maxWidth="max-w-6xl"
+            >
+                <ProjectIntakePortal
+                    onSuccess={(projectId) => {
+                        setShowCreateModal(false);
+                        handleCreateProject({ project_id: projectId });
+                    }}
+                />
+            </Modal>
 
             {/* Edit Project Modal */}
             {project && (
