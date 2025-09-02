@@ -29,6 +29,7 @@ import { formatDistanceToNow } from 'date-fns';
 export function ApprovalDashboard() {
     const { pendingApprovals, approvalHistory, loading } = useApprovals();
     const { pendingApprovals: centralizedPendingApprovals, loading: centralizedLoading } = useCentralizedApprovals();
+    const [activeEntityType, setActiveEntityType] = useState('all'); // 'all', 'project', 'document', 'rfq'
 
     // Filter approvals by entity type
     const filteredApprovals = pendingApprovals.filter(approval => {
@@ -43,7 +44,6 @@ export function ApprovalDashboard() {
     const [showBulkModal, setShowBulkModal] = useState(false);
     const [bulkSelectionMode, setBulkSelectionMode] = useState(false);
     const [showDelegationModal, setShowDelegationModal] = useState(false);
-    const [activeEntityType, setActiveEntityType] = useState('all'); // 'all', 'project', 'document', 'rfq'
 
     const getPriorityColor = (priority: string) => {
         switch (priority) {

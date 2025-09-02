@@ -225,9 +225,6 @@ export const DocumentManager: React.FC<DocumentManagerProps> = ({ projectId }) =
             filters.uploadedBy.length > 0;
     }, [filters]);
 
-    const [selectedDocument, setSelectedDocument] = useState<ProjectDocument | null>(null);
-    const [showApprovalPanel, setShowApprovalPanel] = useState(false);
-
     return (
         <div className="space-y-6">
             {/* Header with actions */}
@@ -440,5 +437,6 @@ export const DocumentManager: React.FC<DocumentManagerProps> = ({ projectId }) =
                     />
                 )}
             </div>
-            );
+        </div>
+    );
 };
