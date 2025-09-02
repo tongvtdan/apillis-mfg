@@ -6,21 +6,22 @@ export type Department = 'Engineering' | 'QA' | 'Production';
 
 export interface InternalReview {
   id: string;
-  rfq_id: string;
+  project_id: string;
   department: Department;
   reviewer_id?: string;
+  reviewer_name?: string;
   status: ReviewStatus;
   feedback?: string;
   suggestions?: string[];
+  risks?: any[];
   created_at: string;
   updated_at: string;
   submitted_at?: string;
-  submitted_by?: string;
 }
 
 export interface RFQRisk {
   id: string;
-  rfq_id: string;
+  project_id: string;
   review_id?: string;
   description: string;
   category: RiskCategory;
@@ -32,7 +33,7 @@ export interface RFQRisk {
 
 export interface RFQClarification {
   id: string;
-  rfq_id: string;
+  project_id: string;
   requested_by?: string;
   description: string;
   status: ClarificationStatus;
@@ -55,7 +56,7 @@ export interface ReviewSubmission {
   status: ReviewStatus;
   feedback: string;
   suggestions: string[];
-  risks: Omit<RFQRisk, 'id' | 'rfq_id' | 'created_at' | 'created_by'>[];
+  risks: Omit<RFQRisk, 'id' | 'project_id' | 'created_at' | 'created_by'>[];
 }
 
 export const DEPARTMENT_LABELS: Record<Department, string> = {

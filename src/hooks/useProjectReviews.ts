@@ -4,6 +4,26 @@ import { InternalReview, RFQRisk, RFQClarification, Department, ReviewSubmission
 import { useAuth } from '@/contexts/AuthContext';
 import { useToast } from '@/hooks/use-toast';
 
+// Define the database review type based on the actual schema
+interface DatabaseReview {
+    id: string;
+    project_id: string;
+    reviewer_id: string;
+    review_type: string;
+    status: string;
+    comments: string | null;
+    recommendations: string | null;
+    metadata: any;
+    created_at: string;
+    updated_at: string;
+    completed_at: string | null;
+    reviewer?: {
+        name: string;
+        email: string;
+        role: string;
+    } | null;
+}
+
 export function useProjectReviews(projectId: string) {
     const [reviews, setReviews] = useState<InternalReview[]>([]);
     const [risks, setRisks] = useState<RFQRisk[]>([]);
@@ -21,7 +41,7 @@ export function useProjectReviews(projectId: string) {
                 .from('reviews')
                 .select(`
                     *,
-                    reviewer:users(name, email, role)
+                    reviewer:users!reviews_reviewer_id_fkey(name, email, role)
                 `)
                 .eq('project_id', projectId)
                 .order('created_at', { ascending: false });
@@ -29,7 +49,7 @@ export function useProjectReviews(projectId: string) {
             if (reviewsError) throw reviewsError;
 
             // Transform the data to match InternalReview interface
-            const transformedReviews: InternalReview[] = (reviewsData || []).map(review => ({
+            const transformedReviews: InternalReview[] = (reviewsData || []).map((review: any) => ({
                 id: review.id,
                 project_id: review.project_id,
                 reviewer_id: review.reviewer_id,
@@ -129,6 +149,15 @@ export function useProjectReviews(projectId: string) {
                 'Production': 'production'
             };
 
+            // First, get the user's organization_id
+            const { data: userData, error: userError } = await supabase
+                .from('users')
+                .select('organization_id')
+                .eq('id', user.id)
+                .single();
+
+            if (userError) throw userError;
+
             const reviewData = {
                 project_id: projectId,
                 reviewer_id: user.id,
@@ -141,7 +170,8 @@ export function useProjectReviews(projectId: string) {
                     suggestions: submission.suggestions || []
                 },
                 completed_at: new Date().toISOString(),
-                created_by: user.id
+                created_by: user.id,
+                organization_id: userData.organization_id
             };
 
             const { error } = await supabase
