@@ -1020,6 +1020,18 @@ INSERT INTO "public"."reviews" ("id", "organization_id", "project_id", "reviewer
 -- Data for Name: documents; Type: TABLE DATA; Schema: public; Owner: postgres
 --
 
+INSERT INTO "public"."documents" ("id", "organization_id", "project_id", "title", "description", "file_name", "file_path", "file_size", "file_type", "mime_type", "version", "is_current_version", "category", "tags", "metadata", "access_level", "uploaded_by", "approved_by", "approved_at", "created_at", "updated_at") VALUES
+	('824bbcc0-625e-418e-9e07-1191a2e9c46b', '550e8400-e29b-41d4-a716-446655440001', '550e8400-e29b-41d4-a716-446655440307', '394.084-01.011.55-10umd000~01.pdf', '', '1756799539348-0fgrj7avx.pdf', '550e8400-e29b-41d4-a716-446655440001/550e8400-e29b-41d4-a716-446655440307/1756799539348-0fgrj7avx.pdf', 832690, 'application/pdf', 'application/pdf', 1, true, 'other', '{}', '{"tags": [], "description": ""}', 'internal', 'a53f503d-ad74-4397-a3f1-5ee9c3e61d34', NULL, NULL, '2025-09-02 07:52:19.455336+00', '2025-09-02 07:52:19.455336+00'),
+	('3652f4d0-5206-4c35-aa99-ecc448dfb5c6', '550e8400-e29b-41d4-a716-446655440001', '550e8400-e29b-41d4-a716-446655440307', 'ANKHANG-RFQ250804-05.xlsx', '', '1756801202331-1iui8na30.xlsx', '550e8400-e29b-41d4-a716-446655440001/550e8400-e29b-41d4-a716-446655440307/1756801202331-1iui8na30.xlsx', 39853, 'xlsx', 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet', 1, true, 'rfq', '{}', '{"tags": [], "version": "1.0", "category": "rfq", "description": ""}', 'internal', 'a53f503d-ad74-4397-a3f1-5ee9c3e61d34', NULL, NULL, '2025-09-02 08:20:02.396243+00', '2025-09-02 08:20:02.396243+00');
+
+
+--
+-- Data for Name: document_versions; Type: TABLE DATA; Schema: public; Owner: postgres
+--
+
+INSERT INTO "public"."document_versions" ("id", "organization_id", "document_id", "version_number", "file_name", "file_path", "file_size", "mime_type", "title", "description", "change_summary", "uploaded_by", "uploaded_at", "is_current", "metadata", "created_at", "updated_at") VALUES
+	('f18549fa-e0de-476d-848a-db15711a4d46', '550e8400-e29b-41d4-a716-446655440001', '824bbcc0-625e-418e-9e07-1191a2e9c46b', 1, '1756799539348-0fgrj7avx.pdf', '550e8400-e29b-41d4-a716-446655440001/550e8400-e29b-41d4-a716-446655440307/1756799539348-0fgrj7avx.pdf', 832690, 'application/pdf', '394.084-01.011.55-10umd000~01.pdf', '', NULL, 'a53f503d-ad74-4397-a3f1-5ee9c3e61d34', '2025-09-02 07:52:19.455336+00', true, '{"tags": [], "description": ""}', '2025-09-02 07:52:19.455336+00', '2025-09-02 07:52:19.455336+00'),
+	('3a3244ba-aa30-44eb-8dd0-40b3c23c751e', '550e8400-e29b-41d4-a716-446655440001', '3652f4d0-5206-4c35-aa99-ecc448dfb5c6', 1, '1756801202331-1iui8na30.xlsx', '550e8400-e29b-41d4-a716-446655440001/550e8400-e29b-41d4-a716-446655440307/1756801202331-1iui8na30.xlsx', 39853, 'xlsx', 'ANKHANG-RFQ250804-05.xlsx', '', NULL, 'a53f503d-ad74-4397-a3f1-5ee9c3e61d34', '2025-09-02 08:20:02.396243+00', true, '{"tags": [], "version": "1.0", "category": "rfq", "description": ""}', '2025-09-02 08:20:02.396243+00', '2025-09-02 08:20:02.396243+00');
 
 
 --
@@ -1293,6 +1305,8 @@ INSERT INTO "public"."project_sub_stage_progress" ("id", "organization_id", "pro
 -- Data for Name: buckets; Type: TABLE DATA; Schema: storage; Owner: supabase_storage_admin
 --
 
+INSERT INTO "storage"."buckets" ("id", "name", "owner", "created_at", "updated_at", "public", "avif_autodetection", "file_size_limit", "allowed_mime_types", "owner_id", "type") VALUES
+	('documents', 'documents', NULL, '2025-09-02 07:47:21.42244+00', '2025-09-02 07:47:21.42244+00', false, false, 52428800, '{image/*,application/pdf,application/msword,application/vnd.openxmlformats-officedocument.wordprocessingml.document,application/vnd.ms-excel,application/vnd.openxmlformats-officedocument.spreadsheetml.sheet,application/dwg,application/step,text/plain}', NULL, 'STANDARD');
 
 
 --
@@ -1317,12 +1331,19 @@ INSERT INTO "public"."project_sub_stage_progress" ("id", "organization_id", "pro
 -- Data for Name: objects; Type: TABLE DATA; Schema: storage; Owner: supabase_storage_admin
 --
 
+INSERT INTO "storage"."objects" ("id", "bucket_id", "name", "owner", "created_at", "updated_at", "last_accessed_at", "metadata", "version", "owner_id", "user_metadata", "level") VALUES
+	('95ef6d65-dfe4-46a6-9a18-6ad95d0228f9', 'documents', '550e8400-e29b-41d4-a716-446655440001/550e8400-e29b-41d4-a716-446655440307/1756799539348-0fgrj7avx.pdf', 'a53f503d-ad74-4397-a3f1-5ee9c3e61d34', '2025-09-02 07:52:19.433204+00', '2025-09-02 07:52:19.433204+00', '2025-09-02 07:52:19.433204+00', '{"eTag": "\"c69d3ae2ba88ad033ed61325e041b231\"", "size": 832690, "mimetype": "application/pdf", "cacheControl": "max-age=3600", "lastModified": "2025-09-02T07:52:19.417Z", "contentLength": 832690, "httpStatusCode": 200}', '8dcfd37a-eb45-4e59-9e5a-81081f152510', 'a53f503d-ad74-4397-a3f1-5ee9c3e61d34', '{}', 3),
+	('c6412a5b-4c05-4108-b552-4fbcdc68dd2c', 'documents', '550e8400-e29b-41d4-a716-446655440001/550e8400-e29b-41d4-a716-446655440307/1756801202331-1iui8na30.xlsx', 'a53f503d-ad74-4397-a3f1-5ee9c3e61d34', '2025-09-02 08:20:02.376388+00', '2025-09-02 08:20:02.376388+00', '2025-09-02 08:20:02.376388+00', '{"eTag": "\"af2d8b0938cba20c0ef205f7a275dc2a\"", "size": 39853, "mimetype": "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet", "cacheControl": "max-age=3600", "lastModified": "2025-09-02T08:20:02.372Z", "contentLength": 39853, "httpStatusCode": 200}', 'd0e55a6d-c214-41c4-a7ac-164e4186672d', 'a53f503d-ad74-4397-a3f1-5ee9c3e61d34', '{}', 3),
+	('5b5a1ee3-f2fb-4bcc-af24-8c8978dc11a7', 'documents', '550e8400-e29b-41d4-a716-446655440001/550e8400-e29b-41d4-a716-446655440307/1756801202413-m1ubgetdx.xlsx', 'a53f503d-ad74-4397-a3f1-5ee9c3e61d34', '2025-09-02 08:20:02.434484+00', '2025-09-02 08:20:02.434484+00', '2025-09-02 08:20:02.434484+00', '{"eTag": "\"af2d8b0938cba20c0ef205f7a275dc2a\"", "size": 39853, "mimetype": "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet", "cacheControl": "max-age=3600", "lastModified": "2025-09-02T08:20:02.430Z", "contentLength": 39853, "httpStatusCode": 200}', 'e727639a-d102-474c-b1b0-c61772cdf274', 'a53f503d-ad74-4397-a3f1-5ee9c3e61d34', '{}', 3);
 
 
 --
 -- Data for Name: prefixes; Type: TABLE DATA; Schema: storage; Owner: supabase_storage_admin
 --
 
+INSERT INTO "storage"."prefixes" ("bucket_id", "name", "created_at", "updated_at") VALUES
+	('documents', '550e8400-e29b-41d4-a716-446655440001', '2025-09-02 07:52:19.433204+00', '2025-09-02 07:52:19.433204+00'),
+	('documents', '550e8400-e29b-41d4-a716-446655440001/550e8400-e29b-41d4-a716-446655440307', '2025-09-02 07:52:19.433204+00', '2025-09-02 07:52:19.433204+00');
 
 
 --

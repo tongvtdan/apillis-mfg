@@ -302,6 +302,47 @@ $_$;
 ALTER FUNCTION "public"."can_access_project"("project_id" "uuid") OWNER TO "postgres";
 
 
+CREATE OR REPLACE FUNCTION "public"."cleanup_old_document_versions"("p_document_id" "uuid", "p_keep_versions" integer DEFAULT 10) RETURNS integer
+    LANGUAGE "plpgsql" SECURITY DEFINER
+    AS $$
+DECLARE
+    v_deleted_count INTEGER;
+BEGIN
+    -- Delete old versions, keeping the specified number of latest versions
+    -- Always keep the current version regardless of the limit
+    WITH versions_to_keep AS (
+        SELECT id
+        FROM document_versions
+        WHERE document_id = p_document_id
+        AND (
+            is_current = true OR
+            id IN (
+                SELECT id
+                FROM document_versions
+                WHERE document_id = p_document_id
+                ORDER BY version_number DESC
+                LIMIT p_keep_versions
+            )
+        )
+    )
+    DELETE FROM document_versions
+    WHERE document_id = p_document_id
+    AND id NOT IN (SELECT id FROM versions_to_keep);
+    
+    GET DIAGNOSTICS v_deleted_count = ROW_COUNT;
+    
+    RETURN v_deleted_count;
+END;
+$$;
+
+
+ALTER FUNCTION "public"."cleanup_old_document_versions"("p_document_id" "uuid", "p_keep_versions" integer) OWNER TO "postgres";
+
+
+COMMENT ON FUNCTION "public"."cleanup_old_document_versions"("p_document_id" "uuid", "p_keep_versions" integer) IS 'Removes old document versions keeping only the specified number of latest versions';
+
+
+
 CREATE OR REPLACE FUNCTION "public"."create_approval"("p_organization_id" "uuid", "p_approval_type" "public"."approval_type", "p_title" character varying, "p_description" "text", "p_entity_type" character varying, "p_entity_id" "uuid", "p_requested_by" "uuid", "p_current_approver_id" "uuid", "p_current_approver_role" character varying, "p_priority" "public"."approval_priority" DEFAULT 'normal'::"public"."approval_priority", "p_due_date" timestamp with time zone DEFAULT NULL::timestamp with time zone, "p_request_reason" "text" DEFAULT NULL::"text", "p_request_metadata" "jsonb" DEFAULT '{}'::"jsonb") RETURNS "uuid"
     LANGUAGE "plpgsql" SECURITY DEFINER
     AS $$
@@ -361,6 +402,53 @@ $$;
 
 
 ALTER FUNCTION "public"."create_approval"("p_organization_id" "uuid", "p_approval_type" "public"."approval_type", "p_title" character varying, "p_description" "text", "p_entity_type" character varying, "p_entity_id" "uuid", "p_requested_by" "uuid", "p_current_approver_id" "uuid", "p_current_approver_role" character varying, "p_priority" "public"."approval_priority", "p_due_date" timestamp with time zone, "p_request_reason" "text", "p_request_metadata" "jsonb") OWNER TO "postgres";
+
+
+CREATE OR REPLACE FUNCTION "public"."create_initial_document_version"() RETURNS "trigger"
+    LANGUAGE "plpgsql" SECURITY DEFINER
+    AS $$
+DECLARE
+    v_version_id UUID;
+BEGIN
+    -- Create initial version record
+    INSERT INTO document_versions (
+        organization_id,
+        document_id,
+        version_number,
+        file_name,
+        file_path,
+        file_size,
+        mime_type,
+        title,
+        description,
+        uploaded_by,
+        is_current,
+        metadata
+    ) VALUES (
+        NEW.organization_id,
+        NEW.id,
+        COALESCE(NEW.version, 1),
+        NEW.file_name,
+        NEW.file_path,
+        COALESCE(NEW.file_size, 0),
+        NEW.file_type,
+        NEW.title,
+        NEW.description,
+        NEW.uploaded_by,
+        true,
+        COALESCE(NEW.metadata, '{}')
+    ) RETURNING id INTO v_version_id;
+    
+    RETURN NEW;
+END;
+$$;
+
+
+ALTER FUNCTION "public"."create_initial_document_version"() OWNER TO "postgres";
+
+
+COMMENT ON FUNCTION "public"."create_initial_document_version"() IS 'Automatically creates initial version record when document is created';
+
 
 
 CREATE OR REPLACE FUNCTION "public"."create_notification"("p_user_id" "uuid", "p_title" "text", "p_message" "text", "p_type" "text", "p_priority" "public"."priority_level" DEFAULT 'medium'::"public"."priority_level", "p_action_url" "text" DEFAULT NULL::"text", "p_action_label" "text" DEFAULT NULL::"text", "p_related_entity_type" "text" DEFAULT NULL::"text", "p_related_entity_id" "uuid" DEFAULT NULL::"uuid") RETURNS "uuid"
@@ -689,6 +777,40 @@ ALTER FUNCTION "public"."get_dashboard_summary"() OWNER TO "postgres";
 
 COMMENT ON FUNCTION "public"."get_dashboard_summary"() IS 'Returns enhanced dashboard summary data including project counts by status and type, and recent projects with customer information. 
 Requires user to be authenticated and have an organization_id.';
+
+
+
+CREATE OR REPLACE FUNCTION "public"."get_document_version_history"("p_document_id" "uuid") RETURNS TABLE("version_id" "uuid", "version_number" integer, "file_name" character varying, "file_size" bigint, "mime_type" character varying, "title" character varying, "description" "text", "change_summary" "text", "uploaded_by" "uuid", "uploader_name" character varying, "uploader_email" character varying, "uploaded_at" timestamp with time zone, "is_current" boolean)
+    LANGUAGE "plpgsql" SECURITY DEFINER
+    AS $$
+BEGIN
+    RETURN QUERY
+    SELECT 
+        dv.id,
+        dv.version_number,
+        dv.file_name,
+        dv.file_size,
+        dv.mime_type,
+        dv.title,
+        dv.description,
+        dv.change_summary,
+        dv.uploaded_by,
+        u.name as uploader_name,
+        u.email as uploader_email,
+        dv.uploaded_at,
+        dv.is_current
+    FROM document_versions dv
+    LEFT JOIN users u ON dv.uploaded_by = u.id
+    WHERE dv.document_id = p_document_id
+    ORDER BY dv.version_number DESC;
+END;
+$$;
+
+
+ALTER FUNCTION "public"."get_document_version_history"("p_document_id" "uuid") OWNER TO "postgres";
+
+
+COMMENT ON FUNCTION "public"."get_document_version_history"("p_document_id" "uuid") IS 'Returns complete version history for a document';
 
 
 
@@ -1041,6 +1163,41 @@ $$;
 ALTER FUNCTION "public"."update_approval_updated_at"() OWNER TO "postgres";
 
 
+CREATE OR REPLACE FUNCTION "public"."update_document_on_version_change"() RETURNS "trigger"
+    LANGUAGE "plpgsql" SECURITY DEFINER
+    AS $$
+BEGIN
+    -- If this version is being set as current, update the main document record
+    IF NEW.is_current = true AND (OLD.is_current IS NULL OR OLD.is_current = false) THEN
+        -- Update the main document record
+        UPDATE documents SET
+            file_name = NEW.file_name,
+            file_path = NEW.file_path,
+            file_size = NEW.file_size,
+            file_type = NEW.mime_type,
+            version = NEW.version_number,
+            is_current_version = true,
+            updated_at = NOW()
+        WHERE id = NEW.document_id;
+        
+        -- Ensure only one version is marked as current
+        UPDATE document_versions SET
+            is_current = false
+        WHERE document_id = NEW.document_id AND id != NEW.id;
+    END IF;
+    
+    RETURN NEW;
+END;
+$$;
+
+
+ALTER FUNCTION "public"."update_document_on_version_change"() OWNER TO "postgres";
+
+
+COMMENT ON FUNCTION "public"."update_document_on_version_change"() IS 'Updates main document record when version is changed';
+
+
+
 CREATE OR REPLACE FUNCTION "public"."update_updated_at_column"() RETURNS "trigger"
     LANGUAGE "plpgsql"
     AS $$
@@ -1349,6 +1506,52 @@ CREATE TABLE IF NOT EXISTS "public"."contacts" (
 ALTER TABLE "public"."contacts" OWNER TO "postgres";
 
 
+CREATE TABLE IF NOT EXISTS "public"."document_versions" (
+    "id" "uuid" DEFAULT "extensions"."uuid_generate_v4"() NOT NULL,
+    "organization_id" "uuid" NOT NULL,
+    "document_id" "uuid" NOT NULL,
+    "version_number" integer NOT NULL,
+    "file_name" character varying(255) NOT NULL,
+    "file_path" "text" NOT NULL,
+    "file_size" bigint NOT NULL,
+    "mime_type" character varying(100),
+    "title" character varying(255) NOT NULL,
+    "description" "text",
+    "change_summary" "text",
+    "uploaded_by" "uuid",
+    "uploaded_at" timestamp with time zone DEFAULT "now"(),
+    "is_current" boolean DEFAULT false,
+    "metadata" "jsonb" DEFAULT '{}'::"jsonb",
+    "created_at" timestamp with time zone DEFAULT "now"(),
+    "updated_at" timestamp with time zone DEFAULT "now"(),
+    CONSTRAINT "positive_file_size" CHECK (("file_size" >= 0)),
+    CONSTRAINT "positive_version_number" CHECK (("version_number" > 0))
+);
+
+
+ALTER TABLE "public"."document_versions" OWNER TO "postgres";
+
+
+COMMENT ON TABLE "public"."document_versions" IS 'Version history for documents with file tracking and metadata';
+
+
+
+COMMENT ON COLUMN "public"."document_versions"."version_number" IS 'Sequential version number starting from 1';
+
+
+
+COMMENT ON COLUMN "public"."document_versions"."change_summary" IS 'Summary of changes made in this version';
+
+
+
+COMMENT ON COLUMN "public"."document_versions"."is_current" IS 'Whether this is the current active version';
+
+
+
+COMMENT ON COLUMN "public"."document_versions"."metadata" IS 'Additional version-specific metadata';
+
+
+
 CREATE TABLE IF NOT EXISTS "public"."documents" (
     "id" "uuid" DEFAULT "extensions"."uuid_generate_v4"() NOT NULL,
     "organization_id" "uuid" NOT NULL,
@@ -1358,7 +1561,7 @@ CREATE TABLE IF NOT EXISTS "public"."documents" (
     "file_name" character varying(255) NOT NULL,
     "file_path" "text" NOT NULL,
     "file_size" bigint,
-    "file_type" character varying(50),
+    "file_type" character varying(100),
     "mime_type" character varying(100),
     "version" integer DEFAULT 1,
     "is_current_version" boolean DEFAULT true,
@@ -1705,6 +1908,11 @@ ALTER TABLE ONLY "public"."contacts"
 
 
 
+ALTER TABLE ONLY "public"."document_versions"
+    ADD CONSTRAINT "document_versions_pkey" PRIMARY KEY ("id");
+
+
+
 ALTER TABLE ONLY "public"."documents"
     ADD CONSTRAINT "documents_pkey" PRIMARY KEY ("id");
 
@@ -1777,6 +1985,11 @@ ALTER TABLE ONLY "public"."supplier_rfqs"
 
 ALTER TABLE ONLY "public"."supplier_rfqs"
     ADD CONSTRAINT "supplier_rfqs_rfq_number_key" UNIQUE ("rfq_number");
+
+
+
+ALTER TABLE ONLY "public"."document_versions"
+    ADD CONSTRAINT "unique_document_version" UNIQUE ("document_id", "version_number");
 
 
 
@@ -1973,6 +2186,30 @@ CREATE INDEX "idx_contacts_org_id" ON "public"."contacts" USING "btree" ("organi
 
 
 CREATE INDEX "idx_contacts_type" ON "public"."contacts" USING "btree" ("type");
+
+
+
+CREATE INDEX "idx_document_versions_document_id" ON "public"."document_versions" USING "btree" ("document_id");
+
+
+
+CREATE INDEX "idx_document_versions_is_current" ON "public"."document_versions" USING "btree" ("document_id", "is_current");
+
+
+
+CREATE INDEX "idx_document_versions_organization" ON "public"."document_versions" USING "btree" ("organization_id");
+
+
+
+CREATE INDEX "idx_document_versions_uploaded_at" ON "public"."document_versions" USING "btree" ("uploaded_at");
+
+
+
+CREATE INDEX "idx_document_versions_uploaded_by" ON "public"."document_versions" USING "btree" ("uploaded_by");
+
+
+
+CREATE INDEX "idx_document_versions_version_number" ON "public"."document_versions" USING "btree" ("document_id", "version_number");
 
 
 
@@ -2216,6 +2453,10 @@ CREATE OR REPLACE TRIGGER "set_workflow_sub_stages_updated_at" BEFORE UPDATE ON 
 
 
 
+CREATE OR REPLACE TRIGGER "trigger_create_initial_document_version" AFTER INSERT ON "public"."documents" FOR EACH ROW EXECUTE FUNCTION "public"."create_initial_document_version"();
+
+
+
 CREATE OR REPLACE TRIGGER "trigger_create_project_sub_stage_progress" AFTER UPDATE OF "current_stage_id" ON "public"."projects" FOR EACH ROW EXECUTE FUNCTION "public"."create_project_sub_stage_progress"();
 
 
@@ -2225,6 +2466,10 @@ CREATE OR REPLACE TRIGGER "trigger_set_approval_expires_at" BEFORE INSERT OR UPD
 
 
 CREATE OR REPLACE TRIGGER "trigger_update_approval_updated_at" BEFORE UPDATE ON "public"."approvals" FOR EACH ROW EXECUTE FUNCTION "public"."update_approval_updated_at"();
+
+
+
+CREATE OR REPLACE TRIGGER "trigger_update_document_on_version_change" AFTER UPDATE ON "public"."document_versions" FOR EACH ROW EXECUTE FUNCTION "public"."update_document_on_version_change"();
 
 
 
@@ -2423,6 +2668,21 @@ ALTER TABLE ONLY "public"."contacts"
 
 ALTER TABLE ONLY "public"."contacts"
     ADD CONSTRAINT "contacts_organization_id_fkey" FOREIGN KEY ("organization_id") REFERENCES "public"."organizations"("id") ON DELETE CASCADE;
+
+
+
+ALTER TABLE ONLY "public"."document_versions"
+    ADD CONSTRAINT "document_versions_document_id_fkey" FOREIGN KEY ("document_id") REFERENCES "public"."documents"("id") ON DELETE CASCADE;
+
+
+
+ALTER TABLE ONLY "public"."document_versions"
+    ADD CONSTRAINT "document_versions_organization_id_fkey" FOREIGN KEY ("organization_id") REFERENCES "public"."organizations"("id") ON DELETE CASCADE;
+
+
+
+ALTER TABLE ONLY "public"."document_versions"
+    ADD CONSTRAINT "document_versions_uploaded_by_fkey" FOREIGN KEY ("uploaded_by") REFERENCES "public"."users"("id");
 
 
 
@@ -2672,6 +2932,12 @@ CREATE POLICY "Users can create delegation mappings" ON "public"."approval_deleg
 
 
 
+CREATE POLICY "Users can create document versions for their organization" ON "public"."document_versions" FOR INSERT WITH CHECK (("organization_id" IN ( SELECT "users"."organization_id"
+   FROM "public"."users"
+  WHERE ("users"."id" = "auth"."uid"()))));
+
+
+
 CREATE POLICY "Users can create profiles" ON "public"."users" FOR INSERT WITH CHECK ((("organization_id" = "public"."get_current_user_org_id"()) AND ("public"."get_current_user_role"() = ANY (ARRAY['admin'::"text", 'management'::"text"]))));
 
 
@@ -2707,6 +2973,12 @@ CREATE POLICY "Users can delete approvals they created" ON "public"."approvals" 
 
 
 CREATE POLICY "Users can delete attachments they uploaded" ON "public"."approval_attachments" FOR DELETE USING ((("organization_id" IN ( SELECT "users"."organization_id"
+   FROM "public"."users"
+  WHERE ("users"."id" = "auth"."uid"()))) AND ("uploaded_by" = "auth"."uid"())));
+
+
+
+CREATE POLICY "Users can delete document versions they uploaded" ON "public"."document_versions" FOR DELETE USING ((("organization_id" IN ( SELECT "users"."organization_id"
    FROM "public"."users"
   WHERE ("users"."id" = "auth"."uid"()))) AND ("uploaded_by" = "auth"."uid"())));
 
@@ -2822,6 +3094,12 @@ CREATE POLICY "Users can update assigned sub-stage progress" ON "public"."projec
 
 
 
+CREATE POLICY "Users can update document versions they uploaded" ON "public"."document_versions" FOR UPDATE USING ((("organization_id" IN ( SELECT "users"."organization_id"
+   FROM "public"."users"
+  WHERE ("users"."id" = "auth"."uid"()))) AND ("uploaded_by" = "auth"."uid"())));
+
+
+
 CREATE POLICY "Users can update their notifications" ON "public"."approval_notifications" FOR UPDATE USING ((("organization_id" IN ( SELECT "users"."organization_id"
    FROM "public"."users"
   WHERE ("users"."id" = "auth"."uid"()))) AND ("recipient_id" = "auth"."uid"())));
@@ -2889,6 +3167,12 @@ CREATE POLICY "Users can view delegation mappings" ON "public"."approval_delegat
   WHERE (("approval_delegations"."id" = "approval_delegation_mappings"."delegation_id") AND (("auth"."uid"() = "approval_delegations"."delegator_id") OR ("auth"."uid"() = "approval_delegations"."delegate_id") OR (EXISTS ( SELECT 1
            FROM "public"."users"
           WHERE (("users"."id" = "auth"."uid"()) AND ("users"."organization_id" = "approval_delegations"."organization_id") AND ("users"."role" = ANY (ARRAY['admin'::"public"."user_role", 'management'::"public"."user_role"]))))))))));
+
+
+
+CREATE POLICY "Users can view document versions for their organization" ON "public"."document_versions" FOR SELECT USING (("organization_id" IN ( SELECT "users"."organization_id"
+   FROM "public"."users"
+  WHERE ("users"."id" = "auth"."uid"()))));
 
 
 
@@ -3047,6 +3331,9 @@ ALTER TABLE "public"."approvals" ENABLE ROW LEVEL SECURITY;
 
 
 ALTER TABLE "public"."contacts" ENABLE ROW LEVEL SECURITY;
+
+
+ALTER TABLE "public"."document_versions" ENABLE ROW LEVEL SECURITY;
 
 
 ALTER TABLE "public"."documents" ENABLE ROW LEVEL SECURITY;
@@ -3303,9 +3590,21 @@ GRANT ALL ON FUNCTION "public"."can_access_project"("project_id" "uuid") TO "ser
 
 
 
+GRANT ALL ON FUNCTION "public"."cleanup_old_document_versions"("p_document_id" "uuid", "p_keep_versions" integer) TO "anon";
+GRANT ALL ON FUNCTION "public"."cleanup_old_document_versions"("p_document_id" "uuid", "p_keep_versions" integer) TO "authenticated";
+GRANT ALL ON FUNCTION "public"."cleanup_old_document_versions"("p_document_id" "uuid", "p_keep_versions" integer) TO "service_role";
+
+
+
 GRANT ALL ON FUNCTION "public"."create_approval"("p_organization_id" "uuid", "p_approval_type" "public"."approval_type", "p_title" character varying, "p_description" "text", "p_entity_type" character varying, "p_entity_id" "uuid", "p_requested_by" "uuid", "p_current_approver_id" "uuid", "p_current_approver_role" character varying, "p_priority" "public"."approval_priority", "p_due_date" timestamp with time zone, "p_request_reason" "text", "p_request_metadata" "jsonb") TO "anon";
 GRANT ALL ON FUNCTION "public"."create_approval"("p_organization_id" "uuid", "p_approval_type" "public"."approval_type", "p_title" character varying, "p_description" "text", "p_entity_type" character varying, "p_entity_id" "uuid", "p_requested_by" "uuid", "p_current_approver_id" "uuid", "p_current_approver_role" character varying, "p_priority" "public"."approval_priority", "p_due_date" timestamp with time zone, "p_request_reason" "text", "p_request_metadata" "jsonb") TO "authenticated";
 GRANT ALL ON FUNCTION "public"."create_approval"("p_organization_id" "uuid", "p_approval_type" "public"."approval_type", "p_title" character varying, "p_description" "text", "p_entity_type" character varying, "p_entity_id" "uuid", "p_requested_by" "uuid", "p_current_approver_id" "uuid", "p_current_approver_role" character varying, "p_priority" "public"."approval_priority", "p_due_date" timestamp with time zone, "p_request_reason" "text", "p_request_metadata" "jsonb") TO "service_role";
+
+
+
+GRANT ALL ON FUNCTION "public"."create_initial_document_version"() TO "anon";
+GRANT ALL ON FUNCTION "public"."create_initial_document_version"() TO "authenticated";
+GRANT ALL ON FUNCTION "public"."create_initial_document_version"() TO "service_role";
 
 
 
@@ -3348,6 +3647,12 @@ GRANT ALL ON FUNCTION "public"."get_current_user_role"() TO "service_role";
 GRANT ALL ON FUNCTION "public"."get_dashboard_summary"() TO "anon";
 GRANT ALL ON FUNCTION "public"."get_dashboard_summary"() TO "authenticated";
 GRANT ALL ON FUNCTION "public"."get_dashboard_summary"() TO "service_role";
+
+
+
+GRANT ALL ON FUNCTION "public"."get_document_version_history"("p_document_id" "uuid") TO "anon";
+GRANT ALL ON FUNCTION "public"."get_document_version_history"("p_document_id" "uuid") TO "authenticated";
+GRANT ALL ON FUNCTION "public"."get_document_version_history"("p_document_id" "uuid") TO "service_role";
 
 
 
@@ -3414,6 +3719,12 @@ GRANT ALL ON FUNCTION "public"."update_approval_delegations_updated_at"() TO "se
 GRANT ALL ON FUNCTION "public"."update_approval_updated_at"() TO "anon";
 GRANT ALL ON FUNCTION "public"."update_approval_updated_at"() TO "authenticated";
 GRANT ALL ON FUNCTION "public"."update_approval_updated_at"() TO "service_role";
+
+
+
+GRANT ALL ON FUNCTION "public"."update_document_on_version_change"() TO "anon";
+GRANT ALL ON FUNCTION "public"."update_document_on_version_change"() TO "authenticated";
+GRANT ALL ON FUNCTION "public"."update_document_on_version_change"() TO "service_role";
 
 
 
@@ -3495,6 +3806,12 @@ GRANT ALL ON TABLE "public"."approvals" TO "service_role";
 GRANT ALL ON TABLE "public"."contacts" TO "anon";
 GRANT ALL ON TABLE "public"."contacts" TO "authenticated";
 GRANT ALL ON TABLE "public"."contacts" TO "service_role";
+
+
+
+GRANT ALL ON TABLE "public"."document_versions" TO "anon";
+GRANT ALL ON TABLE "public"."document_versions" TO "authenticated";
+GRANT ALL ON TABLE "public"."document_versions" TO "service_role";
 
 
 
