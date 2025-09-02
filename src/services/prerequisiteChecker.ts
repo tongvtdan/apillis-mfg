@@ -265,7 +265,7 @@ class PrerequisiteChecker {
                 // Add a summary check for overall approval status
                 let overallStatus: 'passed' | 'failed' | 'warning' = 'passed';
                 let overallDetails = 'All required approvals have been obtained';
-                
+
                 if (approvalStatus.rejected.length > 0) {
                     overallStatus = 'failed';
                     overallDetails = `${approvalStatus.rejected.length} approval(s) rejected`;
@@ -336,8 +336,8 @@ class PrerequisiteChecker {
                         description: 'Some approvals have been rejected',
                         status: 'failed',
                         required: true,
-                        details: 'Address rejected approvals before proceeding. Rejected approvals: ' + 
-                                approvalStatus.rejected.map(a => a.approver_role).join(', '),
+                        details: 'Address rejected approvals before proceeding. Rejected approvals: ' +
+                            approvalStatus.rejected.map(a => a.approver_role).join(', '),
                         category: 'approvals'
                     });
                 } else if (approvalStatus.pending.length > 0) {
@@ -347,8 +347,8 @@ class PrerequisiteChecker {
                         description: 'Waiting for approval decisions',
                         status: 'warning',
                         required: true,
-                        details: `${approvalStatus.pending.length} approval(s) still pending: ` + 
-                                approvalStatus.pending.map(a => a.approver_role).join(', '),
+                        details: `${approvalStatus.pending.length} approval(s) still pending: ` +
+                            approvalStatus.pending.map(a => a.approver_role).join(', '),
                         category: 'approvals'
                     });
                 } else {

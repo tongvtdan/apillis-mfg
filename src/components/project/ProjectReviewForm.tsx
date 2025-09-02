@@ -11,6 +11,7 @@ import { Label } from '@/components/ui/label';
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
+import { Modal } from '@/components/ui/modal';
 import {
     Department,
     ReviewSubmission,
@@ -142,255 +143,247 @@ export function ProjectReviewForm({
     if (isOpen !== undefined && !isOpen) return null;
 
     const formContent = (
-        <Card>
-            <CardHeader>
-                <div className="flex items-center justify-between">
-                    <CardTitle className="flex items-center gap-2">
-                        {getStatusIcon(form.watch('status'))}
-                        {existingReview ? `Update ${DEPARTMENT_LABELS[department]} Review` : `Submit ${DEPARTMENT_LABELS[department]} Review`}
-                    </CardTitle>
-                    <Button variant="ghost" size="sm" onClick={handleClose}>
-                        <X className="w-4 h-4" />
+        <Form {...form}>
+            <form onSubmit={form.handleSubmit(handleSubmit)} className="space-y-6">
+                {/* Review Status */}
+                <FormField
+                    control={form.control}
+                    name="status"
+                    render={({ field }) => (
+                        <FormItem>
+                            <FormLabel>Review Status</FormLabel>
+                            <FormControl>
+                                <RadioGroup
+                                    value={field.value}
+                                    onValueChange={field.onChange}
+                                    className="flex gap-6"
+                                >
+                                    <div className="flex items-center space-x-2">
+                                        <RadioGroupItem value="approved" id="approved" />
+                                        <Label htmlFor="approved" className="flex items-center gap-1 cursor-pointer">
+                                            <CheckCircle className="w-4 h-4 text-green-600" />
+                                            Approved
+                                        </Label>
+                                    </div>
+                                    <div className="flex items-center space-x-2">
+                                        <RadioGroupItem value="revision_requested" id="revision" />
+                                        <Label htmlFor="revision" className="flex items-center gap-1 cursor-pointer">
+                                            <AlertCircle className="w-4 h-4 text-orange-600" />
+                                            Revision Requested
+                                        </Label>
+                                    </div>
+                                    <div className="flex items-center space-x-2">
+                                        <RadioGroupItem value="rejected" id="rejected" />
+                                        <Label htmlFor="rejected" className="flex items-center gap-1 cursor-pointer">
+                                            <XCircle className="w-4 h-4 text-red-600" />
+                                            Rejected
+                                        </Label>
+                                    </div>
+                                </RadioGroup>
+                            </FormControl>
+                            <FormMessage />
+                        </FormItem>
+                    )}
+                />
+
+                {/* Feedback */}
+                <FormField
+                    control={form.control}
+                    name="feedback"
+                    render={({ field }) => (
+                        <FormItem>
+                            <FormLabel>Feedback</FormLabel>
+                            <FormControl>
+                                <Textarea
+                                    placeholder="Provide detailed feedback about the project..."
+                                    className="min-h-[100px]"
+                                    {...field}
+                                />
+                            </FormControl>
+                            <FormMessage />
+                        </FormItem>
+                    )}
+                />
+
+                {/* Suggestions */}
+                <div className="space-y-3">
+                    <Label>Suggestions for Improvement</Label>
+                    {suggestions.map((suggestion, index) => (
+                        <div key={index} className="flex gap-2">
+                            <Input
+                                value={suggestion}
+                                onChange={(e) => updateSuggestion(index, e.target.value)}
+                                placeholder="Enter suggestion..."
+                            />
+                            <Button
+                                type="button"
+                                variant="outline"
+                                size="sm"
+                                onClick={() => removeSuggestion(index)}
+                            >
+                                <Trash2 className="w-4 h-4" />
+                            </Button>
+                        </div>
+                    ))}
+                    <Button
+                        type="button"
+                        variant="outline"
+                        size="sm"
+                        onClick={addSuggestion}
+                        className="w-full"
+                    >
+                        <Plus className="w-4 h-4 mr-2" />
+                        Add Suggestion
                     </Button>
                 </div>
-            </CardHeader>
-            <CardContent>
-                <Form {...form}>
-                    <form onSubmit={form.handleSubmit(handleSubmit)} className="space-y-6">
-                        {/* Review Status */}
-                        <FormField
-                            control={form.control}
-                            name="status"
-                            render={({ field }) => (
-                                <FormItem>
-                                    <FormLabel>Review Status</FormLabel>
-                                    <FormControl>
-                                        <RadioGroup
-                                            value={field.value}
-                                            onValueChange={field.onChange}
-                                            className="flex gap-6"
-                                        >
-                                            <div className="flex items-center space-x-2">
-                                                <RadioGroupItem value="approved" id="approved" />
-                                                <Label htmlFor="approved" className="flex items-center gap-1 cursor-pointer">
-                                                    <CheckCircle className="w-4 h-4 text-green-600" />
-                                                    Approved
-                                                </Label>
-                                            </div>
-                                            <div className="flex items-center space-x-2">
-                                                <RadioGroupItem value="revision_requested" id="revision" />
-                                                <Label htmlFor="revision" className="flex items-center gap-1 cursor-pointer">
-                                                    <AlertCircle className="w-4 h-4 text-orange-600" />
-                                                    Revision Requested
-                                                </Label>
-                                            </div>
-                                            <div className="flex items-center space-x-2">
-                                                <RadioGroupItem value="rejected" id="rejected" />
-                                                <Label htmlFor="rejected" className="flex items-center gap-1 cursor-pointer">
-                                                    <XCircle className="w-4 h-4 text-red-600" />
-                                                    Rejected
-                                                </Label>
-                                            </div>
-                                        </RadioGroup>
-                                    </FormControl>
-                                    <FormMessage />
-                                </FormItem>
-                            )}
-                        />
 
-                        {/* Feedback */}
-                        <FormField
-                            control={form.control}
-                            name="feedback"
-                            render={({ field }) => (
-                                <FormItem>
-                                    <FormLabel>Feedback</FormLabel>
-                                    <FormControl>
-                                        <Textarea
-                                            placeholder="Provide detailed feedback about the project..."
-                                            className="min-h-[100px]"
-                                            {...field}
-                                        />
-                                    </FormControl>
-                                    <FormMessage />
-                                </FormItem>
-                            )}
-                        />
+                {/* Risks */}
+                <div className="space-y-3">
+                    <Label>Risk Assessment</Label>
+                    {riskFields.map((field, index) => (
+                        <div key={field.id} className="p-4 border rounded-lg space-y-3">
+                            <div className="flex items-center justify-between">
+                                <span className="text-sm font-medium">Risk #{index + 1}</span>
+                                <Button
+                                    type="button"
+                                    variant="outline"
+                                    size="sm"
+                                    onClick={() => removeRisk(index)}
+                                >
+                                    <Trash2 className="w-4 h-4" />
+                                </Button>
+                            </div>
 
-                        {/* Suggestions */}
-                        <div className="space-y-3">
-                            <Label>Suggestions for Improvement</Label>
-                            {suggestions.map((suggestion, index) => (
-                                <div key={index} className="flex gap-2">
-                                    <Input
-                                        value={suggestion}
-                                        onChange={(e) => updateSuggestion(index, e.target.value)}
-                                        placeholder="Enter suggestion..."
-                                    />
-                                    <Button
-                                        type="button"
-                                        variant="outline"
-                                        size="sm"
-                                        onClick={() => removeSuggestion(index)}
-                                    >
-                                        <Trash2 className="w-4 h-4" />
-                                    </Button>
-                                </div>
-                            ))}
-                            <Button
-                                type="button"
-                                variant="outline"
-                                size="sm"
-                                onClick={addSuggestion}
-                                className="w-full"
-                            >
-                                <Plus className="w-4 h-4 mr-2" />
-                                Add Suggestion
-                            </Button>
-                        </div>
+                            <FormField
+                                control={form.control}
+                                name={`risks.${index}.description`}
+                                render={({ field }) => (
+                                    <FormItem>
+                                        <FormLabel>Risk Description</FormLabel>
+                                        <FormControl>
+                                            <Textarea
+                                                placeholder="Describe the risk..."
+                                                {...field}
+                                            />
+                                        </FormControl>
+                                        <FormMessage />
+                                    </FormItem>
+                                )}
+                            />
 
-                        {/* Risks */}
-                        <div className="space-y-3">
-                            <Label>Risk Assessment</Label>
-                            {riskFields.map((field, index) => (
-                                <div key={field.id} className="p-4 border rounded-lg space-y-3">
-                                    <div className="flex items-center justify-between">
-                                        <span className="text-sm font-medium">Risk #{index + 1}</span>
-                                        <Button
-                                            type="button"
-                                            variant="outline"
-                                            size="sm"
-                                            onClick={() => removeRisk(index)}
-                                        >
-                                            <Trash2 className="w-4 h-4" />
-                                        </Button>
-                                    </div>
-
-                                    <FormField
-                                        control={form.control}
-                                        name={`risks.${index}.description`}
-                                        render={({ field }) => (
-                                            <FormItem>
-                                                <FormLabel>Risk Description</FormLabel>
+                            <div className="grid grid-cols-2 gap-4">
+                                <FormField
+                                    control={form.control}
+                                    name={`risks.${index}.category`}
+                                    render={({ field }) => (
+                                        <FormItem>
+                                            <FormLabel>Category</FormLabel>
+                                            <Select onValueChange={field.onChange} defaultValue={field.value}>
                                                 <FormControl>
-                                                    <Textarea
-                                                        placeholder="Describe the risk..."
-                                                        {...field}
-                                                    />
+                                                    <SelectTrigger>
+                                                        <SelectValue placeholder="Select category" />
+                                                    </SelectTrigger>
                                                 </FormControl>
-                                                <FormMessage />
-                                            </FormItem>
-                                        )}
-                                    />
+                                                <SelectContent>
+                                                    <SelectItem value="technical">Technical</SelectItem>
+                                                    <SelectItem value="timeline">Timeline</SelectItem>
+                                                    <SelectItem value="cost">Cost</SelectItem>
+                                                    <SelectItem value="quality">Quality</SelectItem>
+                                                </SelectContent>
+                                            </Select>
+                                            <FormMessage />
+                                        </FormItem>
+                                    )}
+                                />
 
-                                    <div className="grid grid-cols-2 gap-4">
-                                        <FormField
-                                            control={form.control}
-                                            name={`risks.${index}.category`}
-                                            render={({ field }) => (
-                                                <FormItem>
-                                                    <FormLabel>Category</FormLabel>
-                                                    <Select onValueChange={field.onChange} defaultValue={field.value}>
-                                                        <FormControl>
-                                                            <SelectTrigger>
-                                                                <SelectValue placeholder="Select category" />
-                                                            </SelectTrigger>
-                                                        </FormControl>
-                                                        <SelectContent>
-                                                            <SelectItem value="technical">Technical</SelectItem>
-                                                            <SelectItem value="timeline">Timeline</SelectItem>
-                                                            <SelectItem value="cost">Cost</SelectItem>
-                                                            <SelectItem value="quality">Quality</SelectItem>
-                                                        </SelectContent>
-                                                    </Select>
-                                                    <FormMessage />
-                                                </FormItem>
-                                            )}
-                                        />
-
-                                        <FormField
-                                            control={form.control}
-                                            name={`risks.${index}.severity`}
-                                            render={({ field }) => (
-                                                <FormItem>
-                                                    <FormLabel>Severity</FormLabel>
-                                                    <Select onValueChange={field.onChange} defaultValue={field.value}>
-                                                        <FormControl>
-                                                            <SelectTrigger>
-                                                                <SelectValue placeholder="Select severity" />
-                                                            </SelectTrigger>
-                                                        </FormControl>
-                                                        <SelectContent>
-                                                            <SelectItem value="low">Low</SelectItem>
-                                                            <SelectItem value="medium">Medium</SelectItem>
-                                                            <SelectItem value="high">High</SelectItem>
-                                                        </SelectContent>
-                                                    </Select>
-                                                    <FormMessage />
-                                                </FormItem>
-                                            )}
-                                        />
-                                    </div>
-
-                                    <FormField
-                                        control={form.control}
-                                        name={`risks.${index}.mitigation_plan`}
-                                        render={({ field }) => (
-                                            <FormItem>
-                                                <FormLabel>Mitigation Plan (Optional)</FormLabel>
+                                <FormField
+                                    control={form.control}
+                                    name={`risks.${index}.severity`}
+                                    render={({ field }) => (
+                                        <FormItem>
+                                            <FormLabel>Severity</FormLabel>
+                                            <Select onValueChange={field.onChange} defaultValue={field.value}>
                                                 <FormControl>
-                                                    <Textarea
-                                                        placeholder="Describe how to mitigate this risk..."
-                                                        {...field}
-                                                    />
+                                                    <SelectTrigger>
+                                                        <SelectValue placeholder="Select severity" />
+                                                    </SelectTrigger>
                                                 </FormControl>
-                                                <FormMessage />
-                                            </FormItem>
-                                        )}
-                                    />
-                                </div>
-                            ))}
+                                                <SelectContent>
+                                                    <SelectItem value="low">Low</SelectItem>
+                                                    <SelectItem value="medium">Medium</SelectItem>
+                                                    <SelectItem value="high">High</SelectItem>
+                                                </SelectContent>
+                                            </Select>
+                                            <FormMessage />
+                                        </FormItem>
+                                    )}
+                                />
+                            </div>
 
-                            <Button
-                                type="button"
-                                variant="outline"
-                                size="sm"
-                                onClick={() => appendRisk({
-                                    description: '',
-                                    category: 'technical',
-                                    severity: 'medium',
-                                    mitigation_plan: ''
-                                })}
-                                className="w-full"
-                            >
-                                <Plus className="w-4 h-4 mr-2" />
-                                Add Risk
-                            </Button>
+                            <FormField
+                                control={form.control}
+                                name={`risks.${index}.mitigation_plan`}
+                                render={({ field }) => (
+                                    <FormItem>
+                                        <FormLabel>Mitigation Plan (Optional)</FormLabel>
+                                        <FormControl>
+                                            <Textarea
+                                                placeholder="Describe how to mitigate this risk..."
+                                                {...field}
+                                            />
+                                        </FormControl>
+                                        <FormMessage />
+                                    </FormItem>
+                                )}
+                            />
                         </div>
+                    ))}
 
-                        {/* Submit Button */}
-                        <div className="flex gap-2 pt-4">
-                            <Button type="submit" disabled={submitting} className="flex-1">
-                                {submitting ? 'Submitting...' : 'Submit Review'}
-                            </Button>
-                            <Button type="button" variant="outline" onClick={handleClose}>
-                                Cancel
-                            </Button>
-                        </div>
-                    </form>
-                </Form>
-            </CardContent>
-        </Card>
+                    <Button
+                        type="button"
+                        variant="outline"
+                        size="sm"
+                        onClick={() => appendRisk({
+                            description: '',
+                            category: 'technical',
+                            severity: 'medium',
+                            mitigation_plan: ''
+                        })}
+                        className="w-full"
+                    >
+                        <Plus className="w-4 h-4 mr-2" />
+                        Add Risk
+                    </Button>
+                </div>
+
+                {/* Submit Button */}
+                <div className="flex gap-2 pt-4">
+                    <Button type="submit" disabled={submitting} className="flex-1">
+                        {submitting ? 'Submitting...' : 'Submit Review'}
+                    </Button>
+                    <Button type="button" variant="outline" onClick={handleClose}>
+                        Cancel
+                    </Button>
+                </div>
+            </form>
+        </Form>
     );
 
     // If in modal mode, wrap with modal container
     if (isOpen) {
         return (
-            <div className="fixed inset-0 bg-background/95 backdrop-blur-lg flex items-center justify-center p-4 z-50">
-                <div className="w-full max-w-4xl max-h-[90vh] overflow-y-auto">
-                    {formContent}
-                </div>
-            </div>
+            <Modal
+                isOpen={isOpen}
+                onClose={handleClose}
+                title={
+                    <div className="flex items-center gap-2">
+                        {getStatusIcon(form.watch('status'))}
+                        {existingReview ? `Update ${DEPARTMENT_LABELS[department]} Review` : `Submit ${DEPARTMENT_LABELS[department]} Review`}
+                    </div>
+                }
+            >
+                {formContent}
+            </Modal>
         );
     }
 

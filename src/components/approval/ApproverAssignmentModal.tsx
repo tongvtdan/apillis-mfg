@@ -78,10 +78,10 @@ export function ApproverAssignmentModal({
     };
 
     const handleApproverChange = (role: string, userId: string) => {
-        setRoleApprovers(prev => 
-            prev.map(ra => 
-                ra.role === role 
-                    ? { ...ra, selectedApprover: userId } 
+        setRoleApprovers(prev =>
+            prev.map(ra =>
+                ra.role === role
+                    ? { ...ra, selectedApprover: userId }
                     : ra
             )
         );
@@ -90,7 +90,7 @@ export function ApproverAssignmentModal({
     const handleAssign = async () => {
         try {
             setLoading(true);
-            
+
             // Validate that all roles have selected approvers
             const incompleteRoles = roleApprovers.filter(ra => !ra.selectedApprover);
             if (incompleteRoles.length > 0) {
@@ -151,7 +151,7 @@ export function ApproverAssignmentModal({
                 <DialogHeader>
                     <DialogTitle>Assign Approvers</DialogTitle>
                 </DialogHeader>
-                
+
                 <div className="space-y-4 py-4">
                     {roleApprovers.map(({ role, approvers, selectedApprover }) => (
                         <div key={role} className="space-y-2">

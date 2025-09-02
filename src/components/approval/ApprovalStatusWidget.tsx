@@ -43,7 +43,7 @@ export function ApprovalStatusWidget({
                         .select('organization_id')
                         .eq('id', session.user.id)
                         .single();
-                    
+
                     if (!error && user) {
                         setOrganizationId(user.organization_id);
                     }
