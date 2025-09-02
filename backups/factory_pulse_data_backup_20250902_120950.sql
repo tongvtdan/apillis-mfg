@@ -919,7 +919,31 @@ INSERT INTO "public"."activity_log" ("id", "organization_id", "user_id", "entity
 	('90b24b53-231f-43ad-8260-bf1d8c293344', '550e8400-e29b-41d4-a716-446655440001', NULL, 'reviews', 'b2237027-6f9f-4d0a-82c0-20d5dde9f66c', 'INSERT', 'Created reviews', NULL, '{"id": "b2237027-6f9f-4d0a-82c0-20d5dde9f66c", "status": "rejected", "comments": "Production capacity is insufficient for this timeline.", "decision": null, "due_date": null, "metadata": {"stage_name": "Production Planning", "approval_role": "production", "approval_type": "stage_transition"}, "priority": "high", "created_at": "2025-09-01T14:56:24.743+00:00", "created_by": null, "project_id": "550e8400-e29b-41d4-a716-446655440304", "updated_at": "2025-09-01T20:56:24.743+00:00", "review_type": "stage_approval_production", "reviewer_id": "30951eed-46a0-441b-8abf-fbf0e6be127c", "completed_at": "2025-09-01T20:56:24.743+00:00", "decision_reason": "Cannot meet required delivery date with current capacity.", "organization_id": "550e8400-e29b-41d4-a716-446655440001", "recommendations": null}', '{}', NULL, NULL, '2025-09-02 02:56:24.755998+00', NULL),
 	('7c4a8283-aa9d-4edd-8c67-4f67dd4a2e6b', '550e8400-e29b-41d4-a716-446655440001', 'a53f503d-ad74-4397-a3f1-5ee9c3e61d34', 'reviews', 'a02b1bde-14c3-40e1-91d1-b1745924de2b', 'INSERT', 'Created reviews', NULL, '{"id": "a02b1bde-14c3-40e1-91d1-b1745924de2b", "status": "approved", "comments": "im ok with this", "decision": null, "due_date": null, "metadata": {"risks": [], "suggestions": []}, "priority": "medium", "created_at": "2025-09-02T03:17:11.85279+00:00", "created_by": "a53f503d-ad74-4397-a3f1-5ee9c3e61d34", "project_id": "550e8400-e29b-41d4-a716-446655440317", "updated_at": "2025-09-02T03:17:11.85279+00:00", "review_type": "technical", "reviewer_id": "a53f503d-ad74-4397-a3f1-5ee9c3e61d34", "completed_at": "2025-09-02T03:17:11.846+00:00", "decision_reason": null, "organization_id": "550e8400-e29b-41d4-a716-446655440001", "recommendations": ""}', '{}', NULL, NULL, '2025-09-02 03:17:11.85279+00', NULL),
 	('c6678763-7796-480b-b6b3-7479c7404a33', '550e8400-e29b-41d4-a716-446655440001', 'a53f503d-ad74-4397-a3f1-5ee9c3e61d34', 'reviews', 'a815a930-1828-44c2-ba40-ecbad2d0c30a', 'INSERT', 'Created reviews', NULL, '{"id": "a815a930-1828-44c2-ba40-ecbad2d0c30a", "status": "approved", "comments": "I also OK with this", "decision": null, "due_date": null, "metadata": {"risks": [], "suggestions": []}, "priority": "medium", "created_at": "2025-09-02T03:18:59.047839+00:00", "created_by": "a53f503d-ad74-4397-a3f1-5ee9c3e61d34", "project_id": "550e8400-e29b-41d4-a716-446655440317", "updated_at": "2025-09-02T03:18:59.047839+00:00", "review_type": "quality", "reviewer_id": "a53f503d-ad74-4397-a3f1-5ee9c3e61d34", "completed_at": "2025-09-02T03:18:59.04+00:00", "decision_reason": null, "organization_id": "550e8400-e29b-41d4-a716-446655440001", "recommendations": ""}', '{}', NULL, NULL, '2025-09-02 03:18:59.047839+00', NULL),
-	('7c89866b-79f6-4bcd-a8d8-563193dcc2ad', '550e8400-e29b-41d4-a716-446655440001', 'a53f503d-ad74-4397-a3f1-5ee9c3e61d34', 'reviews', 'ab0d7620-bafb-4520-826b-f1764c8e49d5', 'INSERT', 'Created reviews', NULL, '{"id": "ab0d7620-bafb-4520-826b-f1764c8e49d5", "status": "approved", "comments": "IT''s ok to mve", "decision": null, "due_date": null, "metadata": {"risks": [{"category": "technical", "severity": "medium", "description": "The precision", "mitigation_plan": "Need to use tools"}], "suggestions": ["no suggest"]}, "priority": "medium", "created_at": "2025-09-02T03:20:26.982229+00:00", "created_by": "a53f503d-ad74-4397-a3f1-5ee9c3e61d34", "project_id": "550e8400-e29b-41d4-a716-446655440317", "updated_at": "2025-09-02T03:20:26.982229+00:00", "review_type": "production", "reviewer_id": "a53f503d-ad74-4397-a3f1-5ee9c3e61d34", "completed_at": "2025-09-02T03:20:26.973+00:00", "decision_reason": null, "organization_id": "550e8400-e29b-41d4-a716-446655440001", "recommendations": "no suggest"}', '{}', NULL, NULL, '2025-09-02 03:20:26.982229+00', NULL);
+	('7c89866b-79f6-4bcd-a8d8-563193dcc2ad', '550e8400-e29b-41d4-a716-446655440001', 'a53f503d-ad74-4397-a3f1-5ee9c3e61d34', 'reviews', 'ab0d7620-bafb-4520-826b-f1764c8e49d5', 'INSERT', 'Created reviews', NULL, '{"id": "ab0d7620-bafb-4520-826b-f1764c8e49d5", "status": "approved", "comments": "IT''s ok to mve", "decision": null, "due_date": null, "metadata": {"risks": [{"category": "technical", "severity": "medium", "description": "The precision", "mitigation_plan": "Need to use tools"}], "suggestions": ["no suggest"]}, "priority": "medium", "created_at": "2025-09-02T03:20:26.982229+00:00", "created_by": "a53f503d-ad74-4397-a3f1-5ee9c3e61d34", "project_id": "550e8400-e29b-41d4-a716-446655440317", "updated_at": "2025-09-02T03:20:26.982229+00:00", "review_type": "production", "reviewer_id": "a53f503d-ad74-4397-a3f1-5ee9c3e61d34", "completed_at": "2025-09-02T03:20:26.973+00:00", "decision_reason": null, "organization_id": "550e8400-e29b-41d4-a716-446655440001", "recommendations": "no suggest"}', '{}', NULL, NULL, '2025-09-02 03:20:26.982229+00', NULL),
+	('33e2b606-5374-4b52-869b-afec7c588a47', '550e8400-e29b-41d4-a716-446655440001', 'a53f503d-ad74-4397-a3f1-5ee9c3e61d34', 'project', '550e8400-e29b-41d4-a716-446655440317', 'stage_transition', 'Stage changed from Technical Review to Supplier RFQ Sent', NULL, NULL, '{"reason": "Normal transition", "timestamp": "2025-09-02T04:00:33.220Z", "to_stage_id": "550e8400-e29b-41d4-a716-446655440203", "from_stage_id": "550e8400-e29b-41d4-a716-446655440202", "to_stage_name": "Supplier RFQ Sent", "bypass_required": false, "from_stage_name": "Technical Review"}', NULL, NULL, '2025-09-02 04:00:33.222579+00', '550e8400-e29b-41d4-a716-446655440317'),
+	('15b4c877-afb1-406f-bbd8-13991fb51a04', '550e8400-e29b-41d4-a716-446655440001', 'a53f503d-ad74-4397-a3f1-5ee9c3e61d34', 'project', '550e8400-e29b-41d4-a716-446655440317', 'stage_transition', 'Stage changed from Technical Review to Supplier RFQ Sent', NULL, NULL, '{"reason": "Normal stage transition", "timestamp": "2025-09-02T04:00:33.280Z", "to_stage_id": "550e8400-e29b-41d4-a716-446655440203", "from_stage_id": "550e8400-e29b-41d4-a716-446655440202", "to_stage_name": "Supplier RFQ Sent", "bypass_required": false, "from_stage_name": "Technical Review"}', NULL, NULL, '2025-09-02 04:00:33.281154+00', '550e8400-e29b-41d4-a716-446655440317'),
+	('064c31c4-cc09-424a-8af4-d7894d1a5451', '550e8400-e29b-41d4-a716-446655440001', 'a53f503d-ad74-4397-a3f1-5ee9c3e61d34', 'project', '550e8400-e29b-41d4-a716-446655440317', 'stage_transition', 'Stage changed from Technical Review to Supplier RFQ Sent', NULL, NULL, '{"reason": "Normal transition", "timestamp": "2025-09-02T04:00:44.375Z", "to_stage_id": "550e8400-e29b-41d4-a716-446655440203", "from_stage_id": "550e8400-e29b-41d4-a716-446655440202", "to_stage_name": "Supplier RFQ Sent", "bypass_required": false, "from_stage_name": "Technical Review"}', NULL, NULL, '2025-09-02 04:00:44.379041+00', '550e8400-e29b-41d4-a716-446655440317'),
+	('4a49353b-58c2-4723-9aad-5d338be660e3', '550e8400-e29b-41d4-a716-446655440001', 'a53f503d-ad74-4397-a3f1-5ee9c3e61d34', 'project', '550e8400-e29b-41d4-a716-446655440317', 'stage_transition', 'Stage changed from Technical Review to Supplier RFQ Sent', NULL, NULL, '{"reason": "Normal stage transition", "timestamp": "2025-09-02T04:00:44.427Z", "to_stage_id": "550e8400-e29b-41d4-a716-446655440203", "from_stage_id": "550e8400-e29b-41d4-a716-446655440202", "to_stage_name": "Supplier RFQ Sent", "bypass_required": false, "from_stage_name": "Technical Review"}', NULL, NULL, '2025-09-02 04:00:44.429029+00', '550e8400-e29b-41d4-a716-446655440317'),
+	('9caacbb2-6d12-4127-9716-92b7d4a57cb7', '550e8400-e29b-41d4-a716-446655440001', 'a53f503d-ad74-4397-a3f1-5ee9c3e61d34', 'project', '550e8400-e29b-41d4-a716-446655440317', 'stage_transition', 'Stage changed from Technical Review to Supplier RFQ Sent', NULL, NULL, '{"reason": "Normal transition", "timestamp": "2025-09-02T04:01:07.356Z", "to_stage_id": "550e8400-e29b-41d4-a716-446655440203", "from_stage_id": "550e8400-e29b-41d4-a716-446655440202", "to_stage_name": "Supplier RFQ Sent", "bypass_required": false, "from_stage_name": "Technical Review"}', NULL, NULL, '2025-09-02 04:01:07.3581+00', '550e8400-e29b-41d4-a716-446655440317'),
+	('9ae24b7e-4d9d-4928-936f-3cfb17e0413f', '550e8400-e29b-41d4-a716-446655440001', 'a53f503d-ad74-4397-a3f1-5ee9c3e61d34', 'project', '550e8400-e29b-41d4-a716-446655440317', 'stage_transition', 'Stage changed from Technical Review to Supplier RFQ Sent', NULL, NULL, '{"reason": "Normal stage transition", "timestamp": "2025-09-02T04:01:07.405Z", "to_stage_id": "550e8400-e29b-41d4-a716-446655440203", "from_stage_id": "550e8400-e29b-41d4-a716-446655440202", "to_stage_name": "Supplier RFQ Sent", "bypass_required": false, "from_stage_name": "Technical Review"}', NULL, NULL, '2025-09-02 04:01:07.406482+00', '550e8400-e29b-41d4-a716-446655440317');
+
+
+--
+-- Data for Name: approval_chains; Type: TABLE DATA; Schema: public; Owner: postgres
+--
+
+
+
+--
+-- Data for Name: approvals; Type: TABLE DATA; Schema: public; Owner: postgres
+--
+
+
+
+--
+-- Data for Name: approval_attachments; Type: TABLE DATA; Schema: public; Owner: postgres
+--
+
 
 
 --
@@ -962,6 +986,18 @@ INSERT INTO "public"."reviews" ("id", "organization_id", "project_id", "reviewer
 
 --
 -- Data for Name: approval_delegation_mappings; Type: TABLE DATA; Schema: public; Owner: postgres
+--
+
+
+
+--
+-- Data for Name: approval_history; Type: TABLE DATA; Schema: public; Owner: postgres
+--
+
+
+
+--
+-- Data for Name: approval_notifications; Type: TABLE DATA; Schema: public; Owner: postgres
 --
 
 

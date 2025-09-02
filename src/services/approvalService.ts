@@ -234,16 +234,16 @@ export class ApprovalService {
                 // If not found in workflow_sub_stages, try workflow_stages
                 const { data: workflowStage, error: workflowStageError } = await supabase
                     .from('workflow_stages')
-                    .select('responsible_roles as approval_roles,is_active as requires_approval,name')
+                    .select('responsible_roles as approval_roles,name')
                     .eq('id', stageId)
                     .maybeSingle();
 
                 if (!workflowStageError && workflowStage) {
                     // For workflow stages, we'll use responsible_roles as approval_roles
-                    // and is_active as a proxy for requires_approval (this is a simplification)
+                    // and assume requires_approval is true if the stage exists (this is a simplification)
                     stage = {
                         approval_roles: workflowStage.approval_roles || [],
-                        requires_approval: workflowStage.requires_approval || false,
+                        requires_approval: true, // workflow_stages don't have requires_approval column, so we default to true
                         name: workflowStage.name
                     };
                 } else {
@@ -409,17 +409,17 @@ export class ApprovalService {
                 // If not found in workflow_sub_stages, try workflow_stages
                 const { data: workflowStage, error: workflowStageError } = await supabase
                     .from('workflow_stages')
-                    .select('responsible_roles as approval_roles,is_active as requires_approval,name')
+                    .select('responsible_roles as approval_roles,name')
                     .eq('id', stageId)
                     .maybeSingle();
 
                 if (!workflowStageError && workflowStage) {
                     // For workflow stages, we'll use responsible_roles as approval_roles
-                    // and is_active as a proxy for requires_approval (this is a simplification)
+                    // and assume requires_approval is true if the stage exists (this is a simplification)
                     stage = {
                         approval_roles: workflowStage.approval_roles || [],
-                        requires_approval: workflowStage.requires_approval || false,
-                        name: workflowStage.name || 'Unknown Stage'
+                        requires_approval: true, // workflow_stages don't have requires_approval column, so we default to true
+                        name: workflowStage.name
                     };
                 } else {
                     stageError = workflowStageError || subStageError;

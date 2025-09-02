@@ -58,6 +58,54 @@ CREATE EXTENSION IF NOT EXISTS "uuid-ossp" WITH SCHEMA "extensions";
 
 
 
+CREATE TYPE "public"."approval_priority" AS ENUM (
+    'low',
+    'normal',
+    'high',
+    'urgent',
+    'critical'
+);
+
+
+ALTER TYPE "public"."approval_priority" OWNER TO "postgres";
+
+
+CREATE TYPE "public"."approval_status" AS ENUM (
+    'pending',
+    'in_review',
+    'approved',
+    'rejected',
+    'delegated',
+    'expired',
+    'cancelled',
+    'auto_approved',
+    'escalated'
+);
+
+
+ALTER TYPE "public"."approval_status" OWNER TO "postgres";
+
+
+CREATE TYPE "public"."approval_type" AS ENUM (
+    'stage_transition',
+    'document_approval',
+    'engineering_change',
+    'supplier_qualification',
+    'purchase_order',
+    'cost_approval',
+    'quality_review',
+    'production_release',
+    'shipping_approval',
+    'contract_approval',
+    'budget_approval',
+    'safety_review',
+    'custom'
+);
+
+
+ALTER TYPE "public"."approval_type" OWNER TO "postgres";
+
+
 CREATE TYPE "public"."contact_type" AS ENUM (
     'customer',
     'supplier',
@@ -126,6 +174,52 @@ CREATE TYPE "public"."user_status" AS ENUM (
 
 
 ALTER TYPE "public"."user_status" OWNER TO "postgres";
+
+
+CREATE OR REPLACE FUNCTION "public"."auto_expire_overdue_approvals"() RETURNS integer
+    LANGUAGE "plpgsql" SECURITY DEFINER
+    AS $$
+DECLARE
+    v_count INTEGER;
+BEGIN
+    UPDATE approvals 
+    SET 
+        status = 'expired',
+        updated_at = NOW()
+    WHERE status IN ('pending', 'in_review')
+    AND due_date IS NOT NULL 
+    AND due_date < NOW();
+    
+    GET DIAGNOSTICS v_count = ROW_COUNT;
+    
+    -- Log the expirations
+    INSERT INTO approval_history (
+        approval_id,
+        organization_id,
+        action_type,
+        action_by,
+        old_status,
+        new_status,
+        comments
+    )
+    SELECT 
+        id,
+        organization_id,
+        'expired',
+        requested_by,
+        'pending',
+        'expired',
+        'Automatically expired due to overdue deadline'
+    FROM approvals
+    WHERE status = 'expired'
+    AND updated_at = NOW();
+    
+    RETURN v_count;
+END;
+$$;
+
+
+ALTER FUNCTION "public"."auto_expire_overdue_approvals"() OWNER TO "postgres";
 
 
 CREATE OR REPLACE FUNCTION "public"."can_access_project"("project_id" "uuid") RETURNS boolean
@@ -206,6 +300,67 @@ $_$;
 
 
 ALTER FUNCTION "public"."can_access_project"("project_id" "uuid") OWNER TO "postgres";
+
+
+CREATE OR REPLACE FUNCTION "public"."create_approval"("p_organization_id" "uuid", "p_approval_type" "public"."approval_type", "p_title" character varying, "p_description" "text", "p_entity_type" character varying, "p_entity_id" "uuid", "p_requested_by" "uuid", "p_current_approver_id" "uuid", "p_current_approver_role" character varying, "p_priority" "public"."approval_priority" DEFAULT 'normal'::"public"."approval_priority", "p_due_date" timestamp with time zone DEFAULT NULL::timestamp with time zone, "p_request_reason" "text" DEFAULT NULL::"text", "p_request_metadata" "jsonb" DEFAULT '{}'::"jsonb") RETURNS "uuid"
+    LANGUAGE "plpgsql" SECURITY DEFINER
+    AS $$
+DECLARE
+    v_approval_id UUID;
+BEGIN
+    INSERT INTO approvals (
+        organization_id,
+        approval_type,
+        title,
+        description,
+        entity_type,
+        entity_id,
+        requested_by,
+        current_approver_id,
+        current_approver_role,
+        priority,
+        due_date,
+        request_reason,
+        request_metadata,
+        created_by
+    ) VALUES (
+        p_organization_id,
+        p_approval_type,
+        p_title,
+        p_description,
+        p_entity_type,
+        p_entity_id,
+        p_requested_by,
+        p_current_approver_id,
+        p_current_approver_role,
+        p_priority,
+        p_due_date,
+        p_request_reason,
+        p_request_metadata,
+        p_requested_by
+    ) RETURNING id INTO v_approval_id;
+    
+    -- Log the creation
+    INSERT INTO approval_history (
+        approval_id,
+        organization_id,
+        action_type,
+        action_by,
+        new_status
+    ) VALUES (
+        v_approval_id,
+        p_organization_id,
+        'created',
+        p_requested_by,
+        'pending'
+    );
+    
+    RETURN v_approval_id;
+END;
+$$;
+
+
+ALTER FUNCTION "public"."create_approval"("p_organization_id" "uuid", "p_approval_type" "public"."approval_type", "p_title" character varying, "p_description" "text", "p_entity_type" character varying, "p_entity_id" "uuid", "p_requested_by" "uuid", "p_current_approver_id" "uuid", "p_current_approver_role" character varying, "p_priority" "public"."approval_priority", "p_due_date" timestamp with time zone, "p_request_reason" "text", "p_request_metadata" "jsonb") OWNER TO "postgres";
 
 
 CREATE OR REPLACE FUNCTION "public"."create_notification"("p_user_id" "uuid", "p_title" "text", "p_message" "text", "p_type" "text", "p_priority" "public"."priority_level" DEFAULT 'medium'::"public"."priority_level", "p_action_url" "text" DEFAULT NULL::"text", "p_action_label" "text" DEFAULT NULL::"text", "p_related_entity_type" "text" DEFAULT NULL::"text", "p_related_entity_id" "uuid" DEFAULT NULL::"uuid") RETURNS "uuid"
@@ -537,6 +692,51 @@ Requires user to be authenticated and have an organization_id.';
 
 
 
+CREATE OR REPLACE FUNCTION "public"."get_pending_approvals_for_user"("p_user_id" "uuid") RETURNS TABLE("approval_id" "uuid", "approval_type" "public"."approval_type", "title" character varying, "description" "text", "entity_type" character varying, "entity_id" "uuid", "priority" "public"."approval_priority", "due_date" timestamp with time zone, "created_at" timestamp with time zone, "requested_by_name" character varying, "days_overdue" integer)
+    LANGUAGE "plpgsql" SECURITY DEFINER
+    AS $$
+BEGIN
+    RETURN QUERY
+    SELECT 
+        a.id,
+        a.approval_type,
+        a.title,
+        a.description,
+        a.entity_type,
+        a.entity_id,
+        a.priority,
+        a.due_date,
+        a.created_at,
+        u.name as requested_by_name,
+        CASE 
+            WHEN a.due_date IS NOT NULL AND a.due_date < NOW() 
+            THEN EXTRACT(DAY FROM NOW() - a.due_date)::INTEGER
+            ELSE 0
+        END as days_overdue
+    FROM approvals a
+    JOIN users u ON a.requested_by = u.id
+    WHERE a.current_approver_id = p_user_id
+    AND a.status IN ('pending', 'in_review')
+    AND a.organization_id IN (
+        SELECT organization_id FROM users WHERE id = p_user_id
+    )
+    ORDER BY 
+        CASE 
+            WHEN a.due_date IS NOT NULL AND a.due_date < NOW() THEN 0
+            WHEN a.priority = 'critical' THEN 1
+            WHEN a.priority = 'urgent' THEN 2
+            WHEN a.priority = 'high' THEN 3
+            WHEN a.priority = 'normal' THEN 4
+            ELSE 5
+        END,
+        a.created_at ASC;
+END;
+$$;
+
+
+ALTER FUNCTION "public"."get_pending_approvals_for_user"("p_user_id" "uuid") OWNER TO "postgres";
+
+
 CREATE OR REPLACE FUNCTION "public"."get_user_organization"() RETURNS "uuid"
     LANGUAGE "plpgsql" SECURITY DEFINER
     AS $$
@@ -595,6 +795,28 @@ $$;
 
 
 ALTER FUNCTION "public"."handle_project_stage_change"() OWNER TO "postgres";
+
+
+CREATE OR REPLACE FUNCTION "public"."is_approval_overdue"("p_approval_id" "uuid") RETURNS boolean
+    LANGUAGE "plpgsql" SECURITY DEFINER
+    AS $$
+DECLARE
+    v_due_date TIMESTAMPTZ;
+    v_status approval_status;
+BEGIN
+    SELECT due_date, status
+    INTO v_due_date, v_status
+    FROM approvals
+    WHERE id = p_approval_id;
+    
+    RETURN v_due_date IS NOT NULL 
+           AND v_due_date < NOW() 
+           AND v_status IN ('pending', 'in_review');
+END;
+$$;
+
+
+ALTER FUNCTION "public"."is_approval_overdue"("p_approval_id" "uuid") OWNER TO "postgres";
 
 
 CREATE OR REPLACE FUNCTION "public"."is_internal_user"() RETURNS boolean
@@ -709,6 +931,90 @@ COMMENT ON FUNCTION "public"."log_activity"() IS 'Enhanced activity logging func
 
 
 
+CREATE OR REPLACE FUNCTION "public"."set_approval_expires_at"() RETURNS "trigger"
+    LANGUAGE "plpgsql"
+    AS $$
+BEGIN
+    IF NEW.due_date IS NOT NULL AND NEW.expires_at IS NULL THEN
+        NEW.expires_at = NEW.due_date + INTERVAL '1 day';
+    END IF;
+    RETURN NEW;
+END;
+$$;
+
+
+ALTER FUNCTION "public"."set_approval_expires_at"() OWNER TO "postgres";
+
+
+CREATE OR REPLACE FUNCTION "public"."submit_approval_decision"("p_approval_id" "uuid", "p_decision" "public"."approval_status", "p_comments" "text" DEFAULT NULL::"text", "p_reason" "text" DEFAULT NULL::"text", "p_metadata" "jsonb" DEFAULT '{}'::"jsonb") RETURNS boolean
+    LANGUAGE "plpgsql" SECURITY DEFINER
+    AS $$
+DECLARE
+    v_old_status approval_status;
+    v_organization_id UUID;
+    v_current_approver_id UUID;
+BEGIN
+    -- Get current approval details
+    SELECT status, organization_id, current_approver_id
+    INTO v_old_status, v_organization_id, v_current_approver_id
+    FROM approvals
+    WHERE id = p_approval_id;
+    
+    -- Check if approval exists and user can approve
+    IF NOT FOUND THEN
+        RAISE EXCEPTION 'Approval not found';
+    END IF;
+    
+    IF v_current_approver_id != auth.uid() THEN
+        RAISE EXCEPTION 'User not authorized to approve this request';
+    END IF;
+    
+    IF v_old_status != 'pending' AND v_old_status != 'in_review' THEN
+        RAISE EXCEPTION 'Approval is not in a state that can be decided';
+    END IF;
+    
+    -- Update approval
+    UPDATE approvals SET
+        status = p_decision,
+        decision_comments = p_comments,
+        decision_reason = p_reason,
+        decision_metadata = p_metadata,
+        decided_at = NOW(),
+        decided_by = auth.uid(),
+        updated_at = NOW()
+    WHERE id = p_approval_id;
+    
+    -- Log the decision
+    INSERT INTO approval_history (
+        approval_id,
+        organization_id,
+        action_type,
+        action_by,
+        old_status,
+        new_status,
+        comments
+    ) VALUES (
+        p_approval_id,
+        v_organization_id,
+        CASE 
+            WHEN p_decision = 'approved' THEN 'approved'
+            WHEN p_decision = 'rejected' THEN 'rejected'
+            ELSE 'updated'
+        END,
+        auth.uid(),
+        v_old_status,
+        p_decision,
+        p_comments
+    );
+    
+    RETURN TRUE;
+END;
+$$;
+
+
+ALTER FUNCTION "public"."submit_approval_decision"("p_approval_id" "uuid", "p_decision" "public"."approval_status", "p_comments" "text", "p_reason" "text", "p_metadata" "jsonb") OWNER TO "postgres";
+
+
 CREATE OR REPLACE FUNCTION "public"."update_approval_delegations_updated_at"() RETURNS "trigger"
     LANGUAGE "plpgsql"
     AS $$
@@ -720,6 +1026,19 @@ $$;
 
 
 ALTER FUNCTION "public"."update_approval_delegations_updated_at"() OWNER TO "postgres";
+
+
+CREATE OR REPLACE FUNCTION "public"."update_approval_updated_at"() RETURNS "trigger"
+    LANGUAGE "plpgsql"
+    AS $$
+BEGIN
+    NEW.updated_at = NOW();
+    RETURN NEW;
+END;
+$$;
+
+
+ALTER FUNCTION "public"."update_approval_updated_at"() OWNER TO "postgres";
 
 
 CREATE OR REPLACE FUNCTION "public"."update_updated_at_column"() RETURNS "trigger"
@@ -786,6 +1105,48 @@ COMMENT ON COLUMN "public"."activity_log"."project_id" IS 'Optional reference to
 
 
 
+CREATE TABLE IF NOT EXISTS "public"."approval_attachments" (
+    "id" "uuid" DEFAULT "extensions"."uuid_generate_v4"() NOT NULL,
+    "approval_id" "uuid" NOT NULL,
+    "organization_id" "uuid" NOT NULL,
+    "file_name" character varying(255) NOT NULL,
+    "original_file_name" character varying(255) NOT NULL,
+    "file_type" character varying(100) NOT NULL,
+    "file_size" bigint NOT NULL,
+    "file_url" "text" NOT NULL,
+    "mime_type" character varying(100),
+    "attachment_type" character varying(50) DEFAULT 'supporting_document'::character varying,
+    "description" "text",
+    "uploaded_by" "uuid" NOT NULL,
+    "uploaded_at" timestamp with time zone DEFAULT "now"(),
+    "created_at" timestamp with time zone DEFAULT "now"()
+);
+
+
+ALTER TABLE "public"."approval_attachments" OWNER TO "postgres";
+
+
+COMMENT ON TABLE "public"."approval_attachments" IS 'Supporting documents and files attached to approvals';
+
+
+
+CREATE TABLE IF NOT EXISTS "public"."approval_chains" (
+    "id" "uuid" DEFAULT "extensions"."uuid_generate_v4"() NOT NULL,
+    "organization_id" "uuid",
+    "chain_name" character varying(255) NOT NULL,
+    "entity_type" character varying(50) NOT NULL,
+    "conditions" "jsonb" NOT NULL,
+    "steps" "jsonb" NOT NULL,
+    "is_active" boolean DEFAULT true,
+    "created_at" timestamp with time zone DEFAULT "now"(),
+    "updated_at" timestamp with time zone DEFAULT "now"(),
+    "created_by" "uuid"
+);
+
+
+ALTER TABLE "public"."approval_chains" OWNER TO "postgres";
+
+
 CREATE TABLE IF NOT EXISTS "public"."approval_delegation_mappings" (
     "id" "uuid" DEFAULT "gen_random_uuid"() NOT NULL,
     "delegation_id" "uuid" NOT NULL,
@@ -814,6 +1175,145 @@ CREATE TABLE IF NOT EXISTS "public"."approval_delegations" (
 
 
 ALTER TABLE "public"."approval_delegations" OWNER TO "postgres";
+
+
+CREATE TABLE IF NOT EXISTS "public"."approval_history" (
+    "id" "uuid" DEFAULT "extensions"."uuid_generate_v4"() NOT NULL,
+    "approval_id" "uuid" NOT NULL,
+    "organization_id" "uuid" NOT NULL,
+    "action_type" character varying(50) NOT NULL,
+    "action_by" "uuid" NOT NULL,
+    "action_at" timestamp with time zone DEFAULT "now"(),
+    "old_status" "public"."approval_status",
+    "new_status" "public"."approval_status",
+    "comments" "text",
+    "metadata" "jsonb" DEFAULT '{}'::"jsonb",
+    "created_at" timestamp with time zone DEFAULT "now"()
+);
+
+
+ALTER TABLE "public"."approval_history" OWNER TO "postgres";
+
+
+COMMENT ON TABLE "public"."approval_history" IS 'Audit trail for all approval actions and status changes';
+
+
+
+CREATE TABLE IF NOT EXISTS "public"."approval_notifications" (
+    "id" "uuid" DEFAULT "extensions"."uuid_generate_v4"() NOT NULL,
+    "approval_id" "uuid" NOT NULL,
+    "organization_id" "uuid" NOT NULL,
+    "notification_type" character varying(50) NOT NULL,
+    "recipient_id" "uuid" NOT NULL,
+    "recipient_type" character varying(20) DEFAULT 'approver'::character varying,
+    "subject" character varying(255) NOT NULL,
+    "message" "text" NOT NULL,
+    "notification_data" "jsonb" DEFAULT '{}'::"jsonb",
+    "sent_at" timestamp with time zone DEFAULT "now"(),
+    "delivered_at" timestamp with time zone,
+    "read_at" timestamp with time zone,
+    "delivery_status" character varying(20) DEFAULT 'sent'::character varying,
+    "delivery_method" character varying(20) DEFAULT 'in_app'::character varying,
+    "created_at" timestamp with time zone DEFAULT "now"(),
+    CONSTRAINT "approval_notifications_delivery_method_check" CHECK ((("delivery_method")::"text" = ANY ((ARRAY['in_app'::character varying, 'email'::character varying, 'sms'::character varying, 'push'::character varying])::"text"[]))),
+    CONSTRAINT "approval_notifications_delivery_status_check" CHECK ((("delivery_status")::"text" = ANY ((ARRAY['sent'::character varying, 'delivered'::character varying, 'read'::character varying, 'failed'::character varying])::"text"[])))
+);
+
+
+ALTER TABLE "public"."approval_notifications" OWNER TO "postgres";
+
+
+COMMENT ON TABLE "public"."approval_notifications" IS 'Notification history for approval-related communications';
+
+
+
+CREATE TABLE IF NOT EXISTS "public"."approvals" (
+    "id" "uuid" DEFAULT "extensions"."uuid_generate_v4"() NOT NULL,
+    "organization_id" "uuid" NOT NULL,
+    "approval_type" "public"."approval_type" NOT NULL,
+    "title" character varying(255) NOT NULL,
+    "description" "text",
+    "reference_id" character varying(100),
+    "entity_type" character varying(50) NOT NULL,
+    "entity_id" "uuid" NOT NULL,
+    "approval_chain_id" "uuid",
+    "step_number" integer DEFAULT 1,
+    "total_steps" integer DEFAULT 1,
+    "requested_by" "uuid" NOT NULL,
+    "requested_at" timestamp with time zone DEFAULT "now"(),
+    "request_reason" "text",
+    "request_metadata" "jsonb" DEFAULT '{}'::"jsonb",
+    "current_approver_id" "uuid",
+    "current_approver_role" character varying(50),
+    "current_approver_department" character varying(100),
+    "status" "public"."approval_status" DEFAULT 'pending'::"public"."approval_status",
+    "priority" "public"."approval_priority" DEFAULT 'normal'::"public"."approval_priority",
+    "due_date" timestamp with time zone,
+    "expires_at" timestamp with time zone,
+    "decision_comments" "text",
+    "decision_reason" "text",
+    "decision_metadata" "jsonb" DEFAULT '{}'::"jsonb",
+    "decided_at" timestamp with time zone,
+    "decided_by" "uuid",
+    "escalated_from" "uuid",
+    "escalated_to" "uuid",
+    "escalated_at" timestamp with time zone,
+    "escalation_reason" "text",
+    "delegated_from" "uuid",
+    "delegated_to" "uuid",
+    "delegated_at" timestamp with time zone,
+    "delegation_reason" "text",
+    "delegation_end_date" timestamp with time zone,
+    "auto_approval_rules" "jsonb" DEFAULT '{}'::"jsonb",
+    "auto_approved_at" timestamp with time zone,
+    "auto_approval_reason" "text",
+    "created_at" timestamp with time zone DEFAULT "now"(),
+    "updated_at" timestamp with time zone DEFAULT "now"(),
+    "created_by" "uuid",
+    CONSTRAINT "valid_decision_timing" CHECK ((("decided_at" IS NULL) OR ("decided_at" >= "created_at"))),
+    CONSTRAINT "valid_delegation_end" CHECK ((("delegation_end_date" IS NULL) OR ("delegation_end_date" > "delegated_at"))),
+    CONSTRAINT "valid_due_date" CHECK ((("due_date" IS NULL) OR ("due_date" > "created_at"))),
+    CONSTRAINT "valid_expires_at" CHECK ((("expires_at" IS NULL) OR ("expires_at" > "created_at")))
+);
+
+
+ALTER TABLE "public"."approvals" OWNER TO "postgres";
+
+
+COMMENT ON TABLE "public"."approvals" IS 'Centralized approval management table for all approval types in the system';
+
+
+
+COMMENT ON COLUMN "public"."approvals"."approval_type" IS 'Type of approval (stage transition, document, engineering change, etc.)';
+
+
+
+COMMENT ON COLUMN "public"."approvals"."entity_type" IS 'Type of entity being approved (project, document, supplier, etc.)';
+
+
+
+COMMENT ON COLUMN "public"."approvals"."entity_id" IS 'ID of the entity being approved';
+
+
+
+COMMENT ON COLUMN "public"."approvals"."step_number" IS 'Current step in multi-step approval process';
+
+
+
+COMMENT ON COLUMN "public"."approvals"."total_steps" IS 'Total number of steps in approval chain';
+
+
+
+COMMENT ON COLUMN "public"."approvals"."priority" IS 'Approval priority level affecting due dates and notifications';
+
+
+
+COMMENT ON COLUMN "public"."approvals"."decision_metadata" IS 'Additional metadata about the approval decision';
+
+
+
+COMMENT ON COLUMN "public"."approvals"."auto_approval_rules" IS 'JSON rules for automatic approval based on conditions';
+
 
 
 CREATE TABLE IF NOT EXISTS "public"."contacts" (
@@ -1160,6 +1660,16 @@ ALTER TABLE ONLY "public"."activity_log"
 
 
 
+ALTER TABLE ONLY "public"."approval_attachments"
+    ADD CONSTRAINT "approval_attachments_pkey" PRIMARY KEY ("id");
+
+
+
+ALTER TABLE ONLY "public"."approval_chains"
+    ADD CONSTRAINT "approval_chains_pkey" PRIMARY KEY ("id");
+
+
+
 ALTER TABLE ONLY "public"."approval_delegation_mappings"
     ADD CONSTRAINT "approval_delegation_mappings_delegation_id_approval_id_key" UNIQUE ("delegation_id", "approval_id");
 
@@ -1172,6 +1682,21 @@ ALTER TABLE ONLY "public"."approval_delegation_mappings"
 
 ALTER TABLE ONLY "public"."approval_delegations"
     ADD CONSTRAINT "approval_delegations_pkey" PRIMARY KEY ("id");
+
+
+
+ALTER TABLE ONLY "public"."approval_history"
+    ADD CONSTRAINT "approval_history_pkey" PRIMARY KEY ("id");
+
+
+
+ALTER TABLE ONLY "public"."approval_notifications"
+    ADD CONSTRAINT "approval_notifications_pkey" PRIMARY KEY ("id");
+
+
+
+ALTER TABLE ONLY "public"."approvals"
+    ADD CONSTRAINT "approvals_pkey" PRIMARY KEY ("id");
 
 
 
@@ -1315,6 +1840,18 @@ CREATE INDEX "idx_activity_log_user_id" ON "public"."activity_log" USING "btree"
 
 
 
+CREATE INDEX "idx_approval_attachments_approval" ON "public"."approval_attachments" USING "btree" ("approval_id");
+
+
+
+CREATE INDEX "idx_approval_attachments_type" ON "public"."approval_attachments" USING "btree" ("attachment_type");
+
+
+
+CREATE INDEX "idx_approval_attachments_uploaded_by" ON "public"."approval_attachments" USING "btree" ("uploaded_by");
+
+
+
 CREATE INDEX "idx_approval_delegation_mappings_approval" ON "public"."approval_delegation_mappings" USING "btree" ("approval_id");
 
 
@@ -1340,6 +1877,86 @@ CREATE INDEX "idx_approval_delegations_org" ON "public"."approval_delegations" U
 
 
 CREATE INDEX "idx_approval_delegations_status" ON "public"."approval_delegations" USING "btree" ("status");
+
+
+
+CREATE INDEX "idx_approval_history_action_at" ON "public"."approval_history" USING "btree" ("action_at");
+
+
+
+CREATE INDEX "idx_approval_history_action_by" ON "public"."approval_history" USING "btree" ("action_by");
+
+
+
+CREATE INDEX "idx_approval_history_approval" ON "public"."approval_history" USING "btree" ("approval_id");
+
+
+
+CREATE INDEX "idx_approval_history_status" ON "public"."approval_history" USING "btree" ("old_status", "new_status");
+
+
+
+CREATE INDEX "idx_approval_notifications_approval" ON "public"."approval_notifications" USING "btree" ("approval_id");
+
+
+
+CREATE INDEX "idx_approval_notifications_recipient" ON "public"."approval_notifications" USING "btree" ("recipient_id");
+
+
+
+CREATE INDEX "idx_approval_notifications_sent_at" ON "public"."approval_notifications" USING "btree" ("sent_at");
+
+
+
+CREATE INDEX "idx_approval_notifications_status" ON "public"."approval_notifications" USING "btree" ("delivery_status");
+
+
+
+CREATE INDEX "idx_approval_notifications_type" ON "public"."approval_notifications" USING "btree" ("notification_type");
+
+
+
+CREATE INDEX "idx_approvals_chain" ON "public"."approvals" USING "btree" ("approval_chain_id", "step_number");
+
+
+
+CREATE INDEX "idx_approvals_created_at" ON "public"."approvals" USING "btree" ("created_at");
+
+
+
+CREATE INDEX "idx_approvals_current_approver" ON "public"."approvals" USING "btree" ("current_approver_id");
+
+
+
+CREATE INDEX "idx_approvals_due_date" ON "public"."approvals" USING "btree" ("due_date");
+
+
+
+CREATE INDEX "idx_approvals_entity" ON "public"."approvals" USING "btree" ("entity_type", "entity_id");
+
+
+
+CREATE INDEX "idx_approvals_expires_at" ON "public"."approvals" USING "btree" ("expires_at");
+
+
+
+CREATE INDEX "idx_approvals_organization" ON "public"."approvals" USING "btree" ("organization_id");
+
+
+
+CREATE INDEX "idx_approvals_priority" ON "public"."approvals" USING "btree" ("priority");
+
+
+
+CREATE INDEX "idx_approvals_requested_by" ON "public"."approvals" USING "btree" ("requested_by");
+
+
+
+CREATE INDEX "idx_approvals_status" ON "public"."approvals" USING "btree" ("status");
+
+
+
+CREATE INDEX "idx_approvals_type" ON "public"."approvals" USING "btree" ("approval_type");
 
 
 
@@ -1603,6 +2220,14 @@ CREATE OR REPLACE TRIGGER "trigger_create_project_sub_stage_progress" AFTER UPDA
 
 
 
+CREATE OR REPLACE TRIGGER "trigger_set_approval_expires_at" BEFORE INSERT OR UPDATE ON "public"."approvals" FOR EACH ROW EXECUTE FUNCTION "public"."set_approval_expires_at"();
+
+
+
+CREATE OR REPLACE TRIGGER "trigger_update_approval_updated_at" BEFORE UPDATE ON "public"."approvals" FOR EACH ROW EXECUTE FUNCTION "public"."update_approval_updated_at"();
+
+
+
 CREATE OR REPLACE TRIGGER "trigger_update_workflow_stage_sub_stages_count" AFTER INSERT OR DELETE OR UPDATE ON "public"."workflow_sub_stages" FOR EACH ROW EXECUTE FUNCTION "public"."update_workflow_stage_sub_stages_count"();
 
 
@@ -1666,6 +2291,31 @@ ALTER TABLE ONLY "public"."activity_log"
 
 
 
+ALTER TABLE ONLY "public"."approval_attachments"
+    ADD CONSTRAINT "approval_attachments_approval_id_fkey" FOREIGN KEY ("approval_id") REFERENCES "public"."approvals"("id") ON DELETE CASCADE;
+
+
+
+ALTER TABLE ONLY "public"."approval_attachments"
+    ADD CONSTRAINT "approval_attachments_organization_id_fkey" FOREIGN KEY ("organization_id") REFERENCES "public"."organizations"("id") ON DELETE CASCADE;
+
+
+
+ALTER TABLE ONLY "public"."approval_attachments"
+    ADD CONSTRAINT "approval_attachments_uploaded_by_fkey" FOREIGN KEY ("uploaded_by") REFERENCES "public"."users"("id");
+
+
+
+ALTER TABLE ONLY "public"."approval_chains"
+    ADD CONSTRAINT "approval_chains_created_by_fkey" FOREIGN KEY ("created_by") REFERENCES "public"."users"("id");
+
+
+
+ALTER TABLE ONLY "public"."approval_chains"
+    ADD CONSTRAINT "approval_chains_organization_id_fkey" FOREIGN KEY ("organization_id") REFERENCES "public"."organizations"("id") ON DELETE CASCADE;
+
+
+
 ALTER TABLE ONLY "public"."approval_delegation_mappings"
     ADD CONSTRAINT "approval_delegation_mappings_approval_id_fkey" FOREIGN KEY ("approval_id") REFERENCES "public"."reviews"("id") ON DELETE CASCADE;
 
@@ -1683,6 +2333,86 @@ ALTER TABLE ONLY "public"."approval_delegations"
 
 ALTER TABLE ONLY "public"."approval_delegations"
     ADD CONSTRAINT "approval_delegations_delegator_id_fkey" FOREIGN KEY ("delegator_id") REFERENCES "auth"."users"("id") ON DELETE CASCADE;
+
+
+
+ALTER TABLE ONLY "public"."approval_history"
+    ADD CONSTRAINT "approval_history_action_by_fkey" FOREIGN KEY ("action_by") REFERENCES "public"."users"("id");
+
+
+
+ALTER TABLE ONLY "public"."approval_history"
+    ADD CONSTRAINT "approval_history_approval_id_fkey" FOREIGN KEY ("approval_id") REFERENCES "public"."approvals"("id") ON DELETE CASCADE;
+
+
+
+ALTER TABLE ONLY "public"."approval_history"
+    ADD CONSTRAINT "approval_history_organization_id_fkey" FOREIGN KEY ("organization_id") REFERENCES "public"."organizations"("id") ON DELETE CASCADE;
+
+
+
+ALTER TABLE ONLY "public"."approval_notifications"
+    ADD CONSTRAINT "approval_notifications_approval_id_fkey" FOREIGN KEY ("approval_id") REFERENCES "public"."approvals"("id") ON DELETE CASCADE;
+
+
+
+ALTER TABLE ONLY "public"."approval_notifications"
+    ADD CONSTRAINT "approval_notifications_organization_id_fkey" FOREIGN KEY ("organization_id") REFERENCES "public"."organizations"("id") ON DELETE CASCADE;
+
+
+
+ALTER TABLE ONLY "public"."approval_notifications"
+    ADD CONSTRAINT "approval_notifications_recipient_id_fkey" FOREIGN KEY ("recipient_id") REFERENCES "public"."users"("id");
+
+
+
+ALTER TABLE ONLY "public"."approvals"
+    ADD CONSTRAINT "approvals_approval_chain_id_fkey" FOREIGN KEY ("approval_chain_id") REFERENCES "public"."approval_chains"("id") ON DELETE SET NULL;
+
+
+
+ALTER TABLE ONLY "public"."approvals"
+    ADD CONSTRAINT "approvals_created_by_fkey" FOREIGN KEY ("created_by") REFERENCES "public"."users"("id");
+
+
+
+ALTER TABLE ONLY "public"."approvals"
+    ADD CONSTRAINT "approvals_current_approver_id_fkey" FOREIGN KEY ("current_approver_id") REFERENCES "public"."users"("id");
+
+
+
+ALTER TABLE ONLY "public"."approvals"
+    ADD CONSTRAINT "approvals_decided_by_fkey" FOREIGN KEY ("decided_by") REFERENCES "public"."users"("id");
+
+
+
+ALTER TABLE ONLY "public"."approvals"
+    ADD CONSTRAINT "approvals_delegated_from_fkey" FOREIGN KEY ("delegated_from") REFERENCES "public"."users"("id");
+
+
+
+ALTER TABLE ONLY "public"."approvals"
+    ADD CONSTRAINT "approvals_delegated_to_fkey" FOREIGN KEY ("delegated_to") REFERENCES "public"."users"("id");
+
+
+
+ALTER TABLE ONLY "public"."approvals"
+    ADD CONSTRAINT "approvals_escalated_from_fkey" FOREIGN KEY ("escalated_from") REFERENCES "public"."approvals"("id");
+
+
+
+ALTER TABLE ONLY "public"."approvals"
+    ADD CONSTRAINT "approvals_escalated_to_fkey" FOREIGN KEY ("escalated_to") REFERENCES "public"."users"("id");
+
+
+
+ALTER TABLE ONLY "public"."approvals"
+    ADD CONSTRAINT "approvals_organization_id_fkey" FOREIGN KEY ("organization_id") REFERENCES "public"."organizations"("id") ON DELETE CASCADE;
+
+
+
+ALTER TABLE ONLY "public"."approvals"
+    ADD CONSTRAINT "approvals_requested_by_fkey" FOREIGN KEY ("requested_by") REFERENCES "public"."users"("id");
 
 
 
@@ -1912,7 +2642,27 @@ CREATE POLICY "Delegators can update their delegations" ON "public"."approval_de
 
 
 
+CREATE POLICY "System can insert approval history" ON "public"."approval_history" FOR INSERT WITH CHECK (true);
+
+
+
+CREATE POLICY "System can insert notifications" ON "public"."approval_notifications" FOR INSERT WITH CHECK (true);
+
+
+
 CREATE POLICY "Users can create activity logs" ON "public"."activity_log" FOR INSERT WITH CHECK ((("organization_id" = "public"."get_current_user_org_id"()) AND (("user_id" = "auth"."uid"()) OR ("user_id" IS NULL))));
+
+
+
+CREATE POLICY "Users can create approval chains for their organization" ON "public"."approval_chains" FOR INSERT WITH CHECK (("organization_id" IN ( SELECT "users"."organization_id"
+   FROM "public"."users"
+  WHERE ("users"."id" = "auth"."uid"()))));
+
+
+
+CREATE POLICY "Users can create approvals for their organization" ON "public"."approvals" FOR INSERT WITH CHECK (("organization_id" IN ( SELECT "users"."organization_id"
+   FROM "public"."users"
+  WHERE ("users"."id" = "auth"."uid"()))));
 
 
 
@@ -1941,6 +2691,24 @@ CREATE POLICY "Users can create their own delegations" ON "public"."approval_del
 CREATE POLICY "Users can delete activity in their org" ON "public"."activity_log" FOR DELETE USING (("organization_id" IN ( SELECT "users"."organization_id"
    FROM "public"."users"
   WHERE ("users"."id" = "auth"."uid"()))));
+
+
+
+CREATE POLICY "Users can delete approval chains they created" ON "public"."approval_chains" FOR DELETE USING ((("organization_id" IN ( SELECT "users"."organization_id"
+   FROM "public"."users"
+  WHERE ("users"."id" = "auth"."uid"()))) AND ("created_by" = "auth"."uid"())));
+
+
+
+CREATE POLICY "Users can delete approvals they created" ON "public"."approvals" FOR DELETE USING ((("organization_id" IN ( SELECT "users"."organization_id"
+   FROM "public"."users"
+  WHERE ("users"."id" = "auth"."uid"()))) AND ("requested_by" = "auth"."uid"()) AND ("status" = 'pending'::"public"."approval_status")));
+
+
+
+CREATE POLICY "Users can delete attachments they uploaded" ON "public"."approval_attachments" FOR DELETE USING ((("organization_id" IN ( SELECT "users"."organization_id"
+   FROM "public"."users"
+  WHERE ("users"."id" = "auth"."uid"()))) AND ("uploaded_by" = "auth"."uid"())));
 
 
 
@@ -2034,11 +2802,29 @@ CREATE POLICY "Users can update activity in their org" ON "public"."activity_log
 
 
 
+CREATE POLICY "Users can update approval chains they created" ON "public"."approval_chains" FOR UPDATE USING ((("organization_id" IN ( SELECT "users"."organization_id"
+   FROM "public"."users"
+  WHERE ("users"."id" = "auth"."uid"()))) AND ("created_by" = "auth"."uid"())));
+
+
+
+CREATE POLICY "Users can update approvals they are involved with" ON "public"."approvals" FOR UPDATE USING ((("organization_id" IN ( SELECT "users"."organization_id"
+   FROM "public"."users"
+  WHERE ("users"."id" = "auth"."uid"()))) AND (("requested_by" = "auth"."uid"()) OR ("current_approver_id" = "auth"."uid"()) OR ("delegated_to" = "auth"."uid"()) OR ("escalated_to" = "auth"."uid"()))));
+
+
+
 CREATE POLICY "Users can update assigned sub-stage progress" ON "public"."project_sub_stage_progress" FOR UPDATE USING ((("organization_id" IN ( SELECT "users"."organization_id"
    FROM "public"."users"
   WHERE ("users"."id" = "auth"."uid"()))) AND (("assigned_to" = "auth"."uid"()) OR (EXISTS ( SELECT 1
    FROM "public"."users"
   WHERE (("users"."id" = "auth"."uid"()) AND ("users"."role" = ANY (ARRAY['admin'::"public"."user_role", 'management'::"public"."user_role"]))))))));
+
+
+
+CREATE POLICY "Users can update their notifications" ON "public"."approval_notifications" FOR UPDATE USING ((("organization_id" IN ( SELECT "users"."organization_id"
+   FROM "public"."users"
+  WHERE ("users"."id" = "auth"."uid"()))) AND ("recipient_id" = "auth"."uid"())));
 
 
 
@@ -2056,7 +2842,37 @@ CREATE POLICY "Users can update their own profile" ON "public"."users" FOR UPDAT
 
 
 
+CREATE POLICY "Users can upload attachments for their organization" ON "public"."approval_attachments" FOR INSERT WITH CHECK (("organization_id" IN ( SELECT "users"."organization_id"
+   FROM "public"."users"
+  WHERE ("users"."id" = "auth"."uid"()))));
+
+
+
 CREATE POLICY "Users can view activity in their org" ON "public"."activity_log" FOR SELECT USING (("organization_id" IN ( SELECT "users"."organization_id"
+   FROM "public"."users"
+  WHERE ("users"."id" = "auth"."uid"()))));
+
+
+
+CREATE POLICY "Users can view approval chains for their organization" ON "public"."approval_chains" FOR SELECT USING (("organization_id" IN ( SELECT "users"."organization_id"
+   FROM "public"."users"
+  WHERE ("users"."id" = "auth"."uid"()))));
+
+
+
+CREATE POLICY "Users can view approval history for their organization" ON "public"."approval_history" FOR SELECT USING (("organization_id" IN ( SELECT "users"."organization_id"
+   FROM "public"."users"
+  WHERE ("users"."id" = "auth"."uid"()))));
+
+
+
+CREATE POLICY "Users can view approvals for their organization" ON "public"."approvals" FOR SELECT USING (("organization_id" IN ( SELECT "users"."organization_id"
+   FROM "public"."users"
+  WHERE ("users"."id" = "auth"."uid"()))));
+
+
+
+CREATE POLICY "Users can view attachments for their organization" ON "public"."approval_attachments" FOR SELECT USING (("organization_id" IN ( SELECT "users"."organization_id"
    FROM "public"."users"
   WHERE ("users"."id" = "auth"."uid"()))));
 
@@ -2174,6 +2990,12 @@ CREATE POLICY "Users can view supplier quotes in their org" ON "public"."supplie
 
 
 
+CREATE POLICY "Users can view their notifications" ON "public"."approval_notifications" FOR SELECT USING ((("organization_id" IN ( SELECT "users"."organization_id"
+   FROM "public"."users"
+  WHERE ("users"."id" = "auth"."uid"()))) AND ("recipient_id" = "auth"."uid"())));
+
+
+
 CREATE POLICY "Users can view their organization" ON "public"."organizations" FOR SELECT USING (("id" IN ( SELECT "users"."organization_id"
    FROM "public"."users"
   WHERE ("users"."id" = "auth"."uid"()))));
@@ -2203,10 +3025,25 @@ CREATE POLICY "Users can view workflow stages in their org" ON "public"."workflo
 ALTER TABLE "public"."activity_log" ENABLE ROW LEVEL SECURITY;
 
 
+ALTER TABLE "public"."approval_attachments" ENABLE ROW LEVEL SECURITY;
+
+
+ALTER TABLE "public"."approval_chains" ENABLE ROW LEVEL SECURITY;
+
+
 ALTER TABLE "public"."approval_delegation_mappings" ENABLE ROW LEVEL SECURITY;
 
 
 ALTER TABLE "public"."approval_delegations" ENABLE ROW LEVEL SECURITY;
+
+
+ALTER TABLE "public"."approval_history" ENABLE ROW LEVEL SECURITY;
+
+
+ALTER TABLE "public"."approval_notifications" ENABLE ROW LEVEL SECURITY;
+
+
+ALTER TABLE "public"."approvals" ENABLE ROW LEVEL SECURITY;
 
 
 ALTER TABLE "public"."contacts" ENABLE ROW LEVEL SECURITY;
@@ -2454,9 +3291,21 @@ GRANT USAGE ON SCHEMA "public" TO "service_role";
 
 
 
+GRANT ALL ON FUNCTION "public"."auto_expire_overdue_approvals"() TO "anon";
+GRANT ALL ON FUNCTION "public"."auto_expire_overdue_approvals"() TO "authenticated";
+GRANT ALL ON FUNCTION "public"."auto_expire_overdue_approvals"() TO "service_role";
+
+
+
 GRANT ALL ON FUNCTION "public"."can_access_project"("project_id" "uuid") TO "anon";
 GRANT ALL ON FUNCTION "public"."can_access_project"("project_id" "uuid") TO "authenticated";
 GRANT ALL ON FUNCTION "public"."can_access_project"("project_id" "uuid") TO "service_role";
+
+
+
+GRANT ALL ON FUNCTION "public"."create_approval"("p_organization_id" "uuid", "p_approval_type" "public"."approval_type", "p_title" character varying, "p_description" "text", "p_entity_type" character varying, "p_entity_id" "uuid", "p_requested_by" "uuid", "p_current_approver_id" "uuid", "p_current_approver_role" character varying, "p_priority" "public"."approval_priority", "p_due_date" timestamp with time zone, "p_request_reason" "text", "p_request_metadata" "jsonb") TO "anon";
+GRANT ALL ON FUNCTION "public"."create_approval"("p_organization_id" "uuid", "p_approval_type" "public"."approval_type", "p_title" character varying, "p_description" "text", "p_entity_type" character varying, "p_entity_id" "uuid", "p_requested_by" "uuid", "p_current_approver_id" "uuid", "p_current_approver_role" character varying, "p_priority" "public"."approval_priority", "p_due_date" timestamp with time zone, "p_request_reason" "text", "p_request_metadata" "jsonb") TO "authenticated";
+GRANT ALL ON FUNCTION "public"."create_approval"("p_organization_id" "uuid", "p_approval_type" "public"."approval_type", "p_title" character varying, "p_description" "text", "p_entity_type" character varying, "p_entity_id" "uuid", "p_requested_by" "uuid", "p_current_approver_id" "uuid", "p_current_approver_role" character varying, "p_priority" "public"."approval_priority", "p_due_date" timestamp with time zone, "p_request_reason" "text", "p_request_metadata" "jsonb") TO "service_role";
 
 
 
@@ -2502,6 +3351,12 @@ GRANT ALL ON FUNCTION "public"."get_dashboard_summary"() TO "service_role";
 
 
 
+GRANT ALL ON FUNCTION "public"."get_pending_approvals_for_user"("p_user_id" "uuid") TO "anon";
+GRANT ALL ON FUNCTION "public"."get_pending_approvals_for_user"("p_user_id" "uuid") TO "authenticated";
+GRANT ALL ON FUNCTION "public"."get_pending_approvals_for_user"("p_user_id" "uuid") TO "service_role";
+
+
+
 GRANT ALL ON FUNCTION "public"."get_user_organization"() TO "anon";
 GRANT ALL ON FUNCTION "public"."get_user_organization"() TO "authenticated";
 GRANT ALL ON FUNCTION "public"."get_user_organization"() TO "service_role";
@@ -2511,6 +3366,12 @@ GRANT ALL ON FUNCTION "public"."get_user_organization"() TO "service_role";
 GRANT ALL ON FUNCTION "public"."handle_project_stage_change"() TO "anon";
 GRANT ALL ON FUNCTION "public"."handle_project_stage_change"() TO "authenticated";
 GRANT ALL ON FUNCTION "public"."handle_project_stage_change"() TO "service_role";
+
+
+
+GRANT ALL ON FUNCTION "public"."is_approval_overdue"("p_approval_id" "uuid") TO "anon";
+GRANT ALL ON FUNCTION "public"."is_approval_overdue"("p_approval_id" "uuid") TO "authenticated";
+GRANT ALL ON FUNCTION "public"."is_approval_overdue"("p_approval_id" "uuid") TO "service_role";
 
 
 
@@ -2532,9 +3393,27 @@ GRANT ALL ON FUNCTION "public"."log_activity"() TO "service_role";
 
 
 
+GRANT ALL ON FUNCTION "public"."set_approval_expires_at"() TO "anon";
+GRANT ALL ON FUNCTION "public"."set_approval_expires_at"() TO "authenticated";
+GRANT ALL ON FUNCTION "public"."set_approval_expires_at"() TO "service_role";
+
+
+
+GRANT ALL ON FUNCTION "public"."submit_approval_decision"("p_approval_id" "uuid", "p_decision" "public"."approval_status", "p_comments" "text", "p_reason" "text", "p_metadata" "jsonb") TO "anon";
+GRANT ALL ON FUNCTION "public"."submit_approval_decision"("p_approval_id" "uuid", "p_decision" "public"."approval_status", "p_comments" "text", "p_reason" "text", "p_metadata" "jsonb") TO "authenticated";
+GRANT ALL ON FUNCTION "public"."submit_approval_decision"("p_approval_id" "uuid", "p_decision" "public"."approval_status", "p_comments" "text", "p_reason" "text", "p_metadata" "jsonb") TO "service_role";
+
+
+
 GRANT ALL ON FUNCTION "public"."update_approval_delegations_updated_at"() TO "anon";
 GRANT ALL ON FUNCTION "public"."update_approval_delegations_updated_at"() TO "authenticated";
 GRANT ALL ON FUNCTION "public"."update_approval_delegations_updated_at"() TO "service_role";
+
+
+
+GRANT ALL ON FUNCTION "public"."update_approval_updated_at"() TO "anon";
+GRANT ALL ON FUNCTION "public"."update_approval_updated_at"() TO "authenticated";
+GRANT ALL ON FUNCTION "public"."update_approval_updated_at"() TO "service_role";
 
 
 
@@ -2571,6 +3450,18 @@ GRANT ALL ON TABLE "public"."activity_log" TO "service_role";
 
 
 
+GRANT ALL ON TABLE "public"."approval_attachments" TO "anon";
+GRANT ALL ON TABLE "public"."approval_attachments" TO "authenticated";
+GRANT ALL ON TABLE "public"."approval_attachments" TO "service_role";
+
+
+
+GRANT ALL ON TABLE "public"."approval_chains" TO "anon";
+GRANT ALL ON TABLE "public"."approval_chains" TO "authenticated";
+GRANT ALL ON TABLE "public"."approval_chains" TO "service_role";
+
+
+
 GRANT ALL ON TABLE "public"."approval_delegation_mappings" TO "anon";
 GRANT ALL ON TABLE "public"."approval_delegation_mappings" TO "authenticated";
 GRANT ALL ON TABLE "public"."approval_delegation_mappings" TO "service_role";
@@ -2580,6 +3471,24 @@ GRANT ALL ON TABLE "public"."approval_delegation_mappings" TO "service_role";
 GRANT ALL ON TABLE "public"."approval_delegations" TO "anon";
 GRANT ALL ON TABLE "public"."approval_delegations" TO "authenticated";
 GRANT ALL ON TABLE "public"."approval_delegations" TO "service_role";
+
+
+
+GRANT ALL ON TABLE "public"."approval_history" TO "anon";
+GRANT ALL ON TABLE "public"."approval_history" TO "authenticated";
+GRANT ALL ON TABLE "public"."approval_history" TO "service_role";
+
+
+
+GRANT ALL ON TABLE "public"."approval_notifications" TO "anon";
+GRANT ALL ON TABLE "public"."approval_notifications" TO "authenticated";
+GRANT ALL ON TABLE "public"."approval_notifications" TO "service_role";
+
+
+
+GRANT ALL ON TABLE "public"."approvals" TO "anon";
+GRANT ALL ON TABLE "public"."approvals" TO "authenticated";
+GRANT ALL ON TABLE "public"."approvals" TO "service_role";
 
 
 

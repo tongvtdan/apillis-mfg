@@ -73,7 +73,7 @@ This document summarizes the implementation of the approval user interface featu
    - Enables granular delegation control
 
 ### Migration File
-- `supabase/migrations/20250901220000_add_approval_delegation_tables.sql`
+- Uses complete setup from `scripts/setup-centralized-approval-system.sql`
 - Includes RLS policies for security
 - Automatic expiration functionality
 - Realtime publication setup

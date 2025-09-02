@@ -380,7 +380,7 @@ useEffect(() => {
 **Database Integration:**
 - **New Tables**: `approval_delegations` and `approval_delegation_mappings`
 - **RLS Policies**: Proper security for delegation functionality
-- **Migration**: `20250901220000_add_approval_delegation_tables.sql`
+- **Migration**: Uses complete setup from `scripts/setup-centralized-approval-system.sql`
 
 **Requirements Compliance:**
 - ✅ **Task 8.1**: Approval dashboard showing pending approvals ✓
