@@ -5,6 +5,7 @@ import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { FileText, Download, Eye, Edit, Trash2, ArrowUpDown } from 'lucide-react';
 import { format } from 'date-fns';
+import { documentActionsService } from '@/services/documentActions';
 import type { ProjectDocument } from '@/hooks/useDocuments';
 import type { SortField, SortOrder } from './DocumentManager';
 
@@ -17,6 +18,8 @@ interface DocumentListProps {
     sortOrder: SortOrder;
     onSort: (field: SortField) => void;
     onDocumentClick?: (document: ProjectDocument) => void;
+    onDocumentEdit?: (document: ProjectDocument) => void;
+    onDocumentDelete?: (document: ProjectDocument) => void;
 }
 
 /**
@@ -31,7 +34,9 @@ export const DocumentList: React.FC<DocumentListProps> = ({
     sortField,
     sortOrder,
     onSort,
-    onDocumentClick
+    onDocumentClick,
+    onDocumentEdit,
+    onDocumentDelete
 }) => {
     const formatFileSize = (bytes: number): string => {
         if (bytes === 0) return '0 Bytes';
@@ -178,13 +183,34 @@ export const DocumentList: React.FC<DocumentListProps> = ({
                                     >
                                         <Eye className="w-3 h-3" />
                                     </Button>
-                                    <Button variant="ghost" size="sm" title="Download">
+                                    <Button
+                                        variant="ghost"
+                                        size="sm"
+                                        title="Download"
+                                        onClick={async () => {
+                                            try {
+                                                await documentActionsService.downloadDocument(document);
+                                            } catch (error) {
+                                                console.error('Download failed:', error);
+                                            }
+                                        }}
+                                    >
                                         <Download className="w-3 h-3" />
                                     </Button>
-                                    <Button variant="ghost" size="sm" title="Edit">
+                                    <Button
+                                        variant="ghost"
+                                        size="sm"
+                                        title="Edit"
+                                        onClick={() => onDocumentEdit && onDocumentEdit(document)}
+                                    >
                                         <Edit className="w-3 h-3" />
                                     </Button>
-                                    <Button variant="ghost" size="sm" title="Delete">
+                                    <Button
+                                        variant="ghost"
+                                        size="sm"
+                                        title="Delete"
+                                        onClick={() => onDocumentDelete && onDocumentDelete(document)}
+                                    >
                                         <Trash2 className="w-3 h-3" />
                                     </Button>
                                 </div>

@@ -20,6 +20,17 @@
   - ✅ Reduced rate limiting from 2s to 1s for better responsiveness
   - ✅ Stage transitions should now update UI immediately and reliably
 
+- [done] 2025-09-02 - Document Management Actions Implementation ✅
+  - ✅ Implemented comprehensive document actions: edit, delete, download
+  - ✅ Created DocumentActionsService with centralized functionality
+  - ✅ Added DocumentEditModal with full metadata editing capabilities
+  - ✅ Connected UI components (DocumentList, DocumentGrid) to functional actions
+  - ✅ Enhanced DocumentPreview with improved download functionality
+  - ✅ Added confirmation dialogs for delete actions
+  - ✅ Implemented tag management with add/remove functionality
+  - ✅ Added proper error handling and user feedback
+  - ✅ Integrated with existing Supabase real-time subscriptions
+
 - [WIP] Rename Projects tabs, remove redundant Table tab, keep table mode in List
 
 ### [done] 2025-01-30 - Complete Database Schema Implementation ✅

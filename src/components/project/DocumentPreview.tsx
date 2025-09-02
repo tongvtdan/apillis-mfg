@@ -17,6 +17,7 @@ import {
 } from 'lucide-react';
 import { format } from 'date-fns';
 import { supabase } from '@/integrations/supabase/client';
+import { documentActionsService } from '@/services/documentActions';
 import type { ProjectDocument } from '@/hooks/useDocuments';
 import { toast } from 'sonner';
 
@@ -88,11 +89,7 @@ export const DocumentPreview: React.FC<DocumentPreviewProps> = ({
     // Check if file can be previewed
     const canPreview = (mimeType?: string): boolean => {
         if (!mimeType) return false;
-        return (
-            mimeType.startsWith('image/') ||
-            mimeType === 'application/pdf' ||
-            mimeType === 'text/plain'
-        );
+        return documentActionsService.canPreview(mimeType);
     };
 
     // Load preview URL
@@ -131,26 +128,9 @@ export const DocumentPreview: React.FC<DocumentPreviewProps> = ({
     // Download document
     const handleDownload = async () => {
         try {
-            const { data, error } = await supabase.storage
-                .from('documents')
-                .createSignedUrl(document.file_path, 60); // 1 minute for download
-
-            if (error) {
-                throw new Error(`Download failed: ${error.message}`);
-            }
-
-            // Create download link
-            const link = document.createElement('a');
-            link.href = data.signedUrl;
-            link.download = document.file_name || document.title;
-            document.body.appendChild(link);
-            link.click();
-            document.body.removeChild(link);
-
-            toast.success('Download started');
-        } catch (err) {
-            const errorMessage = err instanceof Error ? err.message : 'Download failed';
-            toast.error('Download failed', { description: errorMessage });
+            await documentActionsService.downloadDocument(document);
+        } catch (error) {
+            console.error('Download failed:', error);
         }
     };
 

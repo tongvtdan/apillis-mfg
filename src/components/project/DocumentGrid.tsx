@@ -5,6 +5,7 @@ import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { FileText, Download, Eye, Edit, Trash2 } from 'lucide-react';
 import { format } from 'date-fns';
+import { documentActionsService } from '@/services/documentActions';
 import type { ProjectDocument } from '@/hooks/useDocuments';
 
 interface DocumentGridProps {
@@ -13,6 +14,8 @@ interface DocumentGridProps {
     onSelectDocument: (documentId: string) => void;
     onSelectAll: () => void;
     onDocumentClick?: (document: ProjectDocument) => void;
+    onDocumentEdit?: (document: ProjectDocument) => void;
+    onDocumentDelete?: (document: ProjectDocument) => void;
 }
 
 /**
@@ -24,7 +27,9 @@ export const DocumentGrid: React.FC<DocumentGridProps> = ({
     selectedDocuments,
     onSelectDocument,
     onSelectAll,
-    onDocumentClick
+    onDocumentClick,
+    onDocumentEdit,
+    onDocumentDelete
 }) => {
     const formatFileSize = (bytes: number): string => {
         if (bytes === 0) return '0 Bytes';
@@ -79,13 +84,34 @@ export const DocumentGrid: React.FC<DocumentGridProps> = ({
                                     >
                                         <Eye className="w-3 h-3" />
                                     </Button>
-                                    <Button variant="ghost" size="sm" title="Download">
+                                    <Button
+                                        variant="ghost"
+                                        size="sm"
+                                        title="Download"
+                                        onClick={async () => {
+                                            try {
+                                                await documentActionsService.downloadDocument(document);
+                                            } catch (error) {
+                                                console.error('Download failed:', error);
+                                            }
+                                        }}
+                                    >
                                         <Download className="w-3 h-3" />
                                     </Button>
-                                    <Button variant="ghost" size="sm" title="Edit">
+                                    <Button
+                                        variant="ghost"
+                                        size="sm"
+                                        title="Edit"
+                                        onClick={() => onDocumentEdit && onDocumentEdit(document)}
+                                    >
                                         <Edit className="w-3 h-3" />
                                     </Button>
-                                    <Button variant="ghost" size="sm" title="Delete">
+                                    <Button
+                                        variant="ghost"
+                                        size="sm"
+                                        title="Delete"
+                                        onClick={() => onDocumentDelete && onDocumentDelete(document)}
+                                    >
                                         <Trash2 className="w-3 h-3" />
                                     </Button>
                                 </div>

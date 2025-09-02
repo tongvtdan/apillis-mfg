@@ -36,7 +36,10 @@ import { DocumentFilters } from './DocumentFilters';
 import { DocumentPreview } from './DocumentPreview';
 import { DocumentApproval } from '@/components/approval/DocumentApproval';
 import { DocumentVersionHistory } from './DocumentVersionHistory';
+import { DocumentEditModal } from './DocumentEditModal';
+import { documentActionsService } from '@/services/documentActions';
 import type { ProjectDocument } from '@/hooks/useDocuments';
+import type { DocumentEditData } from '@/services/documentActions';
 
 interface DocumentManagerProps {
     projectId: string;
@@ -71,6 +74,7 @@ export const DocumentManager: React.FC<DocumentManagerProps> = ({ projectId, cur
     const [showApprovalPanel, setShowApprovalPanel] = useState(false);
     const [showPreview, setShowPreview] = useState(false);
     const [showVersionHistory, setShowVersionHistory] = useState(false);
+    const [showEditModal, setShowEditModal] = useState(false);
 
     // Sorting state
     const [sortField, setSortField] = useState<SortField>('date');
@@ -193,6 +197,35 @@ export const DocumentManager: React.FC<DocumentManagerProps> = ({ projectId, cur
             setSortOrder('asc');
         }
     }, [sortField]);
+
+    // Document action handlers
+    const handleDocumentEdit = useCallback((document: ProjectDocument) => {
+        setSelectedDocument(document);
+        setShowEditModal(true);
+    }, []);
+
+    const handleDocumentDelete = useCallback(async (document: ProjectDocument) => {
+        if (!confirm(`Are you sure you want to delete "${document.title}"? This action cannot be undone.`)) {
+            return;
+        }
+
+        try {
+            await documentActionsService.deleteDocument(document);
+            // The useDocuments hook will handle the real-time update
+        } catch (error) {
+            console.error('Delete failed:', error);
+        }
+    }, []);
+
+    const handleDocumentSave = useCallback(async (documentId: string, editData: DocumentEditData) => {
+        try {
+            await documentActionsService.editDocument(documentId, editData);
+            // The useDocuments hook will handle the real-time update
+        } catch (error) {
+            console.error('Edit failed:', error);
+            throw error; // Re-throw to let the modal handle the error
+        }
+    }, []);
 
     // Filter handlers
     const handleFilterChange = useCallback((newFilters: Partial<DocumentFiltersState>) => {
@@ -375,6 +408,8 @@ export const DocumentManager: React.FC<DocumentManagerProps> = ({ projectId, cur
                                     setSelectedDocument(document);
                                     setShowPreview(true);
                                 }}
+                                onDocumentEdit={handleDocumentEdit}
+                                onDocumentDelete={handleDocumentDelete}
                             />
                         ) : (
                             <DocumentList
@@ -389,6 +424,8 @@ export const DocumentManager: React.FC<DocumentManagerProps> = ({ projectId, cur
                                     setSelectedDocument(document);
                                     setShowPreview(true);
                                 }}
+                                onDocumentEdit={handleDocumentEdit}
+                                onDocumentDelete={handleDocumentDelete}
                             />
                         )
                     ) : (
@@ -478,6 +515,19 @@ export const DocumentManager: React.FC<DocumentManagerProps> = ({ projectId, cur
                             // The useDocuments hook should handle real-time updates
                             console.log('Version changed:', newVersion);
                         }}
+                    />
+                )}
+
+                {/* Document Edit Modal */}
+                {showEditModal && selectedDocument && (
+                    <DocumentEditModal
+                        document={selectedDocument}
+                        isOpen={showEditModal}
+                        onClose={() => {
+                            setShowEditModal(false);
+                            setSelectedDocument(null);
+                        }}
+                        onSave={handleDocumentSave}
                     />
                 )}
             </div>
