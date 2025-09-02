@@ -16,6 +16,7 @@ interface DocumentListProps {
     sortField: SortField;
     sortOrder: SortOrder;
     onSort: (field: SortField) => void;
+    onDocumentClick?: (document: ProjectDocument) => void;
 }
 
 /**
@@ -29,7 +30,8 @@ export const DocumentList: React.FC<DocumentListProps> = ({
     onSelectAll,
     sortField,
     sortOrder,
-    onSort
+    onSort,
+    onDocumentClick
 }) => {
     const formatFileSize = (bytes: number): string => {
         if (bytes === 0) return '0 Bytes';
@@ -110,12 +112,16 @@ export const DocumentList: React.FC<DocumentListProps> = ({
                             </TableCell>
                             <TableCell>
                                 <div className="space-y-1">
-                                    <div className="font-medium text-sm" title={doc.title}>
-                                        {doc.title}
+                                    <div
+                                        className="font-medium text-sm cursor-pointer hover:text-primary"
+                                        title={document.title}
+                                        onClick={() => onDocumentClick && onDocumentClick(document)}
+                                    >
+                                        {document.title}
                                     </div>
-                                    {doc.description && (
+                                    {document.description && (
                                         <div className="text-xs text-muted-foreground truncate max-w-xs">
-                                            {doc.description}
+                                            {document.description}
                                         </div>
                                     )}
                                 </div>
@@ -123,9 +129,9 @@ export const DocumentList: React.FC<DocumentListProps> = ({
                             <TableCell>
                                 <Badge
                                     variant="secondary"
-                                    className={`text-xs ${getDocumentTypeColor(doc.category)}`}
+                                    className={`text-xs ${getDocumentTypeColor(document.category)}`}
                                 >
-                                    {doc.category}
+                                    {document.category}
                                 </Badge>
                             </TableCell>
                             <TableCell>

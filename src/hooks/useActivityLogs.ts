@@ -1,18 +1,23 @@
 import { useState, useEffect } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
+import type { Json } from '@/integrations/supabase/types';
 
 export interface ActivityLog {
     id: string;
     action: string;
     entity_type: string;
     entity_id: string;
-    description: string;
-    old_values: Record<string, any> | null;
-    new_values: Record<string, any> | null;
-    created_at: string;
+    description: string | null;
+    old_values: Json | null;
+    new_values: Json | null;
+    created_at: string | null;
     user_id: string | null;
-    metadata: Record<string, any> | null;
+    metadata: Json | null;
+    organization_id: string;
+    user_agent: string | null;
+    ip_address: unknown | null;
+    project_id: string | null;
 }
 
 export function useActivityLogs(limit: number = 10) {
@@ -34,23 +39,24 @@ export function useActivityLogs(limit: number = 10) {
             console.log('Fetching activities for organization_id:', profile.organization_id);
 
             try {
-                setLoading(true);
-
-                // Fetch recent activity logs for the organization
                 const { data, error: fetchError } = await supabase
                     .from('activity_log')
                     .select(`
-            id,
-            action,
-            entity_type,
-            entity_id,
-            description,
-            old_values,
-            new_values,
-            created_at,
-            user_id,
-            metadata
-          `)
+              id,
+              action,
+              entity_type,
+              entity_id,
+              description,
+              old_values,
+              new_values,
+              created_at,
+              user_id,
+              metadata,
+              organization_id,
+              user_agent,
+              ip_address,
+              project_id
+            `)
                     .eq('organization_id', profile.organization_id)
                     .order('created_at', { ascending: false })
                     .limit(limit);
@@ -104,7 +110,11 @@ export function useActivityLogs(limit: number = 10) {
               new_values,
               created_at,
               user_id,
-              metadata
+              metadata,
+              organization_id,
+              user_agent,
+              ip_address,
+              project_id
             `)
                         .eq('organization_id', profile.organization_id)
                         .order('created_at', { ascending: false })

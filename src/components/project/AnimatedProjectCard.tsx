@@ -359,13 +359,15 @@ export function AnimatedProjectCard({
 
 // Helper component to display project contact
 function ProjectContactDisplay({ project }: { project: Project }) {
-    const assigneeDisplayName = useUserDisplayName(project.assignee_id);
+    // Use the current assigned_to field with fallback to legacy assignee_id
+    const assigneeId = project.assigned_to || project.assignee_id;
+    const assigneeDisplayName = useUserDisplayName(assigneeId);
 
     if (project.contact_name) {
         return <span>{project.contact_name}</span>;
     }
 
-    if (project.assignee_id) {
+    if (assigneeId) {
         return <span>{assigneeDisplayName}</span>;
     }
 

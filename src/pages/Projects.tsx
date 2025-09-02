@@ -19,7 +19,8 @@ import { LoadingFallback, OfflineState, GracefulDegradation } from "@/components
 import { useErrorHandling } from "@/hooks/useErrorHandling";
 import { ProjectWorkflowAnalytics } from "@/components/project/ProjectWorkflowAnalytics";
 import { ProjectCalendar } from "@/components/project/ProjectCalendar";
-import { ProjectTable } from "@/components/project/ProjectTable";
+import { EnhancedProjectList } from "@/components/project/EnhancedProjectList";
+import { AnimatedProjectCard } from "@/components/project/AnimatedProjectCard";
 import { workflowStageService } from "@/services/workflowStageService";
 
 // This component displays the projects management interface
@@ -27,7 +28,7 @@ import { workflowStageService } from "@/services/workflowStageService";
 // The user profile data is fetched from the public.users table and connected to the auth.users table
 // through the user ID which is consistent between both tables after the migration
 export default function Projects() {
-  const { projects, loading, error, updateProjectStage, updateProjectStatusOptimistic, refetch, getBottleneckAnalysis } = useProjects();
+  const { projects, loading, error, updateProjectStage, updateProjectStatusOptimistic, refetch, getBottleneckAnalysis, createProject } = useProjects();
   const [searchParams, setSearchParams] = useSearchParams();
   const navigate = useNavigate();
 
@@ -49,6 +50,26 @@ export default function Projects() {
       (new Date(dueDate).getTime() - new Date(createdAt).getTime()) / (1000 * 60 * 60 * 24)
     );
     return days;
+  };
+
+  // Format currency function
+  const formatCurrency = (value: number | null) => {
+    if (!value) return null;
+    return new Intl.NumberFormat('en-US', {
+      style: 'currency',
+      currency: 'USD',
+      minimumFractionDigits: 0,
+      maximumFractionDigits: 0,
+    }).format(value);
+  };
+
+  // Format date function
+  const formatDate = (date: string) => {
+    return new Date(date).toLocaleDateString('en-US', {
+      month: 'short',
+      day: 'numeric',
+      year: 'numeric'
+    });
   };
 
   // Helper function to get real sub-stage progress for a project
@@ -196,12 +217,13 @@ export default function Projects() {
   // Get default tab from URL params or localStorage
   const getDefaultTab = () => {
     const tabParam = searchParams.get('tab');
-    if (tabParam === 'calendar' || tabParam === 'table' || tabParam === 'flowchart' || tabParam === 'analytics') {
+    if (tabParam === 'enhanced' || tabParam === 'calendar' || tabParam === 'flowchart' || tabParam === 'analytics') {
       return tabParam;
     }
-    // Try to restore from localStorage, default to 'flowchart'
+    // Try to restore from localStorage, default to 'enhanced'
     const saved = localStorage.getItem('projects-selected-tab');
-    return saved ? (saved as string) : 'flowchart';
+    if (saved === 'table') return 'enhanced';
+    return saved ? (saved as string) : 'enhanced';
   };
 
   const defaultTab = getDefaultTab();
@@ -275,12 +297,6 @@ export default function Projects() {
 
     let filtered = projects.filter(p => p.current_stage_id === selectedStage);
     console.log('Projects filtered by stage:', filtered.length);
-
-    // TEMPORARY FIX: If no projects match the selected stage, show all active projects
-    if (filtered.length === 0 && projects.length > 0) {
-      console.warn('⚠️ No projects match selected stage. Showing all active projects as fallback.');
-      filtered = projects.filter(p => p.status !== 'completed');
-    }
 
     // Apply project type filter
     if (selectedProjectType !== 'all') {
@@ -398,41 +414,24 @@ export default function Projects() {
 
         <Tabs value={defaultTab} onValueChange={handleTabChange} className="w-full relative">
           <div className="mb-6 flex justify-between items-center">
-            <div>
-              <h1 className="text-2xl font-bold text-base-content">Factory Pulse - Project Flow</h1>
-              <p className="text-base-content/70">Track and manage your manufacturing projects from idea to delivery</p>
-            </div>
-            <div className="flex items-center gap-4">
-              <TabsList className="auth-tabs-list grid-cols-4 w-[600px]">
+
+            <div className="flex items-center gap-6">
+              <TabsList className="auth-tabs-list grid !grid-cols-4 w-full">
+                <TabsTrigger value="enhanced" className="auth-tab-trigger" disabled={isRetrying}>
+                  List
+                </TabsTrigger>
                 <TabsTrigger value="flowchart" className="auth-tab-trigger" disabled={isRetrying}>
-                  Kanban Flow
-                </TabsTrigger>
-                <TabsTrigger value="table" className="auth-tab-trigger" disabled={isRetrying}>
-                  Table
-                </TabsTrigger>
-                <TabsTrigger value="analytics" className="auth-tab-trigger" disabled={isRetrying}>
-                  Analytics
+                  Workflow
                 </TabsTrigger>
                 <TabsTrigger value="calendar" className="auth-tab-trigger" disabled={isRetrying}>
                   Calendar
                 </TabsTrigger>
+                <TabsTrigger value="analytics" className="auth-tab-trigger" disabled={isRetrying}>
+                  Analytics
+                </TabsTrigger>
+
               </TabsList>
 
-              {/* Manual refresh button with error handling */}
-              <Button
-                variant="outline"
-                size="sm"
-                onClick={() => {
-                  clearError();
-                  retry(async () => {
-                    await refetch(true);
-                  });
-                }}
-                className="text-xs"
-                disabled={isRetrying}
-              >
-                {isRetrying ? '🔄 Refreshing...' : '🔄 Refresh'}
-              </Button>
 
               {/* Project Type Filter */}
               <div className="flex items-center space-x-3">
@@ -461,6 +460,37 @@ export default function Projects() {
               </div>
             </div>
           </div>
+
+          <TabsContent value="enhanced" className="mt-4">
+            <ProjectErrorBoundary context="Enhanced Project List">
+              <EnhancedProjectList
+                projects={activeProjects.filter(p => selectedProjectType === 'all' || p.project_type === selectedProjectType)}
+                workflowStages={workflowStages}
+                loading={loading}
+                onProjectUpdate={async (projectId, updates) => {
+                  // Handle project updates
+                  if (updates.status) {
+                    await updateProjectStatusOptimistic(projectId, updates.status);
+                  }
+                }}
+                onProjectCreate={async (projectData) => {
+                  // Handle project creation using the createProject function
+                  const newProject = await createProject({
+                    title: projectData.title,
+                    description: projectData.description,
+                    customer_id: projectData.customer_id,
+                    priority: projectData.priority_level,
+                    estimated_value: projectData.estimated_value,
+                    due_date: projectData.estimated_delivery_date,
+                    notes: projectData.notes,
+                    tags: projectData.tags
+                  });
+                  await refetch(true);
+                  return newProject;
+                }}
+              />
+            </ProjectErrorBoundary>
+          </TabsContent>
 
           <TabsContent value="flowchart" className="mt-4 space-y-6">
             <ProjectErrorBoundary context="Workflow Flowchart">
@@ -591,43 +621,28 @@ export default function Projects() {
                     <CardContent>
                       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
                         {selectedStageProjects.map((project) => (
-                          <Card
+                          <AnimatedProjectCard
                             key={project.id}
-                            className="cursor-pointer hover:shadow-lg transition-all duration-200 border-l-4 hover:scale-[1.02] group"
-                            style={{
-                              borderLeftColor: workflowStages.find(s => s.id === selectedStage)?.color || '#3B82F6'
+                            project={project}
+                            onStatusChange={async (projectId, newStatus) => {
+                              await updateProjectStatusOptimistic(projectId, newStatus);
                             }}
-                            onClick={() => navigate(`/project/${project.id}`)}
-                          >
-                            <CardContent className="p-6">
-                              {/* Project Header with Status Icon and Customer */}
-                              <div className="mb-4">
-                                <div className="flex items-start justify-between mb-2">
-                                  <div className="flex items-center gap-2">
-                                    {project.status === 'active' && (
-                                      <CheckCircle2 className="h-4 w-4 text-green-500" />
-                                    )}
-                                    {project.status === 'on_hold' && (
-                                      <Clock className="h-4 w-4 text-yellow-500" />
-                                    )}
-                                    {project.status === 'delayed' && (
-                                      <AlertCircle className="h-4 w-4 text-red-500" />
-                                    )}
-                                    <div className="flex flex-col">
-                                      <h4 className="font-semibold text-base text-base-content group-hover:text-primary transition-colors">
-                                        {project.title}
-                                      </h4>
-                                      {project.customer?.company_name && (
-                                        <p className="text-sm text-muted-foreground">
-                                          {project.customer.company_name}
-                                        </p>
-                                      )}
-                                    </div>
-                                  </div>
-                                </div>
-                              </div>
-                            </CardContent>
-                          </Card>
+                            getAvailableStages={(project) => {
+                              // Return available stages based on workflow
+                              return workflowStages.map(stage => ({
+                                id: stage.id as any,
+                                name: stage.name,
+                                color: stage.color || '#3B82F6',
+                                count: stageCounts[stage.id] || 0,
+                                canMoveTo: true,
+                                isNextStage: false,
+                                isCurrentStage: stage.id === project.current_stage_id
+                              }));
+                            }}
+                            getPriorityColor={getPriorityColor}
+                            formatCurrency={formatCurrency}
+                            formatDate={formatDate}
+                          />
                         ))}
                       </div>
                     </CardContent>
@@ -667,30 +682,10 @@ export default function Projects() {
             </ProjectErrorBoundary>
           </TabsContent>
 
-          <TabsContent value="table" className="mt-0">
-            <ProjectErrorBoundary context="Project Table">
-              <ProjectTable
-                projects={activeProjects.filter(p => selectedProjectType === 'all' || p.project_type === selectedProjectType)}
-                onProjectSelect={setSelectedProject}
-                onStageUpdate={updateProjectStage}
-                onStatusUpdate={updateProjectStatusOptimistic}
-                loading={loading}
-                error={error}
-                refetch={refetch}
-                getPriorityColor={getPriorityColor}
-                calculateLeadTime={calculateLeadTime}
-              />
-            </ProjectErrorBoundary>
-          </TabsContent>
-
           <TabsContent value="analytics" className="mt-0">
             <ProjectErrorBoundary context="Project Analytics">
               <ProjectWorkflowAnalytics
                 projects={activeProjects.filter(p => selectedProjectType === 'all' || p.project_type === selectedProjectType)}
-                workflowStages={workflowStages}
-                onStageSelect={handleStageSelect}
-                selectedStage={selectedStage}
-                loading={loading}
               />
             </ProjectErrorBoundary>
           </TabsContent>
@@ -699,8 +694,6 @@ export default function Projects() {
             <ProjectErrorBoundary context="Project Calendar">
               <ProjectCalendar
                 projects={activeProjects.filter(p => selectedProjectType === 'all' || p.project_type === selectedProjectType)}
-                onProjectSelect={setSelectedProject}
-                loading={loading}
               />
             </ProjectErrorBoundary>
           </TabsContent>

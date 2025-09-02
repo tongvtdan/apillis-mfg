@@ -7,19 +7,25 @@ import { PriorityActionItems } from "@/components/dashboard/PriorityActionItems"
 import { QuickStats } from "@/components/dashboard/QuickStats";
 import { OverviewCard } from "@/components/dashboard/OverviewCard";
 import { ProjectTypeChart } from "@/components/dashboard/ProjectTypeChart";
+import { ProjectStageChart } from "@/components/dashboard/ProjectStageChart";
 import { Card, CardContent } from "@/components/ui/card";
 import { useDashboardData } from '@/hooks/useDashboardData';
 import { useAuth } from "@/contexts/AuthContext";
 import { DashboardDebugger } from "@/components/dashboard/DashboardDebugger";
+import { ApprovalDashboard } from "@/components/approval/ApprovalDashboard";
 import {
   TrendingUp,
   Users,
   Bell,
   FolderOpen,
   AlertTriangle,
-  Bug
+  Bug,
+  BarChart3,
+  Workflow
 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
+import { workflowStageService } from "@/services/workflowStageService";
+import { Button } from "@/components/ui/button";
 
 // This component displays the main dashboard with overview statistics and user-specific data
 // It uses the authenticated user's profile data from the AuthContext
@@ -31,6 +37,8 @@ export default function Dashboard() {
   const navigate = useNavigate();
   const [debugMode, setDebugMode] = useState(false);
   const [directProjects, setDirectProjects] = useState([]);
+  const [workflowStages, setWorkflowStages] = useState([]);
+  const [chartView, setChartView] = useState<'type' | 'stage'>('stage'); // New state for chart view toggle
 
   // Extract project data from dashboard summary
   const projects = dashboardData?.recent_projects || [];
@@ -38,6 +46,7 @@ export default function Dashboard() {
   const projectsByStatus = dashboardData?.projects?.by_status || {};
   const projectsByType = dashboardData?.projects?.by_type || {};
   const projectsByPriority = dashboardData?.projects?.by_priority || {};
+  const projectsByStage = dashboardData?.projects?.by_stage || {};
   const loading = dashboardLoading;
 
   useEffect(() => {
@@ -70,6 +79,20 @@ export default function Dashboard() {
 
     fetchProjects();
   }, [dashboardData, profile, user]);
+
+  // Fetch workflow stages
+  useEffect(() => {
+    const fetchWorkflowStages = async () => {
+      try {
+        const stages = await workflowStageService.getWorkflowStages();
+        setWorkflowStages(stages);
+      } catch (error) {
+        console.error("Error fetching workflow stages:", error);
+      }
+    };
+
+    fetchWorkflowStages();
+  }, []);
 
   // Search and filter states
   const [searchQuery, setSearchQuery] = useState("");
@@ -109,6 +132,14 @@ export default function Dashboard() {
   const overdueProjects = projects.filter(p =>
     p.days_in_stage && p.days_in_stage > 7
   ).length;
+
+  // Prepare stage distribution data for the chart
+  const stageDistributionData = Object.entries(projectsByStage)
+    .map(([stageId, count]) => {
+      const stage = workflowStages.find(s => s.id === stageId);
+      return stage ? { stage, count } : null;
+    })
+    .filter(Boolean) as { stage: any; count: number }[];
 
   // Enhanced overview data with real data and important alerts - only Projects section
   const overviewData = [];
@@ -184,12 +215,53 @@ export default function Dashboard() {
             </p>
           </div>
 
-          {/* Project Type Visualization */}
-          {!loading && Object.keys(projectsByType).length > 0 && (
-            <div className="mb-8">
-              <ProjectTypeChart data={projectsByType} />
-            </div>
+          {/* Chart View Toggle */}
+          <div className="flex items-center gap-2 mb-4">
+            <Button
+              variant={chartView === 'type' ? 'default' : 'outline'}
+              size="sm"
+              onClick={() => setChartView('type')}
+              className="flex items-center gap-2"
+            >
+              <BarChart3 className="h-4 w-4" />
+              By Type
+            </Button>
+            <Button
+              variant={chartView === 'stage' ? 'default' : 'outline'}
+              size="sm"
+              onClick={() => setChartView('stage')}
+              className="flex items-center gap-2"
+            >
+              <Workflow className="h-4 w-4" />
+              By Stage
+            </Button>
+          </div>
+
+          {/* Project Distribution Visualization */}
+          {!loading && (
+            <>
+              {chartView === 'type' && Object.keys(projectsByType).length > 0 && (
+                <div className="mb-8">
+                  <ProjectTypeChart data={projectsByType} />
+                </div>
+              )}
+
+              {chartView === 'stage' && stageDistributionData.length > 0 && (
+                <div className="mb-8">
+                  <ProjectStageChart data={stageDistributionData} />
+                </div>
+              )}
+            </>
           )}
+
+          {/* Approvals Dashboard */}
+          <div className="mb-8">
+            <h2 className="text-xl font-semibold text-foreground flex items-center gap-2 mb-4">
+              <Bell className="h-6 w-6 text-primary" />
+              Approvals
+            </h2>
+            <ApprovalDashboard />
+          </div>
         </div>
 
         {/* Projects Stats and Activities */}

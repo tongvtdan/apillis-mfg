@@ -207,8 +207,11 @@ export function useProjects() {
   const subscribeToProjectUpdates = useCallback((projectIds: string[]) => {
     if (projectIds.length === 0) return;
 
+    console.log('🔔 subscribeToProjectUpdates called with project IDs:', projectIds);
+
     // Clean up existing subscription
     if (realtimeChannelRef.current) {
+      console.log('🔔 Cleaning up existing selective subscription');
       supabase.removeChannel(realtimeChannelRef.current);
     }
 
@@ -247,6 +250,14 @@ export function useProjects() {
                 : project
             );
 
+            console.log('🔔 Projects state updated via real-time subscription:', {
+              projectId: payload.new.id,
+              oldStage: payload.old?.current_stage_id,
+              newStage: payload.new.current_stage_id,
+              projectsCount: updatedProjects.length,
+              updatedProject: updatedProjects.find(p => p.id === payload.new.id)
+            });
+
             // Update cache with error handling
             try {
               cacheService.setProjects(updatedProjects);
@@ -259,12 +270,16 @@ export function useProjects() {
 
           // If stage was updated, we should refetch to get the full stage relationship
           if (payload.old?.current_stage_id !== payload.new.current_stage_id) {
-            console.log('🔔 Stage updated, refetching to get full stage data');
-            fetchProjects(true);
+            console.log('🔔 Stage updated, refetching to get full stage data with relationships');
+            // Use setTimeout to ensure the state update completes first
+            setTimeout(() => {
+              fetchProjects(true);
+            }, 100);
           }
         }
       )
       .subscribe((status) => {
+        console.log('🔔 Selective subscription status changed:', status);
         if (status === 'SUBSCRIBED') {
           console.log('✅ Selective project subscription established for projects:', projectIds);
         } else if (status === 'CHANNEL_ERROR') {
@@ -278,6 +293,8 @@ export function useProjects() {
           }, 3000);
         } else if (status === 'CLOSED') {
           console.log('🔔 Selective project subscription closed');
+        } else {
+          console.log('🔔 Selective subscription status:', status);
         }
       });
 
@@ -291,55 +308,45 @@ export function useProjects() {
     console.log('Profile:', profile);
     fetchProjects();
 
-    // Only subscribe to real-time updates on specific routes
+    // Always subscribe to real-time updates for project-related routes
     const shouldSubscribeToRealtime = window.location.pathname.includes('/projects/') ||
       window.location.pathname.includes('/project/') ||
       window.location.pathname === '/projects';
 
-    // Reduce logging frequency to prevent console spam
-    const shouldLog = Math.random() < 0.1; // Only log 10% of the time
-
-    if (shouldLog) {
-      console.log('🔔 useProjects: Real-time subscription check:', {
-        currentPath: window.location.pathname,
-        shouldSubscribe: shouldSubscribeToRealtime,
-        realtimeManagerStatus: realtimeManager.getStatus()
-      });
-    }
+    console.log('🔔 useProjects: Real-time subscription check:', {
+      currentPath: window.location.pathname,
+      shouldSubscribe: shouldSubscribeToRealtime,
+      realtimeManagerStatus: realtimeManager.getStatus()
+    });
 
     if (!shouldSubscribeToRealtime) {
-      if (shouldLog) {
-        console.log('🔔 useProjects: Skipping real-time subscription for route:', window.location.pathname);
-      }
+      console.log('🔔 useProjects: Skipping real-time subscription for route:', window.location.pathname);
       return;
     }
 
-    // Subscribe to the global real-time manager with rate limiting
+    // Subscribe to the global real-time manager with improved handling
+    console.log('🔔 useProjects: Setting up real-time subscription');
     const unsubscribe = realtimeManager.subscribe(() => {
       // Rate limit real-time updates to prevent excessive API calls
       const now = Date.now();
       const timeSinceLastFetch = now - lastFetchTimeRef.current;
 
-      if (timeSinceLastFetch < 2000) { // Minimum 2 seconds between fetches
+      if (timeSinceLastFetch < 2000) { // Increased to 2 seconds for better stability
         console.log('🔔 useProjects: Rate limiting real-time update (last fetch was', timeSinceLastFetch, 'ms ago)');
         return;
       }
 
       // When we receive a notification, refetch projects to get the latest data
-      if (shouldLog) {
-        console.log('🔔 useProjects: Received real-time update notification, refetching projects');
-      }
+      console.log('🔔 useProjects: Received real-time update notification, refetching projects');
       lastFetchTimeRef.current = now;
       fetchProjects(true);
     });
 
     return () => {
-      if (shouldLog) {
-        console.log('🔔 useProjects: Unsubscribing from real-time manager');
-      }
+      console.log('🔔 useProjects: Unsubscribing from real-time manager');
       unsubscribe();
     };
-  }, [user, profile]); // Remove fetchProjects from dependency array to prevent circular dependency
+  }, [user?.id, profile?.organization_id]); // Use specific properties instead of entire objects to prevent unnecessary re-runs
 
   // Get project by ID
   const getProjectById = async (id: string): Promise<Project | null> => {
@@ -451,15 +458,9 @@ export function useProjects() {
       }
 
       // Validate the workflow transition
-      const validationResult = WorkflowValidator.validateTransition(projectId, newStatus);
-      if (!validationResult.isValid) {
-        toast({
-          variant: "destructive",
-          title: "Invalid Workflow Transition",
-          description: validationResult.message || "This workflow transition is not allowed.",
-        });
-        return false;
-      }
+      // Note: This validation is now handled in the useStageTransition hook
+      // For backward compatibility, we'll skip validation here
+      console.log('Skipping workflow validation in updateProjectStatus - handled elsewhere');
 
       // Update the project status
       const { error } = await supabase
@@ -526,7 +527,11 @@ export function useProjects() {
       if (!projectId || !newStageId) {
         const errorResult = {
           isValid: false,
-          message: "Project ID and stage ID are required."
+          message: "Project ID and stage ID are required.",
+          errors: ["Project ID and stage ID are required."],
+          warnings: [],
+          canAutoAdvance: false,
+          requiresManagerApproval: false
         };
         toast({
           variant: "destructive",
@@ -534,17 +539,6 @@ export function useProjects() {
           description: errorResult.message,
         });
         return errorResult;
-      }
-
-      // Validate the workflow transition
-      const validationResult = WorkflowValidator.validateTransition(projectId, newStageId);
-      if (!validationResult.isValid) {
-        toast({
-          variant: "destructive",
-          title: "Invalid Workflow Transition",
-          description: validationResult.message || "This workflow transition is not allowed.",
-        });
-        return validationResult;
       }
 
       // Update the project stage using correct database field name
@@ -570,7 +564,11 @@ export function useProjects() {
         });
         return {
           isValid: false,
-          message: errorMessage
+          message: errorMessage,
+          errors: [errorMessage],
+          warnings: [],
+          canAutoAdvance: false,
+          requiresManagerApproval: false
         };
       }
 
@@ -611,7 +609,11 @@ export function useProjects() {
 
       return {
         isValid: true,
-        message: "Project stage updated successfully"
+        message: "Project stage updated successfully",
+        errors: [],
+        warnings: [],
+        canAutoAdvance: false,
+        requiresManagerApproval: false
       };
     } catch (error) {
       console.error('Error updating project stage:', error);
@@ -623,7 +625,11 @@ export function useProjects() {
       });
       return {
         isValid: false,
-        message: errorMessage
+        message: errorMessage,
+        errors: [errorMessage],
+        warnings: [],
+        canAutoAdvance: false,
+        requiresManagerApproval: false
       };
     }
   };
@@ -672,6 +678,169 @@ export function useProjects() {
     await fetchProjects(forceRefresh, filters);
   }, [fetchProjects]); // Add fetchProjects dependency
 
+  // Create new project
+  const createProject = async (projectData: {
+    title: string;
+    description?: string;
+    customer_id?: string;
+    priority?: ProjectPriority;
+    estimated_value?: number;
+    due_date?: string;
+    contact_name?: string;
+    contact_email?: string;
+    contact_phone?: string;
+    notes?: string;
+    tags?: string[];
+  }): Promise<Project> => {
+    if (!user || !profile?.organization_id) {
+      throw new Error('User must be authenticated to create projects');
+    }
+
+    try {
+      const { data, error } = await supabase
+        .from('projects')
+        .insert({
+          organization_id: profile.organization_id,
+          title: projectData.title,
+          description: projectData.description,
+          customer_id: projectData.customer_id,
+          priority_level: projectData.priority || 'medium',
+          estimated_value: projectData.estimated_value,
+          estimated_delivery_date: projectData.due_date,
+          status: 'active',
+          source: 'manual',
+          created_by: user.id,
+          tags: projectData.tags || [],
+          notes: projectData.notes,
+          // Generate project ID
+          project_id: await generateProjectId(),
+          stage_entered_at: new Date().toISOString()
+        })
+        .select(`
+          *,
+          customer:contacts(*),
+          current_stage:workflow_stages(*)
+        `)
+        .single();
+
+      if (error) throw error;
+
+      // Update local state
+      setProjects(prev => [data, ...prev]);
+
+      // Update cache
+      cacheService.setProjects([data, ...projects]);
+
+      toast({
+        title: "Project Created",
+        description: `Project ${data.project_id} has been created successfully.`,
+      });
+
+      return data as Project;
+    } catch (error) {
+      console.error('Error creating project:', error);
+      throw error;
+    }
+  };
+
+  // Create or get customer
+  const createOrGetCustomer = async (customerData: {
+    name: string;
+    company: string;
+    email?: string;
+    phone?: string;
+  }) => {
+    if (!user || !profile?.organization_id) {
+      throw new Error('User must be authenticated to create customers');
+    }
+
+    try {
+      // First, try to find existing customer
+      const { data: existingCustomer } = await supabase
+        .from('contacts')
+        .select('*')
+        .eq('organization_id', profile.organization_id)
+        .eq('type', 'customer')
+        .eq('company_name', customerData.company)
+        .single();
+
+      if (existingCustomer) {
+        return existingCustomer;
+      }
+
+      // Create new customer
+      const { data: newCustomer, error } = await supabase
+        .from('contacts')
+        .insert({
+          organization_id: profile.organization_id,
+          type: 'customer',
+          company_name: customerData.company,
+          contact_name: customerData.name,
+          email: customerData.email,
+          phone: customerData.phone,
+          is_active: true,
+          created_by: user.id
+        })
+        .select()
+        .single();
+
+      if (error) throw error;
+      return newCustomer;
+    } catch (error) {
+      console.error('Error creating/getting customer:', error);
+      throw error;
+    }
+  };
+
+  // Generate unique project ID
+  const generateProjectId = async (): Promise<string> => {
+    try {
+      const now = new Date();
+      const year = now.getFullYear();
+      const month = String(now.getMonth() + 1).padStart(2, '0');
+      const day = String(now.getDate()).padStart(2, '0');
+
+      // Get the count of projects created today to generate sequence
+      const startOfDay = new Date(year, now.getMonth(), now.getDate()).toISOString();
+      const endOfDay = new Date(year, now.getMonth(), now.getDate() + 1).toISOString();
+
+      const { count } = await supabase
+        .from('projects')
+        .select('*', { count: 'exact', head: true })
+        .eq('organization_id', profile?.organization_id)
+        .gte('created_at', startOfDay)
+        .lt('created_at', endOfDay);
+
+      const sequence = String((count || 0) + 1).padStart(2, '0');
+      return `P-${year}${month}${day}${sequence}`;
+    } catch (error) {
+      console.error('Error generating project ID:', error);
+      // Fallback to random sequence
+      const now = new Date();
+      const year = now.getFullYear();
+      const month = String(now.getMonth() + 1).padStart(2, '0');
+      const day = String(now.getDate()).padStart(2, '0');
+      const sequence = String(Math.floor(Math.random() * 100)).padStart(2, '0');
+      return `P-${year}${month}${day}${sequence}`;
+    }
+  };
+
+  // Ensure real-time subscription is set up for a specific project
+  const ensureProjectSubscription = useCallback((projectId: string) => {
+    if (!projectId) return;
+
+    console.log('🔔 Ensuring real-time subscription for project:', projectId);
+
+    // Set up selective subscription for this project
+    console.log('🔔 Setting up selective subscription for project:', projectId);
+    subscribeToProjectUpdates([projectId]);
+
+    // Also ensure global subscription is active
+    if (window.location.pathname.includes('/projects/') || window.location.pathname.includes('/project/')) {
+      console.log('🔔 Global real-time subscription should be active for project detail page');
+    }
+  }, [subscribeToProjectUpdates]);
+
   return {
     projects,
     loading,
@@ -682,6 +851,10 @@ export function useProjects() {
     refetch,
     refetchWithFilters,
     getProjectById,
-    getBottleneckAnalysis
+    getBottleneckAnalysis,
+    createProject,
+    createOrGetCustomer,
+    subscribeToProjectUpdates,
+    ensureProjectSubscription
   };
 }

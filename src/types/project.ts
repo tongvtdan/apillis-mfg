@@ -3,8 +3,8 @@ export type ProjectStage = 'inquiry_received' | 'technical_review' | 'supplier_r
 
 // Dynamic stage type based on database workflow_stages
 export type WorkflowStageId = string; // UUID from workflow_stages table
-export type ProjectStatus = 'active' | 'on_hold' | 'delayed' | 'cancelled' | 'completed';
-export type ProjectPriority = 'low' | 'medium' | 'high' | 'urgent';
+export type ProjectStatus = 'active' | 'on_hold' | 'cancelled' | 'completed';
+export type ProjectPriority = 'low' | 'medium' | 'high' | 'critical';
 export type ProjectType = 'system_build' | 'fabrication' | 'manufacturing';
 export type ProjectSource = 'manual' | 'portal' | 'email' | 'api' | 'import' | 'migration';
 
@@ -16,7 +16,7 @@ export interface Contact {
   // Core database fields - must match database schema exactly
   id: string;
   organization_id: string;
-  type: 'customer' | 'supplier';
+  type: 'customer' | 'supplier' | 'partner' | 'internal'; // Updated to match database enum
   company_name: string;
   contact_name?: string;
   email?: string;
@@ -30,15 +30,15 @@ export interface Contact {
   tax_id?: string;
   payment_terms?: string;
   credit_limit?: number;
-  is_active: boolean;
+  is_active?: boolean; // Optional in database (has default)
   notes?: string;
-  created_at: string;
-  updated_at: string;
+  created_at?: string; // Optional in database (has default)
+  updated_at?: string;
 
-  // Legacy fields for backward compatibility - to be gradually removed
+  // AI and metadata fields from database schema
   metadata?: Record<string, any>;
   ai_category?: Record<string, any>;
-  ai_capabilities?: any[];
+  ai_capabilities?: string[]; // Updated to match database type
   ai_risk_score?: number;
   ai_last_analyzed?: string;
   created_by?: string;
@@ -47,23 +47,21 @@ export interface Contact {
 export interface WorkflowStage {
   // Core database fields - must match database schema exactly
   id: string;
+  organization_id: string;
   name: string;
-  description?: string;
   slug: string;
-  stage_order: number;
+  description?: string;
   color?: string;
+  stage_order: number;
+  is_active?: boolean;
   exit_criteria?: string;
-  responsible_roles?: string[];
-  is_active: boolean;
-  organization_id?: string;
-  created_at: string;
-  updated_at: string;
+  responsible_roles?: string[]; // Array of user roles
+  estimated_duration_days?: number; // Optional in database (has default)
+  created_at?: string; // Optional in database (has default)
+  updated_at?: string;
 
   // Computed fields for compatibility
   order_index?: number; // Computed from stage_order for backward compatibility
-  estimated_duration_days?: number;
-  required_approvals?: any[];
-  auto_advance_conditions?: Record<string, any>;
 
   // New fields for sub-stages support
   sub_stages_count?: number;
@@ -79,18 +77,18 @@ export interface WorkflowSubStage {
   description?: string;
   color?: string;
   sub_stage_order: number;
-  is_active: boolean;
+  is_active?: boolean; // Optional in database (has default)
   exit_criteria?: string;
   responsible_roles?: string[];
   estimated_duration_hours?: number;
-  is_required: boolean;
-  can_skip: boolean;
-  auto_advance: boolean;
-  requires_approval: boolean;
+  is_required?: boolean; // Optional in database (has default)
+  can_skip?: boolean; // Optional in database (has default)
+  auto_advance?: boolean; // Optional in database (has default)
+  requires_approval?: boolean; // Optional in database (has default)
   approval_roles?: string[];
   metadata?: Record<string, any>;
-  created_at: string;
-  updated_at: string;
+  created_at?: string; // Optional in database (has default)
+  updated_at?: string;
 }
 
 export interface ProjectSubStageProgress {
@@ -99,20 +97,20 @@ export interface ProjectSubStageProgress {
   project_id: string;
   workflow_stage_id: string;
   sub_stage_id: string;
-  status: 'pending' | 'in_progress' | 'completed' | 'skipped' | 'blocked';
+  status?: 'pending' | 'in_progress' | 'completed' | 'skipped' | 'blocked'; // Optional in database (has default)
   started_at?: string;
   completed_at?: string;
   assigned_to?: string;
   notes?: string;
   metadata?: Record<string, any>;
-  created_at: string;
-  updated_at: string;
+  created_at?: string; // Optional in database (has default)
+  updated_at?: string;
 }
 
 export interface Project {
   // Core database fields - must match database schema exactly
   id: string;
-  organization_id?: string;
+  organization_id: string; // Required in database
   project_id: string; // P-25082001 format
   title: string;
   description?: string;
@@ -120,6 +118,7 @@ export interface Project {
   current_stage_id?: string;
   status: ProjectStatus;
   priority_level?: ProjectPriority;
+  priority_score?: number; // Added from database schema
   source?: string;
   assigned_to?: string;
   created_by?: string;
@@ -129,7 +128,7 @@ export interface Project {
   stage_entered_at?: string;
   project_type?: string;
   notes?: string;
-  created_at: string;
+  created_at?: string; // Optional in database (has default)
   updated_at?: string;
   estimated_delivery_date?: string;
   actual_delivery_date?: string;
@@ -171,6 +170,12 @@ export interface ProjectStageHistory {
   exit_reason?: string;
   notes?: string;
   created_at: string;
+  // Enhanced fields for display
+  stage_name?: string;
+  user_name?: string;
+  user_email?: string;
+  bypass_required?: boolean;
+  bypass_reason?: string;
 }
 
 export interface ProjectAssignment {
@@ -178,14 +183,15 @@ export interface ProjectAssignment {
   project_id: string;
   user_id: string;
   role: string;
-  assigned_at: string;
+  assigned_at?: string; // Optional in database (has default)
   assigned_by?: string;
-  is_active: boolean;
+  is_active?: boolean; // Optional in database (has default)
 }
 
 export interface ProjectDocument {
   id: string;
-  project_id: string;
+  organization_id: string; // Added from database schema
+  project_id?: string; // Optional in database
   file_name: string;
   title: string;
   description?: string;
@@ -197,9 +203,13 @@ export interface ProjectDocument {
   is_current_version?: boolean;
   category?: string;
   access_level?: string;
+  tags?: string[]; // Added from database schema
   metadata?: Record<string, any>;
-  created_at: string;
+  created_at?: string; // Optional in database (has default)
+  updated_at?: string; // Added from database schema
   uploaded_by?: string;
+  approved_at?: string; // Added from database schema
+  approved_by?: string; // Added from database schema
 }
 
 export interface DocumentComment {
@@ -303,7 +313,7 @@ export const STAGE_COLORS: Record<ProjectStage, string> = {
 };
 
 export const PRIORITY_COLORS: Record<ProjectPriority, string> = {
-  urgent: 'bg-red-100 text-red-800 border-red-200',
+  critical: 'bg-red-100 text-red-800 border-red-200',
   high: 'bg-orange-100 text-orange-800 border-orange-200',
   medium: 'bg-yellow-100 text-yellow-800 border-yellow-200',
   low: 'bg-green-100 text-green-800 border-green-200'
@@ -340,9 +350,9 @@ export const RFQ_STAGES = PROJECT_STAGES;
 
 // Type validation functions
 export function isValidProjectStatus(status: string): status is ProjectStatus {
-  return ['active', 'on_hold', 'delayed', 'cancelled', 'completed'].includes(status);
+  return ['active', 'on_hold', 'cancelled', 'completed'].includes(status);
 }
 
 export function isValidProjectPriority(priority: string): priority is ProjectPriority {
-  return ['low', 'medium', 'high', 'urgent'].includes(priority);
+  return ['low', 'medium', 'high', 'critical'].includes(priority);
 }

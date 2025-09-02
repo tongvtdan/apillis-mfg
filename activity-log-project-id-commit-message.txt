@@ -1,0 +1,20 @@
+feat(activity-log): Add project_id column for enhanced analytics
+
+This commit enhances the activity logging system by adding a dedicated project_id column to the activity_log table. This improvement enables more efficient project-based analytics and reporting.
+
+Key changes:
+- Added project_id column with foreign key constraint to projects table
+- Updated log_activity function to automatically populate project_id
+- Enhanced TypeScript types to include project_id
+- Updated application code to utilize the new column
+- Created new analytics service for project activity reporting
+- Added visualization component for activity analytics
+
+Benefits:
+- Improved query performance for project-based analytics
+- Enhanced data integrity with direct foreign key relationship
+- Automatic population of project_id for relevant activities
+- Backward compatibility with existing metadata approaches
+- Better support for large-scale activity analysis
+
+The changes are backward compatible and existing data/code continues to work. New activities will automatically populate the project_id column when applicable.

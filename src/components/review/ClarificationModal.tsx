@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
+import { Modal } from '@/components/ui/modal';
 import { Button } from '@/components/ui/button';
 import { Textarea } from '@/components/ui/textarea';
 import { Label } from '@/components/ui/label';
@@ -30,22 +30,29 @@ export function ClarificationModal({ onSubmit, trigger }: ClarificationModalProp
   };
 
   return (
-    <Dialog open={open} onOpenChange={setOpen}>
-      <DialogTrigger asChild>
-        {trigger || (
-          <Button variant="outline" className="flex items-center gap-2">
-            <MessageSquare className="w-4 h-4" />
-            Request Clarification
-          </Button>
-        )}
-      </DialogTrigger>
-      <DialogContent className="sm:max-w-md">
-        <DialogHeader>
-          <DialogTitle className="flex items-center gap-2">
+    <>
+      {trigger || (
+        <Button
+          variant="outline"
+          className="flex items-center gap-2"
+          onClick={() => setOpen(true)}
+        >
+          <MessageSquare className="w-4 h-4" />
+          Request Clarification
+        </Button>
+      )}
+
+      <Modal
+        isOpen={open}
+        onClose={() => setOpen(false)}
+        title={
+          <div className="flex items-center gap-2">
             <MessageSquare className="w-5 h-5 text-blue-500" />
             Request Customer Clarification
-          </DialogTitle>
-        </DialogHeader>
+          </div>
+        }
+        maxWidth="max-w-md"
+      >
         <form onSubmit={handleSubmit} className="space-y-4">
           <div>
             <Label htmlFor="clarification-description">
@@ -61,7 +68,7 @@ export function ClarificationModal({ onSubmit, trigger }: ClarificationModalProp
               required
             />
           </div>
-          
+
           <div className="flex gap-2">
             <Button type="submit" disabled={submitting || !description.trim()}>
               {submitting ? 'Submitting...' : 'Submit Request'}
@@ -71,7 +78,7 @@ export function ClarificationModal({ onSubmit, trigger }: ClarificationModalProp
             </Button>
           </div>
         </form>
-      </DialogContent>
-    </Dialog>
+      </Modal>
+    </>
   );
 }

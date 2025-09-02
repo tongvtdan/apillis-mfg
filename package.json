@@ -8,6 +8,7 @@
         "build:dev": "vite build --mode development",
         "preview": "vite preview",
         "lint": "eslint .",
+        "validate:policies": "node scripts/validate-activity-log-policy.js",
         "seed:organizations": "node scripts/01-seed-organizations.js",
         "seed:organizations:force": "node scripts/01-seed-organizations.js --force",
         "seed:contacts": "node scripts/02-seed-contacts.js",
@@ -27,11 +28,19 @@
         "seed:production-orders:force": "node scripts/12-seed-production-orders.js --force",
         "seed:inventory": "node scripts/13-seed-inventory.js",
         "seed:inventory:force": "node scripts/13-seed-inventory.js --force",
+        "seed:approvals": "node scripts/generate-sample-approvals.js",
+        "seed:approvals-simple": "node scripts/simple-approval-seeder.js",
+        "seed:approvals-projects": "node scripts/add-approvals-to-projects.js",
+        "seed:approvals-role": "node scripts/add-approvals-by-role.js",
+        "seed:approvals-multi-role": "node scripts/add-multi-role-approvals.js",
+        "seed:approvals-specific": "node scripts/add-approvals-to-specific-projects.js",
         "test:auth": "node scripts/test-auth-signin.js",
         "test:auth:verbose": "node scripts/test-auth-signin.js --verbose",
         "workflow:list": "node scripts/list-workflow-stages.js",
         "workflow:update-durations": "node scripts/update-workflow-stage-durations.js",
-        "workflow:update-stage-duration": "node scripts/update-stage-duration.js"
+        "workflow:update-stage-duration": "node scripts/update-stage-duration.js",
+        "delete:debug-projects": "node scripts/delete-debug-projects.cjs",
+        "delete:debug-projects:dry-run": "node scripts/delete-debug-projects.cjs --dry-run"
     },
     "dependencies": {
         "@supabase/supabase-js": "^2.39.0",

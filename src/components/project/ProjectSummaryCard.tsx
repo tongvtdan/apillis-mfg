@@ -6,9 +6,6 @@ import {
     CheckCircle2,
     Clock,
     AlertTriangle,
-    FileText,
-    MessageSquare,
-    Package,
     Edit,
     Eye,
     ArrowRight,
@@ -21,7 +18,10 @@ import {
     Settings,
     Play,
     Target,
-    Calendar
+    Calendar,
+    Package,
+    FileText,
+    MessageSquare
 } from "lucide-react";
 import { format, parseISO } from "date-fns";
 import type { Project, WorkflowStage } from "@/types/project";
@@ -313,24 +313,7 @@ export function ProjectSummaryCard({
         return colors[priority];
     };
 
-    // Helper function to get volume from estimated value or default
-    const getVolume = () => {
-        if (project.estimated_value) {
-            // Calculate volume based on estimated value and target price
-            const targetPrice = 8.50; // Default target price per unit
-            return Math.round(project.estimated_value / targetPrice).toLocaleString();
-        }
-        return 'N/A';
-    };
 
-    // Helper function to get target price per unit
-    const getTargetPricePerUnit = () => {
-        if (project.estimated_value) {
-            const volume = 5000; // Default volume
-            return `${(project.estimated_value / volume).toFixed(2)}/unit`;
-        }
-        return '$8.50/unit';
-    };
 
     return (
         <Card className={className}>
@@ -413,57 +396,7 @@ export function ProjectSummaryCard({
                     </div>
                 )}
 
-                {/* Project Details - Only essential info not in header */}
-                <div className="border-t pt-4">
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                        {/* Project Information */}
-                        <div className="space-y-3">
-                            <h4 className="font-medium text-sm flex items-center">
-                                <FileText className="w-4 h-4 mr-2" />
-                                Project Details
-                            </h4>
-                            <div className="space-y-2 text-sm">
-                                <div>
-                                    <span className="text-muted-foreground">Description:</span>
-                                    <p className="mt-1">{project.description || 'No description provided'}</p>
-                                </div>
-                                {project.notes && (
-                                    <div>
-                                        <span className="text-muted-foreground">Notes:</span>
-                                        <p className="mt-1">{project.notes}</p>
-                                    </div>
-                                )}
-                            </div>
-                        </div>
 
-                        {/* Project Specifications */}
-                        <div className="space-y-3">
-                            <h4 className="font-medium text-sm flex items-center">
-                                <Package className="w-4 h-4 mr-2" />
-                                Specifications
-                            </h4>
-                            <div className="space-y-2 text-sm">
-                                <div className="flex justify-between">
-                                    <span className="text-muted-foreground">Volume:</span>
-                                    <span className="font-medium">{getVolume()}</span>
-                                </div>
-                                <div className="flex justify-between">
-                                    <span className="text-muted-foreground">Target Price:</span>
-                                    <span className="font-medium">{getTargetPricePerUnit()}</span>
-                                </div>
-                                <div className="flex justify-between">
-                                    <span className="text-muted-foreground">Project Type:</span>
-                                    <span className="font-medium">
-                                        {project.project_type ?
-                                            project.project_type.charAt(0).toUpperCase() + project.project_type.slice(1).replace('_', ' ')
-                                            : 'Standard'
-                                        }
-                                    </span>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                </div>
             </CardContent>
         </Card>
     );

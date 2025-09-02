@@ -1,12 +1,5 @@
 import { useState, useEffect } from "react";
-import {
-    Dialog,
-    DialogContent,
-    DialogDescription,
-    DialogFooter,
-    DialogHeader,
-    DialogTitle,
-} from "@/components/ui/dialog";
+import { Modal } from "@/components/ui/modal";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -131,236 +124,240 @@ export function SupplierModal({ isOpen, onClose, onSubmit, supplier }: SupplierM
     };
 
     return (
-        <Dialog open={isOpen} onOpenChange={onClose}>
-            <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto modal-dialog">
-                <DialogHeader className="modal-dialog-header">
-                    <DialogTitle className="modal-dialog-title">
-                        {supplier ? "Edit Supplier" : "Add New Supplier"}
-                    </DialogTitle>
-                    <DialogDescription className="modal-dialog-description">
-                        {supplier
-                            ? "Update the supplier information below."
-                            : "Enter the details for the new supplier."}
-                    </DialogDescription>
-                </DialogHeader>
+        <Modal
+            isOpen={isOpen}
+            onClose={onClose}
+            title={
+                <div className="flex items-center gap-2">
+                    <Building2 className="w-5 h-5" />
+                    {supplier ? "Edit Supplier" : "Add New Supplier"}
+                </div>
+            }
+            description={
+                supplier
+                    ? "Update the supplier information below."
+                    : "Enter the details for the new supplier."
+            }
+            showDescription={true}
+            maxWidth="max-w-2xl"
+        >
 
-                <div className="grid gap-4 py-4">
-                    <div className="grid grid-cols-4 items-center gap-4">
-                        <Label htmlFor="name" className="text-right">
-                            Name *
-                        </Label>
-                        <div className="col-span-3">
-                            <Input
-                                id="name"
-                                value={name}
-                                onChange={(e) => setName(e.target.value)}
-                                placeholder="Supplier contact name"
-                                className="modal-form-input"
-                            />
-                        </div>
-                    </div>
-
-                    <div className="grid grid-cols-4 items-center gap-4">
-                        <Label htmlFor="company" className="text-right">
-                            Company
-                        </Label>
-                        <div className="col-span-3">
-                            <Input
-                                id="company"
-                                value={company}
-                                onChange={(e) => setCompany(e.target.value)}
-                                placeholder="Company name"
-                                className="modal-form-input"
-                            />
-                        </div>
-                    </div>
-
-                    <div className="grid grid-cols-4 items-center gap-4">
-                        <Label htmlFor="email" className="text-right">
-                            Email
-                        </Label>
-                        <div className="col-span-3">
-                            <Input
-                                id="email"
-                                type="email"
-                                value={email}
-                                onChange={(e) => setEmail(e.target.value)}
-                                placeholder="supplier@example.com"
-                                className="modal-form-input"
-                            />
-                        </div>
-                    </div>
-
-                    <div className="grid grid-cols-4 items-center gap-4">
-                        <Label htmlFor="phone" className="text-right">
-                            Phone
-                        </Label>
-                        <div className="col-span-3">
-                            <Input
-                                id="phone"
-                                value={phone}
-                                onChange={(e) => setPhone(e.target.value)}
-                                placeholder="+1 (555) 123-4567"
-                                className="modal-form-input"
-                            />
-                        </div>
-                    </div>
-
-                    <div className="grid grid-cols-4 items-center gap-4">
-                        <Label htmlFor="address" className="text-right">
-                            Address
-                        </Label>
-                        <div className="col-span-3">
-                            <Textarea
-                                id="address"
-                                value={address}
-                                onChange={(e) => setAddress(e.target.value)}
-                                placeholder="Street address"
-                                className="modal-form-textarea resize-none"
-                            />
-                        </div>
-                    </div>
-
-                    <div className="grid grid-cols-4 items-center gap-4">
-                        <Label htmlFor="country" className="text-right">
-                            Country
-                        </Label>
-                        <div className="col-span-3">
-                            <Input
-                                id="country"
-                                value={country}
-                                onChange={(e) => setCountry(e.target.value)}
-                                placeholder="Country"
-                                className="modal-form-input"
-                            />
-                        </div>
-                    </div>
-
-                    <div className="grid grid-cols-4 items-start gap-4">
-                        <Label className="text-right pt-2">
-                            Specialties
-                        </Label>
-                        <div className="col-span-3 grid grid-cols-2 gap-2">
-                            {SPECIALTY_OPTIONS.map((option) => (
-                                <div key={option.value} className="flex items-center space-x-2">
-                                    <Checkbox
-                                        id={`specialty-${option.value}`}
-                                        checked={specialties.includes(option.value)}
-                                        onCheckedChange={(checked) =>
-                                            handleSpecialtyChange(option.value, checked as boolean)
-                                        }
-                                    />
-                                    <Label htmlFor={`specialty-${option.value}`} className="font-normal">
-                                        {option.label}
-                                    </Label>
-                                </div>
-                            ))}
-                        </div>
-                    </div>
-
-                    <div className="grid grid-cols-4 items-center gap-4">
-                        <Label htmlFor="rating" className="text-right">
-                            Rating
-                        </Label>
-                        <div className="col-span-3">
-                            <Input
-                                id="rating"
-                                type="number"
-                                min="0"
-                                max="5"
-                                step="0.1"
-                                value={rating}
-                                onChange={(e) => setRating(parseFloat(e.target.value) || 0)}
-                                placeholder="0.0"
-                                className="modal-form-input"
-                            />
-                            <p className="text-sm text-muted-foreground mt-1">
-                                Rating from 0.0 to 5.0
-                            </p>
-                        </div>
-                    </div>
-
-                    <div className="grid grid-cols-4 items-center gap-4">
-                        <Label htmlFor="responseRate" className="text-right">
-                            Response Rate
-                        </Label>
-                        <div className="col-span-3">
-                            <Input
-                                id="responseRate"
-                                type="number"
-                                min="0"
-                                max="100"
-                                step="1"
-                                value={responseRate}
-                                onChange={(e) => setResponseRate(parseInt(e.target.value) || 0)}
-                                placeholder="0"
-                                className="modal-form-input"
-                            />
-                            <p className="text-sm text-muted-foreground mt-1">
-                                Percentage from 0 to 100
-                            </p>
-                        </div>
-                    </div>
-
-                    <div className="grid grid-cols-4 items-center gap-4">
-                        <Label className="text-right">
-                            Status
-                        </Label>
-                        <div className="col-span-3 flex items-center space-x-2">
-                            <Checkbox
-                                id="isActive"
-                                checked={isActive}
-                                onCheckedChange={(checked) => setIsActive(checked as boolean)}
-                            />
-                            <Label htmlFor="isActive" className="font-normal">
-                                Active Supplier
-                            </Label>
-                        </div>
-                    </div>
-
-                    <div className="grid grid-cols-4 items-center gap-4">
-                        <Label htmlFor="notes" className="text-right">
-                            Notes
-                        </Label>
-                        <div className="col-span-3">
-                            <Textarea
-                                id="notes"
-                                value={notes}
-                                onChange={(e) => setNotes(e.target.value)}
-                                placeholder="Additional notes about this supplier"
-                                className="modal-form-textarea resize-none"
-                            />
-                        </div>
-                    </div>
-
-                    <div className="grid grid-cols-4 items-center gap-4">
-                        <Label htmlFor="tags" className="text-right">
-                            Tags
-                        </Label>
-                        <div className="col-span-3">
-                            <Input
-                                id="tags"
-                                value={tags}
-                                onChange={(e) => setTags(e.target.value)}
-                                placeholder="tag1, tag2, tag3"
-                                className="modal-form-input"
-                            />
-                            <p className="text-sm text-muted-foreground mt-1">
-                                Comma-separated tags
-                            </p>
-                        </div>
+            <div className="grid gap-4 py-4">
+                <div className="grid grid-cols-4 items-center gap-4">
+                    <Label htmlFor="name" className="text-right">
+                        Name *
+                    </Label>
+                    <div className="col-span-3">
+                        <Input
+                            id="name"
+                            value={name}
+                            onChange={(e) => setName(e.target.value)}
+                            placeholder="Supplier contact name"
+                            className="modal-form-input"
+                        />
                     </div>
                 </div>
 
-                <DialogFooter>
-                    <Button variant="outline" onClick={onClose} className="modal-button-secondary">
-                        Cancel
-                    </Button>
-                    <Button onClick={handleSubmit} className="modal-button-primary" variant="accent">
-                        {supplier ? "Update Supplier" : "Add Supplier"}
-                    </Button>
-                </DialogFooter>
-            </DialogContent>
-        </Dialog>
+                <div className="grid grid-cols-4 items-center gap-4">
+                    <Label htmlFor="company" className="text-right">
+                        Company
+                    </Label>
+                    <div className="col-span-3">
+                        <Input
+                            id="company"
+                            value={company}
+                            onChange={(e) => setCompany(e.target.value)}
+                            placeholder="Company name"
+                            className="modal-form-input"
+                        />
+                    </div>
+                </div>
+
+                <div className="grid grid-cols-4 items-center gap-4">
+                    <Label htmlFor="email" className="text-right">
+                        Email
+                    </Label>
+                    <div className="col-span-3">
+                        <Input
+                            id="email"
+                            type="email"
+                            value={email}
+                            onChange={(e) => setEmail(e.target.value)}
+                            placeholder="supplier@example.com"
+                            className="modal-form-input"
+                        />
+                    </div>
+                </div>
+
+                <div className="grid grid-cols-4 items-center gap-4">
+                    <Label htmlFor="phone" className="text-right">
+                        Phone
+                    </Label>
+                    <div className="col-span-3">
+                        <Input
+                            id="phone"
+                            value={phone}
+                            onChange={(e) => setPhone(e.target.value)}
+                            placeholder="+1 (555) 123-4567"
+                            className="modal-form-input"
+                        />
+                    </div>
+                </div>
+
+                <div className="grid grid-cols-4 items-center gap-4">
+                    <Label htmlFor="address" className="text-right">
+                        Address
+                    </Label>
+                    <div className="col-span-3">
+                        <Textarea
+                            id="address"
+                            value={address}
+                            onChange={(e) => setAddress(e.target.value)}
+                            placeholder="Street address"
+                            className="modal-form-textarea resize-none"
+                        />
+                    </div>
+                </div>
+
+                <div className="grid grid-cols-4 items-center gap-4">
+                    <Label htmlFor="country" className="text-right">
+                        Country
+                    </Label>
+                    <div className="col-span-3">
+                        <Input
+                            id="country"
+                            value={country}
+                            onChange={(e) => setCountry(e.target.value)}
+                            placeholder="Country"
+                            className="modal-form-input"
+                        />
+                    </div>
+                </div>
+
+                <div className="grid grid-cols-4 items-start gap-4">
+                    <Label className="text-right pt-2">
+                        Specialties
+                    </Label>
+                    <div className="col-span-3 grid grid-cols-2 gap-2">
+                        {SPECIALTY_OPTIONS.map((option) => (
+                            <div key={option.value} className="flex items-center space-x-2">
+                                <Checkbox
+                                    id={`specialty-${option.value}`}
+                                    checked={specialties.includes(option.value)}
+                                    onCheckedChange={(checked) =>
+                                        handleSpecialtyChange(option.value, checked as boolean)
+                                    }
+                                />
+                                <Label htmlFor={`specialty-${option.value}`} className="font-normal">
+                                    {option.label}
+                                </Label>
+                            </div>
+                        ))}
+                    </div>
+                </div>
+
+                <div className="grid grid-cols-4 items-center gap-4">
+                    <Label htmlFor="rating" className="text-right">
+                        Rating
+                    </Label>
+                    <div className="col-span-3">
+                        <Input
+                            id="rating"
+                            type="number"
+                            min="0"
+                            max="5"
+                            step="0.1"
+                            value={rating}
+                            onChange={(e) => setRating(parseFloat(e.target.value) || 0)}
+                            placeholder="0.0"
+                            className="modal-form-input"
+                        />
+                        <p className="text-sm text-muted-foreground mt-1">
+                            Rating from 0.0 to 5.0
+                        </p>
+                    </div>
+                </div>
+
+                <div className="grid grid-cols-4 items-center gap-4">
+                    <Label htmlFor="responseRate" className="text-right">
+                        Response Rate
+                    </Label>
+                    <div className="col-span-3">
+                        <Input
+                            id="responseRate"
+                            type="number"
+                            min="0"
+                            max="100"
+                            step="1"
+                            value={responseRate}
+                            onChange={(e) => setResponseRate(parseInt(e.target.value) || 0)}
+                            placeholder="0"
+                            className="modal-form-input"
+                        />
+                        <p className="text-sm text-muted-foreground mt-1">
+                            Percentage from 0 to 100
+                        </p>
+                    </div>
+                </div>
+
+                <div className="grid grid-cols-4 items-center gap-4">
+                    <Label className="text-right">
+                        Status
+                    </Label>
+                    <div className="col-span-3 flex items-center space-x-2">
+                        <Checkbox
+                            id="isActive"
+                            checked={isActive}
+                            onCheckedChange={(checked) => setIsActive(checked as boolean)}
+                        />
+                        <Label htmlFor="isActive" className="font-normal">
+                            Active Supplier
+                        </Label>
+                    </div>
+                </div>
+
+                <div className="grid grid-cols-4 items-center gap-4">
+                    <Label htmlFor="notes" className="text-right">
+                        Notes
+                    </Label>
+                    <div className="col-span-3">
+                        <Textarea
+                            id="notes"
+                            value={notes}
+                            onChange={(e) => setNotes(e.target.value)}
+                            placeholder="Additional notes about this supplier"
+                            className="modal-form-textarea resize-none"
+                        />
+                    </div>
+                </div>
+
+                <div className="grid grid-cols-4 items-center gap-4">
+                    <Label htmlFor="tags" className="text-right">
+                        Tags
+                    </Label>
+                    <div className="col-span-3">
+                        <Input
+                            id="tags"
+                            value={tags}
+                            onChange={(e) => setTags(e.target.value)}
+                            placeholder="tag1, tag2, tag3"
+                            className="modal-form-input"
+                        />
+                        <p className="text-sm text-muted-foreground mt-1">
+                            Comma-separated tags
+                        </p>
+                    </div>
+                </div>
+            </div>
+
+            <div className="flex justify-end gap-3 pt-4 border-t">
+                <Button variant="outline" onClick={onClose} className="modal-button-secondary">
+                    Cancel
+                </Button>
+                <Button onClick={handleSubmit} className="modal-button-primary" variant="accent">
+                    {supplier ? "Update Supplier" : "Add Supplier"}
+                </Button>
+            </div>
+        </Modal>
     );
 }

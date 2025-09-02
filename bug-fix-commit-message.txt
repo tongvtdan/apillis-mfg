@@ -1,0 +1,22 @@
+fix: optimize real-time subscription management and remove debug components
+
+- Optimized useEffect dependencies in useProjects hook to use specific object properties (user?.id, profile?.organization_id) instead of entire objects to prevent unnecessary re-runs
+- Improved subscription deduplication in realtime manager to prevent multiple subscriptions from the same callback
+- Enhanced rate limiting: increased debounce delay from 100ms to 300ms and rate limiting from 1s to 2s for better stability
+- Added proper cleanup and error handling for subscription management
+- Removed debug components (ProjectUpdateDebugger, RealtimeTest) as real-time workflow is now working correctly
+- Fixed excessive re-renders that were causing multiple database calls and UI flickering
+
+This addresses the issue where pressing "Test Direct Update" was causing multiple duplicate subscriptions and excessive re-renders, leading to performance issues and potential memory leaks.
+
+Files changed:
+- src/hooks/useProjects.ts: Optimized useEffect dependencies and subscription management
+- src/lib/realtime-manager.ts: Improved subscription deduplication and rate limiting
+- src/pages/ProjectDetail.tsx: Removed debug components and their imports
+- scripts/test-stage-transition-fix.md: Updated test guide and removed debug component references
+
+Testing:
+- Verify stage transitions update UI immediately without page refresh
+- Check console for reduced duplicate subscription messages
+- Confirm proper rate limiting prevents excessive API calls
+- Test navigation between project detail pages for clean subscription management

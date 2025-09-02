@@ -55,8 +55,13 @@ export function RecentActivities() {
         let priority = 'medium';
         let projectId: string | undefined;
 
-        // Extract project ID from various sources
-        if (activity.metadata?.project_id) {
+        // Extract project ID - now we can get it directly from the activity_log table
+        if (activity.project_id) {
+          projectId = activity.project_id;
+          console.log(`Found project ID ${projectId} in project_id column for activity ${activity.id}`);
+        }
+        // Fallback to previous methods for backward compatibility
+        else if (activity.metadata?.project_id) {
           projectId = activity.metadata.project_id;
           console.log(`Found project ID ${projectId} in metadata for activity ${activity.id}`);
         }

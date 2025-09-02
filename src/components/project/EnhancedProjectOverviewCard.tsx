@@ -26,6 +26,7 @@ import { cn } from "@/lib/utils";
 import { format, formatDistanceToNow, differenceInDays, parseISO } from "date-fns";
 import type { Project, WorkflowStage, ProjectPriority } from "@/types/project";
 import { useWorkflowSubStages } from "@/hooks/useWorkflowSubStages";
+import { useUserDisplayName } from "@/hooks/useUsers";
 import {
     Tooltip,
     TooltipContent,
@@ -359,7 +360,11 @@ export function EnhancedProjectOverviewCard({
                             Owner
                         </div>
                         <div className="font-medium text-sm truncate">
-                            {project.assigned_to || 'Unassigned'}
+                            {(() => {
+                                const assigneeId = project.assigned_to || project.assignee_id;
+                                const assigneeDisplayName = useUserDisplayName(assigneeId);
+                                return assigneeId ? assigneeDisplayName : 'Unassigned';
+                            })()}
                         </div>
                     </div>
 

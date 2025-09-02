@@ -1,4 +1,4 @@
-import { useState, useEffect, memo, useContext } from "react";
+import { useState, useEffect, memo } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -33,9 +33,7 @@ import { Department, ReviewSubmission, InternalReview } from "@/types/review";
 import { projectService } from "@/services/projectService";
 import ProjectCommunication from "@/components/project/ProjectCommunication";
 import { WorkflowStepper } from "@/components/project/WorkflowStepper";
-import { useDocuments } from "@/hooks/useDocuments";
 import { useProjectMessages } from "@/hooks/useMessages";
-import { useSupplierRfqs } from "@/hooks/useSupplierRfqs";
 import { DocumentManager } from "@/components/project/DocumentManager";
 
 import { useProjectReviews } from "@/hooks/useProjectReviews";
@@ -45,7 +43,7 @@ import { ProjectReviewForm } from "@/components/project/ProjectReviewForm";
 import { ReviewConfiguration } from "@/components/project/ReviewConfiguration";
 import { ReviewList } from "@/components/project/ReviewList";
 import { ReviewAssignmentModal } from "@/components/project/ReviewAssignmentModal";
-import { useUserDisplayName, useUsers } from "@/hooks/useUsers";
+import { useUserDisplayName, useUsers, useUser } from "@/hooks/useUsers";
 import { useAuth } from "@/contexts/AuthContext";
 import { ProjectDetailHeader } from "@/components/project/ProjectDetailHeader";
 import { ProjectSummaryCard } from "@/components/project/ProjectSummaryCard";
@@ -54,6 +52,11 @@ import { useWorkflowStages } from "@/hooks/useWorkflowStages";
 import { ResponsiveNavigationWrapper } from "@/components/project/ResponsiveNavigationWrapper";
 import { TabTransition, TabContentWrapper } from "@/components/project/TabTransition";
 import { useProjectNavigation } from "@/hooks/useProjectNavigation";
+import { useSmoothProjectUpdates } from "@/hooks/useSmoothProjectUpdates";
+
+// Import new enhanced components
+import { InlineProjectEditor } from "@/components/project/InlineProjectEditor";
+import { ProjectAttributesManager } from "@/components/project/ProjectAttributesManager";
 
 // Separate component for auto-advance functionality to avoid Rules of Hooks violation
 const ProjectAutoAdvance = memo(({ project }: { project: Project }) => {
@@ -71,12 +74,14 @@ export default function ProjectDetail() {
   const navigate = useNavigate();
   const { profile } = useAuth(); // Add this line to access the profile
 
-  // Fetch real data using hooks first
-  const { data: documents = [], isLoading: documentsLoading } = useDocuments(id || '');
-  const { data: messages = [], isLoading: messagesLoading } = useProjectMessages(id || '');
-  const { data: supplierRfqs = [], isLoading: supplierRfqsLoading } = useSupplierRfqs(id || '');
+  // Debug logging
+  console.log('🔍 ProjectDetail: Component rendered with ID:', id);
+  console.log('🔍 ProjectDetail: Profile:', profile);
 
-  const { reviews, loading: reviewsLoading, getReviewStatuses, getOverallReviewStatus, getReviewSummary, submitReview } = useProjectReviews(id || '');
+  // Fetch real data using hooks first
+  const { data: messages = [], isLoading: messagesLoading } = useProjectMessages(id || '');
+
+  const { reviews, loading: reviewsLoading, submitReview } = useProjectReviews(id || '');
 
   // Use the new navigation hook after data is fetched
   const {
@@ -88,26 +93,26 @@ export default function ProjectDetail() {
     hasTabError,
   } = useProjectNavigation({
     projectId: id || 'temp',
-    documentsCount: documents.length,
+    documentsCount: 0, // Removed documents section
     messagesCount: messages.length,
     unreadMessagesCount: messages.filter(m => !m.read_at).length,
     reviewsCount: reviews?.length || 0,
     pendingReviewsCount: reviews?.filter(r => r.status === 'pending').length || 0,
-    supplierRfqsCount: supplierRfqs.length,
-    activeSupplierRfqsCount: supplierRfqs.filter(rfq => rfq.status === 'sent' || rfq.status === 'pending').length,
+    supplierRfqsCount: 0, // Removed supplier RFQ section
+    activeSupplierRfqsCount: 0, // Removed supplier RFQ section
   });
 
   const [showSupplierModal, setShowSupplierModal] = useState(false);
-  const [project, setProject] = useState<Project | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [dataSource, setDataSource] = useState<'supabase' | 'mock' | 'unknown'>('unknown');
 
-  // Use the projects hook to get real-time updates
-  const { projects } = useProjects();
+  // Use the projects hook to get real-time updates - SINGLE DATA SOURCE
+  const { projects, loading: projectsLoading, error: projectsError, fetchProjects, ensureProjectSubscription } = useProjects();
 
   // Review state management
-  const [showReviewForm, setShowReviewForm] = useState<Department | null>(null);
+  const [showReviewModal, setShowReviewModal] = useState(false);
+  const [selectedDepartment, setSelectedDepartment] = useState<Department | null>(null);
   const [showReviewConfig, setShowReviewConfig] = useState(false);
   const [showAssignmentModal, setShowAssignmentModal] = useState(false);
   const [selectedReview, setSelectedReview] = useState<InternalReview | null>(null);
@@ -115,15 +120,36 @@ export default function ProjectDetail() {
   // Get workflow stages
   const { data: workflowStages = [], isLoading: stagesLoading } = useWorkflowStages();
 
+  // Get the project from the projects array - SINGLE DATA SOURCE
+  const project = projects.find(p => p.id === id) || null;
+
+  // Use smooth project updates hook for better UX
+  const {
+    project: smoothProject,
+    isUpdating: isProjectUpdating,
+    updateProject,
+    updateField,
+    refreshProject
+  } = useSmoothProjectUpdates({
+    projectId: id || '',
+    initialProject: project || {} as Project,
+    onUpdate: (updatedProject) => {
+      console.log('🔄 ProjectDetail: Smooth update received:', updatedProject);
+    },
+    debounceMs: 500, // Increased debounce for better stability
+    enableOptimisticUpdates: true
+  });
+
   // Get user display names for project assignee and reviewers
-  const assigneeDisplayName = useUserDisplayName(project?.assigned_to);
+  const assigneeDisplayName = useUserDisplayName(smoothProject?.assigned_to);
 
   // Collect all unique reviewer IDs
   const reviewerIds = reviews ? [...new Set(reviews.map(review => review.reviewer_id).filter(Boolean))] : [];
   const { users: reviewerUsers } = useUsers(reviewerIds);
 
+  // Initialize and fetch projects if needed
   useEffect(() => {
-    const fetchProject = async () => {
+    const initializeProject = async () => {
       if (!id) {
         setError("No project ID provided");
         setLoading(false);
@@ -134,108 +160,56 @@ export default function ProjectDetail() {
         setLoading(true);
         setError(null);
 
-
         // Test connection first
         const connectionTest = await projectService.testConnection();
         setDataSource(connectionTest.source);
 
         if (!connectionTest.success) {
-
+          // Handle connection test failure
         }
 
-        const projectData = await projectService.getProjectById(id);
-        setProject(projectData);
+        // Fetch projects to ensure we have the latest data
+        await fetchProjects(true); // Force refresh to get latest data
 
       } catch (err) {
-        console.error('❌ ProjectDetail: Error loading project:', err);
+        console.error('❌ ProjectDetail: Error initializing project:', err);
         setError(err instanceof Error ? err.message : 'Failed to load project');
       } finally {
         setLoading(false);
       }
     };
 
-    fetchProject();
-  }, [id]);
+    initializeProject();
+  }, [id, fetchProjects]);
 
-  // Update project when projects list changes (for real-time updates)
+  // Set up selective real-time subscription for the specific project
   useEffect(() => {
-    if (id && projects.length > 0) {
-      console.log('🔄 ProjectDetail: Checking for project updates:', {
-        currentId: id,
-        projectsCount: projects.length,
-        currentProjectStatus: project?.status,
-        currentProjectUpdatedAt: project?.updated_at,
-        availableProjectIds: projects.map(p => ({ id: p.id, status: p.status, updated_at: p.updated_at }))
-      });
+    if (project?.id) {
+      console.log('🔔 Setting up selective real-time subscription for project:', project.id);
 
-      const updatedProject = projects.find(p => p.id === id);
-      if (updatedProject) {
-        console.log('✅ ProjectDetail: Found matching project:', {
-          projectId: updatedProject.id,
-          projectStatus: updatedProject.status,
-          projectUpdatedAt: updatedProject.updated_at
-        });
-
-        // Only update if the project has actually changed
-        if (!project ||
-          project.status !== updatedProject.status ||
-          project.updated_at !== updatedProject.updated_at) {
-
-          console.log('🔄 ProjectDetail: Project updated from real-time subscription:', {
-            oldStatus: project?.status,
-            newStatus: updatedProject.status,
-            oldUpdatedAt: project?.updated_at,
-            newUpdatedAt: updatedProject.updated_at,
-            statusChanged: project?.status !== updatedProject.status,
-            timestampChanged: project?.updated_at !== updatedProject.updated_at
-          });
-
-          setProject(updatedProject);
-        } else {
-          console.log('ℹ️ ProjectDetail: No changes detected, skipping update', {
-            statusMatch: project?.status === updatedProject.status,
-            timestampMatch: project?.updated_at === updatedProject.updated_at,
-            currentProject: project,
-            updatedProject: updatedProject
-          });
-        }
-      } else {
-        console.log('⚠️ ProjectDetail: No matching project found in projects list for ID:', id);
-      }
+      // Ensure real-time subscription is set up for this project
+      ensureProjectSubscription(project.id);
+      console.log('✅ ProjectDetail: Project is being monitored by useProjects hook');
     }
-  }, [projects, id, project]);
+  }, [project?.id, ensureProjectSubscription]);
 
-  // Fallback mechanism: Force refresh project data if no real-time update received
+  // Debug logging for project changes
   useEffect(() => {
-    if (!project || !id) return;
+    if (project) {
+      console.log('🔄 ProjectDetail: Project data updated:', {
+        id: project.id,
+        current_stage_id: project.current_stage_id,
+        status: project.status,
+        updated_at: project.updated_at,
+        projectsCount: projects.length
+      });
+    }
+  }, [project?.current_stage_id, project?.status, project?.updated_at, projects.length]);
 
-    // Set up a timer to force refresh if no real-time update is received
-    const refreshTimer = setTimeout(async () => {
-      console.log('🔄 ProjectDetail: Fallback refresh triggered - fetching latest project data');
-      try {
-        const latestProject = await projectService.getProjectById(id);
-        if (latestProject && (
-          latestProject.status !== project.status ||
-          latestProject.updated_at !== project.updated_at
-        )) {
-          console.log('🔄 ProjectDetail: Fallback refresh found updated data:', {
-            oldStatus: project.status,
-            newStatus: latestProject.status,
-            oldUpdatedAt: project.updated_at,
-            newUpdatedAt: latestProject.updated_at
-          });
-          setProject(latestProject);
-        }
-      } catch (error) {
-        console.error('❌ ProjectDetail: Fallback refresh failed:', error);
-      }
-    }, 10000); // Increased to 10 seconds to prevent interference with real-time updates
+  // Loading state - check both projects loading and individual project loading
+  const isLoading = loading || projectsLoading || !project;
 
-    return () => clearTimeout(refreshTimer);
-  }, [id]); // Only depend on id, not on project properties to prevent infinite loops
-
-  // Loading state
-  if (loading) {
+  if (isLoading) {
     return (
       <div className="min-h-screen bg-background flex items-center justify-center">
         <div className="text-center space-y-4">
@@ -249,93 +223,35 @@ export default function ProjectDetail() {
     );
   }
 
-  // Error state with diagnostic tools
-  if (error || !project) {
+  // Error state
+  if (error || projectsError) {
     return (
-      <div className="min-h-screen bg-background">
-        <div className="p-6">
-          <div className="flex items-center space-x-4 mb-6">
-            <Button variant="ghost" onClick={() => navigate('/projects')}>
-              <ArrowLeft className="w-4 h-4 mr-2" />
-              Back to Projects
-            </Button>
-            <Separator orientation="vertical" className="h-6" />
-            <div>
-              <h1 className="text-2xl font-bold text-red-600">Project Not Found</h1>
-              <p className="text-muted-foreground">Project ID: {id}</p>
-            </div>
+      <div className="min-h-screen bg-background flex items-center justify-center">
+        <div className="text-center space-y-4">
+          <div className="text-red-600">
+            <h2 className="text-lg font-semibold">Error Loading Project</h2>
+            <p className="text-muted-foreground">{error || projectsError}</p>
           </div>
+          <Button onClick={() => window.location.reload()}>
+            Retry
+          </Button>
+        </div>
+      </div>
+    );
+  }
 
-          <div className="space-y-6">
-            <Card className="border-red-200">
-              <CardHeader>
-                <CardTitle className="flex items-center text-red-600">
-                  <AlertCircle className="w-5 h-5 mr-2" />
-                  Error Details
-                </CardTitle>
-              </CardHeader>
-              <CardContent>
-                <p className="text-sm text-muted-foreground mb-4">{error}</p>
-
-                <div className="space-y-2 text-sm">
-                  <p><strong>Requested Project ID:</strong> {id}</p>
-                  <p><strong>Possible Causes:</strong></p>
-                  <ul className="list-disc list-inside ml-4 space-y-1 text-muted-foreground">
-                    <li>Project doesn't exist in the database</li>
-                    <li>Database connection issues</li>
-                    <li>Sample data hasn't been seeded</li>
-                    <li>Project ID format mismatch</li>
-                    <li>Project belongs to a different organization</li>
-                    <li>You don't have permission to access this project</li>
-                  </ul>
-                </div>
-
-                <div className="mt-4 pt-4 border-t border-muted">
-                  <p className="font-medium mb-2">Troubleshooting Steps:</p>
-                  <ol className="list-decimal list-inside ml-4 space-y-1 text-muted-foreground">
-                    <li>Verify the project ID is correct</li>
-                    <li>Check that you are logged in with the correct account</li>
-                    <li>Confirm the project belongs to your organization</li>
-                    <li>Try refreshing the projects list and selecting the project again</li>
-                    <li>If you're an administrator, check the database seed data</li>
-                  </ol>
-                </div>
-              </CardContent>
-            </Card>
-
-            <Card>
-              <CardHeader>
-                <CardTitle>Quick Actions</CardTitle>
-              </CardHeader>
-              <CardContent className="space-y-3">
-                <Button
-                  onClick={() => navigate('/projects')}
-                  className="w-full"
-                >
-                  <ArrowLeft className="w-4 h-4 mr-2" />
-                  Go Back to Projects List
-                </Button>
-                <Button
-                  variant="outline"
-                  onClick={() => window.location.reload()}
-                  className="w-full"
-                >
-                  <RefreshCw className="w-4 h-4 mr-2" />
-                  Retry Loading
-                </Button>
-                {profile?.role === 'admin' && (
-                  <Button
-                    variant="outline"
-                    onClick={() => navigate('/settings')}
-                    className="w-full"
-                  >
-                    <Settings className="w-4 h-4 mr-2" />
-                    Go to Settings
-                  </Button>
-                )}
-              </CardContent>
-            </Card>
+  // Project not found
+  if (!project) {
+    return (
+      <div className="min-h-screen bg-background flex items-center justify-center">
+        <div className="text-center space-y-4">
+          <div className="text-yellow-600">
+            <h2 className="text-lg font-semibold">Project Not Found</h2>
+            <p className="text-muted-foreground">The requested project could not be found.</p>
           </div>
+          <Button onClick={() => navigate('/projects')}>
+            Back to Projects
+          </Button>
         </div>
       </div>
     );
@@ -408,122 +324,69 @@ export default function ProjectDetail() {
       order_confirmed: 'Order Confirmed',
       procurement_planning: 'Procurement Planning',
       in_production: 'In Production',
-      shipped_closed: 'Shipped & Closed'
+      shipped_closed: 'Shipped/Closed'
     };
     return labels[status as keyof typeof labels] || status;
   };
 
-  // Helper function to get customer display name
-  const getCustomerDisplayName = () => {
-    if (project.customer?.company_name) return project.customer.company_name;
-    if (project.customer?.contact_name) return project.customer.contact_name;
-    return 'N/A';
-  };
-
-  // Helper function to get assignee display name
-  const getAssigneeDisplayName = () => {
-    return project.assigned_to || 'N/A';
-  };
-
-  // Helper function to get volume from estimated value or default
-  const getVolume = () => {
-    if (project.estimated_value) {
-      // Calculate volume based on estimated value and target price
-      const targetPrice = 8.50; // Default target price per unit
-      return Math.round(project.estimated_value / targetPrice).toLocaleString();
-    }
-    return 'N/A';
-  };
-
-  // Helper function to get target price per unit
-  const getTargetPricePerUnit = () => {
-    if (project.estimated_value) {
-      const volume = 5000; // Default volume
-      return `$${(project.estimated_value / volume).toFixed(2)}/unit`;
-    }
-    return '$8.50/unit';
-  };
-
-  // Review handling functions
-  const handleAddReview = (department: Department) => {
-    setShowReviewForm(department);
-  };
-
-  const handleEditReview = (review: InternalReview) => {
-    setSelectedReview(review);
-    setShowReviewForm(review.department);
-  };
-
-  const handleViewReview = (review: InternalReview) => {
-    setSelectedReview(review);
-    // For now, just show the review form in read-only mode
-    setShowReviewForm(review.department);
-  };
-
-  const handleReviewSubmit = async (submission: ReviewSubmission) => {
-    if (!id) return false;
+  const handleReviewSubmit = async (reviewData: ReviewSubmission) => {
+    if (!selectedDepartment) return false;
 
     try {
-      await submitReview(showReviewForm!, submission);
-      setShowReviewForm(null);
-      setSelectedReview(null);
-
-      // Check for auto-advance after review submission
-      if (project?.status === 'technical_review') {
-
-        // Small delay to allow review data to update
-        setTimeout(() => {
-          // The autoAdvanceHook is now rendered conditionally, so we can call it directly
-          // or rely on the hook's internal state updates if it's still active.
-          // For now, we'll just log the call.
-          // If the hook is not active, this will be a no-op.
-          // If the hook is active, it will check and potentially advance.
-        }, 500);
+      const success = await submitReview(selectedDepartment, reviewData);
+      if (success) {
+        setShowReviewModal(false);
+        setSelectedDepartment(null);
       }
-
-      return true;
+      return success;
     } catch (error) {
-      console.error('Failed to submit review:', error);
+      console.error('Error submitting review:', error);
       return false;
     }
   };
 
-  const handleReviewConfigSave = async (config: any) => {
-    // TODO: Implement actual configuration saving
-
-    setShowReviewConfig(false);
+  const handleReviewAssignment = async (reviewId: string, assigneeId: string) => {
+    try {
+      // Handle review assignment logic here
+      setShowAssignmentModal(false);
+    } catch (error) {
+      console.error('Error assigning review:', error);
+    }
   };
 
-  const handleAssignmentSave = async (assignments: any[]) => {
-    // TODO: Implement actual assignment saving
+  // Handle project updates from inline editor and status manager with smooth updates
+  const handleProjectUpdate = async (updatedProject: Project) => {
+    console.log('🔄 ProjectDetail: Project update received, applying smooth update');
 
-    setShowAssignmentModal(false);
+    // Use the smooth update hook to handle the update
+    try {
+      await updateProject(updatedProject);
+    } catch (error) {
+      console.error('Failed to update project:', error);
+    }
   };
 
   return (
     <>
-      <ProjectAutoAdvance project={project} />
-      {/* Rest of the component content */}
+      <ProjectAutoAdvance project={smoothProject} />
       <div className="min-h-screen bg-background">
         {/* Enhanced Header Section */}
         <ProjectDetailHeader
-          project={project}
-          workflowStages={workflowStages}
+          project={smoothProject}
+          workflowStages={workflowStages as any}
           onBack={() => navigate('/projects')}
           onEdit={() => console.log('Edit project')}
           onShare={() => console.log('Share project')}
         />
 
-
-
         {/* Enhanced Interactive Navigation */}
-        {project && (
+        {smoothProject && (
           <ResponsiveNavigationWrapper
             activeTab={activeTab}
             onTabChange={handleTabChange}
             tabs={navigationTabs}
-            projectId={project.id}
-            projectTitle={project.title}
+            projectId={smoothProject.id}
+            projectTitle={smoothProject.title}
             onBack={() => navigate('/projects')}
           >
             <div className="p-6">
@@ -535,234 +398,29 @@ export default function ProjectDetail() {
                   hasError={hasTabError('overview')}
                 >
                   <div className="space-y-6">
+                    {/* Enhanced Project Management Section */}
+                    <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                      {/* Inline Project Editor */}
+                      <InlineProjectEditor
+                        project={smoothProject}
+                        onUpdate={handleProjectUpdate}
+                      />
+
+                      {/* Project Attributes Manager */}
+                      <ProjectAttributesManager
+                        project={smoothProject}
+                        workflowStages={workflowStages as any}
+                        onUpdate={handleProjectUpdate}
+                      />
+                    </div>
+
                     {/* Actions Needed for Current Stage */}
                     <ProjectSummaryCard
-                      project={project}
-                      workflowStages={workflowStages}
+                      project={smoothProject}
+                      workflowStages={workflowStages as any}
                       onEdit={() => console.log('Edit project')}
                       onViewDetails={() => console.log('View details')}
                     />
-
-                    {/* Review Status Section */}
-                    <Card>
-                      <CardHeader>
-                        <CardTitle className="text-sm font-semibold text-muted-foreground uppercase tracking-wide">
-                          REVIEW STATUS
-                        </CardTitle>
-                        <p className="text-xs text-muted-foreground">
-                          Internal review progress for Engineering, QA, and Production
-                        </p>
-                      </CardHeader>
-                      <CardContent>
-                        {reviewsLoading ? (
-                          <div className="flex items-center justify-center py-4">
-                            <Loader2 className="h-4 w-4 animate-spin mr-2" />
-                            <span className="text-sm text-muted-foreground">Loading review status...</span>
-                          </div>
-                        ) : (
-                          <div className="space-y-4">
-                            {/* Review Progress Bar */}
-                            <div className="space-y-2">
-                              <div className="flex justify-between text-sm">
-                                <span className="text-muted-foreground">Overall Progress</span>
-                                <span className="font-medium">{getReviewSummary().progress}%</span>
-                              </div>
-                              <div className="w-full bg-muted rounded-full h-2">
-                                <div
-                                  className="bg-primary h-2 rounded-full transition-all duration-300"
-                                  style={{ width: `${getReviewSummary().progress}%` }}
-                                />
-                              </div>
-                            </div>
-
-                            {/* Department Review Statuses */}
-                            <div className="grid grid-cols-1 gap-3">
-                              {(['Engineering', 'QA', 'Production'] as const).map((department) => {
-                                const status = getReviewStatuses()[department];
-                                const review = reviews.find(r => r.department === department);
-
-                                const getStatusIcon = (status: string) => {
-                                  switch (status) {
-                                    case 'approved': return <CheckCircle2 className="w-4 h-4 text-green-600" />;
-                                    case 'rejected': return <X className="w-4 h-4 text-red-600" />;
-                                    case 'revision_requested': return <AlertCircle className="w-4 h-4 text-orange-600" />;
-                                    default: return <Clock className="w-4 h-4 text-gray-400" />;
-                                  }
-                                };
-
-                                const getStatusColor = (status: string) => {
-                                  switch (status) {
-                                    case 'approved': return 'bg-green-100 text-green-800 border-green-200';
-                                    case 'rejected': return 'bg-red-100 text-red-800 border-red-200';
-                                    case 'revision_requested': return 'bg-orange-100 text-orange-800 border-orange-200';
-                                    default: return 'bg-yellow-100 text-yellow-800 border-yellow-200';
-                                  }
-                                };
-
-                                return (
-                                  <div key={department} className="flex items-center justify-between p-3 border rounded-lg">
-                                    <div className="flex items-center space-x-3">
-                                      <div className="flex items-center space-x-2">
-                                        {getStatusIcon(status)}
-                                        <span className="font-medium text-sm">{department}</span>
-                                      </div>
-                                      {review?.reviewer_id && (
-                                        <ReviewerDisplay
-                                          reviewerId={review.reviewer_id}
-                                          displayName={reviewerUsers.get(review.reviewer_id)?.display_name || review.reviewer_id}
-                                        />
-                                      )}
-                                    </div>
-                                    <div className="flex items-center space-x-2">
-                                      <Badge className={`text-xs ${getStatusColor(status)}`}>
-                                        {status === 'pending' ? 'Pending' :
-                                          status === 'approved' ? 'Approved' :
-                                            status === 'rejected' ? 'Rejected' :
-                                              'Revision Requested'}
-                                      </Badge>
-                                      {review?.submitted_at && (
-                                        <span className="text-xs text-muted-foreground">
-                                          📅 {format(new Date(review.submitted_at), 'MMM dd')}
-                                        </span>
-                                      )}
-                                    </div>
-                                  </div>
-                                );
-                              })}
-                            </div>
-
-                            {/* Review Summary */}
-                            <div className="pt-3 border-t">
-                              <div className="grid grid-cols-2 gap-4 text-sm">
-                                <div className="text-center">
-                                  <div className="font-semibold text-green-600">{getReviewSummary().approved}</div>
-                                  <div className="text-muted-foreground">Approved</div>
-                                </div>
-                                <div className="text-center">
-                                  <div className="font-semibold text-yellow-600">{getReviewSummary().pending}</div>
-                                  <div className="text-muted-foreground">Pending</div>
-                                </div>
-                              </div>
-                            </div>
-
-                            <Button
-                              variant="outline"
-                              size="sm"
-                              className="w-full"
-                              onClick={() => handleTabChange("reviews")}
-                            >
-                              🔍 View All Reviews
-                            </Button>
-                          </div>
-                        )}
-                      </CardContent>
-                    </Card>
-
-                    {/* Documents Section */}
-                    <Card>
-                      <CardHeader>
-                        <CardTitle className="text-sm font-semibold text-muted-foreground uppercase tracking-wide">
-                          DOCUMENTS
-                        </CardTitle>
-                      </CardHeader>
-                      <CardContent>
-                        {documentsLoading ? (
-                          <div className="flex items-center justify-center py-4">
-                            <Loader2 className="h-4 w-4 animate-spin mr-2" />
-                            <span className="text-sm text-muted-foreground">Loading documents...</span>
-                          </div>
-                        ) : documents.length > 0 ? (
-                          <div className="space-y-3">
-                            {documents.map((doc) => (
-                              <div key={doc.id} className="flex items-center justify-between text-sm">
-                                <div className="flex items-center space-x-2">
-                                  <span>📄</span>
-                                  <span className="font-medium">{doc.original_file_name || doc.filename || 'N/A'}</span>
-                                  <Badge variant="outline" className="text-xs px-1 py-0">
-                                    [{doc.version || 'v1'}]
-                                  </Badge>
-                                  <span className="text-muted-foreground">
-                                    📅 {doc.uploaded_at ? format(new Date(doc.uploaded_at), 'MMM dd') : 'N/A'} · 👤 {doc.uploaded_by || 'N/A'}
-                                  </span>
-                                  {doc.access_level === 'internal' && (
-                                    <Badge className="text-xs bg-orange-100 text-orange-800">
-                                      🔒 Internal Only
-                                    </Badge>
-                                  )}
-                                </div>
-                              </div>
-                            ))}
-                          </div>
-                        ) : (
-                          <div className="text-center py-4 text-sm text-muted-foreground">
-                            No documents uploaded yet
-                          </div>
-                        )}
-                        <Button variant="outline" size="sm" className="mt-3">
-                          <Plus className="w-4 h-4 mr-2" />
-                          Upload New File
-                        </Button>
-                      </CardContent>
-                    </Card>
-
-                    {/* Supplier RFQ Section */}
-                    <Card>
-                      <CardHeader>
-                        <CardTitle className="text-sm font-semibold text-muted-foreground uppercase tracking-wide">
-                          SUPPLIER RFQ SENT
-                        </CardTitle>
-                      </CardHeader>
-                      <CardContent>
-                        {supplierRfqsLoading ? (
-                          <div className="flex items-center justify-center py-4">
-                            <Loader2 className="h-4 w-4 animate-spin mr-2" />
-                            <span className="text-sm text-muted-foreground">Loading supplier RFQs...</span>
-                          </div>
-                        ) : supplierRfqs.length > 0 ? (
-                          <div className="space-y-4">
-                            <p className="text-sm font-medium">📧 Sent to:</p>
-                            <div className="space-y-2">
-                              {supplierRfqs.map((rfq) => (
-                                <div key={rfq.id} className="flex items-center justify-between text-sm">
-                                  <div className="flex-1">
-                                    <span>• {rfq.supplier?.name || 'N/A'} ({rfq.supplier?.email || 'N/A'})</span>
-                                  </div>
-                                  <div>
-                                    {rfq.status === 'sent' && (
-                                      <span className="text-yellow-600">– 🟡 Sent (Due: {rfq.due_date ? format(new Date(rfq.due_date), 'MMM dd') : 'N/A'})</span>
-                                    )}
-                                    {rfq.status === 'quoted' && (
-                                      <span className="text-green-600">– ✅ Quoted</span>
-                                    )}
-                                    {rfq.status === 'viewed' && (
-                                      <span className="text-blue-600">– 👁️ Viewed</span>
-                                    )}
-                                  </div>
-                                </div>
-                              ))}
-                            </div>
-                          </div>
-                        ) : (
-                          <div className="text-center py-4 text-sm text-muted-foreground">
-                            No supplier RFQs sent yet
-                          </div>
-                        )}
-                        <div className="flex space-x-2 pt-2">
-                          <Button variant="outline" size="sm">
-                            <Send className="w-4 h-4 mr-1" />
-                            📤 Resend
-                          </Button>
-                          <Button variant="outline" size="sm">
-                            <Plus className="w-4 h-4 mr-1" />
-                            ➕ Add Supplier
-                          </Button>
-                          <Button variant="outline" size="sm">
-                            <Calendar className="w-4 h-4 mr-1" />
-                            📅 Set Deadline
-                          </Button>
-                        </div>
-                      </CardContent>
-                    </Card>
 
                     {/* Activity & Comments Section */}
                     <Card>
@@ -818,8 +476,8 @@ export default function ProjectDetail() {
                   <div className="space-y-6">
                     {/* Visual Timeline Progression */}
                     <VisualTimelineProgression
-                      project={project}
-                      workflowStages={workflowStages}
+                      project={smoothProject}
+                      workflowStages={workflowStages as any}
                     />
                   </div>
                 </TabContentWrapper>
@@ -874,7 +532,10 @@ export default function ProjectDetail() {
                                     key={department}
                                     variant={existingReview ? "outline" : "default"}
                                     size="sm"
-                                    onClick={() => handleAddReview(department)}
+                                    onClick={() => {
+                                      setSelectedDepartment(department);
+                                      setShowReviewModal(true);
+                                    }}
                                   >
                                     <Plus className="w-4 h-4 mr-2" />
                                     {existingReview ? `Update ${department}` : `Add ${department}`}
@@ -886,8 +547,8 @@ export default function ProjectDetail() {
                             {/* Review List */}
                             <ReviewList
                               reviews={reviews}
-                              onEditReview={handleEditReview}
-                              onViewReview={handleViewReview}
+                              onEditReview={() => { }} // No direct edit from here, handled by inline editor
+                              onViewReview={() => { }} // No direct view from here, handled by inline editor
                             />
                           </div>
                         )}
@@ -905,66 +566,18 @@ export default function ProjectDetail() {
                   <div className="space-y-6">
                     <Card>
                       <CardHeader>
-                        <div className="flex items-center justify-between">
-                          <CardTitle className="text-sm font-semibold text-muted-foreground uppercase tracking-wide">
-                            SUPPLIER RFQ SENT
-                          </CardTitle>
-                          <div className="flex space-x-2">
-                            <Button variant="outline" size="sm">
-                              <Send className="w-4 h-4 mr-2" />
-                              📤 Resend
-                            </Button>
-                            <Button variant="outline" size="sm">
-                              <Plus className="w-4 h-4 mr-2" />
-                              ➕ Add Supplier
-                            </Button>
-                            <Button variant="outline" size="sm">
-                              <Calendar className="w-4 h-4 mr-2" />
-                              📅 Set Deadline
-                            </Button>
-                          </div>
-                        </div>
+                        <CardTitle className="text-sm font-semibold text-muted-foreground uppercase tracking-wide">
+                          SUPPLIER MANAGEMENT
+                        </CardTitle>
                       </CardHeader>
                       <CardContent>
-                        {supplierRfqsLoading ? (
-                          <div className="flex items-center justify-center py-8">
-                            <Loader2 className="h-6 w-6 animate-spin mr-2" />
-                            <span className="text-muted-foreground">Loading supplier RFQs...</span>
-                          </div>
-                        ) : supplierRfqs.length > 0 ? (
-                          <div className="space-y-4">
-                            <p className="text-sm font-medium">📧 Sent to:</p>
-                            {supplierRfqs.map((rfq) => (
-                              <div key={rfq.id} className="flex items-center justify-between p-3 border rounded-lg">
-                                <div className="flex items-center space-x-3">
-                                  <div>
-                                    <p className="font-medium">• {rfq.supplier?.name || 'N/A'}</p>
-                                    <p className="text-sm text-muted-foreground">({rfq.supplier?.email || 'N/A'})</p>
-                                  </div>
-                                </div>
-                                <div className="flex items-center space-x-2">
-                                  {rfq.status === 'sent' ? (
-                                    <Badge className="bg-yellow-100 text-yellow-800">
-                                      🟡 Sent (Due: {rfq.due_date ? format(new Date(rfq.due_date), 'MMM dd') : 'N/A'})
-                                    </Badge>
-                                  ) : (
-                                    <Badge className="bg-green-100 text-green-800">
-                                      ✅ {rfq.status === 'quoted' ? 'Quoted' : rfq.status === 'viewed' ? 'Viewed' : rfq.status}
-                                    </Badge>
-                                  )}
-                                </div>
-                              </div>
-                            ))}
-                          </div>
-                        ) : (
-                          <div className="text-center py-12">
-                            <Send className="w-12 h-12 mx-auto text-muted-foreground mb-4" />
-                            <h3 className="text-lg font-medium mb-2">No Supplier RFQs</h3>
-                            <p className="text-muted-foreground">
-                              No supplier RFQs have been sent for this project yet
-                            </p>
-                          </div>
-                        )}
+                        <div className="text-center py-12">
+                          <Send className="w-12 h-12 mx-auto text-muted-foreground mb-4" />
+                          <h3 className="text-lg font-medium mb-2">Supplier Management</h3>
+                          <p className="text-muted-foreground">
+                            Supplier RFQ and management features coming soon
+                          </p>
+                        </div>
                       </CardContent>
                     </Card>
                   </div>
@@ -977,8 +590,8 @@ export default function ProjectDetail() {
                   hasError={hasTabError('communication')}
                 >
                   <ProjectCommunication
-                    projectId={project.id}
-                    projectTitle={project.title}
+                    projectId={smoothProject.id}
+                    projectTitle={smoothProject.title}
                   />
                 </TabContentWrapper>
 
@@ -1082,73 +695,53 @@ export default function ProjectDetail() {
           </ResponsiveNavigationWrapper>
         )}
 
-        {/* Supplier Modal - Coming Soon */}
-        {showSupplierModal && (
-          <div className="fixed inset-0 bg-background/95 backdrop-blur-lg flex items-center justify-center z-50">
-            <div className="bg-card p-6 rounded-lg border shadow-lg">
-              <h3 className="text-lg font-semibold mb-4 text-card-foreground">Supplier RFQ</h3>
-              <p className="text-muted-foreground mb-4">Supplier RFQ functionality coming soon...</p>
-              <Button onClick={() => setShowSupplierModal(false)}>Close</Button>
-            </div>
-          </div>
+        {/* Review Modal */}
+        {showReviewModal && selectedDepartment && (
+          <ProjectReviewForm
+            isOpen={showReviewModal}
+            onClose={() => {
+              setShowReviewModal(false);
+              setSelectedDepartment(null);
+            }}
+            projectId={smoothProject.id}
+            department={selectedDepartment}
+            existingReview={reviews.find(r => r.department === selectedDepartment)}
+            onSubmit={handleReviewSubmit}
+            onCancel={() => {
+              setShowReviewModal(false);
+              setSelectedDepartment(null);
+            }}
+          />
         )}
 
-        {/* Review Form Modal */}
-        {showReviewForm && (
-          <div className="fixed inset-0 bg-background/95 backdrop-blur-lg flex items-center justify-center p-4 z-50">
-            <div className="w-full max-w-4xl max-h-[90vh] overflow-y-auto">
-              <ProjectReviewForm
-                projectId={id || ''}
-                department={showReviewForm}
-                existingReview={selectedReview || undefined}
-                onSubmit={handleReviewSubmit}
-                onCancel={() => {
-                  setShowReviewForm(null);
-                  setSelectedReview(null);
-                }}
-              />
-            </div>
-          </div>
-        )}
-
-        {/* Review Configuration Modal */}
         {showReviewConfig && (
-          <div className="fixed inset-0 bg-background/95 backdrop-blur-lg flex items-center justify-center p-4 z-50">
-            <div className="w-full max-w-6xl max-h-[90vh] overflow-y-auto">
-              <ReviewConfiguration
-                projectId={id || ''}
-                onClose={() => setShowReviewConfig(false)}
-                onSave={handleReviewConfigSave}
-              />
-            </div>
-          </div>
+          <ReviewConfiguration
+            isOpen={showReviewConfig}
+            projectId={smoothProject.id}
+            onClose={() => setShowReviewConfig(false)}
+            onSave={async (config) => {
+              // TODO: Implement configuration saving
+              console.log('Saving review configuration:', config);
+            }}
+          />
         )}
 
-        {/* Review Assignment Modal */}
-        {showAssignmentModal && (
-          <div className="fixed inset-0 bg-background/95 backdrop-blur-lg flex items-center justify-center p-4 z-50">
-            <div className="w-full max-w-2xl max-h-[90vh] overflow-y-auto">
-              <ReviewAssignmentModal
-                projectId={id || ''}
-                onClose={() => setShowAssignmentModal(false)}
-                onSave={handleAssignmentSave}
-              />
-            </div>
-          </div>
+        {showAssignmentModal && selectedReview && (
+          <ReviewAssignmentModal
+            projectId={smoothProject.id}
+            onClose={() => setShowAssignmentModal(false)}
+            onSave={async (assignments) => {
+              // TODO: Implement assignment saving
+              console.log('Saving review assignments:', assignments);
+            }}
+          />
         )}
-      </div >
+      </div>
     </>
   );
 }
 
-// Helper component to display reviewer name
-function ReviewerDisplay({ reviewerId, displayName }: { reviewerId: string; displayName: string }) {
-  return (
-    <span className="text-xs text-muted-foreground">
-      👤 {displayName}
-    </span>
-  );
-}
+
 
 // Helper component to display assignee name
 function AssigneeDisplay({ assigneeId, displayName }: { assigneeId?: string; displayName: string }) {

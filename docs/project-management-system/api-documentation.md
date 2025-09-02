@@ -385,7 +385,7 @@ async function getWorkflowStages() {
 
 ### PUT /projects/:id/stage - Update Project Stage
 
-**Purpose**: Advance or revert project to a different workflow stage.
+**Purpose**: Advance or revert project to a different workflow stage with comprehensive history tracking.
 
 **Request Body**:
 ```typescript
@@ -393,15 +393,28 @@ interface UpdateStageRequest {
   stage_id: string;
   notes?: string;
   bypass_validation?: boolean;
+  bypass_reason?: string;
 }
 ```
 
 **Implementation**:
 ```typescript
+import { stageHistoryService } from '@/services/stageHistoryService';
+
 async function updateProjectStage(
   projectId: string, 
-  { stage_id, notes, bypass_validation = false }: UpdateStageRequest
+  { stage_id, notes, bypass_validation = false, bypass_reason }: UpdateStageRequest
 ) {
+  const { data: { user } } = await supabase.auth.getUser();
+  if (!user) throw new Error('Authentication required');
+
+  // Get current project stage for transition tracking
+  const { data: currentProject } = await supabase
+    .from('projects')
+    .select('current_stage_id')
+    .eq('id', projectId)
+    .single();
+
   // Validate stage transition if not bypassing
   if (!bypass_validation) {
     const isValidTransition = await validateStageTransition(projectId, stage_id);
@@ -426,14 +439,277 @@ async function updateProjectStage(
 
   if (error) throw error;
 
-  // Log stage change activity
-  await logActivity({
-    project_id: projectId,
-    action: 'stage_change',
-    details: { stage_id, notes },
+  // Record stage transition in history
+  await stageHistoryService.recordStageTransition({
+    projectId,
+    fromStageId: currentProject?.current_stage_id,
+    toStageId: stage_id,
+    userId: user.id,
+    reason: notes,
+    bypassRequired: bypass_validation,
+    bypassReason: bypass_reason
   });
 
   return data;
+}
+```
+
+### GET /projects/:id/stage-history - Get Project Stage History
+
+**Purpose**: Retrieve complete stage transition history for a project.
+
+**Implementation**:
+```typescript
+import { stageHistoryService } from '@/services/stageHistoryService';
+
+async function getProjectStageHistory(projectId: string) {
+  const history = await stageHistoryService.getProjectStageHistory(projectId);
+  return history;
+}
+```
+
+**Response**:
+```typescript
+interface ProjectStageHistory {
+  id: string;
+  project_id: string;
+  stage_id: string;
+  stage_name: string;
+  entered_at: string;
+  exited_at?: string;
+  duration_minutes?: number;
+  entered_by: string;
+  user_name: string;
+  user_email: string;
+  exit_reason?: string;
+  notes?: string;
+  bypass_required: boolean;
+  bypass_reason?: string;
+  created_at: string;
+}
+```
+
+### GET /organizations/:id/stage-transitions - Get Organization Stage Transition Analytics
+
+**Purpose**: Retrieve stage transition statistics and analytics for an organization.
+
+**Query Parameters**:
+```typescript
+interface StageTransitionStatsParams {
+  from?: string;  // ISO date string
+  to?: string;    // ISO date string
+}
+```
+
+**Implementation**:
+```typescript
+import { stageHistoryService } from '@/services/stageHistoryService';
+
+async function getStageTransitionStats(
+  organizationId: string, 
+  dateRange?: { from: string; to: string }
+) {
+  const stats = await stageHistoryService.getStageTransitionStats(organizationId, dateRange);
+  return stats;
+}
+```
+
+**Response**:
+```typescript
+interface StageTransitionStats {
+  totalTransitions: number;
+  bypassTransitions: number;
+  stageTransitionCounts: Record<string, number>;
+  averageStageTime: Record<string, number>;
+  bypassReasons: string[];
+}
+```
+
+### GET /organizations/:id/recent-transitions - Get Recent Stage Transitions
+
+**Purpose**: Retrieve recent stage transitions across all projects in an organization.
+
+**Query Parameters**:
+```typescript
+interface RecentTransitionsParams {
+  limit?: number;  // Default: 10, Max: 50
+}
+```
+
+**Implementation**:
+```typescript
+import { stageHistoryService } from '@/services/stageHistoryService';
+
+async function getRecentStageTransitions(
+  organizationId: string, 
+  limit: number = 10
+) {
+  const transitions = await stageHistoryService.getRecentStageTransitions(organizationId, limit);
+  return transitions;
+}
+```
+
+**Response**:
+```typescript
+interface RecentStageTransition {
+  id: string;
+  action: 'stage_transition' | 'stage_transition_bypass';
+  project_id: string;
+  project_title: string;
+  project_number: string;
+  stage_name: string;
+  user_name: string;
+  bypass_required: boolean;
+  created_at: string;
+}
+```
+
+## Approval System Endpoints
+
+### POST /projects/:id/approvals - Create Approval Requests
+
+**Purpose**: Create approval requests for a project stage transition with automatic approver assignment.
+
+**Request Body**:
+```typescript
+interface CreateApprovalRequestsRequest {
+  stage_id: string;
+  approval_roles: string[];
+  organization_id: string;
+}
+```
+
+**Implementation**:
+```typescript
+import { approvalService } from '@/services/approvalService';
+
+async function createApprovalRequests(
+  projectId: string,
+  { stage_id, approval_roles, organization_id }: CreateApprovalRequestsRequest
+) {
+  const approvals = await approvalService.createApprovalRequests(
+    projectId,
+    stage_id,
+    approval_roles,
+    organization_id
+  );
+  
+  return approvals;
+}
+```
+
+**Response**: Array of `ApprovalRequest` objects with assigned approvers.
+
+### GET /users/:id/approvals/pending - Get Pending Approvals for User
+
+**Purpose**: Retrieve all pending approval requests assigned to a specific user.
+
+**Implementation**:
+```typescript
+async function getPendingApprovalsForUser(userId: string) {
+  const approvals = await approvalService.getPendingApprovalsForUser(userId);
+  return approvals;
+}
+```
+
+**Response**: Array of `ApprovalRequest` objects with project context.
+
+### GET /projects/:id/stages/:stageId/approval-status - Get Approval Status
+
+**Purpose**: Get comprehensive approval status for a project stage transition.
+
+**Implementation**:
+```typescript
+async function getApprovalStatus(projectId: string, stageId: string) {
+  const status = await approvalService.getApprovalStatus(projectId, stageId);
+  return status;
+}
+```
+
+**Response**:
+```typescript
+interface ApprovalStatusResponse {
+  required: string[];           // Required approval roles
+  pending: ApprovalRequest[];   // Pending approval requests
+  approved: ApprovalRequest[];  // Approved requests
+  rejected: ApprovalRequest[];  // Rejected requests
+  isComplete: boolean;          // Whether all required approvals are complete
+}
+```
+
+### PUT /approvals/:id/decision - Submit Approval Decision
+
+**Purpose**: Submit an approval decision (approve or reject) with optional comments.
+
+**Request Body**:
+```typescript
+interface SubmitApprovalDecisionRequest {
+  decision: 'approved' | 'rejected';
+  comments?: string;
+  decision_reason?: string;
+}
+```
+
+**Implementation**:
+```typescript
+async function submitApprovalDecision(
+  approvalId: string,
+  { decision, comments, decision_reason }: SubmitApprovalDecisionRequest
+) {
+  const success = await approvalService.submitApproval(
+    approvalId,
+    decision,
+    comments,
+    decision_reason
+  );
+  
+  return { success };
+}
+```
+
+**Response**: Success boolean indicating if the decision was recorded.
+
+### GET /projects/:id/approval-history - Get Approval History
+
+**Purpose**: Retrieve complete approval history for a project.
+
+**Implementation**:
+```typescript
+async function getProjectApprovalHistory(projectId: string) {
+  const history = await approvalService.getApprovalHistory(projectId);
+  return history;
+}
+```
+
+**Response**: Array of `ApprovalHistory` objects with approver details and decisions.
+
+### POST /projects/:id/stages/:stageId/auto-assign-approvers - Auto-Assign Approvers
+
+**Purpose**: Automatically assign approvers based on stage requirements and user roles.
+
+**Implementation**:
+```typescript
+async function autoAssignApprovers(
+  projectId: string,
+  stageId: string,
+  organizationId: string
+) {
+  const result = await approvalService.autoAssignApprovers(
+    projectId,
+    stageId,
+    organizationId
+  );
+  
+  return result;
+}
+```
+
+**Response**:
+```typescript
+interface AutoAssignApproversResponse {
+  success: boolean;
+  message: string;
+  approvals?: ApprovalRequest[];
 }
 ```
 

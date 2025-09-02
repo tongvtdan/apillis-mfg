@@ -1,0 +1,298 @@
+/* Smooth Transitions for Project Details Page */
+
+/* Card transitions */
+.project-card {
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.project-card:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
+}
+
+/* Field value transitions */
+.field-value {
+    transition: all 0.2s ease-in-out;
+}
+
+.field-value.updating {
+    opacity: 0.75;
+    transform: scale(0.98);
+}
+
+/* Edit button transitions */
+.edit-button {
+    transition: all 0.2s ease-in-out;
+    opacity: 0;
+}
+
+.field-container:hover .edit-button {
+    opacity: 1;
+}
+
+.edit-button:disabled {
+    opacity: 0.5;
+}
+
+/* Input field transitions */
+.input-field {
+    transition: all 0.2s ease-in-out;
+}
+
+.input-field:focus {
+    transform: scale(1.02);
+    box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+}
+
+/* Badge transitions */
+.status-badge {
+    transition: all 0.2s ease-in-out;
+}
+
+.status-badge.updating {
+    opacity: 0.75;
+    transform: scale(0.95);
+}
+
+/* Button transitions */
+.action-button {
+    transition: all 0.2s ease-in-out;
+}
+
+.action-button:hover {
+    transform: translateY(-1px);
+}
+
+.action-button:active {
+    transform: translateY(0);
+}
+
+/* Loading spinner transitions */
+.loading-spinner {
+    transition: all 0.3s ease-in-out;
+}
+
+/* Modal transitions */
+.modal-overlay {
+    animation: fadeIn 0.2s ease-out;
+}
+
+.modal-content {
+    animation: slideInFromBottom 0.3s ease-out;
+}
+
+@keyframes fadeIn {
+    from {
+        opacity: 0;
+    }
+
+    to {
+        opacity: 1;
+    }
+}
+
+@keyframes slideInFromBottom {
+    from {
+        opacity: 0;
+        transform: translateY(20px);
+    }
+
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+@keyframes slideInFromTop {
+    from {
+        opacity: 0;
+        transform: translateY(-20px);
+    }
+
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+/* Smooth page transitions */
+.page-transition {
+    transition: all 0.3s ease-in-out;
+}
+
+/* Optimistic update animations */
+.optimistic-update {
+    animation: optimisticPulse 0.5s ease-in-out;
+}
+
+@keyframes optimisticPulse {
+    0% {
+        opacity: 1;
+    }
+
+    50% {
+        opacity: 0.8;
+        transform: scale(0.98);
+    }
+
+    100% {
+        opacity: 1;
+        transform: scale(1);
+    }
+}
+
+/* Success feedback animation */
+.success-feedback {
+    animation: successBounce 0.6s ease-out;
+}
+
+@keyframes successBounce {
+    0% {
+        transform: scale(1);
+    }
+
+    50% {
+        transform: scale(1.05);
+    }
+
+    100% {
+        transform: scale(1);
+    }
+}
+
+/* Error feedback animation */
+.error-feedback {
+    animation: errorShake 0.5s ease-in-out;
+}
+
+@keyframes errorShake {
+
+    0%,
+    100% {
+        transform: translateX(0);
+    }
+
+    25% {
+        transform: translateX(-5px);
+    }
+
+    75% {
+        transform: translateX(5px);
+    }
+}
+
+/* Smooth text transitions */
+.text-transition {
+    transition: color 0.2s ease-in-out, opacity 0.2s ease-in-out;
+}
+
+/* Form field transitions */
+.form-field {
+    transition: all 0.2s ease-in-out;
+}
+
+.form-field:focus-within {
+    transform: translateY(-1px);
+}
+
+/* Tab transitions */
+.tab-content {
+    transition: opacity 0.3s ease-in-out, transform 0.3s ease-in-out;
+}
+
+.tab-content.entering {
+    opacity: 0;
+    transform: translateX(20px);
+}
+
+.tab-content.entered {
+    opacity: 1;
+    transform: translateX(0);
+}
+
+.tab-content.exiting {
+    opacity: 0;
+    transform: translateX(-20px);
+}
+
+/* Navigation transitions */
+.nav-item {
+    transition: all 0.2s ease-in-out;
+}
+
+.nav-item:hover {
+    transform: translateX(4px);
+}
+
+.nav-item.active {
+    transform: translateX(8px);
+}
+
+/* Status change animations */
+.status-change {
+    animation: statusChange 0.4s ease-in-out;
+}
+
+@keyframes statusChange {
+    0% {
+        opacity: 1;
+        transform: scale(1);
+    }
+
+    50% {
+        opacity: 0.7;
+        transform: scale(1.1);
+    }
+
+    100% {
+        opacity: 1;
+        transform: scale(1);
+    }
+}
+
+/* Priority change animations */
+.priority-change {
+    animation: priorityChange 0.3s ease-in-out;
+}
+
+@keyframes priorityChange {
+    0% {
+        transform: rotate(0deg);
+    }
+
+    25% {
+        transform: rotate(-5deg);
+    }
+
+    75% {
+        transform: rotate(5deg);
+    }
+
+    100% {
+        transform: rotate(0deg);
+    }
+}
+
+/* Smooth scrolling */
+html {
+    scroll-behavior: smooth;
+}
+
+/* Focus indicators */
+.focus-visible {
+    outline: 2px solid #3b82f6;
+    outline-offset: 2px;
+}
+
+/* Reduced motion support */
+@media (prefers-reduced-motion: reduce) {
+
+    *,
+    *::before,
+    *::after {
+        animation-duration: 0.01ms !important;
+        animation-iteration-count: 1 !important;
+        transition-duration: 0.01ms !important;
+        scroll-behavior: auto !important;
+    }
+}

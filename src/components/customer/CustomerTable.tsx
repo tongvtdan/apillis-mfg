@@ -17,16 +17,7 @@ import {
     DropdownMenuItem,
     DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
-import {
-    AlertDialog,
-    AlertDialogAction,
-    AlertDialogCancel,
-    AlertDialogContent,
-    AlertDialogDescription,
-    AlertDialogFooter,
-    AlertDialogHeader,
-    AlertDialogTitle,
-} from '@/components/ui/alert-dialog';
+import { Modal } from '@/components/ui/modal';
 import {
     Building2,
     Mail,
@@ -38,7 +29,8 @@ import {
     Eye,
     Search,
     Plus,
-    Users
+    Users,
+    AlertTriangle
 } from 'lucide-react';
 import { Customer } from '@/types/project';
 import { useCustomers } from '@/hooks/useCustomers';
@@ -260,23 +252,28 @@ export function CustomerTable({ customers, onCustomerSelect }: CustomerTableProp
             />
 
             {/* Delete Confirmation Dialog */}
-            <AlertDialog open={showDeleteDialog} onOpenChange={setShowDeleteDialog}>
-                <AlertDialogContent>
-                    <AlertDialogHeader>
-                        <AlertDialogTitle>Delete Customer</AlertDialogTitle>
-                        <AlertDialogDescription>
-                            Are you sure you want to delete {customerToDelete?.name}? This action cannot be undone.
-                            All associated projects will lose their customer reference.
-                        </AlertDialogDescription>
-                    </AlertDialogHeader>
-                    <AlertDialogFooter>
-                        <AlertDialogCancel>Cancel</AlertDialogCancel>
-                        <AlertDialogAction onClick={confirmDelete} className="bg-destructive text-destructive-foreground">
-                            Delete
-                        </AlertDialogAction>
-                    </AlertDialogFooter>
-                </AlertDialogContent>
-            </AlertDialog>
+            <Modal
+                isOpen={showDeleteDialog}
+                onClose={() => setShowDeleteDialog(false)}
+                title={
+                    <div className="flex items-center gap-2">
+                        <AlertTriangle className="w-5 h-5 text-destructive" />
+                        Delete Customer
+                    </div>
+                }
+                description={`Are you sure you want to delete ${customerToDelete?.company_name}? This action cannot be undone. All associated projects will lose their customer reference.`}
+                showDescription={true}
+                maxWidth="max-w-md"
+            >
+                <div className="flex justify-end gap-3 pt-4 border-t">
+                    <Button variant="outline" onClick={() => setShowDeleteDialog(false)}>
+                        Cancel
+                    </Button>
+                    <Button variant="destructive" onClick={confirmDelete}>
+                        Delete
+                    </Button>
+                </div>
+            </Modal>
         </div>
     );
 }

@@ -2,6 +2,26 @@
 
 ## Current Sprint
 
+- [done] 2025-09-01 - Critical Database Schema Fixes for Workflow Transitions ✅
+  - ✅ Fixed activity_log table column mismatch (removed non-existent project_id column)
+  - ✅ Fixed documents table query (removed non-existent is_active column)
+  - ✅ Updated StageHistoryService to use correct table structure
+  - ✅ Updated PrerequisiteChecker to use correct column names
+  - ✅ Restarted Supabase to clear schema cache
+  - ✅ Verified all database queries now work correctly
+  - ✅ Workflow transitions should now function without errors
+
+- [done] 2025-09-01 - Long-term Stability Fix for Stage Transition UI Updates ✅
+  - ✅ Refactored ProjectDetail to use single data source from useProjects hook
+  - ✅ Eliminated dual data source synchronization issues
+  - ✅ Improved real-time subscription handling with better error handling
+  - ✅ Added ensureProjectSubscription function for reliable subscription setup
+  - ✅ Created ProjectUpdateDebugger component for real-time update verification
+  - ✅ Reduced rate limiting from 2s to 1s for better responsiveness
+  - ✅ Stage transitions should now update UI immediately and reliably
+
+- [WIP] Rename Projects tabs, remove redundant Table tab, keep table mode in List
+
 ### [done] 2025-01-30 - Complete Database Schema Implementation ✅
 - ✅ Created comprehensive database schema with 17 core tables
 - ✅ Implemented multi-tenant organization structure with proper foreign key relationships
@@ -67,6 +87,13 @@
 - [ ] Security testing for RLS policies
 
 ## Recently Completed
+
+### [done] 2025-09-01 - Projects Tabs Simplification ✅
+- ✅ Renamed tabs: "Enhanced List" → "List", "Kanban Flow" → "Kanban"
+- ✅ Removed standalone "Table" tab; retained table mode toggle in List view
+- ✅ Sanitized legacy `tab=table` URLs to default to List
+- ✅ Adjusted tabs layout to 4 columns; cleaned unused imports
+- ✅ Added `tsconfig.json` alias `@/*` to resolve modules
 
 ### [done] 2025-01-30 - Complete Database Schema Implementation ✅
 **Objective**: Create comprehensive database schema for Factory Pulse manufacturing system  
