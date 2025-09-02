@@ -1,16 +1,18 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Progress } from '@/components/ui/progress';
 import { useProjectApprovalStatus } from '@/hooks/useApprovals';
+import { ApproverAssignmentModal } from './ApproverAssignmentModal';
 import {
     CheckCircle,
     XCircle,
     Clock,
     AlertCircle,
     Users,
-    Shield
+    Shield,
+    UserPlus
 } from 'lucide-react';
 
 interface ApprovalStatusWidgetProps {
@@ -27,6 +29,32 @@ export function ApprovalStatusWidget({
     showRequestButton = false
 }: ApprovalStatusWidgetProps) {
     const { approvalStatus, loading, refetch } = useProjectApprovalStatus(projectId, stageId);
+    const [showAssignmentModal, setShowAssignmentModal] = useState(false);
+    const [organizationId, setOrganizationId] = useState<string | null>(null);
+
+    // Fetch organization ID
+    React.useEffect(() => {
+        const fetchOrganizationId = async () => {
+            try {
+                const { data: { session } } = await supabase.auth.getSession();
+                if (session?.user) {
+                    const { data: user, error } = await supabase
+                        .from('users')
+                        .select('organization_id')
+                        .eq('id', session.user.id)
+                        .single();
+                    
+                    if (!error && user) {
+                        setOrganizationId(user.organization_id);
+                    }
+                }
+            } catch (error) {
+                console.error('Error fetching organization ID:', error);
+            }
+        };
+
+        fetchOrganizationId();
+    }, []);
 
     if (loading) {
         return (
@@ -65,6 +93,9 @@ export function ApprovalStatusWidget({
                         <CheckCircle className="w-4 h-4" />
                         <span className="text-sm font-medium">No approvals required</span>
                     </div>
+                    <p className="text-xs text-muted-foreground mt-1">
+                        This stage can proceed without approvals.
+                    </p>
                 </CardContent>
             </Card>
         );
@@ -86,6 +117,14 @@ export function ApprovalStatusWidget({
     const overallStatus = getOverallStatus();
     const StatusIcon = overallStatus.icon;
 
+    const handleAssignApprovers = () => {
+        setShowAssignmentModal(true);
+    };
+
+    const handleAssignmentComplete = () => {
+        refetch();
+    };
+
     return (
         <Card>
             <CardHeader className="pb-3">
@@ -94,11 +133,19 @@ export function ApprovalStatusWidget({
                         <Shield className="w-4 h-4" />
                         Approval Status
                     </div>
-                    {showRequestButton && pendingCount === 0 && approvedCount === 0 && (
-                        <Button size="sm" variant="outline" onClick={onRequestApprovals}>
-                            Request Approvals
-                        </Button>
-                    )}
+                    <div className="flex gap-2">
+                        {showRequestButton && pendingCount === 0 && approvedCount === 0 && (
+                            <Button size="sm" variant="outline" onClick={onRequestApprovals}>
+                                Request Approvals
+                            </Button>
+                        )}
+                        {pendingCount === 0 && approvedCount === 0 && (
+                            <Button size="sm" variant="outline" onClick={handleAssignApprovers}>
+                                <UserPlus className="w-4 h-4 mr-1" />
+                                Assign Approvers
+                            </Button>
+                        )}
+                    </div>
                 </CardTitle>
             </CardHeader>
             <CardContent className="space-y-4">
@@ -127,6 +174,7 @@ export function ApprovalStatusWidget({
 
                 {/* Approval Details */}
                 <div className="space-y-2">
+                    <h4 className="text-sm font-medium">Required Approvals:</h4>
                     {required.map((role) => {
                         const approvedApproval = approved.find(a => a.approver_role === role);
                         const pendingApproval = pending.find(a => a.approver_role === role);
@@ -199,13 +247,26 @@ export function ApprovalStatusWidget({
                         <div className="flex items-center gap-2 text-orange-800">
                             <Clock className="w-4 h-4" />
                             <span className="text-sm font-medium">
-                                Waiting for {pendingCount} approval{pendingCount > 1 ? 's' : ''}
+                                {pendingCount} approval{pendingCount > 1 ? 's' : ''} pending
                             </span>
                         </div>
                         <p className="text-xs text-orange-700 mt-1">
-                            Approvers have been notified.
+                            Notify approvers to review and decide.
                         </p>
                     </div>
+                )}
+
+                {/* Approver Assignment Modal */}
+                {showAssignmentModal && organizationId && (
+                    <ApproverAssignmentModal
+                        isOpen={showAssignmentModal}
+                        onClose={() => setShowAssignmentModal(false)}
+                        projectId={projectId}
+                        stageId={stageId}
+                        organizationId={organizationId}
+                        approvalRoles={required}
+                        onAssign={handleAssignmentComplete}
+                    />
                 )}
             </CardContent>
         </Card>

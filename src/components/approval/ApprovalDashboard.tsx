@@ -264,10 +264,13 @@ export function ApprovalDashboard() {
                                                             {getStatusIcon(approval.status)}
                                                             <div>
                                                                 <h3 className="font-semibold">
-                                                                    Stage Approval Required
+                                                                    {approval.project?.title || 'Stage Approval Required'}
                                                                 </h3>
                                                                 <p className="text-sm text-muted-foreground">
-                                                                    Project: {approval.project_id}
+                                                                    Stage: {approval.metadata?.stage_name || 'Unknown Stage'}
+                                                                </p>
+                                                                <p className="text-xs text-muted-foreground mt-1">
+                                                                    Role: {approval.approver_role} | Due: {approval.due_date ? formatDistanceToNow(new Date(approval.due_date), { addSuffix: true }) : 'No due date'}
                                                                 </p>
                                                             </div>
                                                         </div>

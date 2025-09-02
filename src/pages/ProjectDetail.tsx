@@ -716,6 +716,7 @@ export default function ProjectDetail() {
 
         {showReviewConfig && (
           <ReviewConfiguration
+            isOpen={showReviewConfig}
             projectId={smoothProject.id}
             onClose={() => setShowReviewConfig(false)}
             onSave={async (config) => {

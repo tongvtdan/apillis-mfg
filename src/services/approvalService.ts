@@ -107,6 +107,76 @@ export class ApprovalService {
     }
 
     /**
+     * Create approval requests with manually assigned approvers
+     */
+    async createApprovalRequestsWithAssignees(
+        projectId: string,
+        stageId: string,
+        approvers: { roleId: string; userId: string }[],
+        organizationId: string
+    ): Promise<ApprovalRequest[]> {
+        try {
+            // Validate that approvers exist and are active
+            const approverIds = approvers.map(a => a.userId);
+            const { data: users, error: usersError } = await supabase
+                .from('users')
+                .select('id, role')
+                .eq('organization_id', organizationId)
+                .in('id', approverIds)
+                .eq('is_active', true);
+
+            if (usersError) throw usersError;
+
+            if (!users || users.length === 0) {
+                throw new Error('No valid approvers found');
+            }
+
+            // Create approval requests for each assigned approver
+            const approvalRequests: ReviewInsert[] = [];
+
+            for (const approver of approvers) {
+                const user = users.find(u => u.id === approver.userId);
+                if (user) {
+                    approvalRequests.push({
+                        project_id: projectId,
+                        reviewer_id: approver.userId,
+                        review_type: `stage_approval_${user.role.toLowerCase()}`,
+                        status: 'pending',
+                        organization_id: organizationId,
+                        priority: 'medium',
+                        due_date: this.calculateDueDate(3), // 3 days default
+                        metadata: {
+                            stage_id: stageId,
+                            approval_role: user.role,
+                            approval_type: 'stage_transition'
+                        }
+                    });
+                }
+            }
+
+            if (approvalRequests.length === 0) {
+                throw new Error('No approval requests could be created');
+            }
+
+            // Insert approval requests
+            const { data: createdApprovals, error: insertError } = await supabase
+                .from('reviews')
+                .insert(approvalRequests)
+                .select('*');
+
+            if (insertError) throw insertError;
+
+            // Send notifications to approvers
+            await this.sendApprovalNotifications(createdApprovals || [], projectId);
+
+            return this.mapReviewsToApprovalRequests(createdApprovals || []);
+        } catch (error) {
+            console.error('Error creating approval requests with assignees:', error);
+            throw error;
+        }
+    }
+
+    /**
      * Get pending approvals for a user
      */
     async getPendingApprovalsForUser(userId: string): Promise<ApprovalRequest[]> {
@@ -149,12 +219,12 @@ export class ApprovalService {
     }> {
         try {
             // First, try to get stage approval requirements from workflow_sub_stages
-            let stage: { approval_roles: string[]; requires_approval: boolean } | null = null;
+            let stage: { approval_roles: string[]; requires_approval: boolean; name?: string } | null = null;
             let stageError: any = null;
 
             const { data: subStage, error: subStageError } = await supabase
                 .from('workflow_sub_stages')
-                .select('approval_roles,requires_approval')
+                .select('approval_roles,requires_approval,name')
                 .eq('id', stageId)
                 .maybeSingle();
 
@@ -162,20 +232,19 @@ export class ApprovalService {
                 stage = subStage;
             } else {
                 // If not found in workflow_sub_stages, try workflow_stages
-                // Note: workflow_stages table doesn't have approval_roles or requires_approval columns
-                // So we fetch the basic stage info and assume no approvals required
                 const { data: workflowStage, error: workflowStageError } = await supabase
                     .from('workflow_stages')
-                    .select('id')
+                    .select('responsible_roles as approval_roles,is_active as requires_approval,name')
                     .eq('id', stageId)
                     .maybeSingle();
 
                 if (!workflowStageError && workflowStage) {
-                    // If we found a workflow stage, it means no approvals are required
-                    // since those fields don't exist on workflow_stages
+                    // For workflow stages, we'll use responsible_roles as approval_roles
+                    // and is_active as a proxy for requires_approval (this is a simplification)
                     stage = {
-                        approval_roles: [],
-                        requires_approval: false
+                        approval_roles: workflowStage.approval_roles || [],
+                        requires_approval: workflowStage.requires_approval || false,
+                        name: workflowStage.name
                     };
                 } else {
                     stageError = workflowStageError || subStageError;
@@ -338,21 +407,19 @@ export class ApprovalService {
                 stage = subStage;
             } else {
                 // If not found in workflow_sub_stages, try workflow_stages
-                // Note: workflow_stages table doesn't have approval_roles or requires_approval columns
-                // So we fetch the basic stage info and assume no approvals required
                 const { data: workflowStage, error: workflowStageError } = await supabase
                     .from('workflow_stages')
-                    .select('id,name')
+                    .select('responsible_roles as approval_roles,is_active as requires_approval,name')
                     .eq('id', stageId)
                     .maybeSingle();
 
                 if (!workflowStageError && workflowStage) {
-                    // If we found a workflow stage, it means no approvals are required
-                    // since those fields don't exist on workflow_stages
+                    // For workflow stages, we'll use responsible_roles as approval_roles
+                    // and is_active as a proxy for requires_approval (this is a simplification)
                     stage = {
-                        approval_roles: [],
-                        requires_approval: false,
-                        name: workflowStage.name
+                        approval_roles: workflowStage.approval_roles || [],
+                        requires_approval: workflowStage.requires_approval || false,
+                        name: workflowStage.name || 'Unknown Stage'
                     };
                 } else {
                     stageError = workflowStageError || subStageError;

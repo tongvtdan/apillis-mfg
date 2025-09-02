@@ -41,6 +41,8 @@ interface ReviewConfigurationProps {
     projectId: string;
     onClose: () => void;
     onSave: (config: ReviewWorkflowConfig) => Promise<void>;
+    // Modal mode props
+    isOpen?: boolean;
 }
 
 const defaultConfig: ReviewWorkflowConfig = {
@@ -62,7 +64,7 @@ const defaultConfig: ReviewWorkflowConfig = {
     }
 };
 
-export function ReviewConfiguration({ projectId, onClose, onSave }: ReviewConfigurationProps) {
+export function ReviewConfiguration({ projectId, onClose, onSave, isOpen }: ReviewConfigurationProps) {
     const [config, setConfig] = useState<ReviewWorkflowConfig>(defaultConfig);
     const [saving, setSaving] = useState(false);
     const [hasChanges, setHasChanges] = useState(false);
@@ -107,7 +109,10 @@ export function ReviewConfiguration({ projectId, onClose, onSave }: ReviewConfig
         setHasChanges(false);
     };
 
-    return (
+    // If in modal mode and not open, don't render
+    if (isOpen !== undefined && !isOpen) return null;
+
+    const configContent = (
         <Card className="w-full max-w-4xl">
             <CardHeader>
                 <div className="flex items-center justify-between">
@@ -343,4 +348,18 @@ export function ReviewConfiguration({ projectId, onClose, onSave }: ReviewConfig
             </CardContent>
         </Card>
     );
+
+    // If in modal mode, wrap with modal container
+    if (isOpen) {
+        return (
+            <div className="fixed inset-0 bg-background/95 backdrop-blur-lg flex items-center justify-center p-4 z-50">
+                <div className="w-full max-w-4xl max-h-[90vh] overflow-y-auto">
+                    {configContent}
+                </div>
+            </div>
+        );
+    }
+
+    // Return inline content (existing behavior)
+    return configContent;
 }

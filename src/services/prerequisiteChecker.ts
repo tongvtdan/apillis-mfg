@@ -262,6 +262,31 @@ class PrerequisiteChecker {
                     category: 'approvals'
                 });
             } else {
+                // Add a summary check for overall approval status
+                let overallStatus: 'passed' | 'failed' | 'warning' = 'passed';
+                let overallDetails = 'All required approvals have been obtained';
+                
+                if (approvalStatus.rejected.length > 0) {
+                    overallStatus = 'failed';
+                    overallDetails = `${approvalStatus.rejected.length} approval(s) rejected`;
+                } else if (approvalStatus.pending.length > 0) {
+                    overallStatus = 'warning';
+                    overallDetails = `${approvalStatus.pending.length} approval(s) pending`;
+                } else if (!approvalStatus.isComplete) {
+                    overallStatus = 'failed';
+                    overallDetails = 'Not all required approvals have been obtained';
+                }
+
+                checks.push({
+                    id: 'approval_status_overview',
+                    name: 'Approval Status',
+                    description: 'Overall approval status for this stage',
+                    status: overallStatus,
+                    required: true,
+                    details: overallDetails,
+                    category: 'approvals'
+                });
+
                 // Check each required approval role
                 approvalStatus.required.forEach(role => {
                     const hasApproval = approvalStatus.approved.some(a => a.approver_role === role);
@@ -311,7 +336,8 @@ class PrerequisiteChecker {
                         description: 'Some approvals have been rejected',
                         status: 'failed',
                         required: true,
-                        details: 'Address rejected approvals before proceeding',
+                        details: 'Address rejected approvals before proceeding. Rejected approvals: ' + 
+                                approvalStatus.rejected.map(a => a.approver_role).join(', '),
                         category: 'approvals'
                     });
                 } else if (approvalStatus.pending.length > 0) {
@@ -321,7 +347,18 @@ class PrerequisiteChecker {
                         description: 'Waiting for approval decisions',
                         status: 'warning',
                         required: true,
-                        details: `${approvalStatus.pending.length} approval(s) still pending`,
+                        details: `${approvalStatus.pending.length} approval(s) still pending: ` + 
+                                approvalStatus.pending.map(a => a.approver_role).join(', '),
+                        category: 'approvals'
+                    });
+                } else {
+                    checks.push({
+                        id: 'approvals_incomplete',
+                        name: 'Approvals Incomplete',
+                        description: 'Required approvals not yet requested',
+                        status: 'warning',
+                        required: true,
+                        details: 'Approvals have not been requested yet. Click "Request Approvals" to begin the process.',
                         category: 'approvals'
                     });
                 }
