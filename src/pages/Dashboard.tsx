@@ -19,10 +19,13 @@ import {
   Bell,
   FolderOpen,
   AlertTriangle,
-  Bug
+  Bug,
+  BarChart3,
+  Workflow
 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { workflowStageService } from "@/services/workflowStageService";
+import { Button } from "@/components/ui/button";
 
 // This component displays the main dashboard with overview statistics and user-specific data
 // It uses the authenticated user's profile data from the AuthContext
@@ -35,6 +38,7 @@ export default function Dashboard() {
   const [debugMode, setDebugMode] = useState(false);
   const [directProjects, setDirectProjects] = useState([]);
   const [workflowStages, setWorkflowStages] = useState([]);
+  const [chartView, setChartView] = useState<'type' | 'stage'>('stage'); // New state for chart view toggle
 
   // Extract project data from dashboard summary
   const projects = dashboardData?.recent_projects || [];
@@ -211,11 +215,43 @@ export default function Dashboard() {
             </p>
           </div>
 
-          {/* Project Stage Distribution Visualization */}
-          {!loading && stageDistributionData.length > 0 && (
-            <div className="mb-8">
-              <ProjectStageChart data={stageDistributionData} />
-            </div>
+          {/* Chart View Toggle */}
+          <div className="flex items-center gap-2 mb-4">
+            <Button
+              variant={chartView === 'type' ? 'default' : 'outline'}
+              size="sm"
+              onClick={() => setChartView('type')}
+              className="flex items-center gap-2"
+            >
+              <BarChart3 className="h-4 w-4" />
+              By Type
+            </Button>
+            <Button
+              variant={chartView === 'stage' ? 'default' : 'outline'}
+              size="sm"
+              onClick={() => setChartView('stage')}
+              className="flex items-center gap-2"
+            >
+              <Workflow className="h-4 w-4" />
+              By Stage
+            </Button>
+          </div>
+
+          {/* Project Distribution Visualization */}
+          {!loading && (
+            <>
+              {chartView === 'type' && Object.keys(projectsByType).length > 0 && (
+                <div className="mb-8">
+                  <ProjectTypeChart data={projectsByType} />
+                </div>
+              )}
+
+              {chartView === 'stage' && stageDistributionData.length > 0 && (
+                <div className="mb-8">
+                  <ProjectStageChart data={stageDistributionData} />
+                </div>
+              )}
+            </>
           )}
 
           {/* Approvals Dashboard */}

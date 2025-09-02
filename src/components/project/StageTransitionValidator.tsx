@@ -409,7 +409,7 @@ export function StageTransitionValidator({
 
                                 {/* Bypass Section */}
                                 {requiresBypass && (
-                                    <Card className="border-yellow-200 bg-yellow-50">
+                                    <Card>
                                         <CardHeader>
                                             <CardTitle className="text-lg flex items-center gap-2">
                                                 <Shield className="w-5 h-5 text-yellow-600" />
