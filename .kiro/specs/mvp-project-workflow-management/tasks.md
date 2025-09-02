@@ -90,7 +90,7 @@
   - Add document preview for common file types (PDF, images, Office docs)
   - _Requirements: 3.1, 3.2, 3.3, 3.4, 3.5_
 
-- [-] 10. Document Requirements and Validation
+- [x] 10. Document Requirements and Validation
   - Implement stage-based document requirements checking
   - Create document requirement indicators in stage progression
   - Build document validation for stage advancement

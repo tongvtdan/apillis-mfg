@@ -29,6 +29,7 @@ import { useWorkflowAutoAdvance } from '@/hooks/useWorkflowAutoAdvance';
 import { useStageTransition } from '@/hooks/useStageTransition';
 import { projectService } from '@/services/projectService';
 import { workflowStageService } from '@/services/workflowStageService';
+import { DocumentRequirementIndicator } from './DocumentRequirementIndicator';
 
 interface WorkflowStepperProps {
   project: Project;

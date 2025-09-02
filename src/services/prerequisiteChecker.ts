@@ -1,6 +1,7 @@
 import { supabase } from '@/integrations/supabase/client';
 import { Project, WorkflowStage } from '@/types/project';
 import { approvalService } from './approvalService';
+import { documentRequirementsService } from './documentRequirementsService';
 
 export interface PrerequisiteCheck {
     id: string;
@@ -168,55 +169,70 @@ class PrerequisiteChecker {
         const checks: PrerequisiteCheck[] = [];
 
         try {
-            // Get documents for this project - FIX: Remove is_active since it doesn't exist in table
-            const { data: documents, error } = await supabase
-                .from('documents')
-                .select('id, category, file_name')
-                .eq('project_id', project.id);
+            // Use the new document requirements service for comprehensive validation
+            const validationResult = await documentRequirementsService.canAdvanceToStage(
+                project.id,
+                targetStage.id
+            );
 
-            if (error) {
-                console.error('Error fetching documents:', error);
-                checks.push({
-                    id: 'documents_fetch_error',
-                    name: 'Document Check Error',
-                    description: 'Failed to check document requirements',
-                    status: 'warning',
-                    required: false,
-                    details: 'Could not verify document requirements',
-                    category: 'documents'
-                });
-                return checks;
-            }
+            // Convert validation results to prerequisite checks
+            const requirements = await documentRequirementsService.getStageDocumentRequirements(targetStage.id);
 
-            // Define stage-specific document requirements
-            const documentRequirements = this.getStageDocumentRequirements(targetStage.name);
+            requirements.forEach(requirement => {
+                const isMissing = validationResult.validation.missing.some(req => req.id === requirement.id);
+                const invalidEntry = validationResult.validation.invalid.find(inv => inv.requirement.id === requirement.id);
 
-            documentRequirements.forEach(requirement => {
-                const hasDocument = documents?.some(doc =>
-                    doc.category === requirement.type ||
-                    doc.file_name?.toLowerCase().includes(requirement.type.toLowerCase())
-                );
+                let status: 'passed' | 'failed' | 'warning' = 'passed';
+                let details: string | undefined;
+
+                if (isMissing) {
+                    status = requirement.required ? 'failed' : 'warning';
+                    details = `${requirement.name} is ${requirement.required ? 'required' : 'recommended'} for this stage`;
+                } else if (invalidEntry) {
+                    status = requirement.required ? 'failed' : 'warning';
+                    details = `Issues with ${requirement.name}: ${invalidEntry.issues.join(', ')}`;
+                }
 
                 checks.push({
                     id: `document_${requirement.type}`,
                     name: requirement.name,
                     description: requirement.description,
-                    status: hasDocument ? 'passed' : (requirement.required ? 'failed' : 'warning'),
+                    status,
                     required: requirement.required,
-                    details: hasDocument ? undefined : `${requirement.name} is ${requirement.required ? 'required' : 'recommended'} for this stage`,
+                    details,
                     category: 'documents'
                 });
             });
 
-            // General document check
-            if (documents && documents.length === 0) {
+            // Add overall document validation summary
+            if (validationResult.blockers.length > 0) {
                 checks.push({
-                    id: 'general_documents',
-                    name: 'Project Documents',
-                    description: 'Project has supporting documents',
+                    id: 'document_validation_summary',
+                    name: 'Document Validation Summary',
+                    description: 'Overall document requirements status',
+                    status: 'failed',
+                    required: true,
+                    details: `${validationResult.blockers.length} document issue(s) must be resolved`,
+                    category: 'documents'
+                });
+            } else if (validationResult.warnings.length > 0) {
+                checks.push({
+                    id: 'document_validation_summary',
+                    name: 'Document Validation Summary',
+                    description: 'Overall document requirements status',
                     status: 'warning',
                     required: false,
-                    details: 'Consider uploading relevant project documents',
+                    details: `${validationResult.warnings.length} document warning(s) - recommended but not required`,
+                    category: 'documents'
+                });
+            } else {
+                checks.push({
+                    id: 'document_validation_summary',
+                    name: 'Document Validation Summary',
+                    description: 'Overall document requirements status',
+                    status: 'passed',
+                    required: false,
+                    details: 'All document requirements satisfied',
                     category: 'documents'
                 });
             }

@@ -24,7 +24,8 @@ import {
     Plus,
     X,
     SortAsc,
-    SortDesc
+    SortDesc,
+    History
 } from 'lucide-react';
 import { format } from 'date-fns';
 import { useDocuments } from '@/hooks/useDocuments';
@@ -34,6 +35,7 @@ import { DocumentList } from './DocumentList';
 import { DocumentFilters } from './DocumentFilters';
 import { DocumentPreview } from './DocumentPreview';
 import { DocumentApproval } from '@/components/approval/DocumentApproval';
+import { DocumentVersionHistory } from './DocumentVersionHistory';
 import type { ProjectDocument } from '@/hooks/useDocuments';
 
 interface DocumentManagerProps {
@@ -68,6 +70,7 @@ export const DocumentManager: React.FC<DocumentManagerProps> = ({ projectId, cur
     const [selectedDocument, setSelectedDocument] = useState<ProjectDocument | null>(null);
     const [showApprovalPanel, setShowApprovalPanel] = useState(false);
     const [showPreview, setShowPreview] = useState(false);
+    const [showVersionHistory, setShowVersionHistory] = useState(false);
 
     // Sorting state
     const [sortField, setSortField] = useState<SortField>('date');
@@ -457,6 +460,23 @@ export const DocumentManager: React.FC<DocumentManagerProps> = ({ projectId, cur
                         onDelete={async (document) => {
                             // TODO: Implement document deletion with confirmation
                             console.log('Delete document:', document);
+                        }}
+                    />
+                )}
+
+                {/* Document Version History Modal */}
+                {showVersionHistory && selectedDocument && (
+                    <DocumentVersionHistory
+                        document={selectedDocument}
+                        isOpen={showVersionHistory}
+                        onClose={() => {
+                            setShowVersionHistory(false);
+                            setSelectedDocument(null);
+                        }}
+                        onVersionChange={(newVersion) => {
+                            // Refresh documents list when version changes
+                            // The useDocuments hook should handle real-time updates
+                            console.log('Version changed:', newVersion);
                         }}
                     />
                 )}
