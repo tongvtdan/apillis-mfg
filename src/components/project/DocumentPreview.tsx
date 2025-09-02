@@ -13,7 +13,8 @@ import {
     Image as ImageIcon,
     FileSpreadsheet,
     FileCode,
-    Archive
+    Archive,
+    History
 } from 'lucide-react';
 import { format } from 'date-fns';
 import { supabase } from '@/integrations/supabase/client';
@@ -27,6 +28,7 @@ interface DocumentPreviewProps {
     onClose: () => void;
     onEdit?: (document: ProjectDocument) => void;
     onDelete?: (document: ProjectDocument) => void;
+    onVersionHistory?: (document: ProjectDocument) => void;
 }
 
 /**
@@ -38,7 +40,8 @@ export const DocumentPreview: React.FC<DocumentPreviewProps> = ({
     isOpen,
     onClose,
     onEdit,
-    onDelete
+    onDelete,
+    onVersionHistory
 }) => {
     const [previewUrl, setPreviewUrl] = useState<string | null>(null);
     const [isLoading, setIsLoading] = useState(false);
@@ -328,6 +331,13 @@ export const DocumentPreview: React.FC<DocumentPreviewProps> = ({
                         <Button variant="outline" onClick={handleDownload}>
                             <Download className="w-4 h-4 mr-2" />
                             Download
+                        </Button>
+                        <Button
+                            variant="outline"
+                            onClick={() => onVersionHistory && onVersionHistory(document)}
+                        >
+                            <History className="w-4 h-4 mr-2" />
+                            Version History
                         </Button>
                         {onEdit && (
                             <Button variant="outline" onClick={() => onEdit(document)}>

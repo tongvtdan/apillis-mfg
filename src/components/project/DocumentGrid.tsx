@@ -3,7 +3,7 @@ import { Card, CardContent } from '@/components/ui/card';
 import { Checkbox } from '@/components/ui/checkbox';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
-import { FileText, Download, Eye, Edit, Trash2 } from 'lucide-react';
+import { FileText, Download, Eye, Edit, Trash2, History } from 'lucide-react';
 import { format } from 'date-fns';
 import { documentActionsService } from '@/services/documentActions';
 import type { ProjectDocument } from '@/hooks/useDocuments';
@@ -16,6 +16,7 @@ interface DocumentGridProps {
     onDocumentClick?: (document: ProjectDocument) => void;
     onDocumentEdit?: (document: ProjectDocument) => void;
     onDocumentDelete?: (document: ProjectDocument) => void;
+    onDocumentVersionHistory?: (document: ProjectDocument) => void;
 }
 
 /**
@@ -29,7 +30,8 @@ export const DocumentGrid: React.FC<DocumentGridProps> = ({
     onSelectAll,
     onDocumentClick,
     onDocumentEdit,
-    onDocumentDelete
+    onDocumentDelete,
+    onDocumentVersionHistory
 }) => {
     const formatFileSize = (bytes: number): string => {
         if (bytes === 0) return '0 Bytes';
@@ -97,6 +99,14 @@ export const DocumentGrid: React.FC<DocumentGridProps> = ({
                                         }}
                                     >
                                         <Download className="w-3 h-3" />
+                                    </Button>
+                                    <Button
+                                        variant="ghost"
+                                        size="sm"
+                                        title="Version History"
+                                        onClick={() => onDocumentVersionHistory && onDocumentVersionHistory(document)}
+                                    >
+                                        <History className="w-3 h-3" />
                                     </Button>
                                     <Button
                                         variant="ghost"

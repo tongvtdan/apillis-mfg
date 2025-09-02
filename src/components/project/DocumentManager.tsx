@@ -233,6 +233,11 @@ export const DocumentManager: React.FC<DocumentManagerProps> = ({ projectId, cur
         setShowEditModal(true);
     }, []);
 
+    const handleDocumentVersionHistory = useCallback((document: ProjectDocument) => {
+        setSelectedDocument(document);
+        setShowVersionHistory(true);
+    }, []);
+
     const handleDocumentDelete = useCallback(async (document: ProjectDocument) => {
         if (!confirm(`Are you sure you want to delete "${document.title}"? This action cannot be undone.`)) {
             return;
@@ -468,6 +473,7 @@ export const DocumentManager: React.FC<DocumentManagerProps> = ({ projectId, cur
                                 }}
                                 onDocumentEdit={handleDocumentEdit}
                                 onDocumentDelete={handleDocumentDelete}
+                                onDocumentVersionHistory={handleDocumentVersionHistory}
                             />
                         ) : (
                             <DocumentList
@@ -484,6 +490,7 @@ export const DocumentManager: React.FC<DocumentManagerProps> = ({ projectId, cur
                                 }}
                                 onDocumentEdit={handleDocumentEdit}
                                 onDocumentDelete={handleDocumentDelete}
+                                onDocumentVersionHistory={handleDocumentVersionHistory}
                             />
                         )
                     ) : (
@@ -561,6 +568,7 @@ export const DocumentManager: React.FC<DocumentManagerProps> = ({ projectId, cur
                             // TODO: Implement document deletion with confirmation
                             console.log('Delete document:', document);
                         }}
+                        onVersionHistory={handleDocumentVersionHistory}
                     />
                 )}
 
