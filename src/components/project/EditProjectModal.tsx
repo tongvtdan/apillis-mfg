@@ -1,13 +1,7 @@
 import React, { useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
-import {
-    Dialog,
-    DialogContent,
-    DialogDescription,
-    DialogHeader,
-    DialogTitle,
-} from '@/components/ui/dialog';
+import { Modal } from '@/components/ui/modal';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
@@ -110,37 +104,139 @@ export function EditProjectModal({ project, isOpen, onClose, onSuccess }: EditPr
     };
 
     return (
-        <Dialog open={isOpen} onOpenChange={handleClose}>
-            <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
-                <DialogHeader>
-                    <DialogTitle className="flex items-center gap-2">
-                        Edit Project
-                        <Badge variant="outline" className="text-xs">
-                            {project.project_id}
-                        </Badge>
-                    </DialogTitle>
-                    <DialogDescription>
-                        Update project information. All changes will be saved immediately.
-                    </DialogDescription>
-                </DialogHeader>
+        <Modal
+            isOpen={isOpen}
+            onClose={handleClose}
+            title={
+                <div className="flex items-center gap-2">
+                    Edit Project
+                    <Badge variant="outline" className="text-xs">
+                        {project.project_id}
+                    </Badge>
+                </div>
+            }
+            description="Update project information. All changes will be saved immediately."
+            showDescription={true}
+            maxWidth="max-w-2xl"
+        >
 
-                <Form {...form}>
-                    <form onSubmit={form.handleSubmit(handleSubmit)} className="space-y-6">
-                        {/* Basic Information */}
-                        <div className="space-y-4">
-                            <h3 className="text-lg font-medium">Basic Information</h3>
+            <Form {...form}>
+                <form onSubmit={form.handleSubmit(handleSubmit)} className="space-y-6">
+                    {/* Basic Information */}
+                    <div className="space-y-4">
+                        <h3 className="text-lg font-medium">Basic Information</h3>
+
+                        <FormField
+                            control={form.control}
+                            name="title"
+                            render={({ field }) => (
+                                <FormItem>
+                                    <FormLabel>Project Title *</FormLabel>
+                                    <FormControl>
+                                        <Input
+                                            placeholder="Enter project title"
+                                            maxLength={PROJECT_CONSTRAINTS.TITLE_MAX_LENGTH}
+                                            {...field}
+                                        />
+                                    </FormControl>
+                                    <FormMessage />
+                                </FormItem>
+                            )}
+                        />
+
+                        <FormField
+                            control={form.control}
+                            name="description"
+                            render={({ field }) => (
+                                <FormItem>
+                                    <FormLabel>Description</FormLabel>
+                                    <FormControl>
+                                        <Textarea
+                                            placeholder="Describe the project requirements and specifications"
+                                            className="min-h-[100px]"
+                                            {...field}
+                                        />
+                                    </FormControl>
+                                    <FormMessage />
+                                </FormItem>
+                            )}
+                        />
+                    </div>
+
+                    {/* Status and Priority */}
+                    <div className="space-y-4">
+                        <h3 className="text-lg font-medium">Status & Priority</h3>
+
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                            <FormField
+                                control={form.control}
+                                name="status"
+                                render={({ field }) => (
+                                    <FormItem>
+                                        <FormLabel>Project Status *</FormLabel>
+                                        <Select onValueChange={field.onChange} defaultValue={field.value}>
+                                            <FormControl>
+                                                <SelectTrigger>
+                                                    <SelectValue placeholder="Select status" />
+                                                </SelectTrigger>
+                                            </FormControl>
+                                            <SelectContent>
+                                                <SelectItem value="active">Active</SelectItem>
+                                                <SelectItem value="on_hold">On Hold</SelectItem>
+                                                <SelectItem value="delayed">Delayed</SelectItem>
+                                                <SelectItem value="cancelled">Cancelled</SelectItem>
+                                                <SelectItem value="completed">Completed</SelectItem>
+                                            </SelectContent>
+                                        </Select>
+                                        <FormMessage />
+                                    </FormItem>
+                                )}
+                            />
 
                             <FormField
                                 control={form.control}
-                                name="title"
+                                name="priority_level"
                                 render={({ field }) => (
                                     <FormItem>
-                                        <FormLabel>Project Title *</FormLabel>
+                                        <FormLabel>Priority Level *</FormLabel>
+                                        <Select onValueChange={field.onChange} defaultValue={field.value}>
+                                            <FormControl>
+                                                <SelectTrigger>
+                                                    <SelectValue placeholder="Select priority" />
+                                                </SelectTrigger>
+                                            </FormControl>
+                                            <SelectContent>
+                                                <SelectItem value="low">Low</SelectItem>
+                                                <SelectItem value="medium">Medium</SelectItem>
+                                                <SelectItem value="high">High</SelectItem>
+                                                <SelectItem value="urgent">Urgent</SelectItem>
+                                            </SelectContent>
+                                        </Select>
+                                        <FormMessage />
+                                    </FormItem>
+                                )}
+                            />
+                        </div>
+                    </div>
+
+                    {/* Additional Details */}
+                    <div className="space-y-4">
+                        <h3 className="text-lg font-medium">Additional Details</h3>
+
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                            <FormField
+                                control={form.control}
+                                name="estimated_value"
+                                render={({ field }) => (
+                                    <FormItem>
+                                        <FormLabel>Estimated Value ($)</FormLabel>
                                         <FormControl>
                                             <Input
-                                                placeholder="Enter project title"
-                                                maxLength={PROJECT_CONSTRAINTS.TITLE_MAX_LENGTH}
+                                                type="number"
+                                                step="0.01"
+                                                placeholder="0.00"
                                                 {...field}
+                                                onChange={(e) => field.onChange(e.target.value ? parseFloat(e.target.value) : undefined)}
                                             />
                                         </FormControl>
                                         <FormMessage />
@@ -150,14 +246,14 @@ export function EditProjectModal({ project, isOpen, onClose, onSuccess }: EditPr
 
                             <FormField
                                 control={form.control}
-                                name="description"
+                                name="project_type"
                                 render={({ field }) => (
                                     <FormItem>
-                                        <FormLabel>Description</FormLabel>
+                                        <FormLabel>Project Type</FormLabel>
                                         <FormControl>
-                                            <Textarea
-                                                placeholder="Describe the project requirements and specifications"
-                                                className="min-h-[100px]"
+                                            <Input
+                                                placeholder="e.g., Manufacturing, Fabrication"
+                                                maxLength={PROJECT_CONSTRAINTS.PROJECT_TYPE_MAX_LENGTH}
                                                 {...field}
                                             />
                                         </FormControl>
@@ -167,156 +263,55 @@ export function EditProjectModal({ project, isOpen, onClose, onSuccess }: EditPr
                             />
                         </div>
 
-                        {/* Status and Priority */}
-                        <div className="space-y-4">
-                            <h3 className="text-lg font-medium">Status & Priority</h3>
+                        <FormField
+                            control={form.control}
+                            name="notes"
+                            render={({ field }) => (
+                                <FormItem>
+                                    <FormLabel>Notes</FormLabel>
+                                    <FormControl>
+                                        <Textarea
+                                            placeholder="Additional notes or comments about the project"
+                                            className="min-h-[80px]"
+                                            {...field}
+                                        />
+                                    </FormControl>
+                                    <FormMessage />
+                                </FormItem>
+                            )}
+                        />
+                    </div>
 
-                            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                                <FormField
-                                    control={form.control}
-                                    name="status"
-                                    render={({ field }) => (
-                                        <FormItem>
-                                            <FormLabel>Project Status *</FormLabel>
-                                            <Select onValueChange={field.onChange} defaultValue={field.value}>
-                                                <FormControl>
-                                                    <SelectTrigger>
-                                                        <SelectValue placeholder="Select status" />
-                                                    </SelectTrigger>
-                                                </FormControl>
-                                                <SelectContent>
-                                                    <SelectItem value="active">Active</SelectItem>
-                                                    <SelectItem value="on_hold">On Hold</SelectItem>
-                                                    <SelectItem value="delayed">Delayed</SelectItem>
-                                                    <SelectItem value="cancelled">Cancelled</SelectItem>
-                                                    <SelectItem value="completed">Completed</SelectItem>
-                                                </SelectContent>
-                                            </Select>
-                                            <FormMessage />
-                                        </FormItem>
-                                    )}
-                                />
-
-                                <FormField
-                                    control={form.control}
-                                    name="priority_level"
-                                    render={({ field }) => (
-                                        <FormItem>
-                                            <FormLabel>Priority Level *</FormLabel>
-                                            <Select onValueChange={field.onChange} defaultValue={field.value}>
-                                                <FormControl>
-                                                    <SelectTrigger>
-                                                        <SelectValue placeholder="Select priority" />
-                                                    </SelectTrigger>
-                                                </FormControl>
-                                                <SelectContent>
-                                                    <SelectItem value="low">Low</SelectItem>
-                                                    <SelectItem value="medium">Medium</SelectItem>
-                                                    <SelectItem value="high">High</SelectItem>
-                                                    <SelectItem value="urgent">Urgent</SelectItem>
-                                                </SelectContent>
-                                            </Select>
-                                            <FormMessage />
-                                        </FormItem>
-                                    )}
-                                />
-                            </div>
-                        </div>
-
-                        {/* Additional Details */}
-                        <div className="space-y-4">
-                            <h3 className="text-lg font-medium">Additional Details</h3>
-
-                            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                                <FormField
-                                    control={form.control}
-                                    name="estimated_value"
-                                    render={({ field }) => (
-                                        <FormItem>
-                                            <FormLabel>Estimated Value ($)</FormLabel>
-                                            <FormControl>
-                                                <Input
-                                                    type="number"
-                                                    step="0.01"
-                                                    placeholder="0.00"
-                                                    {...field}
-                                                    onChange={(e) => field.onChange(e.target.value ? parseFloat(e.target.value) : undefined)}
-                                                />
-                                            </FormControl>
-                                            <FormMessage />
-                                        </FormItem>
-                                    )}
-                                />
-
-                                <FormField
-                                    control={form.control}
-                                    name="project_type"
-                                    render={({ field }) => (
-                                        <FormItem>
-                                            <FormLabel>Project Type</FormLabel>
-                                            <FormControl>
-                                                <Input
-                                                    placeholder="e.g., Manufacturing, Fabrication"
-                                                    maxLength={PROJECT_CONSTRAINTS.PROJECT_TYPE_MAX_LENGTH}
-                                                    {...field}
-                                                />
-                                            </FormControl>
-                                            <FormMessage />
-                                        </FormItem>
-                                    )}
-                                />
-                            </div>
-
-                            <FormField
-                                control={form.control}
-                                name="notes"
-                                render={({ field }) => (
-                                    <FormItem>
-                                        <FormLabel>Notes</FormLabel>
-                                        <FormControl>
-                                            <Textarea
-                                                placeholder="Additional notes or comments about the project"
-                                                className="min-h-[80px]"
-                                                {...field}
-                                            />
-                                        </FormControl>
-                                        <FormMessage />
-                                    </FormItem>
-                                )}
-                            />
-                        </div>
-
-                        {/* Form Actions */}
-                        <div className="flex justify-end gap-3 pt-4 border-t">
-                            <Button
-                                type="button"
-                                variant="outline"
-                                onClick={handleClose}
-                                disabled={isSubmitting}
-                            >
-                                <X className="h-4 w-4 mr-2" />
-                                Cancel
-                            </Button>
-                            <Button
-                                type="submit"
-                                disabled={isSubmitting || !form.formState.isValid}
-                            >
-                                {isSubmitting ? (
-                                    <>
-                                        <Loader2 className="h-4 w-4 mr-2 animate-spin" />
-                                        Updating...
-                                    </>
-                                ) : (
-                                    <>
-                                        <Save className="h-4 w-4 mr-2" />
-                                        Update Project
-                                    </>
-                                )}
-                            </Button>
-                        </div>
-                    </form>
-                </Form>
-            </DialogContent>
-        </Dialog>
+                    {/* Form Actions */}
+                    <div className="flex justify-end gap-3 pt-4 border-t">
+                        <Button
+                            type="button"
+                            variant="outline"
+                            onClick={handleClose}
+                            disabled={isSubmitting}
+                        >
+                            <X className="h-4 w-4 mr-2" />
+                            Cancel
+                        </Button>
+                        <Button
+                            type="submit"
+                            disabled={isSubmitting || !form.formState.isValid}
+                        >
+                            {isSubmitting ? (
+                                <>
+                                    <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                                    Updating...
+                                </>
+                            ) : (
+                                <>
+                                    <Save className="h-4 w-4 mr-2" />
+                                    Update Project
+                                </>
+                            )}
+                        </Button>
+                    </div>
+                </form>
+            </Form>
+        </Modal>
     );
 }
