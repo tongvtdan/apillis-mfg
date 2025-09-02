@@ -7,6 +7,8 @@ export type ProjectStatus = 'active' | 'on_hold' | 'cancelled' | 'completed';
 export type ProjectPriority = 'low' | 'medium' | 'high' | 'critical';
 export type ProjectType = 'system_build' | 'fabrication' | 'manufacturing';
 export type ProjectSource = 'manual' | 'portal' | 'email' | 'api' | 'import' | 'migration';
+export type IntakeType = 'rfq' | 'purchase_order' | 'project_idea' | 'direct_request';
+export type IntakeSource = 'portal' | 'email' | 'api' | 'phone' | 'walk_in';
 
 // Customer interface removed - customers are stored in contacts table with type='customer'
 // Use Contact interface with type='customer' instead
@@ -127,6 +129,8 @@ export interface Project {
   metadata?: Record<string, any>;
   stage_entered_at?: string;
   project_type?: string;
+  intake_type?: IntakeType;
+  intake_source?: IntakeSource;
   notes?: string;
   created_at?: string; // Optional in database (has default)
   updated_at?: string;

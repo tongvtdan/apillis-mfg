@@ -691,6 +691,10 @@ export function useProjects() {
     contact_phone?: string;
     notes?: string;
     tags?: string[];
+    intake_type?: string;
+    intake_source?: string;
+    project_type?: string;
+    current_stage_id?: string;
   }): Promise<Project> => {
     if (!user || !profile?.organization_id) {
       throw new Error('User must be authenticated to create projects');
@@ -712,6 +716,10 @@ export function useProjects() {
           created_by: user.id,
           tags: projectData.tags || [],
           notes: projectData.notes,
+          intake_type: projectData.intake_type,
+          intake_source: projectData.intake_source || 'portal',
+          project_type: projectData.project_type,
+          current_stage_id: projectData.current_stage_id,
           // Generate project ID
           project_id: await generateProjectId(),
           stage_entered_at: new Date().toISOString()

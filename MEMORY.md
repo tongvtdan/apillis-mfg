@@ -56,6 +56,117 @@
 - ✅ Document workflows integrated with project management
 - ✅ Storage security configured with proper access controls
 
+### 2025-09-02 - Intake Type Architecture Implementation ✅
+
+**Task Completed:**
+- Implemented comprehensive intake type architecture to separate intake classification from project type classification
+- Added database migration for intake_type and intake_source fields
+- Created intake mapping service for routing different submission types to appropriate workflows
+- Replaced complex ProjectIntakeForm with SimplifiedIntakeForm
+- Implemented proper workflow routing based on intake types
+
+**Implementation Details:**
+
+1. **Database Migration** (`supabase/migrations/20250902150000_add_intake_type_to_projects.sql`):
+   - **New Fields**: Added `intake_type` enum and `intake_source` varchar to projects table
+   - **Enum Types**: Created `intake_type` enum with values: 'rfq', 'purchase_order', 'project_idea', 'direct_request'
+   - **Indexes**: Added performance indexes for intake_type and intake_source
+   - **Documentation**: Added column comments for clarity
+
+2. **Type System Updates** (`src/types/project.ts`):
+   - **New Types**: Added `IntakeType` and `IntakeSource` type definitions
+   - **Project Interface**: Extended Project interface with intake_type and intake_source fields
+   - **Supabase Types**: Updated Supabase type definitions to include new fields
+
+3. **Intake Mapping Service** (`src/services/intakeMappingService.ts`):
+   - **Mapping Logic**: Created comprehensive mapping between intake types and project types
+   - **RFQ Mapping**: Routes to 'fabrication' projects, starts in 'inquiry_received' stage
+   - **Purchase Order Mapping**: Routes to 'manufacturing' projects, starts in 'order_confirmed' stage
+   - **Project Idea Mapping**: Routes to 'system_build' projects, starts in 'technical_review' stage
+   - **Priority Assignment**: Automatic priority assignment based on intake type
+
+4. **Workflow Service** (`src/services/intakeWorkflowService.ts`):
+   - **Stage Routing**: Gets appropriate initial stage ID based on intake type
+   - **Fallback Logic**: Falls back to first available stage if specific stage not found
+   - **Organization Context**: Handles organization-specific workflow stages
+
+5. **Project Intake Service** (`src/services/projectIntakeService.ts`):
+   - **Unified Creation**: Single service for creating projects from intake data
+   - **Intelligent Routing**: Automatically determines project type and initial stage
+   - **Tag Management**: Creates comprehensive tags including intake type and project type
+   - **Error Handling**: Comprehensive error handling with user-friendly messages
+
+6. **Simplified Intake Form** (`src/components/project/SimplifiedIntakeForm.tsx`):
+   - **Replaced Complex Form**: Simplified form without file upload complexity
+   - **Intake Integration**: Uses ProjectIntakeService for proper project creation
+   - **Mapping Display**: Shows intake type mapping information to users
+   - **Validation**: Simplified but comprehensive form validation
+
+7. **Updated ProjectIntakePortal** (`src/components/project/ProjectIntakePortal.tsx`):
+   - **Form Replacement**: Now uses SimplifiedIntakeForm instead of ProjectIntakeForm
+   - **Consistent Experience**: Same portal interface with improved backend logic
+
+8. **Enhanced useProjects Hook** (`src/hooks/useProjects.ts`):
+   - **Extended Parameters**: Added intake_type, intake_source, project_type, current_stage_id to createProject
+   - **Database Integration**: Updated database insert to include new fields
+   - **Backward Compatibility**: Maintains compatibility with existing code
+
+**Key Features Implemented:**
+
+- **Intake Type Classification**:
+  - RFQ → fabrication projects (inquiry_received stage)
+  - Purchase Order → manufacturing projects (order_confirmed stage)
+  - Project Idea → system_build projects (technical_review stage)
+
+- **Intelligent Workflow Routing**:
+  - Automatic stage assignment based on intake type
+  - Fallback to first available stage if specific stage not found
+  - Organization-specific workflow handling
+
+- **Enhanced Project Creation**:
+  - Proper project type determination
+  - Automatic priority assignment
+  - Comprehensive tagging system
+  - Intake source tracking
+
+- **Simplified User Experience**:
+  - Cleaner form without file upload complexity
+  - Clear intake type information display
+  - Better error handling and user feedback
+
+**Technical Implementation:**
+
+```typescript
+// Intake mapping configuration
+const INTAKE_MAPPINGS = {
+  'RFQ': {
+    intakeType: 'rfq',
+    defaultProjectType: 'fabrication',
+    initialStageSlug: 'inquiry_received',
+    priority: 'medium'
+  },
+  'Purchase Order': {
+    intakeType: 'purchase_order',
+    defaultProjectType: 'manufacturing',
+    initialStageSlug: 'order_confirmed',
+    priority: 'high'
+  },
+  'Project Idea': {
+    intakeType: 'project_idea',
+    defaultProjectType: 'system_build',
+    initialStageSlug: 'technical_review',
+    priority: 'low'
+  }
+};
+
+// Project creation with intake routing
+const project = await ProjectIntakeService.createProjectFromIntake(
+  intakeData,
+  organizationId,
+  createProject
+);
+```
+
 ### 2025-09-02 - Projects Page New Project Button Consolidation ✅
 
 **Task Completed:**

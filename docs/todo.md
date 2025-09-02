@@ -2,6 +2,18 @@
 
 ## Current Sprint
 
+- [done] 2025-09-02 - Intake Type Architecture Implementation ✅
+  - ✅ Added database migration for intake_type and intake_source fields
+  - ✅ Created IntakeMappingService with comprehensive intake type to project type mapping
+  - ✅ Implemented IntakeWorkflowService for proper stage routing
+  - ✅ Created ProjectIntakeService for unified project creation from intake data
+  - ✅ Replaced complex ProjectIntakeForm with SimplifiedIntakeForm
+  - ✅ Updated ProjectIntakePortal to use new simplified form
+  - ✅ Enhanced useProjects hook with new intake fields
+  - ✅ Updated TypeScript types and Supabase type definitions
+  - ✅ Implemented intelligent workflow routing based on intake types
+  - ✅ Added automatic priority assignment and project type determination
+
 - [done] 2025-09-02 - Projects Page New Project Button Consolidation ✅
   - ✅ Added New Project button to Projects page header with ProjectIntakePortal integration
   - ✅ Removed redundant New Project button from EnhancedProjectList List view
