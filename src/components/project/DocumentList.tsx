@@ -170,7 +170,12 @@ export const DocumentList: React.FC<DocumentListProps> = ({
                             </TableCell>
                             <TableCell>
                                 <div className="flex gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
-                                    <Button variant="ghost" size="sm" title="Preview">
+                                    <Button
+                                        variant="ghost"
+                                        size="sm"
+                                        title="Preview"
+                                        onClick={() => onDocumentClick && onDocumentClick(document)}
+                                    >
                                         <Eye className="w-3 h-3" />
                                     </Button>
                                     <Button variant="ghost" size="sm" title="Download">

@@ -32,11 +32,13 @@ import { DocumentUploadZone } from './DocumentUploadZone';
 import { DocumentGrid } from './DocumentGrid';
 import { DocumentList } from './DocumentList';
 import { DocumentFilters } from './DocumentFilters';
+import { DocumentPreview } from './DocumentPreview';
 import { DocumentApproval } from '@/components/approval/DocumentApproval';
 import type { ProjectDocument } from '@/hooks/useDocuments';
 
 interface DocumentManagerProps {
     projectId: string;
+    currentStageId?: string;
 }
 
 export type ViewMode = 'grid' | 'list';
@@ -55,7 +57,7 @@ export interface DocumentFiltersState {
     uploadedBy: string[];
 }
 
-export const DocumentManager: React.FC<DocumentManagerProps> = ({ projectId }) => {
+export const DocumentManager: React.FC<DocumentManagerProps> = ({ projectId, currentStageId }) => {
     const { data: documents = [], isLoading } = useDocuments(projectId);
 
     // View state
@@ -65,6 +67,7 @@ export const DocumentManager: React.FC<DocumentManagerProps> = ({ projectId }) =
     const [showFilters, setShowFilters] = useState(false);
     const [selectedDocument, setSelectedDocument] = useState<ProjectDocument | null>(null);
     const [showApprovalPanel, setShowApprovalPanel] = useState(false);
+    const [showPreview, setShowPreview] = useState(false);
 
     // Sorting state
     const [sortField, setSortField] = useState<SortField>('date');
@@ -367,7 +370,7 @@ export const DocumentManager: React.FC<DocumentManagerProps> = ({ projectId }) =
                                 onSelectAll={handleSelectAll}
                                 onDocumentClick={(document) => {
                                     setSelectedDocument(document);
-                                    setShowApprovalPanel(true);
+                                    setShowPreview(true);
                                 }}
                             />
                         ) : (
@@ -381,7 +384,7 @@ export const DocumentManager: React.FC<DocumentManagerProps> = ({ projectId }) =
                                 onSort={handleSort}
                                 onDocumentClick={(document) => {
                                     setSelectedDocument(document);
-                                    setShowApprovalPanel(true);
+                                    setShowPreview(true);
                                 }}
                             />
                         )
@@ -433,7 +436,28 @@ export const DocumentManager: React.FC<DocumentManagerProps> = ({ projectId }) =
                 {showUploadZone && (
                     <DocumentUploadZone
                         projectId={projectId}
+                        currentStageId={currentStageId}
                         onClose={() => setShowUploadZone(false)}
+                    />
+                )}
+
+                {/* Document Preview Modal */}
+                {showPreview && selectedDocument && (
+                    <DocumentPreview
+                        document={selectedDocument}
+                        isOpen={showPreview}
+                        onClose={() => {
+                            setShowPreview(false);
+                            setSelectedDocument(null);
+                        }}
+                        onEdit={(document) => {
+                            // TODO: Implement document editing
+                            console.log('Edit document:', document);
+                        }}
+                        onDelete={async (document) => {
+                            // TODO: Implement document deletion with confirmation
+                            console.log('Delete document:', document);
+                        }}
                     />
                 )}
             </div>

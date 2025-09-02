@@ -71,16 +71,21 @@ export const DocumentGrid: React.FC<DocumentGridProps> = ({
                                     onCheckedChange={() => onSelectDocument(document.id)}
                                 />
                                 <div className="flex gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
-                                    <Button variant="ghost" size="sm">
+                                    <Button
+                                        variant="ghost"
+                                        size="sm"
+                                        onClick={() => onDocumentClick && onDocumentClick(document)}
+                                        title="Preview"
+                                    >
                                         <Eye className="w-3 h-3" />
                                     </Button>
-                                    <Button variant="ghost" size="sm">
+                                    <Button variant="ghost" size="sm" title="Download">
                                         <Download className="w-3 h-3" />
                                     </Button>
-                                    <Button variant="ghost" size="sm">
+                                    <Button variant="ghost" size="sm" title="Edit">
                                         <Edit className="w-3 h-3" />
                                     </Button>
-                                    <Button variant="ghost" size="sm">
+                                    <Button variant="ghost" size="sm" title="Delete">
                                         <Trash2 className="w-3 h-3" />
                                     </Button>
                                 </div>
