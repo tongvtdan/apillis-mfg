@@ -293,6 +293,30 @@ export class CentralizedApprovalService {
     }
 
     /**
+     * Get approval history by entity ID
+     */
+    async getEntityApprovalHistory(entityType: string, entityId: string): Promise<ApprovalHistory[]> {
+        try {
+            const { data: history, error } = await supabase
+                .from('approval_history')
+                .select(`
+                    ah:*,
+                    action_by_user:action_by(*),
+                    approval:approval_id(*)
+                `)
+                .eq('approval.entity_type', entityType)
+                .eq('approval.entity_id', entityId)
+                .order('action_at', { ascending: false });
+
+            if (error) throw error;
+            return (history || []) as ApprovalHistory[];
+        } catch (error) {
+            console.error('Error fetching entity approval history:', error);
+            throw error;
+        }
+    }
+
+    /**
      * Get approval attachments
      */
     async getApprovalAttachments(approvalId: string): Promise<ApprovalAttachment[]> {

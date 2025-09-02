@@ -32,6 +32,7 @@ import { DocumentUploadZone } from './DocumentUploadZone';
 import { DocumentGrid } from './DocumentGrid';
 import { DocumentList } from './DocumentList';
 import { DocumentFilters } from './DocumentFilters';
+import { DocumentApproval } from '@/components/approval/DocumentApproval';
 import type { ProjectDocument } from '@/hooks/useDocuments';
 
 interface DocumentManagerProps {
@@ -62,6 +63,8 @@ export const DocumentManager: React.FC<DocumentManagerProps> = ({ projectId }) =
     const [selectedDocuments, setSelectedDocuments] = useState<string[]>([]);
     const [showUploadZone, setShowUploadZone] = useState(false);
     const [showFilters, setShowFilters] = useState(false);
+    const [selectedDocument, setSelectedDocument] = useState<ProjectDocument | null>(null);
+    const [showApprovalPanel, setShowApprovalPanel] = useState(false);
 
     // Sorting state
     const [sortField, setSortField] = useState<SortField>('date');
@@ -222,6 +225,9 @@ export const DocumentManager: React.FC<DocumentManagerProps> = ({ projectId }) =
             filters.uploadedBy.length > 0;
     }, [filters]);
 
+    const [selectedDocument, setSelectedDocument] = useState<ProjectDocument | null>(null);
+    const [showApprovalPanel, setShowApprovalPanel] = useState(false);
+
     return (
         <div className="space-y-6">
             {/* Header with actions */}
@@ -362,6 +368,10 @@ export const DocumentManager: React.FC<DocumentManagerProps> = ({ projectId }) =
                                 selectedDocuments={selectedDocuments}
                                 onSelectDocument={handleSelectDocument}
                                 onSelectAll={handleSelectAll}
+                                onDocumentClick={(document) => {
+                                    setSelectedDocument(document);
+                                    setShowApprovalPanel(true);
+                                }}
                             />
                         ) : (
                             <DocumentList
@@ -372,6 +382,10 @@ export const DocumentManager: React.FC<DocumentManagerProps> = ({ projectId }) =
                                 sortField={sortField}
                                 sortOrder={sortOrder}
                                 onSort={handleSort}
+                                onDocumentClick={(document) => {
+                                    setSelectedDocument(document);
+                                    setShowApprovalPanel(true);
+                                }}
                             />
                         )
                     ) : (
@@ -401,13 +415,30 @@ export const DocumentManager: React.FC<DocumentManagerProps> = ({ projectId }) =
                 </CardContent>
             </Card>
 
-            {/* Upload Zone Modal */}
-            {showUploadZone && (
-                <DocumentUploadZone
-                    projectId={projectId}
-                    onClose={() => setShowUploadZone(false)}
-                />
-            )}
-        </div>
-    );
+            <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+                <div className="lg:col-span-2">
+
+                    {showApprovalPanel && selectedDocument && (
+                        <div className="lg:col-span-1">
+                            <DocumentApproval
+                                document={selectedDocument}
+                                projectId={projectId}
+                                organizationId="TEMP_ORG_ID" // This should be fetched from context
+                                onApprovalUpdate={() => {
+                                    // Refresh documents or update UI as needed
+                                }}
+                            />
+                        </div>
+                    )}
+                </div>
+
+                {/* Upload Zone Modal */}
+                {showUploadZone && (
+                    <DocumentUploadZone
+                        projectId={projectId}
+                        onClose={() => setShowUploadZone(false)}
+                    />
+                )}
+            </div>
+            );
 };

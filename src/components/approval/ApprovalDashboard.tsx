@@ -5,6 +5,7 @@ import { Button } from '@/components/ui/button';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Checkbox } from '@/components/ui/checkbox';
 import { useApprovals } from '@/hooks/useApprovals';
+import { useCentralizedApprovals } from '@/hooks/useCentralizedApprovals';
 import { ApprovalModal } from './ApprovalModal';
 import { ApprovalHistoryList } from './ApprovalHistoryList';
 import { BulkApprovalModal } from './BulkApprovalModal';
@@ -19,17 +20,30 @@ import {
     FileText,
     CheckSquare,
     Square,
-    UserCheck
+    UserCheck,
+    File,
+    Users
 } from 'lucide-react';
 import { formatDistanceToNow } from 'date-fns';
 
 export function ApprovalDashboard() {
     const { pendingApprovals, approvalHistory, loading } = useApprovals();
+    const { pendingApprovals: centralizedPendingApprovals, loading: centralizedLoading } = useCentralizedApprovals();
+
+    // Filter approvals by entity type
+    const filteredApprovals = pendingApprovals.filter(approval => {
+        if (activeEntityType === 'all') return true;
+        // For legacy approvals, we need to check the metadata or context
+        // For centralized approvals, we can check the entity_type field
+        return approval.metadata?.entity_type === activeEntityType ||
+            approval.metadata?.type === activeEntityType;
+    });
     const [selectedApproval, setSelectedApproval] = useState<string | null>(null);
     const [selectedApprovals, setSelectedApprovals] = useState<string[]>([]);
     const [showBulkModal, setShowBulkModal] = useState(false);
     const [bulkSelectionMode, setBulkSelectionMode] = useState(false);
     const [showDelegationModal, setShowDelegationModal] = useState(false);
+    const [activeEntityType, setActiveEntityType] = useState('all'); // 'all', 'project', 'document', 'rfq'
 
     const getPriorityColor = (priority: string) => {
         switch (priority) {
@@ -160,11 +174,46 @@ export function ApprovalDashboard() {
                 </Card>
             </div>
 
+            {/* Filter by entity type */}
+            <div className="flex gap-2 mb-4">
+                <Button
+                    variant={activeEntityType === 'all' ? 'default' : 'outline'}
+                    size="sm"
+                    onClick={() => setActiveEntityType('all')}
+                >
+                    All Types
+                </Button>
+                <Button
+                    variant={activeEntityType === 'project' ? 'default' : 'outline'}
+                    size="sm"
+                    onClick={() => setActiveEntityType('project')}
+                >
+                    <FileText className="w-4 h-4 mr-1" />
+                    Projects
+                </Button>
+                <Button
+                    variant={activeEntityType === 'document' ? 'default' : 'outline'}
+                    size="sm"
+                    onClick={() => setActiveEntityType('document')}
+                >
+                    <File className="w-4 h-4 mr-1" />
+                    Documents
+                </Button>
+                <Button
+                    variant={activeEntityType === 'rfq' ? 'default' : 'outline'}
+                    size="sm"
+                    onClick={() => setActiveEntityType('rfq')}
+                >
+                    <Users className="w-4 h-4 mr-1" />
+                    RFQs
+                </Button>
+            </div>
+
             {/* Main Content */}
             <Tabs defaultValue="pending" className="space-y-4">
                 <TabsList>
                     <TabsTrigger value="pending">
-                        Pending Approvals ({pendingApprovals.length})
+                        Pending Approvals ({filteredApprovals.length})
                     </TabsTrigger>
                     <TabsTrigger value="history">
                         Approval History
@@ -172,7 +221,7 @@ export function ApprovalDashboard() {
                 </TabsList>
 
                 <TabsContent value="pending" className="space-y-4">
-                    {pendingApprovals.length === 0 ? (
+                    {filteredApprovals.length === 0 ? (
                         <Card>
                             <CardContent className="p-8 text-center">
                                 <CheckCircle className="w-12 h-12 text-green-500 mx-auto mb-4" />
@@ -189,7 +238,7 @@ export function ApprovalDashboard() {
                                 <div className="flex items-center gap-4">
                                     <div className="flex items-center gap-2">
                                         <Checkbox
-                                            checked={selectedApprovals.length === pendingApprovals.length}
+                                            checked={selectedApprovals.length === filteredApprovals.length}
                                             onCheckedChange={handleSelectAll}
                                             disabled={!bulkSelectionMode}
                                         />
@@ -245,7 +294,7 @@ export function ApprovalDashboard() {
 
                             {/* Approval Cards */}
                             <div className="grid gap-4">
-                                {pendingApprovals.map((approval) => (
+                                {filteredApprovals.map((approval) => (
                                     <Card key={approval.id} className="hover:shadow-md transition-shadow">
                                         <CardContent className="p-6">
                                             <div className="flex items-start justify-between">

@@ -12,6 +12,7 @@ interface DocumentGridProps {
     selectedDocuments: string[];
     onSelectDocument: (documentId: string) => void;
     onSelectAll: () => void;
+    onDocumentClick?: (document: ProjectDocument) => void;
 }
 
 /**
@@ -22,7 +23,8 @@ export const DocumentGrid: React.FC<DocumentGridProps> = ({
     documents,
     selectedDocuments,
     onSelectDocument,
-    onSelectAll
+    onSelectAll,
+    onDocumentClick
 }) => {
     const formatFileSize = (bytes: number): string => {
         if (bytes === 0) return '0 Bytes';
@@ -91,25 +93,29 @@ export const DocumentGrid: React.FC<DocumentGridProps> = ({
 
                             {/* Document info */}
                             <div className="space-y-2">
-                                <h4 className="font-medium text-sm truncate" title={doc.title}>
-                                    {doc.title}
+                                <h4
+                                    className="font-medium text-sm truncate cursor-pointer hover:text-primary"
+                                    title={document.title}
+                                    onClick={() => onDocumentClick && onDocumentClick(document)}
+                                >
+                                    {document.title}
                                 </h4>
 
                                 <div className="flex items-center gap-2">
                                     <Badge
                                         variant="secondary"
-                                        className={`text-xs ${getDocumentTypeColor(doc.category)}`}
+                                        className={`text-xs ${getDocumentTypeColor(document.category)}`}
                                     >
-                                        {doc.category}
+                                        {document.category}
                                     </Badge>
                                     <Badge variant="outline" className="text-xs">
-                                        {doc.access_level}
+                                        {document.access_level}
                                     </Badge>
                                 </div>
 
                                 <div className="text-xs text-muted-foreground space-y-1">
-                                    <div>{formatFileSize(doc.file_size)}</div>
-                                    <div>{format(new Date(doc.created_at), 'MMM d, yyyy')}</div>
+                                    <div>{formatFileSize(document.file_size)}</div>
+                                    <div>{format(new Date(document.created_at), 'MMM d, yyyy')}</div>
                                 </div>
 
                                 {/* Tags */}

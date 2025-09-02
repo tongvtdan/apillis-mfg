@@ -7,20 +7,23 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { useRFQs } from '@/hooks/useRFQs';
 import { useReviews } from '@/hooks/useReviews';
 import { usePermissions } from '@/hooks/usePermissions';
+import { useAuth } from '@/contexts/AuthContext';
 import { ReviewForm } from '@/components/review/ReviewForm';
 import { ReviewStatusPanel } from '@/components/review/ReviewStatusPanel';
 import { ClarificationModal } from '@/components/review/ClarificationModal';
+import { RFQApproval } from '@/components/approval/RFQApproval';
 import { RFQ, PRIORITY_COLORS } from '@/types/rfq';
 import { Department } from '@/types/review';
-import { 
-  FileText, 
-  Calendar, 
-  User, 
-  Building2, 
-  Phone, 
+import {
+  FileText,
+  Calendar,
+  User,
+  Building2,
+  Phone,
   Mail,
   DollarSign,
-  MessageSquare
+  MessageSquare,
+  Shield
 } from 'lucide-react';
 import { formatDistanceToNow, format } from 'date-fns';
 
@@ -29,24 +32,26 @@ export function RFQDetail() {
   const [rfq, setRfq] = useState<RFQ | null>(null);
   const [loading, setLoading] = useState(true);
   const [showReviewForm, setShowReviewForm] = useState<Department | null>(null);
-  
+  const [showApprovalPanel, setShowApprovalPanel] = useState(false);
+
   const { getRFQById } = useRFQs();
-  const { 
-    reviews, 
-    risks, 
-    clarifications, 
-    loading: reviewsLoading, 
-    submitReview, 
+  const {
+    reviews,
+    risks,
+    clarifications,
+    loading: reviewsLoading,
+    submitReview,
     submitClarification,
-    assignReviewer 
+    assignReviewer
   } = useReviews(id || '');
-  
+
   const { profile, canReviewRFQ, canManageUsers } = usePermissions();
+  const { profile: authProfile } = useAuth();
 
   useEffect(() => {
     const fetchRFQ = async () => {
       if (!id) return;
-      
+
       try {
         const rfqData = await getRFQById(id);
         setRfq(rfqData);
@@ -105,6 +110,7 @@ export function RFQDetail() {
         <TabsList>
           <TabsTrigger value="overview">Overview</TabsTrigger>
           <TabsTrigger value="reviews">Internal Reviews</TabsTrigger>
+          <TabsTrigger value="approvals">Approvals</TabsTrigger>
           <TabsTrigger value="documents">Documents</TabsTrigger>
           <TabsTrigger value="activity">Activity Log</TabsTrigger>
         </TabsList>
@@ -136,7 +142,7 @@ export function RFQDetail() {
                     </div>
                   </div>
                 </div>
-                
+
                 {rfq.estimated_value && (
                   <div>
                     <span className="text-sm font-medium text-muted-foreground">Estimated Value</span>
@@ -146,7 +152,7 @@ export function RFQDetail() {
                     </div>
                   </div>
                 )}
-                
+
                 {rfq.due_date && (
                   <div>
                     <span className="text-sm font-medium text-muted-foreground">Due Date</span>
@@ -156,7 +162,7 @@ export function RFQDetail() {
                     </div>
                   </div>
                 )}
-                
+
                 {rfq.description && (
                   <div>
                     <span className="text-sm font-medium text-muted-foreground">Description</span>
@@ -184,13 +190,13 @@ export function RFQDetail() {
                     </div>
                   </div>
                 )}
-                
+
                 {rfq.contact_email && (
                   <div>
                     <span className="text-sm font-medium text-muted-foreground">Email</span>
                     <div className="flex items-center gap-2 mt-1">
                       <Mail className="w-4 h-4 text-muted-foreground" />
-                      <a 
+                      <a
                         href={`mailto:${rfq.contact_email}`}
                         className="text-primary hover:underline"
                       >
@@ -199,13 +205,13 @@ export function RFQDetail() {
                     </div>
                   </div>
                 )}
-                
+
                 {rfq.contact_phone && (
                   <div>
                     <span className="text-sm font-medium text-muted-foreground">Phone</span>
                     <div className="flex items-center gap-2 mt-1">
                       <Phone className="w-4 h-4 text-muted-foreground" />
-                      <a 
+                      <a
                         href={`tel:${rfq.contact_phone}`}
                         className="text-primary hover:underline"
                       >
@@ -240,7 +246,7 @@ export function RFQDetail() {
               <div className="flex gap-2">
                 {(['Engineering', 'QA', 'Production'] as Department[]).map(department => {
                   if (!canShowReviewForm(department)) return null;
-                  
+
                   const existingReview = getExistingReview(department);
                   return (
                     <Button
@@ -252,7 +258,7 @@ export function RFQDetail() {
                     </Button>
                   );
                 })}
-                
+
                 {canReviewRFQ() && (
                   <ClarificationModal onSubmit={submitClarification} />
                 )}
@@ -279,6 +285,40 @@ export function RFQDetail() {
               />
             </>
           )}
+        </TabsContent>
+
+        <TabsContent value="approvals" className="space-y-6">
+          <div className="flex justify-between items-center mb-4">
+            <h3 className="text-lg font-semibold">RFQ Approvals</h3>
+            <Button
+              onClick={() => setShowApprovalPanel(true)}
+              variant="outline"
+            >
+              <Shield className="w-4 h-4 mr-2" />
+              Request Approval
+            </Button>
+          </div>
+
+          {showApprovalPanel && rfq && authProfile && (
+            <RFQApproval
+              rfq={rfq}
+              projectId={rfq.project_id || "TEMP_PROJECT_ID"} // Use actual project ID from RFQ
+              organizationId={authProfile.organization_id}
+              onApprovalUpdate={() => {
+                setShowApprovalPanel(false);
+                // Refresh data as needed
+              }}
+            />
+          )}
+
+          <Card>
+            <CardHeader>
+              <CardTitle>Approval History</CardTitle>
+            </CardHeader>
+            <CardContent>
+              <p className="text-muted-foreground">Approval history will be displayed here.</p>
+            </CardContent>
+          </Card>
         </TabsContent>
 
         <TabsContent value="documents">
