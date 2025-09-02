@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import * as z from 'zod';
+import { Modal } from '@/components/ui/modal';
 import { Button } from '@/components/ui/button';
 import { Textarea } from '@/components/ui/textarea';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
@@ -217,235 +218,237 @@ export function ApprovalDelegationModal({
 
     if (loading) {
         return (
-            <div className="fixed inset-0 bg-background/95 backdrop-blur-lg flex items-center justify-center p-4 z-50">
-                <div className="w-full max-w-2xl">
-                    <Card>
-                        <CardContent className="flex items-center justify-center p-8">
-                            <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
-                        </CardContent>
-                    </Card>
+            <Modal
+                isOpen={isOpen}
+                onClose={onClose}
+                title={
+                    <div className="flex items-center gap-2">
+                        <UserCheck className="w-5 h-5 text-blue-500" />
+                        Delegate Approval Responsibilities
+                    </div>
+                }
+                maxWidth="max-w-2xl"
+            >
+                <div className="flex items-center justify-center p-8">
+                    <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
                 </div>
-            </div>
+            </Modal>
         );
     }
 
     return (
-        <div className="fixed inset-0 bg-background/95 backdrop-blur-lg flex items-center justify-center p-4 z-50">
-            <div className="w-full max-w-2xl max-h-[90vh] overflow-y-auto">
+        <Modal
+            isOpen={isOpen}
+            onClose={onClose}
+            title={
+                <div className="flex items-center gap-2">
+                    <UserCheck className="w-5 h-5 text-blue-500" />
+                    <span>Delegate Approval Responsibilities</span>
+                </div>
+            }
+            description="Temporarily assign your approval responsibilities to another team member."
+            showDescription={true}
+            maxWidth="max-w-2xl"
+        >
+            {/* Delegation Info */}
+            {approvalIds && approvalIds.length > 0 && (
                 <Card>
-                    <CardHeader>
-                        <CardTitle className="flex items-center space-x-2">
-                            <UserCheck className="w-5 h-5 text-blue-500" />
-                            <span>Delegate Approval Responsibilities</span>
-                        </CardTitle>
-                        <p className="text-sm text-muted-foreground">
-                            Temporarily assign your approval responsibilities to another team member.
-                        </p>
-                    </CardHeader>
-
-                    <CardContent className="space-y-6">
-                        {/* Delegation Info */}
-                        {approvalIds && approvalIds.length > 0 && (
-                            <Card>
-                                <CardContent className="p-4">
-                                    <div className="flex items-center gap-2 text-sm">
-                                        <AlertCircle className="w-4 h-4 text-orange-500" />
-                                        <span>
-                                            Delegating {approvalIds.length} specific approval{approvalIds.length > 1 ? 's' : ''}
-                                        </span>
-                                    </div>
-                                </CardContent>
-                            </Card>
-                        )}
-
-                        {/* Delegation Form */}
-                        <Form {...form}>
-                            <form onSubmit={form.handleSubmit(handleSubmit)} className="space-y-6">
-                                {/* Delegate Selection */}
-                                <FormField
-                                    control={form.control}
-                                    name="delegateToId"
-                                    render={({ field }) => (
-                                        <FormItem>
-                                            <FormLabel>Delegate To</FormLabel>
-                                            <Select onValueChange={field.onChange} defaultValue={field.value}>
-                                                <FormControl>
-                                                    <SelectTrigger>
-                                                        <SelectValue placeholder="Select a team member" />
-                                                    </SelectTrigger>
-                                                </FormControl>
-                                                <SelectContent>
-                                                    {availableUsers.map((user) => (
-                                                        <SelectItem key={user.id} value={user.id}>
-                                                            <div className="flex items-center gap-2">
-                                                                <User className="w-4 h-4" />
-                                                                <div>
-                                                                    <span className="font-medium">{user.display_name}</span>
-                                                                    <Badge variant="outline" className="ml-2 text-xs">
-                                                                        {user.role}
-                                                                    </Badge>
-                                                                </div>
-                                                            </div>
-                                                        </SelectItem>
-                                                    ))}
-                                                </SelectContent>
-                                            </Select>
-                                            <FormMessage />
-                                        </FormItem>
-                                    )}
-                                />
-
-                                {/* Date Range */}
-                                <div className="grid grid-cols-2 gap-4">
-                                    <FormField
-                                        control={form.control}
-                                        name="startDate"
-                                        render={({ field }) => (
-                                            <FormItem className="flex flex-col">
-                                                <FormLabel>Start Date</FormLabel>
-                                                <Popover>
-                                                    <PopoverTrigger asChild>
-                                                        <FormControl>
-                                                            <Button
-                                                                variant="outline"
-                                                                className={cn(
-                                                                    "w-full pl-3 text-left font-normal",
-                                                                    !field.value && "text-muted-foreground"
-                                                                )}
-                                                            >
-                                                                {field.value ? (
-                                                                    format(field.value, "PPP")
-                                                                ) : (
-                                                                    <span>Pick a date</span>
-                                                                )}
-                                                                <CalendarIcon className="ml-auto h-4 w-4 opacity-50" />
-                                                            </Button>
-                                                        </FormControl>
-                                                    </PopoverTrigger>
-                                                    <PopoverContent className="w-auto p-0" align="start">
-                                                        <Calendar
-                                                            mode="single"
-                                                            selected={field.value}
-                                                            onSelect={field.onChange}
-                                                            disabled={(date) =>
-                                                                date < new Date() || date < new Date("1900-01-01")
-                                                            }
-                                                            initialFocus
-                                                        />
-                                                    </PopoverContent>
-                                                </Popover>
-                                                <FormMessage />
-                                            </FormItem>
-                                        )}
-                                    />
-
-                                    <FormField
-                                        control={form.control}
-                                        name="endDate"
-                                        render={({ field }) => (
-                                            <FormItem className="flex flex-col">
-                                                <FormLabel>End Date</FormLabel>
-                                                <Popover>
-                                                    <PopoverTrigger asChild>
-                                                        <FormControl>
-                                                            <Button
-                                                                variant="outline"
-                                                                className={cn(
-                                                                    "w-full pl-3 text-left font-normal",
-                                                                    !field.value && "text-muted-foreground"
-                                                                )}
-                                                            >
-                                                                {field.value ? (
-                                                                    format(field.value, "PPP")
-                                                                ) : (
-                                                                    <span>Pick a date</span>
-                                                                )}
-                                                                <CalendarIcon className="ml-auto h-4 w-4 opacity-50" />
-                                                            </Button>
-                                                        </FormControl>
-                                                    </PopoverTrigger>
-                                                    <PopoverContent className="w-auto p-0" align="start">
-                                                        <Calendar
-                                                            mode="single"
-                                                            selected={field.value}
-                                                            onSelect={field.onChange}
-                                                            disabled={(date) =>
-                                                                date < form.getValues('startDate') || date < new Date("1900-01-01")
-                                                            }
-                                                            initialFocus
-                                                        />
-                                                    </PopoverContent>
-                                                </Popover>
-                                                <FormMessage />
-                                            </FormItem>
-                                        )}
-                                    />
-                                </div>
-
-                                {/* Reason */}
-                                <FormField
-                                    control={form.control}
-                                    name="reason"
-                                    render={({ field }) => (
-                                        <FormItem>
-                                            <FormLabel>Reason for Delegation</FormLabel>
-                                            <FormControl>
-                                                <Textarea
-                                                    {...field}
-                                                    placeholder="Explain why you're delegating these approvals (e.g., vacation, business trip, workload management)..."
-                                                    rows={3}
-                                                />
-                                            </FormControl>
-                                            <FormMessage />
-                                        </FormItem>
-                                    )}
-                                />
-
-                                {/* Include New Approvals */}
-                                <div className="flex items-center space-x-2">
-                                    <input
-                                        type="checkbox"
-                                        id="includeNew"
-                                        {...form.register('includeNewApprovals')}
-                                        className="rounded border-gray-300"
-                                    />
-                                    <Label htmlFor="includeNew" className="text-sm">
-                                        Include new approvals assigned during this period
-                                    </Label>
-                                </div>
-                            </form>
-                        </Form>
-
-                        {/* Action Buttons */}
-                        <div className="flex gap-2 pt-4">
-                            <Button
-                                variant="outline"
-                                onClick={onClose}
-                                disabled={submitting}
-                            >
-                                Cancel
-                            </Button>
-                            <Button
-                                onClick={form.handleSubmit(handleSubmit)}
-                                disabled={submitting}
-                                className="min-w-[120px]"
-                            >
-                                {submitting ? (
-                                    <div className="flex items-center gap-2">
-                                        <Loader2 className="w-4 h-4 animate-spin" />
-                                        Creating...
-                                    </div>
-                                ) : (
-                                    <div className="flex items-center gap-2">
-                                        <ArrowRight className="w-4 h-4" />
-                                        Create Delegation
-                                    </div>
-                                )}
-                            </Button>
+                    <CardContent className="p-4">
+                        <div className="flex items-center gap-2 text-sm">
+                            <AlertCircle className="w-4 h-4 text-orange-500" />
+                            <span>
+                                Delegating {approvalIds.length} specific approval{approvalIds.length > 1 ? 's' : ''}
+                            </span>
                         </div>
                     </CardContent>
                 </Card>
+            )}
+
+            {/* Delegation Form */}
+            <Form {...form}>
+                <form onSubmit={form.handleSubmit(handleSubmit)} className="space-y-6">
+                    {/* Delegate Selection */}
+                    <FormField
+                        control={form.control}
+                        name="delegateToId"
+                        render={({ field }) => (
+                            <FormItem>
+                                <FormLabel>Delegate To</FormLabel>
+                                <Select onValueChange={field.onChange} defaultValue={field.value}>
+                                    <FormControl>
+                                        <SelectTrigger>
+                                            <SelectValue placeholder="Select a team member" />
+                                        </SelectTrigger>
+                                    </FormControl>
+                                    <SelectContent>
+                                        {availableUsers.map((user) => (
+                                            <SelectItem key={user.id} value={user.id}>
+                                                <div className="flex items-center gap-2">
+                                                    <User className="w-4 h-4" />
+                                                    <div>
+                                                        <span className="font-medium">{user.display_name}</span>
+                                                        <Badge variant="outline" className="ml-2 text-xs">
+                                                            {user.role}
+                                                        </Badge>
+                                                    </div>
+                                                </div>
+                                            </SelectItem>
+                                        ))}
+                                    </SelectContent>
+                                </Select>
+                                <FormMessage />
+                            </FormItem>
+                        )}
+                    />
+
+                    {/* Date Range */}
+                    <div className="grid grid-cols-2 gap-4">
+                        <FormField
+                            control={form.control}
+                            name="startDate"
+                            render={({ field }) => (
+                                <FormItem className="flex flex-col">
+                                    <FormLabel>Start Date</FormLabel>
+                                    <Popover>
+                                        <PopoverTrigger asChild>
+                                            <FormControl>
+                                                <Button
+                                                    variant="outline"
+                                                    className={cn(
+                                                        "w-full pl-3 text-left font-normal",
+                                                        !field.value && "text-muted-foreground"
+                                                    )}
+                                                >
+                                                    {field.value ? (
+                                                        format(field.value, "PPP")
+                                                    ) : (
+                                                        <span>Pick a date</span>
+                                                    )}
+                                                    <CalendarIcon className="ml-auto h-4 w-4 opacity-50" />
+                                                </Button>
+                                            </FormControl>
+                                        </PopoverTrigger>
+                                        <PopoverContent className="w-auto p-0" align="start">
+                                            <Calendar
+                                                mode="single"
+                                                selected={field.value}
+                                                onSelect={field.onChange}
+                                                disabled={(date) =>
+                                                    date < new Date() || date < new Date("1900-01-01")
+                                                }
+                                                initialFocus
+                                            />
+                                        </PopoverContent>
+                                    </Popover>
+                                    <FormMessage />
+                                </FormItem>
+                            )}
+                        />
+
+                        <FormField
+                            control={form.control}
+                            name="endDate"
+                            render={({ field }) => (
+                                <FormItem className="flex flex-col">
+                                    <FormLabel>End Date</FormLabel>
+                                    <Popover>
+                                        <PopoverTrigger asChild>
+                                            <FormControl>
+                                                <Button
+                                                    variant="outline"
+                                                    className={cn(
+                                                        "w-full pl-3 text-left font-normal",
+                                                        !field.value && "text-muted-foreground"
+                                                    )}
+                                                >
+                                                    {field.value ? (
+                                                        format(field.value, "PPP")
+                                                    ) : (
+                                                        <span>Pick a date</span>
+                                                    )}
+                                                    <CalendarIcon className="ml-auto h-4 w-4 opacity-50" />
+                                                </Button>
+                                            </FormControl>
+                                        </PopoverTrigger>
+                                        <PopoverContent className="w-auto p-0" align="start">
+                                            <Calendar
+                                                mode="single"
+                                                selected={field.value}
+                                                onSelect={field.onChange}
+                                                disabled={(date) =>
+                                                    date < form.getValues('startDate') || date < new Date("1900-01-01")
+                                                }
+                                                initialFocus
+                                            />
+                                        </PopoverContent>
+                                    </Popover>
+                                    <FormMessage />
+                                </FormItem>
+                            )}
+                        />
+                    </div>
+
+                    {/* Reason */}
+                    <FormField
+                        control={form.control}
+                        name="reason"
+                        render={({ field }) => (
+                            <FormItem>
+                                <FormLabel>Reason for Delegation</FormLabel>
+                                <FormControl>
+                                    <Textarea
+                                        {...field}
+                                        placeholder="Explain why you're delegating these approvals (e.g., vacation, business trip, workload management)..."
+                                        rows={3}
+                                    />
+                                </FormControl>
+                                <FormMessage />
+                            </FormItem>
+                        )}
+                    />
+
+                    {/* Include New Approvals */}
+                    <div className="flex items-center space-x-2">
+                        <input
+                            type="checkbox"
+                            id="includeNew"
+                            {...form.register('includeNewApprovals')}
+                            className="rounded border-gray-300"
+                        />
+                        <Label htmlFor="includeNew" className="text-sm">
+                            Include new approvals assigned during this period
+                        </Label>
+                    </div>
+                </form>
+            </Form>
+
+            {/* Action Buttons */}
+            <div className="flex gap-2 pt-4">
+                <Button
+                    variant="outline"
+                    onClick={onClose}
+                    disabled={submitting}
+                >
+                    Cancel
+                </Button>
+                <Button
+                    onClick={form.handleSubmit(handleSubmit)}
+                    disabled={submitting}
+                    className="min-w-[120px]"
+                >
+                    {submitting ? (
+                        <div className="flex items-center gap-2">
+                            <Loader2 className="w-4 h-4 animate-spin" />
+                            Creating...
+                        </div>
+                    ) : (
+                        <div className="flex items-center gap-2">
+                            <ArrowRight className="w-4 h-4" />
+                            Create Delegation
+                        </div>
+                    )}
+                </Button>
             </div>
-        </div>
+        </Modal>
     );
 }

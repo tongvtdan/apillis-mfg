@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useCallback } from 'react';
+import { Modal } from "@/components/ui/modal";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -382,64 +383,67 @@ export function ProjectAttributesManager({
             </Card>
 
             {/* Confirmation Dialog */}
-            {showConfirmDialog && selectedTransition && (
-                <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 animate-in fade-in duration-200">
-                    <div className="bg-background p-6 rounded-lg shadow-lg max-w-md w-full mx-4 animate-in slide-in-from-bottom-4 duration-200">
-                        <h3 className="text-lg font-semibold mb-4">
-                            Confirm Status Change
-                        </h3>
-                        <p className="text-muted-foreground mb-4">
-                            Are you sure you want to change the project status from{' '}
-                            <span className="font-medium">{getStatusInfo(selectedTransition.from).label}</span> to{' '}
-                            <span className="font-medium">{getStatusInfo(selectedTransition.to).label}</span>?
-                        </p>
-
-                        {selectedTransition.requiresReason && (
-                            <div className="space-y-2 mb-4">
-                                <Label className="text-sm font-medium">
-                                    Reason for Change
-                                </Label>
-                                <Textarea
-                                    value={reason}
-                                    onChange={(e) => setReason(e.target.value)}
-                                    placeholder="Please provide a reason for this status change..."
-                                    className="min-h-[80px] transition-all duration-200"
-                                />
-                            </div>
-                        )}
-
-                        <div className="flex justify-end space-x-2">
-                            <Button
-                                variant="outline"
-                                onClick={() => {
-                                    setShowConfirmDialog(false);
-                                    setSelectedTransition(null);
-                                    setReason('');
-                                }}
-                                disabled={isLoading}
-                                className="transition-all duration-200"
-                            >
-                                Cancel
-                            </Button>
-                            <Button
-                                onClick={() => executeStatusChange(selectedTransition, reason)}
-                                disabled={isLoading || (selectedTransition.requiresReason && !reason.trim())}
-                                className={cn(
-                                    "transition-all duration-200",
-                                    selectedTransition.color
-                                )}
-                            >
-                                {isLoading ? (
-                                    <Loader2 className="w-4 h-4 animate-spin mr-2" />
-                                ) : (
-                                    <selectedTransition.icon className="w-4 h-4 mr-2" />
-                                )}
-                                Confirm
-                            </Button>
-                        </div>
+            <Modal
+                isOpen={showConfirmDialog}
+                onClose={() => {
+                    setShowConfirmDialog(false);
+                    setSelectedTransition(null);
+                    setReason('');
+                }}
+                title={
+                    <div className="flex items-center gap-2">
+                        <AlertTriangle className="w-5 h-5 text-yellow-600" />
+                        Confirm Status Change
                     </div>
+                }
+                description={`Are you sure you want to change the project status from ${selectedTransition ? getStatusInfo(selectedTransition.from).label : ''} to ${selectedTransition ? getStatusInfo(selectedTransition.to).label : ''}?`}
+                showDescription={true}
+                maxWidth="max-w-md"
+            >
+                {selectedTransition?.requiresReason && (
+                    <div className="space-y-2 mb-4">
+                        <Label className="text-sm font-medium">
+                            Reason for Change
+                        </Label>
+                        <Textarea
+                            value={reason}
+                            onChange={(e) => setReason(e.target.value)}
+                            placeholder="Please provide a reason for this status change..."
+                            className="min-h-[80px] transition-all duration-200"
+                        />
+                    </div>
+                )}
+
+                <div className="flex justify-end gap-3 pt-4 border-t">
+                    <Button
+                        variant="outline"
+                        onClick={() => {
+                            setShowConfirmDialog(false);
+                            setSelectedTransition(null);
+                            setReason('');
+                        }}
+                        disabled={isLoading}
+                        className="transition-all duration-200"
+                    >
+                        Cancel
+                    </Button>
+                    <Button
+                        onClick={() => executeStatusChange(selectedTransition!, reason)}
+                        disabled={isLoading || (selectedTransition?.requiresReason && !reason.trim())}
+                        className={cn(
+                            "transition-all duration-200",
+                            selectedTransition?.color
+                        )}
+                    >
+                        {isLoading ? (
+                            <Loader2 className="w-4 h-4 animate-spin mr-2" />
+                        ) : selectedTransition && (
+                            <selectedTransition.icon className="w-4 h-4 mr-2" />
+                        )}
+                        Confirm
+                    </Button>
                 </div>
-            )}
+            </Modal>
         </>
     );
 }

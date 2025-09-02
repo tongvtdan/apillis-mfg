@@ -5,6 +5,7 @@ import { Badge } from '@/components/ui/badge';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { Modal } from '@/components/ui/modal';
 import {
     Search,
     Filter,
@@ -27,7 +28,6 @@ import { ProjectIntakeForm } from './ProjectIntakeForm';
 import { useUsers } from '@/hooks/useUsers';
 import { useNavigate } from 'react-router-dom';
 import { useToast } from '@/hooks/use-toast';
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 
 interface EnhancedProjectListProps {
     projects: Project[];
@@ -338,23 +338,28 @@ export function EnhancedProjectList({
                     </div>
 
                     {/* Create Project Button */}
-                    <Dialog open={showCreateForm} onOpenChange={setShowCreateForm}>
-                        <DialogTrigger asChild>
-                            <Button>
-                                <Plus className="h-4 w-4 mr-2" />
-                                New Project
-                            </Button>
-                        </DialogTrigger>
-                        <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
-                            <DialogHeader>
-                                <DialogTitle>Create New Project</DialogTitle>
-                            </DialogHeader>
-                            <ProjectIntakeForm
-                                submissionType="Project Idea"
-                                onSuccess={handleProjectCreate}
-                            />
-                        </DialogContent>
-                    </Dialog>
+                    <Button onClick={() => setShowCreateForm(true)}>
+                        <Plus className="h-4 w-4 mr-2" />
+                        New Project
+                    </Button>
+
+                    {/* Create Project Modal */}
+                    <Modal
+                        isOpen={showCreateForm}
+                        onClose={() => setShowCreateForm(false)}
+                        title={
+                            <div className="flex items-center gap-2">
+                                <Plus className="w-5 h-5" />
+                                Create New Project
+                            </div>
+                        }
+                        maxWidth="max-w-4xl"
+                    >
+                        <ProjectIntakeForm
+                            submissionType="Project Idea"
+                            onSuccess={handleProjectCreate}
+                        />
+                    </Modal>
                 </div>
             </div>
 

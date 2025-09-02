@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import * as z from 'zod';
+import { Modal } from '@/components/ui/modal';
 import { Button } from '@/components/ui/button';
 import { Textarea } from '@/components/ui/textarea';
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
@@ -167,200 +168,203 @@ export function BulkApprovalModal({ approvalIds, isOpen, onClose, onComplete }: 
 
     if (loading) {
         return (
-            <div className="fixed inset-0 bg-background/95 backdrop-blur-lg flex items-center justify-center p-4 z-50">
-                <div className="w-full max-w-4xl">
-                    <Card>
-                        <CardContent className="flex items-center justify-center p-8">
-                            <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
-                        </CardContent>
-                    </Card>
+            <Modal
+                isOpen={isOpen}
+                onClose={onClose}
+                title={
+                    <div className="flex items-center gap-2">
+                        <CheckSquare className="w-5 h-5 text-blue-500" />
+                        Bulk Approval Review
+                    </div>
+                }
+                maxWidth="max-w-4xl"
+            >
+                <div className="flex items-center justify-center p-8">
+                    <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
                 </div>
-            </div>
+            </Modal>
         );
     }
 
     return (
-        <div className="fixed inset-0 bg-background/95 backdrop-blur-lg flex items-center justify-center p-4 z-50">
-            <div className="w-full max-w-4xl max-h-[90vh] overflow-y-auto">
-                <Card>
-                    <CardHeader>
-                        <CardTitle className="flex items-center space-x-2">
-                            <CheckSquare className="w-5 h-5 text-blue-500" />
-                            <span>Bulk Approval Review</span>
-                            <Badge variant="secondary">{approvalIds.length} approvals</Badge>
-                        </CardTitle>
-                    </CardHeader>
+        <Modal
+            isOpen={isOpen}
+            onClose={onClose}
+            title={
+                <div className="flex items-center gap-2">
+                    <CheckSquare className="w-5 h-5 text-blue-500" />
+                    <span>Bulk Approval Review</span>
+                    <Badge variant="secondary">{approvalIds.length} approvals</Badge>
+                </div>
+            }
+            maxWidth="max-w-4xl"
+        >
+            {/* Approval Summaries */}
+            <Card>
+                <CardHeader>
+                    <CardTitle className="text-lg">Approvals to Process</CardTitle>
+                </CardHeader>
+                <CardContent className="space-y-3">
+                    {approvalSummaries.map((approval, index) => (
+                        <div key={approval.id}>
+                            <div className="flex items-center justify-between p-3 border rounded">
+                                <div className="flex items-center gap-3">
+                                    <Badge variant="outline" className="text-xs">
+                                        #{index + 1}
+                                    </Badge>
+                                    <div>
+                                        <p className="font-medium">{approval.project_title}</p>
+                                        <p className="text-sm text-muted-foreground">
+                                            {approval.project_id} • {approval.approver_role}
+                                        </p>
+                                    </div>
+                                </div>
+                                <div className="flex items-center gap-2">
+                                    <Badge className={getPriorityColor(approval.priority)}>
+                                        {approval.priority}
+                                    </Badge>
+                                    {approval.due_date && new Date(approval.due_date) < new Date() && (
+                                        <Badge variant="destructive">Overdue</Badge>
+                                    )}
+                                </div>
+                            </div>
+                            {index < approvalSummaries.length - 1 && <Separator className="my-2" />}
+                        </div>
+                    ))}
+                </CardContent>
+            </Card>
 
-                    <CardContent className="space-y-6">
-                        {/* Approval Summaries */}
-                        <Card>
-                            <CardHeader>
-                                <CardTitle className="text-lg">Approvals to Process</CardTitle>
-                            </CardHeader>
-                            <CardContent className="space-y-3">
-                                {approvalSummaries.map((approval, index) => (
-                                    <div key={approval.id}>
-                                        <div className="flex items-center justify-between p-3 border rounded">
-                                            <div className="flex items-center gap-3">
-                                                <Badge variant="outline" className="text-xs">
-                                                    #{index + 1}
-                                                </Badge>
-                                                <div>
-                                                    <p className="font-medium">{approval.project_title}</p>
-                                                    <p className="text-sm text-muted-foreground">
-                                                        {approval.project_id} • {approval.approver_role}
-                                                    </p>
+            {/* Bulk Decision Form */}
+            <Card>
+                <CardHeader>
+                    <CardTitle className="text-lg">Bulk Decision</CardTitle>
+                    <p className="text-sm text-muted-foreground">
+                        This decision will be applied to all {approvalIds.length} selected approvals.
+                    </p>
+                </CardHeader>
+                <CardContent>
+                    <Form {...form}>
+                        <form onSubmit={form.handleSubmit(handleSubmit)} className="space-y-6">
+                            {/* Decision */}
+                            <FormField
+                                control={form.control}
+                                name="decision"
+                                render={({ field }) => (
+                                    <FormItem>
+                                        <FormLabel>Bulk Approval Decision</FormLabel>
+                                        <FormControl>
+                                            <RadioGroup
+                                                value={field.value}
+                                                onValueChange={field.onChange}
+                                                className="flex gap-6"
+                                            >
+                                                <div className="flex items-center space-x-2">
+                                                    <RadioGroupItem value="approved" id="bulk-approved" />
+                                                    <Label htmlFor="bulk-approved" className="flex items-center gap-2 cursor-pointer">
+                                                        <CheckCircle className="w-4 h-4 text-green-600" />
+                                                        Approve All
+                                                    </Label>
                                                 </div>
-                                            </div>
-                                            <div className="flex items-center gap-2">
-                                                <Badge className={getPriorityColor(approval.priority)}>
-                                                    {approval.priority}
-                                                </Badge>
-                                                {approval.due_date && new Date(approval.due_date) < new Date() && (
-                                                    <Badge variant="destructive">Overdue</Badge>
-                                                )}
-                                            </div>
-                                        </div>
-                                        {index < approvalSummaries.length - 1 && <Separator className="my-2" />}
-                                    </div>
-                                ))}
-                            </CardContent>
-                        </Card>
-
-                        {/* Bulk Decision Form */}
-                        <Card>
-                            <CardHeader>
-                                <CardTitle className="text-lg">Bulk Decision</CardTitle>
-                                <p className="text-sm text-muted-foreground">
-                                    This decision will be applied to all {approvalIds.length} selected approvals.
-                                </p>
-                            </CardHeader>
-                            <CardContent>
-                                <Form {...form}>
-                                    <form onSubmit={form.handleSubmit(handleSubmit)} className="space-y-6">
-                                        {/* Decision */}
-                                        <FormField
-                                            control={form.control}
-                                            name="decision"
-                                            render={({ field }) => (
-                                                <FormItem>
-                                                    <FormLabel>Bulk Approval Decision</FormLabel>
-                                                    <FormControl>
-                                                        <RadioGroup
-                                                            value={field.value}
-                                                            onValueChange={field.onChange}
-                                                            className="flex gap-6"
-                                                        >
-                                                            <div className="flex items-center space-x-2">
-                                                                <RadioGroupItem value="approved" id="bulk-approved" />
-                                                                <Label htmlFor="bulk-approved" className="flex items-center gap-2 cursor-pointer">
-                                                                    <CheckCircle className="w-4 h-4 text-green-600" />
-                                                                    Approve All
-                                                                </Label>
-                                                            </div>
-                                                            <div className="flex items-center space-x-2">
-                                                                <RadioGroupItem value="rejected" id="bulk-rejected" />
-                                                                <Label htmlFor="bulk-rejected" className="flex items-center gap-2 cursor-pointer">
-                                                                    <XCircle className="w-4 h-4 text-red-600" />
-                                                                    Reject All
-                                                                </Label>
-                                                            </div>
-                                                        </RadioGroup>
-                                                    </FormControl>
-                                                    <FormMessage />
-                                                </FormItem>
-                                            )}
-                                        />
-
-                                        {/* Comments */}
-                                        <FormField
-                                            control={form.control}
-                                            name="comments"
-                                            render={({ field }) => (
-                                                <FormItem>
-                                                    <FormLabel>Comments *</FormLabel>
-                                                    <FormControl>
-                                                        <Textarea
-                                                            {...field}
-                                                            placeholder="Provide detailed feedback that applies to all selected approvals..."
-                                                            rows={4}
-                                                        />
-                                                    </FormControl>
-                                                    <FormMessage />
-                                                </FormItem>
-                                            )}
-                                        />
-
-                                        {/* Decision Reason (optional) */}
-                                        <FormField
-                                            control={form.control}
-                                            name="decisionReason"
-                                            render={({ field }) => (
-                                                <FormItem>
-                                                    <FormLabel>Decision Rationale (Optional)</FormLabel>
-                                                    <FormControl>
-                                                        <Textarea
-                                                            {...field}
-                                                            placeholder="Explain the reasoning behind your bulk decision..."
-                                                            rows={3}
-                                                        />
-                                                    </FormControl>
-                                                    <FormMessage />
-                                                </FormItem>
-                                            )}
-                                        />
-                                    </form>
-                                </Form>
-                            </CardContent>
-                        </Card>
-
-                        {/* Progress Indicator */}
-                        {submitting && (
-                            <Card>
-                                <CardContent className="p-4">
-                                    <div className="space-y-2">
-                                        <div className="flex items-center justify-between text-sm">
-                                            <span>Processing approvals...</span>
-                                            <span>{Math.round(submitProgress)}%</span>
-                                        </div>
-                                        <div className="w-full bg-gray-200 rounded-full h-2">
-                                            <div
-                                                className="bg-primary h-2 rounded-full transition-all duration-300"
-                                                style={{ width: `${submitProgress}%` }}
-                                            />
-                                        </div>
-                                    </div>
-                                </CardContent>
-                            </Card>
-                        )}
-
-                        {/* Action Buttons */}
-                        <div className="flex gap-2 pt-4">
-                            <Button
-                                variant="outline"
-                                onClick={onClose}
-                                disabled={submitting}
-                            >
-                                Cancel
-                            </Button>
-                            <Button
-                                onClick={form.handleSubmit(handleSubmit)}
-                                disabled={submitting}
-                                className="min-w-[150px]"
-                            >
-                                {submitting ? (
-                                    <div className="flex items-center gap-2">
-                                        <Loader2 className="w-4 h-4 animate-spin" />
-                                        Processing...
-                                    </div>
-                                ) : (
-                                    `Submit Bulk Decision (${approvalIds.length})`
+                                                <div className="flex items-center space-x-2">
+                                                    <RadioGroupItem value="rejected" id="bulk-rejected" />
+                                                    <Label htmlFor="bulk-rejected" className="flex items-center gap-2 cursor-pointer">
+                                                        <XCircle className="w-4 h-4 text-red-600" />
+                                                        Reject All
+                                                    </Label>
+                                                </div>
+                                            </RadioGroup>
+                                        </FormControl>
+                                        <FormMessage />
+                                    </FormItem>
                                 )}
-                            </Button>
+                            />
+
+                            {/* Comments */}
+                            <FormField
+                                control={form.control}
+                                name="comments"
+                                render={({ field }) => (
+                                    <FormItem>
+                                        <FormLabel>Comments *</FormLabel>
+                                        <FormControl>
+                                            <Textarea
+                                                {...field}
+                                                placeholder="Provide detailed feedback that applies to all selected approvals..."
+                                                rows={4}
+                                            />
+                                        </FormControl>
+                                        <FormMessage />
+                                    </FormItem>
+                                )}
+                            />
+
+                            {/* Decision Reason (optional) */}
+                            <FormField
+                                control={form.control}
+                                name="decisionReason"
+                                render={({ field }) => (
+                                    <FormItem>
+                                        <FormLabel>Decision Rationale (Optional)</FormLabel>
+                                        <FormControl>
+                                            <Textarea
+                                                {...field}
+                                                placeholder="Explain the reasoning behind your bulk decision..."
+                                                rows={3}
+                                            />
+                                        </FormControl>
+                                        <FormMessage />
+                                    </FormItem>
+                                )}
+                            />
+                        </form>
+                    </Form>
+                </CardContent>
+            </Card>
+
+            {/* Progress Indicator */}
+            {submitting && (
+                <Card>
+                    <CardContent className="p-4">
+                        <div className="space-y-2">
+                            <div className="flex items-center justify-between text-sm">
+                                <span>Processing approvals...</span>
+                                <span>{Math.round(submitProgress)}%</span>
+                            </div>
+                            <div className="w-full bg-gray-200 rounded-full h-2">
+                                <div
+                                    className="bg-primary h-2 rounded-full transition-all duration-300"
+                                    style={{ width: `${submitProgress}%` }}
+                                />
+                            </div>
                         </div>
                     </CardContent>
                 </Card>
+            )}
+
+            {/* Action Buttons */}
+            <div className="flex gap-2 pt-4">
+                <Button
+                    variant="outline"
+                    onClick={onClose}
+                    disabled={submitting}
+                >
+                    Cancel
+                </Button>
+                <Button
+                    onClick={form.handleSubmit(handleSubmit)}
+                    disabled={submitting}
+                    className="min-w-[150px]"
+                >
+                    {submitting ? (
+                        <div className="flex items-center gap-2">
+                            <Loader2 className="w-4 h-4 animate-spin" />
+                            Processing...
+                        </div>
+                    ) : (
+                        `Submit Bulk Decision (${approvalIds.length})`
+                    )}
+                </Button>
             </div>
-        </div>
+        </Modal>
     );
 }
