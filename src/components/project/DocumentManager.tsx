@@ -24,7 +24,8 @@ import {
     Plus,
     X,
     SortAsc,
-    SortDesc
+    SortDesc,
+    History
 } from 'lucide-react';
 import { format } from 'date-fns';
 import { useDocuments } from '@/hooks/useDocuments';
@@ -32,11 +33,17 @@ import { DocumentUploadZone } from './DocumentUploadZone';
 import { DocumentGrid } from './DocumentGrid';
 import { DocumentList } from './DocumentList';
 import { DocumentFilters } from './DocumentFilters';
+import { DocumentPreview } from './DocumentPreview';
 import { DocumentApproval } from '@/components/approval/DocumentApproval';
+import { DocumentVersionHistory } from './DocumentVersionHistory';
+import { DocumentEditModal } from './DocumentEditModal';
+import { documentActionsService } from '@/services/documentActions';
 import type { ProjectDocument } from '@/hooks/useDocuments';
+import type { DocumentEditData } from '@/services/documentActions';
 
 interface DocumentManagerProps {
     projectId: string;
+    currentStageId?: string;
 }
 
 export type ViewMode = 'grid' | 'list';
@@ -55,7 +62,7 @@ export interface DocumentFiltersState {
     uploadedBy: string[];
 }
 
-export const DocumentManager: React.FC<DocumentManagerProps> = ({ projectId }) => {
+export const DocumentManager: React.FC<DocumentManagerProps> = ({ projectId, currentStageId }) => {
     const { data: documents = [], isLoading } = useDocuments(projectId);
 
     // View state
@@ -65,6 +72,9 @@ export const DocumentManager: React.FC<DocumentManagerProps> = ({ projectId }) =
     const [showFilters, setShowFilters] = useState(false);
     const [selectedDocument, setSelectedDocument] = useState<ProjectDocument | null>(null);
     const [showApprovalPanel, setShowApprovalPanel] = useState(false);
+    const [showPreview, setShowPreview] = useState(false);
+    const [showVersionHistory, setShowVersionHistory] = useState(false);
+    const [showEditModal, setShowEditModal] = useState(false);
 
     // Sorting state
     const [sortField, setSortField] = useState<SortField>('date');
@@ -80,9 +90,38 @@ export const DocumentManager: React.FC<DocumentManagerProps> = ({ projectId }) =
         uploadedBy: []
     });
 
+    // Document type tabs state
+    const [activeDocumentType, setActiveDocumentType] = useState<string>('all');
+
+    // Get unique document types and their counts
+    const documentTypeStats = useMemo(() => {
+        const typeCounts: Record<string, number> = {};
+        const allTypes = new Set<string>();
+
+        documents.forEach(doc => {
+            const docType = doc.document_type || doc.category || 'other';
+            allTypes.add(docType);
+            typeCounts[docType] = (typeCounts[docType] || 0) + 1;
+        });
+
+        return {
+            types: Array.from(allTypes).sort(),
+            counts: typeCounts,
+            totalCount: documents.length
+        };
+    }, [documents]);
+
     // Filter and sort documents
     const filteredAndSortedDocuments = useMemo(() => {
         let filtered = documents.filter(doc => {
+            // Document type tab filter
+            if (activeDocumentType !== 'all') {
+                const docType = doc.document_type || doc.category || 'other';
+                if (docType !== activeDocumentType) {
+                    return false;
+                }
+            }
+
             // Search filter
             if (filters.search) {
                 const searchLower = filters.search.toLowerCase();
@@ -93,7 +132,7 @@ export const DocumentManager: React.FC<DocumentManagerProps> = ({ projectId }) =
                 if (!matchesName && !matchesTags) return false;
             }
 
-            // Type filter
+            // Type filter (from advanced filters)
             if (filters.type.length > 0 && !filters.type.includes(doc.category || 'other')) {
                 return false;
             }
@@ -134,8 +173,8 @@ export const DocumentManager: React.FC<DocumentManagerProps> = ({ projectId }) =
                     bValue = (b.original_file_name || b.filename || '').toLowerCase();
                     break;
                 case 'date':
-                    aValue = new Date(a.uploaded_at);
-                    bValue = new Date(b.uploaded_at);
+                    aValue = new Date(a.created_at);
+                    bValue = new Date(b.created_at);
                     break;
                 case 'size':
                     aValue = a.file_size || 0;
@@ -155,7 +194,7 @@ export const DocumentManager: React.FC<DocumentManagerProps> = ({ projectId }) =
         });
 
         return filtered;
-    }, [documents, filters, sortField, sortOrder]);
+    }, [documents, activeDocumentType, filters, sortField, sortOrder]);
 
     // Selection handlers
     const handleSelectDocument = useCallback((documentId: string) => {
@@ -188,6 +227,40 @@ export const DocumentManager: React.FC<DocumentManagerProps> = ({ projectId }) =
         }
     }, [sortField]);
 
+    // Document action handlers
+    const handleDocumentEdit = useCallback((document: ProjectDocument) => {
+        setSelectedDocument(document);
+        setShowEditModal(true);
+    }, []);
+
+    const handleDocumentVersionHistory = useCallback((document: ProjectDocument) => {
+        setSelectedDocument(document);
+        setShowVersionHistory(true);
+    }, []);
+
+    const handleDocumentDelete = useCallback(async (document: ProjectDocument) => {
+        if (!confirm(`Are you sure you want to delete "${document.title}"? This action cannot be undone.`)) {
+            return;
+        }
+
+        try {
+            await documentActionsService.deleteDocument(document);
+            // The useDocuments hook will handle the real-time update
+        } catch (error) {
+            console.error('Delete failed:', error);
+        }
+    }, []);
+
+    const handleDocumentSave = useCallback(async (documentId: string, editData: DocumentEditData) => {
+        try {
+            await documentActionsService.editDocument(documentId, editData);
+            // The useDocuments hook will handle the real-time update
+        } catch (error) {
+            console.error('Edit failed:', error);
+            throw error; // Re-throw to let the modal handle the error
+        }
+    }, []);
+
     // Filter handlers
     const handleFilterChange = useCallback((newFilters: Partial<DocumentFiltersState>) => {
         setFilters(prev => ({ ...prev, ...newFilters }));
@@ -202,6 +275,11 @@ export const DocumentManager: React.FC<DocumentManagerProps> = ({ projectId }) =
             tags: [],
             uploadedBy: []
         });
+    }, []);
+
+    // Document type tab handler
+    const handleDocumentTypeChange = useCallback((type: string) => {
+        setActiveDocumentType(type);
     }, []);
 
     // Get unique values for filter options
@@ -312,6 +390,30 @@ export const DocumentManager: React.FC<DocumentManagerProps> = ({ projectId }) =
                         </Button>
                     </div>
 
+                    {/* Document Type Tabs */}
+                    {documentTypeStats.types.length > 0 && (
+                        <div className="mt-4">
+                            <Tabs value={activeDocumentType} onValueChange={handleDocumentTypeChange}>
+                                <TabsList className="grid w-full" style={{ gridTemplateColumns: `repeat(${documentTypeStats.types.length + 1}, 1fr)` }}>
+                                    <TabsTrigger value="all" className="flex items-center gap-2">
+                                        All Documents
+                                        <Badge variant="secondary" className="text-xs">
+                                            {documentTypeStats.totalCount}
+                                        </Badge>
+                                    </TabsTrigger>
+                                    {documentTypeStats.types.map((type) => (
+                                        <TabsTrigger key={type} value={type} className="flex items-center gap-2">
+                                            {type.charAt(0).toUpperCase() + type.slice(1)}
+                                            <Badge variant="secondary" className="text-xs">
+                                                {documentTypeStats.counts[type]}
+                                            </Badge>
+                                        </TabsTrigger>
+                                    ))}
+                                </TabsList>
+                            </Tabs>
+                        </div>
+                    )}
+
                     {/* Selection info */}
                     {selectedDocuments.length > 0 && (
                         <div className="flex items-center justify-between bg-blue-50 p-3 rounded-md">
@@ -367,8 +469,11 @@ export const DocumentManager: React.FC<DocumentManagerProps> = ({ projectId }) =
                                 onSelectAll={handleSelectAll}
                                 onDocumentClick={(document) => {
                                     setSelectedDocument(document);
-                                    setShowApprovalPanel(true);
+                                    setShowPreview(true);
                                 }}
+                                onDocumentEdit={handleDocumentEdit}
+                                onDocumentDelete={handleDocumentDelete}
+                                onDocumentVersionHistory={handleDocumentVersionHistory}
                             />
                         ) : (
                             <DocumentList
@@ -381,26 +486,34 @@ export const DocumentManager: React.FC<DocumentManagerProps> = ({ projectId }) =
                                 onSort={handleSort}
                                 onDocumentClick={(document) => {
                                     setSelectedDocument(document);
-                                    setShowApprovalPanel(true);
+                                    setShowPreview(true);
                                 }}
+                                onDocumentEdit={handleDocumentEdit}
+                                onDocumentDelete={handleDocumentDelete}
+                                onDocumentVersionHistory={handleDocumentVersionHistory}
                             />
                         )
                     ) : (
                         <div className="text-center py-12">
                             <FileText className="w-12 h-12 mx-auto text-muted-foreground mb-4" />
                             <h3 className="text-lg font-medium mb-2">
-                                {hasActiveFilters ? 'No documents match your filters' : 'No documents uploaded'}
+                                {hasActiveFilters || activeDocumentType !== 'all' ? 'No documents match your filters' : 'No documents uploaded'}
                             </h3>
                             <p className="text-muted-foreground mb-4">
-                                {hasActiveFilters
+                                {hasActiveFilters || activeDocumentType !== 'all'
                                     ? 'Try adjusting your search criteria or clearing filters'
                                     : 'Upload your first document to get started'
                                 }
                             </p>
-                            {hasActiveFilters ? (
-                                <Button variant="outline" onClick={handleClearFilters}>
-                                    Clear Filters
-                                </Button>
+                            {hasActiveFilters || activeDocumentType !== 'all' ? (
+                                <div className="flex gap-2 justify-center">
+                                    <Button variant="outline" onClick={handleClearFilters}>
+                                        Clear Filters
+                                    </Button>
+                                    <Button variant="outline" onClick={() => setActiveDocumentType('all')}>
+                                        Show All Documents
+                                    </Button>
+                                </div>
                             ) : (
                                 <Button onClick={() => setShowUploadZone(true)}>
                                     <Upload className="w-4 h-4 mr-2" />
@@ -433,7 +546,59 @@ export const DocumentManager: React.FC<DocumentManagerProps> = ({ projectId }) =
                 {showUploadZone && (
                     <DocumentUploadZone
                         projectId={projectId}
+                        currentStageId={currentStageId}
                         onClose={() => setShowUploadZone(false)}
+                    />
+                )}
+
+                {/* Document Preview Modal */}
+                {showPreview && selectedDocument && (
+                    <DocumentPreview
+                        document={selectedDocument}
+                        isOpen={showPreview}
+                        onClose={() => {
+                            setShowPreview(false);
+                            setSelectedDocument(null);
+                        }}
+                        onEdit={(document) => {
+                            // TODO: Implement document editing
+                            console.log('Edit document:', document);
+                        }}
+                        onDelete={async (document) => {
+                            // TODO: Implement document deletion with confirmation
+                            console.log('Delete document:', document);
+                        }}
+                        onVersionHistory={handleDocumentVersionHistory}
+                    />
+                )}
+
+                {/* Document Version History Modal */}
+                {showVersionHistory && selectedDocument && (
+                    <DocumentVersionHistory
+                        document={selectedDocument}
+                        isOpen={showVersionHistory}
+                        onClose={() => {
+                            setShowVersionHistory(false);
+                            setSelectedDocument(null);
+                        }}
+                        onVersionChange={(newVersion) => {
+                            // Refresh documents list when version changes
+                            // The useDocuments hook should handle real-time updates
+                            console.log('Version changed:', newVersion);
+                        }}
+                    />
+                )}
+
+                {/* Document Edit Modal */}
+                {showEditModal && selectedDocument && (
+                    <DocumentEditModal
+                        document={selectedDocument}
+                        isOpen={showEditModal}
+                        onClose={() => {
+                            setShowEditModal(false);
+                            setSelectedDocument(null);
+                        }}
+                        onSave={handleDocumentSave}
                     />
                 )}
             </div>

@@ -3,6 +3,34 @@ import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
 import { toast } from 'sonner';
 
+// Helper function to convert MIME types to shorter file type identifiers
+const getFileTypeFromMimeType = (mimeType: string): string => {
+  const mimeTypeMap: Record<string, string> = {
+    'application/pdf': 'pdf',
+    'application/msword': 'doc',
+    'application/vnd.openxmlformats-officedocument.wordprocessingml.document': 'docx',
+    'application/vnd.ms-excel': 'xls',
+    'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet': 'xlsx',
+    'application/acad': 'dwg',
+    'application/dxf': 'dxf',
+    'application/step': 'step',
+    'application/x-step': 'step',
+    'model/step': 'step',
+    'application/iges': 'iges',
+    'model/iges': 'iges',
+    'image/jpeg': 'jpg',
+    'image/jpg': 'jpg',
+    'image/png': 'png',
+    'image/gif': 'gif',
+    'image/bmp': 'bmp',
+    'image/tiff': 'tiff',
+    'text/plain': 'txt',
+    'text/csv': 'csv',
+  };
+
+  return mimeTypeMap[mimeType] || 'unknown';
+};
+
 // Document type definition
 export interface ProjectDocument {
   id: string;
@@ -123,38 +151,44 @@ export function useDocuments(projectId: string): UseDocumentsReturn {
       const uniqueFilename = `${Date.now()}-${Math.random().toString(36).substr(2, 9)}.${fileExtension}`;
       const storagePath = `${profile.organization_id}/${projectId}/${uniqueFilename}`;
 
-      // Upload file to Supabase Storage
+      // Upload file to Supabase Storage with timeout configuration
       const { data: uploadData, error: uploadError } = await supabase.storage
         .from('documents')
-        .upload(storagePath, file);
+        .upload(storagePath, file, {
+          cacheControl: '3600',
+          upsert: false
+        });
 
       if (uploadError) {
         throw new Error(`Failed to upload file: ${uploadError.message}`);
       }
 
+      // Prepare document data with all required fields and proper defaults
+      const documentData = {
+        project_id: projectId,
+        organization_id: profile.organization_id,
+        file_name: uniqueFilename,
+        title: file.name,
+        description: metadata.description || '',
+        file_size: file.size,
+        file_type: getFileTypeFromMimeType(file.type), // Use shorter file type identifier
+        mime_type: file.type,
+        category: metadata.document_type || 'other',
+        access_level: metadata.access_level || 'internal',
+        file_path: storagePath,
+        uploaded_by: user.id,
+        metadata: {
+          tags: metadata.tags || [],
+          description: metadata.description || '',
+          version: metadata.version || '1.0',
+          category: metadata.category || metadata.document_type || 'other'
+        }
+      };
+
       // Create document record in database
       const { data: document, error: dbError } = await supabase
         .from('documents')
-        .insert({
-          project_id: projectId,
-          organization_id: profile.organization_id,
-          file_name: uniqueFilename,
-          title: file.name,
-          description: metadata.description,
-          file_size: file.size,
-          file_type: file.type,
-          mime_type: file.type,
-          category: metadata.document_type,
-          access_level: metadata.access_level,
-          file_path: storagePath,
-          uploaded_by: user.id,
-          metadata: {
-            tags: metadata.tags,
-            description: metadata.description,
-            version: metadata.version,
-            category: metadata.category
-          }
-        })
+        .insert(documentData)
         .select()
         .single();
 

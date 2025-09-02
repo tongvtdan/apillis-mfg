@@ -1,0 +1,39 @@
+fix: Resolve date formatting error in document management views
+
+- Fix "Invalid time value" error when switching from grid to list view
+- Resolve field name inconsistency: DocumentList was using `uploaded_at` instead of `created_at`
+- Add safe date formatting utility to prevent future date-related errors
+- Update all document components to use consistent and safe date formatting
+
+**Root Cause:**
+- DocumentList component was referencing non-existent `uploaded_at` field
+- Direct use of `new Date()` without null/undefined validation
+- Inconsistent field usage between DocumentList and DocumentGrid components
+
+**Technical Fixes:**
+- Correct field name from `document.uploaded_at` to `document.created_at`
+- Add `formatDate()` utility function with comprehensive error handling
+- Implement null/undefined checks before date formatting
+- Add try-catch error handling for invalid date strings
+
+**Components Updated:**
+- DocumentList: Fixed field name and added safe date formatting
+- DocumentGrid: Added safe date formatting
+- DocumentPreview: Added safe date formatting
+- DocumentActionsService: Added formatDate utility function
+
+**User Experience:**
+- No more crashes when switching between document views
+- Consistent date display across all document components
+- Graceful handling of invalid dates with fallback messages
+- Better error logging for debugging
+
+Files changed:
+- src/services/documentActions.ts (updated)
+- src/components/project/DocumentList.tsx (updated)
+- src/components/project/DocumentGrid.tsx (updated)
+- src/components/project/DocumentPreview.tsx (updated)
+- MEMORY.md (updated)
+
+This fix ensures robust date handling throughout the document management
+system and prevents similar errors in the future.

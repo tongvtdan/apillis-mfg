@@ -1,0 +1,46 @@
+feat: Implement comprehensive document management actions
+
+- Add DocumentActionsService with centralized document operations
+  * downloadDocument: Secure signed URL generation with automatic download
+  * editDocument: Update metadata (title, description, category, access level, tags)
+  * deleteDocument: Remove documents with database and storage cleanup
+  * bulkDeleteDocuments: Handle multiple document deletion
+  * canPreview: Centralized file type preview capability checking
+
+- Create DocumentEditModal component with full metadata editing
+  * Title, description, category, and access level editing
+  * Tag management with add/remove functionality
+  * Form validation with loading states and error handling
+  * User-friendly interface with proper UX patterns
+
+- Connect UI components to functional document actions
+  * DocumentList: Add download, edit, delete action handlers
+  * DocumentGrid: Add download, edit, delete action handlers
+  * DocumentManager: Integrate edit modal and action handlers
+  * DocumentPreview: Enhance download using centralized service
+
+- Implement comprehensive error handling and user feedback
+  * Toast notifications for success/error states
+  * Confirmation dialogs for destructive actions
+  * Loading states during async operations
+  * Graceful error recovery with user-friendly messages
+
+- Integrate with existing Supabase real-time subscriptions
+  * Document changes reflect immediately in UI
+  * Proper storage integration for file cleanup
+  * Permission handling and access control
+  * Audit trail for document changes
+
+Files changed:
+- src/services/documentActions.ts (new)
+- src/components/project/DocumentEditModal.tsx (new)
+- src/components/project/DocumentList.tsx (updated)
+- src/components/project/DocumentGrid.tsx (updated)
+- src/components/project/DocumentManager.tsx (updated)
+- src/components/project/DocumentPreview.tsx (updated)
+- MEMORY.md (updated)
+- docs/todo.md (updated)
+
+This implementation provides a complete document management experience with
+consistent actions across list and grid views, proper error handling, and
+seamless integration with the existing Supabase infrastructure.

@@ -33,4 +33,9 @@ export const supabase = createClient<Database>(SUPABASE_URL, SUPABASE_PUBLISHABL
       'X-Client-Info': 'factory-pulse-web',
     },
   },
+  // Add timeout configuration for storage operations
+  storage: {
+    // Increase timeout for file uploads
+    timeout: 60000, // 60 seconds
+  },
 });

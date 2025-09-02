@@ -3,8 +3,9 @@ import { Card, CardContent } from '@/components/ui/card';
 import { Checkbox } from '@/components/ui/checkbox';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
-import { FileText, Download, Eye, Edit, Trash2 } from 'lucide-react';
+import { FileText, Download, Eye, Edit, Trash2, History } from 'lucide-react';
 import { format } from 'date-fns';
+import { documentActionsService } from '@/services/documentActions';
 import type { ProjectDocument } from '@/hooks/useDocuments';
 
 interface DocumentGridProps {
@@ -13,6 +14,9 @@ interface DocumentGridProps {
     onSelectDocument: (documentId: string) => void;
     onSelectAll: () => void;
     onDocumentClick?: (document: ProjectDocument) => void;
+    onDocumentEdit?: (document: ProjectDocument) => void;
+    onDocumentDelete?: (document: ProjectDocument) => void;
+    onDocumentVersionHistory?: (document: ProjectDocument) => void;
 }
 
 /**
@@ -24,7 +28,10 @@ export const DocumentGrid: React.FC<DocumentGridProps> = ({
     selectedDocuments,
     onSelectDocument,
     onSelectAll,
-    onDocumentClick
+    onDocumentClick,
+    onDocumentEdit,
+    onDocumentDelete,
+    onDocumentVersionHistory
 }) => {
     const formatFileSize = (bytes: number): string => {
         if (bytes === 0) return '0 Bytes';
@@ -71,16 +78,50 @@ export const DocumentGrid: React.FC<DocumentGridProps> = ({
                                     onCheckedChange={() => onSelectDocument(document.id)}
                                 />
                                 <div className="flex gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
-                                    <Button variant="ghost" size="sm">
+                                    <Button
+                                        variant="ghost"
+                                        size="sm"
+                                        onClick={() => onDocumentClick && onDocumentClick(document)}
+                                        title="Preview"
+                                    >
                                         <Eye className="w-3 h-3" />
                                     </Button>
-                                    <Button variant="ghost" size="sm">
+                                    <Button
+                                        variant="ghost"
+                                        size="sm"
+                                        title="Download"
+                                        onClick={async () => {
+                                            try {
+                                                await documentActionsService.downloadDocument(document);
+                                            } catch (error) {
+                                                console.error('Download failed:', error);
+                                            }
+                                        }}
+                                    >
                                         <Download className="w-3 h-3" />
                                     </Button>
-                                    <Button variant="ghost" size="sm">
+                                    <Button
+                                        variant="ghost"
+                                        size="sm"
+                                        title="Version History"
+                                        onClick={() => onDocumentVersionHistory && onDocumentVersionHistory(document)}
+                                    >
+                                        <History className="w-3 h-3" />
+                                    </Button>
+                                    <Button
+                                        variant="ghost"
+                                        size="sm"
+                                        title="Edit"
+                                        onClick={() => onDocumentEdit && onDocumentEdit(document)}
+                                    >
                                         <Edit className="w-3 h-3" />
                                     </Button>
-                                    <Button variant="ghost" size="sm">
+                                    <Button
+                                        variant="ghost"
+                                        size="sm"
+                                        title="Delete"
+                                        onClick={() => onDocumentDelete && onDocumentDelete(document)}
+                                    >
                                         <Trash2 className="w-3 h-3" />
                                     </Button>
                                 </div>
@@ -115,7 +156,9 @@ export const DocumentGrid: React.FC<DocumentGridProps> = ({
 
                                 <div className="text-xs text-muted-foreground space-y-1">
                                     <div>{formatFileSize(document.file_size)}</div>
-                                    <div>{format(new Date(document.created_at), 'MMM d, yyyy')}</div>
+                                    <div>
+                                        {documentActionsService.formatDate(document.created_at, 'MMM d, yyyy')}
+                                    </div>
                                 </div>
 
                                 {/* Tags */}

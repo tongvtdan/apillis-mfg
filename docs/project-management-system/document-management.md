@@ -14,6 +14,7 @@ The main document management interface that provides a complete document handlin
 
 #### Features
 
+- **Document Type Tabs**: Dynamic tabs for filtering documents by type with count badges
 - **Dual View Modes**: Grid and list views for different user preferences
 - **Advanced Search**: Full-text search across document names and tags
 - **Multi-Criteria Filtering**: Filter by type, access level, date range, tags, and uploader
@@ -46,6 +47,7 @@ interface DocumentFiltersState {
 
 The component uses React hooks for efficient state management:
 
+- **Document Type State**: Active document type tab selection
 - **Filter State**: Complex filtering with multiple criteria
 - **Selection State**: Multi-document selection tracking
 - **View State**: Grid/list view toggle
@@ -55,6 +57,7 @@ The component uses React hooks for efficient state management:
 #### Performance Optimizations
 
 - **Memoized Operations**: Filtering and sorting operations are memoized
+- **Document Type Statistics**: Efficient calculation of document type counts and statistics
 - **Callback Optimization**: Event handlers use useCallback to prevent re-renders
 - **Computed Values**: Derived state for filter options and active filters
 - **Efficient Updates**: Minimal re-renders through proper dependency arrays

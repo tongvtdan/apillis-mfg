@@ -27,6 +27,7 @@ import { useAuth } from "@/contexts/AuthContext";
 import { useApprovals } from "@/hooks/useApprovals";
 import { ApprovalStatusWidget } from "@/components/approval/ApprovalStatusWidget";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { DocumentValidationPanel } from "./DocumentValidationPanel";
 
 interface StageTransitionValidatorProps {
     project: Project;
@@ -311,12 +312,13 @@ export function StageTransitionValidator({
                             </CardHeader>
                             <CardContent>
                                 <Tabs defaultValue="summary" className="w-full">
-                                    <TabsList className="grid w-full grid-cols-5">
+                                    <TabsList className="grid w-full grid-cols-6">
                                         <TabsTrigger value="summary">Summary</TabsTrigger>
-                                        <TabsTrigger value="project_data">Project Data</TabsTrigger>
                                         <TabsTrigger value="documents">Documents</TabsTrigger>
+                                        <TabsTrigger value="project_data">Project Data</TabsTrigger>
                                         <TabsTrigger value="approvals">Approvals</TabsTrigger>
                                         <TabsTrigger value="stage_specific">Stage Specific</TabsTrigger>
+                                        <TabsTrigger value="system">System</TabsTrigger>
                                     </TabsList>
 
                                     <TabsContent value="summary" className="space-y-3 mt-4">
@@ -358,7 +360,17 @@ export function StageTransitionValidator({
                                         </div>
                                     </TabsContent>
 
-                                    {['project_data', 'documents', 'approvals', 'stage_specific'].map(category => (
+                                    {/* Documents Tab - Enhanced with DocumentValidationPanel */}
+                                    <TabsContent value="documents" className="space-y-3 mt-4">
+                                        <DocumentValidationPanel
+                                            projectId={project.id}
+                                            currentStage={currentStage || { id: '', name: 'Unknown', stage_order: 0, organization_id: project.organization_id }}
+                                            targetStage={targetStage}
+                                        />
+                                    </TabsContent>
+
+                                    {/* Other tabs */}
+                                    {['project_data', 'approvals', 'stage_specific', 'system'].map(category => (
                                         <TabsContent key={category} value={category} className="space-y-3 mt-4">
                                             {validation.prerequisiteResult!.checks
                                                 .filter(check => check.category === category)

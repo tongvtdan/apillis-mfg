@@ -16,6 +16,7 @@ import { NavigationTab } from '@/components/project/InteractiveNavigationSidebar
 interface UseProjectNavigationProps {
     projectId: string;
     documentsCount?: number;
+    documentsPendingApproval?: number;
     messagesCount?: number;
     unreadMessagesCount?: number;
     reviewsCount?: number;
@@ -34,6 +35,7 @@ interface NavigationState {
 export const useProjectNavigation = ({
     projectId,
     documentsCount = 0,
+    documentsPendingApproval = 0,
     messagesCount = 0,
     unreadMessagesCount = 0,
     reviewsCount = 0,
@@ -91,43 +93,15 @@ export const useProjectNavigation = ({
             hasNotifications: pendingReviewsCount > 0,
             loading: navigationState.tabLoadingStates.reviews,
             error: navigationState.tabErrorStates.reviews,
-            subTabs: [
-                {
-                    id: 'reviews-engineering',
-                    label: 'Engineering',
-                    badge: 1, // This would be calculated based on actual review status
-                },
-                {
-                    id: 'reviews-qa',
-                    label: 'Quality Assurance',
-                },
-                {
-                    id: 'reviews-production',
-                    label: 'Production',
-                },
-            ],
         },
         {
             id: 'documents',
             label: 'Documents',
             icon: FileText,
             badge: documentsCount > 0 ? documentsCount : undefined,
+            hasNotifications: documentsPendingApproval > 0,
             loading: navigationState.tabLoadingStates.documents,
             error: navigationState.tabErrorStates.documents,
-            subTabs: [
-                {
-                    id: 'documents-technical',
-                    label: 'Technical Drawings',
-                },
-                {
-                    id: 'documents-specifications',
-                    label: 'Specifications',
-                },
-                {
-                    id: 'documents-quotes',
-                    label: 'Quotes & Proposals',
-                },
-            ],
         },
         {
             id: 'supplier',
@@ -146,21 +120,6 @@ export const useProjectNavigation = ({
             hasNotifications: unreadMessagesCount > 0,
             loading: navigationState.tabLoadingStates.communication,
             error: navigationState.tabErrorStates.communication,
-            subTabs: [
-                {
-                    id: 'communication-internal',
-                    label: 'Internal Messages',
-                    badge: unreadMessagesCount > 0 ? Math.ceil(unreadMessagesCount / 2) : undefined,
-                },
-                {
-                    id: 'communication-customer',
-                    label: 'Customer Communication',
-                },
-                {
-                    id: 'communication-supplier',
-                    label: 'Supplier Communication',
-                },
-            ],
         },
         {
             id: 'timeline',
@@ -175,20 +134,6 @@ export const useProjectNavigation = ({
             icon: BarChart3,
             loading: navigationState.tabLoadingStates.analytics,
             error: navigationState.tabErrorStates.analytics,
-            subTabs: [
-                {
-                    id: 'analytics-performance',
-                    label: 'Performance Metrics',
-                },
-                {
-                    id: 'analytics-timeline',
-                    label: 'Timeline Analysis',
-                },
-                {
-                    id: 'analytics-costs',
-                    label: 'Cost Analysis',
-                },
-            ],
         },
         {
             id: 'settings',
@@ -201,6 +146,7 @@ export const useProjectNavigation = ({
         navigationState.tabLoadingStates,
         navigationState.tabErrorStates,
         documentsCount,
+        documentsPendingApproval,
         messagesCount,
         unreadMessagesCount,
         reviewsCount,
@@ -259,17 +205,9 @@ export const useProjectNavigation = ({
         const activeTab = navigationTabs.find(tab => tab.id === navigationState.activeTab);
         if (!activeTab) return [];
 
-        const breadcrumbs = [
+        return [
             { label: activeTab.label }
         ];
-
-        // Add sub-tab breadcrumb if applicable
-        const subTab = activeTab.subTabs?.find(sub => sub.id === navigationState.activeTab);
-        if (subTab) {
-            breadcrumbs.push({ label: subTab.label });
-        }
-
-        return breadcrumbs;
     };
 
     return {

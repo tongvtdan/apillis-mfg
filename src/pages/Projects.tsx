@@ -6,8 +6,11 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
+import { Modal } from "@/components/ui/modal";
+import { Plus } from "lucide-react";
 import { useProjects } from "@/hooks/useProjects";
 import { ProjectType, PROJECT_TYPE_LABELS, Project, WorkflowStage } from "@/types/project";
+import { ProjectIntakePortal } from "@/components/project/ProjectIntakePortal";
 
 import { useSearchParams, useNavigate } from "react-router-dom";
 import { CheckCircle2, Clock, AlertCircle, Calendar } from "lucide-react";
@@ -22,6 +25,7 @@ import { ProjectCalendar } from "@/components/project/ProjectCalendar";
 import { EnhancedProjectList } from "@/components/project/EnhancedProjectList";
 import { AnimatedProjectCard } from "@/components/project/AnimatedProjectCard";
 import { workflowStageService } from "@/services/workflowStageService";
+import { useToast } from "@/hooks/use-toast";
 
 // This component displays the projects management interface
 // It uses the authenticated user's data from the AuthContext to fetch and manage projects
@@ -31,6 +35,8 @@ export default function Projects() {
   const { projects, loading, error, updateProjectStage, updateProjectStatusOptimistic, refetch, getBottleneckAnalysis, createProject } = useProjects();
   const [searchParams, setSearchParams] = useSearchParams();
   const navigate = useNavigate();
+  const { toast } = useToast();
+  const [showNewProjectModal, setShowNewProjectModal] = React.useState(false);
 
   // Priority color function
   const getPriorityColor = (priority: string) => {
@@ -414,7 +420,6 @@ export default function Projects() {
 
         <Tabs value={defaultTab} onValueChange={handleTabChange} className="w-full relative">
           <div className="mb-6 flex justify-between items-center">
-
             <div className="flex items-center gap-6">
               <TabsList className="auth-tabs-list grid !grid-cols-4 w-full">
                 <TabsTrigger value="enhanced" className="auth-tab-trigger" disabled={isRetrying}>
@@ -429,9 +434,7 @@ export default function Projects() {
                 <TabsTrigger value="analytics" className="auth-tab-trigger" disabled={isRetrying}>
                   Analytics
                 </TabsTrigger>
-
               </TabsList>
-
 
               {/* Project Type Filter */}
               <div className="flex items-center space-x-3">
@@ -458,6 +461,18 @@ export default function Projects() {
                   </SelectContent>
                 </Select>
               </div>
+            </div>
+
+            {/* New Project Button */}
+            <div className="flex items-center">
+              <Button
+                onClick={() => setShowNewProjectModal(true)}
+                className="bg-primary hover:bg-primary/90 text-primary-foreground"
+                disabled={isRetrying}
+              >
+                <Plus className="mr-2 h-4 w-4" />
+                New Project
+              </Button>
             </div>
           </div>
 
@@ -698,6 +713,25 @@ export default function Projects() {
             </ProjectErrorBoundary>
           </TabsContent>
         </Tabs>
+
+        {/* New Project Modal */}
+        <Modal
+          isOpen={showNewProjectModal}
+          onClose={() => setShowNewProjectModal(false)}
+          title="Create New Project"
+          maxWidth="max-w-6xl"
+        >
+          <ProjectIntakePortal
+            onSuccess={(projectId) => {
+              setShowNewProjectModal(false);
+              toast({
+                title: "Project Created Successfully!",
+                description: `New project has been created with ID: ${projectId}`,
+              });
+              refetch(true);
+            }}
+          />
+        </Modal>
       </div>
     </ProjectErrorBoundary>
   );

@@ -683,6 +683,8 @@ export type Database = {
           priority_score: number | null
           project_id: string
           project_type: string | null
+          intake_type: Database["public"]["Enums"]["intake_type"] | null
+          intake_source: string | null
           source: string | null
           stage_entered_at: string | null
           status: Database["public"]["Enums"]["project_status"] | null
@@ -708,6 +710,8 @@ export type Database = {
           priority_score?: number | null
           project_id: string
           project_type?: string | null
+          intake_type?: Database["public"]["Enums"]["intake_type"] | null
+          intake_source?: string | null
           source?: string | null
           stage_entered_at?: string | null
           status?: Database["public"]["Enums"]["project_status"] | null
@@ -733,6 +737,8 @@ export type Database = {
           priority_score?: number | null
           project_id?: string
           project_type?: string | null
+          intake_type?: Database["public"]["Enums"]["intake_type"] | null
+          intake_source?: string | null
           source?: string | null
           stage_entered_at?: string | null
           status?: Database["public"]["Enums"]["project_status"] | null
@@ -1211,6 +1217,7 @@ export type Database = {
     }
     Enums: {
       contact_type: "customer" | "supplier" | "partner" | "internal"
+      intake_type: "rfq" | "purchase_order" | "project_idea" | "direct_request"
       priority_level: "low" | "medium" | "high" | "critical"
       project_status: "active" | "completed" | "cancelled" | "on_hold"
       subscription_plan: "starter" | "growth" | "enterprise"

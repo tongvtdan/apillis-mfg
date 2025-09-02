@@ -138,6 +138,115 @@ interface TabConfig {
 - **Types**: Project and WorkflowStage interfaces from project types
 - **Utilities**: cn utility function for conditional class names
 
+### DocumentUploadZone Component
+
+**Purpose**: Advanced document upload interface with drag-and-drop functionality and comprehensive file management
+
+**Location**: `src/components/project/DocumentUploadZone.tsx`
+
+**Status**: ✅ **Fully implemented and integrated with document management system**
+
+**Component Features:**
+- **Drag-and-Drop Interface**: Full support for file dropping with visual feedback and hover states
+- **File Selection**: Click-to-browse functionality with hidden file input and multiple file support
+- **Progress Tracking**: Real-time upload progress with individual progress bars for each file
+- **Metadata Management**: Comprehensive document type, access level, and tags configuration
+- **File Validation**: Integration with `validateFileUploads` from project schemas with detailed error reporting
+- **Batch Operations**: Upload multiple files with individual progress tracking and status management
+- **Stage Integration**: Smart document type suggestions based on current workflow stage
+
+**Component Interface:**
+```typescript
+interface DocumentUploadZoneProps {
+    projectId: string;
+    currentStageId?: string;
+    onClose: () => void;
+}
+
+interface FileWithMetadata {
+    file: File;
+    id: string;
+    metadata: DocumentMetadata;
+    progress: number;
+    status: 'pending' | 'uploading' | 'completed' | 'error';
+    error?: string;
+}
+
+interface DocumentMetadata {
+    document_type: string;
+    access_level: string;
+    tags: string[];
+    description: string;
+}
+```
+
+**File Management Features:**
+- **Default Metadata Settings**: Pre-configure document type, access level, and tags for batch uploads
+- **Individual File Control**: Modify metadata for each file independently before upload
+- **File Removal**: Remove files from upload queue before processing
+- **Status Tracking**: Visual indicators for pending, uploading, completed, and error states
+- **Error Recovery**: Graceful error handling with detailed error messages and retry capabilities
+
+**Stage-Aware Document Types:**
+```typescript
+const DOCUMENT_TYPES = [
+    { value: 'rfq', label: 'RFQ Document', stages: ['rfq-intake', 'initial-review'] },
+    { value: 'drawing', label: 'Technical Drawing', stages: ['engineering-review', 'design-development'] },
+    { value: 'specification', label: 'Specification', stages: ['engineering-review', 'design-development'] },
+    { value: 'quote', label: 'Quote/Proposal', stages: ['quotation', 'proposal-preparation'] },
+    { value: 'contract', label: 'Contract', stages: ['contract-negotiation', 'order-confirmation'] },
+    { value: 'bom', label: 'Bill of Materials', stages: ['engineering-review', 'procurement'] },
+    { value: 'inspection', label: 'Inspection Report', stages: ['quality-control', 'final-inspection'] },
+    { value: 'certificate', label: 'Certificate/Compliance', stages: ['quality-control', 'delivery'] },
+    { value: 'other', label: 'Other', stages: [] }
+];
+```
+
+**Upload Process Flow:**
+```typescript
+// Sequential upload with progress tracking
+for (const fileItem of files) {
+    // Update status to uploading
+    setFiles(prev => prev.map(f => 
+        f.id === fileItem.id 
+            ? { ...f, status: 'uploading', progress: 0 }
+            : f
+    ));
+
+    // Simulate progress updates
+    const progressInterval = setInterval(() => {
+        setFiles(prev => prev.map(f =>
+            f.id === fileItem.id && f.progress < 90
+                ? { ...f, progress: f.progress + 10 }
+                : f
+        ));
+    }, 200);
+
+    // Actual upload
+    await uploadDocument(fileItem.file, fileItem.metadata);
+    
+    // Mark as completed
+    setFiles(prev => prev.map(f => 
+        f.id === fileItem.id 
+            ? { ...f, status: 'completed', progress: 100 }
+            : f
+    ));
+}
+```
+
+**Validation and Security:**
+- **File Type Validation**: Supports PDF, DOC, DOCX, XLS, XLSX, DWG, CAD files, and images
+- **Size Limits**: 50MB per file, 100MB total upload size with real-time size tracking
+- **Access Level Control**: Public, Internal Only, and Confidential access levels
+- **Tag System**: Flexible tagging system for document organization and search
+
+**Integration Points:**
+- **useDocuments Hook**: Seamless integration with existing document management system
+- **useWorkflowStages Hook**: Stage-aware document type suggestions and validation
+- **validateFileUploads**: Comprehensive file validation from project schemas
+- **Sonner Toasts**: User-friendly success and error notifications
+- **Modal System**: Integrated with shadcn/ui modal component for consistent UX
+
 ### DocumentManager Component
 
 **Purpose**: Comprehensive document management interface for project files with advanced filtering and organization
@@ -438,11 +547,11 @@ switch (stageName) {
 
 **Location**: `src/components/project/InteractiveNavigationSidebar.tsx`
 
-**Status**: ✅ **Component implemented and ready for integration**
+**Status**: ✅ **Component implemented and simplified for single-level navigation**
 
 **Key Features:**
-- **Hierarchical Navigation**: Main tabs with expandable sub-tabs for detailed navigation
-- **Session Persistence**: Remembers expanded tab states across browser sessions using `project-${projectId}-expanded-tabs`
+- **Single-Level Navigation**: Clean, streamlined navigation without sub-tabs
+- **Session Persistence**: Remembers active tab states across browser sessions
 - **Interactive States**: Loading, error, and notification indicators with visual feedback
 - **Breadcrumb Navigation**: Contextual breadcrumbs with clickable navigation links
 - **Project Context Display**: Shows current project title and ID in sidebar header
@@ -471,23 +580,14 @@ interface NavigationTab {
   loading?: boolean;
   error?: boolean;
   hasNotifications?: boolean;
-  subTabs?: NavigationSubTab[];
-}
-
-interface NavigationSubTab {
-  id: string;
-  label: string;
-  badge?: number;
-  disabled?: boolean;
 }
 ```
 
 **State Management Features:**
-- **Tab Expansion**: Persistent expandable sub-tabs with session storage
-- **Loading States**: Visual loading indicators during tab transitions
+- **Tab States**: Visual loading indicators during tab transitions
 - **Error Handling**: Error states with visual indicators and fallback UI
-- **Badge System**: Notification badges and counters for tabs and sub-tabs
-- **Auto-Expansion**: Automatic expansion when activating tabs with sub-tabs
+- **Badge System**: Notification badges and counters for tabs
+- **Active State**: Clear indication of currently active tab
 
 **Visual Features:**
 - **Interactive Icons**: Dynamic icons based on tab state (loading spinner, error alert, normal icon)

@@ -2,6 +2,66 @@
 
 ## Current Sprint
 
+- [done] 2025-09-02 - Intake Type Architecture Implementation ✅
+  - ✅ Added database migration for intake_type and intake_source fields
+  - ✅ Created IntakeMappingService with comprehensive intake type to project type mapping
+  - ✅ Implemented IntakeWorkflowService for proper stage routing
+  - ✅ Created ProjectIntakeService for unified project creation from intake data
+  - ✅ Replaced complex ProjectIntakeForm with SimplifiedIntakeForm
+  - ✅ Updated ProjectIntakePortal to use new simplified form
+  - ✅ Enhanced useProjects hook with new intake fields
+  - ✅ Updated TypeScript types and Supabase type definitions
+  - ✅ Implemented intelligent workflow routing based on intake types
+  - ✅ Added automatic priority assignment and project type determination
+
+- [done] 2025-09-02 - Projects Page New Project Button Consolidation ✅
+  - ✅ Added New Project button to Projects page header with ProjectIntakePortal integration
+  - ✅ Removed redundant New Project button from EnhancedProjectList List view
+  - ✅ Updated AppHeader to remove duplicate New Project button
+  - ✅ Standardized project creation flow using ProjectIntakePortal with project type selection
+  - ✅ Updated ProjectActions component to use ProjectIntakePortal instead of EnhancedProjectCreationModal
+  - ✅ Consolidated project creation to single entry point with comprehensive form
+  - ✅ Added proper success handling with toast notifications and project list refresh
+  - ✅ Cleaned up unused imports and state management
+
+- [done] 2025-09-02 - Project Actions Implementation Completed ✅
+  - ✅ Implemented comprehensive project action system for adding new projects and editing existing projects
+  - ✅ Created unified ProjectActions component with bulk operations support
+  - ✅ Developed enhanced AddProjectAction and EditProjectAction components with advanced UX
+  - ✅ Built ProjectActionService for centralized project management operations
+  - ✅ Added comprehensive example implementation demonstrating all features
+  - ✅ Implemented project creation with customer management (new/existing customers)
+  - ✅ Added project editing with full metadata control and status management
+  - ✅ Created bulk operations for delete and archive with selection management
+  - ✅ Added individual project actions (duplicate, archive, delete) with proper error handling
+  - ✅ Integrated comprehensive validation with user-friendly error messages
+  - ✅ Added responsive design with mobile-friendly interface
+
+- [done] 2025-09-02 - Add Document Count Information to Navigation Menu ✅
+  - ✅ Added useDocuments hook to ProjectDetail component to get actual document count
+  - ✅ Updated navigation to show real document count instead of hardcoded 0
+  - ✅ Added documentsPendingApproval calculation for recent uploads (24h)
+  - ✅ Enhanced Documents navigation item with notification indicator
+  - ✅ Integrated with existing navigation badge system
+  - ✅ Maintained consistency with Reviews navigation pattern
+
+- [done] 2025-09-02 - Remove Sub-menu Navigation from Project Details ✅
+  - ✅ Removed all sub-menu configurations from useProjectNavigation hook
+  - ✅ Simplified InteractiveNavigationSidebar component by removing sub-tab logic
+  - ✅ Updated breadcrumb generation to work without sub-tabs
+  - ✅ Cleaned up unused imports and state management
+  - ✅ Streamlined navigation interface for better user experience
+  - ✅ Maintained all main navigation functionality while removing complexity
+
+- [done] 2025-09-02 - Document Type Tabs Implementation ✅
+  - ✅ Implemented document type tabs for filtering documents by type
+  - ✅ Added dynamic tab generation based on available document types
+  - ✅ Integrated with existing filter system for seamless functionality
+  - ✅ Added document count badges for each type
+  - ✅ Enhanced empty state handling for filtered views
+  - ✅ Maintained compatibility with existing search and advanced filters
+  - ✅ Improved user experience with immediate visual feedback
+
 - [done] 2025-09-01 - Critical Database Schema Fixes for Workflow Transitions ✅
   - ✅ Fixed activity_log table column mismatch (removed non-existent project_id column)
   - ✅ Fixed documents table query (removed non-existent is_active column)
@@ -19,6 +79,17 @@
   - ✅ Created ProjectUpdateDebugger component for real-time update verification
   - ✅ Reduced rate limiting from 2s to 1s for better responsiveness
   - ✅ Stage transitions should now update UI immediately and reliably
+
+- [done] 2025-09-02 - Document Management Actions Implementation ✅
+  - ✅ Implemented comprehensive document actions: edit, delete, download
+  - ✅ Created DocumentActionsService with centralized functionality
+  - ✅ Added DocumentEditModal with full metadata editing capabilities
+  - ✅ Connected UI components (DocumentList, DocumentGrid) to functional actions
+  - ✅ Enhanced DocumentPreview with improved download functionality
+  - ✅ Added confirmation dialogs for delete actions
+  - ✅ Implemented tag management with add/remove functionality
+  - ✅ Added proper error handling and user feedback
+  - ✅ Integrated with existing Supabase real-time subscriptions
 
 - [WIP] Rename Projects tabs, remove redundant Table tab, keep table mode in List
 

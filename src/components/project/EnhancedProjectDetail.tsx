@@ -242,7 +242,7 @@ export function EnhancedProjectDetail() {
 
                     {/* Documents Tab */}
                     <TabsContent value="documents">
-                        <DocumentManager projectId={project.id} />
+                        <DocumentManager projectId={project.id} currentStageId={project.current_stage_id} />
                     </TabsContent>
 
                     {/* Communication Tab */}
