@@ -28,6 +28,7 @@
         "seed:production-orders:force": "node scripts/12-seed-production-orders.js --force",
         "seed:inventory": "node scripts/13-seed-inventory.js",
         "seed:inventory:force": "node scripts/13-seed-inventory.js --force",
+        "seed:approvals": "node scripts/generate-sample-approvals.js",
         "test:auth": "node scripts/test-auth-signin.js",
         "test:auth:verbose": "node scripts/test-auth-signin.js --verbose",
         "workflow:list": "node scripts/list-workflow-stages.js",
