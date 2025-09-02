@@ -47,9 +47,20 @@ interface ProjectReviewFormProps {
     existingReview?: InternalReview;
     onSubmit: (submission: ReviewSubmission) => Promise<boolean>;
     onCancel: () => void;
+    // Modal mode props
+    isOpen?: boolean;
+    onClose?: () => void;
 }
 
-export function ProjectReviewForm({ projectId, department, existingReview, onSubmit, onCancel }: ProjectReviewFormProps) {
+export function ProjectReviewForm({
+    projectId,
+    department,
+    existingReview,
+    onSubmit,
+    onCancel,
+    isOpen,
+    onClose
+}: ProjectReviewFormProps) {
     const [submitting, setSubmitting] = useState(false);
 
     const form = useForm<ReviewSubmission>({
@@ -79,7 +90,12 @@ export function ProjectReviewForm({ projectId, department, existingReview, onSub
         setSubmitting(false);
 
         if (success) {
-            onCancel(); // Close the form
+            // Use modal close handler if in modal mode, otherwise use onCancel
+            if (isOpen && onClose) {
+                onClose();
+            } else {
+                onCancel();
+            }
         }
     };
 
@@ -110,15 +126,30 @@ export function ProjectReviewForm({ projectId, department, existingReview, onSub
         setSuggestions(suggestions.filter((_, i) => i !== index));
     };
 
-    return (
+    const handleClose = () => {
+        if (!submitting) {
+            form.reset();
+            setSuggestions([]);
+            if (isOpen && onClose) {
+                onClose();
+            } else {
+                onCancel();
+            }
+        }
+    };
+
+    // If in modal mode and not open, don't render
+    if (isOpen !== undefined && !isOpen) return null;
+
+    const formContent = (
         <Card>
             <CardHeader>
                 <div className="flex items-center justify-between">
                     <CardTitle className="flex items-center gap-2">
                         {getStatusIcon(form.watch('status'))}
-                        {DEPARTMENT_LABELS[department]}
+                        {existingReview ? `Update ${DEPARTMENT_LABELS[department]} Review` : `Submit ${DEPARTMENT_LABELS[department]} Review`}
                     </CardTitle>
-                    <Button variant="ghost" size="sm" onClick={onCancel}>
+                    <Button variant="ghost" size="sm" onClick={handleClose}>
                         <X className="w-4 h-4" />
                     </Button>
                 </div>
@@ -342,7 +373,7 @@ export function ProjectReviewForm({ projectId, department, existingReview, onSub
                             <Button type="submit" disabled={submitting} className="flex-1">
                                 {submitting ? 'Submitting...' : 'Submit Review'}
                             </Button>
-                            <Button type="button" variant="outline" onClick={onCancel}>
+                            <Button type="button" variant="outline" onClick={handleClose}>
                                 Cancel
                             </Button>
                         </div>
@@ -351,4 +382,18 @@ export function ProjectReviewForm({ projectId, department, existingReview, onSub
             </CardContent>
         </Card>
     );
+
+    // If in modal mode, wrap with modal container
+    if (isOpen) {
+        return (
+            <div className="fixed inset-0 bg-background/95 backdrop-blur-lg flex items-center justify-center p-4 z-50">
+                <div className="w-full max-w-4xl max-h-[90vh] overflow-y-auto">
+                    {formContent}
+                </div>
+            </div>
+        );
+    }
+
+    // Return inline form (existing behavior)
+    return formContent;
 }

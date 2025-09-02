@@ -111,7 +111,8 @@ export default function ProjectDetail() {
   const { projects, loading: projectsLoading, error: projectsError, fetchProjects, ensureProjectSubscription } = useProjects();
 
   // Review state management
-  const [showReviewForm, setShowReviewForm] = useState<Department | null>(null);
+  const [showReviewModal, setShowReviewModal] = useState(false);
+  const [selectedDepartment, setSelectedDepartment] = useState<Department | null>(null);
   const [showReviewConfig, setShowReviewConfig] = useState(false);
   const [showAssignmentModal, setShowAssignmentModal] = useState(false);
   const [selectedReview, setSelectedReview] = useState<InternalReview | null>(null);
@@ -329,10 +330,15 @@ export default function ProjectDetail() {
   };
 
   const handleReviewSubmit = async (reviewData: ReviewSubmission) => {
+    if (!selectedDepartment) return false;
+
     try {
-      await submitReview(showReviewForm!, reviewData);
-      setShowReviewForm(null);
-      return true;
+      const success = await submitReview(selectedDepartment, reviewData);
+      if (success) {
+        setShowReviewModal(false);
+        setSelectedDepartment(null);
+      }
+      return success;
     } catch (error) {
       console.error('Error submitting review:', error);
       return false;
@@ -526,7 +532,10 @@ export default function ProjectDetail() {
                                     key={department}
                                     variant={existingReview ? "outline" : "default"}
                                     size="sm"
-                                    onClick={() => setShowReviewForm(department)}
+                                    onClick={() => {
+                                      setSelectedDepartment(department);
+                                      setShowReviewModal(true);
+                                    }}
                                   >
                                     <Plus className="w-4 h-4 mr-2" />
                                     {existingReview ? `Update ${department}` : `Add ${department}`}
@@ -686,13 +695,22 @@ export default function ProjectDetail() {
           </ResponsiveNavigationWrapper>
         )}
 
-        {/* Review Forms and Modals */}
-        {showReviewForm && (
+        {/* Review Modal */}
+        {showReviewModal && selectedDepartment && (
           <ProjectReviewForm
-            department={showReviewForm}
+            isOpen={showReviewModal}
+            onClose={() => {
+              setShowReviewModal(false);
+              setSelectedDepartment(null);
+            }}
             projectId={smoothProject.id}
+            department={selectedDepartment}
+            existingReview={reviews.find(r => r.department === selectedDepartment)}
             onSubmit={handleReviewSubmit}
-            onCancel={() => setShowReviewForm(null)}
+            onCancel={() => {
+              setShowReviewModal(false);
+              setSelectedDepartment(null);
+            }}
           />
         )}
 
