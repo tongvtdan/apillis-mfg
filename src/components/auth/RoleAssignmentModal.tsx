@@ -7,7 +7,7 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Textarea } from '@/components/ui/textarea';
-import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from '@/components/ui/dialog';
+import { Modal } from '@/components/ui/modal';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { Loader2, UserCog, AlertCircle } from 'lucide-react';
 import { useToast } from '@/components/ui/use-toast';
@@ -131,110 +131,111 @@ export function RoleAssignmentModal({ isOpen, onClose, targetUser, onRoleUpdated
     const selectedRole = roles.find(role => role.value === formData.role);
 
     return (
-        <Dialog open={isOpen} onOpenChange={onClose}>
-            <DialogContent className="sm:max-w-[500px]">
-                <DialogHeader>
-                    <DialogTitle className="flex items-center gap-2">
-                        <UserCog className="h-5 w-5" />
-                        Update User Role
-                    </DialogTitle>
-                    <DialogDescription>
-                        Update the role and permissions for {targetUser.name}
-                    </DialogDescription>
-                </DialogHeader>
+        <Modal
+            isOpen={isOpen}
+            onClose={onClose}
+            title={
+                <div className="flex items-center gap-2">
+                    <UserCog className="h-5 w-5" />
+                    Update User Role
+                </div>
+            }
+            description={`Update the role and permissions for ${targetUser.name}`}
+            showDescription={true}
+            maxWidth="max-w-[500px]"
+        >
 
-                {errors.length > 0 && (
-                    <Alert variant="destructive">
-                        <AlertCircle className="h-4 w-4" />
-                        <AlertDescription>
-                            <ul className="list-disc pl-4 space-y-1">
-                                {errors.map((error, index) => (
-                                    <li key={index}>{error}</li>
-                                ))}
-                            </ul>
-                        </AlertDescription>
-                    </Alert>
+            {errors.length > 0 && (
+                <Alert variant="destructive">
+                    <AlertCircle className="h-4 w-4" />
+                    <AlertDescription>
+                        <ul className="list-disc pl-4 space-y-1">
+                            {errors.map((error, index) => (
+                                <li key={index}>{error}</li>
+                            ))}
+                        </ul>
+                    </AlertDescription>
+                </Alert>
+            )}
+
+            <form onSubmit={handleSubmit} className="space-y-4">
+                <div className="space-y-2">
+                    <Label htmlFor="current-role">Current Role</Label>
+                    <Input
+                        id="current-role"
+                        value={targetUser.role}
+                        disabled
+                        className="bg-muted"
+                    />
+                </div>
+
+                <div className="space-y-2">
+                    <Label htmlFor="new-role">New Role</Label>
+                    <Select
+                        value={formData.role}
+                        onValueChange={(value) => setFormData(prev => ({ ...prev, role: value as UserRole }))}
+                    >
+                        <SelectTrigger>
+                            <SelectValue placeholder="Select a role" />
+                        </SelectTrigger>
+                        <SelectContent>
+                            {availableRoles.map((role) => (
+                                <SelectItem key={role.value} value={role.value}>
+                                    <div className="flex flex-col">
+                                        <span className="font-medium">{role.label}</span>
+                                        <span className="text-xs text-muted-foreground">{role.description}</span>
+                                    </div>
+                                </SelectItem>
+                            ))}
+                        </SelectContent>
+                    </Select>
+                </div>
+
+                {selectedRole && (
+                    <div className="p-3 bg-muted/50 rounded-md">
+                        <p className="text-sm font-medium mb-1">Role Description:</p>
+                        <p className="text-sm text-muted-foreground">{selectedRole.description}</p>
+                    </div>
                 )}
 
-                <form onSubmit={handleSubmit} className="space-y-4">
-                    <div className="space-y-2">
-                        <Label htmlFor="current-role">Current Role</Label>
-                        <Input
-                            id="current-role"
-                            value={targetUser.role}
-                            disabled
-                            className="bg-muted"
-                        />
-                    </div>
+                <div className="space-y-2">
+                    <Label htmlFor="department">Department (Optional)</Label>
+                    <Input
+                        id="department"
+                        value={formData.department}
+                        onChange={(e) => setFormData(prev => ({ ...prev, department: e.target.value }))}
+                        placeholder="Enter department name"
+                    />
+                </div>
 
-                    <div className="space-y-2">
-                        <Label htmlFor="new-role">New Role</Label>
-                        <Select
-                            value={formData.role}
-                            onValueChange={(value) => setFormData(prev => ({ ...prev, role: value as UserRole }))}
-                        >
-                            <SelectTrigger>
-                                <SelectValue placeholder="Select a role" />
-                            </SelectTrigger>
-                            <SelectContent>
-                                {availableRoles.map((role) => (
-                                    <SelectItem key={role.value} value={role.value}>
-                                        <div className="flex flex-col">
-                                            <span className="font-medium">{role.label}</span>
-                                            <span className="text-xs text-muted-foreground">{role.description}</span>
-                                        </div>
-                                    </SelectItem>
-                                ))}
-                            </SelectContent>
-                        </Select>
-                    </div>
+                <div className="space-y-2">
+                    <Label htmlFor="reason">Reason for Change *</Label>
+                    <Textarea
+                        id="reason"
+                        value={formData.reason}
+                        onChange={(e) => setFormData(prev => ({ ...prev, reason: e.target.value }))}
+                        placeholder="Explain why this role change is necessary..."
+                        rows={3}
+                        required
+                    />
+                </div>
 
-                    {selectedRole && (
-                        <div className="p-3 bg-muted/50 rounded-md">
-                            <p className="text-sm font-medium mb-1">Role Description:</p>
-                            <p className="text-sm text-muted-foreground">{selectedRole.description}</p>
-                        </div>
-                    )}
-
-                    <div className="space-y-2">
-                        <Label htmlFor="department">Department (Optional)</Label>
-                        <Input
-                            id="department"
-                            value={formData.department}
-                            onChange={(e) => setFormData(prev => ({ ...prev, department: e.target.value }))}
-                            placeholder="Enter department name"
-                        />
-                    </div>
-
-                    <div className="space-y-2">
-                        <Label htmlFor="reason">Reason for Change *</Label>
-                        <Textarea
-                            id="reason"
-                            value={formData.reason}
-                            onChange={(e) => setFormData(prev => ({ ...prev, reason: e.target.value }))}
-                            placeholder="Explain why this role change is necessary..."
-                            rows={3}
-                            required
-                        />
-                    </div>
-
-                    <DialogFooter>
-                        <Button type="button" variant="outline" onClick={onClose}>
-                            Cancel
-                        </Button>
-                        <Button type="submit" disabled={isLoading}>
-                            {isLoading ? (
-                                <>
-                                    <Loader2 className="h-4 w-4 animate-spin mr-2" />
-                                    Updating...
-                                </>
-                            ) : (
-                                'Update Role'
-                            )}
-                        </Button>
-                    </DialogFooter>
-                </form>
-            </DialogContent>
-        </Dialog>
+                <div className="flex justify-end gap-3 pt-4 border-t">
+                    <Button type="button" variant="outline" onClick={onClose}>
+                        Cancel
+                    </Button>
+                    <Button type="submit" disabled={isLoading}>
+                        {isLoading ? (
+                            <>
+                                <Loader2 className="h-4 w-4 animate-spin mr-2" />
+                                Updating...
+                            </>
+                        ) : (
+                            'Update Role'
+                        )}
+                    </Button>
+                </div>
+            </form>
+        </Modal>
     );
 }
