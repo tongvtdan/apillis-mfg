@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
+import { Modal } from '@/components/ui/modal';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
@@ -279,103 +279,57 @@ export function EnhancedProjectCreationModal({
     }, [open, form]);
 
     return (
-        <Dialog open={open} onOpenChange={onOpenChange}>
-            <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
-                <DialogHeader>
-                    <DialogTitle className="flex items-center gap-2">
-                        <CheckCircle2 className="h-5 w-5 text-green-600" />
-                        Create New Project
-                    </DialogTitle>
-                </DialogHeader>
+        <Modal
+            isOpen={open}
+            onClose={() => onOpenChange(false)}
+            title={
+                <div className="flex items-center gap-2">
+                    <CheckCircle2 className="h-5 w-5 text-green-600" />
+                    Create New Project
+                </div>
+            }
+            maxWidth="max-w-4xl"
+        >
 
-                <Form {...form}>
-                    <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
-                        {/* Project ID Display */}
-                        <Card>
-                            <CardHeader className="pb-3">
-                                <div className="flex items-center justify-between">
-                                    <div>
-                                        <CardTitle className="text-lg">Project ID</CardTitle>
-                                        <CardDescription>Auto-generated unique identifier</CardDescription>
-                                    </div>
-                                    <Badge variant="outline" className="text-lg font-mono px-3 py-1">
-                                        {generatedProjectId || 'Generating...'}
-                                    </Badge>
+            <Form {...form}>
+                <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
+                    {/* Project ID Display */}
+                    <Card>
+                        <CardHeader className="pb-3">
+                            <div className="flex items-center justify-between">
+                                <div>
+                                    <CardTitle className="text-lg">Project ID</CardTitle>
+                                    <CardDescription>Auto-generated unique identifier</CardDescription>
                                 </div>
-                            </CardHeader>
-                        </Card>
+                                <Badge variant="outline" className="text-lg font-mono px-3 py-1">
+                                    {generatedProjectId || 'Generating...'}
+                                </Badge>
+                            </div>
+                        </CardHeader>
+                    </Card>
 
-                        {/* Project Information */}
-                        <Card>
-                            <CardHeader>
-                                <CardTitle className="flex items-center gap-2">
-                                    <Building2 className="h-5 w-5" />
-                                    Project Information
-                                </CardTitle>
-                                <CardDescription>
-                                    Basic information about the project
-                                </CardDescription>
-                            </CardHeader>
-                            <CardContent className="space-y-4">
-                                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                                    <FormField
-                                        control={form.control}
-                                        name="title"
-                                        render={({ field }) => (
-                                            <FormItem>
-                                                <FormLabel>Project Title *</FormLabel>
-                                                <FormControl>
-                                                    <Input
-                                                        placeholder="Enter project title"
-                                                        {...field}
-                                                    />
-                                                </FormControl>
-                                                <FormMessage />
-                                            </FormItem>
-                                        )}
-                                    />
-
-                                    <FormField
-                                        control={form.control}
-                                        name="project_type"
-                                        render={({ field }) => (
-                                            <FormItem>
-                                                <FormLabel>Project Type *</FormLabel>
-                                                <Select onValueChange={field.onChange} defaultValue={field.value}>
-                                                    <FormControl>
-                                                        <SelectTrigger>
-                                                            <SelectValue placeholder="Select project type" />
-                                                        </SelectTrigger>
-                                                    </FormControl>
-                                                    <SelectContent>
-                                                        {Object.entries(PROJECT_TYPE_LABELS).map(([key, label]) => (
-                                                            <SelectItem key={key} value={key}>
-                                                                <div>
-                                                                    <div className="font-medium">{label}</div>
-                                                                    <div className="text-xs text-muted-foreground">
-                                                                        {PROJECT_TYPE_DESCRIPTIONS[key as ProjectType]}
-                                                                    </div>
-                                                                </div>
-                                                            </SelectItem>
-                                                        ))}
-                                                    </SelectContent>
-                                                </Select>
-                                                <FormMessage />
-                                            </FormItem>
-                                        )}
-                                    />
-                                </div>
-
+                    {/* Project Information */}
+                    <Card>
+                        <CardHeader>
+                            <CardTitle className="flex items-center gap-2">
+                                <Building2 className="h-5 w-5" />
+                                Project Information
+                            </CardTitle>
+                            <CardDescription>
+                                Basic information about the project
+                            </CardDescription>
+                        </CardHeader>
+                        <CardContent className="space-y-4">
+                            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                                 <FormField
                                     control={form.control}
-                                    name="description"
+                                    name="title"
                                     render={({ field }) => (
                                         <FormItem>
-                                            <FormLabel>Description</FormLabel>
+                                            <FormLabel>Project Title *</FormLabel>
                                             <FormControl>
-                                                <Textarea
-                                                    placeholder="Describe the project requirements, specifications, or objectives..."
-                                                    className="min-h-[100px]"
+                                                <Input
+                                                    placeholder="Enter project title"
                                                     {...field}
                                                 />
                                             </FormControl>
@@ -384,89 +338,62 @@ export function EnhancedProjectCreationModal({
                                     )}
                                 />
 
-                                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                                    <FormField
-                                        control={form.control}
-                                        name="priority_level"
-                                        render={({ field }) => (
-                                            <FormItem>
-                                                <FormLabel>Priority Level</FormLabel>
-                                                <Select onValueChange={field.onChange} defaultValue={field.value}>
-                                                    <FormControl>
-                                                        <SelectTrigger>
-                                                            <SelectValue />
-                                                        </SelectTrigger>
-                                                    </FormControl>
-                                                    <SelectContent>
-                                                        <SelectItem value="low">
-                                                            <div className="flex items-center gap-2">
-                                                                <div className="w-2 h-2 rounded-full bg-green-500"></div>
-                                                                Low Priority
-                                                            </div>
-                                                        </SelectItem>
-                                                        <SelectItem value="medium">
-                                                            <div className="flex items-center gap-2">
-                                                                <div className="w-2 h-2 rounded-full bg-yellow-500"></div>
-                                                                Medium Priority
-                                                            </div>
-                                                        </SelectItem>
-                                                        <SelectItem value="high">
-                                                            <div className="flex items-center gap-2">
-                                                                <div className="w-2 h-2 rounded-full bg-orange-500"></div>
-                                                                High Priority
-                                                            </div>
-                                                        </SelectItem>
-                                                        <SelectItem value="critical">
-                                                            <div className="flex items-center gap-2">
-                                                                <div className="w-2 h-2 rounded-full bg-red-500"></div>
-                                                                Critical Priority
-                                                            </div>
-                                                        </SelectItem>
-                                                    </SelectContent>
-                                                </Select>
-                                                <FormMessage />
-                                            </FormItem>
-                                        )}
-                                    />
-
-                                    <FormField
-                                        control={form.control}
-                                        name="tags"
-                                        render={({ field }) => (
-                                            <FormItem>
-                                                <FormLabel>Tags</FormLabel>
-                                                <FormControl>
-                                                    <Input
-                                                        placeholder="Enter tags separated by commas"
-                                                        {...field}
-                                                    />
-                                                </FormControl>
-                                                <FormMessage />
-                                            </FormItem>
-                                        )}
-                                    />
-                                </div>
-                            </CardContent>
-                        </Card>
-
-                        {/* Customer Information */}
-                        <Card>
-                            <CardHeader>
-                                <CardTitle className="flex items-center gap-2">
-                                    <User className="h-5 w-5" />
-                                    Customer Information
-                                </CardTitle>
-                                <CardDescription>
-                                    Select an existing customer or create a new one
-                                </CardDescription>
-                            </CardHeader>
-                            <CardContent className="space-y-4">
                                 <FormField
                                     control={form.control}
-                                    name="customer_type"
+                                    name="project_type"
                                     render={({ field }) => (
                                         <FormItem>
-                                            <FormLabel>Customer Type</FormLabel>
+                                            <FormLabel>Project Type *</FormLabel>
+                                            <Select onValueChange={field.onChange} defaultValue={field.value}>
+                                                <FormControl>
+                                                    <SelectTrigger>
+                                                        <SelectValue placeholder="Select project type" />
+                                                    </SelectTrigger>
+                                                </FormControl>
+                                                <SelectContent>
+                                                    {Object.entries(PROJECT_TYPE_LABELS).map(([key, label]) => (
+                                                        <SelectItem key={key} value={key}>
+                                                            <div>
+                                                                <div className="font-medium">{label}</div>
+                                                                <div className="text-xs text-muted-foreground">
+                                                                    {PROJECT_TYPE_DESCRIPTIONS[key as ProjectType]}
+                                                                </div>
+                                                            </div>
+                                                        </SelectItem>
+                                                    ))}
+                                                </SelectContent>
+                                            </Select>
+                                            <FormMessage />
+                                        </FormItem>
+                                    )}
+                                />
+                            </div>
+
+                            <FormField
+                                control={form.control}
+                                name="description"
+                                render={({ field }) => (
+                                    <FormItem>
+                                        <FormLabel>Description</FormLabel>
+                                        <FormControl>
+                                            <Textarea
+                                                placeholder="Describe the project requirements, specifications, or objectives..."
+                                                className="min-h-[100px]"
+                                                {...field}
+                                            />
+                                        </FormControl>
+                                        <FormMessage />
+                                    </FormItem>
+                                )}
+                            />
+
+                            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                <FormField
+                                    control={form.control}
+                                    name="priority_level"
+                                    render={({ field }) => (
+                                        <FormItem>
+                                            <FormLabel>Priority Level</FormLabel>
                                             <Select onValueChange={field.onChange} defaultValue={field.value}>
                                                 <FormControl>
                                                     <SelectTrigger>
@@ -474,8 +401,30 @@ export function EnhancedProjectCreationModal({
                                                     </SelectTrigger>
                                                 </FormControl>
                                                 <SelectContent>
-                                                    <SelectItem value="existing">Existing Customer</SelectItem>
-                                                    <SelectItem value="new">New Customer</SelectItem>
+                                                    <SelectItem value="low">
+                                                        <div className="flex items-center gap-2">
+                                                            <div className="w-2 h-2 rounded-full bg-green-500"></div>
+                                                            Low Priority
+                                                        </div>
+                                                    </SelectItem>
+                                                    <SelectItem value="medium">
+                                                        <div className="flex items-center gap-2">
+                                                            <div className="w-2 h-2 rounded-full bg-yellow-500"></div>
+                                                            Medium Priority
+                                                        </div>
+                                                    </SelectItem>
+                                                    <SelectItem value="high">
+                                                        <div className="flex items-center gap-2">
+                                                            <div className="w-2 h-2 rounded-full bg-orange-500"></div>
+                                                            High Priority
+                                                        </div>
+                                                    </SelectItem>
+                                                    <SelectItem value="critical">
+                                                        <div className="flex items-center gap-2">
+                                                            <div className="w-2 h-2 rounded-full bg-red-500"></div>
+                                                            Critical Priority
+                                                        </div>
+                                                    </SelectItem>
                                                 </SelectContent>
                                             </Select>
                                             <FormMessage />
@@ -483,151 +432,116 @@ export function EnhancedProjectCreationModal({
                                     )}
                                 />
 
-                                {customerType === 'existing' && (
-                                    <FormField
-                                        control={form.control}
-                                        name="existing_customer_id"
-                                        render={({ field }) => (
-                                            <FormItem>
-                                                <FormLabel>Select Customer *</FormLabel>
-                                                <Select onValueChange={field.onChange} value={field.value}>
-                                                    <FormControl>
-                                                        <SelectTrigger>
-                                                            <SelectValue placeholder="Choose an existing customer" />
-                                                        </SelectTrigger>
-                                                    </FormControl>
-                                                    <SelectContent>
-                                                        {loadingCustomers ? (
-                                                            <SelectItem value="loading" disabled>
-                                                                <div className="flex items-center gap-2">
-                                                                    <Loader2 className="h-4 w-4 animate-spin" />
-                                                                    Loading customers...
+                                <FormField
+                                    control={form.control}
+                                    name="tags"
+                                    render={({ field }) => (
+                                        <FormItem>
+                                            <FormLabel>Tags</FormLabel>
+                                            <FormControl>
+                                                <Input
+                                                    placeholder="Enter tags separated by commas"
+                                                    {...field}
+                                                />
+                                            </FormControl>
+                                            <FormMessage />
+                                        </FormItem>
+                                    )}
+                                />
+                            </div>
+                        </CardContent>
+                    </Card>
+
+                    {/* Customer Information */}
+                    <Card>
+                        <CardHeader>
+                            <CardTitle className="flex items-center gap-2">
+                                <User className="h-5 w-5" />
+                                Customer Information
+                            </CardTitle>
+                            <CardDescription>
+                                Select an existing customer or create a new one
+                            </CardDescription>
+                        </CardHeader>
+                        <CardContent className="space-y-4">
+                            <FormField
+                                control={form.control}
+                                name="customer_type"
+                                render={({ field }) => (
+                                    <FormItem>
+                                        <FormLabel>Customer Type</FormLabel>
+                                        <Select onValueChange={field.onChange} defaultValue={field.value}>
+                                            <FormControl>
+                                                <SelectTrigger>
+                                                    <SelectValue />
+                                                </SelectTrigger>
+                                            </FormControl>
+                                            <SelectContent>
+                                                <SelectItem value="existing">Existing Customer</SelectItem>
+                                                <SelectItem value="new">New Customer</SelectItem>
+                                            </SelectContent>
+                                        </Select>
+                                        <FormMessage />
+                                    </FormItem>
+                                )}
+                            />
+
+                            {customerType === 'existing' && (
+                                <FormField
+                                    control={form.control}
+                                    name="existing_customer_id"
+                                    render={({ field }) => (
+                                        <FormItem>
+                                            <FormLabel>Select Customer *</FormLabel>
+                                            <Select onValueChange={field.onChange} value={field.value}>
+                                                <FormControl>
+                                                    <SelectTrigger>
+                                                        <SelectValue placeholder="Choose an existing customer" />
+                                                    </SelectTrigger>
+                                                </FormControl>
+                                                <SelectContent>
+                                                    {loadingCustomers ? (
+                                                        <SelectItem value="loading" disabled>
+                                                            <div className="flex items-center gap-2">
+                                                                <Loader2 className="h-4 w-4 animate-spin" />
+                                                                Loading customers...
+                                                            </div>
+                                                        </SelectItem>
+                                                    ) : existingCustomers.length === 0 ? (
+                                                        <SelectItem value="none" disabled>
+                                                            No customers found
+                                                        </SelectItem>
+                                                    ) : (
+                                                        existingCustomers.map(customer => (
+                                                            <SelectItem key={customer.id} value={customer.id}>
+                                                                <div>
+                                                                    <div className="font-medium">{customer.company_name}</div>
+                                                                    <div className="text-xs text-muted-foreground">
+                                                                        {customer.contact_name} • {customer.email}
+                                                                    </div>
                                                                 </div>
                                                             </SelectItem>
-                                                        ) : existingCustomers.length === 0 ? (
-                                                            <SelectItem value="none" disabled>
-                                                                No customers found
-                                                            </SelectItem>
-                                                        ) : (
-                                                            existingCustomers.map(customer => (
-                                                                <SelectItem key={customer.id} value={customer.id}>
-                                                                    <div>
-                                                                        <div className="font-medium">{customer.company_name}</div>
-                                                                        <div className="text-xs text-muted-foreground">
-                                                                            {customer.contact_name} • {customer.email}
-                                                                        </div>
-                                                                    </div>
-                                                                </SelectItem>
-                                                            ))
-                                                        )}
-                                                    </SelectContent>
-                                                </Select>
-                                                <FormMessage />
-                                            </FormItem>
-                                        )}
-                                    />
-                                )}
+                                                        ))
+                                                    )}
+                                                </SelectContent>
+                                            </Select>
+                                            <FormMessage />
+                                        </FormItem>
+                                    )}
+                                />
+                            )}
 
-                                {customerType === 'new' && (
-                                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                                        <FormField
-                                            control={form.control}
-                                            name="company_name"
-                                            render={({ field }) => (
-                                                <FormItem>
-                                                    <FormLabel>Company Name *</FormLabel>
-                                                    <FormControl>
-                                                        <Input
-                                                            placeholder="Enter company name"
-                                                            {...field}
-                                                        />
-                                                    </FormControl>
-                                                    <FormMessage />
-                                                </FormItem>
-                                            )}
-                                        />
-
-                                        <FormField
-                                            control={form.control}
-                                            name="contact_name"
-                                            render={({ field }) => (
-                                                <FormItem>
-                                                    <FormLabel>Contact Name *</FormLabel>
-                                                    <FormControl>
-                                                        <Input
-                                                            placeholder="Enter contact person name"
-                                                            {...field}
-                                                        />
-                                                    </FormControl>
-                                                    <FormMessage />
-                                                </FormItem>
-                                            )}
-                                        />
-
-                                        <FormField
-                                            control={form.control}
-                                            name="contact_email"
-                                            render={({ field }) => (
-                                                <FormItem>
-                                                    <FormLabel>Email Address</FormLabel>
-                                                    <FormControl>
-                                                        <Input
-                                                            type="email"
-                                                            placeholder="Enter email address"
-                                                            {...field}
-                                                        />
-                                                    </FormControl>
-                                                    <FormMessage />
-                                                </FormItem>
-                                            )}
-                                        />
-
-                                        <FormField
-                                            control={form.control}
-                                            name="contact_phone"
-                                            render={({ field }) => (
-                                                <FormItem>
-                                                    <FormLabel>Phone Number</FormLabel>
-                                                    <FormControl>
-                                                        <Input
-                                                            type="tel"
-                                                            placeholder="Enter phone number"
-                                                            {...field}
-                                                        />
-                                                    </FormControl>
-                                                    <FormMessage />
-                                                </FormItem>
-                                            )}
-                                        />
-                                    </div>
-                                )}
-                            </CardContent>
-                        </Card>
-
-                        {/* Project Details */}
-                        <Card>
-                            <CardHeader>
-                                <CardTitle className="flex items-center gap-2">
-                                    <DollarSign className="h-5 w-5" />
-                                    Project Details
-                                </CardTitle>
-                                <CardDescription>
-                                    Financial and timeline information
-                                </CardDescription>
-                            </CardHeader>
-                            <CardContent className="space-y-4">
+                            {customerType === 'new' && (
                                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                                     <FormField
                                         control={form.control}
-                                        name="estimated_value"
+                                        name="company_name"
                                         render={({ field }) => (
                                             <FormItem>
-                                                <FormLabel>Estimated Value ($)</FormLabel>
+                                                <FormLabel>Company Name *</FormLabel>
                                                 <FormControl>
                                                     <Input
-                                                        type="number"
-                                                        step="0.01"
-                                                        placeholder="0.00"
+                                                        placeholder="Enter company name"
                                                         {...field}
                                                     />
                                                 </FormControl>
@@ -638,13 +552,49 @@ export function EnhancedProjectCreationModal({
 
                                     <FormField
                                         control={form.control}
-                                        name="estimated_delivery_date"
+                                        name="contact_name"
                                         render={({ field }) => (
                                             <FormItem>
-                                                <FormLabel>Estimated Delivery Date</FormLabel>
+                                                <FormLabel>Contact Name *</FormLabel>
                                                 <FormControl>
                                                     <Input
-                                                        type="date"
+                                                        placeholder="Enter contact person name"
+                                                        {...field}
+                                                    />
+                                                </FormControl>
+                                                <FormMessage />
+                                            </FormItem>
+                                        )}
+                                    />
+
+                                    <FormField
+                                        control={form.control}
+                                        name="contact_email"
+                                        render={({ field }) => (
+                                            <FormItem>
+                                                <FormLabel>Email Address</FormLabel>
+                                                <FormControl>
+                                                    <Input
+                                                        type="email"
+                                                        placeholder="Enter email address"
+                                                        {...field}
+                                                    />
+                                                </FormControl>
+                                                <FormMessage />
+                                            </FormItem>
+                                        )}
+                                    />
+
+                                    <FormField
+                                        control={form.control}
+                                        name="contact_phone"
+                                        render={({ field }) => (
+                                            <FormItem>
+                                                <FormLabel>Phone Number</FormLabel>
+                                                <FormControl>
+                                                    <Input
+                                                        type="tel"
+                                                        placeholder="Enter phone number"
                                                         {...field}
                                                     />
                                                 </FormControl>
@@ -653,17 +603,34 @@ export function EnhancedProjectCreationModal({
                                         )}
                                     />
                                 </div>
+                            )}
+                        </CardContent>
+                    </Card>
 
+                    {/* Project Details */}
+                    <Card>
+                        <CardHeader>
+                            <CardTitle className="flex items-center gap-2">
+                                <DollarSign className="h-5 w-5" />
+                                Project Details
+                            </CardTitle>
+                            <CardDescription>
+                                Financial and timeline information
+                            </CardDescription>
+                        </CardHeader>
+                        <CardContent className="space-y-4">
+                            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                                 <FormField
                                     control={form.control}
-                                    name="notes"
+                                    name="estimated_value"
                                     render={({ field }) => (
                                         <FormItem>
-                                            <FormLabel>Additional Notes</FormLabel>
+                                            <FormLabel>Estimated Value ($)</FormLabel>
                                             <FormControl>
-                                                <Textarea
-                                                    placeholder="Any additional information, special requirements, or notes..."
-                                                    className="min-h-[80px]"
+                                                <Input
+                                                    type="number"
+                                                    step="0.01"
+                                                    placeholder="0.00"
                                                     {...field}
                                                 />
                                             </FormControl>
@@ -671,40 +638,75 @@ export function EnhancedProjectCreationModal({
                                         </FormItem>
                                     )}
                                 />
-                            </CardContent>
-                        </Card>
 
-                        {/* Form Actions */}
-                        <div className="flex justify-end gap-3 pt-4">
-                            <Button
-                                type="button"
-                                variant="outline"
-                                onClick={() => onOpenChange(false)}
-                                disabled={isSubmitting}
-                            >
-                                Cancel
-                            </Button>
-                            <Button
-                                type="submit"
-                                disabled={isSubmitting || !generatedProjectId}
-                                className="min-w-[120px]"
-                            >
-                                {isSubmitting ? (
-                                    <>
-                                        <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                                        Creating...
-                                    </>
-                                ) : (
-                                    <>
-                                        <CheckCircle2 className="mr-2 h-4 w-4" />
-                                        Create Project
-                                    </>
+                                <FormField
+                                    control={form.control}
+                                    name="estimated_delivery_date"
+                                    render={({ field }) => (
+                                        <FormItem>
+                                            <FormLabel>Estimated Delivery Date</FormLabel>
+                                            <FormControl>
+                                                <Input
+                                                    type="date"
+                                                    {...field}
+                                                />
+                                            </FormControl>
+                                            <FormMessage />
+                                        </FormItem>
+                                    )}
+                                />
+                            </div>
+
+                            <FormField
+                                control={form.control}
+                                name="notes"
+                                render={({ field }) => (
+                                    <FormItem>
+                                        <FormLabel>Additional Notes</FormLabel>
+                                        <FormControl>
+                                            <Textarea
+                                                placeholder="Any additional information, special requirements, or notes..."
+                                                className="min-h-[80px]"
+                                                {...field}
+                                            />
+                                        </FormControl>
+                                        <FormMessage />
+                                    </FormItem>
                                 )}
-                            </Button>
-                        </div>
-                    </form>
-                </Form>
-            </DialogContent>
-        </Dialog>
+                            />
+                        </CardContent>
+                    </Card>
+
+                    {/* Form Actions */}
+                    <div className="flex justify-end gap-3 pt-4">
+                        <Button
+                            type="button"
+                            variant="outline"
+                            onClick={() => onOpenChange(false)}
+                            disabled={isSubmitting}
+                        >
+                            Cancel
+                        </Button>
+                        <Button
+                            type="submit"
+                            disabled={isSubmitting || !generatedProjectId}
+                            className="min-w-[120px]"
+                        >
+                            {isSubmitting ? (
+                                <>
+                                    <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                                    Creating...
+                                </>
+                            ) : (
+                                <>
+                                    <CheckCircle2 className="mr-2 h-4 w-4" />
+                                    Create Project
+                                </>
+                            )}
+                        </Button>
+                    </div>
+                </form>
+            </Form>
+        </Modal>
     );
 }

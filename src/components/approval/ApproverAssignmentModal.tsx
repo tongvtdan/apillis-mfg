@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from '@/components/ui/dialog';
+import { Modal } from '@/components/ui/modal';
 import { Button } from '@/components/ui/button';
 import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
@@ -146,45 +146,50 @@ export function ApproverAssignmentModal({
     };
 
     return (
-        <Dialog open={isOpen} onOpenChange={onClose}>
-            <DialogContent className="max-w-md">
-                <DialogHeader>
-                    <DialogTitle>Assign Approvers</DialogTitle>
-                </DialogHeader>
-
-                <div className="space-y-4 py-4">
-                    {roleApprovers.map(({ role, approvers, selectedApprover }) => (
-                        <div key={role} className="space-y-2">
-                            <Label htmlFor={`approver-${role}`}>{role}</Label>
-                            <Select
-                                value={selectedApprover || ''}
-                                onValueChange={(value) => handleApproverChange(role, value)}
-                                disabled={loading}
-                            >
-                                <SelectTrigger id={`approver-${role}`}>
-                                    <SelectValue placeholder={`Select approver for ${role}`} />
-                                </SelectTrigger>
-                                <SelectContent>
-                                    {approvers.map(user => (
-                                        <SelectItem key={user.id} value={user.id}>
-                                            {user.display_name || user.email}
-                                        </SelectItem>
-                                    ))}
-                                </SelectContent>
-                            </Select>
-                        </div>
-                    ))}
+        <Modal
+            isOpen={isOpen}
+            onClose={onClose}
+            title={
+                <div className="flex items-center gap-2">
+                    <Users className="w-5 h-5" />
+                    Assign Approvers
                 </div>
+            }
+            maxWidth="max-w-md"
+        >
 
-                <DialogFooter>
-                    <Button variant="outline" onClick={onClose} disabled={loading}>
-                        Cancel
-                    </Button>
-                    <Button onClick={handleAssign} disabled={loading || roleApprovers.some(ra => !ra.selectedApprover)}>
-                        {loading ? 'Assigning...' : 'Assign Approvers'}
-                    </Button>
-                </DialogFooter>
-            </DialogContent>
-        </Dialog>
+            <div className="space-y-4 py-4">
+                {roleApprovers.map(({ role, approvers, selectedApprover }) => (
+                    <div key={role} className="space-y-2">
+                        <Label htmlFor={`approver-${role}`}>{role}</Label>
+                        <Select
+                            value={selectedApprover || ''}
+                            onValueChange={(value) => handleApproverChange(role, value)}
+                            disabled={loading}
+                        >
+                            <SelectTrigger id={`approver-${role}`}>
+                                <SelectValue placeholder={`Select approver for ${role}`} />
+                            </SelectTrigger>
+                            <SelectContent>
+                                {approvers.map(user => (
+                                    <SelectItem key={user.id} value={user.id}>
+                                        {user.display_name || user.email}
+                                    </SelectItem>
+                                ))}
+                            </SelectContent>
+                        </Select>
+                    </div>
+                ))}
+            </div>
+
+            <div className="flex justify-end gap-3 pt-4 border-t">
+                <Button variant="outline" onClick={onClose} disabled={loading}>
+                    Cancel
+                </Button>
+                <Button onClick={handleAssign} disabled={loading || roleApprovers.some(ra => !ra.selectedApprover)}>
+                    {loading ? 'Assigning...' : 'Assign Approvers'}
+                </Button>
+            </div>
+        </Modal>
     );
 }
