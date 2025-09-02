@@ -87,7 +87,7 @@ END $$;
 
 -- Function to automatically create initial version when document is created
 CREATE OR REPLACE FUNCTION create_initial_document_version()
-RETURNS TRIGGER AS $
+RETURNS TRIGGER AS $$
 DECLARE
     v_version_id UUID;
 BEGIN
@@ -133,7 +133,7 @@ CREATE TRIGGER trigger_create_initial_document_version
 
 -- Function to update document when version changes
 CREATE OR REPLACE FUNCTION update_document_on_version_change()
-RETURNS TRIGGER AS $
+RETURNS TRIGGER AS $$
 BEGIN
     -- If this version is being set as current, update the main document record
     IF NEW.is_current = true AND (OLD.is_current IS NULL OR OLD.is_current = false) THEN
@@ -181,7 +181,7 @@ RETURNS TABLE (
     uploader_email VARCHAR(255),
     uploaded_at TIMESTAMPTZ,
     is_current BOOLEAN
-) AS $
+) AS $$
 BEGIN
     RETURN QUERY
     SELECT 
@@ -209,7 +209,7 @@ $ LANGUAGE plpgsql SECURITY DEFINER;
 CREATE OR REPLACE FUNCTION cleanup_old_document_versions(
     p_document_id UUID,
     p_keep_versions INTEGER DEFAULT 10
-) RETURNS INTEGER AS $
+) RETURNS INTEGER AS $$
 DECLARE
     v_deleted_count INTEGER;
 BEGIN
