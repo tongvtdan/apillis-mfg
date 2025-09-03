@@ -2,6 +2,80 @@
 
 ## Recent Changes
 
+### 2025-09-03 - Google Drive Integration Partially Disabled (Coming Soon) ✅
+
+**Task Completed:**
+- Disabled Google Drive authentication and browsing functionality due to consistent errors
+- Kept "Add Link" functionality working for manual URL entry
+- Replaced Google Drive-specific components with "Coming soon" messages
+- Maintained component structure and UI consistency
+- Preserved code for future re-enablement when issues are resolved
+
+**Implementation Details:**
+
+1. **GoogleDriveAuth Component** (`src/components/project/GoogleDriveAuth.tsx`):
+   - **Disabled**: All authentication functionality and Google Drive API calls
+   - **Replaced**: Connection status with "Coming soon" badge
+   - **Maintained**: Component structure and UI layout
+   - **Added**: Clock icon to indicate future availability
+
+2. **DocumentLinkModal Component** (`src/components/project/DocumentLinkModal.tsx`):
+   - **Disabled**: Google Drive browsing and file selection functionality
+   - **Replaced**: Browse tab with "Coming soon" message
+   - **Maintained**: URL entry functionality for manual link addition (FULLY FUNCTIONAL)
+   - **Preserved**: Form validation and submission logic for manual links
+
+3. **DocumentManager Component** (`src/components/project/DocumentManager.tsx`):
+   - **Enabled**: "Add Link" button functionality (FULLY FUNCTIONAL)
+   - **Maintained**: DocumentLinkModal integration for manual link entry
+   - **Preserved**: All link management features except Google Drive browsing
+
+4. **GoogleDriveTest Page** (`src/pages/GoogleDriveTest.tsx`):
+   - **Replaced**: All testing functionality with "Coming soon" messages
+   - **Disabled**: Authentication and configuration panels
+   - **Maintained**: Page structure and admin role checking
+   - **Added**: Information about upcoming features
+
+5. **GoogleDriveDebugPanel Component** (`src/components/debug/GoogleDriveDebugPanel.tsx`):
+   - **Replaced**: Debug functionality with "Coming soon" message
+   - **Simplified**: Component to basic structure
+   - **Removed**: All Google Drive API calls and state management
+
+6. **GoogleDriveCallback Page** (`src/pages/GoogleDriveCallback.tsx`):
+   - **Replaced**: OAuth callback processing with "Coming soon" message
+   - **Simplified**: Component to basic navigation
+   - **Maintained**: Route structure for future re-enablement
+
+**Technical Changes:**
+- **Removed**: useGoogleDrive hook imports from affected components
+- **Disabled**: All Google Drive API calls and authentication flows
+- **Preserved**: Component interfaces and prop structures
+- **Maintained**: Route definitions in App.tsx
+- **Added**: Clock icons and "Coming soon" messaging throughout
+- **Kept**: Manual link entry functionality fully operational
+
+**Benefits:**
+- ✅ **Error Elimination**: Removes all Google Drive integration errors
+- ✅ **User Experience**: Clear messaging about future availability while maintaining link functionality
+- ✅ **Code Preservation**: All functionality preserved for future re-enablement
+- ✅ **UI Consistency**: Maintains visual design and component structure
+- ✅ **Development Stability**: Eliminates integration issues during development
+- ✅ **Link Management**: Users can still add document links manually via URL entry
+
+**Current Functionality:**
+- ✅ **Manual Link Entry**: Users can add document links by entering URLs directly
+- ✅ **Link Management**: All link validation, submission, and management features work
+- ✅ **Document Organization**: Links are properly categorized and stored
+- ❌ **Google Drive Browsing**: File browsing from Google Drive is disabled (Coming Soon)
+- ❌ **Google Drive Authentication**: OAuth connection is disabled (Coming Soon)
+
+**Future Re-enablement:**
+- All components are structured to easily re-enable Google Drive functionality
+- Code comments indicate where functionality was disabled
+- Component interfaces remain unchanged for seamless re-integration
+- Database schema and services remain intact for future use
+- Manual link entry will continue to work alongside Google Drive integration
+
 ### 2025-09-03 - Google Drive Test Page Implementation ✅
 
 **Task Completed:**

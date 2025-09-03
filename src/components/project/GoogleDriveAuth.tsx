@@ -13,11 +13,10 @@ import {
     Loader2,
     ExternalLink,
     Settings,
-    RefreshCw
+    RefreshCw,
+    Clock
 } from 'lucide-react';
-import { useGoogleDrive } from '@/hooks/useGoogleDrive';
 import { useAuth } from '@/contexts/AuthContext';
-import { format } from 'date-fns';
 
 interface GoogleDriveAuthProps {
     onConnect?: () => void;
@@ -31,61 +30,6 @@ export const GoogleDriveAuth: React.FC<GoogleDriveAuthProps> = ({
     showDetails = false,
 }) => {
     const { user } = useAuth();
-    const {
-        authState,
-        authenticate,
-        disconnect,
-        isLoading,
-        error
-    } = useGoogleDrive();
-
-    const handleConnect = async () => {
-        try {
-            await authenticate();
-            onConnect?.();
-        } catch (error) {
-            console.error('Failed to connect Google Drive:', error);
-        }
-    };
-
-    const handleDisconnect = async () => {
-        try {
-            await disconnect();
-            onDisconnect?.();
-        } catch (error) {
-            console.error('Failed to disconnect Google Drive:', error);
-        }
-    };
-
-    const getStatusIcon = () => {
-        if (isLoading) {
-            return <Loader2 className="h-4 w-4 animate-spin" />;
-        }
-
-        if (authState.isAuthenticated) {
-            return <CheckCircle className="h-4 w-4 text-green-500" />;
-        }
-
-        return <XCircle className="h-4 w-4 text-red-500" />;
-    };
-
-    const getStatusText = () => {
-        if (isLoading) {
-            return 'Connecting...';
-        }
-
-        if (authState.isAuthenticated) {
-            return 'Connected';
-        }
-
-        return 'Not Connected';
-    };
-
-    const getStatusBadgeVariant = () => {
-        if (isLoading) return 'secondary';
-        if (authState.isAuthenticated) return 'default';
-        return 'destructive';
-    };
 
     if (!user) {
         return (
@@ -116,9 +60,9 @@ export const GoogleDriveAuth: React.FC<GoogleDriveAuthProps> = ({
                         <Cloud className="h-5 w-5" />
                         <CardTitle>Google Drive Integration</CardTitle>
                     </div>
-                    <Badge variant={getStatusBadgeVariant()}>
-                        {getStatusIcon()}
-                        <span className="ml-1">{getStatusText()}</span>
+                    <Badge variant="secondary">
+                        <Clock className="h-4 w-4 mr-1" />
+                        Coming Soon
                     </Badge>
                 </div>
                 <CardDescription>
@@ -127,80 +71,32 @@ export const GoogleDriveAuth: React.FC<GoogleDriveAuthProps> = ({
             </CardHeader>
 
             <CardContent className="space-y-4">
-                {error && (
-                    <div className="rounded-md bg-destructive/10 p-3">
-                        <p className="text-sm text-destructive">{error}</p>
-                    </div>
-                )}
+                <div className="text-center py-8">
+                    <Clock className="h-12 w-12 mx-auto text-muted-foreground mb-4" />
+                    <h3 className="text-lg font-medium mb-2">Coming Soon</h3>
+                    <p className="text-sm text-muted-foreground mb-4">
+                        Google Drive integration is currently under development and will be available soon.
+                    </p>
+                    <Button disabled className="w-full">
+                        <Cloud className="h-4 w-4 mr-2" />
+                        Connect Google Drive
+                    </Button>
+                </div>
 
-                {authState.isAuthenticated ? (
-                    <div className="space-y-3">
-                        <div className="flex items-center justify-between">
-                            <div>
-                                <p className="text-sm font-medium">Connected Account</p>
-                                <p className="text-sm text-muted-foreground">
-                                    {authState.userEmail || user.email}
-                                </p>
-                            </div>
-                            <Button
-                                variant="outline"
-                                size="sm"
-                                onClick={handleDisconnect}
-                                disabled={isLoading}
-                            >
-                                <XCircle className="h-4 w-4 mr-2" />
-                                Disconnect
-                            </Button>
-                        </div>
+                <Separator />
 
-                        {showDetails && authState.tokenExpiresAt && (
-                            <div className="text-sm text-muted-foreground">
-                                <p>Token expires: {format(new Date(authState.tokenExpiresAt), 'PPp')}</p>
-                            </div>
-                        )}
-
-                        <Separator />
-
-                        <div className="space-y-2">
-                            <h4 className="text-sm font-medium">What you can do:</h4>
-                            <ul className="text-sm text-muted-foreground space-y-1">
-                                <li>• Add Google Drive files as document links</li>
-                                <li>• Browse and select files from your Drive</li>
-                                <li>• Share files with team members</li>
-                                <li>• Access files without downloading</li>
-                            </ul>
-                        </div>
-                    </div>
-                ) : (
-                    <div className="space-y-4">
-                        <div className="space-y-2">
-                            <h4 className="text-sm font-medium">Benefits of connecting:</h4>
-                            <ul className="text-sm text-muted-foreground space-y-1">
-                                <li>• Save storage space by linking instead of uploading</li>
-                                <li>• Access files directly from Google Drive</li>
-                                <li>• Real-time collaboration with team members</li>
-                                <li>• Automatic file synchronization</li>
-                            </ul>
-                        </div>
-
-                        <Button
-                            onClick={handleConnect}
-                            disabled={isLoading}
-                            className="w-full"
-                        >
-                            {isLoading ? (
-                                <Loader2 className="h-4 w-4 mr-2 animate-spin" />
-                            ) : (
-                                <Cloud className="h-4 w-4 mr-2" />
-                            )}
-                            Connect Google Drive
-                        </Button>
-
-                        <p className="text-xs text-muted-foreground text-center">
-                            You'll be redirected to Google to authorize access
-                        </p>
-                    </div>
-                )}
+                <div className="space-y-2">
+                    <h4 className="text-sm font-medium">What's coming:</h4>
+                    <ul className="text-sm text-muted-foreground space-y-1">
+                        <li>• Add Google Drive files as document links</li>
+                        <li>• Browse and select files from your Drive</li>
+                        <li>• Share files with team members</li>
+                        <li>• Access files without downloading</li>
+                        <li>• Save storage space by linking instead of uploading</li>
+                        <li>• Real-time collaboration with team members</li>
+                        <li>• Automatic file synchronization</li>
+                    </ul>
+                </div>
 
                 {showDetails && (
                     <>
@@ -208,7 +104,7 @@ export const GoogleDriveAuth: React.FC<GoogleDriveAuthProps> = ({
                         <div className="space-y-2">
                             <div className="flex items-center justify-between">
                                 <h4 className="text-sm font-medium">Integration Settings</h4>
-                                <Button variant="ghost" size="sm">
+                                <Button variant="ghost" size="sm" disabled>
                                     <Settings className="h-4 w-4 mr-2" />
                                     Configure
                                 </Button>

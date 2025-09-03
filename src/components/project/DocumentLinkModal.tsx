@@ -23,13 +23,13 @@ import {
     XCircle,
     AlertCircle,
     Search,
-    Plus
+    Plus,
+    Clock
 } from 'lucide-react';
-import { useGoogleDrive } from '@/hooks/useGoogleDrive';
 import { useDocuments } from '@/hooks/useDocuments';
 import { validateDocumentLink } from '@/lib/googleDriveUtils';
 import { toast } from 'sonner';
-import type { DocumentLinkData, GoogleDriveFile } from '@/types/googleDrive';
+import type { DocumentLinkData } from '@/types/googleDrive';
 
 interface DocumentLinkModalProps {
     projectId: string;
@@ -73,12 +73,6 @@ export const DocumentLinkModal: React.FC<DocumentLinkModalProps> = ({
     onSuccess,
 }) => {
     const { addDocumentLink } = useDocuments(projectId);
-    const {
-        isAuthenticated,
-        listFiles,
-        urlToDocumentLink,
-        authenticate
-    } = useGoogleDrive();
 
     const [activeTab, setActiveTab] = useState<'url' | 'browse'>('url');
     const [isLoading, setIsLoading] = useState(false);
@@ -99,12 +93,6 @@ export const DocumentLinkModal: React.FC<DocumentLinkModalProps> = ({
         tags: [],
     });
 
-    // Google Drive browse state
-    const [searchQuery, setSearchQuery] = useState('');
-    const [driveFiles, setDriveFiles] = useState<GoogleDriveFile[]>([]);
-    const [isLoadingFiles, setIsLoadingFiles] = useState(false);
-    const [selectedFile, setSelectedFile] = useState<GoogleDriveFile | null>(null);
-
     // Reset form when modal opens/closes
     React.useEffect(() => {
         if (!isOpen) {
@@ -117,9 +105,6 @@ export const DocumentLinkModal: React.FC<DocumentLinkModalProps> = ({
                 tags: [],
             });
             setValidationResult(null);
-            setSelectedFile(null);
-            setDriveFiles([]);
-            setSearchQuery('');
         }
     }, [isOpen]);
 
@@ -138,6 +123,7 @@ export const DocumentLinkModal: React.FC<DocumentLinkModalProps> = ({
             const validation = validateDocumentLink({
                 title: formData.title || 'Untitled',
                 external_url: url,
+                link_type: 'file',
                 storage_provider: 'google_drive',
             });
 
@@ -150,33 +136,7 @@ export const DocumentLinkModal: React.FC<DocumentLinkModalProps> = ({
             }
 
             // Try to fetch metadata from Google Drive
-            if (isAuthenticated) {
-                try {
-                    const linkData = await urlToDocumentLink(url);
-                    if (linkData) {
-                        setValidationResult({
-                            isValid: true,
-                            errors: [],
-                            linkData,
-                        });
-
-                        // Auto-fill form with fetched data
-                        setFormData(prev => ({
-                            ...prev,
-                            title: linkData.title,
-                            description: linkData.description || '',
-                            document_type: linkData.document_type || 'other',
-                            access_level: linkData.access_level || 'internal',
-                            tags: linkData.tags || [],
-                        }));
-                        return;
-                    }
-                } catch (error) {
-                    console.error('Failed to fetch Google Drive metadata:', error);
-                }
-            }
-
-            // Fallback to basic validation
+            // This functionality is currently disabled, so we'll just return a basic linkData
             setValidationResult({
                 isValid: true,
                 errors: [],
@@ -200,56 +160,12 @@ export const DocumentLinkModal: React.FC<DocumentLinkModalProps> = ({
         } finally {
             setIsValidating(false);
         }
-    }, [formData.title, formData.description, formData.document_type, formData.access_level, formData.tags, isAuthenticated, urlToDocumentLink]);
-
-    // Search Google Drive files
-    const searchDriveFiles = useCallback(async (query: string) => {
-        if (!isAuthenticated) return;
-
-        setIsLoadingFiles(true);
-        try {
-            const response = await listFiles(query, undefined, 20);
-            setDriveFiles(response.files);
-        } catch (error) {
-            console.error('Failed to search Google Drive files:', error);
-            toast.error('Failed to search Google Drive files');
-        } finally {
-            setIsLoadingFiles(false);
-        }
-    }, [isAuthenticated, listFiles]);
+    }, [formData.title, formData.description, formData.document_type, formData.access_level, formData.tags]);
 
     // Handle URL input change
     const handleUrlChange = (url: string) => {
         setFormData(prev => ({ ...prev, external_url: url }));
         validateUrl(url);
-    };
-
-    // Handle file selection from Google Drive
-    const handleFileSelect = (file: GoogleDriveFile) => {
-        setSelectedFile(file);
-        setFormData(prev => ({
-            ...prev,
-            title: file.name,
-            external_url: file.webViewLink || `https://drive.google.com/file/d/${file.id}/view`,
-            document_type: getFileTypeFromMimeType(file.mimeType),
-        }));
-    };
-
-    // Get file type from MIME type
-    const getFileTypeFromMimeType = (mimeType: string): string => {
-        const typeMap: Record<string, string> = {
-            'application/pdf': 'specification',
-            'application/vnd.google-apps.document': 'specification',
-            'application/vnd.google-apps.spreadsheet': 'bom',
-            'application/vnd.google-apps.presentation': 'report',
-            'image/jpeg': 'drawing',
-            'image/png': 'drawing',
-            'image/gif': 'drawing',
-            'application/vnd.openxmlformats-officedocument.wordprocessingml.document': 'specification',
-            'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet': 'bom',
-            'application/vnd.openxmlformats-officedocument.presentationml.presentation': 'report',
-        };
-        return typeMap[mimeType] || 'other';
     };
 
     // Submit form
@@ -292,7 +208,6 @@ export const DocumentLinkModal: React.FC<DocumentLinkModalProps> = ({
             onClose={onClose}
             title="Add Document Link"
             description="Add a link to a document from Google Drive or other sources"
-            size="lg"
         >
             <div className="space-y-6">
                 <Tabs value={activeTab} onValueChange={(value) => setActiveTab(value as 'url' | 'browse')}>
@@ -352,84 +267,18 @@ export const DocumentLinkModal: React.FC<DocumentLinkModalProps> = ({
                     </TabsContent>
 
                     <TabsContent value="browse" className="space-y-4">
-                        {!isAuthenticated ? (
-                            <div className="text-center py-8">
-                                <Cloud className="h-12 w-12 mx-auto text-muted-foreground mb-4" />
-                                <h3 className="text-lg font-medium mb-2">Connect Google Drive</h3>
-                                <p className="text-sm text-muted-foreground mb-4">
-                                    Connect your Google Drive account to browse and select files
-                                </p>
-                                <Button onClick={() => {
-                                    console.log('🔘 Connect Google Drive button clicked');
-                                    console.log('🔍 About to call authenticate() function');
-                                    try {
-                                        authenticate();
-                                        console.log('✅ authenticate() function called successfully');
-                                    } catch (error) {
-                                        console.error('❌ Error calling authenticate():', error);
-                                    }
-                                }}>
-                                    <Cloud className="h-4 w-4 mr-2" />
-                                    Connect Google Drive
-                                </Button>
-                            </div>
-                        ) : (
-                            <div className="space-y-4">
-                                <div className="space-y-2">
-                                    <Label htmlFor="search">Search Files</Label>
-                                    <div className="flex gap-2">
-                                        <Input
-                                            id="search"
-                                            placeholder="Search for files..."
-                                            value={searchQuery}
-                                            onChange={(e) => setSearchQuery(e.target.value)}
-                                        />
-                                        <Button
-                                            variant="outline"
-                                            onClick={() => searchDriveFiles(searchQuery)}
-                                            disabled={isLoadingFiles}
-                                        >
-                                            {isLoadingFiles ? (
-                                                <Loader2 className="h-4 w-4 animate-spin" />
-                                            ) : (
-                                                <Search className="h-4 w-4" />
-                                            )}
-                                        </Button>
-                                    </div>
-                                </div>
-
-                                {driveFiles.length > 0 && (
-                                    <div className="space-y-2">
-                                        <Label>Select a file:</Label>
-                                        <div className="max-h-60 overflow-y-auto space-y-2">
-                                            {driveFiles.map((file) => (
-                                                <div
-                                                    key={file.id}
-                                                    className={`p-3 rounded-md border cursor-pointer transition-colors ${selectedFile?.id === file.id
-                                                        ? 'border-primary bg-primary/5'
-                                                        : 'border-border hover:border-primary/50'
-                                                        }`}
-                                                    onClick={() => handleFileSelect(file)}
-                                                >
-                                                    <div className="flex items-center gap-3">
-                                                        <FileText className="h-5 w-5 text-muted-foreground" />
-                                                        <div className="flex-1 min-w-0">
-                                                            <p className="text-sm font-medium truncate">{file.name}</p>
-                                                            <p className="text-xs text-muted-foreground">
-                                                                {file.mimeType} • {file.size ? `${(parseInt(file.size) / 1024 / 1024).toFixed(1)} MB` : 'Unknown size'}
-                                                            </p>
-                                                        </div>
-                                                        {selectedFile?.id === file.id && (
-                                                            <CheckCircle className="h-4 w-4 text-primary" />
-                                                        )}
-                                                    </div>
-                                                </div>
-                                            ))}
-                                        </div>
-                                    </div>
-                                )}
-                            </div>
-                        )}
+                        <div className="text-center py-8">
+                            <Cloud className="h-12 w-12 mx-auto text-muted-foreground mb-4" />
+                            <h3 className="text-lg font-medium mb-2">Google Drive Integration Coming Soon</h3>
+                            <p className="text-sm text-muted-foreground mb-4">
+                                Google Drive integration for browsing and selecting files is currently under development.
+                                You can still add document links by entering the URL directly.
+                            </p>
+                            <Button disabled className="flex items-center gap-2">
+                                <Clock className="h-4 w-4" />
+                                Coming Soon
+                            </Button>
+                        </div>
                     </TabsContent>
                 </Tabs>
 
