@@ -2,6 +2,446 @@
 
 ## Recent Changes
 
+### 2025-09-03 - Document View Real-Time Update Fix ✅
+
+**Task Completed:**
+- Fixed document view real-time update issue where UI changes were not reflected immediately
+- Enhanced real-time subscription system to catch all document changes including version updates
+- Added fallback refresh mechanism to ensure UI updates even when real-time subscriptions fail
+- Improved logging and debugging for real-time subscription events
+- Added subscription to document_versions table to catch version changes directly
+
+**Root Cause Analysis:**
+Users reported that when document items changed (especially through version updates), the UI required a manual refresh to reflect those changes. The issue was caused by:
+1. Real-time subscription not catching all document updates, particularly when version changes occurred
+2. Timing issues between database updates and real-time notifications
+3. Lack of fallback mechanism when real-time subscriptions failed
+4. Insufficient logging to debug real-time subscription issues
+
+**Technical Implementation:**
+
+1. **Enhanced useDocuments Hook** (`src/hooks/useDocuments.ts`):
+   - **Improved Real-Time Subscription**: Added comprehensive logging for all real-time events
+   - **Document Versions Subscription**: Added subscription to `document_versions` table to catch version changes
+   - **Fallback Refresh Mechanism**: Added `forceRefresh()` function with configurable delay
+   - **Better Error Handling**: Enhanced error handling and status monitoring for subscriptions
+   - **Dual Subscription**: Now listens to both `documents` and `document_versions` tables
+   - **Automatic Refresh**: Automatically refreshes documents when current version changes
+
+2. **Enhanced DocumentVersionService** (`src/services/documentVersionService.ts`):
+   - **Improved Logging**: Added comprehensive logging for version change operations
+   - **Better Error Handling**: Enhanced error handling for version update operations
+   - **Explicit Field Updates**: Ensured all necessary fields are updated when setting current version
+   - **Status Tracking**: Added detailed status tracking for version change operations
+
+3. **Enhanced DocumentManager Component** (`src/components/project/DocumentManager.tsx`):
+   - **Force Refresh Integration**: Integrated `forceRefresh()` function for version changes
+   - **Improved Version Change Handling**: Enhanced handling of version change events
+   - **Modal Management**: Improved modal state management when version changes occur
+   - **Better User Feedback**: Enhanced user feedback during version change operations
+
+**Key Improvements:**
+
+- **Real-Time Updates**:
+  - **Dual Subscription**: Now listens to both documents and document_versions tables
+  - **Version Change Detection**: Automatically detects when current version changes
+  - **Immediate UI Updates**: UI updates immediately when document changes occur
+  - **Fallback Mechanism**: Manual refresh available when real-time updates fail
+
+- **Enhanced Logging**:
+  - **Comprehensive Logging**: Detailed logging for all real-time events
+  - **Debug Information**: Better debugging information for subscription issues
+  - **Status Monitoring**: Real-time subscription status monitoring
+  - **Error Tracking**: Enhanced error tracking for failed operations
+
+- **Improved Reliability**:
+  - **Multiple Update Paths**: Real-time updates + manual refresh + delayed refresh
+  - **Error Recovery**: Automatic recovery from subscription failures
+  - **Timing Optimization**: Proper timing for database updates and UI refreshes
+  - **State Consistency**: Ensures UI state remains consistent with database
+
+**Benefits:**
+- ✅ **Immediate UI Updates**: Document changes are reflected immediately without manual refresh
+- ✅ **Reliable Updates**: Multiple mechanisms ensure updates are always reflected
+- ✅ **Better Debugging**: Comprehensive logging helps identify and fix issues
+- ✅ **Improved User Experience**: Users see changes instantly without needing to refresh
+- ✅ **Robust System**: Fallback mechanisms ensure system reliability
+
+**Current Functionality:**
+- ✅ **Real-Time Document Updates**: All document changes reflected immediately in UI
+- ✅ **Version Change Detection**: Version changes automatically trigger UI updates
+- ✅ **Fallback Refresh**: Manual refresh available when real-time updates fail
+- ✅ **Comprehensive Logging**: Detailed logging for debugging and monitoring
+- ✅ **Reliable Updates**: Multiple update mechanisms ensure consistent state
+
+### 2025-09-03 - Document Preview UI Improvements ✅
+
+**Task Completed:**
+- Improved document preview interface to address user feedback and usability issues
+- Fixed file name display to show actual uploaded file name instead of title
+- Enhanced user name display to show readable names instead of user IDs
+- Added current version field display with proper version badges
+- Improved metadata layout with better visual organization and icons
+- **Updated**: Reverted title to show document title instead of file name
+- **Updated**: Enhanced file type display to show readable formats (PDF, PNG, etc.) instead of MIME types
+- **Updated**: Added comprehensive version information section with current version and change notes
+
+**Root Cause Analysis:**
+Users reported confusion in the document preview interface where:
+1. The document title showed a different name than the actual uploaded file name
+2. The "Uploaded by" field displayed user IDs instead of readable user names
+3. Version information was not clearly displayed
+4. Metadata layout needed better visual organization
+5. **Additional**: File type display was showing technical MIME types instead of user-friendly formats
+6. **Additional**: Version information needed better organization with change notes
+
+**Technical Implementation:**
+
+1. **Enhanced DocumentPreview Component** (`src/components/project/DocumentPreview.tsx`):
+   - **Title Display**: Shows `document.title` for better document identification
+   - **User Name Integration**: Added `useUserDisplayName` hook to display readable user names
+   - **Version Badge**: Added version display with blue badge showing current version number
+   - **Improved Layout**: Redesigned metadata section with two-column layout and better visual hierarchy
+   - **Icon Integration**: Added icons for better visual cues (User, Clock, Tag, File icons)
+   - **Better Styling**: Enhanced color scheme and spacing for improved readability
+   - **File Type Enhancement**: Added `getReadableFileType()` function to show PDF, PNG, Excel, etc. instead of MIME types
+   - **Version Information**: Added dedicated section showing current version and change notes
+
+2. **Enhanced DocumentVersionPreview Component** (`src/components/project/DocumentVersionPreview.tsx`):
+   - **Consistent Design**: Applied same improvements as DocumentPreview for consistency
+   - **Version Information**: Added clear version number display with "Current" badge for latest versions
+   - **Title Display**: Shows document title instead of file name for better context
+   - **Improved Metadata**: Better organized metadata with icons and proper spacing
+   - **Change Summary**: Enhanced change summary display with better visual treatment
+   - **File Type Enhancement**: Added same `getReadableFileType()` function for consistent display
+   - **Version Details**: Added dedicated version information section with change notes
+
+3. **Updated useDocuments Hook** (`src/hooks/useDocuments.ts`):
+   - **Version Fields**: Added `version` and `is_current_version` fields to document query
+   - **Interface Update**: Updated ProjectDocument interface to include version information
+   - **Data Consistency**: Ensured version data is available for display in preview components
+
+**Key Improvements:**
+
+- **Document Title Clarity**:
+  - **Document Title**: Now displays the document title for better document identification
+  - **Consistent Display**: Both main preview and version preview show document titles consistently
+  - **User Understanding**: Users can now easily identify the document being viewed
+
+- **User Name Display**:
+  - **Readable Names**: Shows user display names instead of technical user IDs
+  - **User Service Integration**: Uses `useUserDisplayName` hook for proper name resolution
+  - **Better UX**: Users can now identify who uploaded documents without technical knowledge
+
+- **File Type Display**:
+  - **Readable Formats**: Shows PDF, PNG, Excel, Word, etc. instead of application/pdf, image/png
+  - **Extension Fallback**: Falls back to file extension if MIME type is not recognized
+  - **User-Friendly**: Users can easily understand file types without technical knowledge
+
+- **Version Information**:
+  - **Current Version**: Clear display of current version number
+  - **Version Badge**: Blue badge styling for version numbers
+  - **Change Notes**: Dedicated section for version change descriptions
+  - **Version Context**: Users can easily see version details and change history
+
+- **Improved Layout**:
+  - **Two-Column Design**: Better organized metadata with logical grouping
+  - **Visual Hierarchy**: Clear separation between file details and upload information
+  - **Icon Integration**: Added icons for better visual cues and faster scanning
+  - **Consistent Styling**: Unified color scheme and spacing across components
+
+**Benefits:**
+- ✅ **Reduced Confusion**: Users can now clearly identify documents and their versions
+- ✅ **Better User Experience**: Readable names, file types, and clear version information
+- ✅ **Improved Workflow**: Easier document identification and version management
+- ✅ **Consistent Interface**: Unified design across all document preview components
+- ✅ **Professional Appearance**: Better visual design with proper spacing and icons
+- ✅ **User-Friendly Display**: Technical information presented in user-friendly format
+
+**Current Functionality:**
+- ✅ **Clear Document Titles**: Document titles displayed consistently for better identification
+- ✅ **User Name Display**: Readable user names instead of technical IDs
+- ✅ **Readable File Types**: PDF, PNG, Excel, etc. instead of MIME types
+- ✅ **Version Information**: Clear version numbers, current version indicators, and change notes
+- ✅ **Improved Layout**: Better organized metadata with visual hierarchy
+- ✅ **Consistent Design**: Unified styling across document preview components
+- ✅ **Enhanced UX**: Better user experience with clear, user-friendly information display
+
+### 2025-09-03 - Document Version Preview Functionality Implementation ✅
+
+**Task Completed:**
+- Implemented comprehensive document version preview functionality
+- Added ability for users to preview specific versions without downloading
+- Created DocumentVersionPreview component with support for PDFs and images
+- Enhanced DocumentVersionHistory component with preview buttons
+- Added version preview service methods for secure URL generation
+- Implemented proper document list refresh when versions change
+
+**Root Cause Analysis:**
+Users were experiencing issues where after updating document versions, the app continued to show the old version. The DocumentVersionHistory component only had download functionality but no preview capability, making it difficult for users to verify which version they were viewing.
+
+**Technical Implementation:**
+
+1. **Enhanced DocumentVersionService** (`src/services/documentVersionService.ts`):
+   - **Added getVersionPreviewUrl()**: Generates secure preview URLs for specific versions
+   - **Added canPreviewFile()**: Determines which file types can be previewed (PDFs, images)
+   - **Preview Support**: Supports PDF, JPEG, PNG, GIF, WebP, and SVG files
+   - **Security**: Uses signed URLs with 1-hour expiry for secure access
+
+2. **Created DocumentVersionPreview Component** (`src/components/project/DocumentVersionPreview.tsx`):
+   - **Preview Modal**: Full-screen modal for version preview
+   - **File Type Support**: Direct preview for images and PDFs using iframe/img tags
+   - **Metadata Display**: Shows version info, uploader, date, and change summary
+   - **Action Buttons**: Download and "Open in New Tab" functionality
+   - **Error Handling**: Graceful fallback for unsupported file types
+   - **Loading States**: Proper loading indicators and error messages
+
+3. **Enhanced DocumentVersionHistory Component** (`src/components/project/DocumentVersionHistory.tsx`):
+   - **Preview Button**: Added Eye icon button for each version
+   - **Preview Modal Integration**: Integrated DocumentVersionPreview component
+   - **State Management**: Added preview modal state and selected version tracking
+   - **User Experience**: Preview button appears alongside download and other actions
+
+4. **Updated DocumentManager** (`src/components/project/DocumentManager.tsx`):
+   - **Refresh Integration**: Uses useDocuments refetch() instead of page reload
+   - **Real-time Updates**: Properly refreshes document list when versions change
+   - **Performance**: Eliminates need for full page reload on version changes
+
+**Key Features Implemented:**
+
+- **Version Preview Capabilities**:
+  - **PDF Preview**: Embedded PDF viewer using iframe
+  - **Image Preview**: Direct image display with proper sizing
+  - **File Type Detection**: Automatic detection of previewable file types
+  - **Fallback Handling**: Clear messaging for non-previewable files
+
+- **User Experience Improvements**:
+  - **Quick Preview**: Users can preview versions without downloading
+  - **Version Comparison**: Easy to compare different versions visually
+  - **Metadata Context**: Full version information displayed in preview
+  - **Action Integration**: Seamless integration with existing download functionality
+
+- **Technical Enhancements**:
+  - **Secure URLs**: Signed URLs with proper expiry for security
+  - **Error Handling**: Comprehensive error handling and user feedback
+  - **Performance**: Efficient preview loading with proper state management
+  - **Accessibility**: Proper ARIA labels and keyboard navigation
+
+**Benefits:**
+- ✅ **Enhanced User Experience**: Users can now preview versions before downloading
+- ✅ **Version Verification**: Easy to verify which version is being viewed
+- ✅ **Reduced Downloads**: Preview functionality reduces unnecessary downloads
+- ✅ **Better Workflow**: Streamlined version comparison and review process
+- ✅ **Security**: Secure URL generation with proper access controls
+- ✅ **Performance**: Efficient document list updates without page reloads
+
+**Current Functionality:**
+- ✅ **Version Preview**: Users can preview PDFs and images directly in the app
+- ✅ **Version History**: Complete version history with preview and download options
+- ✅ **Real-time Updates**: Document list refreshes automatically when versions change
+- ✅ **File Type Support**: Preview support for common document types
+- ✅ **Error Handling**: Graceful handling of preview errors and unsupported files
+- ✅ **Security**: Secure access to version files with signed URLs
+
+### 2025-09-03 - Document Version Upload RLS Policy Fix ✅
+
+**Task Completed:**
+- Fixed critical RLS (Row Level Security) policy violation when uploading new document versions
+- Resolved 403 Forbidden error when creating document version records
+- Updated DocumentVersion interface to include organization_id field
+- Ensured proper organization-based access control for document versions
+
+**Root Cause Analysis:**
+The error `new row violates row-level security policy for table "document_versions"` was caused by the `createDocumentVersion` function in `documentVersionService.ts` not including the required `organization_id` field when inserting new version records. The RLS policy requires this field to match the user's organization for proper access control.
+
+**Technical Fixes Applied:**
+
+1. **Updated DocumentVersionService** (`src/services/documentVersionService.ts`):
+   - **Added organization_id**: Included `organization_id: currentDoc.organization_id` in the insert operation
+   - **Updated Interface**: Added `organization_id: string` to the `DocumentVersion` interface to match database schema
+   - **RLS Compliance**: Ensured the insert operation satisfies the RLS policy requirement
+
+2. **Database Schema Alignment**:
+   - **Required Field**: The `document_versions` table has `organization_id UUID NOT NULL` constraint
+   - **RLS Policy**: The insert policy requires `organization_id IN (SELECT organization_id FROM users WHERE id = auth.uid())`
+   - **Data Integrity**: All version records now properly include organization context
+
+**Key Changes Made:**
+```typescript
+// Before (causing RLS violation)
+.insert({
+    document_id: documentId,
+    version_number: nextVersionNumber,
+    // ... other fields
+})
+
+// After (RLS compliant)
+.insert({
+    organization_id: currentDoc.organization_id, // ✅ Added this field
+    document_id: documentId,
+    version_number: nextVersionNumber,
+    // ... other fields
+})
+```
+
+**Benefits:**
+- ✅ **Fixed Upload Error**: Users can now successfully upload new document versions
+- ✅ **RLS Compliance**: Proper organization-based access control maintained
+- ✅ **Data Integrity**: All version records include proper organization context
+- ✅ **Security**: Multi-tenant isolation preserved for document versions
+- ✅ **Type Safety**: Updated TypeScript interface matches database schema
+
+**Current Functionality:**
+- ✅ **Version Upload**: Users can upload new versions of existing documents
+- ✅ **Version History**: Complete version history tracking with proper organization isolation
+- ✅ **Access Control**: RLS policies properly enforce organization-based access
+- ✅ **Error Handling**: Proper cleanup of uploaded files if database insert fails
+- ✅ **Real-time Updates**: Version changes trigger appropriate UI updates
+
+### 2025-09-03 - Document Actions Improvement and List Refresh ✅
+
+**Task Completed:**
+- Fixed document actions in DocumentPreview modal to work consistently with grid/list views
+- Improved delete functionality to properly refresh the document list and close modals
+- Enhanced edit functionality to close preview modal when opening edit modal
+- Added bulk delete functionality for selected documents with confirmation
+- Ensured all document actions (upload, link, edit, delete) properly refresh the list
+- Connected all action handlers consistently across DocumentManager, DocumentGrid, and DocumentList
+
+**Implementation Details:**
+
+1. **Fixed DocumentPreview Actions** (`src/components/project/DocumentManager.tsx`):
+   - **Connected Edit Action**: Replaced TODO placeholder with `handleDocumentEdit` handler
+   - **Connected Delete Action**: Replaced TODO placeholder with `handleDocumentDelete` handler
+   - **Consistent Behavior**: Edit and delete actions now work the same as in grid/list views
+   - **Modal Management**: Edit action closes preview modal when opening edit modal
+
+2. **Enhanced Delete Functionality**:
+   - **Modal Cleanup**: Delete action closes preview modal if the deleted document was being previewed
+   - **Selection Cleanup**: Removes deleted documents from selected documents list
+   - **Real-time Updates**: Leverages useDocuments hook for automatic list refresh
+   - **Confirmation**: Maintains user confirmation before deletion
+
+3. **Improved Edit Functionality**:
+   - **Modal Management**: Edit action closes preview modal when opening edit modal
+   - **Save Handling**: Edit modal closes automatically after successful save
+   - **Error Handling**: Proper error handling with re-throwing for modal error display
+
+4. **Added Bulk Delete Feature**:
+   - **Bulk Delete Handler**: `handleBulkDelete` function for deleting multiple selected documents
+   - **Confirmation Dialog**: Shows list of documents to be deleted with count
+   - **Selection Cleanup**: Clears selection after bulk delete operation
+   - **Modal Integration**: Closes preview modal if any deleted document was being previewed
+   - **UI Enhancement**: Bulk delete button shows count of selected documents
+
+5. **Consistent Action Flow**:
+   - **Upload Success**: DocumentUploadZone closes modal and refreshes list
+   - **Link Success**: DocumentLinkModal closes modal and refreshes list
+   - **Version Changes**: DocumentVersionHistory triggers list refresh
+   - **Real-time Updates**: All actions leverage useDocuments hook for automatic updates
+
+**Key Improvements:**
+
+- **Consistent UX**: All document actions work the same way across all views (grid, list, preview)
+- **Proper List Refresh**: Document list automatically refreshes after any action (upload, edit, delete, link)
+- **Modal Management**: Modals close appropriately after successful actions
+- **Selection Management**: Document selection is properly cleaned up after delete operations
+- **Bulk Operations**: Added bulk delete functionality for efficient document management
+- **Error Handling**: Proper error handling with user feedback
+
+**Technical Benefits:**
+- ✅ **Unified Action Handlers**: Single set of handlers used across all document views
+- ✅ **Real-time Updates**: Automatic list refresh through useDocuments hook
+- ✅ **Modal State Management**: Proper modal opening/closing based on actions
+- ✅ **Selection State Management**: Proper cleanup of selected documents
+- ✅ **Bulk Operations**: Efficient handling of multiple document operations
+- ✅ **User Experience**: Consistent behavior across all document management interfaces
+
+**Current Functionality:**
+- ✅ **Edit Actions**: Work consistently in grid, list, and preview views
+- ✅ **Delete Actions**: Work consistently with proper list refresh and modal cleanup
+- ✅ **Bulk Delete**: Delete multiple selected documents with confirmation
+- ✅ **List Refresh**: Automatic refresh after upload, edit, delete, and link operations
+- ✅ **Modal Management**: Proper modal state management for all actions
+- ✅ **Selection Management**: Proper cleanup of selected documents after operations
+
+### 2025-09-03 - Document Link Preview Feature Implementation ✅
+
+**Task Completed:**
+- Implemented comprehensive link preview functionality for document management
+- Added support for previewable links with hyperlink to original addresses
+- Enhanced document preview component to handle external links and Google Drive integration
+- Updated document list and grid views to show link indicators and appropriate actions
+- Created utility functions for link detection and preview URL generation
+
+**Implementation Details:**
+
+1. **Enhanced ProjectDocument Interface** (`src/hooks/useDocuments.ts` and `src/types/project.ts`):
+   - **Added Link Fields**: external_id, external_url, storage_provider, link_type, link_permissions, link_expires_at, link_access_count, link_last_accessed
+   - **Updated Fetch Query**: Modified useDocuments hook to include all link fields in database queries
+   - **Type Safety**: Ensured TypeScript interfaces match database schema
+
+2. **Enhanced DocumentPreview Component** (`src/components/project/DocumentPreview.tsx`):
+   - **Link Detection**: Added isLink() function to identify external documents
+   - **Preview URL Generation**: Added getLinkPreviewUrl() for Google Drive and other external links
+   - **Link Preview Support**: Embedded previews for Google Drive images and PDFs
+   - **External Link Cards**: Display link information with "Open Link" buttons for non-previewable links
+   - **Metadata Display**: Added link-specific metadata (storage provider, link type, access count)
+   - **Action Buttons**: Dynamic button text ("Open Link" vs "Download") based on document type
+
+3. **Updated Document List and Grid Views**:
+   - **DocumentList Component** (`src/components/project/DocumentList.tsx`):
+     - Added link indicators (ExternalLink icon) next to document titles
+     - Updated download actions to open links in new tabs
+     - Dynamic button icons and tooltips based on document type
+   
+   - **DocumentGrid Component** (`src/components/project/DocumentGrid.tsx`):
+     - Added link indicators in document cards
+     - Updated download actions to handle links appropriately
+     - Consistent link handling across both view modes
+
+4. **Enhanced DocumentActions Service** (`src/services/documentActions.ts`):
+   - **isLink() Function**: Centralized link detection logic
+   - **getLinkPreviewUrl() Function**: Generate preview URLs for different storage providers
+   - **Google Drive Support**: Special handling for Google Drive preview URLs
+   - **Service Integration**: Used by all document components for consistent link handling
+
+**Key Features Implemented:**
+
+- **Link Preview Capabilities**:
+  - Google Drive images: Direct image preview using Google's image API
+  - Google Drive PDFs: Embedded PDF viewer using Google Drive preview
+  - Other links: Link cards with external URL display and "Open Link" buttons
+  - Fallback handling: Graceful degradation for unsupported link types
+
+- **User Experience Improvements**:
+  - Visual link indicators: ExternalLink icons show which documents are links
+  - Appropriate actions: "Open Link" for links, "Download" for files
+  - Preview integration: Seamless preview experience for supported link types
+  - Metadata display: Link-specific information in document details
+
+- **Technical Implementation**:
+  - Database integration: Full support for existing link fields
+  - Type safety: Updated TypeScript interfaces for link fields
+  - Service layer: Centralized link handling logic
+  - Component consistency: Unified link handling across all document views
+
+**Benefits:**
+- ✅ **Enhanced Preview**: Users can preview Google Drive documents directly in the app
+- ✅ **External Access**: Links open in new tabs for full external functionality
+- ✅ **Visual Indicators**: Clear distinction between uploaded files and external links
+- ✅ **Consistent UX**: Unified link handling across list and grid views
+- ✅ **Type Safety**: Proper TypeScript support for all link fields
+- ✅ **Service Architecture**: Centralized link logic for maintainability
+
+**Current Functionality:**
+- ✅ **Link Preview**: Google Drive images and PDFs preview directly in the app
+- ✅ **External Links**: All links open in new tabs for full external functionality
+- ✅ **Link Indicators**: Visual indicators show which documents are external links
+- ✅ **Metadata Display**: Link-specific information shown in document details
+- ✅ **Action Adaptation**: Appropriate actions based on document type (link vs file)
+- ✅ **Cross-View Consistency**: Link handling works in both list and grid views
+
 ### 2025-09-03 - Google Drive Integration Partially Disabled (Coming Soon) ✅
 
 **Task Completed:**

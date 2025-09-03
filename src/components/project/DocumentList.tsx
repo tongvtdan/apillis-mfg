@@ -3,7 +3,7 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@
 import { Checkbox } from '@/components/ui/checkbox';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
-import { FileText, Download, Eye, Edit, Trash2, ArrowUpDown, History } from 'lucide-react';
+import { FileText, Download, Eye, Edit, Trash2, ArrowUpDown, History, ExternalLink } from 'lucide-react';
 import { format } from 'date-fns';
 import { documentActionsService } from '@/services/documentActions';
 import type { ProjectDocument } from '@/hooks/useDocuments';
@@ -119,12 +119,17 @@ export const DocumentList: React.FC<DocumentListProps> = ({
                             </TableCell>
                             <TableCell>
                                 <div className="space-y-1">
-                                    <div
-                                        className="font-medium text-sm cursor-pointer hover:text-primary"
-                                        title={document.title}
-                                        onClick={() => onDocumentClick && onDocumentClick(document)}
-                                    >
-                                        {document.title}
+                                    <div className="flex items-center gap-2">
+                                        <div
+                                            className="font-medium text-sm cursor-pointer hover:text-primary"
+                                            title={document.title}
+                                            onClick={() => onDocumentClick && onDocumentClick(document)}
+                                        >
+                                            {document.title}
+                                        </div>
+                                        {documentActionsService.isLink(document) && (
+                                            <ExternalLink className="w-3 h-3 text-blue-600" title="External Link" />
+                                        )}
                                     </div>
                                     {document.description && (
                                         <div className="text-xs text-muted-foreground truncate max-w-xs">
@@ -193,16 +198,25 @@ export const DocumentList: React.FC<DocumentListProps> = ({
                                     <Button
                                         variant="ghost"
                                         size="sm"
-                                        title="Download"
+                                        title={documentActionsService.isLink(document) ? "Open Link" : "Download"}
                                         onClick={async () => {
                                             try {
+                                                // For links, open in new tab instead of downloading
+                                                if (documentActionsService.isLink(document)) {
+                                                    window.open(document.external_url, '_blank');
+                                                    return;
+                                                }
                                                 await documentActionsService.downloadDocument(document);
                                             } catch (error) {
                                                 console.error('Download failed:', error);
                                             }
                                         }}
                                     >
-                                        <Download className="w-3 h-3" />
+                                        {documentActionsService.isLink(document) ? (
+                                            <ExternalLink className="w-3 h-3" />
+                                        ) : (
+                                            <Download className="w-3 h-3" />
+                                        )}
                                     </Button>
                                     <Button
                                         variant="ghost"

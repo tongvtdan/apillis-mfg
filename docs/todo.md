@@ -2,6 +2,72 @@
 
 ## Current Sprint
 
+- [done] 2025-09-03 - Document View Real-Time Update Fix ✅
+  - ✅ Fixed document view real-time update issue where UI changes were not reflected immediately
+  - ✅ Enhanced real-time subscription system to catch all document changes including version updates
+  - ✅ Added fallback refresh mechanism to ensure UI updates even when real-time subscriptions fail
+  - ✅ Improved logging and debugging for real-time subscription events
+  - ✅ Added subscription to document_versions table to catch version changes directly
+  - ✅ Enhanced useDocuments hook with dual subscription (documents + document_versions)
+  - ✅ Added forceRefresh() function with configurable delay for reliable updates
+  - ✅ Enhanced DocumentVersionService with better logging and error handling
+  - ✅ Improved DocumentManager to use forceRefresh for version changes
+  - ✅ Added comprehensive real-time event logging for debugging
+
+- [done] 2025-09-03 - Document Preview UI Improvements ✅
+  - ✅ Fixed file name display to show actual uploaded file name instead of title
+  - ✅ Enhanced user name display to show readable names instead of user IDs
+  - ✅ Added current version field display with proper version badges
+  - ✅ Improved metadata layout with better visual organization and icons
+  - ✅ Updated DocumentPreview and DocumentVersionPreview components for consistency
+  - ✅ Added useUserDisplayName hook integration for proper user name resolution
+  - ✅ Enhanced useDocuments hook to include version and is_current_version fields
+  - ✅ Implemented two-column metadata layout with improved visual hierarchy
+  - ✅ Added icon integration for better visual cues (User, Clock, Tag icons)
+  - ✅ Applied consistent styling across all document preview components
+  - ✅ **Updated**: Reverted title to show document title instead of file name for better document identification
+  - ✅ **Updated**: Enhanced file type display to show PDF, PNG, Excel, etc. instead of MIME types
+  - ✅ **Updated**: Added comprehensive version information section with current version and change notes
+  - ✅ **Updated**: Added getReadableFileType() function for user-friendly file type display
+
+- [done] 2025-09-03 - Document Version Preview Functionality Implementation ✅
+  - ✅ Implemented comprehensive document version preview functionality
+  - ✅ Added ability for users to preview specific versions without downloading
+  - ✅ Created DocumentVersionPreview component with support for PDFs and images
+  - ✅ Enhanced DocumentVersionHistory component with preview buttons
+  - ✅ Added version preview service methods for secure URL generation
+  - ✅ Implemented proper document list refresh when versions change
+  - ✅ Added preview support for PDF, JPEG, PNG, GIF, WebP, and SVG files
+  - ✅ Integrated secure signed URLs with 1-hour expiry for security
+
+- [done] 2025-09-03 - Document Version Upload RLS Policy Fix ✅
+  - ✅ Fixed critical RLS policy violation when uploading new document versions
+  - ✅ Resolved 403 Forbidden error when creating document version records
+  - ✅ Updated DocumentVersion interface to include organization_id field
+  - ✅ Ensured proper organization-based access control for document versions
+  - ✅ Added organization_id to insert operation in createDocumentVersion function
+  - ✅ Updated TypeScript interface to match database schema requirements
+
+- [done] 2025-09-03 - Document Actions Improvement and List Refresh ✅
+  - ✅ Fixed document actions in DocumentPreview modal to work consistently with grid/list views
+  - ✅ Improved delete functionality to properly refresh the document list and close modals
+  - ✅ Enhanced edit functionality to close preview modal when opening edit modal
+  - ✅ Added bulk delete functionality for selected documents with confirmation
+  - ✅ Ensured all document actions (upload, link, edit, delete) properly refresh the list
+  - ✅ Connected all action handlers consistently across DocumentManager, DocumentGrid, and DocumentList
+
+- [done] 2025-09-03 - Document Link Preview Feature Implementation ✅
+  - ✅ Enhanced ProjectDocument interface with link fields (external_id, external_url, storage_provider, etc.)
+  - ✅ Updated useDocuments hook to fetch all link fields from database
+  - ✅ Enhanced DocumentPreview component with link detection and preview capabilities
+  - ✅ Added Google Drive preview support for images and PDFs
+  - ✅ Implemented external link cards with "Open Link" functionality
+  - ✅ Updated DocumentList and DocumentGrid with link indicators and appropriate actions
+  - ✅ Created DocumentActions service functions for centralized link handling
+  - ✅ Added visual link indicators (ExternalLink icons) to distinguish links from files
+  - ✅ Implemented dynamic action buttons ("Open Link" vs "Download") based on document type
+  - ✅ Added link-specific metadata display in document details
+
 - [done] 2025-09-02 - Intake Type Architecture Implementation ✅
   - ✅ Added database migration for intake_type and intake_source fields
   - ✅ Created IntakeMappingService with comprehensive intake type to project type mapping

@@ -214,6 +214,15 @@ export interface ProjectDocument {
   uploaded_by?: string;
   approved_at?: string; // Added from database schema
   approved_by?: string; // Added from database schema
+  // Link-specific fields
+  external_id?: string;
+  external_url?: string;
+  storage_provider?: string;
+  link_type?: string;
+  link_permissions?: Record<string, any>;
+  link_expires_at?: string;
+  link_access_count?: number;
+  link_last_accessed?: string;
 }
 
 export interface DocumentComment {

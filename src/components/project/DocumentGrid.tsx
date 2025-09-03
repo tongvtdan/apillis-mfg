@@ -3,7 +3,7 @@ import { Card, CardContent } from '@/components/ui/card';
 import { Checkbox } from '@/components/ui/checkbox';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
-import { FileText, Download, Eye, Edit, Trash2, History } from 'lucide-react';
+import { FileText, Download, Eye, Edit, Trash2, History, ExternalLink } from 'lucide-react';
 import { format } from 'date-fns';
 import { documentActionsService } from '@/services/documentActions';
 import type { ProjectDocument } from '@/hooks/useDocuments';
@@ -89,16 +89,25 @@ export const DocumentGrid: React.FC<DocumentGridProps> = ({
                                     <Button
                                         variant="ghost"
                                         size="sm"
-                                        title="Download"
+                                        title={documentActionsService.isLink(document) ? "Open Link" : "Download"}
                                         onClick={async () => {
                                             try {
+                                                // For links, open in new tab instead of downloading
+                                                if (documentActionsService.isLink(document)) {
+                                                    window.open(document.external_url, '_blank');
+                                                    return;
+                                                }
                                                 await documentActionsService.downloadDocument(document);
                                             } catch (error) {
                                                 console.error('Download failed:', error);
                                             }
                                         }}
                                     >
-                                        <Download className="w-3 h-3" />
+                                        {documentActionsService.isLink(document) ? (
+                                            <ExternalLink className="w-3 h-3" />
+                                        ) : (
+                                            <Download className="w-3 h-3" />
+                                        )}
                                     </Button>
                                     <Button
                                         variant="ghost"
@@ -134,13 +143,18 @@ export const DocumentGrid: React.FC<DocumentGridProps> = ({
 
                             {/* Document info */}
                             <div className="space-y-2">
-                                <h4
-                                    className="font-medium text-sm truncate cursor-pointer hover:text-primary"
-                                    title={document.title}
-                                    onClick={() => onDocumentClick && onDocumentClick(document)}
-                                >
-                                    {document.title}
-                                </h4>
+                                <div className="flex items-center gap-2">
+                                    <h4
+                                        className="font-medium text-sm truncate cursor-pointer hover:text-primary flex-1"
+                                        title={document.title}
+                                        onClick={() => onDocumentClick && onDocumentClick(document)}
+                                    >
+                                        {document.title}
+                                    </h4>
+                                    {documentActionsService.isLink(document) && (
+                                        <ExternalLink className="w-3 h-3 text-blue-600 flex-shrink-0" title="External Link" />
+                                    )}
+                                </div>
 
                                 <div className="flex items-center gap-2">
                                     <Badge

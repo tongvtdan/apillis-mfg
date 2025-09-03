@@ -210,6 +210,34 @@ class DocumentActionsService {
     }
 
     /**
+     * Check if document is a link
+     */
+    isLink(document: any): boolean {
+        return !!(document.external_url || document.storage_provider !== 'supabase');
+    }
+
+    /**
+     * Get link preview URL for external documents
+     */
+    getLinkPreviewUrl(document: any): string | null {
+        if (!document.external_url) return null;
+
+        // For Google Drive links, we can generate preview URLs
+        if (document.storage_provider === 'google_drive' && document.external_id) {
+            if (document.mime_type?.startsWith('image/')) {
+                return `https://drive.google.com/uc?export=view&id=${document.external_id}`;
+            }
+            if (document.mime_type === 'application/pdf') {
+                return `https://drive.google.com/file/d/${document.external_id}/preview`;
+            }
+            return `https://drive.google.com/file/d/${document.external_id}/view`;
+        }
+
+        // For other links, return the external URL
+        return document.external_url;
+    }
+
+    /**
      * Safely format a date string
      */
     formatDate(dateString: string | null | undefined, formatString: string): string {

@@ -47,6 +47,8 @@ export interface ProjectDocument {
   created_at: string;
   uploaded_by?: string;
   updated_at: string;
+  version?: number;
+  is_current_version?: boolean;
   metadata: {
     tags?: string[];
     description?: string;
@@ -56,6 +58,15 @@ export interface ProjectDocument {
   file_path: string;
   download_url?: string;
   thumbnail_url?: string;
+  // Link-specific fields
+  external_id?: string;
+  external_url?: string;
+  storage_provider?: string;
+  link_type?: string;
+  link_permissions?: Record<string, any>;
+  link_expires_at?: string;
+  link_access_count?: number;
+  link_last_accessed?: string;
 }
 
 // Document metadata for uploads
@@ -120,7 +131,17 @@ export function useDocuments(projectId: string): UseDocumentsReturn {
           uploaded_by,
           updated_at,
           metadata,
-          file_path
+          file_path,
+          version,
+          is_current_version,
+          external_id,
+          external_url,
+          storage_provider,
+          link_type,
+          link_permissions,
+          link_expires_at,
+          link_access_count,
+          link_last_accessed
         `)
         .eq('project_id', projectId)
         .order('created_at', { ascending: false });
@@ -406,7 +427,16 @@ export function useDocuments(projectId: string): UseDocumentsReturn {
 
   // Refetch documents
   const refetch = async () => {
+    console.log('🔄 useDocuments: Manual refetch triggered');
     await fetchDocuments();
+  };
+
+  // Force refresh with delay to ensure database updates are processed
+  const forceRefresh = async (delayMs: number = 500) => {
+    console.log('🔄 useDocuments: Force refresh triggered with delay:', delayMs);
+    setTimeout(async () => {
+      await fetchDocuments();
+    }, delayMs);
   };
 
   // Initial fetch and real-time subscription
@@ -425,24 +455,71 @@ export function useDocuments(projectId: string): UseDocumentsReturn {
           filter: `project_id=eq.${projectId}`
         },
         (payload) => {
+          console.log('🔄 useDocuments: Real-time update received:', {
+            eventType: payload.eventType,
+            documentId: payload.new?.id || payload.old?.id,
+            projectId: payload.new?.project_id || payload.old?.project_id,
+            timestamp: new Date().toISOString()
+          });
+
           switch (payload.eventType) {
             case 'INSERT':
+              console.log('🔄 useDocuments: Adding new document:', payload.new);
               setData(prev => [payload.new as ProjectDocument, ...prev]);
               break;
             case 'UPDATE':
+              console.log('🔄 useDocuments: Updating document:', {
+                old: payload.old,
+                new: payload.new
+              });
               setData(prev => prev.map(doc =>
                 doc.id === payload.new.id ? payload.new as ProjectDocument : doc
               ));
               break;
             case 'DELETE':
+              console.log('🔄 useDocuments: Deleting document:', payload.old);
               setData(prev => prev.filter(doc => doc.id !== payload.old.id));
               break;
           }
         }
       )
-      .subscribe();
+      .on(
+        'postgres_changes',
+        {
+          event: 'UPDATE',
+          schema: 'public',
+          table: 'document_versions',
+          filter: `document_id=in.(select id from documents where project_id='${projectId}')`
+        },
+        (payload) => {
+          console.log('🔄 useDocuments: Document version update received:', {
+            versionId: payload.new?.id,
+            documentId: payload.new?.document_id,
+            isCurrent: payload.new?.is_current,
+            timestamp: new Date().toISOString()
+          });
+
+          // If a version was set as current, refresh the documents list
+          if (payload.new?.is_current === true && payload.old?.is_current === false) {
+            console.log('🔄 useDocuments: Current version changed, refreshing documents');
+            // Add a small delay to ensure the main document update is processed
+            setTimeout(() => {
+              fetchDocuments();
+            }, 500);
+          }
+        }
+      )
+      .subscribe((status) => {
+        console.log('🔄 useDocuments: Subscription status:', status);
+        if (status === 'SUBSCRIBED') {
+          console.log('✅ useDocuments: Real-time subscription active for project:', projectId);
+        } else if (status === 'CHANNEL_ERROR') {
+          console.error('❌ useDocuments: Real-time subscription error for project:', projectId);
+        }
+      });
 
     return () => {
+      console.log('🔄 useDocuments: Cleaning up subscription for project:', projectId);
       subscription.unsubscribe();
     };
   }, [projectId, user, profile?.organization_id]);
@@ -452,6 +529,7 @@ export function useDocuments(projectId: string): UseDocumentsReturn {
     isLoading,
     error,
     refetch,
+    forceRefresh,
     uploadDocument,
     addDocumentLink,
     updateDocument,

@@ -14,12 +14,17 @@ import {
     FileSpreadsheet,
     FileCode,
     Archive,
-    History
+    History,
+    User,
+    Clock,
+    Tag,
+    File
 } from 'lucide-react';
 import { format } from 'date-fns';
 import { supabase } from '@/integrations/supabase/client';
 import { documentActionsService } from '@/services/documentActions';
 import type { ProjectDocument } from '@/hooks/useDocuments';
+import { useUserDisplayName } from '@/hooks/useUsers';
 import { toast } from 'sonner';
 
 interface DocumentPreviewProps {
@@ -46,6 +51,9 @@ export const DocumentPreview: React.FC<DocumentPreviewProps> = ({
     const [previewUrl, setPreviewUrl] = useState<string | null>(null);
     const [isLoading, setIsLoading] = useState(false);
     const [error, setError] = useState<string | null>(null);
+
+    // Get user display name for uploaded_by field
+    const uploaderName = useUserDisplayName(document.uploaded_by);
 
     // Get file icon based on type
     const getFileIcon = (mimeType: string, fileName: string) => {
@@ -76,6 +84,44 @@ export const DocumentPreview: React.FC<DocumentPreviewProps> = ({
         return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i];
     };
 
+    // Get readable file type
+    const getReadableFileType = (mimeType?: string, fileName?: string): string => {
+        if (!mimeType && !fileName) return 'Unknown';
+
+        // Common MIME type mappings
+        const mimeTypeMap: Record<string, string> = {
+            'application/pdf': 'PDF',
+            'image/jpeg': 'JPEG',
+            'image/jpg': 'JPG',
+            'image/png': 'PNG',
+            'image/gif': 'GIF',
+            'image/webp': 'WebP',
+            'image/svg+xml': 'SVG',
+            'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet': 'Excel',
+            'application/vnd.ms-excel': 'Excel',
+            'application/vnd.openxmlformats-officedocument.wordprocessingml.document': 'Word',
+            'application/msword': 'Word',
+            'text/plain': 'Text',
+            'text/csv': 'CSV'
+        };
+
+        // Try MIME type first
+        if (mimeType && mimeTypeMap[mimeType]) {
+            return mimeTypeMap[mimeType];
+        }
+
+        // Fallback to file extension
+        if (fileName) {
+            const extension = fileName.split('.').pop()?.toUpperCase();
+            if (extension) {
+                return extension;
+            }
+        }
+
+        // Final fallback
+        return mimeType || 'Unknown';
+    };
+
     // Get document type color
     const getDocumentTypeColor = (type?: string): string => {
         const colors = {
@@ -95,9 +141,37 @@ export const DocumentPreview: React.FC<DocumentPreviewProps> = ({
         return documentActionsService.canPreview(mimeType);
     };
 
+    // Check if document is a link
+    const isLink = (): boolean => {
+        return documentActionsService.isLink(document);
+    };
+
+    // Get link preview URL
+    const getLinkPreviewUrl = (): string | null => {
+        return documentActionsService.getLinkPreviewUrl(document);
+    };
+
     // Load preview URL
     useEffect(() => {
-        if (!isOpen || !document.file_path || !canPreview(document.mime_type)) {
+        if (!isOpen) {
+            return;
+        }
+
+        // Handle links differently
+        if (isLink()) {
+            const linkPreviewUrl = getLinkPreviewUrl();
+            if (linkPreviewUrl) {
+                setPreviewUrl(linkPreviewUrl);
+                setIsLoading(false);
+            } else {
+                setError('Unable to generate preview for this link');
+                setIsLoading(false);
+            }
+            return;
+        }
+
+        // Handle regular files
+        if (!document.file_path || !canPreview(document.mime_type)) {
             return;
         }
 
@@ -126,11 +200,17 @@ export const DocumentPreview: React.FC<DocumentPreviewProps> = ({
         };
 
         loadPreview();
-    }, [isOpen, document.file_path, document.mime_type]);
+    }, [isOpen, document.file_path, document.mime_type, document.external_url, document.storage_provider, document.external_id]);
 
     // Download document
     const handleDownload = async () => {
         try {
+            // For links, open in new tab instead of downloading
+            if (isLink() && document.external_url) {
+                window.open(document.external_url, '_blank');
+                return;
+            }
+
             await documentActionsService.downloadDocument(document);
         } catch (error) {
             console.error('Download failed:', error);
@@ -168,6 +248,68 @@ export const DocumentPreview: React.FC<DocumentPreviewProps> = ({
             );
         }
 
+        // Handle links
+        if (isLink()) {
+            if (!previewUrl) {
+                return (
+                    <div className="flex items-center justify-center h-96 bg-muted rounded-lg">
+                        <div className="text-center">
+                            <ExternalLink className="w-12 h-12 mx-auto text-muted-foreground mb-4" />
+                            <p className="text-muted-foreground mb-2">Link preview not available</p>
+                            <Button variant="outline" className="mt-4" onClick={() => window.open(document.external_url, '_blank')}>
+                                <ExternalLink className="w-4 h-4 mr-2" />
+                                Open Link
+                            </Button>
+                        </div>
+                    </div>
+                );
+            }
+
+            // For Google Drive links, we can embed them
+            if (document.storage_provider === 'google_drive' && document.external_id) {
+                if (document.mime_type?.startsWith('image/')) {
+                    return (
+                        <div className="bg-muted rounded-lg p-4">
+                            <img
+                                src={previewUrl}
+                                alt={document.title}
+                                className="max-w-full max-h-96 mx-auto rounded"
+                                onError={() => setError('Failed to load image')}
+                            />
+                        </div>
+                    );
+                }
+
+                if (document.mime_type === 'application/pdf') {
+                    return (
+                        <div className="bg-muted rounded-lg">
+                            <iframe
+                                src={previewUrl}
+                                className="w-full h-96 rounded-lg"
+                                title={document.title}
+                                onError={() => setError('Failed to load PDF')}
+                            />
+                        </div>
+                    );
+                }
+            }
+
+            // For other links, show a link card
+            return (
+                <div className="flex items-center justify-center h-96 bg-muted rounded-lg">
+                    <div className="text-center">
+                        <ExternalLink className="w-12 h-12 mx-auto text-muted-foreground mb-4" />
+                        <p className="text-muted-foreground mb-2">External Link</p>
+                        <p className="text-sm text-muted-foreground mb-4 break-all">{document.external_url}</p>
+                        <Button variant="outline" onClick={() => window.open(document.external_url, '_blank')}>
+                            <ExternalLink className="w-4 h-4 mr-2" />
+                            Open Link
+                        </Button>
+                    </div>
+                </div>
+            );
+        }
+
         if (!canPreview(document.mime_type)) {
             return (
                 <div className="flex items-center justify-center h-96 bg-muted rounded-lg">
@@ -175,7 +317,7 @@ export const DocumentPreview: React.FC<DocumentPreviewProps> = ({
                         {getFileIcon(document.mime_type || '', document.file_name)}
                         <p className="text-muted-foreground mt-4 mb-2">Preview not available for this file type</p>
                         <p className="text-sm text-muted-foreground">
-                            {document.mime_type || 'Unknown file type'}
+                            {getReadableFileType(document.mime_type, document.file_name)}
                         </p>
                         <Button variant="outline" className="mt-4" onClick={handleDownload}>
                             <Download className="w-4 h-4 mr-2" />
@@ -256,49 +398,120 @@ export const DocumentPreview: React.FC<DocumentPreviewProps> = ({
         >
             <div className="space-y-6">
                 {/* Document metadata */}
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4 p-4 bg-muted/50 rounded-lg">
-                    <div className="space-y-2">
-                        <div className="flex items-center gap-2">
-                            <Badge
-                                variant="secondary"
-                                className={`text-xs ${getDocumentTypeColor(document.category)}`}
-                            >
-                                {document.category || 'other'}
-                            </Badge>
-                            <Badge variant="outline" className="text-xs">
-                                {document.access_level}
-                            </Badge>
+                <div className="p-4 bg-slate-50 dark:bg-slate-800 rounded-lg border border-slate-200 dark:border-slate-700">
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                        {/* Left column - File details */}
+                        <div className="space-y-4">
+                            <div className="flex items-center gap-2">
+                                <Badge
+                                    variant="secondary"
+                                    className={`text-xs ${getDocumentTypeColor(document.category)}`}
+                                >
+                                    {document.category || 'other'}
+                                </Badge>
+                                <Badge variant="outline" className="text-xs">
+                                    {document.access_level}
+                                </Badge>
+                                {document.version && (
+                                    <Badge variant="outline" className="text-xs bg-blue-50 text-blue-700 border-blue-200">
+                                        v{document.version}
+                                    </Badge>
+                                )}
+                            </div>
+
+                            <div className="space-y-2 text-sm">
+                                <div className="flex items-center gap-2">
+                                    <span className="font-medium text-slate-700 dark:text-slate-300">File name:</span>
+                                    <span className="text-slate-600 dark:text-slate-400">{document.file_name}</span>
+                                </div>
+                                <div className="flex items-center gap-2">
+                                    <span className="font-medium text-slate-700 dark:text-slate-300">Size:</span>
+                                    <span className="text-slate-600 dark:text-slate-400">{formatFileSize(document.file_size)}</span>
+                                </div>
+                                <div className="flex items-center gap-2">
+                                    <span className="font-medium text-slate-700 dark:text-slate-300">Type:</span>
+                                    <span className="text-slate-600 dark:text-slate-400">{getReadableFileType(document.mime_type, document.file_name)}</span>
+                                </div>
+                                {isLink() && (
+                                    <>
+                                        <div className="flex items-center gap-2">
+                                            <span className="font-medium text-slate-700 dark:text-slate-300">Storage:</span>
+                                            <span className="text-slate-600 dark:text-slate-400">{document.storage_provider || 'External'}</span>
+                                        </div>
+                                        <div className="flex items-center gap-2">
+                                            <span className="font-medium text-slate-700 dark:text-slate-300">Link Type:</span>
+                                            <span className="text-slate-600 dark:text-slate-400">{document.link_type || 'file'}</span>
+                                        </div>
+                                        {document.link_access_count !== undefined && (
+                                            <div className="flex items-center gap-2">
+                                                <span className="font-medium text-slate-700 dark:text-slate-300">Access Count:</span>
+                                                <span className="text-slate-600 dark:text-slate-400">{document.link_access_count}</span>
+                                            </div>
+                                        )}
+                                    </>
+                                )}
+                            </div>
                         </div>
 
-                        <div className="text-sm space-y-1">
-                            <div><strong>File name:</strong> {document.file_name}</div>
-                            <div><strong>Size:</strong> {formatFileSize(document.file_size)}</div>
-                            <div><strong>Type:</strong> {document.mime_type || 'Unknown'}</div>
-                        </div>
-                    </div>
-
-                    <div className="space-y-2">
-                        <div className="text-sm space-y-1">
-                            <div><strong>Uploaded:</strong> {documentActionsService.formatDate(document.created_at, 'PPP')}</div>
-                            <div><strong>Modified:</strong> {documentActionsService.formatDate(document.updated_at, 'PPP')}</div>
-                            {document.uploaded_by && (
-                                <div><strong>Uploaded by:</strong> {document.uploaded_by}</div>
-                            )}
-                        </div>
-
-                        {/* Tags */}
-                        {document.metadata?.tags && document.metadata.tags.length > 0 && (
-                            <div>
-                                <div className="text-sm font-medium mb-1">Tags:</div>
-                                <div className="flex flex-wrap gap-1">
-                                    {document.metadata.tags.map((tag) => (
-                                        <Badge key={tag} variant="outline" className="text-xs">
-                                            {tag}
-                                        </Badge>
-                                    ))}
+                        {/* Right column - Upload details */}
+                        <div className="space-y-4">
+                            <div className="space-y-2 text-sm">
+                                <div className="flex items-center gap-2">
+                                    <Clock className="w-3 h-3 text-slate-500" />
+                                    <span className="font-medium text-slate-700 dark:text-slate-300">Uploaded:</span>
+                                    <span className="text-slate-600 dark:text-slate-400">{documentActionsService.formatDate(document.created_at, 'PPP')}</span>
+                                </div>
+                                <div className="flex items-center gap-2">
+                                    <Clock className="w-3 h-3 text-slate-500" />
+                                    <span className="font-medium text-slate-700 dark:text-slate-300">Modified:</span>
+                                    <span className="text-slate-600 dark:text-slate-400">{documentActionsService.formatDate(document.updated_at, 'PPP')}</span>
+                                </div>
+                                <div className="flex items-center gap-2">
+                                    <User className="w-3 h-3 text-slate-500" />
+                                    <span className="font-medium text-slate-700 dark:text-slate-300">Uploaded by:</span>
+                                    <span className="text-slate-600 dark:text-slate-400">{uploaderName}</span>
                                 </div>
                             </div>
-                        )}
+
+                            {/* Version Information */}
+                            {document.version && (
+                                <div className="space-y-2">
+                                    <div className="flex items-center gap-1">
+                                        <File className="w-3 h-3 text-slate-500" />
+                                        <span className="text-sm font-medium text-slate-700 dark:text-slate-300">Current version:</span>
+                                        <span className="text-slate-600 dark:text-slate-400">{document.version}</span>
+                                    </div>
+                                    {document.metadata?.version && (
+                                        <div className="space-y-1">
+                                            <div className="flex items-center gap-1">
+                                                <Tag className="w-3 h-3 text-slate-500" />
+                                                <span className="text-sm font-medium text-slate-700 dark:text-slate-300">Version change notes:</span>
+                                            </div>
+                                            <div className="p-2 bg-slate-100 dark:bg-slate-700 rounded text-xs border border-slate-200 dark:border-slate-600">
+                                                <span className="text-slate-600 dark:text-slate-400">{document.metadata.version}</span>
+                                            </div>
+                                        </div>
+                                    )}
+                                </div>
+                            )}
+
+                            {/* Tags */}
+                            {document.metadata?.tags && document.metadata.tags.length > 0 && (
+                                <div className="space-y-2">
+                                    <div className="flex items-center gap-1">
+                                        <Tag className="w-3 h-3 text-slate-500" />
+                                        <span className="text-sm font-medium text-slate-700 dark:text-slate-300">Tags:</span>
+                                    </div>
+                                    <div className="flex flex-wrap gap-1">
+                                        {document.metadata.tags.map((tag) => (
+                                            <Badge key={tag} variant="outline" className="text-xs">
+                                                {tag}
+                                            </Badge>
+                                        ))}
+                                    </div>
+                                </div>
+                            )}
+                        </div>
                     </div>
                 </div>
 
@@ -329,8 +542,17 @@ export const DocumentPreview: React.FC<DocumentPreviewProps> = ({
                 <div className="flex justify-between items-center pt-4 border-t">
                     <div className="flex gap-2">
                         <Button variant="outline" onClick={handleDownload}>
-                            <Download className="w-4 h-4 mr-2" />
-                            Download
+                            {isLink() ? (
+                                <>
+                                    <ExternalLink className="w-4 h-4 mr-2" />
+                                    Open Link
+                                </>
+                            ) : (
+                                <>
+                                    <Download className="w-4 h-4 mr-2" />
+                                    Download
+                                </>
+                            )}
                         </Button>
                         <Button
                             variant="outline"

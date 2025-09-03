@@ -65,7 +65,7 @@ export interface DocumentFiltersState {
 }
 
 export const DocumentManager: React.FC<DocumentManagerProps> = ({ projectId, currentStageId }) => {
-    const { data: documents = [], isLoading } = useDocuments(projectId);
+    const { data: documents = [], isLoading, refetch, forceRefresh } = useDocuments(projectId);
 
     // View state
     const [viewMode, setViewMode] = useState<ViewMode>('grid');
@@ -234,6 +234,8 @@ export const DocumentManager: React.FC<DocumentManagerProps> = ({ projectId, cur
     const handleDocumentEdit = useCallback((document: ProjectDocument) => {
         setSelectedDocument(document);
         setShowEditModal(true);
+        // Close preview modal when opening edit modal
+        setShowPreview(false);
     }, []);
 
     const handleDocumentVersionHistory = useCallback((document: ProjectDocument) => {
@@ -248,15 +250,51 @@ export const DocumentManager: React.FC<DocumentManagerProps> = ({ projectId, cur
 
         try {
             await documentActionsService.deleteDocument(document);
+            // Close preview modal if it's open for the deleted document
+            if (selectedDocument?.id === document.id) {
+                setShowPreview(false);
+                setSelectedDocument(null);
+            }
+            // Clear selection if the deleted document was selected
+            setSelectedDocuments(prev => prev.filter(id => id !== document.id));
             // The useDocuments hook will handle the real-time update
         } catch (error) {
             console.error('Delete failed:', error);
         }
-    }, []);
+    }, [selectedDocument]);
+
+    // Bulk delete handler
+    const handleBulkDelete = useCallback(async () => {
+        if (selectedDocuments.length === 0) return;
+
+        const selectedDocs = filteredAndSortedDocuments.filter(doc => selectedDocuments.includes(doc.id));
+        const documentNames = selectedDocs.map(doc => doc.title).join(', ');
+
+        if (!confirm(`Are you sure you want to delete ${selectedDocuments.length} document(s): ${documentNames}? This action cannot be undone.`)) {
+            return;
+        }
+
+        try {
+            await documentActionsService.bulkDeleteDocuments(selectedDocs);
+            // Clear selection after bulk delete
+            setSelectedDocuments([]);
+            // Close preview modal if any of the deleted documents was being previewed
+            if (selectedDocument && selectedDocuments.includes(selectedDocument.id)) {
+                setShowPreview(false);
+                setSelectedDocument(null);
+            }
+            // The useDocuments hook will handle the real-time update
+        } catch (error) {
+            console.error('Bulk delete failed:', error);
+        }
+    }, [selectedDocuments, filteredAndSortedDocuments, selectedDocument]);
 
     const handleDocumentSave = useCallback(async (documentId: string, editData: DocumentEditData) => {
         try {
             await documentActionsService.editDocument(documentId, editData);
+            // Close edit modal after successful save
+            setShowEditModal(false);
+            setSelectedDocument(null);
             // The useDocuments hook will handle the real-time update
         } catch (error) {
             console.error('Edit failed:', error);
@@ -436,9 +474,9 @@ export const DocumentManager: React.FC<DocumentManagerProps> = ({ projectId, cur
                                     <Tag className="w-4 h-4 mr-2" />
                                     Add Tags
                                 </Button>
-                                <Button variant="outline" size="sm">
+                                <Button variant="outline" size="sm" onClick={handleBulkDelete} disabled={selectedDocuments.length === 0}>
                                     <Trash2 className="w-4 h-4 mr-2" />
-                                    Delete Selected
+                                    Delete Selected ({selectedDocuments.length})
                                 </Button>
                                 <Button variant="ghost" size="sm" onClick={handleClearSelection}>
                                     <X className="w-4 h-4" />
@@ -555,6 +593,11 @@ export const DocumentManager: React.FC<DocumentManagerProps> = ({ projectId, cur
                         projectId={projectId}
                         currentStageId={currentStageId}
                         onClose={() => setShowUploadZone(false)}
+                        onSuccess={() => {
+                            // Close the modal
+                            setShowUploadZone(false);
+                            // The useDocuments hook will handle the real-time update
+                        }}
                     />
                 )}
 
@@ -567,14 +610,8 @@ export const DocumentManager: React.FC<DocumentManagerProps> = ({ projectId, cur
                             setShowPreview(false);
                             setSelectedDocument(null);
                         }}
-                        onEdit={(document) => {
-                            // TODO: Implement document editing
-                            console.log('Edit document:', document);
-                        }}
-                        onDelete={async (document) => {
-                            // TODO: Implement document deletion with confirmation
-                            console.log('Delete document:', document);
-                        }}
+                        onEdit={handleDocumentEdit}
+                        onDelete={handleDocumentDelete}
                         onVersionHistory={handleDocumentVersionHistory}
                     />
                 )}
@@ -590,8 +627,12 @@ export const DocumentManager: React.FC<DocumentManagerProps> = ({ projectId, cur
                         }}
                         onVersionChange={(newVersion) => {
                             // Refresh documents list when version changes
-                            // The useDocuments hook should handle real-time updates
-                            console.log('Version changed:', newVersion);
+                            console.log('🔄 DocumentManager: Version changed, refreshing documents:', newVersion);
+                            // Force a refresh of the documents list to ensure UI updates
+                            forceRefresh(1000); // Use forceRefresh with 1 second delay
+                            // Also close the version history modal
+                            setShowVersionHistory(false);
+                            setSelectedDocument(null);
                         }}
                     />
                 )}
@@ -615,8 +656,9 @@ export const DocumentManager: React.FC<DocumentManagerProps> = ({ projectId, cur
                     isOpen={showLinkModal}
                     onClose={() => setShowLinkModal(false)}
                     onSuccess={() => {
-                        // Refresh documents list
-                        // The useDocuments hook should handle real-time updates
+                        // Close the modal
+                        setShowLinkModal(false);
+                        // The useDocuments hook will handle the real-time update
                     }}
                 />
             </div>

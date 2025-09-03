@@ -30,6 +30,7 @@ import {
     DocumentVersionHistory as VersionHistory,
     VersionComparisonResult
 } from '@/services/documentVersionService';
+import { DocumentVersionPreview } from './DocumentVersionPreview';
 import { toast } from 'sonner';
 
 interface DocumentVersionHistoryProps {
@@ -54,6 +55,8 @@ export const DocumentVersionHistory: React.FC<DocumentVersionHistoryProps> = ({
     const [comparisonResult, setComparisonResult] = useState<VersionComparisonResult | null>(null);
     const [uploadFile, setUploadFile] = useState<File | null>(null);
     const [changeSummary, setChangeSummary] = useState('');
+    const [showPreviewModal, setShowPreviewModal] = useState(false);
+    const [selectedVersionForPreview, setSelectedVersionForPreview] = useState<DocumentVersion | null>(null);
 
     useEffect(() => {
         if (isOpen && document.id) {
@@ -158,6 +161,16 @@ export const DocumentVersionHistory: React.FC<DocumentVersionHistoryProps> = ({
         } finally {
             setIsLoading(false);
         }
+    };
+
+    const handlePreviewVersion = (version: DocumentVersion) => {
+        setSelectedVersionForPreview(version);
+        setShowPreviewModal(true);
+    };
+
+    const handleClosePreview = () => {
+        setShowPreviewModal(false);
+        setSelectedVersionForPreview(null);
     };
 
     const handleDownloadVersion = async (versionId: string) => {
@@ -301,8 +314,8 @@ export const DocumentVersionHistory: React.FC<DocumentVersionHistoryProps> = ({
                                 <Card
                                     key={version.id}
                                     className={`transition-all border-2 ${version.is_current
-                                            ? 'border-emerald-500 bg-emerald-50 dark:bg-emerald-900/20 dark:border-emerald-600'
-                                            : 'border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800'
+                                        ? 'border-emerald-500 bg-emerald-50 dark:bg-emerald-900/20 dark:border-emerald-600'
+                                        : 'border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800'
                                         } ${selectedVersions.includes(version.id)
                                             ? 'ring-2 ring-blue-500 dark:ring-blue-400 shadow-lg'
                                             : ''
@@ -322,8 +335,8 @@ export const DocumentVersionHistory: React.FC<DocumentVersionHistoryProps> = ({
                                                 <div className="flex-1">
                                                     <div className="flex items-center gap-2 mb-2">
                                                         <h4 className={`font-medium ${version.is_current
-                                                                ? 'text-emerald-800 dark:text-emerald-200'
-                                                                : 'text-slate-900 dark:text-slate-100'
+                                                            ? 'text-emerald-800 dark:text-emerald-200'
+                                                            : 'text-slate-900 dark:text-slate-100'
                                                             }`}>
                                                             Version {version.version_number}
                                                         </h4>
@@ -366,6 +379,16 @@ export const DocumentVersionHistory: React.FC<DocumentVersionHistoryProps> = ({
 
                                             {/* Action Buttons */}
                                             <div className="flex gap-1">
+                                                <Button
+                                                    variant="ghost"
+                                                    size="sm"
+                                                    onClick={() => handlePreviewVersion(version)}
+                                                    title="Preview"
+                                                    className="text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-100 hover:bg-slate-100 dark:hover:bg-slate-700"
+                                                >
+                                                    <Eye className="w-4 h-4" />
+                                                </Button>
+
                                                 <Button
                                                     variant="ghost"
                                                     size="sm"
@@ -418,6 +441,15 @@ export const DocumentVersionHistory: React.FC<DocumentVersionHistoryProps> = ({
                     )}
                 </div>
             </Modal>
+
+            {/* Version Preview Modal */}
+            {selectedVersionForPreview && (
+                <DocumentVersionPreview
+                    version={selectedVersionForPreview}
+                    isOpen={showPreviewModal}
+                    onClose={handleClosePreview}
+                />
+            )}
 
             {/* Upload New Version Modal */}
             <Modal

@@ -3,6 +3,7 @@ import { ProjectDocument } from '@/types/project';
 
 export interface DocumentVersion {
     id: string;
+    organization_id: string;
     document_id: string;
     version_number: number;
     file_name: string;
@@ -91,6 +92,7 @@ class DocumentVersionService {
             const { data: version, error: insertError } = await supabase
                 .from('document_versions')
                 .insert({
+                    organization_id: currentDoc.organization_id,
                     document_id: documentId,
                     version_number: nextVersionNumber,
                     file_name: versionFileName,
@@ -230,6 +232,8 @@ class DocumentVersionService {
      */
     async setCurrentVersion(versionId: string): Promise<boolean> {
         try {
+            console.log('🔄 DocumentVersionService: Setting current version:', versionId);
+
             // Get the version to make current
             const { data: targetVersion, error: versionError } = await supabase
                 .from('document_versions')
@@ -241,11 +245,21 @@ class DocumentVersionService {
                 throw new Error('Version not found');
             }
 
+            console.log('🔄 DocumentVersionService: Target version found:', {
+                documentId: targetVersion.document_id,
+                versionNumber: targetVersion.version_number,
+                fileName: targetVersion.file_name
+            });
+
             // Update all versions for this document to not be current
-            await supabase
+            const { error: resetError } = await supabase
                 .from('document_versions')
                 .update({ is_current: false })
                 .eq('document_id', targetVersion.document_id);
+
+            if (resetError) {
+                console.error('Error resetting current versions:', resetError);
+            }
 
             // Set the target version as current
             const { error: updateError } = await supabase
@@ -257,21 +271,31 @@ class DocumentVersionService {
                 throw new Error(`Failed to set current version: ${updateError.message}`);
             }
 
-            // Update the main document record
-            await supabase
+            console.log('🔄 DocumentVersionService: Version set as current, updating main document');
+
+            // Update the main document record with explicit fields
+            const { error: docUpdateError } = await supabase
                 .from('documents')
                 .update({
                     file_name: targetVersion.file_name,
                     file_path: targetVersion.file_path,
                     file_size: targetVersion.file_size,
+                    file_type: targetVersion.mime_type,
                     version: targetVersion.version_number,
+                    is_current_version: true,
                     updated_at: new Date().toISOString()
                 })
                 .eq('id', targetVersion.document_id);
 
+            if (docUpdateError) {
+                console.error('Error updating main document:', docUpdateError);
+                throw new Error(`Failed to update main document: ${docUpdateError.message}`);
+            }
+
+            console.log('✅ DocumentVersionService: Current version set successfully');
             return true;
         } catch (error) {
-            console.error('Error setting current version:', error);
+            console.error('❌ DocumentVersionService: Error setting current version:', error);
             return false;
         }
     }
@@ -433,6 +457,53 @@ class DocumentVersionService {
             console.error('Error getting download URL:', error);
             return null;
         }
+    }
+
+    /**
+     * Get preview URL for a specific version
+     */
+    async getVersionPreviewUrl(versionId: string): Promise<string | null> {
+        try {
+            const version = await this.getDocumentVersion(versionId);
+            if (!version) {
+                return null;
+            }
+
+            // For images and PDFs, we can create a preview URL
+            if (this.canPreviewFile(version.mime_type)) {
+                const { data, error } = await supabase.storage
+                    .from('documents')
+                    .createSignedUrl(version.file_path, 3600); // 1 hour expiry
+
+                if (error) {
+                    console.error('Error creating preview URL:', error);
+                    return null;
+                }
+
+                return data.signedUrl;
+            }
+
+            return null;
+        } catch (error) {
+            console.error('Error getting preview URL:', error);
+            return null;
+        }
+    }
+
+    /**
+     * Check if a file type can be previewed
+     */
+    private canPreviewFile(mimeType: string): boolean {
+        const previewableTypes = [
+            'application/pdf',
+            'image/jpeg',
+            'image/jpg',
+            'image/png',
+            'image/gif',
+            'image/webp',
+            'image/svg+xml'
+        ];
+        return previewableTypes.includes(mimeType);
     }
 
     /**
