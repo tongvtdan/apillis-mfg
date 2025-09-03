@@ -59,6 +59,7 @@ export function EnhancedProjectList({
     const { toast } = useToast();
     const [viewMode, setViewMode] = useState<'cards' | 'table'>('cards');
     const [showFilters, setShowFilters] = useState(false);
+    const [showCreateForm, setShowCreateForm] = useState(false);
 
     // Filter state
     const [filters, setFilters] = useState<FilterState>({
@@ -433,9 +434,9 @@ export function EnhancedProjectList({
                                         <SelectContent>
                                             <SelectItem value="all">All Assignees</SelectItem>
                                             <SelectItem value="unassigned">Unassigned</SelectItem>
-                                            {assigneeUsers.map(user => (
+                                            {Array.from(assigneeUsers.values()).map(user => (
                                                 <SelectItem key={user.id} value={user.id}>
-                                                    {user.display_name || user.email}
+                                                    {user.display_name}
                                                 </SelectItem>
                                             ))}
                                         </SelectContent>
@@ -519,7 +520,7 @@ export function EnhancedProjectList({
                                 {filters.assignee !== 'all' && (
                                     <Badge variant="outline" className="text-xs">
                                         Assignee: {filters.assignee === 'unassigned' ? 'Unassigned' :
-                                            assigneeUsers.find(u => u.id === filters.assignee)?.display_name || 'Unknown'}
+                                            assigneeUsers.get(filters.assignee)?.display_name || 'Unknown'}
                                         <Button
                                             variant="ghost"
                                             size="sm"
@@ -679,7 +680,7 @@ export function EnhancedProjectList({
                                     <div className="flex items-center justify-between">
                                         <div className="flex items-center space-x-1 text-muted-foreground">
                                             <User className="h-3 w-3 flex-shrink-0" />
-                                            <span>{project.contact_name || project.customer?.contact_name || 'Unassigned'}</span>
+                                            <span>{assigneeUsers.get(project.assigned_to || project.assignee_id)?.display_name || 'Unassigned'}</span>
                                         </div>
                                         {project.estimated_value && (
                                             <div className="flex items-center space-x-1 font-medium">

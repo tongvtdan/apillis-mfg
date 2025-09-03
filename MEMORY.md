@@ -2,6 +2,305 @@
 
 ## Recent Changes
 
+### 2025-09-03 - Database Cleanup: Customer/Supplier Users Removal ✅
+
+**Task Completed:**
+- Identified and removed 3 customer/supplier accounts that were incorrectly created in the `users` table
+- Updated all database references to use internal employees instead of external entities
+- Maintained data integrity by preserving entities in the `contacts` table where they belong
+- Fixed project assignments, creators, and activity log entries to reference proper internal users
+
+**Root Cause Analysis:**
+The database had customer/supplier accounts incorrectly placed in the `users` table when they should only exist in the `contacts` table:
+1. **Schema Violation**: `users` table is for internal employees only, while `contacts` table is for external entities
+2. **Data Integrity Issue**: Customer/supplier users were referenced in projects, activity logs, and other tables
+3. **Foreign Key Constraints**: Multiple tables had foreign key references preventing direct deletion
+
+**Technical Implementation:**
+
+1. **Identified Problematic Users**:
+   - **Customer**: `550e8400-e29b-41d4-a716-446655440104` - `procurement@airbus.vn` (Phạm Thị Dung) - role: `customer`
+   - **Supplier 1**: `550e8400-e29b-41d4-a716-446655440106` - `sales@precision-machining.vn` (Trần Văn Phúc) - role: `supplier`
+   - **Supplier 2**: `550e8400-e29b-41d4-a716-446655440110` - `sales@electronics-assembly.vn` (Vũ Đình Nam) - role: `supplier`
+
+2. **Updated Project References**:
+   - **Project Assignments**: Updated 3 projects to use internal engineering employees
+   - **Project Creators**: Updated 17 projects created by supplier user to use sales manager
+   - **Activity Log Entries**: Updated 94 activity log entries to reference appropriate internal employees
+
+3. **Database Cleanup**:
+   - **Removed**: All 3 customer/supplier users from `users` table
+   - **Preserved**: Entities remain in `contacts` table with same IDs and information
+   - **Verified**: No foreign key constraint violations after cleanup
+
+**Key Improvements:**
+
+- **Data Integrity**:
+  - **Schema Compliance**: Users table now only contains internal employees
+  - **Proper Separation**: External entities properly stored in contacts table
+  - **Reference Consistency**: All database references now point to valid internal users
+
+- **System Stability**:
+  - **Foreign Key Integrity**: No more constraint violations
+  - **Data Consistency**: Projects and activity logs reference valid users
+  - **Application Logic**: UI components will work correctly with proper user data
+
+- **Maintenance Benefits**:
+  - **Cleaner Data Model**: Clear separation between internal and external entities
+  - **Easier Management**: No confusion about user vs contact entities
+  - **Future Prevention**: Clear understanding of proper data placement
+
+**Benefits:**
+- ✅ **Schema Compliance**: Users table now properly contains only internal employees
+- ✅ **Data Integrity**: All foreign key relationships are valid
+- ✅ **System Stability**: No more constraint violations or data inconsistencies
+- ✅ **Maintenance**: Clear separation between users and contacts
+- ✅ **Future Prevention**: Proper understanding of data model boundaries
+
+**Current State:**
+- ✅ **Users Table**: 15 internal employees only (admin, management, sales, engineering, qa, production, procurement)
+- ✅ **Contacts Table**: External entities properly stored (customers, suppliers, partners)
+- ✅ **Project References**: All projects assigned to and created by internal employees
+- ✅ **Activity Log**: All entries reference valid internal users
+- ✅ **Data Consistency**: No orphaned or invalid references
+
+### 2025-09-03 - EnhancedProjectList useUsers Hook Map/Array Type Error Fix ✅
+
+**Task Completed:**
+- Fixed critical runtime error in EnhancedProjectList component where `assigneeUsers.find` was being called on a Map instead of an array
+- Updated component to properly handle the Map return type from `useUsers` hook
+- Added missing `showCreateForm` state to prevent undefined variable errors
+- Resolved TypeScript compilation errors related to incorrect data structure usage
+
+**Root Cause Analysis:**
+The EnhancedProjectList component was experiencing a runtime error because:
+1. **Incorrect Data Structure Usage**: The `useUsers` hook returns `{ users: Map<string, UserLookup>, loading: boolean }`, but the code was treating `assigneeUsers` as an array
+2. **Missing State Variable**: The component referenced `setShowCreateForm` without defining the `showCreateForm` state
+3. **Type Mismatch**: Code was using `.find()` and `.map()` methods on a Map object, which don't exist on Maps
+
+**Technical Implementation:**
+
+1. **Fixed assigneeUsers.find() Usage** (`src/components/project/EnhancedProjectList.tsx:682`):
+   - **Before**: `assigneeUsers.find(u => u.id === (project.assigned_to || project.assignee_id))?.display_name`
+   - **After**: `assigneeUsers.get(project.assigned_to || project.assignee_id)?.display_name`
+   - **Reason**: Maps use `.get()` method to retrieve values by key, not `.find()` method
+
+2. **Fixed assigneeUsers.map() Usage** (`src/components/project/EnhancedProjectList.tsx:435`):
+   - **Before**: `assigneeUsers.map(user => ...)`
+   - **After**: `Array.from(assigneeUsers.values()).map(user => ...)`
+   - **Reason**: Convert Map values to array before using `.map()` method
+
+3. **Fixed assigneeUsers.find() in Filter Display** (`src/components/project/EnhancedProjectList.tsx:521`):
+   - **Before**: `assigneeUsers.find(u => u.id === filters.assignee)?.display_name`
+   - **After**: `assigneeUsers.get(filters.assignee)?.display_name`
+   - **Reason**: Use Map `.get()` method for direct key lookup
+
+4. **Added Missing State Variable** (`src/components/project/EnhancedProjectList.tsx:58`):
+   - **Added**: `const [showCreateForm, setShowCreateForm] = useState(false);`
+   - **Reason**: Component was referencing undefined `setShowCreateForm` function
+
+5. **Fixed UserLookup Interface Usage**:
+   - **Removed**: `user.email` fallback in display name
+   - **Reason**: `UserLookup` interface doesn't include `email` property
+
+**Key Improvements:**
+
+- **Runtime Error Resolution**:
+  - **Fixed**: `TypeError: assigneeUsers.find is not a function` error
+  - **Fixed**: `Cannot find name 'setShowCreateForm'` TypeScript error
+  - **Fixed**: `Property 'email' does not exist on type 'UserLookup'` error
+
+- **Proper Data Structure Handling**:
+  - **Map Usage**: Correctly use Map methods (`.get()`, `.values()`) instead of array methods
+  - **Type Safety**: Ensure TypeScript compilation without errors
+  - **Performance**: Direct key lookup with Map is more efficient than array search
+
+- **Component Stability**:
+  - **Error Boundary**: Component no longer crashes and triggers error boundary
+  - **User Experience**: Users can now view project lists without runtime errors
+  - **Development**: Cleaner development experience without console errors
+
+**Benefits:**
+- ✅ **Runtime Stability**: No more crashes when viewing project lists
+- ✅ **Type Safety**: Proper TypeScript compilation without errors
+- ✅ **Performance**: Efficient Map-based lookups instead of array searches
+- ✅ **User Experience**: Smooth project list viewing experience
+- ✅ **Developer Experience**: Clean console without error messages
+
+**Current Functionality:**
+- ✅ **Project List Display**: Shows assignee names correctly using Map lookups
+- ✅ **Filter Dropdown**: Populates assignee filter with proper user names
+- ✅ **Filter Display**: Shows selected assignee names in active filters
+- ✅ **Create Project**: Button functionality restored with proper state management
+- ✅ **Error Handling**: Component handles missing or invalid data gracefully
+
+### 2025-09-03 - Project Person Field Unification and Owner Display Fix ✅
+
+**Task Completed:**
+- Unified person field display across all project components to consistently show assignee instead of customer contact
+- Fixed owner field display to show readable names instead of UUIDs with fallback to contact lookup
+- Updated project cards in list view, workflow view, and detail pages for consistency
+- Created robust owner display hook that handles both user and contact references
+
+**Root Cause Analysis:**
+The project pages had inconsistent person field displays and owner field issues:
+1. **Person Field Inconsistency**: Some components showed customer contact names instead of assignee names
+2. **Owner Field UUID Display**: Owner field was showing UUIDs instead of readable names
+3. **Mixed References**: `created_by` field might reference either users or contacts, causing display issues
+
+**Technical Implementation:**
+
+1. **Fixed EnhancedProjectList.tsx** (`src/components/project/EnhancedProjectList.tsx`):
+   - **Person Field Update**: Changed from `project.contact_name || project.customer?.contact_name` to assignee display
+   - **Assignee Display**: Now shows `assigneeUsers.find(u => u.id === (project.assigned_to || project.assignee_id))?.display_name`
+   - **Consistent UX**: All project list items now show the assignee as the primary contact person
+
+2. **Fixed EnhancedProjectOverviewCard.tsx** (`src/components/project/EnhancedProjectOverviewCard.tsx`):
+   - **Label Correction**: Changed "Owner" label to "Assignee" for clarity
+   - **Proper Semantics**: Now correctly identifies the person field as assignee, not owner
+
+3. **Fixed AnimatedProjectCard.tsx** (`src/components/project/AnimatedProjectCard.tsx`):
+   - **ProjectContactDisplay Update**: Removed fallback to `project.contact_name`
+   - **Assignee Priority**: Now prioritizes assignee display over customer contact
+   - **Consistent Behavior**: Shows assignee name or "Unassigned" only
+
+4. **Created useOwnerDisplayName Hook** (`src/hooks/useOwnerDisplayName.ts`):
+   - **Dual Lookup**: First tries user lookup, then falls back to contact lookup
+   - **Robust Handling**: Handles cases where `created_by` references contacts instead of users
+   - **Graceful Fallback**: Shows appropriate fallback text when neither user nor contact found
+   - **Loading States**: Provides loading indicator during lookup operations
+
+5. **Updated ProjectDetailHeader.tsx** (`src/components/project/ProjectDetailHeader.tsx`):
+   - **Owner Display Fix**: Integrated `useOwnerDisplayName` hook for robust owner name resolution
+   - **Proper Field Usage**: Uses `created_by` field for owner display with fallback support
+
+**Key Improvements:**
+
+- **Person Field Consistency**:
+  - **Unified Display**: All project components now show assignee as the primary person
+  - **Clear Semantics**: Proper distinction between owner (creator) and assignee (worker)
+  - **Consistent UX**: Users see the same person information across all views
+
+- **Owner Field Robustness**:
+  - **Dual Lookup**: Handles both user and contact references in `created_by` field
+  - **Readable Names**: Shows proper names instead of UUIDs
+  - **Graceful Fallback**: Provides meaningful fallback text when data is unavailable
+
+- **Component Alignment**:
+  - **List View**: Shows assignee in project cards
+  - **Workflow View**: Shows assignee in project cards
+  - **Detail View**: Shows owner (creator) and assignee (worker) separately
+
+**Benefits:**
+- ✅ **Consistent Person Display**: All project views show assignee as primary contact
+- ✅ **Proper Owner Display**: Owner field shows readable names instead of UUIDs
+- ✅ **Robust Data Handling**: Handles mixed user/contact references gracefully
+- ✅ **Clear Semantics**: Proper distinction between project owner and assignee
+- ✅ **Better UX**: Users can easily identify who is working on vs who created the project
+
+**Current Functionality:**
+- ✅ **List View**: Shows assignee name in project cards
+- ✅ **Workflow View**: Shows assignee name in project cards
+- ✅ **Detail View**: Shows owner (creator) and assignee (worker) separately
+- ✅ **Owner Resolution**: Robust lookup for both user and contact references
+- ✅ **Consistent Labels**: Proper "Owner" vs "Assignee" labeling throughout
+
+### 2025-09-03 - Database Field Mismatch Fix for User Display Names ✅
+
+**Task Completed:**
+- Fixed critical database field mismatch issue where `display_name` was being queried instead of `name`
+- Updated multiple services to use correct database field names for user data
+- Resolved issue causing UUIDs to be displayed instead of user names throughout the application
+
+**Root Cause Analysis:**
+The application was showing UUIDs instead of readable user names because several services were incorrectly querying the database:
+1. `notificationService.ts` was selecting `display_name` instead of `name` from users table
+2. `ApprovalDelegationModal.tsx` was selecting `display_name` instead of `name` from users table
+3. `approvalService.ts` had join queries selecting `display_name` instead of `name` from reviewer tables
+4. The database schema uses `name` field, but some services were expecting `display_name`
+
+**Technical Implementation:**
+
+1. **Fixed notificationService.ts** (`src/services/notificationService.ts`):
+   - **Database Query**: Changed `.select('id, email, display_name')` to `.select('id, email, name')`
+   - **Field Usage**: Updated `u.display_name` to `u.name` in email notification mapping
+   - **Consistency**: Ensured all user queries use correct database field names
+
+2. **Fixed ApprovalDelegationModal.tsx** (`src/components/approval/ApprovalDelegationModal.tsx`):
+   - **Database Query**: Changed `.select('id, display_name, role, email')` to `.select('id, name, role, email')`
+   - **Interface Update**: Updated `User` interface to use `name` instead of `display_name`
+   - **Component Usage**: Updated `user.display_name` to `user.name` in component rendering
+
+3. **Fixed approvalService.ts** (`src/services/approvalService.ts`):
+   - **Join Queries**: Updated reviewer join queries to select `name` instead of `display_name`
+   - **Field Mapping**: Updated `reviewer?.display_name` to `reviewer?.name` in approval mapping
+   - **Notification Calls**: Updated approval decision notifications to use correct field names
+
+**Key Improvements:**
+
+- **Database Consistency**:
+  - **Correct Field Usage**: All services now use `name` field as defined in database schema
+  - **Proper Mapping**: userService correctly maps `data.name` to `display_name` in interface
+  - **Consistent Queries**: All database queries use correct field names
+
+- **User Experience**:
+  - **Readable Names**: Users now see proper names instead of UUIDs
+  - **Consistent Display**: All user name displays work correctly across the application
+  - **Proper Notifications**: Email and in-app notifications show correct user names
+
+**Benefits:**
+- ✅ **Correct Display**: User names now display properly instead of UUIDs
+- ✅ **Database Alignment**: All queries match the actual database schema
+- ✅ **Consistent UX**: User names appear correctly throughout the application
+- ✅ **Proper Notifications**: All notification systems show correct user names
+
+**Current Functionality:**
+- ✅ **User Service**: Correctly maps database `name` to interface `display_name`
+- ✅ **Notification Service**: Uses correct database field for user queries
+- ✅ **Approval Service**: Properly joins and displays reviewer names
+- ✅ **Delegation Modal**: Shows correct user names in selection dropdown
+
+### 2025-09-03 - Project Owner Display Field Fix ✅
+
+**Task Completed:**
+- Fixed project owner display issue where the wrong database field was being used
+- Updated ProjectDetailHeader component to use `created_by` field for owner instead of `assigned_to`
+- Ensured proper distinction between project owner (creator) and project assignee (worker)
+
+**Root Cause Analysis:**
+The project detail page was showing "Owner" but displaying the UUID of the assigned person instead of the readable name of the project creator. The issue was:
+1. ProjectDetailHeader was using `assigned_to` field for owner display instead of `created_by`
+2. `assigned_to` field is for the person assigned to work on the project, not the owner
+3. `created_by` field should be used for the project owner/creator
+
+**Technical Implementation:**
+
+1. **Fixed ProjectDetailHeader Component** (`src/components/project/ProjectDetailHeader.tsx`):
+   - **Correct Field Usage**: Added `ownerDisplayName` using `project.created_by` field
+   - **Proper Labeling**: Updated display to show owner name instead of assignee name
+   - **Field Separation**: Maintained separate display for assignee vs owner information
+   - **User Display Name**: Used `useUserDisplayName` hook to resolve user names from UUIDs
+
+**Key Improvements:**
+
+- **Correct Owner Display**:
+  - **Field Alignment**: Now uses `created_by` field for project owner display
+  - **Readable Names**: Shows user display names instead of UUIDs
+  - **Proper Semantics**: Owner refers to project creator, not assignee
+  - **Consistent UX**: Maintains proper distinction between owner and assignee
+
+**Benefits:**
+- ✅ **Correct Information**: Users now see the actual project owner (creator)
+- ✅ **Readable Names**: Owner field shows user names instead of UUIDs
+- ✅ **Proper Semantics**: Clear distinction between project owner and assignee
+- ✅ **Better UX**: Users can identify who created vs who is working on the project
+
+**Current Functionality:**
+- ✅ **Owner Display**: Shows project creator's name in owner field
+- ✅ **Assignee Display**: Maintains separate assignee information
+- ✅ **Name Resolution**: Uses proper user display name resolution
+- ✅ **Field Correctness**: Uses correct database fields for each role
+
 ### 2025-09-03 - Project Details Page Header Actions Enhancement ✅
 
 **Task Completed:**

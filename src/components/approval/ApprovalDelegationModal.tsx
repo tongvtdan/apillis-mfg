@@ -53,7 +53,7 @@ interface ApprovalDelegationModalProps {
 
 interface User {
     id: string;
-    display_name: string;
+    name: string;
     role: string;
     email: string;
 }
@@ -95,7 +95,7 @@ export function ApprovalDelegationModal({
             // Get users from the same organization with approval roles
             const { data: users, error } = await supabase
                 .from('users')
-                .select('id, display_name, role, email')
+                .select('id, name, role, email')
                 .eq('organization_id', user?.user_metadata?.organization_id)
                 .neq('id', user?.id) // Exclude current user
                 .eq('is_active', true)
@@ -286,7 +286,7 @@ export function ApprovalDelegationModal({
                                                 <div className="flex items-center gap-2">
                                                     <User className="w-4 h-4" />
                                                     <div>
-                                                        <span className="font-medium">{user.display_name}</span>
+                                                        <span className="font-medium">{user.name}</span>
                                                         <Badge variant="outline" className="ml-2 text-xs">
                                                             {user.role}
                                                         </Badge>

@@ -354,7 +354,7 @@ export class ApprovalService {
           *,
           reviewer:reviewer_id (
             id,
-            display_name,
+            name,
             role
           )
         `)
@@ -369,7 +369,7 @@ export class ApprovalService {
                 project_id: review.project_id,
                 stage_id: (review.metadata as any)?.stage_id || '',
                 approver_id: review.reviewer_id,
-                approver_name: (review as any).reviewer?.display_name || 'Unknown',
+                approver_name: (review as any).reviewer?.name || 'Unknown',
                 approver_role: (review.metadata as any)?.approval_role || (review as any).reviewer?.role || '',
                 status: review.status as 'pending' | 'approved' | 'rejected',
                 comments: review.comments || undefined,
@@ -548,7 +548,7 @@ export class ApprovalService {
                     ),
                     reviewer:reviewer_id (
                         id,
-                        display_name
+                        name
                     )
                 `)
                 .eq('id', approvalId)
@@ -562,7 +562,7 @@ export class ApprovalService {
             await notificationService.sendApprovalDecisionNotifications(
                 approval.project_id,
                 project?.title || 'Unknown Project',
-                reviewer?.display_name || 'Unknown Approver',
+                reviewer?.name || 'Unknown Approver',
                 decision as 'approved' | 'rejected',
                 approval.comments || undefined,
                 project?.organization_id

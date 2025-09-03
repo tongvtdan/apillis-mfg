@@ -29,6 +29,7 @@ import type { Project, WorkflowStage, ProjectPriority } from "@/types/project";
 import { EnhancedProjectOverviewCard } from "./EnhancedProjectOverviewCard";
 import { WorkflowStepper } from "./WorkflowStepper";
 import { useUserDisplayName } from "@/hooks/useUsers";
+import { useOwnerDisplayName } from "@/hooks/useOwnerDisplayName";
 import { useToast } from "@/hooks/use-toast";
 import { EditProjectModal } from "./EditProjectModal";
 import {
@@ -159,6 +160,9 @@ export function ProjectDetailHeader({
     // Get assignee display name using correct database field name with fallback
     const assigneeId = project.assigned_to || project.assignee_id;
     const assigneeDisplayName = useUserDisplayName(assigneeId);
+
+    // Get owner display name using created_by field with fallback to contact lookup
+    const ownerDisplayName = useOwnerDisplayName(project.created_by);
 
     // Quick actions configuration
     const quickActions: QuickAction[] = [
@@ -346,7 +350,7 @@ export function ProjectDetailHeader({
 
                                 <div className="flex items-center space-x-1">
                                     <Users className="w-4 h-4" />
-                                    <span>Owner: {assigneeDisplayName}</span>
+                                    <span>Owner: {ownerDisplayName}</span>
                                 </div>
 
                                 {project.estimated_value && (

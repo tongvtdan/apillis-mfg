@@ -223,7 +223,7 @@ export class NotificationService {
             // Get user email addresses
             const { data: users, error } = await supabase
                 .from('users')
-                .select('id, email, display_name')
+                .select('id, email, name')
                 .in('id', userIds)
                 .not('email', 'is', null);
 
@@ -237,7 +237,7 @@ export class NotificationService {
             // TODO: Integrate with email service (SendGrid, AWS SES, etc.)
             // For now, just log the email notifications
             console.log('Email notifications to send:', {
-                recipients: users.map(u => ({ id: u.id, email: u.email, name: u.display_name })),
+                recipients: users.map(u => ({ id: u.id, email: u.email, name: u.name })),
                 subject: template.subject,
                 message: template.message,
                 template: template.emailTemplate

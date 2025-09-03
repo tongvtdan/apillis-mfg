@@ -364,7 +364,7 @@ export function EnhancedProjectOverviewCard({
                     <div className="space-y-1">
                         <div className="flex items-center text-xs text-muted-foreground">
                             <Users className="w-3 h-3 mr-1" />
-                            Owner
+                            Assignee
                         </div>
                         <div className="font-medium text-sm truncate">
                             {assigneeDisplayName}

@@ -363,10 +363,6 @@ function ProjectContactDisplay({ project }: { project: Project }) {
     const assigneeId = project.assigned_to || project.assignee_id;
     const assigneeDisplayName = useUserDisplayName(assigneeId);
 
-    if (project.contact_name) {
-        return <span>{project.contact_name}</span>;
-    }
-
     if (assigneeId) {
         return <span>{assigneeDisplayName}</span>;
     }

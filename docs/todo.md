@@ -2,6 +2,44 @@
 
 ## Current Sprint
 
+- [done] 2025-09-03 - EnhancedProjectList useUsers Hook Map/Array Type Error Fix ✅
+  - ✅ Fixed critical runtime error where `assigneeUsers.find` was called on Map instead of array
+  - ✅ Updated component to properly handle Map return type from `useUsers` hook
+  - ✅ Fixed assigneeUsers.find() usage to use Map.get() method for direct key lookup
+  - ✅ Fixed assigneeUsers.map() usage to convert Map.values() to array before mapping
+  - ✅ Added missing showCreateForm state to prevent undefined variable errors
+  - ✅ Removed user.email fallback since UserLookup interface doesn't include email property
+  - ✅ Resolved all TypeScript compilation errors related to incorrect data structure usage
+  - ✅ Component no longer crashes and triggers error boundary when viewing project lists
+
+- [done] 2025-09-03 - Project Person Field Unification and Owner Display Fix ✅
+  - ✅ Unified person field display across all project components to show assignee consistently
+  - ✅ Fixed EnhancedProjectList.tsx to show assignee instead of customer contact in list view
+  - ✅ Updated EnhancedProjectOverviewCard.tsx to label person field as "Assignee" instead of "Owner"
+  - ✅ Fixed AnimatedProjectCard.tsx ProjectContactDisplay to prioritize assignee over customer contact
+  - ✅ Created useOwnerDisplayName hook for robust owner name resolution with dual lookup
+  - ✅ Updated ProjectDetailHeader.tsx to use new owner display hook for proper name resolution
+  - ✅ Handles cases where created_by field references contacts instead of users
+  - ✅ Provides graceful fallback when neither user nor contact data is available
+
+- [done] 2025-09-03 - Database Field Mismatch Fix for User Display Names ✅
+  - ✅ Fixed critical database field mismatch where `display_name` was queried instead of `name`
+  - ✅ Updated notificationService.ts to use correct database field names
+  - ✅ Updated ApprovalDelegationModal.tsx to use correct database field names
+  - ✅ Updated approvalService.ts join queries to use correct field names
+  - ✅ Resolved issue causing UUIDs to be displayed instead of user names
+  - ✅ Ensured all database queries match the actual database schema
+  - ✅ Verified userService correctly maps `data.name` to `display_name` in interface
+  - ✅ Fixed all user name displays across the application
+
+- [done] 2025-09-03 - Project Owner Field Usage Fix ✅
+  - ✅ Fixed project owner display to use correct database field (`created_by` instead of `assigned_to`)
+  - ✅ Updated ProjectDetailHeader component to show project creator as owner, not assignee
+  - ✅ Added proper distinction between project owner (creator) and project assignee (worker)
+  - ✅ Used `useUserDisplayName` hook to resolve user names from `created_by` field
+  - ✅ Maintained separate display for assignee information using `assigned_to` field
+  - ✅ Ensured proper semantic meaning: owner = creator, assignee = worker
+
 - [done] 2025-09-03 - Project Owner Display Fix - Complete Resolution ✅
   - ✅ Fixed owner display issues in both project details page and project cards (Workflow view)
   - ✅ Corrected improper use of useUserDisplayName hook in multiple components
