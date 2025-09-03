@@ -79,7 +79,10 @@ export function EnhancedProjectOverviewCard({
     const [alerts, setAlerts] = useState<ProjectAlert[]>([]);
 
     // Get sub-stages for current stage
-    const { subStages, loading: subStagesLoading } = useWorkflowSubStages(project.current_stage_id || '');
+    const { subStages, loading: subStagesLoading } = useWorkflowSubStages({
+        stageId: project.current_stage_id || '',
+        enabled: !!project.current_stage_id
+    });
 
     // Calculate project metrics
     const metrics = useMemo((): ProjectMetrics => {
@@ -240,6 +243,10 @@ export function EnhancedProjectOverviewCard({
         return 'N/A';
     };
 
+    // Get assignee display name using correct database field name with fallback
+    const assigneeId = project.assigned_to || project.assignee_id;
+    const assigneeDisplayName = useUserDisplayName(assigneeId);
+
     return (
         <Card className={cn("w-full", className)}>
             <CardHeader className="pb-4">
@@ -360,11 +367,7 @@ export function EnhancedProjectOverviewCard({
                             Owner
                         </div>
                         <div className="font-medium text-sm truncate">
-                            {(() => {
-                                const assigneeId = project.assigned_to || project.assignee_id;
-                                const assigneeDisplayName = useUserDisplayName(assigneeId);
-                                return assigneeId ? assigneeDisplayName : 'Unassigned';
-                            })()}
+                            {assigneeDisplayName}
                         </div>
                     </div>
 

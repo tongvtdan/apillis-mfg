@@ -29,6 +29,8 @@ import type { Project, WorkflowStage, ProjectPriority } from "@/types/project";
 import { EnhancedProjectOverviewCard } from "./EnhancedProjectOverviewCard";
 import { WorkflowStepper } from "./WorkflowStepper";
 import { useUserDisplayName } from "@/hooks/useUsers";
+import { useToast } from "@/hooks/use-toast";
+import { EditProjectModal } from "./EditProjectModal";
 import {
     Tooltip,
     TooltipContent,
@@ -72,6 +74,8 @@ export function ProjectDetailHeader({
 }: ProjectDetailHeaderProps) {
     const [isStarred, setIsStarred] = useState(false);
     const [realTimeStatus, setRealTimeStatus] = useState<'connected' | 'disconnected' | 'reconnecting'>('connected');
+    const [isEditModalOpen, setIsEditModalOpen] = useState(false);
+    const { toast } = useToast();
 
     // Calculate key metrics for display
     const metrics = React.useMemo(() => {
@@ -152,31 +156,45 @@ export function ProjectDetailHeader({
         return 'N/A';
     };
 
+    // Get assignee display name using correct database field name with fallback
+    const assigneeId = project.assigned_to || project.assignee_id;
+    const assigneeDisplayName = useUserDisplayName(assigneeId);
+
     // Quick actions configuration
     const quickActions: QuickAction[] = [
         {
             id: 'edit',
             label: 'Edit',
             icon: Edit,
-            action: () => onEdit?.(),
+            action: () => setIsEditModalOpen(true),
             variant: 'outline',
-            disabled: !onEdit,
+            disabled: false,
             tooltip: 'Edit project details'
         },
         {
             id: 'share',
             label: 'Share',
             icon: Share,
-            action: () => onShare?.(),
+            action: () => {
+                toast({
+                    title: 'Coming Soon',
+                    description: 'Share functionality will be available in a future update.',
+                });
+            },
             variant: 'outline',
-            disabled: !onShare,
+            disabled: false,
             tooltip: 'Share project with team'
         },
         {
             id: 'track',
             label: 'Track',
             icon: Target,
-            action: () => console.log('Track project'),
+            action: () => {
+                toast({
+                    title: 'Coming Soon',
+                    description: 'Track functionality will be available in a future update.',
+                });
+            },
             variant: 'outline',
             tooltip: 'Track project progress'
         }
@@ -328,11 +346,7 @@ export function ProjectDetailHeader({
 
                                 <div className="flex items-center space-x-1">
                                     <Users className="w-4 h-4" />
-                                    <span>Owner: {(() => {
-                                        const assigneeId = project.assigned_to || project.assignee_id;
-                                        const assigneeDisplayName = useUserDisplayName(assigneeId);
-                                        return assigneeId ? assigneeDisplayName : 'Unassigned';
-                                    })()}</span>
+                                    <span>Owner: {assigneeDisplayName}</span>
                                 </div>
 
                                 {project.estimated_value && (
@@ -494,6 +508,19 @@ export function ProjectDetailHeader({
                     </div>
                 )}
             </div>
+
+            <EditProjectModal
+                isOpen={isEditModalOpen}
+                onClose={() => setIsEditModalOpen(false)}
+                project={project}
+                onSuccess={() => {
+                    setIsEditModalOpen(false);
+                    toast({
+                        title: 'Project updated',
+                        description: `Project "${project.title}" updated.`,
+                    });
+                }}
+            />
         </div>
     );
 }
