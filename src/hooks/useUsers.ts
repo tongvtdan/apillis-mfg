@@ -42,7 +42,7 @@ export function useUsers(userIds: string[]) {
                 setUsers(new Map());
             })
             .finally(() => setLoading(false));
-    }, [userIds.join(',')]); // Join to create stable dependency
+    }, [JSON.stringify(userIds)]); // Use JSON.stringify for stable dependency
 
     return { users, loading };
 }

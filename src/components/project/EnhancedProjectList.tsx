@@ -24,7 +24,7 @@ import {
 } from 'lucide-react';
 import { Project, ProjectStatus, ProjectPriority, WorkflowStage } from '@/types/project';
 import { ProjectTable } from './ProjectTable';
-import { useUsers } from '@/hooks/useUsers';
+import { useUserDisplayName } from '@/hooks/useUsers';
 import { useNavigate } from 'react-router-dom';
 import { useToast } from '@/hooks/use-toast';
 
@@ -75,7 +75,7 @@ export function EnhancedProjectList({
     const [sortField, setSortField] = useState<SortField>('created_at');
     const [sortDirection, setSortDirection] = useState<SortDirection>('desc');
 
-    // Get unique assignees for filter dropdown
+    // Get unique assignees for filter dropdown - using individual user lookups
     const assigneeIds = useMemo(() => {
         const ids = projects
             .map(p => p.assigned_to || p.assignee_id)
@@ -84,7 +84,7 @@ export function EnhancedProjectList({
         return ids as string[];
     }, [projects]);
 
-    const { users: assigneeUsers } = useUsers(assigneeIds);
+    // Remove useUsers hook since we're using individual useUserDisplayName calls
 
     // Filter and search logic
     const filteredProjects = useMemo(() => {
@@ -434,9 +434,9 @@ export function EnhancedProjectList({
                                         <SelectContent>
                                             <SelectItem value="all">All Assignees</SelectItem>
                                             <SelectItem value="unassigned">Unassigned</SelectItem>
-                                            {Array.from(assigneeUsers.values()).map(user => (
-                                                <SelectItem key={user.id} value={user.id}>
-                                                    {user.display_name}
+                                            {assigneeIds.map(userId => (
+                                                <SelectItem key={userId} value={userId}>
+                                                    <UserDisplayName userId={userId} />
                                                 </SelectItem>
                                             ))}
                                         </SelectContent>
@@ -520,7 +520,7 @@ export function EnhancedProjectList({
                                 {filters.assignee !== 'all' && (
                                     <Badge variant="outline" className="text-xs">
                                         Assignee: {filters.assignee === 'unassigned' ? 'Unassigned' :
-                                            assigneeUsers.get(filters.assignee)?.display_name || 'Unknown'}
+                                            <UserDisplayName userId={filters.assignee} />}
                                         <Button
                                             variant="ghost"
                                             size="sm"
@@ -678,10 +678,7 @@ export function EnhancedProjectList({
                                 {/* Project Details */}
                                 <div className="space-y-2 text-xs">
                                     <div className="flex items-center justify-between">
-                                        <div className="flex items-center space-x-1 text-muted-foreground">
-                                            <User className="h-3 w-3 flex-shrink-0" />
-                                            <span>{assigneeUsers.get(project.assigned_to || project.assignee_id)?.display_name || 'Unassigned'}</span>
-                                        </div>
+                                        <AssigneeDisplay userId={project.assigned_to || project.assignee_id} />
                                         {project.estimated_value && (
                                             <div className="flex items-center space-x-1 font-medium">
                                                 <DollarSign className="h-3 w-3 flex-shrink-0 text-green-600" />
@@ -755,6 +752,23 @@ export function EnhancedProjectList({
                     }}
                 />
             )}
+        </div>
+    );
+}
+
+// Helper component to display user name
+function UserDisplayName({ userId }: { userId: string }) {
+    const displayName = useUserDisplayName(userId);
+    return <>{displayName}</>;
+}
+
+// Helper component to display assignee name
+function AssigneeDisplay({ userId }: { userId?: string }) {
+    const displayName = useUserDisplayName(userId);
+    return (
+        <div className="flex items-center space-x-1 text-muted-foreground">
+            <User className="h-3 w-3 flex-shrink-0" />
+            <span>{displayName}</span>
         </div>
     );
 }

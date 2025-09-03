@@ -16,7 +16,7 @@ import {
 } from 'lucide-react';
 import { InternalReview, Department, ReviewStatus, STATUS_COLORS } from '@/types/review';
 import { format } from 'date-fns';
-import { useUserDisplayName, useUsers } from '@/hooks/useUsers';
+import { useUserDisplayName } from '@/hooks/useUsers';
 
 interface ReviewListProps {
     reviews: InternalReview[];
@@ -24,10 +24,15 @@ interface ReviewListProps {
     onViewReview: (review: InternalReview) => void;
 }
 
+// Helper component to display reviewer name
+function ReviewerDisplay({ reviewerId }: { reviewerId: string }) {
+    const displayName = useUserDisplayName(reviewerId);
+    return <>{displayName}</>;
+}
+
 export function ReviewList({ reviews, onEditReview, onViewReview }: ReviewListProps) {
-    // Get all unique reviewer IDs to fetch display names
+    // Collect all unique reviewer IDs for reference (no longer using useUsers)
     const reviewerIds = reviews ? [...new Set(reviews.map(review => review.reviewer_id).filter(Boolean))] : [];
-    const { users: reviewerUsers } = useUsers(reviewerIds);
 
     const getStatusIcon = (status: ReviewStatus) => {
         switch (status) {
@@ -94,10 +99,7 @@ export function ReviewList({ reviews, onEditReview, onViewReview }: ReviewListPr
                                     <CardTitle className="text-base">{review.department} Review</CardTitle>
                                     <div className="flex items-center gap-2 text-sm text-muted-foreground">
                                         <User className="w-4 h-4" />
-                                        <ReviewerName
-                                            reviewerId={review.reviewer_id}
-                                            displayName={reviewerUsers.get(review.reviewer_id)?.display_name || review.reviewer_id}
-                                        />
+                                        <ReviewerDisplay reviewerId={review.reviewer_id} />
                                         {review.submitted_at && (
                                             <>
                                                 <span>•</span>

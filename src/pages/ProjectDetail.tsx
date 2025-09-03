@@ -44,7 +44,7 @@ import { ProjectReviewForm } from "@/components/project/ProjectReviewForm";
 import { ReviewConfiguration } from "@/components/project/ReviewConfiguration";
 import { ReviewList } from "@/components/project/ReviewList";
 import { ReviewAssignmentModal } from "@/components/project/ReviewAssignmentModal";
-import { useUserDisplayName, useUsers, useUser } from "@/hooks/useUsers";
+import { useUserDisplayName } from "@/hooks/useUsers";
 import { useAuth } from "@/contexts/AuthContext";
 import { ProjectDetailHeader } from "@/components/project/ProjectDetailHeader";
 import { ProjectSummaryCard } from "@/components/project/ProjectSummaryCard";
@@ -159,9 +159,8 @@ export default function ProjectDetail() {
   // Get user display names for project assignee and reviewers
   const assigneeDisplayName = useUserDisplayName(smoothProject?.assigned_to);
 
-  // Collect all unique reviewer IDs
+  // Collect all unique reviewer IDs for reference (no longer using useUsers)
   const reviewerIds = reviews ? [...new Set(reviews.map(review => review.reviewer_id).filter(Boolean))] : [];
-  const { users: reviewerUsers } = useUsers(reviewerIds);
 
   // Initialize and fetch projects if needed
   useEffect(() => {

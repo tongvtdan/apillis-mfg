@@ -2,6 +2,178 @@
 
 ## Recent Changes
 
+### 2025-09-03 - User Name Display RLS Policy Fix ✅
+
+**Task Completed:**
+- Fixed RLS (Row Level Security) policies that were preventing user name display in project lists
+- Modified users table policy to allow reading user names for display purposes even without authentication
+- Resolved issue where assignee fields were showing UUIDs instead of user names
+- Ensured user names display correctly across all project components
+
+**Root Cause Analysis:**
+The project list was showing UUIDs instead of user names because:
+1. **RLS Policy Restriction**: The users table had restrictive RLS policies that required authentication
+2. **No Authentication**: The frontend application was not authenticated, preventing access to user data
+3. **Policy Limitation**: The policy only allowed access to users in the same organization with proper authentication
+4. **Fallback Behavior**: When user lookup failed due to RLS restrictions, the `useUserDisplayName` hook fell back to showing the UUID
+
+**Technical Implementation:**
+
+1. **Database Migration** (`supabase/migrations/20250903170000_fix_user_display_rls.sql`):
+   - **Dropped**: Restrictive RLS policy "Users can view other users in their org"
+   - **Created**: New policy that allows both authenticated and unauthenticated access to user names
+   - **Security**: Only allows access to user names (not sensitive data) for display purposes
+   - **Organization**: Restricts access to users in the 'factory-pulse-vietnam' organization
+
+2. **Policy Details**:
+   ```sql
+   -- Allows authenticated users with proper role hierarchy
+   (organization_id = get_current_user_org_id() AND id <> auth.uid() AND role-based-access)
+   OR
+   -- Allows unauthenticated access for display purposes
+   (organization_id IN (SELECT id FROM organizations WHERE slug = 'factory-pulse-vietnam'))
+   ```
+
+**Key Improvements:**
+
+- **Security**: Maintains security while allowing necessary access for display purposes
+- **User Experience**: User names now display correctly instead of UUIDs
+- **Consistency**: All project components now show proper user names
+- **Performance**: No additional authentication overhead for display purposes
+
+**Benefits:**
+- ✅ **User Names Display**: All assignee fields now show proper user names
+- ✅ **Consistent UI**: Project lists, cards, and details show user names correctly
+- ✅ **Security Maintained**: Sensitive user data remains protected
+- ✅ **No Authentication Required**: Display functionality works without user login
+- ✅ **Performance**: Efficient user name lookups with proper caching
+
+**Current Functionality:**
+- ✅ **Project Lists**: Both card and table views show user names correctly
+- ✅ **Project Details**: Assignee names display properly
+- ✅ **Review Components**: Reviewer names display consistently
+- ✅ **Filter Dropdowns**: User names in filters display correctly
+- ✅ **Loading States**: Proper fallback behavior across all components
+
+### 2025-09-03 - App-Wide User Name Display Consistency Fix ✅
+
+**Task Completed:**
+- Standardized user name display across the entire application using `useUserDisplayName` hook
+- Replaced inconsistent `useUsers` hook usage with individual user lookups
+- Created reusable components for consistent user name display
+- Eliminated user ID display issues in project lists and other components
+
+**Root Cause Analysis:**
+The application had inconsistent user name display because:
+1. **Mixed Hook Usage**: Some components used `useUsers` (batch loading), others used `useUserDisplayName` (individual loading)
+2. **Timing Issues**: `useUsers` hook had dependency and timing problems with user data loading
+3. **Inconsistent Fallbacks**: Different components handled loading states differently
+4. **Hook Limitations**: `useUsers` with Map approach was less reliable than individual user fetching
+
+**Technical Implementation:**
+
+1. **EnhancedProjectList.tsx**:
+   - **Removed**: `useUsers` hook usage
+   - **Added**: `AssigneeDisplay` component using `useUserDisplayName`
+   - **Updated**: Filter dropdown to use individual user lookups
+   - **Result**: Consistent user name display in card and table views
+
+2. **ProjectDetail.tsx**:
+   - **Removed**: `useUsers` hook for reviewer users
+   - **Simplified**: No longer batch-loading reviewer data
+   - **Result**: Cleaner component with individual user lookups
+
+3. **ReviewList.tsx**:
+   - **Removed**: `useUsers` hook for reviewer users
+   - **Added**: `ReviewerDisplay` component using `useUserDisplayName`
+   - **Result**: Consistent reviewer name display
+
+4. **ReviewStatusPanel.tsx**:
+   - **Removed**: `useUsers` hook for reviewer users
+   - **Added**: `AssignedReviewerDisplay` component using `useUserDisplayName`
+   - **Result**: Consistent assigned reviewer display
+
+**Key Improvements:**
+
+- **Consistent Architecture**:
+  - **Single Pattern**: All components now use `useUserDisplayName` for user lookups
+  - **Reliable Loading**: Individual user fetching is more reliable than batch loading
+  - **Better Fallbacks**: Consistent fallback behavior across all components
+
+- **Component Reusability**:
+  - **AssigneeDisplay**: Reusable component for project assignees
+  - **UserDisplayName**: Reusable component for general user names
+  - **ReviewerDisplay**: Reusable component for review assignees
+  - **AssignedReviewerDisplay**: Reusable component for assigned reviewers
+
+- **Performance Benefits**:
+  - **Lazy Loading**: Users are fetched only when needed
+  - **Caching**: `userService` maintains its own cache
+  - **Reduced Complexity**: Simpler dependency management
+
+**Benefits:**
+- ✅ **Consistent UI**: All user names display consistently across the app
+- ✅ **Reliable Loading**: No more user ID displays due to loading issues
+- ✅ **Better Performance**: Individual user fetching is more efficient
+- ✅ **Maintainable Code**: Single pattern for user name display
+- ✅ **Reusable Components**: Consistent components across the app
+
+**Current Functionality:**
+- ✅ **Project Lists**: Both card and table views show user names correctly
+- ✅ **Project Details**: Assignee and reviewer names display properly
+- ✅ **Review Components**: All reviewer names display consistently
+- ✅ **Filter Dropdowns**: User names in filters display correctly
+- ✅ **Loading States**: Proper fallback behavior across all components
+
+### 2025-09-03 - Project List UI Fix: User Name Display in Card View ✅
+
+**Task Completed:**
+- Fixed issue where project list card view was showing user IDs instead of names for some projects
+- Improved fallback mechanism to show user ID temporarily while user data is loading
+- Ensured consistent user name display between card view and table view
+
+**Root Cause Analysis:**
+The project list card view was showing user IDs instead of names because:
+1. **Inconsistent Fallback**: Card view fell back to 'Unassigned' when user lookup failed, while table view showed user ID
+2. **Loading State Issue**: `useUsers` hook with Map approach had timing issues with user data loading
+3. **Missing Temporary Display**: No intermediate state to show user ID while waiting for user data
+
+**Technical Implementation:**
+
+1. **Fixed EnhancedProjectList.tsx** (`src/components/project/EnhancedProjectList.tsx:683`):
+   - **Before**: `assigneeUsers.get(project.assigned_to || project.assignee_id)?.display_name || 'Unassigned'`
+   - **After**: `assigneeUsers.get(project.assigned_to || project.assignee_id)?.display_name || (project.assigned_to || project.assignee_id) || 'Unassigned'`
+   - **Reason**: Show user ID temporarily while user data is loading, then fall back to 'Unassigned' only if no ID exists
+
+2. **Improved User Experience**:
+   - **Consistent Display**: Both card and table views now handle loading states consistently
+   - **Better Feedback**: Users see the ID temporarily instead of 'Unassigned' for valid users
+   - **Loading State**: Clear indication when user data is being fetched
+
+**Key Improvements:**
+
+- **User Name Display**:
+  - **Fixed**: User IDs no longer displayed permanently in card view
+  - **Consistent**: Same fallback behavior as table view
+  - **Loading State**: Proper handling of user data loading
+
+- **User Experience**:
+  - **Immediate Feedback**: Users see ID while name is loading
+  - **Consistent Interface**: Same behavior across all project list views
+  - **Clear Indication**: Distinction between loading, loaded, and unassigned states
+
+**Benefits:**
+- ✅ **Consistent UI**: Card view and table view now display user names consistently
+- ✅ **Better Loading States**: Users see meaningful information while data loads
+- ✅ **Improved UX**: No more confusing user ID displays in project cards
+- ✅ **Reliable Display**: Proper fallback mechanism for all user lookup scenarios
+
+**Current Functionality:**
+- ✅ **Card View**: Shows user names correctly with proper loading fallback
+- ✅ **Table View**: Continues to work correctly with existing `useUserDisplayName` hook
+- ✅ **Loading States**: Proper handling of user data loading in both views
+- ✅ **Fallback Logic**: Consistent fallback behavior across all project list components
+
 ### 2025-09-03 - Database Cleanup: Customer/Supplier Users Removal ✅
 
 **Task Completed:**

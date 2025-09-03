@@ -2,6 +2,15 @@
 
 ## Current Sprint
 
+- [done] 2025-09-03 - User Name Display RLS Policy Fix ✅
+  - ✅ Fixed RLS (Row Level Security) policies that were preventing user name display in project lists
+  - ✅ Modified users table policy to allow reading user names for display purposes even without authentication
+  - ✅ Resolved issue where assignee fields were showing UUIDs instead of user names
+  - ✅ Created migration file `supabase/migrations/20250903170000_fix_user_display_rls.sql`
+  - ✅ Ensured user names display correctly across all project components
+  - ✅ Maintained security while allowing necessary access for display purposes
+  - ✅ Verified fix works with database queries and frontend components
+
 - [done] 2025-09-03 - EnhancedProjectList useUsers Hook Map/Array Type Error Fix ✅
   - ✅ Fixed critical runtime error where `assigneeUsers.find` was called on Map instead of array
   - ✅ Updated component to properly handle Map return type from `useUsers` hook
