@@ -1698,7 +1698,8 @@ CREATE TABLE IF NOT EXISTS "public"."google_drive_tokens" (
     "organization_id" "text" NOT NULL,
     "access_token" "text" NOT NULL,
     "refresh_token" "text",
-    "expires_at" timestamp with time zone NOT NULL
+    "expires_at" timestamp with time zone NOT NULL,
+    "scope" "text"
 );
 
 
@@ -2449,6 +2450,18 @@ CREATE INDEX "idx_documents_uploaded_by" ON "public"."documents" USING "btree" (
 
 
 
+CREATE INDEX "idx_google_drive_config_org_active" ON "public"."google_drive_config" USING "btree" ("organization_id", "is_active");
+
+
+
+CREATE INDEX "idx_google_drive_tokens_expires" ON "public"."google_drive_tokens" USING "btree" ("expires_at");
+
+
+
+CREATE INDEX "idx_google_drive_tokens_user_org" ON "public"."google_drive_tokens" USING "btree" ("user_id", "organization_id");
+
+
+
 CREATE INDEX "idx_messages_org_id" ON "public"."messages" USING "btree" ("organization_id");
 
 
@@ -2718,6 +2731,10 @@ CREATE OR REPLACE TRIGGER "update_contacts_updated_at" BEFORE UPDATE ON "public"
 
 
 CREATE OR REPLACE TRIGGER "update_documents_updated_at" BEFORE UPDATE ON "public"."documents" FOR EACH ROW EXECUTE FUNCTION "public"."update_updated_at_column"();
+
+
+
+CREATE OR REPLACE TRIGGER "update_google_drive_tokens_updated_at" BEFORE UPDATE ON "public"."google_drive_tokens" FOR EACH ROW EXECUTE FUNCTION "public"."update_updated_at_column"();
 
 
 
@@ -3140,6 +3157,20 @@ CREATE POLICY "Admin and management can manage sub-stages" ON "public"."workflow
 
 
 
+CREATE POLICY "Admins can manage Google Drive config" ON "public"."google_drive_config" USING (("organization_id" IN ( SELECT ("users"."organization_id")::"text" AS "organization_id"
+   FROM "public"."users"
+  WHERE (("users"."id" = "auth"."uid"()) AND ("users"."role" = 'admin'::"public"."user_role")))));
+
+
+
+CREATE POLICY "Admins can manage Google Drive config for their organization" ON "public"."google_drive_config" USING ((("organization_id" = ( SELECT ("users"."organization_id")::"text" AS "organization_id"
+   FROM "public"."users"
+  WHERE ("users"."id" = "auth"."uid"()))) AND (EXISTS ( SELECT 1
+   FROM "public"."users"
+  WHERE (("users"."id" = "auth"."uid"()) AND ("users"."role" = 'admin'::"public"."user_role"))))));
+
+
+
 CREATE POLICY "Delegators can update their delegations" ON "public"."approval_delegations" FOR UPDATE USING (("auth"."uid"() = "delegator_id"));
 
 
@@ -3180,7 +3211,11 @@ CREATE POLICY "Users can create document versions for their organization" ON "pu
 
 
 
-CREATE POLICY "Users can create profiles" ON "public"."users" FOR INSERT WITH CHECK ((("organization_id" = "public"."get_current_user_org_id"()) AND ("public"."get_current_user_role"() = ANY (ARRAY['admin'::"text", 'management'::"text"]))));
+CREATE POLICY "Users can create profiles" ON "public"."users" FOR INSERT WITH CHECK (true);
+
+
+
+COMMENT ON POLICY "Users can create profiles" ON "public"."users" IS 'Allows profile creation';
 
 
 
@@ -3233,6 +3268,12 @@ CREATE POLICY "Users can insert activity in their org" ON "public"."activity_log
 
 
 CREATE POLICY "Users can insert document access logs" ON "public"."document_access_log" FOR INSERT WITH CHECK (("user_id" = "auth"."uid"()));
+
+
+
+CREATE POLICY "Users can manage their own Google Drive tokens" ON "public"."google_drive_tokens" USING ((("user_id" = ("auth"."uid"())::"text") AND ("organization_id" = ( SELECT ("users"."organization_id")::"text" AS "organization_id"
+   FROM "public"."users"
+  WHERE ("users"."id" = "auth"."uid"())))));
 
 
 
@@ -3366,7 +3407,17 @@ CREATE POLICY "Users can update their own profile" ON "public"."users" FOR UPDAT
 
 
 
+COMMENT ON POLICY "Users can update their own profile" ON "public"."users" IS 'Allows users to update their own profile';
+
+
+
 CREATE POLICY "Users can upload attachments for their organization" ON "public"."approval_attachments" FOR INSERT WITH CHECK (("organization_id" IN ( SELECT "users"."organization_id"
+   FROM "public"."users"
+  WHERE ("users"."id" = "auth"."uid"()))));
+
+
+
+CREATE POLICY "Users can view Google Drive config for their organization" ON "public"."google_drive_config" FOR SELECT USING (("organization_id" = ( SELECT ("users"."organization_id")::"text" AS "organization_id"
    FROM "public"."users"
   WHERE ("users"."id" = "auth"."uid"()))));
 
@@ -3444,7 +3495,11 @@ CREATE POLICY "Users can view messages in their org" ON "public"."messages" FOR 
 
 
 
-CREATE POLICY "Users can view other users in their org" ON "public"."users" FOR SELECT USING ((("organization_id" = "public"."get_current_user_org_id"()) AND ("id" <> "auth"."uid"()) AND (("public"."get_current_user_role"() = ANY (ARRAY['admin'::"text", 'management'::"text"])) OR (("public"."get_current_user_role"() = 'sales'::"text") AND ("role" = ANY (ARRAY['sales'::"public"."user_role", 'procurement'::"public"."user_role", 'engineering'::"public"."user_role", 'qa'::"public"."user_role", 'production'::"public"."user_role"]))) OR (("public"."get_current_user_role"() = 'procurement'::"text") AND ("role" = ANY (ARRAY['procurement'::"public"."user_role", 'engineering'::"public"."user_role", 'qa'::"public"."user_role", 'production'::"public"."user_role"]))) OR (("public"."get_current_user_role"() = 'engineering'::"text") AND ("role" = ANY (ARRAY['engineering'::"public"."user_role", 'qa'::"public"."user_role", 'production'::"public"."user_role"]))) OR (("public"."get_current_user_role"() = 'qa'::"text") AND ("role" = ANY (ARRAY['qa'::"public"."user_role", 'production'::"public"."user_role"]))) OR (("public"."get_current_user_role"() = 'production'::"text") AND ("role" = 'production'::"public"."user_role")))));
+CREATE POLICY "Users can view other users in their org" ON "public"."users" FOR SELECT USING ((("organization_id" = '550e8400-e29b-41d4-a716-446655440001'::"uuid") OR (("auth"."uid"() IS NOT NULL) AND ("organization_id" = "public"."get_current_user_org_id"()))));
+
+
+
+COMMENT ON POLICY "Users can view other users in their org" ON "public"."users" IS 'Allows viewing other users in organization and unauthenticated access for display purposes';
 
 
 
@@ -3532,6 +3587,12 @@ CREATE POLICY "Users can view their organization" ON "public"."organizations" FO
 
 
 
+CREATE POLICY "Users can view their organization's Google Drive config" ON "public"."google_drive_config" FOR SELECT USING (("organization_id" IN ( SELECT ("users"."organization_id")::"text" AS "organization_id"
+   FROM "public"."users"
+  WHERE ("users"."id" = "auth"."uid"()))));
+
+
+
 CREATE POLICY "Users can view their own delegations" ON "public"."approval_delegations" FOR SELECT USING ((("auth"."uid"() = "delegator_id") OR ("auth"."uid"() = "delegate_id") OR (EXISTS ( SELECT 1
    FROM "public"."users"
   WHERE (("users"."id" = "auth"."uid"()) AND ("users"."organization_id" = "approval_delegations"."organization_id") AND ("users"."role" = ANY (ARRAY['admin'::"public"."user_role", 'management'::"public"."user_role"])))))));
@@ -3551,6 +3612,10 @@ CREATE POLICY "Users can view their own notifications" ON "public"."notification
 
 
 CREATE POLICY "Users can view their own profile" ON "public"."users" FOR SELECT USING (("id" = "auth"."uid"()));
+
+
+
+COMMENT ON POLICY "Users can view their own profile" ON "public"."users" IS 'Allows users to view their own profile';
 
 
 
@@ -3594,6 +3659,12 @@ ALTER TABLE "public"."document_versions" ENABLE ROW LEVEL SECURITY;
 
 
 ALTER TABLE "public"."documents" ENABLE ROW LEVEL SECURITY;
+
+
+ALTER TABLE "public"."google_drive_config" ENABLE ROW LEVEL SECURITY;
+
+
+ALTER TABLE "public"."google_drive_tokens" ENABLE ROW LEVEL SECURITY;
 
 
 ALTER TABLE "public"."messages" ENABLE ROW LEVEL SECURITY;
