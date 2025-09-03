@@ -78,10 +78,23 @@ export function useGoogleDrive() {
         try {
             setAuthState(prev => ({ ...prev, isLoading: true, error: null }));
 
-            // Generate OAuth URL
-            const clientId = import.meta.env.VITE_GOOGLE_CLIENT_ID;
-            const redirectUri = `${window.location.origin}/auth/google-drive/callback`;
+            // Get configuration from database
+            const config = await googleDriveService.initialize(profile.organization_id);
+            if (!config) {
+                throw new Error('Google Drive not configured for this organization');
+            }
+
+            // Generate OAuth URL using database configuration
+            const clientId = config.client_id;
+            const redirectUri = config.redirect_uri;
             const scope = 'https://www.googleapis.com/auth/drive.readonly';
+
+            console.log('🔍 OAuth Debug Info:');
+            console.log('Client ID:', clientId);
+            console.log('Redirect URI:', redirectUri);
+            console.log('Scope:', scope);
+            console.log('Current origin:', window.location.origin);
+            console.log('Config from DB:', config);
 
             const authUrl = `https://accounts.google.com/o/oauth2/v2/auth?${new URLSearchParams({
                 client_id: clientId,
@@ -92,10 +105,15 @@ export function useGoogleDrive() {
                 prompt: 'consent',
             })}`;
 
+            console.log('🔗 Generated OAuth URL:', authUrl);
+
             // Store state for verification
             const state = Math.random().toString(36).substring(2);
             sessionStorage.setItem('google_drive_auth_state', state);
             sessionStorage.setItem('google_drive_organization_id', profile.organization_id);
+
+            console.log('📝 Stored state:', state);
+            console.log('📝 Stored org ID:', profile.organization_id);
 
             // Redirect to Google OAuth
             window.location.href = authUrl;
@@ -123,22 +141,36 @@ export function useGoogleDrive() {
             const storedState = sessionStorage.getItem('google_drive_auth_state');
             const storedOrgId = sessionStorage.getItem('google_drive_organization_id');
 
+            console.log('🔍 State Verification Debug:');
+            console.log('Received state:', state);
+            console.log('Stored state:', storedState);
+            console.log('Current org ID:', profile.organization_id);
+            console.log('Stored org ID:', storedOrgId);
+            console.log('State match:', state === storedState);
+            console.log('Org ID match:', profile.organization_id === storedOrgId);
+
             if (state !== storedState || profile.organization_id !== storedOrgId) {
                 throw new Error('Invalid authentication state');
             }
 
-            // Exchange code for tokens
+            // Get configuration from database for token exchange
+            const config = await googleDriveService.initialize(profile.organization_id);
+            if (!config) {
+                throw new Error('Google Drive not configured for this organization');
+            }
+
+            // Exchange code for tokens using database configuration
             const response = await fetch('https://oauth2.googleapis.com/token', {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/x-www-form-urlencoded',
                 },
                 body: new URLSearchParams({
-                    client_id: import.meta.env.VITE_GOOGLE_CLIENT_ID || '',
-                    client_secret: import.meta.env.VITE_GOOGLE_CLIENT_SECRET || '',
+                    client_id: config.client_id,
+                    client_secret: config.client_secret,
                     code,
                     grant_type: 'authorization_code',
-                    redirect_uri: `${window.location.origin}/auth/google-drive/callback`,
+                    redirect_uri: config.redirect_uri,
                 }),
             });
 

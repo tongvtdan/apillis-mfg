@@ -71,7 +71,7 @@ class GoogleDriveService {
             // Check if token is expired
             if (new Date(token.expires_at) <= new Date()) {
                 // Try to refresh token
-                const refreshed = await this.refreshAccessToken(token.refresh_token);
+                const refreshed = await this.refreshAccessToken(token.refresh_token, organizationId);
                 if (refreshed) {
                     return await this.getStoredTokens(userId, organizationId);
                 }
@@ -132,16 +132,22 @@ class GoogleDriveService {
     /**
      * Refresh access token
      */
-    async refreshAccessToken(refreshToken: string): Promise<boolean> {
+    async refreshAccessToken(refreshToken: string, organizationId: string): Promise<boolean> {
         try {
+            // Get configuration from database
+            const config = await this.initialize(organizationId);
+            if (!config) {
+                throw new Error('Google Drive not configured for this organization');
+            }
+
             const response = await fetch('https://oauth2.googleapis.com/token', {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/x-www-form-urlencoded',
                 },
                 body: new URLSearchParams({
-                    client_id: import.meta.env.VITE_GOOGLE_CLIENT_ID || '',
-                    client_secret: import.meta.env.VITE_GOOGLE_CLIENT_SECRET || '',
+                    client_id: config.client_id,
+                    client_secret: config.client_secret,
                     refresh_token: refreshToken,
                     grant_type: 'refresh_token',
                 }),

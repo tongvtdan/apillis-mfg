@@ -25,6 +25,14 @@ export const GoogleDriveCallback: React.FC = () => {
                 const state = searchParams.get('state');
                 const error = searchParams.get('error');
 
+                // Debug logging
+                console.log('🔍 Callback Debug Info:');
+                console.log('URL:', window.location.href);
+                console.log('Code:', code);
+                console.log('State:', state);
+                console.log('Error:', error);
+                console.log('All search params:', Object.fromEntries(searchParams.entries()));
+
                 if (error) {
                     setStatus('error');
                     setError('Authentication was cancelled or failed');

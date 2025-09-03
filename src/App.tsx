@@ -36,6 +36,8 @@ console.log('🔍 Environment Variables Debug:');
 console.log('VITE_SUPABASE_URL:', import.meta.env.VITE_SUPABASE_URL);
 console.log('VITE_SUPABASE_ANON_KEY:', import.meta.env.VITE_SUPABASE_ANON_KEY);
 console.log('SUPABASE_URL (fallback):', import.meta.env.SUPABASE_URL);
+console.log('VITE_GOOGLE_CLIENT_ID:', import.meta.env.VITE_GOOGLE_CLIENT_ID);
+console.log('VITE_GOOGLE_CLIENT_SECRET:', import.meta.env.VITE_GOOGLE_CLIENT_SECRET ? '***SET***' : '***NOT SET***');
 console.log('All VITE_ variables:', Object.keys(import.meta.env).filter(key => key.startsWith('VITE_')));
 console.log('NODE_ENV:', import.meta.env.NODE_ENV);
 console.log('MODE:', import.meta.env.MODE);
