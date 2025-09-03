@@ -162,6 +162,15 @@ const App = () => {
               </ProtectedRoute>
             } />
 
+            {/* Debug route for OAuth callback */}
+            <Route path="/auth/google-drive/debug" element={
+              <div className="p-6">
+                <h1>OAuth Debug</h1>
+                <pre>{JSON.stringify(Object.fromEntries(new URLSearchParams(window.location.search)), null, 2)}</pre>
+                <p>URL: {window.location.href}</p>
+              </div>
+            } />
+
             {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
             <Route path="*" element={<NotFound />} />
           </Routes>

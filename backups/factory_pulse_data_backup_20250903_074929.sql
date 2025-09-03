@@ -283,7 +283,11 @@ INSERT INTO "auth"."audit_log_entries" ("instance_id", "id", "payload", "created
 	('00000000-0000-0000-0000-000000000000', '3745b6fe-bbe3-4f7b-8449-3ca32d45a659', '{"action":"token_refreshed","actor_id":"497809e4-7429-437c-a81c-6f43e2fa77c1","actor_name":"Trần Ngọc Hương","actor_username":"operations@factorypulse.vn","actor_via_sso":false,"log_type":"token"}', '2025-09-02 13:06:08.765663+00', ''),
 	('00000000-0000-0000-0000-000000000000', 'ffdd17da-e42d-49f7-9352-b9442efcca31', '{"action":"token_revoked","actor_id":"497809e4-7429-437c-a81c-6f43e2fa77c1","actor_name":"Trần Ngọc Hương","actor_username":"operations@factorypulse.vn","actor_via_sso":false,"log_type":"token"}', '2025-09-02 13:06:08.766646+00', ''),
 	('00000000-0000-0000-0000-000000000000', 'a393df21-130a-474a-8cb2-a007cfc56fc5', '{"action":"token_refreshed","actor_id":"497809e4-7429-437c-a81c-6f43e2fa77c1","actor_name":"Trần Ngọc Hương","actor_username":"operations@factorypulse.vn","actor_via_sso":false,"log_type":"token"}', '2025-09-02 14:04:27.423522+00', ''),
-	('00000000-0000-0000-0000-000000000000', '16fbafcb-2fcc-46bb-afd1-a082dd3e5576', '{"action":"token_revoked","actor_id":"497809e4-7429-437c-a81c-6f43e2fa77c1","actor_name":"Trần Ngọc Hương","actor_username":"operations@factorypulse.vn","actor_via_sso":false,"log_type":"token"}', '2025-09-02 14:04:27.423948+00', '');
+	('00000000-0000-0000-0000-000000000000', '16fbafcb-2fcc-46bb-afd1-a082dd3e5576', '{"action":"token_revoked","actor_id":"497809e4-7429-437c-a81c-6f43e2fa77c1","actor_name":"Trần Ngọc Hương","actor_username":"operations@factorypulse.vn","actor_via_sso":false,"log_type":"token"}', '2025-09-02 14:04:27.423948+00', ''),
+	('00000000-0000-0000-0000-000000000000', '3aa4c5d2-ac6e-432a-b265-ab58f786f55d', '{"action":"token_refreshed","actor_id":"a53f503d-ad74-4397-a3f1-5ee9c3e61d34","actor_name":"Ngô Thị Hà","actor_username":"qa.engineer@factorypulse.vn","actor_via_sso":false,"log_type":"token"}', '2025-09-02 23:57:29.439017+00', ''),
+	('00000000-0000-0000-0000-000000000000', '77a6f809-60a7-4f0a-92a9-db97ff1584e8', '{"action":"token_revoked","actor_id":"a53f503d-ad74-4397-a3f1-5ee9c3e61d34","actor_name":"Ngô Thị Hà","actor_username":"qa.engineer@factorypulse.vn","actor_via_sso":false,"log_type":"token"}', '2025-09-02 23:57:29.440151+00', ''),
+	('00000000-0000-0000-0000-000000000000', '03a61172-c38f-468e-a277-6cdfa851d8dd', '{"action":"token_refreshed","actor_id":"497809e4-7429-437c-a81c-6f43e2fa77c1","actor_name":"Trần Ngọc Hương","actor_username":"operations@factorypulse.vn","actor_via_sso":false,"log_type":"token"}', '2025-09-03 00:25:06.549798+00', ''),
+	('00000000-0000-0000-0000-000000000000', 'a5733349-2568-4b26-b4ae-6a98ac69732d', '{"action":"token_revoked","actor_id":"497809e4-7429-437c-a81c-6f43e2fa77c1","actor_name":"Trần Ngọc Hương","actor_username":"operations@factorypulse.vn","actor_via_sso":false,"log_type":"token"}', '2025-09-03 00:25:06.55027+00', '');
 
 
 --
@@ -307,7 +311,7 @@ INSERT INTO "auth"."users" ("instance_id", "id", "aud", "role", "email", "encryp
 	('00000000-0000-0000-0000-000000000000', '550e8400-e29b-41d4-a716-446655440109', 'authenticated', 'authenticated', 'info@surface-finishing.vn', '$2a$10$Yis7eQLbcKQGTjf9.Ic3Mu.6N8hmfBV0mkO6W4vhZv5UN4RNp0OW6', '2025-08-31 00:16:48.687308+00', NULL, '', NULL, '', NULL, '', '', NULL, '2025-08-31 02:55:41.989732+00', '{"provider": "email", "providers": ["email"]}', '{"name": "Trịnh Thị Lan", "role": "supplier", "phone": "+84-28-7300-2004", "full_name": "Trịnh Thị Lan", "company_name": "Surface Finishing Pro", "contact_type": "supplier", "display_name": "Trịnh Thị Lan", "email_verified": true}', NULL, '2025-08-31 00:16:48.685444+00', '2025-08-31 02:55:41.990489+00', NULL, NULL, '', '', NULL, '', 0, NULL, '', NULL, false, NULL, false),
 	('00000000-0000-0000-0000-000000000000', '550e8400-e29b-41d4-a716-446655440107', 'authenticated', 'authenticated', 'info@metal-fabrication.vn', '$2a$10$ku2/UAsfufboat.Sq9cJw.dsXk9Y/yfTyRZhqOuX9wzzIcCWWhiEW', '2025-08-31 00:16:48.575135+00', NULL, '', NULL, '', NULL, '', '', NULL, '2025-08-31 02:55:41.54706+00', '{"provider": "email", "providers": ["email"]}', '{"name": "Lê Thị Hương", "role": "supplier", "phone": "+84-28-7300-2002", "full_name": "Lê Thị Hương", "company_name": "Metal Fabrication Ltd.", "contact_type": "supplier", "display_name": "Lê Thị Hương", "email_verified": true}', NULL, '2025-08-31 00:16:48.573844+00', '2025-08-31 02:55:41.548033+00', NULL, NULL, '', '', NULL, '', 0, NULL, '', NULL, false, NULL, false),
 	('00000000-0000-0000-0000-000000000000', '80034f6f-b520-4bf4-9197-0379588b976e', 'authenticated', 'authenticated', 'mechanical.engineer@factorypulse.vn', '$2a$10$VXklgimpu6lFzExiGPzMj./PVn/Hsz.Quks198txrFeq5gmzVUiuG', '2025-08-30 23:52:10.157736+00', NULL, '', NULL, '', NULL, '', '', NULL, '2025-09-02 00:19:55.820485+00', '{"provider": "email", "providers": ["email"]}', '{"name": "Hoàng Thị Lan", "role": "engineering", "phone": "+84-28-7300-0005", "full_name": "Hoàng Thị Lan", "avatar_url": "https://storage.googleapis.com/factory-pulse-assets/avatars/mechanical-engineer.jpg", "department": "Engineering", "employee_id": "EMP-HTL-550e", "display_name": "Hoàng Thị Lan", "email_verified": true}', NULL, '2025-08-30 23:52:10.156468+00', '2025-09-02 02:18:42.322427+00', NULL, NULL, '', '', NULL, '', 0, NULL, '', NULL, false, NULL, false),
-	('00000000-0000-0000-0000-000000000000', 'a53f503d-ad74-4397-a3f1-5ee9c3e61d34', 'authenticated', 'authenticated', 'qa.engineer@factorypulse.vn', '$2a$10$4eCyGlQ7DLsZm2sVCnrokuly5TP45TDDsOZO2TgXGP.Uh4h2fqNEu', '2025-08-30 23:52:10.263339+00', NULL, '', NULL, '', NULL, '', '', NULL, '2025-09-02 07:32:57.090509+00', '{"provider": "email", "providers": ["email"]}', '{"name": "Ngô Thị Hà", "role": "qa", "phone": "+84-28-7300-0007", "full_name": "Ngô Thị Hà", "avatar_url": "https://storage.googleapis.com/factory-pulse-assets/avatars/qa-engineer.jpg", "department": "Quality", "employee_id": "EMP-NTH-550e", "display_name": "Ngô Thị Hà", "email_verified": true}', NULL, '2025-08-30 23:52:10.262206+00', '2025-09-02 12:18:01.456547+00', NULL, NULL, '', '', NULL, '', 0, NULL, '', NULL, false, NULL, false),
+	('00000000-0000-0000-0000-000000000000', 'a53f503d-ad74-4397-a3f1-5ee9c3e61d34', 'authenticated', 'authenticated', 'qa.engineer@factorypulse.vn', '$2a$10$4eCyGlQ7DLsZm2sVCnrokuly5TP45TDDsOZO2TgXGP.Uh4h2fqNEu', '2025-08-30 23:52:10.263339+00', NULL, '', NULL, '', NULL, '', '', NULL, '2025-09-02 07:32:57.090509+00', '{"provider": "email", "providers": ["email"]}', '{"name": "Ngô Thị Hà", "role": "qa", "phone": "+84-28-7300-0007", "full_name": "Ngô Thị Hà", "avatar_url": "https://storage.googleapis.com/factory-pulse-assets/avatars/qa-engineer.jpg", "department": "Quality", "employee_id": "EMP-NTH-550e", "display_name": "Ngô Thị Hà", "email_verified": true}', NULL, '2025-08-30 23:52:10.262206+00', '2025-09-02 23:57:29.441599+00', NULL, NULL, '', '', NULL, '', 0, NULL, '', NULL, false, NULL, false),
 	('00000000-0000-0000-0000-000000000000', '550e8400-e29b-41d4-a716-446655440108', 'authenticated', 'authenticated', 'sales@assembly-solutions.vn', '$2a$10$HBPfgnQxw3pnyi7ZziCc5u6t6BVMAWFeS8ka5FGDlPGMROUriQ6zm', '2025-08-31 00:16:48.627533+00', NULL, '', NULL, '', NULL, '', '', NULL, '2025-08-31 02:55:41.772565+00', '{"provider": "email", "providers": ["email"]}', '{"name": "Nguyễn Văn Tâm", "role": "supplier", "phone": "+84-28-7300-2003", "full_name": "Nguyễn Văn Tâm", "company_name": "Assembly Solutions", "contact_type": "supplier", "display_name": "Nguyễn Văn Tâm", "email_verified": true}', NULL, '2025-08-31 00:16:48.626274+00', '2025-08-31 02:55:41.77342+00', NULL, NULL, '', '', NULL, '', 0, NULL, '', NULL, false, NULL, false),
 	('00000000-0000-0000-0000-000000000000', '550e8400-e29b-41d4-a716-446655440110', 'authenticated', 'authenticated', 'sales@electronics-assembly.vn', '$2a$10$umv1/QRx1rUtVgAJZ4YjCelsHQ/WV.oH9dH1Bto9LoEjqvObGK9le', '2025-08-31 00:16:48.741614+00', NULL, '', NULL, '', NULL, '', '', NULL, '2025-08-31 02:55:42.203466+00', '{"provider": "email", "providers": ["email"]}', '{"name": "Vũ Đình Nam", "role": "supplier", "phone": "+84-28-7300-2005", "full_name": "Vũ Đình Nam", "company_name": "Electronics Assembly", "contact_type": "supplier", "display_name": "Vũ Đình Nam", "email_verified": true}', NULL, '2025-08-31 00:16:48.740391+00', '2025-08-31 02:55:42.204174+00', NULL, NULL, '', '', NULL, '', 0, NULL, '', NULL, false, NULL, false),
 	('00000000-0000-0000-0000-000000000000', '550e8400-e29b-41d4-a716-446655440101', 'authenticated', 'authenticated', 'procurement@toyota.vn', '$2a$10$FN5I8lu0U3sFbzq4Vq3q8epP2GUDdDj3jr2qbLOZgS9IkssCMfNmG', '2025-08-31 00:16:48.240231+00', NULL, '', NULL, '', NULL, '', '', NULL, '2025-08-31 02:55:40.265306+00', '{"provider": "email", "providers": ["email"]}', '{"name": "Nguyễn Văn An", "role": "customer", "phone": "+84-28-7300-1001", "full_name": "Nguyễn Văn An", "company_name": "Toyota Vietnam", "contact_type": "customer", "display_name": "Nguyễn Văn An", "email_verified": true}', NULL, '2025-08-31 00:16:48.238426+00', '2025-08-31 02:55:40.266115+00', NULL, NULL, '', '', NULL, '', 0, NULL, '', NULL, false, NULL, false),
@@ -321,7 +325,7 @@ INSERT INTO "auth"."users" ("instance_id", "id", "aud", "role", "email", "encryp
 	('00000000-0000-0000-0000-000000000000', '550e8400-e29b-41d4-a716-446655440102', 'authenticated', 'authenticated', 'purchasing@honda.vn', '$2a$10$HeO13cli1XfYllyXgGNakOi4BvqcuvzBuVWwj4KwLhNa276uOLsEa', '2025-08-31 00:16:48.302028+00', NULL, '', NULL, '', NULL, '', '', NULL, '2025-08-31 02:55:40.477852+00', '{"provider": "email", "providers": ["email"]}', '{"name": "Trần Thị Bình", "role": "customer", "phone": "+84-28-7300-1002", "full_name": "Trần Thị Bình", "company_name": "Honda Vietnam", "contact_type": "customer", "display_name": "Trần Thị Bình", "email_verified": true}', NULL, '2025-08-31 00:16:48.300448+00', '2025-08-31 02:55:40.478958+00', NULL, NULL, '', '', NULL, '', 0, NULL, '', NULL, false, NULL, false),
 	('00000000-0000-0000-0000-000000000000', '550e8400-e29b-41d4-a716-446655440106', 'authenticated', 'authenticated', 'sales@precision-machining.vn', '$2a$10$DzT3y5YnVww6LZ9Yg3IA7eB/vK6TWIcTZYX18vnGVlB15tyqSkp/q', '2025-08-31 00:16:48.521384+00', NULL, '', NULL, '', NULL, '', '', NULL, '2025-08-31 02:55:41.33304+00', '{"provider": "email", "providers": ["email"]}', '{"name": "Trần Văn Phúc", "role": "supplier", "phone": "+84-28-7300-2001", "full_name": "Trần Văn Phúc", "company_name": "Precision Machining Co.", "contact_type": "supplier", "display_name": "Trần Văn Phúc", "email_verified": true}', NULL, '2025-08-31 00:16:48.519592+00', '2025-08-31 02:55:41.333766+00', NULL, NULL, '', '', NULL, '', 0, NULL, '', NULL, false, NULL, false),
 	('00000000-0000-0000-0000-000000000000', 'a3b8e7b3-f0d9-4edd-abd4-ec78f3816d11', 'authenticated', 'authenticated', 'admin@factorypulse.vn', '$2a$06$tw.q/xJmRynxXVYX9yv5wONUOU87qDtsN4gGVwUds4skKbs2yPIL6', '2025-08-30 23:52:10.639627+00', NULL, '', NULL, '', NULL, '', '', NULL, '2025-09-01 05:22:02.335823+00', '{"provider": "email", "providers": ["email"]}', '{"name": "Võ Đình Tài", "role": "admin", "phone": "+84-28-7300-0014", "full_name": "Võ Đình Tài", "avatar_url": "https://storage.googleapis.com/factory-pulse-assets/avatars/admin.jpg", "department": "IT", "employee_id": "EMP-VDT-550e", "display_name": "Võ Đình Tài", "email_verified": true}', NULL, '2025-08-30 23:52:10.638335+00', '2025-09-02 00:15:18.195854+00', NULL, NULL, '', '', NULL, '', 0, NULL, '', NULL, false, NULL, false),
-	('00000000-0000-0000-0000-000000000000', '497809e4-7429-437c-a81c-6f43e2fa77c1', 'authenticated', 'authenticated', 'operations@factorypulse.vn', '$2a$10$Ls4vfW34CfbggYRUicj7j.IgAc..JnzwelhRx37eJ0CqYFmC3GJlG', '2025-08-30 23:52:09.99909+00', NULL, '', NULL, '', NULL, '', '', NULL, '2025-09-02 00:17:03.209304+00', '{"provider": "email", "providers": ["email"]}', '{"name": "Trần Ngọc Hương", "role": "management", "phone": "+84-28-7300-0002", "full_name": "Trần Ngọc Hương", "avatar_url": "https://storage.googleapis.com/factory-pulse-assets/avatars/operations.jpg", "department": "Operations", "employee_id": "EMP-TTH-550e", "display_name": "Trần Ngọc Hương", "email_verified": true}', NULL, '2025-08-30 23:52:09.997708+00', '2025-09-02 14:04:27.424882+00', NULL, NULL, '', '', NULL, '', 0, NULL, '', NULL, false, NULL, false);
+	('00000000-0000-0000-0000-000000000000', '497809e4-7429-437c-a81c-6f43e2fa77c1', 'authenticated', 'authenticated', 'operations@factorypulse.vn', '$2a$10$Ls4vfW34CfbggYRUicj7j.IgAc..JnzwelhRx37eJ0CqYFmC3GJlG', '2025-08-30 23:52:09.99909+00', NULL, '', NULL, '', NULL, '', '', NULL, '2025-09-02 00:17:03.209304+00', '{"provider": "email", "providers": ["email"]}', '{"name": "Trần Ngọc Hương", "role": "management", "phone": "+84-28-7300-0002", "full_name": "Trần Ngọc Hương", "avatar_url": "https://storage.googleapis.com/factory-pulse-assets/avatars/operations.jpg", "department": "Operations", "employee_id": "EMP-TTH-550e", "display_name": "Trần Ngọc Hương", "email_verified": true}', NULL, '2025-08-30 23:52:09.997708+00', '2025-09-03 00:25:06.551156+00', NULL, NULL, '', '', NULL, '', 0, NULL, '', NULL, false, NULL, false);
 
 
 --
@@ -367,8 +371,8 @@ INSERT INTO "auth"."identities" ("provider_id", "user_id", "identity_data", "pro
 --
 
 INSERT INTO "auth"."sessions" ("id", "user_id", "created_at", "updated_at", "factor_id", "aal", "not_after", "refreshed_at", "user_agent", "ip", "tag") VALUES
-	('0ad474e9-0d04-4627-b5fc-01d054c6c1a3', 'a53f503d-ad74-4397-a3f1-5ee9c3e61d34', '2025-09-02 07:32:57.091088+00', '2025-09-02 12:18:01.456882+00', NULL, 'aal1', NULL, '2025-09-02 12:18:01.456847', 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/139.0.0.0 Safari/537.36', '172.217.70.95', NULL),
-	('0f276fd2-fe0b-4d53-9d4d-9db3f2c7fca1', '497809e4-7429-437c-a81c-6f43e2fa77c1', '2025-09-02 00:17:03.209618+00', '2025-09-02 14:04:27.425291+00', NULL, 'aal1', NULL, '2025-09-02 14:04:27.425273', 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/139.0.0.0 Safari/537.36', '172.18.0.1', NULL);
+	('0ad474e9-0d04-4627-b5fc-01d054c6c1a3', 'a53f503d-ad74-4397-a3f1-5ee9c3e61d34', '2025-09-02 07:32:57.091088+00', '2025-09-02 23:57:29.442782+00', NULL, 'aal1', NULL, '2025-09-02 23:57:29.442759', 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/139.0.0.0 Safari/537.36', '172.18.0.1', NULL),
+	('0f276fd2-fe0b-4d53-9d4d-9db3f2c7fca1', '497809e4-7429-437c-a81c-6f43e2fa77c1', '2025-09-02 00:17:03.209618+00', '2025-09-03 00:25:06.551523+00', NULL, 'aal1', NULL, '2025-09-03 00:25:06.551504', 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/139.0.0.0 Safari/537.36', '172.18.0.1', NULL);
 
 
 --
@@ -413,10 +417,12 @@ INSERT INTO "auth"."refresh_tokens" ("instance_id", "id", "token", "user_id", "r
 	('00000000-0000-0000-0000-000000000000', 85, '757b4yi5uuut', 'a53f503d-ad74-4397-a3f1-5ee9c3e61d34', true, '2025-09-02 10:24:43.437422+00', '2025-09-02 11:23:00.891996+00', 'lpp7ahddn32x', '0ad474e9-0d04-4627-b5fc-01d054c6c1a3'),
 	('00000000-0000-0000-0000-000000000000', 86, 'vzjqf2zy5ih3', 'a53f503d-ad74-4397-a3f1-5ee9c3e61d34', true, '2025-09-02 11:23:00.892635+00', '2025-09-02 12:18:01.40427+00', '757b4yi5uuut', '0ad474e9-0d04-4627-b5fc-01d054c6c1a3'),
 	('00000000-0000-0000-0000-000000000000', 87, 'vunrgm4zetnj', 'a53f503d-ad74-4397-a3f1-5ee9c3e61d34', true, '2025-09-02 12:18:01.404833+00', '2025-09-02 12:18:01.455609+00', 'vzjqf2zy5ih3', '0ad474e9-0d04-4627-b5fc-01d054c6c1a3'),
-	('00000000-0000-0000-0000-000000000000', 88, 'kbw3vtpur2ce', 'a53f503d-ad74-4397-a3f1-5ee9c3e61d34', false, '2025-09-02 12:18:01.455747+00', '2025-09-02 12:18:01.455747+00', 'vunrgm4zetnj', '0ad474e9-0d04-4627-b5fc-01d054c6c1a3'),
 	('00000000-0000-0000-0000-000000000000', 78, '5gevq4woraxq', '497809e4-7429-437c-a81c-6f43e2fa77c1', true, '2025-09-02 06:27:19.461982+00', '2025-09-02 13:06:08.766841+00', 'olwaukz2hjpp', '0f276fd2-fe0b-4d53-9d4d-9db3f2c7fca1'),
 	('00000000-0000-0000-0000-000000000000', 89, 's47sbmydxsef', '497809e4-7429-437c-a81c-6f43e2fa77c1', true, '2025-09-02 13:06:08.767251+00', '2025-09-02 14:04:27.424289+00', '5gevq4woraxq', '0f276fd2-fe0b-4d53-9d4d-9db3f2c7fca1'),
-	('00000000-0000-0000-0000-000000000000', 90, '7t6w2gk4kxox', '497809e4-7429-437c-a81c-6f43e2fa77c1', false, '2025-09-02 14:04:27.42452+00', '2025-09-02 14:04:27.42452+00', 's47sbmydxsef', '0f276fd2-fe0b-4d53-9d4d-9db3f2c7fca1');
+	('00000000-0000-0000-0000-000000000000', 88, 'kbw3vtpur2ce', 'a53f503d-ad74-4397-a3f1-5ee9c3e61d34', true, '2025-09-02 12:18:01.455747+00', '2025-09-02 23:57:29.440563+00', 'vunrgm4zetnj', '0ad474e9-0d04-4627-b5fc-01d054c6c1a3'),
+	('00000000-0000-0000-0000-000000000000', 91, 'i77y4jotinjz', 'a53f503d-ad74-4397-a3f1-5ee9c3e61d34', false, '2025-09-02 23:57:29.440977+00', '2025-09-02 23:57:29.440977+00', 'kbw3vtpur2ce', '0ad474e9-0d04-4627-b5fc-01d054c6c1a3'),
+	('00000000-0000-0000-0000-000000000000', 90, '7t6w2gk4kxox', '497809e4-7429-437c-a81c-6f43e2fa77c1', true, '2025-09-02 14:04:27.42452+00', '2025-09-03 00:25:06.550556+00', 's47sbmydxsef', '0f276fd2-fe0b-4d53-9d4d-9db3f2c7fca1'),
+	('00000000-0000-0000-0000-000000000000', 92, 'vm2yqgm36txw', '497809e4-7429-437c-a81c-6f43e2fa77c1', false, '2025-09-03 00:25:06.550829+00', '2025-09-03 00:25:06.550829+00', '7t6w2gk4kxox', '0f276fd2-fe0b-4d53-9d4d-9db3f2c7fca1');
 
 
 --
@@ -1047,9 +1053,18 @@ INSERT INTO "public"."reviews" ("id", "organization_id", "project_id", "reviewer
 -- Data for Name: documents; Type: TABLE DATA; Schema: public; Owner: postgres
 --
 
-INSERT INTO "public"."documents" ("id", "organization_id", "project_id", "title", "description", "file_name", "file_path", "file_size", "file_type", "mime_type", "version", "is_current_version", "category", "tags", "metadata", "access_level", "uploaded_by", "approved_by", "approved_at", "created_at", "updated_at") VALUES
-	('3652f4d0-5206-4c35-aa99-ecc448dfb5c6', '550e8400-e29b-41d4-a716-446655440001', '550e8400-e29b-41d4-a716-446655440307', 'ANKHANG-RFQ250804-05.xlsx', '', '1756801202331-1iui8na30.xlsx', '550e8400-e29b-41d4-a716-446655440001/550e8400-e29b-41d4-a716-446655440307/1756801202331-1iui8na30.xlsx', 39853, 'xlsx', 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet', 1, true, 'rfq', '{}', '{"tags": [], "version": "1.0", "category": "rfq", "description": ""}', 'internal', 'a53f503d-ad74-4397-a3f1-5ee9c3e61d34', NULL, NULL, '2025-09-02 08:20:02.396243+00', '2025-09-02 08:20:02.396243+00'),
-	('824bbcc0-625e-418e-9e07-1191a2e9c46b', '550e8400-e29b-41d4-a716-446655440001', '550e8400-e29b-41d4-a716-446655440307', '394.084-01.011.55-10umd000~01.pdf', '', '1756799539348-0fgrj7avx.pdf', '550e8400-e29b-41d4-a716-446655440001/550e8400-e29b-41d4-a716-446655440307/1756799539348-0fgrj7avx.pdf', 832690, 'application/pdf', 'application/pdf', 1, true, 'drawing', '{}', '{"tags": []}', 'internal', 'a53f503d-ad74-4397-a3f1-5ee9c3e61d34', NULL, NULL, '2025-09-02 07:52:19.455336+00', '2025-09-02 08:33:08.747434+00');
+INSERT INTO "public"."documents" ("id", "organization_id", "project_id", "title", "description", "file_name", "file_path", "file_size", "file_type", "mime_type", "version", "is_current_version", "category", "tags", "metadata", "access_level", "uploaded_by", "approved_by", "approved_at", "created_at", "updated_at", "external_id", "external_url", "storage_provider", "sync_status", "last_synced_at", "ai_extracted_data", "ai_processing_status", "ai_confidence_score", "ai_processed_at", "link_type", "link_permissions", "link_expires_at", "link_access_count", "link_last_accessed") VALUES
+	('3652f4d0-5206-4c35-aa99-ecc448dfb5c6', '550e8400-e29b-41d4-a716-446655440001', '550e8400-e29b-41d4-a716-446655440307', 'ANKHANG-RFQ250804-05.xlsx', '', '1756801202331-1iui8na30.xlsx', '550e8400-e29b-41d4-a716-446655440001/550e8400-e29b-41d4-a716-446655440307/1756801202331-1iui8na30.xlsx', 39853, 'xlsx', 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet', 1, true, 'rfq', '{}', '{"tags": [], "version": "1.0", "category": "rfq", "description": ""}', 'internal', 'a53f503d-ad74-4397-a3f1-5ee9c3e61d34', NULL, NULL, '2025-09-02 08:20:02.396243+00', '2025-09-02 08:20:02.396243+00', NULL, NULL, 'supabase', 'synced', NULL, '{}', 'pending', NULL, NULL, 'file', '{}', NULL, 0, NULL),
+	('824bbcc0-625e-418e-9e07-1191a2e9c46b', '550e8400-e29b-41d4-a716-446655440001', '550e8400-e29b-41d4-a716-446655440307', '394.084-01.011.55-10umd000~01.pdf', '', '1756799539348-0fgrj7avx.pdf', '550e8400-e29b-41d4-a716-446655440001/550e8400-e29b-41d4-a716-446655440307/1756799539348-0fgrj7avx.pdf', 832690, 'application/pdf', 'application/pdf', 1, true, 'drawing', '{}', '{"tags": []}', 'internal', 'a53f503d-ad74-4397-a3f1-5ee9c3e61d34', NULL, NULL, '2025-09-02 07:52:19.455336+00', '2025-09-02 08:33:08.747434+00', NULL, NULL, 'supabase', 'synced', NULL, '{}', 'pending', NULL, NULL, 'file', '{}', NULL, 0, NULL),
+	('22851589-83b8-43ea-9c06-0046eb30b00b', '550e8400-e29b-41d4-a716-446655440001', '550e8400-e29b-41d4-a716-446655440307', 'CUP drawing', 'The demo drawing', 'CUP drawing', '', 0, 'drawing', 'application/link', 1, true, 'drawing', '{}', '{"tags": [], "version": "1.0", "category": "drawing", "link_type": "file", "description": "The demo drawing", "storage_provider": "google_drive"}', 'internal', 'a53f503d-ad74-4397-a3f1-5ee9c3e61d34', NULL, NULL, '2025-09-03 00:37:05.189561+00', '2025-09-03 00:37:05.189561+00', NULL, 'https://drive.google.com/file/d/1BYWamBbo1TMQClEo_llMwneTxTpGep95/view?usp=drive_link', 'google_drive', 'synced', NULL, '{}', 'pending', NULL, NULL, 'file', '{}', NULL, 0, NULL);
+
+
+--
+-- Data for Name: document_access_log; Type: TABLE DATA; Schema: public; Owner: postgres
+--
+
+INSERT INTO "public"."document_access_log" ("id", "document_id", "user_id", "action", "ip_address", "user_agent", "accessed_at") VALUES
+	('9bbac140-d57c-463f-a242-ae606a014667', '22851589-83b8-43ea-9c06-0046eb30b00b', 'a53f503d-ad74-4397-a3f1-5ee9c3e61d34', 'upload', NULL, NULL, '2025-09-03 00:37:05.209179+00');
 
 
 --
@@ -1058,7 +1073,22 @@ INSERT INTO "public"."documents" ("id", "organization_id", "project_id", "title"
 
 INSERT INTO "public"."document_versions" ("id", "organization_id", "document_id", "version_number", "file_name", "file_path", "file_size", "mime_type", "title", "description", "change_summary", "uploaded_by", "uploaded_at", "is_current", "metadata", "created_at", "updated_at") VALUES
 	('f18549fa-e0de-476d-848a-db15711a4d46', '550e8400-e29b-41d4-a716-446655440001', '824bbcc0-625e-418e-9e07-1191a2e9c46b', 1, '1756799539348-0fgrj7avx.pdf', '550e8400-e29b-41d4-a716-446655440001/550e8400-e29b-41d4-a716-446655440307/1756799539348-0fgrj7avx.pdf', 832690, 'application/pdf', '394.084-01.011.55-10umd000~01.pdf', '', NULL, 'a53f503d-ad74-4397-a3f1-5ee9c3e61d34', '2025-09-02 07:52:19.455336+00', true, '{"tags": [], "description": ""}', '2025-09-02 07:52:19.455336+00', '2025-09-02 07:52:19.455336+00'),
-	('3a3244ba-aa30-44eb-8dd0-40b3c23c751e', '550e8400-e29b-41d4-a716-446655440001', '3652f4d0-5206-4c35-aa99-ecc448dfb5c6', 1, '1756801202331-1iui8na30.xlsx', '550e8400-e29b-41d4-a716-446655440001/550e8400-e29b-41d4-a716-446655440307/1756801202331-1iui8na30.xlsx', 39853, 'xlsx', 'ANKHANG-RFQ250804-05.xlsx', '', NULL, 'a53f503d-ad74-4397-a3f1-5ee9c3e61d34', '2025-09-02 08:20:02.396243+00', true, '{"tags": [], "version": "1.0", "category": "rfq", "description": ""}', '2025-09-02 08:20:02.396243+00', '2025-09-02 08:20:02.396243+00');
+	('3a3244ba-aa30-44eb-8dd0-40b3c23c751e', '550e8400-e29b-41d4-a716-446655440001', '3652f4d0-5206-4c35-aa99-ecc448dfb5c6', 1, '1756801202331-1iui8na30.xlsx', '550e8400-e29b-41d4-a716-446655440001/550e8400-e29b-41d4-a716-446655440307/1756801202331-1iui8na30.xlsx', 39853, 'xlsx', 'ANKHANG-RFQ250804-05.xlsx', '', NULL, 'a53f503d-ad74-4397-a3f1-5ee9c3e61d34', '2025-09-02 08:20:02.396243+00', true, '{"tags": [], "version": "1.0", "category": "rfq", "description": ""}', '2025-09-02 08:20:02.396243+00', '2025-09-02 08:20:02.396243+00'),
+	('a7317e3b-7986-4566-8c12-9ccb99ddacef', '550e8400-e29b-41d4-a716-446655440001', '22851589-83b8-43ea-9c06-0046eb30b00b', 1, 'CUP drawing', '', 0, 'drawing', 'CUP drawing', 'The demo drawing', NULL, 'a53f503d-ad74-4397-a3f1-5ee9c3e61d34', '2025-09-03 00:37:05.189561+00', true, '{"tags": [], "version": "1.0", "category": "drawing", "link_type": "file", "description": "The demo drawing", "storage_provider": "google_drive"}', '2025-09-03 00:37:05.189561+00', '2025-09-03 00:37:05.189561+00');
+
+
+--
+-- Data for Name: google_drive_config; Type: TABLE DATA; Schema: public; Owner: postgres
+--
+
+INSERT INTO "public"."google_drive_config" ("id", "organization_id", "client_id", "client_secret", "redirect_uri", "is_active") VALUES
+	(1, '550e8400-e29b-41d4-a716-446655440001', '869011146292-acfn2nctolguoppjjsuvqjkal6jctgob.apps.googleusercontent.com', 'yGOCSPX-ruNLBvMm4_9zoeahzp0bVbm9-6le', 'http://localhost:8080/auth/google-drive/debug', true);
+
+
+--
+-- Data for Name: google_drive_tokens; Type: TABLE DATA; Schema: public; Owner: postgres
+--
+
 
 
 --
@@ -1329,6 +1359,14 @@ INSERT INTO "public"."project_sub_stage_progress" ("id", "organization_id", "pro
 
 
 --
+-- Data for Name: test_table; Type: TABLE DATA; Schema: public; Owner: postgres
+--
+
+INSERT INTO "public"."test_table" ("id", "name") VALUES
+	(1, 'test');
+
+
+--
 -- Data for Name: buckets; Type: TABLE DATA; Schema: storage; Owner: supabase_storage_admin
 --
 
@@ -1395,7 +1433,28 @@ INSERT INTO "storage"."prefixes" ("bucket_id", "name", "created_at", "updated_at
 -- Name: refresh_tokens_id_seq; Type: SEQUENCE SET; Schema: auth; Owner: supabase_auth_admin
 --
 
-SELECT pg_catalog.setval('"auth"."refresh_tokens_id_seq"', 90, true);
+SELECT pg_catalog.setval('"auth"."refresh_tokens_id_seq"', 92, true);
+
+
+--
+-- Name: google_drive_config_id_seq; Type: SEQUENCE SET; Schema: public; Owner: postgres
+--
+
+SELECT pg_catalog.setval('"public"."google_drive_config_id_seq"', 1, true);
+
+
+--
+-- Name: google_drive_tokens_id_seq; Type: SEQUENCE SET; Schema: public; Owner: postgres
+--
+
+SELECT pg_catalog.setval('"public"."google_drive_tokens_id_seq"', 1, false);
+
+
+--
+-- Name: test_table_id_seq; Type: SEQUENCE SET; Schema: public; Owner: postgres
+--
+
+SELECT pg_catalog.setval('"public"."test_table_id_seq"', 1, true);
 
 
 --

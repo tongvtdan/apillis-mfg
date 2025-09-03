@@ -1174,6 +1174,25 @@ $$;
 ALTER FUNCTION "public"."update_approval_updated_at"() OWNER TO "postgres";
 
 
+CREATE OR REPLACE FUNCTION "public"."update_document_link_access"() RETURNS "trigger"
+    LANGUAGE "plpgsql"
+    AS $$
+BEGIN
+    -- Update access count and last accessed time
+    UPDATE documents 
+    SET 
+        link_access_count = link_access_count + 1,
+        link_last_accessed = NOW()
+    WHERE id = NEW.document_id;
+    
+    RETURN NEW;
+END;
+$$;
+
+
+ALTER FUNCTION "public"."update_document_link_access"() OWNER TO "postgres";
+
+
 CREATE OR REPLACE FUNCTION "public"."update_document_on_version_change"() RETURNS "trigger"
     LANGUAGE "plpgsql" SECURITY DEFINER
     AS $$
@@ -1517,6 +1536,21 @@ CREATE TABLE IF NOT EXISTS "public"."contacts" (
 ALTER TABLE "public"."contacts" OWNER TO "postgres";
 
 
+CREATE TABLE IF NOT EXISTS "public"."document_access_log" (
+    "id" "uuid" DEFAULT "extensions"."uuid_generate_v4"() NOT NULL,
+    "document_id" "uuid",
+    "user_id" "uuid",
+    "action" character varying(20) NOT NULL,
+    "ip_address" "inet",
+    "user_agent" "text",
+    "accessed_at" timestamp with time zone DEFAULT "now"(),
+    CONSTRAINT "document_access_log_action_check" CHECK ((("action")::"text" = ANY ((ARRAY['view'::character varying, 'download'::character varying, 'upload'::character varying, 'delete'::character varying, 'share'::character varying, 'comment'::character varying, 'approve'::character varying])::"text"[])))
+);
+
+
+ALTER TABLE "public"."document_access_log" OWNER TO "postgres";
+
+
 CREATE TABLE IF NOT EXISTS "public"."document_versions" (
     "id" "uuid" DEFAULT "extensions"."uuid_generate_v4"() NOT NULL,
     "organization_id" "uuid" NOT NULL,
@@ -1584,11 +1618,107 @@ CREATE TABLE IF NOT EXISTS "public"."documents" (
     "approved_by" "uuid",
     "approved_at" timestamp with time zone,
     "created_at" timestamp with time zone DEFAULT "now"(),
-    "updated_at" timestamp with time zone DEFAULT "now"()
+    "updated_at" timestamp with time zone DEFAULT "now"(),
+    "external_id" character varying(255),
+    "external_url" "text",
+    "storage_provider" character varying(50) DEFAULT 'supabase'::character varying,
+    "sync_status" character varying(20) DEFAULT 'synced'::character varying,
+    "last_synced_at" timestamp with time zone,
+    "ai_extracted_data" "jsonb" DEFAULT '{}'::"jsonb",
+    "ai_processing_status" character varying(20) DEFAULT 'pending'::character varying,
+    "ai_confidence_score" numeric(5,2),
+    "ai_processed_at" timestamp with time zone,
+    "link_type" character varying(50) DEFAULT 'file'::character varying,
+    "link_permissions" "jsonb" DEFAULT '{}'::"jsonb",
+    "link_expires_at" timestamp with time zone,
+    "link_access_count" integer DEFAULT 0,
+    "link_last_accessed" timestamp with time zone,
+    CONSTRAINT "documents_ai_processing_status_check" CHECK ((("ai_processing_status")::"text" = ANY ((ARRAY['pending'::character varying, 'processing'::character varying, 'completed'::character varying, 'failed'::character varying, 'skipped'::character varying])::"text"[]))),
+    CONSTRAINT "documents_link_type_check" CHECK ((("link_type")::"text" = ANY ((ARRAY['file'::character varying, 'folder'::character varying, 'shared_link'::character varying, 'embed'::character varying])::"text"[]))),
+    CONSTRAINT "documents_storage_provider_check" CHECK ((("storage_provider")::"text" = ANY ((ARRAY['supabase'::character varying, 'google_drive'::character varying, 'dropbox'::character varying, 'onedrive'::character varying, 's3'::character varying, 'azure_blob'::character varying])::"text"[]))),
+    CONSTRAINT "documents_sync_status_check" CHECK ((("sync_status")::"text" = ANY ((ARRAY['synced'::character varying, 'pending'::character varying, 'failed'::character varying, 'conflict'::character varying])::"text"[])))
 );
 
 
 ALTER TABLE "public"."documents" OWNER TO "postgres";
+
+
+COMMENT ON COLUMN "public"."documents"."link_type" IS 'Type of link: file, folder, shared_link, or embed';
+
+
+
+COMMENT ON COLUMN "public"."documents"."link_permissions" IS 'JSON object containing link permissions and access controls';
+
+
+
+COMMENT ON COLUMN "public"."documents"."link_expires_at" IS 'Expiration date for temporary links';
+
+
+
+COMMENT ON COLUMN "public"."documents"."link_access_count" IS 'Number of times the link has been accessed';
+
+
+
+COMMENT ON COLUMN "public"."documents"."link_last_accessed" IS 'Last time the link was accessed';
+
+
+
+CREATE TABLE IF NOT EXISTS "public"."google_drive_config" (
+    "id" integer NOT NULL,
+    "organization_id" "text" NOT NULL,
+    "client_id" "text" NOT NULL,
+    "client_secret" "text" NOT NULL,
+    "redirect_uri" "text" NOT NULL,
+    "is_active" boolean DEFAULT true
+);
+
+
+ALTER TABLE "public"."google_drive_config" OWNER TO "postgres";
+
+
+CREATE SEQUENCE IF NOT EXISTS "public"."google_drive_config_id_seq"
+    AS integer
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+
+ALTER SEQUENCE "public"."google_drive_config_id_seq" OWNER TO "postgres";
+
+
+ALTER SEQUENCE "public"."google_drive_config_id_seq" OWNED BY "public"."google_drive_config"."id";
+
+
+
+CREATE TABLE IF NOT EXISTS "public"."google_drive_tokens" (
+    "id" integer NOT NULL,
+    "user_id" "text" NOT NULL,
+    "organization_id" "text" NOT NULL,
+    "access_token" "text" NOT NULL,
+    "refresh_token" "text",
+    "expires_at" timestamp with time zone NOT NULL
+);
+
+
+ALTER TABLE "public"."google_drive_tokens" OWNER TO "postgres";
+
+
+CREATE SEQUENCE IF NOT EXISTS "public"."google_drive_tokens_id_seq"
+    AS integer
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+
+ALTER SEQUENCE "public"."google_drive_tokens_id_seq" OWNER TO "postgres";
+
+
+ALTER SEQUENCE "public"."google_drive_tokens_id_seq" OWNED BY "public"."google_drive_tokens"."id";
+
 
 
 CREATE TABLE IF NOT EXISTS "public"."messages" (
@@ -1804,6 +1934,31 @@ CREATE TABLE IF NOT EXISTS "public"."supplier_rfqs" (
 ALTER TABLE "public"."supplier_rfqs" OWNER TO "postgres";
 
 
+CREATE TABLE IF NOT EXISTS "public"."test_table" (
+    "id" integer NOT NULL,
+    "name" "text"
+);
+
+
+ALTER TABLE "public"."test_table" OWNER TO "postgres";
+
+
+CREATE SEQUENCE IF NOT EXISTS "public"."test_table_id_seq"
+    AS integer
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+
+ALTER SEQUENCE "public"."test_table_id_seq" OWNER TO "postgres";
+
+
+ALTER SEQUENCE "public"."test_table_id_seq" OWNED BY "public"."test_table"."id";
+
+
+
 CREATE TABLE IF NOT EXISTS "public"."users" (
     "id" "uuid" NOT NULL,
     "organization_id" "uuid" NOT NULL,
@@ -1879,6 +2034,18 @@ CREATE TABLE IF NOT EXISTS "public"."workflow_sub_stages" (
 ALTER TABLE "public"."workflow_sub_stages" OWNER TO "postgres";
 
 
+ALTER TABLE ONLY "public"."google_drive_config" ALTER COLUMN "id" SET DEFAULT "nextval"('"public"."google_drive_config_id_seq"'::"regclass");
+
+
+
+ALTER TABLE ONLY "public"."google_drive_tokens" ALTER COLUMN "id" SET DEFAULT "nextval"('"public"."google_drive_tokens_id_seq"'::"regclass");
+
+
+
+ALTER TABLE ONLY "public"."test_table" ALTER COLUMN "id" SET DEFAULT "nextval"('"public"."test_table_id_seq"'::"regclass");
+
+
+
 ALTER TABLE ONLY "public"."activity_log"
     ADD CONSTRAINT "activity_log_pkey" PRIMARY KEY ("id");
 
@@ -1929,6 +2096,11 @@ ALTER TABLE ONLY "public"."contacts"
 
 
 
+ALTER TABLE ONLY "public"."document_access_log"
+    ADD CONSTRAINT "document_access_log_pkey" PRIMARY KEY ("id");
+
+
+
 ALTER TABLE ONLY "public"."document_versions"
     ADD CONSTRAINT "document_versions_pkey" PRIMARY KEY ("id");
 
@@ -1936,6 +2108,16 @@ ALTER TABLE ONLY "public"."document_versions"
 
 ALTER TABLE ONLY "public"."documents"
     ADD CONSTRAINT "documents_pkey" PRIMARY KEY ("id");
+
+
+
+ALTER TABLE ONLY "public"."google_drive_config"
+    ADD CONSTRAINT "google_drive_config_pkey" PRIMARY KEY ("id");
+
+
+
+ALTER TABLE ONLY "public"."google_drive_tokens"
+    ADD CONSTRAINT "google_drive_tokens_pkey" PRIMARY KEY ("id");
 
 
 
@@ -2006,6 +2188,11 @@ ALTER TABLE ONLY "public"."supplier_rfqs"
 
 ALTER TABLE ONLY "public"."supplier_rfqs"
     ADD CONSTRAINT "supplier_rfqs_rfq_number_key" UNIQUE ("rfq_number");
+
+
+
+ALTER TABLE ONLY "public"."test_table"
+    ADD CONSTRAINT "test_table_pkey" PRIMARY KEY ("id");
 
 
 
@@ -2238,11 +2425,23 @@ CREATE INDEX "idx_documents_category" ON "public"."documents" USING "btree" ("ca
 
 
 
+CREATE INDEX "idx_documents_external_id" ON "public"."documents" USING "btree" ("external_id");
+
+
+
+CREATE INDEX "idx_documents_link_type" ON "public"."documents" USING "btree" ("link_type");
+
+
+
 CREATE INDEX "idx_documents_org_id" ON "public"."documents" USING "btree" ("organization_id");
 
 
 
 CREATE INDEX "idx_documents_project_id" ON "public"."documents" USING "btree" ("project_id");
+
+
+
+CREATE INDEX "idx_documents_sync_status" ON "public"."documents" USING "btree" ("sync_status");
 
 
 
@@ -2455,6 +2654,10 @@ CREATE INDEX "idx_workflow_sub_stages_organization_id" ON "public"."workflow_sub
 
 
 CREATE INDEX "idx_workflow_sub_stages_workflow_stage_id" ON "public"."workflow_sub_stages" USING "btree" ("workflow_stage_id");
+
+
+
+CREATE OR REPLACE TRIGGER "document_link_access_trigger" AFTER INSERT ON "public"."document_access_log" FOR EACH ROW WHEN ((("new"."action")::"text" = ANY ((ARRAY['view'::character varying, 'download'::character varying])::"text"[]))) EXECUTE FUNCTION "public"."update_document_link_access"();
 
 
 
@@ -2697,6 +2900,16 @@ ALTER TABLE ONLY "public"."contacts"
 
 ALTER TABLE ONLY "public"."contacts"
     ADD CONSTRAINT "contacts_organization_id_fkey" FOREIGN KEY ("organization_id") REFERENCES "public"."organizations"("id") ON DELETE CASCADE;
+
+
+
+ALTER TABLE ONLY "public"."document_access_log"
+    ADD CONSTRAINT "document_access_log_document_id_fkey" FOREIGN KEY ("document_id") REFERENCES "public"."documents"("id") ON DELETE CASCADE;
+
+
+
+ALTER TABLE ONLY "public"."document_access_log"
+    ADD CONSTRAINT "document_access_log_user_id_fkey" FOREIGN KEY ("user_id") REFERENCES "public"."users"("id");
 
 
 
@@ -3019,6 +3232,10 @@ CREATE POLICY "Users can insert activity in their org" ON "public"."activity_log
 
 
 
+CREATE POLICY "Users can insert document access logs" ON "public"."document_access_log" FOR INSERT WITH CHECK (("user_id" = "auth"."uid"()));
+
+
+
 CREATE POLICY "Users can modify contacts" ON "public"."contacts" USING ((("organization_id" = "public"."get_current_user_org_id"()) AND ("public"."get_current_user_role"() = ANY (ARRAY['admin'::"text", 'management'::"text", 'sales'::"text", 'procurement'::"text"]))));
 
 
@@ -3321,6 +3538,14 @@ CREATE POLICY "Users can view their own delegations" ON "public"."approval_deleg
 
 
 
+CREATE POLICY "Users can view their own document access logs" ON "public"."document_access_log" FOR SELECT USING ((("user_id" = "auth"."uid"()) OR ("document_id" IN ( SELECT "documents"."id"
+   FROM "public"."documents"
+  WHERE ("documents"."organization_id" = ( SELECT "users"."organization_id"
+           FROM "public"."users"
+          WHERE ("users"."id" = "auth"."uid"())))))));
+
+
+
 CREATE POLICY "Users can view their own notifications" ON "public"."notifications" FOR SELECT USING (("user_id" = "auth"."uid"()));
 
 
@@ -3360,6 +3585,9 @@ ALTER TABLE "public"."approvals" ENABLE ROW LEVEL SECURITY;
 
 
 ALTER TABLE "public"."contacts" ENABLE ROW LEVEL SECURITY;
+
+
+ALTER TABLE "public"."document_access_log" ENABLE ROW LEVEL SECURITY;
 
 
 ALTER TABLE "public"."document_versions" ENABLE ROW LEVEL SECURITY;
@@ -3751,6 +3979,12 @@ GRANT ALL ON FUNCTION "public"."update_approval_updated_at"() TO "service_role";
 
 
 
+GRANT ALL ON FUNCTION "public"."update_document_link_access"() TO "anon";
+GRANT ALL ON FUNCTION "public"."update_document_link_access"() TO "authenticated";
+GRANT ALL ON FUNCTION "public"."update_document_link_access"() TO "service_role";
+
+
+
 GRANT ALL ON FUNCTION "public"."update_document_on_version_change"() TO "anon";
 GRANT ALL ON FUNCTION "public"."update_document_on_version_change"() TO "authenticated";
 GRANT ALL ON FUNCTION "public"."update_document_on_version_change"() TO "service_role";
@@ -3838,6 +4072,12 @@ GRANT ALL ON TABLE "public"."contacts" TO "service_role";
 
 
 
+GRANT ALL ON TABLE "public"."document_access_log" TO "anon";
+GRANT ALL ON TABLE "public"."document_access_log" TO "authenticated";
+GRANT ALL ON TABLE "public"."document_access_log" TO "service_role";
+
+
+
 GRANT ALL ON TABLE "public"."document_versions" TO "anon";
 GRANT ALL ON TABLE "public"."document_versions" TO "authenticated";
 GRANT ALL ON TABLE "public"."document_versions" TO "service_role";
@@ -3847,6 +4087,30 @@ GRANT ALL ON TABLE "public"."document_versions" TO "service_role";
 GRANT ALL ON TABLE "public"."documents" TO "anon";
 GRANT ALL ON TABLE "public"."documents" TO "authenticated";
 GRANT ALL ON TABLE "public"."documents" TO "service_role";
+
+
+
+GRANT ALL ON TABLE "public"."google_drive_config" TO "anon";
+GRANT ALL ON TABLE "public"."google_drive_config" TO "authenticated";
+GRANT ALL ON TABLE "public"."google_drive_config" TO "service_role";
+
+
+
+GRANT ALL ON SEQUENCE "public"."google_drive_config_id_seq" TO "anon";
+GRANT ALL ON SEQUENCE "public"."google_drive_config_id_seq" TO "authenticated";
+GRANT ALL ON SEQUENCE "public"."google_drive_config_id_seq" TO "service_role";
+
+
+
+GRANT ALL ON TABLE "public"."google_drive_tokens" TO "anon";
+GRANT ALL ON TABLE "public"."google_drive_tokens" TO "authenticated";
+GRANT ALL ON TABLE "public"."google_drive_tokens" TO "service_role";
+
+
+
+GRANT ALL ON SEQUENCE "public"."google_drive_tokens_id_seq" TO "anon";
+GRANT ALL ON SEQUENCE "public"."google_drive_tokens_id_seq" TO "authenticated";
+GRANT ALL ON SEQUENCE "public"."google_drive_tokens_id_seq" TO "service_role";
 
 
 
@@ -3901,6 +4165,18 @@ GRANT ALL ON TABLE "public"."supplier_quotes" TO "service_role";
 GRANT ALL ON TABLE "public"."supplier_rfqs" TO "anon";
 GRANT ALL ON TABLE "public"."supplier_rfqs" TO "authenticated";
 GRANT ALL ON TABLE "public"."supplier_rfqs" TO "service_role";
+
+
+
+GRANT ALL ON TABLE "public"."test_table" TO "anon";
+GRANT ALL ON TABLE "public"."test_table" TO "authenticated";
+GRANT ALL ON TABLE "public"."test_table" TO "service_role";
+
+
+
+GRANT ALL ON SEQUENCE "public"."test_table_id_seq" TO "anon";
+GRANT ALL ON SEQUENCE "public"."test_table_id_seq" TO "authenticated";
+GRANT ALL ON SEQUENCE "public"."test_table_id_seq" TO "service_role";
 
 
 
