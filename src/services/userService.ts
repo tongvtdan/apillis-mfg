@@ -100,6 +100,10 @@ class UserService {
     clearCache() {
         this.userCache.clear();
     }
+
+    clearUserCache(userId: string) {
+        this.userCache.delete(userId);
+    }
 }
 
 export const userService = new UserService();
