@@ -33,6 +33,7 @@ class GoogleDriveService {
      */
     async initialize(organizationId: string): Promise<GoogleDriveConfig | null> {
         try {
+            // First try to get configuration from database
             const { data: config, error } = await supabase
                 .from('google_drive_config')
                 .select('*')
@@ -40,12 +41,39 @@ class GoogleDriveService {
                 .eq('is_active', true)
                 .single();
 
-            if (error || !config) {
-                console.error('Google Drive config not found:', error);
-                return null;
+            if (config && !error) {
+                console.log('✅ Using Google Drive config from database');
+                return config;
             }
 
-            return config;
+            // Fallback to environment variables for development
+            const envClientId = import.meta.env.VITE_GOOGLE_CLIENT_ID;
+            const envClientSecret = import.meta.env.VITE_GOOGLE_CLIENT_SECRET;
+
+            if (envClientId && envClientSecret) {
+                console.log('⚠️ Using Google Drive config from environment variables (fallback)');
+                const fallbackConfig: GoogleDriveConfig = {
+                    id: 'env-fallback',
+                    organization_id: organizationId,
+                    client_id: envClientId,
+                    client_secret: envClientSecret,
+                    redirect_uri: `${window.location.origin}/auth/google/callback`,
+                    is_active: true,
+                    created_at: new Date().toISOString(),
+                    updated_at: new Date().toISOString(),
+                    created_by: null
+                };
+                return fallbackConfig;
+            }
+
+            console.error('❌ Google Drive config not found in database or environment variables');
+            console.log('Database error:', error);
+            console.log('Environment variables:', {
+                VITE_GOOGLE_CLIENT_ID: envClientId ? '***SET***' : '***NOT SET***',
+                VITE_GOOGLE_CLIENT_SECRET: envClientSecret ? '***SET***' : '***NOT SET***'
+            });
+
+            return null;
         } catch (error) {
             console.error('Failed to initialize Google Drive service:', error);
             return null;

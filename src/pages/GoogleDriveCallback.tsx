@@ -1,7 +1,7 @@
 // Google Drive OAuth Callback Page
 // Handles the OAuth callback from Google Drive
 
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useRef } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -13,17 +13,62 @@ export const GoogleDriveCallback: React.FC = () => {
     const navigate = useNavigate();
     const [searchParams] = useSearchParams();
     const { handleAuthCallback } = useGoogleDrive();
-    const { user } = useAuth();
+    const { user, profile, loading: authLoading } = useAuth();
 
     const [status, setStatus] = useState<'loading' | 'success' | 'error'>('loading');
     const [error, setError] = useState<string>('');
+    const isProcessing = useRef(false);
+    const processedCode = useRef<string>('');
 
     useEffect(() => {
         const handleCallback = async () => {
+            // Don't process if still loading auth state
+            if (authLoading) {
+                console.log('⏳ Auth still loading, waiting...');
+                return;
+            }
+
+            // Don't process if user is not authenticated
+            if (!user || !profile) {
+                console.log('❌ User not authenticated yet:', { user: !!user, profile: !!profile });
+                return; // Don't set error immediately, wait for auth to complete
+            }
+
+            // Enhanced OAuth state debugging
+            const storedState = localStorage.getItem('google_drive_auth_state');
+            const storedOrgId = localStorage.getItem('google_drive_organization_id');
+
+            console.log('🔍 Enhanced OAuth State Debug:');
+            console.log('Current URL:', window.location.href);
+            console.log('localStorage keys:', Object.keys(localStorage));
+            console.log('Stored state:', storedState);
+            console.log('Stored org ID:', storedOrgId);
+            console.log('Current profile org ID:', profile?.organization_id);
+            console.log('User ID:', user?.id);
+            console.log('Profile loaded:', !!profile);
+
+            if (!storedState || !storedOrgId) {
+                console.log('❌ No OAuth state found in localStorage');
+                console.log('Available localStorage items:');
+                for (let i = 0; i < localStorage.length; i++) {
+                    const key = localStorage.key(i);
+                    console.log(`  ${key}: ${localStorage.getItem(key)}`);
+                }
+                setStatus('error');
+                setError('No stored state found in localStorage. Please start the Google Drive connection process from the document management page.');
+                return;
+            }
+
             try {
                 const code = searchParams.get('code');
                 const state = searchParams.get('state');
                 const error = searchParams.get('error');
+
+                // Prevent multiple processing of the same code
+                if (isProcessing.current || (code && processedCode.current === code)) {
+                    console.log('🔄 Already processing or code already processed, skipping...');
+                    return;
+                }
 
                 // Debug logging
                 console.log('🔍 Callback Debug Info:');
@@ -32,6 +77,13 @@ export const GoogleDriveCallback: React.FC = () => {
                 console.log('State:', state);
                 console.log('Error:', error);
                 console.log('All search params:', Object.fromEntries(searchParams.entries()));
+                console.log('SessionStorage state:', sessionStorage.getItem('google_drive_auth_state'));
+                console.log('SessionStorage org ID:', sessionStorage.getItem('google_drive_organization_id'));
+                console.log('localStorage state:', localStorage.getItem('google_drive_auth_state'));
+                console.log('localStorage org ID:', localStorage.getItem('google_drive_organization_id'));
+                console.log('User authenticated:', !!user);
+                console.log('Profile loaded:', !!profile);
+                console.log('Organization ID:', profile?.organization_id);
 
                 if (error) {
                     setStatus('error');
@@ -45,14 +97,18 @@ export const GoogleDriveCallback: React.FC = () => {
                     return;
                 }
 
-                if (!user) {
-                    setStatus('error');
-                    setError('User not authenticated');
-                    return;
-                }
+                // Mark as processing and store the code
+                isProcessing.current = true;
+                processedCode.current = code;
 
+                console.log('🚀 Starting OAuth callback processing...');
                 await handleAuthCallback(code, state);
                 setStatus('success');
+
+                // Clear OAuth state after successful processing
+                localStorage.removeItem('google_drive_auth_state');
+                localStorage.removeItem('google_drive_organization_id');
+                console.log('🧹 Cleared OAuth state from localStorage');
 
                 // Redirect back to the previous page or documents
                 setTimeout(() => {
@@ -62,11 +118,19 @@ export const GoogleDriveCallback: React.FC = () => {
                 console.error('Google Drive callback error:', err);
                 setStatus('error');
                 setError(err instanceof Error ? err.message : 'Authentication failed');
+
+                // Clear OAuth state on error as well
+                localStorage.removeItem('google_drive_auth_state');
+                localStorage.removeItem('google_drive_organization_id');
+                console.log('🧹 Cleared OAuth state from localStorage due to error');
+            } finally {
+                // Reset processing flag
+                isProcessing.current = false;
             }
         };
 
         handleCallback();
-    }, [searchParams, handleAuthCallback, user, navigate]);
+    }, [searchParams, handleAuthCallback, user, profile, authLoading, navigate]);
 
     const getStatusContent = () => {
         switch (status) {
@@ -74,8 +138,12 @@ export const GoogleDriveCallback: React.FC = () => {
                 return (
                     <>
                         <Loader2 className="h-12 w-12 animate-spin text-primary mb-4" />
-                        <h2 className="text-xl font-semibold mb-2">Connecting Google Drive...</h2>
-                        <p className="text-muted-foreground">Please wait while we complete the authentication.</p>
+                        <h2 className="text-xl font-semibold mb-2">
+                            {authLoading ? 'Loading authentication...' : 'Connecting Google Drive...'}
+                        </h2>
+                        <p className="text-muted-foreground">
+                            {authLoading ? 'Please wait while we load your account information.' : 'Please wait while we complete the authentication.'}
+                        </p>
                     </>
                 );
 

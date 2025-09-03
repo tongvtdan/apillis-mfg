@@ -27,6 +27,7 @@ import Settings from "./pages/Settings";
 import Profile from "./pages/Profile";
 import Approvals from "./pages/Approvals";
 import { GoogleDriveCallback } from "./pages/GoogleDriveCallback";
+import { GoogleDriveTest } from "./pages/GoogleDriveTest";
 
 import { applyAdaptiveTheme } from "@/lib/theme";
 import "@/styles/smooth-transitions.css";
@@ -155,10 +156,13 @@ const App = () => {
               </ProtectedRoute>
             } />
 
-            {/* Google Drive OAuth Callback */}
-            <Route path="/auth/google-drive/callback" element={
+            {/* Google Drive OAuth Callback - matches redirect URI */}
+            <Route path="/auth/google/callback" element={<GoogleDriveCallback />} />
+
+            {/* Google Drive Test Page */}
+            <Route path="/test/google-drive" element={
               <ProtectedRoute>
-                <GoogleDriveCallback />
+                <AppLayout><GoogleDriveTest /></AppLayout>
               </ProtectedRoute>
             } />
 

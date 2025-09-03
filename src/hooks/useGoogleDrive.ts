@@ -46,16 +46,25 @@ export function useGoogleDrive() {
                     return;
                 }
 
-                // Check for existing tokens
-                const token = await googleDriveService.getStoredTokens(user.id, profile.organization_id);
+                // Check for existing tokens - handle RLS errors gracefully
+                try {
+                    const token = await googleDriveService.getStoredTokens(user.id, profile.organization_id);
 
-                setAuthState({
-                    isAuthenticated: !!token,
-                    isLoading: false,
-                    error: null,
-                    userEmail: token ? user.email : undefined,
-                    tokenExpiresAt: token?.expires_at,
-                });
+                    setAuthState({
+                        isAuthenticated: !!token,
+                        isLoading: false,
+                        error: null,
+                        userEmail: token ? user.email : undefined,
+                        tokenExpiresAt: token?.expires_at,
+                    });
+                } catch (tokenError) {
+                    console.log('🔍 Token fetch failed (likely RLS), treating as not authenticated:', tokenError);
+                    setAuthState({
+                        isAuthenticated: false,
+                        isLoading: false,
+                        error: null,
+                    });
+                }
             } catch (error) {
                 console.error('Failed to initialize Google Drive:', error);
                 setAuthState({
@@ -71,6 +80,8 @@ export function useGoogleDrive() {
 
     // Authenticate with Google Drive
     const authenticate = useCallback(async () => {
+        console.log('🚀 authenticate function called');
+
         if (!user || !profile?.organization_id) {
             throw new Error('User not authenticated');
         }
@@ -96,6 +107,41 @@ export function useGoogleDrive() {
             console.log('Current origin:', window.location.origin);
             console.log('Config from DB:', config);
 
+            // Generate a more robust state token
+            const state = `${Date.now()}-${Math.random().toString(36).substring(2)}-${profile.organization_id}`;
+
+            // Enhanced localStorage storage with error handling
+            try {
+                // Clear any existing state first
+                localStorage.removeItem('google_drive_auth_state');
+                localStorage.removeItem('google_drive_organization_id');
+
+                // Store new state
+                localStorage.setItem('google_drive_auth_state', state);
+                localStorage.setItem('google_drive_organization_id', profile.organization_id);
+
+                // Verify storage immediately
+                const verifyState = localStorage.getItem('google_drive_auth_state');
+                const verifyOrgId = localStorage.getItem('google_drive_organization_id');
+
+                if (verifyState !== state || verifyOrgId !== profile.organization_id) {
+                    throw new Error('localStorage verification failed');
+                }
+
+                console.log('✅ localStorage storage and verification successful');
+            } catch (error) {
+                console.error('❌ localStorage operation failed:', error);
+                throw new Error('localStorage not accessible or verification failed');
+            }
+
+            console.log('📝 OAuth State Storage Debug:');
+            console.log('Generated state:', state);
+            console.log('Organization ID:', profile.organization_id);
+            console.log('Stored state verification:', localStorage.getItem('google_drive_auth_state'));
+            console.log('Stored org ID verification:', localStorage.getItem('google_drive_organization_id'));
+            console.log('All localStorage keys:', Object.keys(localStorage));
+            console.log('localStorage length:', localStorage.length);
+
             const authUrl = `https://accounts.google.com/o/oauth2/v2/auth?${new URLSearchParams({
                 client_id: clientId,
                 redirect_uri: redirectUri,
@@ -103,17 +149,10 @@ export function useGoogleDrive() {
                 response_type: 'code',
                 access_type: 'offline',
                 prompt: 'consent',
+                state: state, // Add the state parameter to the URL
             })}`;
 
             console.log('🔗 Generated OAuth URL:', authUrl);
-
-            // Store state for verification
-            const state = Math.random().toString(36).substring(2);
-            sessionStorage.setItem('google_drive_auth_state', state);
-            sessionStorage.setItem('google_drive_organization_id', profile.organization_id);
-
-            console.log('📝 Stored state:', state);
-            console.log('📝 Stored org ID:', profile.organization_id);
 
             // Redirect to Google OAuth
             window.location.href = authUrl;
@@ -137,9 +176,9 @@ export function useGoogleDrive() {
         try {
             setAuthState(prev => ({ ...prev, isLoading: true, error: null }));
 
-            // Verify state
-            const storedState = sessionStorage.getItem('google_drive_auth_state');
-            const storedOrgId = sessionStorage.getItem('google_drive_organization_id');
+            // Verify state using localStorage instead of sessionStorage
+            const storedState = localStorage.getItem('google_drive_auth_state');
+            const storedOrgId = localStorage.getItem('google_drive_organization_id');
 
             console.log('🔍 State Verification Debug:');
             console.log('Received state:', state);
@@ -148,8 +187,16 @@ export function useGoogleDrive() {
             console.log('Stored org ID:', storedOrgId);
             console.log('State match:', state === storedState);
             console.log('Org ID match:', profile.organization_id === storedOrgId);
+            console.log('All localStorage keys:', Object.keys(localStorage));
+
+            // Temporarily disable state verification for debugging
+            if (!storedState) {
+                console.log('⚠️ No stored state found in localStorage');
+                throw new Error('No stored state found in localStorage');
+            }
 
             if (state !== storedState || profile.organization_id !== storedOrgId) {
+                console.log('⚠️ State or org ID mismatch');
                 throw new Error('Invalid authentication state');
             }
 
@@ -160,25 +207,53 @@ export function useGoogleDrive() {
             }
 
             // Exchange code for tokens using database configuration
+            console.log('🔍 Token Exchange Debug:');
+            console.log('Client ID:', config.client_id);
+            console.log('Client Secret:', config.client_secret ? '***SET***' : '***NOT SET***');
+            console.log('Client Secret Length:', config.client_secret ? config.client_secret.length : 0);
+            console.log('Code:', code);
+            console.log('Redirect URI:', config.redirect_uri);
+            console.log('Full Config:', JSON.stringify(config, null, 2));
+
+            const tokenRequestBody = new URLSearchParams({
+                client_id: config.client_id,
+                client_secret: config.client_secret,
+                code,
+                grant_type: 'authorization_code',
+                redirect_uri: config.redirect_uri,
+            });
+
+            console.log('🔍 Token Request Body:');
+            console.log('Client ID in request:', tokenRequestBody.get('client_id'));
+            console.log('Client Secret in request:', tokenRequestBody.get('client_secret') ? '***SET***' : '***NOT SET***');
+            console.log('Code in request:', tokenRequestBody.get('code'));
+            console.log('Redirect URI in request:', tokenRequestBody.get('redirect_uri'));
+
             const response = await fetch('https://oauth2.googleapis.com/token', {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/x-www-form-urlencoded',
                 },
-                body: new URLSearchParams({
-                    client_id: config.client_id,
-                    client_secret: config.client_secret,
-                    code,
-                    grant_type: 'authorization_code',
-                    redirect_uri: config.redirect_uri,
-                }),
+                body: tokenRequestBody,
             });
 
+            console.log('🔍 Token Exchange Response:');
+            console.log('Status:', response.status);
+            console.log('Status Text:', response.statusText);
+
             if (!response.ok) {
-                throw new Error('Failed to exchange authorization code');
+                const errorText = await response.text();
+                console.log('Error Response:', errorText);
+                throw new Error(`Failed to exchange authorization code: ${response.status} ${response.statusText}`);
             }
 
             const tokenResponse = await response.json();
+            console.log('✅ Token exchange successful:', {
+                access_token: tokenResponse.access_token ? '***SET***' : '***NOT SET***',
+                refresh_token: tokenResponse.refresh_token ? '***SET***' : '***NOT SET***',
+                expires_in: tokenResponse.expires_in,
+                scope: tokenResponse.scope
+            });
 
             // Store tokens
             const success = await googleDriveService.storeTokens(
@@ -191,9 +266,9 @@ export function useGoogleDrive() {
                 throw new Error('Failed to store authentication tokens');
             }
 
-            // Clean up session storage
-            sessionStorage.removeItem('google_drive_auth_state');
-            sessionStorage.removeItem('google_drive_organization_id');
+            // Clean up localStorage
+            localStorage.removeItem('google_drive_auth_state');
+            localStorage.removeItem('google_drive_organization_id');
 
             setAuthState({
                 isAuthenticated: true,

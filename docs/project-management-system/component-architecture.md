@@ -62,6 +62,138 @@ graph TB
     O --> P
 ```
 
+## Setup and Configuration Scripts
+
+### Google Drive Setup Script
+
+**Purpose**: Automated setup and configuration script for Google Drive integration
+
+**Location**: `scripts/setup-google-drive.js`
+
+**Status**: ✅ **Script implemented and integrated with npm scripts**
+
+**NPM Script**: `npm run setup:google-drive`
+
+**Script Features:**
+- **Environment Validation**: Validates required Supabase and Google Drive credentials
+- **Database Setup**: Checks for Google Drive integration tables and creates configuration
+- **Organization Integration**: Automatically detects and uses first available organization
+- **Configuration Management**: Creates or updates Google Drive config with current environment variables
+- **Comprehensive Validation**: Validates setup completion and provides next-step guidance
+
+**Prerequisites:**
+```bash
+# Required environment variables in .env.local
+VITE_SUPABASE_URL=your_supabase_url
+VITE_SUPABASE_SERVICE_ROLE_KEY=your_service_role_key
+VITE_GOOGLE_CLIENT_ID=your_google_client_id
+VITE_GOOGLE_CLIENT_SECRET=your_google_client_secret
+```
+
+**Database Schema (Updated 2025-09-03):**
+```sql
+-- Simplified Google Drive Configuration Table
+CREATE TABLE IF NOT EXISTS google_drive_config (
+    id UUID DEFAULT gen_random_uuid() PRIMARY KEY,
+    organization_id UUID NOT NULL,  -- Simplified: No foreign key constraint
+    client_id TEXT NOT NULL,
+    client_secret TEXT NOT NULL,
+    redirect_uri TEXT NOT NULL,
+    is_active BOOLEAN DEFAULT true,
+    created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
+    updated_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
+    -- Removed: created_by column and complex unique constraints
+);
+
+-- Simplified Google Drive Tokens Table
+CREATE TABLE IF NOT EXISTS google_drive_tokens (
+    id UUID DEFAULT gen_random_uuid() PRIMARY KEY,
+    user_id UUID NOT NULL,          -- Simplified: No foreign key constraint
+    organization_id UUID NOT NULL,  -- Simplified: No foreign key constraint
+    access_token TEXT NOT NULL,
+    refresh_token TEXT,
+    token_type TEXT DEFAULT 'Bearer',
+    expires_at TIMESTAMP WITH TIME ZONE NOT NULL,
+    scope TEXT,
+    created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
+    updated_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
+    UNIQUE(user_id, organization_id)  -- Maintained: Unique constraint
+);
+```
+
+**Schema Simplification Benefits:**
+- **Improved Compatibility**: Removes dependency on existing table structures
+- **Easier Setup**: Eliminates foreign key constraint errors during migration
+- **Maintained Security**: RLS policies handle access control instead of foreign key constraints
+- **Flexible Deployment**: Can be applied regardless of existing data state
+
+**Setup Process:**
+```typescript
+// 1. Environment validation
+if (!supabaseUrl || !supabaseServiceKey) {
+    console.error('❌ Missing Supabase configuration');
+    process.exit(1);
+}
+
+if (!googleClientId || !googleClientSecret) {
+    console.error('❌ Missing Google Drive configuration');
+    console.error('Get credentials from Google Cloud Console');
+    process.exit(1);
+}
+
+// 2. Database table validation (simplified schema)
+const { data: configTable, error: configError } = await supabase
+    .from('google_drive_config')
+    .select('count')
+    .limit(1);
+
+// 3. Organization detection and configuration
+const { data: orgs } = await supabase
+    .from('organizations')
+    .select('id, name')
+    .limit(1);
+
+// 4. Configuration creation or update (simplified insert)
+const { data: newConfig, error: insertError } = await supabase
+    .from('google_drive_config')
+    .insert({
+        organization_id: defaultOrg.id,
+        client_id: googleClientId,
+        client_secret: googleClientSecret,
+        redirect_uri: 'http://localhost:8080/auth/google/callback',
+        is_active: true
+    });
+```
+
+**Error Handling:**
+- **Missing Credentials**: Clear error messages with setup instructions
+- **Database Issues**: Guidance for running migrations if tables don't exist
+- **Configuration Conflicts**: Automatic detection and update of existing configurations
+- **Validation Failures**: Comprehensive error reporting with troubleshooting steps
+
+**Success Output:**
+```bash
+✅ Google Drive integration setup completed successfully!
+
+📋 Next steps:
+1. Make sure your Google Cloud Console OAuth settings include:
+   - Authorized redirect URI: http://localhost:8080/auth/google/callback
+   - Authorized JavaScript origins: http://localhost:8080
+2. Restart your development server: npm run dev
+3. Test the integration from the document management page
+```
+
+**Integration Points:**
+- **Google Drive Service**: Configures database for `googleDriveService` operations
+- **OAuth Flow**: Sets up redirect URI and client credentials for authentication
+- **Document Management**: Enables Google Drive integration in document upload/link features
+- **Organization System**: Integrates with existing organization-based multi-tenancy
+
+**Dependencies:**
+- **@supabase/supabase-js**: Database operations with service role authentication
+- **dotenv**: Environment variable loading from .env.local
+- **Node.js ES Modules**: Modern module system with file URL utilities
+
 ## Core Components
 
 ### ProjectDetailLayout Component
@@ -145,6 +277,115 @@ interface TabConfig {
 **Location**: `src/components/project/DocumentUploadZone.tsx`
 
 **Status**: ✅ **Fully implemented and integrated with document management system**
+
+### GoogleDriveTest Component
+
+**Purpose**: Comprehensive testing interface for Google Drive integration with admin tools and debugging capabilities
+
+**Location**: `src/pages/GoogleDriveTest.tsx`
+
+**Status**: ✅ **Component implemented and integrated with existing Google Drive system**
+
+**Component Features:**
+- **Integration Status Dashboard**: Real-time display of Google Drive connection status with visual indicators
+- **One-Click Authentication**: Direct Google Drive connection testing with error handling
+- **Admin Configuration Access**: Role-based access to GoogleDriveConfigPanel for system administrators
+- **Embedded Setup Instructions**: Quick setup guide with external resource links
+- **Debug Panel Integration**: Comprehensive debugging tools via GoogleDriveDebugPanel
+- **Resource Management**: Direct links to Google Cloud Console and API documentation
+
+**Component Interface:**
+```typescript
+// No props - standalone page component
+// Uses useAuth for role-based access control
+// Uses useGoogleDrive for authentication state management
+```
+
+**Key Features:**
+- **Status Monitoring**: Live connection status with color-coded indicators (Connected/Not Connected)
+- **Error Display**: Real-time error messages with troubleshooting context
+- **Admin Tools**: Conditional rendering of configuration panel based on user role
+- **External Integration**: Direct links to Google Cloud Console credentials page
+- **Documentation Links**: Embedded links to setup guides and API documentation
+
+**Integration Points:**
+- **GoogleDriveConfigPanel**: Admin-only configuration management interface
+- **GoogleDriveDebugPanel**: Comprehensive debugging and testing tools
+- **useGoogleDrive Hook**: Authentication state management and error handling
+- **useAuth Context**: Role-based access control for admin features
+
+**User Experience:**
+- **Visual Feedback**: Clear status indicators and loading states
+- **Error Handling**: Comprehensive error display with actionable guidance
+- **Resource Access**: Quick access to external documentation and tools
+- **Role-Based UI**: Different interface elements based on user permissions
+
+### GoogleDriveCallback Component
+
+**Purpose**: OAuth callback handler for Google Drive authentication with enhanced debugging capabilities
+
+**Location**: `src/pages/GoogleDriveCallback.tsx`
+
+**Status**: ✅ **Component implemented with enhanced debugging and error handling**
+
+**Component Features:**
+- **OAuth Callback Processing**: Handles Google Drive OAuth 2.0 authentication callback
+- **Enhanced State Debugging**: Comprehensive logging of authentication state variables
+- **Error Handling**: Graceful handling of authentication errors and edge cases
+- **localStorage Management**: Proper cleanup of OAuth state after processing
+- **User Experience**: Loading states and success/error feedback with automatic redirection
+
+**Recent Enhancements (2025-09-03):**
+- **Enhanced OAuth State Debugging**: Added comprehensive logging for troubleshooting authentication issues
+- **Improved Error Handling**: Prevents premature error states when user authentication is still loading
+- **localStorage Inspection**: Detailed debugging of OAuth state storage and retrieval with full localStorage enumeration
+- **Authentication Flow Coordination**: Better handling of user authentication timing to prevent race conditions
+
+**Component Interface:**
+```typescript
+// No props - uses URL search parameters and React Router
+// Handles OAuth callback automatically on mount
+// Manages authentication state internally
+```
+
+**Authentication Flow:**
+```typescript
+// 1. Wait for user authentication to complete
+if (authLoading || !user || !profile) return;
+
+// 2. Validate OAuth state from localStorage
+const storedState = localStorage.getItem('google_drive_auth_state');
+const storedOrgId = localStorage.getItem('google_drive_organization_id');
+
+// 3. Process OAuth callback with enhanced debugging
+const code = searchParams.get('code');
+const state = searchParams.get('state');
+await handleAuthCallback(code, state);
+
+// 4. Clean up OAuth state and redirect
+localStorage.removeItem('google_drive_auth_state');
+localStorage.removeItem('google_drive_organization_id');
+navigate(-1);
+```
+
+**Debugging Features:**
+- **Comprehensive Logging**: Detailed console output for OAuth state inspection
+- **localStorage Enumeration**: Full inspection of localStorage contents for debugging
+- **URL Parameter Logging**: Complete search parameter analysis
+- **Authentication State Tracking**: User and profile authentication status monitoring
+- **Error Context**: Detailed error information with troubleshooting guidance
+
+**Integration Points:**
+- **useGoogleDrive Hook**: OAuth callback processing and token management
+- **useAuth Context**: User authentication state and profile information
+- **React Router**: URL parameter handling and navigation
+- **localStorage**: OAuth state persistence and cleanup
+
+**Error Handling:**
+- **Authentication Timing**: Graceful handling of authentication loading states
+- **Missing State**: Clear error messages when OAuth state is not found
+- **Invalid Parameters**: Validation of OAuth callback parameters
+- **Network Errors**: Proper error handling for API failures
 
 **Component Features:**
 - **Drag-and-Drop Interface**: Full support for file dropping with visual feedback and hover states

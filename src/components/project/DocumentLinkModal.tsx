@@ -327,8 +327,8 @@ export const DocumentLinkModal: React.FC<DocumentLinkModalProps> = ({
 
                         {validationResult && (
                             <div className={`rounded-md p-3 ${validationResult.isValid
-                                    ? 'bg-green-50 border border-green-200'
-                                    : 'bg-red-50 border border-red-200'
+                                ? 'bg-green-50 border border-green-200'
+                                : 'bg-red-50 border border-red-200'
                                 }`}>
                                 <div className="flex items-center gap-2">
                                     {validationResult.isValid ? (
@@ -359,7 +359,16 @@ export const DocumentLinkModal: React.FC<DocumentLinkModalProps> = ({
                                 <p className="text-sm text-muted-foreground mb-4">
                                     Connect your Google Drive account to browse and select files
                                 </p>
-                                <Button onClick={authenticate}>
+                                <Button onClick={() => {
+                                    console.log('🔘 Connect Google Drive button clicked');
+                                    console.log('🔍 About to call authenticate() function');
+                                    try {
+                                        authenticate();
+                                        console.log('✅ authenticate() function called successfully');
+                                    } catch (error) {
+                                        console.error('❌ Error calling authenticate():', error);
+                                    }
+                                }}>
                                     <Cloud className="h-4 w-4 mr-2" />
                                     Connect Google Drive
                                 </Button>
@@ -397,8 +406,8 @@ export const DocumentLinkModal: React.FC<DocumentLinkModalProps> = ({
                                                 <div
                                                     key={file.id}
                                                     className={`p-3 rounded-md border cursor-pointer transition-colors ${selectedFile?.id === file.id
-                                                            ? 'border-primary bg-primary/5'
-                                                            : 'border-border hover:border-primary/50'
+                                                        ? 'border-primary bg-primary/5'
+                                                        : 'border-border hover:border-primary/50'
                                                         }`}
                                                     onClick={() => handleFileSelect(file)}
                                                 >

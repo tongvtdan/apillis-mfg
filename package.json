@@ -40,7 +40,8 @@
         "workflow:update-durations": "node scripts/update-workflow-stage-durations.js",
         "workflow:update-stage-duration": "node scripts/update-stage-duration.js",
         "delete:debug-projects": "node scripts/delete-debug-projects.cjs",
-        "delete:debug-projects:dry-run": "node scripts/delete-debug-projects.cjs --dry-run"
+        "delete:debug-projects:dry-run": "node scripts/delete-debug-projects.cjs --dry-run",
+        "setup:google-drive": "node scripts/setup-google-drive.js"
     },
     "dependencies": {
         "@supabase/supabase-js": "^2.39.0",
