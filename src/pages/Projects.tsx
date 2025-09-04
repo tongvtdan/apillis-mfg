@@ -6,11 +6,9 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { Modal } from "@/components/ui/modal";
 import { Plus } from "lucide-react";
 import { useProjects } from "@/hooks/useProjects";
 import { ProjectType, PROJECT_TYPE_LABELS, Project, WorkflowStage } from "@/types/project";
-import { ProjectIntakePortal } from "@/components/project/ProjectIntakePortal";
 
 import { useSearchParams, useNavigate } from "react-router-dom";
 import { CheckCircle2, Clock, AlertCircle, Calendar } from "lucide-react";
@@ -36,7 +34,6 @@ export default function Projects() {
   const [searchParams, setSearchParams] = useSearchParams();
   const navigate = useNavigate();
   const { toast } = useToast();
-  const [showNewProjectModal, setShowNewProjectModal] = React.useState(false);
 
   // Priority color function
   const getPriorityColor = (priority: string) => {
@@ -466,7 +463,7 @@ export default function Projects() {
             {/* New Project Button */}
             <div className="flex items-center">
               <Button
-                onClick={() => setShowNewProjectModal(true)}
+                onClick={() => navigate("/projects/new")}
                 className="bg-primary hover:bg-primary/90 text-primary-foreground"
                 disabled={isRetrying}
               >
@@ -713,25 +710,6 @@ export default function Projects() {
             </ProjectErrorBoundary>
           </TabsContent>
         </Tabs>
-
-        {/* New Project Modal */}
-        <Modal
-          isOpen={showNewProjectModal}
-          onClose={() => setShowNewProjectModal(false)}
-          title="Create New Project"
-          maxWidth="max-w-6xl"
-        >
-          <ProjectIntakePortal
-            onSuccess={(projectId) => {
-              setShowNewProjectModal(false);
-              toast({
-                title: "Project Created Successfully!",
-                description: `New project has been created with ID: ${projectId}`,
-              });
-              refetch(true);
-            }}
-          />
-        </Modal>
       </div>
     </ProjectErrorBoundary>
   );

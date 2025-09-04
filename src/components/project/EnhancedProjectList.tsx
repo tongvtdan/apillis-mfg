@@ -59,7 +59,6 @@ export function EnhancedProjectList({
     const { toast } = useToast();
     const [viewMode, setViewMode] = useState<'cards' | 'table'>('cards');
     const [showFilters, setShowFilters] = useState(false);
-    const [showCreateForm, setShowCreateForm] = useState(false);
 
     // Filter state
     const [filters, setFilters] = useState<FilterState>({
@@ -632,7 +631,7 @@ export function EnhancedProjectList({
                                     Clear Filters
                                 </Button>
                             )}
-                            <Button onClick={() => setShowCreateForm(true)}>
+                            <Button onClick={() => navigate("/projects/new")}>
                                 <Plus className="h-4 w-4 mr-2" />
                                 Create Project
                             </Button>

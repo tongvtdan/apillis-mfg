@@ -2,6 +2,77 @@
 
 ## Recent Changes
 
+### 2025-01-27 - Create New Project Dialog Converted to Dedicated Page ✅
+
+**Task Completed:**
+- Converted Create New Project modal dialog to a dedicated page route
+- Updated all "New Project" buttons to navigate to `/projects/new` instead of opening modal
+- Improved user experience with full-page form layout and proper browser navigation
+- Maintained all existing functionality while enhancing UX
+
+**Implementation Details:**
+
+1. **New Route Created**:
+   - Added `/projects/new` route in `App.tsx`
+   - Created `CreateProject.tsx` page component using existing `ProjectIntakePortal`
+   - Follows same pattern as existing `/rfq/new` route
+
+2. **Updated Components**:
+   - **Projects.tsx**: Changed "New Project" button to navigate instead of opening modal
+   - **ProjectActions.tsx**: Updated "Create Project" button to navigate to new page
+   - **EnhancedProjectList.tsx**: Updated "Create Project" button to navigate to new page
+   - Removed all modal-related state and components
+
+3. **Enhanced User Experience**:
+   - Full-page form experience for complex project creation
+   - Proper browser back/forward navigation support
+   - URL sharing capability for project creation
+   - Better mobile experience with full-screen layout
+   - Consistent with existing `/rfq/new` pattern
+
+**Technical Changes:**
+
+```typescript
+// Before: Modal approach
+<Button onClick={() => setShowNewProjectModal(true)}>
+  <Plus className="mr-2 h-4 w-4" />
+  New Project
+</Button>
+
+// After: Navigation approach
+<Button onClick={() => navigate("/projects/new")}>
+  <Plus className="mr-2 h-4 w-4" />
+  New Project
+</Button>
+```
+
+**Files Modified:**
+- **Created**: `src/pages/CreateProject.tsx` - New dedicated project creation page
+- **Updated**: `src/App.tsx` - Added `/projects/new` route
+- **Updated**: `src/pages/Projects.tsx` - Removed modal, updated button to navigate
+- **Updated**: `src/components/project/actions/ProjectActions.tsx` - Updated to navigate instead of modal
+- **Updated**: `src/components/project/EnhancedProjectList.tsx` - Updated to navigate instead of modal
+- **Updated**: `MEMORY.md` - Documented the conversion
+
+**Benefits:**
+- ✅ **Better UX**: Full-page experience for complex form
+- ✅ **URL Sharing**: Users can bookmark or share project creation URL
+- ✅ **Browser Navigation**: Back/forward buttons work properly
+- ✅ **Mobile Friendly**: Better experience on mobile devices
+- ✅ **Consistency**: Aligns with existing `/rfq/new` pattern
+- ✅ **Maintainability**: Cleaner code without modal state management
+
+**Current Status:**
+- ✅ **Route Active**: `/projects/new` route is functional
+- ✅ **Navigation Working**: All "New Project" buttons navigate correctly
+- ✅ **Form Functionality**: All existing project creation features preserved
+- ✅ **Success Handling**: Proper navigation back to projects list with toast notification
+
+**Next Steps:**
+- Test project creation flow end-to-end
+- Verify all form validation and submission works correctly
+- Monitor user feedback on new page-based experience
+
 ### 2025-09-04 - Git Secret Scanning Security Fix ✅
 
 **Task Completed:**

@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { Plus, Edit, MoreHorizontal, Trash2, Copy, Archive, Share } from 'lucide-react';
 import {
@@ -10,10 +11,8 @@ import {
 } from '@/components/ui/dropdown-menu';
 import { useToast } from '@/hooks/use-toast';
 import { Project } from '@/types/project';
-import { ProjectIntakePortal } from '../ProjectIntakePortal';
 import { EditProjectModal } from '../EditProjectModal';
 import { useProjects } from '@/hooks/useProjects';
-import { Modal } from '@/components/ui/modal';
 
 interface ProjectActionsProps {
     // For creating new projects
@@ -49,20 +48,10 @@ export function ProjectActions({
     showMoreActions = true,
     className = ''
 }: ProjectActionsProps) {
-    const [showCreateModal, setShowCreateModal] = useState(false);
     const [showEditModal, setShowEditModal] = useState(false);
     const { toast } = useToast();
     const { updateProject, deleteProject } = useProjects();
-
-    // Handle project creation
-    const handleCreateProject = (newProject: Project) => {
-        onCreateProject?.(newProject);
-        setShowCreateModal(false);
-        toast({
-            title: "Project Created",
-            description: `Project "${newProject.title}" has been created successfully.`,
-        });
-    };
+    const navigate = useNavigate();
 
     // Handle project update
     const handleUpdateProject = (updatedProject: Project) => {
@@ -169,7 +158,7 @@ export function ProjectActions({
             {/* Create Project Button */}
             {showCreateButton && (
                 <Button
-                    onClick={() => setShowCreateModal(true)}
+                    onClick={() => navigate("/projects/new")}
                     variant={variant}
                     size={size}
                     className="flex items-center gap-2"
@@ -244,21 +233,6 @@ export function ProjectActions({
                     </DropdownMenuContent>
                 </DropdownMenu>
             )}
-
-            {/* Create Project Modal */}
-            <Modal
-                isOpen={showCreateModal}
-                onClose={() => setShowCreateModal(false)}
-                title="Create New Project"
-                maxWidth="max-w-6xl"
-            >
-                <ProjectIntakePortal
-                    onSuccess={(projectId) => {
-                        setShowCreateModal(false);
-                        handleCreateProject({ project_id: projectId });
-                    }}
-                />
-            </Modal>
 
             {/* Edit Project Modal */}
             {project && (
