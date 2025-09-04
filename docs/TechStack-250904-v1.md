@@ -49,7 +49,8 @@ Factory Pulse is a comprehensive manufacturing project management application bu
   - API Port: 54321
   - Database Port: 54322
   - Studio Port: 54323
-  - Storage enabled with 50MB file limit
+  - Storage enabled with 10MB file limit (default setting)
+  - Google Drive integration moved to `src/integrations/google-services/` for future implementation
 
 ## Project Architecture
 

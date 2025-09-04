@@ -27,9 +27,9 @@ import {
     Clock
 } from 'lucide-react';
 import { useDocuments } from '@/hooks/useDocuments';
-import { validateDocumentLink } from '@/lib/googleDriveUtils';
+import { validateDocumentLink } from '@/integrations/google-services';
 import { toast } from 'sonner';
-import type { DocumentLinkData } from '@/types/googleDrive';
+import type { DocumentLinkData } from '@/integrations/google-services';
 
 interface DocumentLinkModalProps {
     projectId: string;

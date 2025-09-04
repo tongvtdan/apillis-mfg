@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
 import { toast } from 'sonner';
-import type { DocumentLinkData } from '@/types/googleDrive';
+import type { DocumentLinkData } from '@/integrations/google-services';
 
 // Helper function to convert MIME types to shorter file type identifiers
 const getFileTypeFromMimeType = (mimeType: string): string => {

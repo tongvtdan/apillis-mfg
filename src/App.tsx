@@ -26,8 +26,6 @@ import NewRFQ from "./pages/NewRFQ";
 import Settings from "./pages/Settings";
 import Profile from "./pages/Profile";
 import Approvals from "./pages/Approvals";
-import { GoogleDriveCallback } from "./pages/GoogleDriveCallback";
-import { GoogleDriveTest } from "./pages/GoogleDriveTest";
 
 import { applyAdaptiveTheme } from "@/lib/theme";
 import "@/styles/smooth-transitions.css";
@@ -37,8 +35,6 @@ console.log('🔍 Environment Variables Debug:');
 console.log('VITE_SUPABASE_URL:', import.meta.env.VITE_SUPABASE_URL);
 console.log('VITE_SUPABASE_ANON_KEY:', import.meta.env.VITE_SUPABASE_ANON_KEY);
 console.log('SUPABASE_URL (fallback):', import.meta.env.SUPABASE_URL);
-console.log('VITE_GOOGLE_CLIENT_ID:', import.meta.env.VITE_GOOGLE_CLIENT_ID);
-console.log('VITE_GOOGLE_CLIENT_SECRET:', import.meta.env.VITE_GOOGLE_CLIENT_SECRET ? '***SET***' : '***NOT SET***');
 console.log('All VITE_ variables:', Object.keys(import.meta.env).filter(key => key.startsWith('VITE_')));
 console.log('NODE_ENV:', import.meta.env.NODE_ENV);
 console.log('MODE:', import.meta.env.MODE);
@@ -154,25 +150,6 @@ const App = () => {
               <ProtectedRoute>
                 <AppLayout><NewRFQ /></AppLayout>
               </ProtectedRoute>
-            } />
-
-            {/* Google Drive OAuth Callback - matches redirect URI */}
-            <Route path="/auth/google/callback" element={<GoogleDriveCallback />} />
-
-            {/* Google Drive Test Page */}
-            <Route path="/test/google-drive" element={
-              <ProtectedRoute>
-                <AppLayout><GoogleDriveTest /></AppLayout>
-              </ProtectedRoute>
-            } />
-
-            {/* Debug route for OAuth callback */}
-            <Route path="/auth/google-drive/debug" element={
-              <div className="p-6">
-                <h1>OAuth Debug</h1>
-                <pre>{JSON.stringify(Object.fromEntries(new URLSearchParams(window.location.search)), null, 2)}</pre>
-                <p>URL: {window.location.href}</p>
-              </div>
             } />
 
             {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
