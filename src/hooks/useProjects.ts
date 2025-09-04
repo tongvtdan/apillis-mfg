@@ -346,7 +346,7 @@ export function useProjects() {
       console.log('🔔 useProjects: Unsubscribing from real-time manager');
       unsubscribe();
     };
-  }, [user?.id, profile?.organization_id]); // Use specific properties instead of entire objects to prevent unnecessary re-runs
+  }, [user?.id, profile?.organization_id, fetchProjects]); // Add fetchProjects dependency
 
   // Get project by ID
   const getProjectById = async (id: string): Promise<Project | null> => {

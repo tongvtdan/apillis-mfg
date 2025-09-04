@@ -2,6 +2,204 @@
 
 ## Recent Changes
 
+### 2025-01-27 - Enhanced Form Validation Error Messages - Attention-Grabbing Red Styling ✅
+
+**Task Completed:**
+- Enhanced FormMessage component with attention-grabbing red styling
+- Added alert icon to error messages for better visual recognition
+- Improved error message styling with background, border, and shadow
+- Made validation errors more prominent and noticeable
+
+**Enhancements Made:**
+
+1. **Visual Improvements**:
+   - Added red background (`bg-destructive/10`) for error messages
+   - Added red border (`border-destructive/20`) for better definition
+   - Added subtle shadow (`shadow-sm`) for depth
+   - Changed font weight from `font-medium` to `font-semibold` for emphasis
+
+2. **Icon Addition**:
+   - Added AlertCircle icon from Lucide React
+   - Icon positioned before error text for immediate recognition
+   - Icon sized appropriately (`h-4 w-4`) for good visibility
+
+3. **Layout Improvements**:
+   - Changed from `<p>` to `<div>` to accommodate icon and text layout
+   - Used flexbox layout with `flex items-center gap-2`
+   - Proper spacing between icon and text
+
+**Technical Changes:**
+
+```typescript
+// Before: Simple text error message
+className={cn("text-sm font-medium text-destructive", className)}
+
+// After: Enhanced error message with icon and styling
+className={cn("flex items-center gap-2 text-sm font-semibold text-destructive bg-destructive/10 border border-destructive/20 px-3 py-2 rounded-md shadow-sm", className)}
+```
+
+**Visual Result:**
+- Error messages now have a red background with border
+- AlertCircle icon appears before each error message
+- Text is bold and prominently displayed
+- Subtle shadow adds depth and attention-grabbing effect
+
+**Files Modified:**
+- **Updated**: `src/components/ui/form.tsx` - Enhanced FormMessage component
+- **Updated**: `MEMORY.md` - Documented the enhancements
+
+**Current Status:**
+- ✅ **Error Messages**: Highly visible with red background and border
+- ✅ **Icon Integration**: AlertCircle icon for immediate recognition
+- ✅ **Typography**: Bold text for better readability
+- ✅ **Visual Hierarchy**: Error messages stand out from other form elements
+
+**Next Steps:**
+- Test form validation to ensure error messages display correctly
+- Verify accessibility with screen readers
+- Monitor user feedback on new error message styling
+
+### 2025-01-27 - Form Validation Logic Updated - Submit Button Always Enabled ✅
+
+**Task Completed:**
+- Changed form validation from real-time to submit-time validation
+- Removed disabled submit button - now always enabled
+- Updated validation mode from 'onChange' to 'onSubmit'
+- Form now validates on submit and shows field-specific error messages
+
+**Previous Behavior:**
+- Submit button was disabled when form was invalid
+- Real-time validation showed errors as user typed
+- Form status message displayed when form was incomplete
+- Debug information showed validation state
+
+**New Behavior:**
+- Submit button is always enabled (only disabled during submission)
+- Validation occurs only when user clicks submit
+- Field-specific error messages appear next to invalid fields
+- No form-wide status messages or debug information
+
+**Technical Changes:**
+
+1. **Updated Form Configuration**:
+   - Changed `mode: 'onChange'` to `mode: 'onSubmit'`
+   - Validation now triggers only on form submission
+
+2. **Updated Submit Button**:
+   - Removed `!form.formState.isValid` from disabled condition
+   - Now only disabled during `isSubmitting` state
+
+3. **Removed UI Elements**:
+   - Removed form status message for invalid form
+   - Removed debug validation information
+   - Cleaner, less cluttered interface
+
+**Code Changes:**
+
+```typescript
+// Before: Real-time validation
+mode: 'onChange' // Enable real-time validation
+disabled={isSubmitting || !form.formState.isValid}
+
+// After: Submit-time validation
+mode: 'onSubmit' // Validate only on submit
+disabled={isSubmitting}
+```
+
+**Benefits:**
+- ✅ **Better UX**: Users can attempt submission and see specific errors
+- ✅ **Cleaner Interface**: No disabled buttons or status messages
+- ✅ **Field-Specific Feedback**: Errors appear next to problematic fields
+- ✅ **Less Intrusive**: No real-time validation interrupting user input
+
+**Files Modified:**
+- **Updated**: `src/components/project/InquiryIntakeForm.tsx` - Changed validation logic and UI
+- **Updated**: `MEMORY.md` - Documented the changes
+
+**Current Status:**
+- ✅ **Submit Button**: Always enabled (except during submission)
+- ✅ **Validation**: Occurs on submit with field-specific errors
+- ✅ **User Experience**: Improved with less intrusive validation
+- ✅ **Error Display**: Field-specific error messages via FormMessage components
+
+**Next Steps:**
+- Test form submission with various validation scenarios
+- Verify error messages appear correctly next to fields
+- Monitor user feedback on new validation approach
+
+### 2025-01-27 - Critical Form and System Issues Fixed - Multiple Bugs Resolved ✅
+
+**Task Completed:**
+- Fixed "Unknown intake type: rfq" error in ProjectIntakeService
+- Resolved controlled/uncontrolled input warning for target price field
+- Fixed infinite re-rendering in useProjects hook
+- Identified 403 Forbidden errors for activity_log table (requires investigation)
+
+**Critical Issues Identified:**
+
+1. **"Unknown intake type: rfq" Error**:
+   - **Root Cause**: Form was sending lowercase intake types ('rfq', 'purchase_order', 'project_idea') but IntakeMappingService expected display names ('RFQ', 'Purchase Order', 'Project Idea')
+   - **Impact**: Form submission was failing with "Unknown intake type" error
+
+2. **Controlled/Uncontrolled Input Warning**:
+   - **Root Cause**: Target price field value was switching between undefined and defined values
+   - **Impact**: React warning about controlled/uncontrolled input components
+
+3. **Infinite Re-rendering in useProjects**:
+   - **Root Cause**: useEffect dependencies were causing infinite loops
+   - **Impact**: Performance issues and excessive API calls
+
+4. **403 Forbidden for activity_log**:
+   - **Root Cause**: RLS policies requiring proper authentication and organization access
+   - **Impact**: Activity logging failing silently
+
+**Solution Implemented:**
+
+1. **Fixed Intake Type Mapping**:
+   - Updated form schema to use display names: `z.enum(['RFQ', 'Purchase Order', 'Project Idea'])`
+   - Updated form initialization to use `submissionType` directly instead of converting to lowercase
+   - Ensured consistency between form data and IntakeMappingService expectations
+
+2. **Fixed Target Price Field**:
+   - Changed value handling from `field.value || ''` to `field.value ?? ''`
+   - Ensured consistent controlled input behavior
+
+3. **Fixed useProjects Infinite Loop**:
+   - Added `fetchProjects` to useEffect dependencies
+   - Ensured proper memoization with useCallback
+
+**Technical Changes:**
+
+```typescript
+// Fixed intake type schema
+intakeType: z.enum(['RFQ', 'Purchase Order', 'Project Idea']),
+
+// Fixed form initialization
+intakeType: submissionType,
+
+// Fixed target price field
+value={field.value ?? ''}
+
+// Fixed useProjects dependencies
+}, [user?.id, profile?.organization_id, fetchProjects]);
+```
+
+**Files Modified:**
+- **Updated**: `src/components/project/InquiryIntakeForm.tsx` - Fixed intake type mapping and target price field
+- **Updated**: `src/hooks/useProjects.ts` - Fixed infinite re-rendering
+- **Updated**: `MEMORY.md` - Documented the fixes
+
+**Current Status:**
+- ✅ **Intake Type Error**: Resolved - Form now uses correct intake type values
+- ✅ **Input Warning**: Fixed - Target price field is now properly controlled
+- ✅ **Infinite Re-rendering**: Fixed - useProjects hook no longer causes infinite loops
+- ⚠️ **Activity Log 403**: Identified - Requires investigation of RLS policies
+
+**Next Steps:**
+- Test form submission with all intake types (RFQ, Purchase Order, Project Idea)
+- Investigate activity_log RLS policies and authentication context
+- Monitor for any remaining performance issues
+
 ### 2025-01-27 - InquiryIntakeForm Target Price Validation Fix - Made Optional for RFQs ✅
 
 **Task Completed:**

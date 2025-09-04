@@ -43,7 +43,7 @@ const intakeFormSchema = z.object({
     userRole: z.enum(['customer', 'sales_rep']),
 
     // Intake type
-    intakeType: z.enum(['rfq', 'purchase_order', 'project_idea']),
+    intakeType: z.enum(['RFQ', 'Purchase Order', 'Project Idea']),
 
     // Project details
     projectTitle: z.string().min(3, 'Project title must be at least 3 characters').max(100, 'Project title must be less than 100 characters'),
@@ -131,8 +131,7 @@ export function InquiryIntakeForm({ submissionType, onSuccess }: InquiryIntakeFo
         resolver: zodResolver(intakeFormSchema),
         defaultValues: {
             userRole: 'customer',
-            intakeType: submissionType === 'RFQ' ? 'rfq' :
-                submissionType === 'Purchase Order' ? 'purchase_order' : 'project_idea',
+            intakeType: submissionType,
             volumes: [{ quantity: 1000, unit: 'pcs', frequency: 'per year' }],
             documents: [],
             agreedToTerms: false, // Changed to false - user must explicitly agree
@@ -146,7 +145,7 @@ export function InquiryIntakeForm({ submissionType, onSuccess }: InquiryIntakeFo
             email: '',
             country: ''
         },
-        mode: 'onChange' // Enable real-time validation
+        mode: 'onSubmit' // Validate only on submit
     });
 
     const { fields: volumeFields, append: appendVolume, remove: removeVolume } = useFieldArray({
@@ -709,7 +708,7 @@ export function InquiryIntakeForm({ submissionType, onSuccess }: InquiryIntakeFo
                                                     step="0.01"
                                                     placeholder="8.50"
                                                     {...field}
-                                                    value={field.value || ''}
+                                                    value={field.value ?? ''}
                                                     onChange={(e) => field.onChange(e.target.value)}
                                                 />
                                             </FormControl>
@@ -1250,32 +1249,13 @@ export function InquiryIntakeForm({ submissionType, onSuccess }: InquiryIntakeFo
 
                         {/* Submit Button */}
                         <div className="flex justify-end gap-4">
-                            {/* Debug: Show validation state */}
-                            {process.env.NODE_ENV === 'development' && (
-                                <div className="text-xs text-muted-foreground mr-auto">
-                                    <div className="mb-2">
-                                        <strong>Form Status:</strong> {form.formState.isValid ? '✅ Valid' : '❌ Invalid'} |
-                                        <strong>Errors:</strong> {Object.keys(form.formState.errors).length}
-                                    </div>
-                                    {Object.keys(form.formState.errors).length > 0 && (
-                                        <div className="mt-1 p-2 bg-red-50 border border-red-200 rounded">
-                                            <strong className="text-red-700">Validation Errors:</strong>
-                                            {Object.entries(form.formState.errors).map(([field, error]) => (
-                                                <div key={field} className="text-red-600 text-xs">
-                                                    • {field}: {error?.message}
-                                                </div>
-                                            ))}
-                                        </div>
-                                    )}
-                                </div>
-                            )}
                             <Button type="button" variant="outline">
                                 Save as Draft
                             </Button>
                             <Button
                                 type="submit"
                                 size="lg"
-                                disabled={isSubmitting || !form.formState.isValid}
+                                disabled={isSubmitting}
                                 className="min-w-[200px]"
                             >
                                 {isSubmitting ? (
@@ -1288,15 +1268,6 @@ export function InquiryIntakeForm({ submissionType, onSuccess }: InquiryIntakeFo
                                 )}
                             </Button>
                         </div>
-
-                        {/* Form Status Message */}
-                        {!form.formState.isValid && (
-                            <div className="text-center p-4 bg-amber-50 border border-amber-200 rounded-lg">
-                                <p className="text-sm text-amber-700">
-                                    <strong>Form not ready:</strong> Please complete all required fields marked with * to enable submission.
-                                </p>
-                            </div>
-                        )}
                     </form>
 
                     {/* Customer Modal for creating new customers */}
