@@ -109,7 +109,7 @@ export function useErrorHandling(options: ErrorHandlingOptions = {}) {
 
             toast.error('Operation Failed', {
                 description: userFriendlyMessage,
-                action: errorState.retryCount < maxRetries ? {
+                action: prev.retryCount < maxRetries ? {
                     label: 'Retry',
                     onClick: () => retry()
                 } : undefined
@@ -120,7 +120,7 @@ export function useErrorHandling(options: ErrorHandlingOptions = {}) {
         if (onError) {
             onError(errorObj, finalContext);
         }
-    }, [context, logError, showToast, maxRetries, onError, generateErrorId, errorState.retryCount]);
+    }, [context, logError, showToast, maxRetries, onError, generateErrorId]);
 
     // Retry mechanism with exponential backoff
     const retry = useCallback(async (

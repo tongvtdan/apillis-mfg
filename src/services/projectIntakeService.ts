@@ -1,4 +1,4 @@
-import { Project, ProjectType, IntakeType, IntakeSource, VolumeData } from '@/types/project';
+import { Project, ProjectType, IntakeType, IntakeSource } from '@/types/project';
 import { IntakeMappingService } from '@/services/intakeMappingService';
 import { IntakeWorkflowService } from '@/services/intakeWorkflowService';
 import { useProjects } from '@/hooks/useProjects';
@@ -17,10 +17,6 @@ export interface ProjectIntakeData {
     tags?: string[];
     intake_type: string;
     intake_source?: IntakeSource;
-    volume?: VolumeData[];
-    target_price_per_unit?: number;
-    project_reference?: string;
-    desired_delivery_date?: string;
 }
 
 export class ProjectIntakeService {
@@ -74,11 +70,7 @@ export class ProjectIntakeService {
                 intake_type: mapping.intakeType,
                 intake_source: intakeData.intake_source || 'portal',
                 project_type: projectType,
-                current_stage_id: stageId,
-                volume: intakeData.volume,
-                target_price_per_unit: intakeData.target_price_per_unit,
-                project_reference: intakeData.project_reference,
-                desired_delivery_date: intakeData.desired_delivery_date
+                current_stage_id: stageId
             });
 
             return project;

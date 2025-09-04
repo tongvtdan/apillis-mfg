@@ -2,38 +2,6 @@
 
 ## Current Sprint
 
-- [WIP] 2025-09-04 - Project Intake Portal Enhancement Based on Wireframe Requirements
-  - [x] **Database Schema Updates**:
-    - [x] Add `inquiry` to intake_type enum (current: rfq, purchase_order, project_idea, direct_request)
-    - [x] Add volume/quantity fields to projects table (JSONB for multi-tier volumes)
-    - [x] Add target_price_per_unit field to projects table
-    - [x] Add project_reference field for PO types
-    - [x] Update intake_type enum to match wireframe: inquiry, rfq, po, design_idea
-  - [x] **Enhanced Intake Form**:
-    - [x] Replace InquiryIntakeForm with comprehensive form matching wireframe
-    - [x] Add volume/quantity fields with units and frequency selection
-    - [x] Add target price per unit field
-    - [x] Add project reference field (conditional for PO type)
-    - [x] Add file upload with drag & drop support
-    - [x] Add external link input for cloud storage
-    - [x] Add country selection dropdown
-    - [x] Add role-based form behavior (Customer vs Sales Rep)
-    - [x] Add terms & conditions acceptance
-    - [x] Implement proper Zod validation schema
-  - [ ] **UI/UX Improvements**:
-    - [ ] Add file upload zone with preview
-    - [ ] Add link validation for external storage
-    - [ ] Add form progress indicators
-    - [ ] Add save as draft functionality
-    - [ ] Add proper error handling and user feedback
-    - [ ] Add responsive design for mobile devices
-  - [ ] **Integration Updates**:
-    - [ ] Update ProjectIntakeService to handle new fields
-    - [ ] Update intake mapping for new intake types
-    - [ ] Update workflow routing for new project types
-    - [ ] Add document upload/link handling
-    - [ ] Add email confirmation system
-
 - [done] 2025-09-03 - User Name Display RLS Policy Fix ✅
   - ✅ Fixed RLS (Row Level Security) policies that were preventing user name display in project lists
   - ✅ Modified users table policy to allow reading user names for display purposes even without authentication
@@ -199,7 +167,7 @@
   - ✅ Created IntakeMappingService with comprehensive intake type to project type mapping
   - ✅ Implemented IntakeWorkflowService for proper stage routing
   - ✅ Created ProjectIntakeService for unified project creation from intake data
-  - ✅ Replaced complex ProjectIntakeForm with InquiryIntakeForm
+  - ✅ Replaced complex ProjectIntakeForm with SimplifiedIntakeForm
   - ✅ Updated ProjectIntakePortal to use new simplified form
   - ✅ Enhanced useProjects hook with new intake fields
   - ✅ Updated TypeScript types and Supabase type definitions

@@ -10,15 +10,15 @@ import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Separator } from '@/components/ui/separator';
-import { Calendar, Building2, User, DollarSign, AlertCircle, CheckCircle2, Loader2, Edit, X } from 'lucide-react';
+import { Calendar, Building2, User, DollarSign, AlertCircle, CheckCircle2, Loader2, Plus, X } from 'lucide-react';
 import { ProjectType, ProjectPriority, PROJECT_TYPE_LABELS, PROJECT_TYPE_DESCRIPTIONS } from '@/types/project';
 import { useToast } from '@/hooks/use-toast';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
 import { Project } from '@/types/project';
 
-// Enhanced validation schema for project editing
-const projectEditSchema = z.object({
+// Enhanced validation schema for project creation
+const projectCreationSchema = z.object({
     // Project Information
     title: z.string()
         .min(3, 'Project title must be at least 3 characters')
@@ -27,11 +27,17 @@ const projectEditSchema = z.object({
         .max(1000, 'Description must be less than 1000 characters')
         .optional(),
     project_type: z.enum(['system_build', 'fabrication', 'manufacturing']),
-    priority_level: z.enum(['low', 'medium', 'high', 'critical']),
-    status: z.enum(['active', 'on_hold', 'cancelled', 'completed']),
+    priority_level: z.enum(['low', 'medium', 'high', 'critical']).default('medium'),
 
     // Customer Information
-    customer_id: z.string().optional(),
+    customer_type: z.enum(['existing', 'new']),
+    existing_customer_id: z.string().optional(),
+
+    // New customer fields (only required if customer_type is 'new')
+    company_name: z.string().optional(),
+    contact_name: z.string().optional(),
+    contact_email: z.string().email('Invalid email address').optional().or(z.literal('')),
+    contact_phone: z.string().optional(),
 
     // Project Details
     estimated_value: z.string()
@@ -43,13 +49,25 @@ const projectEditSchema = z.object({
     // Additional Information
     tags: z.string().optional(),
     notes: z.string().max(500, 'Notes must be less than 500 characters').optional(),
+}).refine(data => {
+    // If customer_type is 'existing', existing_customer_id is required
+    if (data.customer_type === 'existing') {
+        return !!data.existing_customer_id;
+    }
+    // If customer_type is 'new', company_name and contact_name are required
+    if (data.customer_type === 'new') {
+        return !!data.company_name && !!data.contact_name;
+    }
+    return true;
+}, {
+    message: "Please provide required customer information",
+    path: ["customer_type"]
 });
 
-type ProjectEditFormData = z.infer<typeof projectEditSchema>;
+type ProjectCreationFormData = z.infer<typeof projectCreationSchema>;
 
-interface EditProjectActionProps {
-    project: Project;
-    onProjectUpdated?: (project: Project) => void;
+interface AddProjectActionProps {
+    onProjectCreated?: (project: Project) => void;
     variant?: 'default' | 'outline' | 'ghost';
     size?: 'sm' | 'md' | 'lg';
     className?: string;
@@ -57,45 +75,52 @@ interface EditProjectActionProps {
     children?: React.ReactNode;
 }
 
-export function EditProjectAction({
-    project,
-    onProjectUpdated,
-    variant = 'outline',
+export function AddProjectAction({
+    onProjectCreated,
+    variant = 'default',
     size = 'md',
     className = '',
     showIcon = true,
     children
-}: EditProjectActionProps) {
+}: AddProjectActionProps) {
     const [isOpen, setIsOpen] = useState(false);
     const [isSubmitting, setIsSubmitting] = useState(false);
+    const [generatedProjectId, setGeneratedProjectId] = useState<string>('');
     const [existingCustomers, setExistingCustomers] = useState<any[]>([]);
     const [loadingCustomers, setLoadingCustomers] = useState(false);
 
     const { toast } = useToast();
     const { user, profile } = useAuth();
 
-    const form = useForm<ProjectEditFormData>({
-        resolver: zodResolver(projectEditSchema),
+    const form = useForm<ProjectCreationFormData>({
+        resolver: zodResolver(projectCreationSchema),
         defaultValues: {
-            title: project.title || '',
-            description: project.description || '',
-            project_type: project.project_type || 'fabrication',
-            priority_level: project.priority_level || 'medium',
-            status: project.status || 'active',
-            customer_id: project.customer_id || '',
-            estimated_value: project.estimated_value?.toString() || '',
-            estimated_delivery_date: project.estimated_delivery_date || '',
-            tags: project.tags?.join(', ') || '',
-            notes: project.notes || '',
+            priority_level: 'medium',
+            customer_type: 'new',
+            project_type: 'fabrication'
         }
     });
 
-    // Load existing customers when modal opens
+    const customerType = form.watch('customer_type');
+
+    // Generate project ID when modal opens
     useEffect(() => {
         if (isOpen) {
+            generateProjectId();
             loadExistingCustomers();
         }
     }, [isOpen]);
+
+    // Generate unique project ID
+    const generateProjectId = async () => {
+        const now = new Date();
+        const year = now.getFullYear();
+        const month = String(now.getMonth() + 1).padStart(2, '0');
+        const day = String(now.getDate()).padStart(2, '0');
+        const sequence = String(Math.floor(Math.random() * 100)).padStart(2, '0');
+        const projectId = `P-${year}${month}${day}${sequence}`;
+        setGeneratedProjectId(projectId);
+    };
 
     // Load existing customers
     const loadExistingCustomers = async () => {
@@ -126,12 +151,12 @@ export function EditProjectAction({
     };
 
     // Handle form submission
-    const onSubmit = async (data: ProjectEditFormData) => {
+    const onSubmit = async (data: ProjectCreationFormData) => {
         if (!user || !profile?.organization_id) {
             toast({
                 variant: "destructive",
                 title: "Authentication Error",
-                description: "You must be logged in to edit projects.",
+                description: "You must be logged in to create projects.",
             });
             return;
         }
@@ -139,25 +164,55 @@ export function EditProjectAction({
         setIsSubmitting(true);
 
         try {
-            // Prepare update data
-            const updateData = {
+            let customerId: string;
+
+            // Handle customer creation or selection
+            if (data.customer_type === 'new') {
+                // Create new customer
+                const { data: newCustomer, error: customerError } = await supabase
+                    .from('contacts')
+                    .insert({
+                        organization_id: profile.organization_id,
+                        type: 'customer',
+                        company_name: data.company_name!,
+                        contact_name: data.contact_name!,
+                        email: data.contact_email || null,
+                        phone: data.contact_phone || null,
+                        is_active: true,
+                        created_by: user.id
+                    })
+                    .select()
+                    .single();
+
+                if (customerError) throw customerError;
+                customerId = newCustomer.id;
+            } else {
+                // Use existing customer
+                customerId = data.existing_customer_id!;
+            }
+
+            // Create project
+            const projectData = {
+                organization_id: profile.organization_id,
+                project_id: generatedProjectId,
                 title: data.title,
                 description: data.description || null,
                 project_type: data.project_type,
                 priority_level: data.priority_level,
-                status: data.status,
-                customer_id: data.customer_id || null,
+                customer_id: customerId,
                 estimated_value: data.estimated_value || null,
                 estimated_delivery_date: data.estimated_delivery_date || null,
+                status: 'active' as const,
+                source: 'manual',
+                created_by: user.id,
                 tags: data.tags ? data.tags.split(',').map(tag => tag.trim()).filter(Boolean) : [],
                 notes: data.notes || null,
-                updated_at: new Date().toISOString()
+                stage_entered_at: new Date().toISOString()
             };
 
-            const { data: updatedProject, error: projectError } = await supabase
+            const { data: newProject, error: projectError } = await supabase
                 .from('projects')
-                .update(updateData)
-                .eq('id', project.id)
+                .insert(projectData)
                 .select(`
                     *,
                     customer:contacts(*),
@@ -168,25 +223,26 @@ export function EditProjectAction({
             if (projectError) throw projectError;
 
             toast({
-                title: "Project Updated",
-                description: `Project "${data.title}" has been updated successfully.`,
+                title: "Project Created",
+                description: `Project ${generatedProjectId} has been created successfully.`,
             });
 
-            // Close modal
+            // Reset form and close modal
+            form.reset();
             setIsOpen(false);
 
             // Notify parent component
-            if (onProjectUpdated) {
-                onProjectUpdated(updatedProject as Project);
+            if (onProjectCreated) {
+                onProjectCreated(newProject as Project);
             }
 
         } catch (error: any) {
-            console.error('Error updating project:', error);
+            console.error('Error creating project:', error);
 
-            let errorMessage = "There was an error updating the project. Please try again.";
+            let errorMessage = "There was an error creating the project. Please try again.";
 
             if (error.message.includes('duplicate key')) {
-                errorMessage = "A project with this title already exists. Please try again.";
+                errorMessage = "A project with this ID already exists. Please try again.";
             } else if (error.message.includes('foreign key')) {
                 errorMessage = "Invalid customer reference. Please check your customer information.";
             } else if (error.message.includes('not null')) {
@@ -195,7 +251,7 @@ export function EditProjectAction({
 
             toast({
                 variant: "destructive",
-                title: "Update Error",
+                title: "Creation Error",
                 description: errorMessage,
             });
         } finally {
@@ -206,19 +262,7 @@ export function EditProjectAction({
     const handleClose = () => {
         if (!isSubmitting) {
             setIsOpen(false);
-            // Reset form to original values
-            form.reset({
-                title: project.title || '',
-                description: project.description || '',
-                project_type: project.project_type || 'fabrication',
-                priority_level: project.priority_level || 'medium',
-                status: project.status || 'active',
-                customer_id: project.customer_id || '',
-                estimated_value: project.estimated_value?.toString() || '',
-                estimated_delivery_date: project.estimated_delivery_date || '',
-                tags: project.tags?.join(', ') || '',
-                notes: project.notes || '',
-            });
+            form.reset();
         }
     };
 
@@ -230,11 +274,11 @@ export function EditProjectAction({
                 size={size}
                 className={`flex items-center gap-2 ${className}`}
             >
-                {showIcon && <Edit className="w-4 h-4" />}
-                {children || 'Edit Project'}
+                {showIcon && <Plus className="w-4 h-4" />}
+                {children || 'Add Project'}
             </Button>
 
-            {/* Project Edit Modal */}
+            {/* Project Creation Modal */}
             {isOpen && (
                 <div className="fixed inset-0 bg-background/95 backdrop-blur-lg flex items-center justify-center p-4 z-50">
                     <div className="w-full max-w-4xl max-h-[90vh] overflow-y-auto">
@@ -243,11 +287,11 @@ export function EditProjectAction({
                                 <div className="flex items-center justify-between">
                                     <div>
                                         <CardTitle className="flex items-center gap-2">
-                                            <Edit className="w-5 h-5" />
-                                            Edit Project
+                                            <Plus className="w-5 h-5" />
+                                            Create New Project
                                         </CardTitle>
                                         <CardDescription>
-                                            Update the project details below
+                                            Fill in the details below to create a new project
                                         </CardDescription>
                                     </div>
                                     <Button
@@ -266,10 +310,10 @@ export function EditProjectAction({
                                         {/* Project ID Display */}
                                         <div className="flex items-center gap-2 p-3 bg-muted rounded-lg">
                                             <Badge variant="outline" className="font-mono">
-                                                {project.project_id}
+                                                {generatedProjectId}
                                             </Badge>
                                             <span className="text-sm text-muted-foreground">
-                                                Project ID
+                                                Generated Project ID
                                             </span>
                                         </div>
 
@@ -301,7 +345,7 @@ export function EditProjectAction({
                                                     render={({ field }) => (
                                                         <FormItem>
                                                             <FormLabel>Project Type *</FormLabel>
-                                                            <Select onValueChange={field.onChange} value={field.value}>
+                                                            <Select onValueChange={field.onChange} defaultValue={field.value}>
                                                                 <FormControl>
                                                                     <SelectTrigger>
                                                                         <SelectValue placeholder="Select project type" />
@@ -326,7 +370,7 @@ export function EditProjectAction({
                                                     render={({ field }) => (
                                                         <FormItem>
                                                             <FormLabel>Priority Level</FormLabel>
-                                                            <Select onValueChange={field.onChange} value={field.value}>
+                                                            <Select onValueChange={field.onChange} defaultValue={field.value}>
                                                                 <FormControl>
                                                                     <SelectTrigger>
                                                                         <SelectValue />
@@ -337,30 +381,6 @@ export function EditProjectAction({
                                                                     <SelectItem value="medium">Medium</SelectItem>
                                                                     <SelectItem value="high">High</SelectItem>
                                                                     <SelectItem value="critical">Critical</SelectItem>
-                                                                </SelectContent>
-                                                            </Select>
-                                                            <FormMessage />
-                                                        </FormItem>
-                                                    )}
-                                                />
-
-                                                <FormField
-                                                    control={form.control}
-                                                    name="status"
-                                                    render={({ field }) => (
-                                                        <FormItem>
-                                                            <FormLabel>Status</FormLabel>
-                                                            <Select onValueChange={field.onChange} value={field.value}>
-                                                                <FormControl>
-                                                                    <SelectTrigger>
-                                                                        <SelectValue />
-                                                                    </SelectTrigger>
-                                                                </FormControl>
-                                                                <SelectContent>
-                                                                    <SelectItem value="active">Active</SelectItem>
-                                                                    <SelectItem value="on_hold">On Hold</SelectItem>
-                                                                    <SelectItem value="cancelled">Cancelled</SelectItem>
-                                                                    <SelectItem value="completed">Completed</SelectItem>
                                                                 </SelectContent>
                                                             </Select>
                                                             <FormMessage />
@@ -386,32 +406,6 @@ export function EditProjectAction({
                                                         </FormItem>
                                                     )}
                                                 />
-
-                                                <FormField
-                                                    control={form.control}
-                                                    name="customer_id"
-                                                    render={({ field }) => (
-                                                        <FormItem>
-                                                            <FormLabel>Customer</FormLabel>
-                                                            <Select onValueChange={field.onChange} value={field.value}>
-                                                                <FormControl>
-                                                                    <SelectTrigger>
-                                                                        <SelectValue placeholder={loadingCustomers ? "Loading customers..." : "Select a customer"} />
-                                                                    </SelectTrigger>
-                                                                </FormControl>
-                                                                <SelectContent>
-                                                                    <SelectItem value="">No Customer</SelectItem>
-                                                                    {existingCustomers.map((customer) => (
-                                                                        <SelectItem key={customer.id} value={customer.id}>
-                                                                            {customer.company_name} - {customer.contact_name}
-                                                                        </SelectItem>
-                                                                    ))}
-                                                                </SelectContent>
-                                                            </Select>
-                                                            <FormMessage />
-                                                        </FormItem>
-                                                    )}
-                                                />
                                             </div>
 
                                             <FormField
@@ -431,6 +425,123 @@ export function EditProjectAction({
                                                     </FormItem>
                                                 )}
                                             />
+                                        </div>
+
+                                        <Separator />
+
+                                        {/* Customer Information */}
+                                        <div className="space-y-4">
+                                            <h3 className="text-lg font-semibold flex items-center gap-2">
+                                                <User className="w-5 h-5" />
+                                                Customer Information
+                                            </h3>
+
+                                            <FormField
+                                                control={form.control}
+                                                name="customer_type"
+                                                render={({ field }) => (
+                                                    <FormItem>
+                                                        <FormLabel>Customer Type *</FormLabel>
+                                                        <Select onValueChange={field.onChange} defaultValue={field.value}>
+                                                            <FormControl>
+                                                                <SelectTrigger>
+                                                                    <SelectValue />
+                                                                </SelectTrigger>
+                                                            </FormControl>
+                                                            <SelectContent>
+                                                                <SelectItem value="new">New Customer</SelectItem>
+                                                                <SelectItem value="existing">Existing Customer</SelectItem>
+                                                            </SelectContent>
+                                                        </Select>
+                                                        <FormMessage />
+                                                    </FormItem>
+                                                )}
+                                            />
+
+                                            {customerType === 'existing' ? (
+                                                <FormField
+                                                    control={form.control}
+                                                    name="existing_customer_id"
+                                                    render={({ field }) => (
+                                                        <FormItem>
+                                                            <FormLabel>Select Customer *</FormLabel>
+                                                            <Select onValueChange={field.onChange} value={field.value}>
+                                                                <FormControl>
+                                                                    <SelectTrigger>
+                                                                        <SelectValue placeholder={loadingCustomers ? "Loading customers..." : "Select a customer"} />
+                                                                    </SelectTrigger>
+                                                                </FormControl>
+                                                                <SelectContent>
+                                                                    {existingCustomers.map((customer) => (
+                                                                        <SelectItem key={customer.id} value={customer.id}>
+                                                                            {customer.company_name} - {customer.contact_name}
+                                                                        </SelectItem>
+                                                                    ))}
+                                                                </SelectContent>
+                                                            </Select>
+                                                            <FormMessage />
+                                                        </FormItem>
+                                                    )}
+                                                />
+                                            ) : (
+                                                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                                    <FormField
+                                                        control={form.control}
+                                                        name="company_name"
+                                                        render={({ field }) => (
+                                                            <FormItem>
+                                                                <FormLabel>Company Name *</FormLabel>
+                                                                <FormControl>
+                                                                    <Input placeholder="Enter company name" {...field} />
+                                                                </FormControl>
+                                                                <FormMessage />
+                                                            </FormItem>
+                                                        )}
+                                                    />
+
+                                                    <FormField
+                                                        control={form.control}
+                                                        name="contact_name"
+                                                        render={({ field }) => (
+                                                            <FormItem>
+                                                                <FormLabel>Contact Name *</FormLabel>
+                                                                <FormControl>
+                                                                    <Input placeholder="Enter contact name" {...field} />
+                                                                </FormControl>
+                                                                <FormMessage />
+                                                            </FormItem>
+                                                        )}
+                                                    />
+
+                                                    <FormField
+                                                        control={form.control}
+                                                        name="contact_email"
+                                                        render={({ field }) => (
+                                                            <FormItem>
+                                                                <FormLabel>Contact Email</FormLabel>
+                                                                <FormControl>
+                                                                    <Input type="email" placeholder="Enter email address" {...field} />
+                                                                </FormControl>
+                                                                <FormMessage />
+                                                            </FormItem>
+                                                        )}
+                                                    />
+
+                                                    <FormField
+                                                        control={form.control}
+                                                        name="contact_phone"
+                                                        render={({ field }) => (
+                                                            <FormItem>
+                                                                <FormLabel>Contact Phone</FormLabel>
+                                                                <FormControl>
+                                                                    <Input placeholder="Enter phone number" {...field} />
+                                                                </FormControl>
+                                                                <FormMessage />
+                                                            </FormItem>
+                                                        )}
+                                                    />
+                                                </div>
+                                            )}
                                         </div>
 
                                         <Separator />
@@ -509,12 +620,12 @@ export function EditProjectAction({
                                                 {isSubmitting ? (
                                                     <>
                                                         <Loader2 className="w-4 h-4 animate-spin" />
-                                                        Updating...
+                                                        Creating...
                                                     </>
                                                 ) : (
                                                     <>
                                                         <CheckCircle2 className="w-4 h-4" />
-                                                        Update Project
+                                                        Create Project
                                                     </>
                                                 )}
                                             </Button>

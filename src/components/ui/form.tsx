@@ -1,7 +1,6 @@
 import * as React from "react"
 import * as LabelPrimitive from "@radix-ui/react-label"
 import { Slot } from "@radix-ui/react-slot"
-import { AlertCircle } from "lucide-react"
 import {
   Controller,
   ControllerProps,
@@ -142,8 +141,8 @@ const FormDescription = React.forwardRef<
 FormDescription.displayName = "FormDescription"
 
 const FormMessage = React.forwardRef<
-  HTMLDivElement,
-  React.HTMLAttributes<HTMLDivElement>
+  HTMLParagraphElement,
+  React.HTMLAttributes<HTMLParagraphElement>
 >(({ className, children, ...props }, ref) => {
   const { error, formMessageId } = useFormField()
   const body = error ? String(error?.message) : children
@@ -153,15 +152,14 @@ const FormMessage = React.forwardRef<
   }
 
   return (
-    <div
+    <p
       ref={ref}
       id={formMessageId}
-      className={cn("flex items-center gap-2 text-sm font-semibold text-destructive bg-destructive/10 border border-destructive/20 px-3 py-2 rounded-md shadow-sm", className)}
+      className={cn("text-sm font-medium text-destructive", className)}
       {...props}
     >
-      <AlertCircle className="h-4 w-4 flex-shrink-0" />
-      <span>{body}</span>
-    </div>
+      {body}
+    </p>
   )
 })
 FormMessage.displayName = "FormMessage"

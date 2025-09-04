@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { Customer } from '@/types/project';
 import { useAuth } from '@/contexts/AuthContext';
@@ -37,7 +37,7 @@ export function useCustomers() {
     const { user, profile } = useAuth(); // Added profile
     const { toast } = useToast();
 
-    const fetchCustomers = useCallback(async () => {
+    const fetchCustomers = async () => {
         if (!user || !profile?.organization_id) { // Added profile check
             setCustomers([]);
             setLoading(false);
@@ -74,14 +74,14 @@ export function useCustomers() {
         } finally {
             setLoading(false);
         }
-    }, [user, profile?.organization_id]);
+    };
 
     const createCustomer = async (customerData: CreateCustomerRequest): Promise<Customer> => {
         try {
             const { data, error } = await supabase
                 .from('contacts')
-                .insert([{
-                    ...customerData,
+                .insert([{ 
+                    ...customerData, 
                     type: 'customer',
                     organization_id: profile?.organization_id // Added organization_id
                 }])
@@ -294,7 +294,7 @@ export function useCustomers() {
         return () => {
             supabase.removeChannel(channel);
         };
-    }, [fetchCustomers]); // Updated dependency array to include fetchCustomers
+    }, [user, profile]); // Added profile to dependency array
 
     return {
         customers,

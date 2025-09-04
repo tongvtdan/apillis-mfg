@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { InquiryIntakeForm } from "./InquiryIntakeForm";
+import { SimplifiedIntakeForm } from "./SimplifiedIntakeForm";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { MessageSquare, FileText, Lightbulb } from "lucide-react";
@@ -111,7 +111,7 @@ export function ProjectIntakePortal({ onSuccess }: ProjectIntakePortalProps) {
               </CardDescription>
             </CardHeader>
             <CardContent>
-              <InquiryIntakeForm
+              <SimplifiedIntakeForm
                 submissionType="RFQ"
                 onSuccess={handleFormSuccess}
               />
@@ -128,7 +128,7 @@ export function ProjectIntakePortal({ onSuccess }: ProjectIntakePortalProps) {
               </CardDescription>
             </CardHeader>
             <CardContent>
-              <InquiryIntakeForm
+              <SimplifiedIntakeForm
                 submissionType="Purchase Order"
                 onSuccess={handleFormSuccess}
               />
@@ -145,7 +145,7 @@ export function ProjectIntakePortal({ onSuccess }: ProjectIntakePortalProps) {
               </CardDescription>
             </CardHeader>
             <CardContent>
-              <InquiryIntakeForm
+              <SimplifiedIntakeForm
                 submissionType="Project Idea"
                 onSuccess={handleFormSuccess}
               />

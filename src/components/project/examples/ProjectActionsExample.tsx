@@ -7,6 +7,7 @@ import { useToast } from '@/hooks/use-toast';
 import { Project } from '@/types/project';
 import {
     ProjectActions,
+    AddProjectAction,
     EditProjectAction
 } from '@/components/project/actions';
 import { projectActionService } from '@/services/projectActionService';
@@ -141,19 +142,14 @@ export function ProjectActionsExample({
 
                 <div className="flex items-center gap-3">
                     {/* Add Project Action */}
-                    <Button
+                    <AddProjectAction
+                        onProjectCreated={handleCreateProject}
                         variant="default"
                         size="md"
-                        onClick={() => {
-                            toast({
-                                title: "Project Creation",
-                                description: "Use the main Projects page to create new projects.",
-                            });
-                        }}
                     >
                         <Plus className="w-4 h-4" />
                         New Project
-                    </Button>
+                    </AddProjectAction>
 
                     {/* Bulk Actions */}
                     {selectedProjects.length > 0 && (
@@ -320,19 +316,14 @@ export function ProjectActionsExample({
                                         Create your first project to get started
                                     </p>
                                 </div>
-                                <Button
+                                <AddProjectAction
+                                    onProjectCreated={handleCreateProject}
                                     variant="default"
                                     size="md"
-                                    onClick={() => {
-                                        toast({
-                                            title: "Project Creation",
-                                            description: "Use the main Projects page to create new projects.",
-                                        });
-                                    }}
                                 >
                                     <Plus className="w-4 h-4" />
                                     Create First Project
-                                </Button>
+                                </AddProjectAction>
                             </div>
                         </CardContent>
                     </Card>
