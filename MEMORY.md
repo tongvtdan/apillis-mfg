@@ -2,6 +2,106 @@
 
 ## Recent Changes
 
+### 2025-09-04 - Project Intake Portal Enhancement Based on Wireframe Requirements ✅
+
+**Task Completed:**
+- Enhanced project intake portal to match comprehensive wireframe requirements
+- Added missing database fields for volume, target price, project reference, and delivery date
+- Replaced InquiryIntakeForm with comprehensive form matching wireframe specifications
+- Implemented full file upload system with drag & drop and external link support
+- Added role-based form behavior (Customer vs Sales Rep)
+- Added volume/quantity fields with units and frequency selection
+- Added terms & conditions acceptance
+- Updated TypeScript types and Supabase integration
+- **Renamed** SimplifiedIntakeForm to InquiryIntakeForm for better clarity
+
+**Database Schema Updates:**
+1. **Added Missing Fields to Projects Table**:
+   - `volume` (JSONB) - Multi-tier volumes with quantity, unit, frequency
+   - `target_price_per_unit` (NUMERIC(15,2)) - Target price per unit
+   - `project_reference` (TEXT) - For PO types only
+   - `desired_delivery_date` (DATE) - Target delivery date
+
+2. **Migration Applied**: `20250904000000_add_intake_form_fields.sql`
+   - Added all required fields with proper constraints
+   - Added performance indexes for new fields
+   - Added documentation comments
+
+**Enhanced Form Implementation:**
+1. **Volume Management**:
+   - Multi-tier volume fields with quantity, unit, and frequency
+   - Dynamic add/remove volume entries
+   - Support for pcs, units, kits with various frequencies
+
+2. **File Upload System**:
+   - Drag & drop file upload zone
+   - Support for PDF, STEP, IGES, XLSX, DWG, SLDPRT, STL, ZIP
+   - File size validation (max 10MB)
+   - File type detection and categorization
+
+3. **External Link Support**:
+   - Link input for cloud storage (Google Drive, Dropbox, etc.)
+   - Link validation and display
+   - Support for multiple link types
+
+4. **Role-Based Behavior**:
+   - Customer vs Sales Rep submission options
+   - Different form behavior based on role
+   - Conditional field display
+
+5. **Enhanced Validation**:
+   - Comprehensive Zod validation schema
+   - Real-time validation feedback
+   - Required field enforcement
+   - Date validation (minimum 7 days from now)
+
+6. **UI/UX Improvements**:
+   - Better form layout with proper sections
+   - Visual feedback for file uploads
+   - Progress indicators and loading states
+   - Terms & conditions acceptance
+   - Save as draft functionality (placeholder)
+
+**TypeScript Integration:**
+1. **Updated Types**:
+   - Added `VolumeData` interface for volume management
+   - Updated `Project` interface with new fields
+   - Updated `ProjectIntakeData` interface
+   - Updated Supabase types for new fields
+
+2. **Service Updates**:
+   - Updated `ProjectIntakeService` to handle new fields
+   - Updated `useProjects` hook for new field support
+   - Maintained backward compatibility
+
+**Key Features Implemented:**
+- ✅ **Volume Fields**: Multi-tier volumes with units and frequency
+- ✅ **Target Price**: Per-unit pricing with total calculation
+- ✅ **Project Reference**: Conditional field for PO types
+- ✅ **File Upload**: Drag & drop with preview
+- ✅ **External Links**: Cloud storage integration
+- ✅ **Role-Based**: Customer vs Sales Rep behavior
+- ✅ **Validation**: Comprehensive form validation
+- ✅ **Terms**: Terms & conditions acceptance
+- ✅ **Database**: All required fields added with indexes
+
+**Current Status:**
+- ✅ **Database Schema**: All required fields added and migrated
+- ✅ **Form Component**: Comprehensive form matching wireframe
+- ✅ **TypeScript Types**: Updated for all new fields
+- ✅ **Service Integration**: Updated for new field handling
+- 🔄 **UI/UX Polish**: Ready for final improvements
+- 🔄 **Testing**: Ready for comprehensive testing
+
+**Next Steps:**
+- Test the enhanced form with real data
+- Add file upload preview functionality
+- Implement save as draft functionality
+- Add mobile responsiveness improvements
+- Add comprehensive error handling
+
+// ... existing code ...
+
 ### 2025-09-04 - Git Secret Scanning Security Fix ✅
 
 **Task Completed:**
@@ -1543,7 +1643,7 @@ npm run setup:google-drive
 - Implemented comprehensive intake type architecture to separate intake classification from project type classification
 - Added database migration for intake_type and intake_source fields
 - Created intake mapping service for routing different submission types to appropriate workflows
-- Replaced complex ProjectIntakeForm with SimplifiedIntakeForm
+- Replaced complex ProjectIntakeForm with InquiryIntakeForm
 - Implemented proper workflow routing based on intake types
 
 **Implementation Details:**
@@ -1577,14 +1677,14 @@ npm run setup:google-drive
    - **Tag Management**: Creates comprehensive tags including intake type and project type
    - **Error Handling**: Comprehensive error handling with user-friendly messages
 
-6. **Simplified Intake Form** (`src/components/project/SimplifiedIntakeForm.tsx`):
+6. **Inquiry Intake Form** (`src/components/project/InquiryIntakeForm.tsx`):
    - **Replaced Complex Form**: Simplified form without file upload complexity
    - **Intake Integration**: Uses ProjectIntakeService for proper project creation
    - **Mapping Display**: Shows intake type mapping information to users
    - **Validation**: Simplified but comprehensive form validation
 
 7. **Updated ProjectIntakePortal** (`src/components/project/ProjectIntakePortal.tsx`):
-   - **Form Replacement**: Now uses SimplifiedIntakeForm instead of ProjectIntakeForm
+   - **Form Replacement**: Now uses InquiryIntakeForm instead of ProjectIntakeForm
    - **Consistent Experience**: Same portal interface with improved backend logic
 
 8. **Enhanced useProjects Hook** (`src/hooks/useProjects.ts`):

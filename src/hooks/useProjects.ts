@@ -1,6 +1,6 @@
 import { useState, useEffect, useCallback, useRef } from 'react';
 import { supabase } from '@/integrations/supabase/client';
-import { Project, ProjectStatus, Customer } from '@/types/project';
+import { Project, ProjectStatus, Customer, VolumeData } from '@/types/project';
 import {
   SupplierQuote,
   QuoteReadinessIndicator,
@@ -695,6 +695,10 @@ export function useProjects() {
     intake_source?: string;
     project_type?: string;
     current_stage_id?: string;
+    volume?: VolumeData[];
+    target_price_per_unit?: number;
+    project_reference?: string;
+    desired_delivery_date?: string;
   }): Promise<Project> => {
     if (!user || !profile?.organization_id) {
       throw new Error('User must be authenticated to create projects');
@@ -720,6 +724,10 @@ export function useProjects() {
           intake_source: projectData.intake_source || 'portal',
           project_type: projectData.project_type,
           current_stage_id: projectData.current_stage_id,
+          volume: projectData.volume,
+          target_price_per_unit: projectData.target_price_per_unit,
+          project_reference: projectData.project_reference,
+          desired_delivery_date: projectData.desired_delivery_date,
           // Generate project ID
           project_id: await generateProjectId(),
           stage_entered_at: new Date().toISOString()

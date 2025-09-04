@@ -691,6 +691,10 @@ export type Database = {
           tags: string[] | null
           title: string
           updated_at: string | null
+          volume: Json | null
+          target_price_per_unit: number | null
+          project_reference: string | null
+          desired_delivery_date: string | null
         }
         Insert: {
           actual_delivery_date?: string | null
@@ -718,6 +722,10 @@ export type Database = {
           tags?: string[] | null
           title: string
           updated_at?: string | null
+          volume?: Json | null
+          target_price_per_unit?: number | null
+          project_reference?: string | null
+          desired_delivery_date?: string | null
         }
         Update: {
           actual_delivery_date?: string | null
@@ -745,6 +753,10 @@ export type Database = {
           tags?: string[] | null
           title?: string
           updated_at?: string | null
+          volume?: Json | null
+          target_price_per_unit?: number | null
+          project_reference?: string | null
+          desired_delivery_date?: string | null
         }
         Relationships: [
           {

@@ -10,6 +10,13 @@ export type ProjectSource = 'manual' | 'portal' | 'email' | 'api' | 'import' | '
 export type IntakeType = 'rfq' | 'purchase_order' | 'project_idea' | 'direct_request';
 export type IntakeSource = 'portal' | 'email' | 'api' | 'phone' | 'walk_in';
 
+// Volume data interface for multi-tier volumes
+export interface VolumeData {
+  quantity: number;
+  unit: 'pcs' | 'units' | 'kits';
+  frequency: 'per year' | 'per month' | 'per quarter' | 'prototype' | 'initial';
+}
+
 // Customer interface removed - customers are stored in contacts table with type='customer'
 // Use Contact interface with type='customer' instead
 export type Customer = Contact & { type: 'customer' };
@@ -136,6 +143,12 @@ export interface Project {
   updated_at?: string;
   estimated_delivery_date?: string;
   actual_delivery_date?: string;
+
+  // New fields for enhanced intake form
+  volume?: VolumeData[];
+  target_price_per_unit?: number;
+  project_reference?: string;
+  desired_delivery_date?: string;
 
   // Computed/joined fields (not in database)
   customer?: Contact;
