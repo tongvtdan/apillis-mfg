@@ -7,73 +7,57 @@
 
 @layer base {
   :root {
-    /* Base colors - neutral palette that adapts to environment */
+    /* Teal/Cyan Blue Primary System */
+    --primary: 199 89% 48%;
+    /* #0EA5E9 - Vibrant Teal/Cyan Blue */
+    --primary-foreground: 0 0% 100%;
+    /* #FFFFFF - White text on primary */
+    --secondary: 199 89% 58%;
+    /* #38BDF8 - Light Teal */
+    --secondary-foreground: 0 0% 100%;
+    /* #FFFFFF - White text on secondary */
+    --accent: 199 89% 68%;
+    /* #7DD3FC - Light Teal accent */
+    --accent-foreground: 220 13% 18%;
+    /* #1F2937 - Dark text on accent */
+
+    /* Neutral Base Colors */
     --background: 210 13% 96%;
     /* #F8F9FA - Light neutral background */
     --foreground: 220 13% 18%;
     /* #212529 - High contrast text */
-
     --card: 0 0% 100%;
     /* #FFFFFF - Pure white cards */
     --card-foreground: 220 13% 18%;
     /* #212529 - Dark text on cards */
-
     --popover: 0 0% 100%;
     /* #FFFFFF - Pure white popovers */
     --popover-foreground: 220 13% 18%;
     /* #212529 - Dark text in popovers */
-
-    /* Vibrant teal/cyan blue-based primary color system from image reference */
-    --primary: 199 89% 48%;
-    /* #0EA5E9 - Vibrant Teal/Cyan Blue (from image buttons) */
-    --primary-foreground: 0 0% 100%;
-    /* #FFFFFF - White text on primary */
-    --primary-hover: 199 89% 43%;
-    /* #0284C7 - Darker teal for hover */
-    --primary-light: 199 89% 68%;
-    /* #7DD3FC - Lighter teal for light variants */
-
-    --secondary: 199 89% 58%;
-    /* #38BDF8 - Light Teal (complementary to primary) */
-    --secondary-foreground: 0 0% 100%;
-    /* #FFFFFF - White text on secondary */
-
-    /* Neutral colors for borders and muted elements */
     --muted: 210 15% 92%;
     /* #EBEEF1 - Light muted background */
     --muted-foreground: 215 16% 47%;
     /* #6C757D - Muted text */
 
-    --accent: 199 89% 68%;
-    /* #7DD3FC - Light Teal (accent variant) */
-    --accent-foreground: 220 13% 18%;
-    /* #1F2937 - Dark text on accent */
-
-    /* Status colors - industry-standard for clarity */
+    /* Status Colors */
     --success: 160 84% 39%;
     /* #059669 - Success Green */
     --success-foreground: 0 0% 100%;
     /* #FFFFFF - White text on success */
-    --success-light: 160 84% 95%;
-
     --warning: 32 95% 44%;
     /* #D97706 - Warning Orange */
     --warning-foreground: 0 0% 100%;
     /* #FFFFFF - White text on warning */
-    --warning-light: 32 95% 95%;
-
     --destructive: 0 84% 60%;
     /* #DC2626 - Error Red */
     --destructive-foreground: 0 0% 100%;
     /* #FFFFFF - White text on error */
-    --destructive-light: 0 84% 95%;
-
     --info: 199 89% 48%;
     /* #0EA5E9 - Info Teal (matches primary) */
     --info-foreground: 0 0% 100%;
     /* #FFFFFF - White text on info */
 
-    /* Interface elements with appropriate contrast */
+    /* Interface Elements */
     --border: 214 15% 85%;
     /* #D8DFE6 - Subtle borders */
     --input: 210 15% 95%;
@@ -81,196 +65,37 @@
     --ring: 199 89% 48%;
     /* #0EA5E9 - Teal ring (matches primary) */
 
+    /* Border Radius */
     --radius: 0.5rem;
     /* 8px border radius */
-
-    /* Teal/cyan theme color palette for direct use */
-    --sky-50: 199 89% 97%;
-    --sky-100: 199 89% 94%;
-    --sky-200: 199 89% 89%;
-    --sky-300: 199 89% 84%;
-    --sky-400: 199 89% 78%;
-    --sky-500: 199 89% 48%;
-    --sky-600: 199 89% 43%;
-    --sky-700: 199 89% 38%;
-    --sky-800: 199 89% 33%;
-    /* Primary teal from image */
-    --sky-900: 199 89% 28%;
-    --sky-950: 199 89% 23%;
-
-    /* Modern shadows optimized for both light and dark environments */
-    --shadow-sm: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
-    --shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
-    --shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
-    --shadow-tech: 0 4px 16px -2px rgba(14, 165, 233, 0.15);
-    /* Updated to use new teal primary color */
-
-    /* Smooth animations - cubic-bezier(0.4, 0, 0.2, 1) */
-    --transition-all: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-    --transition-colors: color 0.15s ease-in-out, background-color 0.15s ease-in-out, border-color 0.15s ease-in-out;
-
-    /* Sidebar - Clean modern with better contrast */
-    --sidebar-background: 210 15% 92%;
-    /* Light muted background */
-    --sidebar-foreground: 220 13% 18%;
-    /* Dark text for good contrast */
-    --sidebar-primary: 210 100% 40%;
-    /* Industrial Blue */
-    --sidebar-primary-foreground: 0 0% 100%;
-    /* White text on primary */
-    --sidebar-accent: 210 100% 40%;
-    /* Use primary color for accent */
-    --sidebar-accent-foreground: 0 0% 100%;
-    /* White text on accent */
-    --sidebar-border: 214 15% 85%;
-    /* Subtle borders */
-    --sidebar-ring: 210 100% 40%;
-    /* Industrial Blue ring */
   }
-}
 
-/* Dark mode adaptation using media query */
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: 0 0% 12%;
-    /* #1E1E1E - Dark neutral background */
-    --foreground: 0 0% 91%;
-    /* #E9ECEF - Light text for dark background */
-
-    --card: 0 0% 16%;
-    /* #2A2A2A - Slightly lighter card background */
-    --card-foreground: 0 0% 91%;
-    /* #E9ECEF - Light text on cards */
-
-    --popover: 0 0% 16%;
-    /* #2A2A2A - Slightly lighter popover background */
-    --popover-foreground: 0 0% 91%;
-    /* #E9ECEF - Light text in popovers */
-
-    --primary: 210 100% 40%;
-    /* #0066CC - Industrial Blue (same for consistency) */
-    --primary-foreground: 0 0% 100%;
-    /* #FFFFFF - White text on primary */
-    --primary-hover: 210 100% 45%;
-    --primary-light: 210 100% 20%;
-
-    --secondary: 258 100% 76%;
-    /* #BB86FC - Purple (brand continuity) */
-    --secondary-foreground: 0 0% 100%;
-    /* #FFFFFF - White text on secondary */
-
-    --muted: 0 0% 23%;
-    /* #3A3A3A - Darker muted background */
-    --muted-foreground: 0 0% 68%;
-    /* #ADB5BD - Lighter muted text */
-
-    --accent: 45 100% 63%;
-    /* #FFD740 - Amber (brand continuity) */
-    --accent-foreground: 220 13% 18%;
-    /* #1F2937 - Dark text on accent */
-
-    --success: 160 100% 30%;
-    /* #009966 - Success Green (same for consistency) */
-    --success-foreground: 0 0% 100%;
-    /* #FFFFFF - White text on success */
-    --success-light: 160 100% 20%;
-
-    --warning: 36 100% 50%;
-    /* #FF9900 - Warning Orange (same for consistency) */
-    --warning-foreground: 0 0% 100%;
-    /* #FFFFFF - White text on warning */
-    --warning-light: 36 100% 20%;
-
-    --destructive: 345 100% 40%;
-    /* #CC0033 - Error Red (same for consistency) */
-    --destructive-foreground: 0 0% 100%;
-    /* #FFFFFF - White text on error */
-    --destructive-light: 345 100% 20%;
-
-    --info: 207 90% 54%;
-    /* #2196F3 - Info Blue (brand continuity) */
-    --info-foreground: 0 0% 100%;
-    /* #FFFFFF - White text on info */
-
-    --border: 0 0% 25%;
-    /* #404040 - Subtle borders for dark mode */
-    --input: 0 0% 20%;
-    /* #333333 - Darker input backgrounds */
-    --ring: 210 100% 40%;
-    /* #0066CC - Industrial Blue ring */
-
-    --sidebar-background: 0 0% 16%;
-    /* Slightly lighter background */
-    --sidebar-foreground: 0 0% 91%;
-    /* Light text for good contrast */
-    --sidebar-border: 0 0% 25%;
-    /* Subtle borders for dark mode */
+  /* Dark mode adaptation */
+  @media (prefers-color-scheme: dark) {
+    :root {
+      --background: 220 13% 10%;
+      /* #1E1E1E - Dark neutral background */
+      --foreground: 210 13% 90%;
+      /* #E9ECEF - Light text for dark background */
+      --card: 220 13% 15%;
+      /* #2A2A2A - Slightly lighter card background */
+      --card-foreground: 210 13% 90%;
+      /* #E9ECEF - Light text on cards */
+      --popover: 220 13% 15%;
+      /* #2A2A2A - Slightly lighter popover background */
+      --popover-foreground: 210 13% 90%;
+      /* #E9ECEF - Light text in popovers */
+      --muted: 220 13% 20%;
+      /* #3A3A3A - Darker muted background */
+      --muted-foreground: 210 13% 70%;
+      /* #ADB5BD - Lighter muted text */
+      --border: 220 13% 25%;
+      /* #404040 - Subtle borders for dark mode */
+      --input: 220 13% 20%;
+      /* #333333 - Darker input backgrounds */
+    }
   }
-}
 
-/* Make DaisyUI theme classes work consistently across the application */
-.bg-base-100 {
-  background-color: hsl(var(--background)) !important;
-}
-
-.text-base-content {
-  color: hsl(var(--foreground)) !important;
-}
-
-.bg-base-200 {
-  background-color: hsl(var(--muted)) !important;
-}
-
-.bg-base-300 {
-  background-color: hsl(var(--border)) !important;
-}
-
-/* Add border color rule for border-border */
-.border-border {
-  border-color: hsl(var(--border)) !important;
-}
-
-/* Add border color rule for base-300 */
-.border-base-300 {
-  border-color: hsl(var(--border)) !important;
-}
-
-/* Add background color rule for bg-border to ensure separators use border color */
-.bg-border {
-  background-color: hsl(var(--border)) !important;
-}
-
-/* Custom styles for elevated cards and gradients - from HTML website */
-.card-elevated {
-  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-}
-
-.card-elevated:hover {
-  transform: translateY(-4px);
-  box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
-}
-
-.rfq-id {
-  font-family: 'Courier New', monospace;
-  font-weight: 700;
-}
-
-.priority-badge.high {
-  background: var(--gradient-error);
-  color: white;
-}
-
-.priority-badge.medium {
-  background: var(--gradient-warning);
-  color: #1F2937;
-}
-
-.priority-badge.low {
-  background: var(--gradient-success);
-  color: white;
-}
-
-@layer base {
   * {
     @apply border-border;
   }
@@ -313,49 +138,34 @@
 }
 
 @layer components {
-  .btn-primary {
-    @apply px-6 py-3 rounded-lg font-semibold transition-all duration-300 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2;
-    background: linear-gradient(135deg, #03DAC6 0%, #0288D1 100%);
-    color: white;
-    box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
-  }
 
-  .btn-primary:hover {
-    transform: translateY(-2px);
-    box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+  /* Button Components */
+  .btn-primary {
+    @apply bg-primary text-primary-foreground hover:bg-primary/90 px-6 py-3 rounded-lg font-semibold transition-all duration-300 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2;
   }
 
   .btn-secondary {
-    @apply bg-transparent text-foreground border-2 border-border px-6 py-3 rounded-lg font-semibold transition-all duration-300;
-  }
-
-  .btn-secondary:hover {
-    @apply border-primary text-primary;
+    @apply bg-secondary text-secondary-foreground hover:bg-secondary/90 px-6 py-3 rounded-lg font-semibold transition-all duration-300 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2;
   }
 
   .btn-outline {
-    @apply bg-transparent text-foreground border-2 border-border px-6 py-3 rounded-lg font-semibold transition-all duration-300;
+    @apply border border-input bg-background hover:bg-accent hover:text-accent-foreground px-6 py-3 rounded-lg font-semibold transition-all duration-300 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2;
   }
 
-  .btn-outline:hover {
-    @apply border-primary text-primary;
-  }
-
+  /* Card Components */
   .card-elevated {
-    @apply bg-card text-card-foreground rounded-2xl border shadow-sm transition-all duration-300;
-    box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+    @apply bg-card text-card-foreground rounded-lg border shadow-sm transition-all duration-300;
   }
 
   .card-elevated:hover {
-    transform: translateY(-4px);
-    box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
+    @apply shadow-md;
   }
 
+  /* Status Badges */
   .status-badge {
     @apply inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium;
   }
 
-  /* Factory Pulse Status Colors - Based on design spec */
   .status-inquiry {
     @apply bg-info/10 text-info border border-info/20;
   }
@@ -376,157 +186,21 @@
     @apply bg-muted text-muted-foreground border border-border;
   }
 
-  /* Factory Pulse gradients */
-  .gradient-primary {
-    background: linear-gradient(135deg, #03DAC6 0%, #0288D1 100%);
-  }
-
-  .gradient-secondary {
-    background: linear-gradient(135deg, #F9FAFB 0%, #FFFFFF 100%);
-  }
-
-  .gradient-accent {
-    background: linear-gradient(135deg, #FFD740 0%, #FF8F00 100%);
-  }
-
-  .gradient-tech {
-    background: linear-gradient(135deg, hsl(var(--primary)), hsl(var(--accent)));
-  }
-
-  /* Kanban Board Styles - Based on design spec */
-  .kanban-column {
-    @apply bg-muted rounded-2xl p-6 w-80 min-w-80;
-  }
-
-  .kanban-card {
-    @apply bg-card rounded-2xl p-6 mb-4 cursor-grab transition-all duration-200 border;
-  }
-
-  .kanban-card:hover {
-    @apply shadow-md;
-  }
-
-  .kanban-card.priority-high {
-    background: linear-gradient(135deg, #CF6679 0%, #B71C1C 100%);
-    color: white;
-  }
-
-  .kanban-card.priority-medium {
-    background: linear-gradient(135deg, #FFD740 0%, #FF8F00 100%);
-    color: #1F2937;
-  }
-
-  .kanban-card.priority-low {
-    background: linear-gradient(135deg, #69F0AE 0%, #00C853 100%);
-    color: white;
-  }
-
-  /* Modern animations */
-  .animate-fade-in {
-    animation: fadeIn 0.2s cubic-bezier(0.4, 0, 0.2, 1);
-  }
-
-  .animate-slide-up {
-    animation: slideUp 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-  }
-
-  @keyframes fadeIn {
-    from {
-      opacity: 0;
-      transform: translateY(8px);
-    }
-
-    to {
-      opacity: 1;
-      transform: translateY(0);
-    }
-  }
-
-  @keyframes slideUp {
-    from {
-      opacity: 0;
-      transform: translateY(16px);
-    }
-
-    to {
-      opacity: 1;
-      transform: translateY(0);
-    }
-  }
-
-  @keyframes progress {
-    0% {
-      width: 5%;
-    }
-
-    50% {
-      width: 70%;
-    }
-
-    100% {
-      width: 85%;
-    }
-  }
-
-  .animate-progress {
-    animation: progress 2s ease-in-out infinite;
-  }
-
-  /* Industrial scrollbar - Clean and minimal */
-  .scrollbar-thin {
-    scrollbar-width: thin;
-    scrollbar-color: hsl(var(--muted-foreground) / 0.3) transparent;
-  }
-
-  .scrollbar-thin::-webkit-scrollbar {
-    width: 4px;
-    height: 4px;
-  }
-
-  .scrollbar-thin::-webkit-scrollbar-track {
-    background: transparent;
-  }
-
-  .scrollbar-thin::-webkit-scrollbar-thumb {
-    background-color: hsl(var(--muted-foreground) / 0.3);
-    border-radius: 2px;
-  }
-
-  .scrollbar-thin::-webkit-scrollbar-thumb:hover {
-    background-color: hsl(var(--muted-foreground) / 0.5);
-  }
-
-  /* Form and Input Styles - Based on design spec */
+  /* Form Components */
   .form-input {
-    @apply bg-card border border-border rounded-lg px-4 py-3 text-base transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2 focus:border-primary;
+    @apply bg-card border border-border rounded-lg px-4 py-3 text-base transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2 focus:border-ring;
   }
 
   .form-label {
     @apply font-medium mb-2 block text-foreground;
   }
 
-  /* Navigation Header - Based on design spec */
+  /* Navigation */
   .nav-header {
     @apply bg-card/80 border-b border-border backdrop-blur-xl shadow-sm h-16 px-4 sticky top-0 z-50;
   }
 
-  /* Tech-focused utility classes */
-  .tech-border {
-    @apply border border-primary/20 bg-primary/5;
-  }
-
-  .tech-glow {
-    box-shadow: 0 0 20px rgba(3, 218, 198, 0.15);
-  }
-
-  .manufacturing-grid {
-    background-image:
-      linear-gradient(hsl(var(--border)) 1px, transparent 1px),
-      linear-gradient(90deg, hsl(var(--border)) 1px, transparent 1px);
-    background-size: 20px 20px;
-  }
-
-  /* Typography System - Inter font family */
+  /* Typography */
   .text-display {
     @apply text-5xl font-bold tracking-tight;
   }
@@ -559,47 +233,60 @@
     @apply text-xs font-normal;
   }
 
-  /* Enhanced Sidebar Styling */
-  .sidebar-nav-item {
-    @apply flex items-center gap-3 px-3 py-2 rounded-lg text-sm font-medium transition-all duration-200;
+  /* Animations */
+  .animate-fade-in {
+    animation: fadeIn 0.2s cubic-bezier(0.4, 0, 0.2, 1);
   }
 
-  .sidebar-nav-item:not(.active) {
-    @apply text-sidebar-foreground hover:bg-sidebar-accent/10 hover:text-sidebar-accent-foreground;
+  .animate-slide-up {
+    animation: slideUp 0.3s cubic-bezier(0.4, 0, 0.2, 1);
   }
 
-  .sidebar-nav-item.active {
-    @apply bg-sidebar-accent text-sidebar-accent-foreground shadow-sm;
+  @keyframes fadeIn {
+    from {
+      opacity: 0;
+      transform: translateY(8px);
+    }
+
+    to {
+      opacity: 1;
+      transform: translateY(0);
+    }
   }
 
-  /* Sidebar group labels with better contrast */
-  [data-sidebar="group-label"] {
-    @apply text-sidebar-foreground/60 font-semibold text-xs uppercase tracking-wider;
+  @keyframes slideUp {
+    from {
+      opacity: 0;
+      transform: translateY(16px);
+    }
+
+    to {
+      opacity: 1;
+      transform: translateY(0);
+    }
   }
 
-  /* Better sidebar header styling */
-  [data-sidebar="header"] {
-    @apply bg-sidebar border-b border-sidebar-border/50;
+  /* Scrollbar */
+  .scrollbar-thin {
+    scrollbar-width: thin;
+    scrollbar-color: hsl(var(--muted-foreground) / 0.3) transparent;
   }
 
-  /* DaisyUI Steps - Improve visibility in light mode */
-  .steps .step {
-    @apply text-foreground;
+  .scrollbar-thin::-webkit-scrollbar {
+    width: 4px;
+    height: 4px;
   }
 
-  .steps .step::before {
-    @apply bg-muted text-foreground border border-border;
+  .scrollbar-thin::-webkit-scrollbar-track {
+    background: transparent;
   }
 
-  .steps .step.step-primary::before {
-    @apply bg-primary text-primary-foreground border-primary;
+  .scrollbar-thin::-webkit-scrollbar-thumb {
+    background-color: hsl(var(--muted-foreground) / 0.3);
+    border-radius: 2px;
   }
 
-  .steps .step::after {
-    @apply bg-border;
-  }
-
-  .steps .step.step-primary::after {
-    @apply bg-primary;
+  .scrollbar-thin::-webkit-scrollbar-thumb:hover {
+    background-color: hsl(var(--muted-foreground) / 0.5);
   }
 }
