@@ -1,7 +1,7 @@
 /**
  * Theme initialization script
- * This script initializes the adaptive theme based on system preference
- * Factory Pulse Adaptive Theme (FP-AT) - Single theme that adapts to environment
+ * This script initializes the daisyUI theme for Factory Pulse
+ * Factory Pulse Theme - Clean daisyUI integration
  */
 
 export function initializeTheme() {
@@ -10,21 +10,18 @@ export function initializeTheme() {
 
     const html = document.documentElement;
 
-    // For adaptive theme, we always use the same theme name
-    html.setAttribute('data-theme', 'factory-pulse-adaptive');
-    html.classList.add('adaptive-theme');
+    // Set the daisyUI theme
+    html.setAttribute('data-theme', 'factory-pulse');
+    html.classList.add('factory-pulse-theme');
 
-    // The theme will automatically adapt based on system preference
-    // via CSS media queries in our theme-adaptive.css file
+    console.log('Factory Pulse daisyUI Theme initialized');
 
-    console.log('Factory Pulse Adaptive Theme initialized');
-
-    // Set up a listener for system theme changes
+    // Set up a listener for system theme changes (for future dark mode support)
     const mediaQuery = window.matchMedia('(prefers-color-scheme: dark)');
 
     const handleThemeChange = (e: MediaQueryListEvent) => {
-        // The CSS media queries in theme-adaptive.css will handle the actual theme switching
-        // We just log the change for debugging purposes
+        // For now, we keep the same theme but log the change
+        // Future: implement dark mode variant
         console.log(`System theme preference changed to: ${e.matches ? 'dark' : 'light'}`);
     };
 

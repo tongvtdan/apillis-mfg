@@ -1,6 +1,6 @@
 import { BarChart3, FileText, Home, ShoppingCart, Settings, Users, Package, Factory, UserCheck, Truck, Shield } from "lucide-react";
 import { NavLink, useLocation } from "react-router-dom";
-import { Sidebar, SidebarContent, SidebarGroup, SidebarGroupContent, SidebarGroupLabel, SidebarMenu, SidebarMenuButton, SidebarMenuItem, SidebarHeader } from "@/components/ui/sidebar";
+import { Sidebar } from "@/components/ui/sidebar";
 import { useAuth } from "@/contexts/AuthContext";
 
 const mainMenuItems = [{
@@ -78,77 +78,78 @@ export function AppSidebar() {
     return false;
   };
 
-  const getNavCls = ({
-    isActive
-  }: {
-    isActive: boolean;
-  }) => isActive ? "bg-sidebar-accent text-sidebar-accent-foreground font-medium" : "text-sidebar-foreground hover:bg-sidebar-accent/50 hover:text-sidebar-accent-foreground";
+  // Convert menu items to sidebar items format
+  const sidebarItems = [
+    {
+      label: "Main Menu",
+      children: mainMenuItems.map(item => ({
+        label: item.title,
+        href: item.url,
+        icon: <item.icon className="h-4 w-4" />
+      }))
+    },
+    ...(isAdmin ? [{
+      label: "Administration",
+      children: adminItems.map(item => ({
+        label: item.title,
+        href: item.url,
+        icon: <item.icon className="h-4 w-4" />
+      }))
+    }] : []),
+    {
+      label: "System",
+      children: settingsItems.map(item => ({
+        label: item.title,
+        href: item.url,
+        icon: <item.icon className="h-4 w-4" />
+      }))
+    }
+  ];
 
-  return <Sidebar>
-    <SidebarHeader className="border-b border-sidebar-border p-4">
-      <div className="flex items-center space-x-2">
-        <div className="w-8 h-8 rounded-lg bg-primary flex items-center justify-center">
-          <span className="text-primary-foreground font-bold text-sm">FP</span>
+  return (
+    <div className="drawer-side">
+      <aside className="min-h-screen w-80 bg-base-200 text-base-content">
+        <div className="p-4">
+          {/* Header */}
+          <div className="border-b border-base-300 pb-4 mb-4">
+            <div className="flex items-center space-x-2">
+              <div className="w-8 h-8 rounded-lg bg-primary flex items-center justify-center">
+                <span className="text-primary-content font-bold text-sm">FP</span>
+              </div>
+              <div>
+                <h4 className="font-semibold text-base-content">Apillis Factory Pulse</h4>
+                <p className="text-xs text-base-content/70">The Heartbeat of Modern Manufacturing</p>
+              </div>
+            </div>
+          </div>
+
+          {/* Menu Items */}
+          <ul className="menu menu-lg">
+            {sidebarItems.map((group, groupIndex) => (
+              <li key={groupIndex}>
+                <div className="menu-title">{group.label}</div>
+                {group.children && (
+                  <ul className="menu menu-compact">
+                    {group.children.map((item, itemIndex) => (
+                      <li key={itemIndex}>
+                        <NavLink
+                          to={item.href!}
+                          className={({ isActive }) =>
+                            isActive ? "active" : ""
+                          }
+                        >
+                          {item.icon}
+                          {item.label}
+                        </NavLink>
+                      </li>
+                    ))}
+                  </ul>
+                )}
+              </li>
+            ))}
+          </ul>
         </div>
-        <div>
-          <h4 className="font-semibold text-sidebar-foreground">Apillis
-            Factory Pulse</h4>
-          <p className="text-xs text-sidebar-foreground/70">The Heartbeat of Modern Manufacturing</p>
-        </div>
-      </div>
-    </SidebarHeader>
-
-    <SidebarContent>
-      <SidebarGroup>
-        <SidebarGroupLabel>Main Menu</SidebarGroupLabel>
-        <SidebarGroupContent>
-          <SidebarMenu>
-            {mainMenuItems.map(item => <SidebarMenuItem key={item.title}>
-              <SidebarMenuButton asChild>
-                <NavLink to={item.url} className={getNavCls({ isActive: isActive(item.url) })}>
-                  <item.icon className="h-4 w-4" />
-                  <span>{item.title}</span>
-                </NavLink>
-              </SidebarMenuButton>
-            </SidebarMenuItem>)}
-          </SidebarMenu>
-        </SidebarGroupContent>
-      </SidebarGroup>
-
-      {/* Admin Menu - Only show for admin users */}
-      {isAdmin && (
-        <SidebarGroup>
-          <SidebarGroupLabel>Administration</SidebarGroupLabel>
-          <SidebarGroupContent>
-            <SidebarMenu>
-              {adminItems.map(item => <SidebarMenuItem key={item.title}>
-                <SidebarMenuButton asChild>
-                  <NavLink to={item.url} className={getNavCls({ isActive: isActive(item.url) })}>
-                    <item.icon className="h-4 w-4" />
-                    <span>{item.title}</span>
-                  </NavLink>
-                </SidebarMenuButton>
-              </SidebarMenuItem>)}
-            </SidebarMenu>
-          </SidebarGroupContent>
-        </SidebarGroup>
-      )}
-
-      <SidebarGroup>
-        <SidebarGroupLabel>System</SidebarGroupLabel>
-        <SidebarGroupContent>
-          <SidebarMenu>
-            {settingsItems.map(item => <SidebarMenuItem key={item.title}>
-              <SidebarMenuButton asChild>
-                <NavLink to={item.url} className={getNavCls({ isActive: isActive(item.url) })}>
-                  <item.icon className="h-4 w-4" />
-                  <span>{item.title}</span>
-                </NavLink>
-              </SidebarMenuButton>
-            </SidebarMenuItem>)}
-          </SidebarMenu>
-        </SidebarGroupContent>
-      </SidebarGroup>
-    </SidebarContent>
-  </Sidebar>;
+      </aside>
+    </div>
+  );
 }

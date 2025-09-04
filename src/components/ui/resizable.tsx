@@ -1,43 +1,73 @@
-import { GripVertical } from "lucide-react"
-import * as ResizablePrimitive from "react-resizable-panels"
-
+import * as React from "react"
 import { cn } from "@/lib/utils"
 
-const ResizablePanelGroup = ({
-  className,
-  ...props
-}: React.ComponentProps<typeof ResizablePrimitive.PanelGroup>) => (
-  <ResizablePrimitive.PanelGroup
-    className={cn(
-      "flex h-full w-full data-[panel-group-direction=vertical]:flex-col",
-      className
-    )}
-    {...props}
-  />
-)
+export interface ResizableProps
+  extends React.HTMLAttributes<HTMLDivElement> {
+  children: React.ReactNode
+  direction?: "horizontal" | "vertical"
+  minSize?: number
+  maxSize?: number
+  defaultSize?: number
+}
 
-const ResizablePanel = ResizablePrimitive.Panel
+const Resizable = React.forwardRef<HTMLDivElement, ResizableProps>(
+  ({ className, children, direction = "horizontal", minSize = 100, maxSize = 800, defaultSize = 200, ...props }, ref) => {
+    const [size, setSize] = React.useState(defaultSize)
+    const [isResizing, setIsResizing] = React.useState(false)
 
-const ResizableHandle = ({
-  withHandle,
-  className,
-  ...props
-}: React.ComponentProps<typeof ResizablePrimitive.PanelResizeHandle> & {
-  withHandle?: boolean
-}) => (
-  <ResizablePrimitive.PanelResizeHandle
-    className={cn(
-      "relative flex w-px items-center justify-center bg-border after:absolute after:inset-y-0 after:left-1/2 after:w-1 after:-translate-x-1/2 focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring focus-visible:ring-offset-1 data-[panel-group-direction=vertical]:h-px data-[panel-group-direction=vertical]:w-full data-[panel-group-direction=vertical]:after:left-0 data-[panel-group-direction=vertical]:after:h-1 data-[panel-group-direction=vertical]:after:w-full data-[panel-group-direction=vertical]:after:-translate-y-1/2 data-[panel-group-direction=vertical]:after:translate-x-0 [&[data-panel-group-direction=vertical]>div]:rotate-90",
-      className
-    )}
-    {...props}
-  >
-    {withHandle && (
-      <div className="z-10 flex h-4 w-3 items-center justify-center rounded-sm border bg-border">
-        <GripVertical className="h-2.5 w-2.5" />
+    const handleMouseDown = (e: React.MouseEvent) => {
+      setIsResizing(true)
+      e.preventDefault()
+    }
+
+    const handleMouseMove = (e: MouseEvent) => {
+      if (!isResizing) return
+
+      const newSize = direction === "horizontal" 
+        ? e.clientX 
+        : e.clientY
+
+      if (newSize >= minSize && newSize <= maxSize) {
+        setSize(newSize)
+      }
+    }
+
+    const handleMouseUp = () => {
+      setIsResizing(false)
+    }
+
+    React.useEffect(() => {
+      if (isResizing) {
+        document.addEventListener('mousemove', handleMouseMove)
+        document.addEventListener('mouseup', handleMouseUp)
+        return () => {
+          document.removeEventListener('mousemove', handleMouseMove)
+          document.removeEventListener('mouseup', handleMouseUp)
+        }
+      }
+    }, [isResizing])
+
+    return (
+      <div
+        ref={ref}
+        className={cn("relative", className)}
+        style={{
+          [direction === "horizontal" ? "width" : "height"]: `${size}px`
+        }}
+        {...props}
+      >
+        {children}
+        <div
+          className={cn(
+            "absolute cursor-col-resize bg-base-300 hover:bg-primary",
+            direction === "horizontal" ? "w-1 h-full right-0 top-0" : "h-1 w-full bottom-0 left-0"
+          )}
+          onMouseDown={handleMouseDown}
+        />
       </div>
-    )}
-  </ResizablePrimitive.PanelResizeHandle>
+    )
+  }
 )
+Resizable.displayName = "Resizable"
 
-export { ResizablePanelGroup, ResizablePanel, ResizableHandle }
+export { Resizable }

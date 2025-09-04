@@ -1,37 +1,46 @@
-import React from 'react';
+import * as React from "react"
+import { cn } from "@/lib/utils"
 
-export type StatusType =
-    // Priority statuses
-    | 'urgent' | 'high' | 'medium' | 'low'
-    // Workflow statuses
-    | 'inquiry' | 'review' | 'quote' | 'production' | 'completed'
-    // General states
-    | 'active' | 'pending' | 'overdue' | 'on-hold';
-
-export type StatusSize = 'sm' | 'md' | 'lg';
-
-interface StatusBadgeProps {
-    status: StatusType;
-    label?: string;
-    size?: StatusSize;
-    className?: string;
+export interface StatusBadgeProps
+  extends React.HTMLAttributes<HTMLDivElement> {
+  status: "success" | "error" | "warning" | "info" | "pending" | "active" | "inactive"
+  children: React.ReactNode
 }
 
-export function StatusBadge({
-    status,
-    label,
-    size = 'sm',
-    className = '',
-}: StatusBadgeProps) {
-    // Get the appropriate text to display
-    const displayText = label || status.charAt(0).toUpperCase() + status.slice(1);
-
-    // Build the className based on props (removed animate option)
-    const badgeClassName = `status-badge status-badge-${size} status-${status} ${className}`;
+const StatusBadge = React.forwardRef<HTMLDivElement, StatusBadgeProps>(
+  ({ className, status, children, ...props }, ref) => {
+    const getStatusClass = () => {
+      switch (status) {
+        case "success":
+          return "badge badge-success"
+        case "error":
+          return "badge badge-error"
+        case "warning":
+          return "badge badge-warning"
+        case "info":
+          return "badge badge-info"
+        case "pending":
+          return "badge badge-warning"
+        case "active":
+          return "badge badge-success"
+        case "inactive":
+          return "badge badge-neutral"
+        default:
+          return "badge badge-neutral"
+      }
+    }
 
     return (
-        <div className={badgeClassName}>
-            {displayText}
-        </div>
-    );
-}
+      <div
+        ref={ref}
+        className={cn(getStatusClass(), className)}
+        {...props}
+      >
+        {children}
+      </div>
+    )
+  }
+)
+StatusBadge.displayName = "StatusBadge"
+
+export { StatusBadge }

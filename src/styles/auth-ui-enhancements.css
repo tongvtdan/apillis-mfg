@@ -10,7 +10,7 @@
 }
 
 .auth-logo {
-    @apply text-primary bg-primary/10 rounded-full shadow-md;
+    @apply text-primary bg-base-200 rounded-full shadow-md;
     height: 4rem;
     width: 4rem;
     padding: 0.5rem;

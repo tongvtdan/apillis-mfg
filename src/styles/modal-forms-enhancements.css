@@ -12,8 +12,9 @@
 }
 
 .modal-dialog-header {
-    @apply bg-gradient-to-b from-accent/20 to-transparent pb-2;
+    @apply bg-gradient-to-b from-primary to-transparent pb-2;
     border-bottom: 1px solid rgba(255, 215, 64, 0.3);
+    opacity: 0.2;
 }
 
 .modal-dialog-title {

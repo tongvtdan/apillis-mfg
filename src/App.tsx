@@ -1,6 +1,5 @@
 import { Toaster } from "@/components/ui/toaster";
-import { Toaster as Sonner } from "@/components/ui/sonner";
-import { TooltipProvider } from "@/components/ui/tooltip";
+import { Sonner } from "@/components/ui/sonner";
 import { Routes, Route } from "react-router-dom";
 import { AppLayout } from "@/components/layout/AppLayout";
 import { AuthProvider } from "@/contexts/AuthContext";
@@ -55,107 +54,105 @@ const App = () => {
   return (
     <AuthProvider>
       <SessionManagerWrapper>
-        <TooltipProvider>
-          <Toaster />
-          <Sonner />
-          <Routes>
-            <Route path="/" element={<Index />} />
-            <Route path="/auth" element={<Auth />} />
-            <Route path="/dashboard" element={
-              <ProtectedRoute>
-                <AppLayout><Dashboard /></AppLayout>
-              </ProtectedRoute>
-            } />
-            <Route path="/vendors" element={
-              <ProtectedRoute>
-                <AppLayout><Vendors /></AppLayout>
-              </ProtectedRoute>
-            } />
-            <Route path="/projects" element={
-              <ProtectedRoute>
-                <AppLayout><Projects /></AppLayout>
-              </ProtectedRoute>
-            } />
-            <Route path="/purchase-orders" element={
-              <ProtectedRoute>
-                <AppLayout><PurchaseOrders /></AppLayout>
-              </ProtectedRoute>
-            } />
-            <Route path="/inventory" element={
-              <ProtectedRoute>
-                <AppLayout><Inventory /></AppLayout>
-              </ProtectedRoute>
-            } />
-            <Route path="/customers" element={
-              <ProtectedRoute>
-                <AppLayout><Customers /></AppLayout>
-              </ProtectedRoute>
-            } />
-            <Route path="/suppliers" element={
-              <ProtectedRoute>
-                <AppLayout><Suppliers /></AppLayout>
-              </ProtectedRoute>
-            } />
-            <Route path="/reports" element={
-              <ProtectedRoute>
-                <AppLayout><Reports /></AppLayout>
-              </ProtectedRoute>
-            } />
-            <Route path="/reviews" element={
-              <ProtectedRoute requiredRoles={['engineering', 'qa', 'production', 'management', 'admin', 'procurement']}>
-                <AppLayout><div className="p-6">Reviews - Coming Soon</div></AppLayout>
-              </ProtectedRoute>
-            } />
-            <Route path="/approvals" element={
-              <ProtectedRoute requiredRoles={['engineering', 'qa', 'production', 'management', 'admin', 'procurement']}>
-                <AppLayout><Approvals /></AppLayout>
-              </ProtectedRoute>
-            } />
-            <Route path="/project/:id" element={
-              <ProtectedRoute>
-                <ProjectDetail />
-              </ProtectedRoute>
-            } />
-            <Route path="/production" element={
-              <ProtectedRoute requiredRoles={['production', 'management', 'admin']}>
-                <AppLayout><div className="p-6">Production - Coming Soon</div></AppLayout>
-              </ProtectedRoute>
-            } />
-            <Route path="/analytics" element={
-              <ProtectedRoute requiredRoles={['management', 'admin', 'procurement']}>
-                <AppLayout><div className="p-6">Analytics - Coming Soon</div></AppLayout>
-              </ProtectedRoute>
-            } />
-            <Route path="/users" element={
-              <ProtectedRoute requiredRoles={['management', 'admin']}>
-                <AppLayout><AdminUsers /></AppLayout>
-              </ProtectedRoute>
-            } />
-            <Route path="/settings" element={
-              <ProtectedRoute>
-                <AppLayout><Settings /></AppLayout>
-              </ProtectedRoute>
-            } />
-            <Route path="/profile" element={
-              <ProtectedRoute>
-                <AppLayout><Profile /></AppLayout>
-              </ProtectedRoute>
-            } />
-            <Route path="/rfq/submit" element={
-              <ProtectedRoute>
-                <AppLayout><NewRFQ /></AppLayout>
-              </ProtectedRoute>
-            } />
-            <Route path="/rfq/new" element={
-              <ProtectedRoute>
-                <AppLayout><NewRFQ /></AppLayout>
-              </ProtectedRoute>
-            } />
+        <Toaster />
+        <Sonner />
+        <Routes>
+          <Route path="/" element={<Index />} />
+          <Route path="/auth" element={<Auth />} />
+          <Route path="/dashboard" element={
+            <ProtectedRoute>
+              <AppLayout><Dashboard /></AppLayout>
+            </ProtectedRoute>
+          } />
+          <Route path="/vendors" element={
+            <ProtectedRoute>
+              <AppLayout><Vendors /></AppLayout>
+            </ProtectedRoute>
+          } />
+          <Route path="/projects" element={
+            <ProtectedRoute>
+              <AppLayout><Projects /></AppLayout>
+            </ProtectedRoute>
+          } />
+          <Route path="/purchase-orders" element={
+            <ProtectedRoute>
+              <AppLayout><PurchaseOrders /></AppLayout>
+            </ProtectedRoute>
+          } />
+          <Route path="/inventory" element={
+            <ProtectedRoute>
+              <AppLayout><Inventory /></AppLayout>
+            </ProtectedRoute>
+          } />
+          <Route path="/customers" element={
+            <ProtectedRoute>
+              <AppLayout><Customers /></AppLayout>
+            </ProtectedRoute>
+          } />
+          <Route path="/suppliers" element={
+            <ProtectedRoute>
+              <AppLayout><Suppliers /></AppLayout>
+            </ProtectedRoute>
+          } />
+          <Route path="/reports" element={
+            <ProtectedRoute>
+              <AppLayout><Reports /></AppLayout>
+            </ProtectedRoute>
+          } />
+          <Route path="/reviews" element={
+            <ProtectedRoute requiredRoles={['engineering', 'qa', 'production', 'management', 'admin', 'procurement']}>
+              <AppLayout><div className="p-6">Reviews - Coming Soon</div></AppLayout>
+            </ProtectedRoute>
+          } />
+          <Route path="/approvals" element={
+            <ProtectedRoute requiredRoles={['engineering', 'qa', 'production', 'management', 'admin', 'procurement']}>
+              <AppLayout><Approvals /></AppLayout>
+            </ProtectedRoute>
+          } />
+          <Route path="/project/:id" element={
+            <ProtectedRoute>
+              <ProjectDetail />
+            </ProtectedRoute>
+          } />
+          <Route path="/production" element={
+            <ProtectedRoute requiredRoles={['production', 'management', 'admin']}>
+              <AppLayout><div className="p-6">Production - Coming Soon</div></AppLayout>
+            </ProtectedRoute>
+          } />
+          <Route path="/analytics" element={
+            <ProtectedRoute requiredRoles={['management', 'admin', 'procurement']}>
+              <AppLayout><div className="p-6">Analytics - Coming Soon</div></AppLayout>
+            </ProtectedRoute>
+          } />
+          <Route path="/users" element={
+            <ProtectedRoute requiredRoles={['management', 'admin']}>
+              <AppLayout><AdminUsers /></AppLayout>
+            </ProtectedRoute>
+          } />
+          <Route path="/settings" element={
+            <ProtectedRoute>
+              <AppLayout><Settings /></AppLayout>
+            </ProtectedRoute>
+          } />
+          <Route path="/profile" element={
+            <ProtectedRoute>
+              <AppLayout><Profile /></AppLayout>
+            </ProtectedRoute>
+          } />
+          <Route path="/rfq/submit" element={
+            <ProtectedRoute>
+              <AppLayout><NewRFQ /></AppLayout>
+            </ProtectedRoute>
+          } />
+          <Route path="/rfq/new" element={
+            <ProtectedRoute>
+              <AppLayout><NewRFQ /></AppLayout>
+            </ProtectedRoute>
+          } />
 
-            {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
-            <Route path="*" element={<NotFound />} />
-          </Routes>
-        </TooltipProvider>
+          {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
+          <Route path="*" element={<NotFound />} />
+        </Routes>
       </SessionManagerWrapper>
     </AuthProvider>
   );

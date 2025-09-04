@@ -3,7 +3,7 @@ import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Progress } from '@/components/ui/progress';
-import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
+import { Tooltip } from '@/components/ui/tooltip';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import {
     FileText,
@@ -180,29 +180,24 @@ export const DocumentRequirementIndicator: React.FC<DocumentRequirementIndicator
                 </div>
 
                 <div className="flex items-center gap-2">
-                    <TooltipProvider>
-                        <Tooltip>
-                            <TooltipTrigger asChild>
-                                <div className="flex items-center gap-1">
-                                    <Progress value={completion_percentage} className="w-16 h-2" />
-                                    <span className="text-xs text-muted-foreground">
-                                        {completion_percentage}%
-                                    </span>
-                                </div>
-                            </TooltipTrigger>
-                            <TooltipContent>
-                                <div className="text-xs">
-                                    <div>{validation.summary.satisfied} of {validation.summary.total_required} required documents</div>
-                                    {validation.summary.missing > 0 && (
-                                        <div className="text-red-600">{validation.summary.missing} missing</div>
-                                    )}
-                                    {validation.summary.invalid > 0 && (
-                                        <div className="text-yellow-600">{validation.summary.invalid} with issues</div>
-                                    )}
-                                </div>
-                            </TooltipContent>
-                        </Tooltip>
-                    </TooltipProvider>
+                    <Tooltip content={
+                        <div className="text-xs">
+                            <div>{validation.summary.satisfied} of {validation.summary.total_required} required documents</div>
+                            {validation.summary.missing > 0 && (
+                                <div className="text-red-600">{validation.summary.missing} missing</div>
+                            )}
+                            {validation.summary.invalid > 0 && (
+                                <div className="text-yellow-600">{validation.summary.invalid} with issues</div>
+                            )}
+                        </div>
+                    }>
+                        <div className="flex items-center gap-1">
+                            <Progress value={completion_percentage} className="w-16 h-2" />
+                            <span className="text-xs text-muted-foreground">
+                                {completion_percentage}%
+                            </span>
+                        </div>
+                    </Tooltip>
 
                     {requirements.length > 0 && (
                         <Collapsible open={isExpanded} onOpenChange={setIsExpanded}>
@@ -269,43 +264,29 @@ export const DocumentRequirementIndicator: React.FC<DocumentRequirementIndicator
                                         {/* Action Buttons */}
                                         <div className="flex gap-1">
                                             {onViewDocuments && (
-                                                <TooltipProvider>
-                                                    <Tooltip>
-                                                        <TooltipTrigger asChild>
-                                                            <Button
-                                                                variant="ghost"
-                                                                size="sm"
-                                                                className="h-6 w-6 p-0"
-                                                                onClick={() => onViewDocuments(requirement)}
-                                                            >
-                                                                <Eye className="w-3 h-3" />
-                                                            </Button>
-                                                        </TooltipTrigger>
-                                                        <TooltipContent>
-                                                            <p>View related documents</p>
-                                                        </TooltipContent>
-                                                    </Tooltip>
-                                                </TooltipProvider>
+                                                <Tooltip content="View related documents">
+                                                    <Button
+                                                        variant="ghost"
+                                                        size="sm"
+                                                        className="h-6 w-6 p-0"
+                                                        onClick={() => onViewDocuments(requirement)}
+                                                    >
+                                                        <Eye className="w-3 h-3" />
+                                                    </Button>
+                                                </Tooltip>
                                             )}
 
                                             {onUploadClick && isCurrentStage && (
-                                                <TooltipProvider>
-                                                    <Tooltip>
-                                                        <TooltipTrigger asChild>
-                                                            <Button
-                                                                variant="ghost"
-                                                                size="sm"
-                                                                className="h-6 w-6 p-0"
-                                                                onClick={() => onUploadClick(requirement)}
-                                                            >
-                                                                <Upload className="w-3 h-3" />
-                                                            </Button>
-                                                        </TooltipTrigger>
-                                                        <TooltipContent>
-                                                            <p>Upload document</p>
-                                                        </TooltipContent>
-                                                    </Tooltip>
-                                                </TooltipProvider>
+                                                <Tooltip content="Upload document">
+                                                    <Button
+                                                        variant="ghost"
+                                                        size="sm"
+                                                        className="h-6 w-6 p-0"
+                                                        onClick={() => onUploadClick(requirement)}
+                                                    >
+                                                        <Upload className="w-3 h-3" />
+                                                    </Button>
+                                                </Tooltip>
                                             )}
                                         </div>
                                     </div>

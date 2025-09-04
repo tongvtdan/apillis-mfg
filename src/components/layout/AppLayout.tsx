@@ -1,4 +1,3 @@
-import { SidebarProvider } from "@/components/ui/sidebar";
 import { AppSidebar } from "./AppSidebar";
 import { AppHeader } from "./AppHeader";
 import { useEffect, useState } from "react";
@@ -36,16 +35,15 @@ export function AppLayout({ children }: AppLayoutProps) {
   }, []);
 
   return (
-    <SidebarProvider>
-      <div className="min-h-screen flex w-full bg-theme-background text-theme-foreground">
-        <AppSidebar />
-        <div className="flex-1 flex flex-col bg-theme-background overflow-hidden">
-          <AppHeader />
-          <main className="flex-1 overflow-auto bg-theme-background">
-            {children}
-          </main>
-        </div>
+    <div className="drawer lg:drawer-open">
+      <input id="my-drawer-2" type="checkbox" className="drawer-toggle" />
+      <div className="drawer-content flex flex-col">
+        <AppHeader />
+        <main className="flex-1 overflow-auto bg-base-100">
+          {children}
+        </main>
       </div>
-    </SidebarProvider>
+      <AppSidebar />
+    </div>
   );
 }

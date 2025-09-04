@@ -27,59 +27,6 @@ export default {
 				'88': '22rem',    /* 352px */
 				'128': '32rem',   /* 512px */
 			},
-			colors: {
-				// Use CSS custom properties for consistency
-				border: 'hsl(var(--border))',
-				input: 'hsl(var(--input))',
-				ring: 'hsl(var(--ring))',
-				background: 'hsl(var(--background))',
-				foreground: 'hsl(var(--foreground))',
-				primary: {
-					DEFAULT: 'hsl(var(--primary))',
-					foreground: 'hsl(var(--primary-foreground))',
-				},
-				secondary: {
-					DEFAULT: 'hsl(var(--secondary))',
-					foreground: 'hsl(var(--secondary-foreground))',
-				},
-				destructive: {
-					DEFAULT: 'hsl(var(--destructive))',
-					foreground: 'hsl(var(--destructive-foreground))',
-				},
-				success: {
-					DEFAULT: 'hsl(var(--success))',
-					foreground: 'hsl(var(--success-foreground))',
-				},
-				warning: {
-					DEFAULT: 'hsl(var(--warning))',
-					foreground: 'hsl(var(--warning-foreground))',
-				},
-				info: {
-					DEFAULT: 'hsl(var(--info))',
-					foreground: 'hsl(var(--info-foreground))',
-				},
-				muted: {
-					DEFAULT: 'hsl(var(--muted))',
-					foreground: 'hsl(var(--muted-foreground))',
-				},
-				accent: {
-					DEFAULT: 'hsl(var(--accent))',
-					foreground: 'hsl(var(--accent-foreground))',
-				},
-				popover: {
-					DEFAULT: 'hsl(var(--popover))',
-					foreground: 'hsl(var(--popover-foreground))',
-				},
-				card: {
-					DEFAULT: 'hsl(var(--card))',
-					foreground: 'hsl(var(--card-foreground))',
-				},
-			},
-			borderRadius: {
-				lg: '1rem',      /* 16px - for cards */
-				md: '0.5rem',    /* 8px - for buttons and inputs */
-				sm: '0.375rem'   /* 6px - for small elements */
-			},
 			keyframes: {
 				'accordion-down': {
 					from: { height: '0' },
@@ -123,7 +70,7 @@ export default {
 	daisyui: {
 		themes: [
 			{
-				"factory-pulse-adaptive": {
+				"factory-pulse": {
 					// Teal/Cyan Blue Primary System
 					"primary": "#0EA5E9",          // Vibrant Teal/Cyan Blue
 					"primary-content": "#FFFFFF",  // White text on primary
@@ -133,12 +80,10 @@ export default {
 					"accent-content": "#1F2937",   // Dark text on accent
 
 					// Neutral Base Colors
-					"background": "#F8F9FA",       // Light neutral background
-					"foreground": "#212529",       // High contrast text
-					"card": "#FFFFFF",             // Pure white cards
-					"card-foreground": "#212529",  // Dark text on cards
-					"popover": "#FFFFFF",          // Pure white popovers
-					"popover-foreground": "#212529", // Dark text in popovers
+					"base-100": "#F8F9FA",         // Light neutral background
+					"base-200": "#EBEEF1",         // Light muted background
+					"base-300": "#D8DFE6",         // Subtle borders
+					"base-content": "#212529",     // Dark text
 
 					// Status Colors
 					"success": "#059669",          // Success Green
@@ -153,10 +98,6 @@ export default {
 					// Neutral Colors
 					"neutral": "#1F2937",          // Dark slate
 					"neutral-content": "#FFFFFF",  // White text on neutral
-					"base-100": "#F8F9FA",         // Light background
-					"base-200": "#EBEEF1",         // Light muted background
-					"base-300": "#D8DFE6",         // Subtle borders
-					"base-content": "#212529",     // Dark text
 
 					// DaisyUI Properties
 					"--rounded-box": "1rem",
@@ -171,7 +112,7 @@ export default {
 				},
 			},
 		],
-		darkTheme: "factory-pulse-adaptive",
+		darkTheme: "factory-pulse",
 		base: true,
 		styled: true,
 		utils: true,

@@ -1,23 +1,76 @@
 import * as React from "react"
-import { OTPInput, OTPInputContext } from "input-otp"
-import { Dot } from "lucide-react"
-
 import { cn } from "@/lib/utils"
 
-const InputOTP = React.forwardRef<
-  React.ElementRef<typeof OTPInput>,
-  React.ComponentPropsWithoutRef<typeof OTPInput>
->(({ className, containerClassName, ...props }, ref) => (
-  <OTPInput
-    ref={ref}
-    containerClassName={cn(
-      "flex items-center gap-2 has-[:disabled]:opacity-50",
-      containerClassName
-    )}
-    className={cn("disabled:cursor-not-allowed", className)}
-    {...props}
-  />
-))
+export interface InputOTPProps
+  extends React.HTMLAttributes<HTMLDivElement> {
+  length?: number
+  value?: string
+  onChange?: (value: string) => void
+  disabled?: boolean
+}
+
+const InputOTP = React.forwardRef<HTMLDivElement, InputOTPProps>(
+  ({ className, length = 6, value = "", onChange, disabled, ...props }, ref) => {
+    const inputRefs = React.useRef<(HTMLInputElement | null)[]>([])
+
+    const handleChange = (index: number, digit: string) => {
+      if (disabled) return
+
+      const newValue = value.split("")
+      newValue[index] = digit
+      const newValueString = newValue.join("")
+      
+      onChange?.(newValueString)
+
+      // Auto-focus next input
+      if (digit && index < length - 1) {
+        inputRefs.current[index + 1]?.focus()
+      }
+    }
+
+    const handleKeyDown = (index: number, e: React.KeyboardEvent<HTMLInputElement>) => {
+      if (disabled) return
+
+      if (e.key === "Backspace" && !value[index] && index > 0) {
+        inputRefs.current[index - 1]?.focus()
+      }
+    }
+
+    const handlePaste = (e: React.ClipboardEvent) => {
+      if (disabled) return
+
+      e.preventDefault()
+      const pastedData = e.clipboardData.getData("text/plain").slice(0, length)
+      onChange?.(pastedData)
+    }
+
+    return (
+      <div
+        ref={ref}
+        className={cn("flex gap-2", className)}
+        onPaste={handlePaste}
+        {...props}
+      >
+        {Array.from({ length }, (_, index) => (
+          <input
+            key={index}
+            ref={(el) => (inputRefs.current[index] = el)}
+            type="text"
+            maxLength={1}
+            value={value[index] || ""}
+            onChange={(e) => handleChange(index, e.target.value)}
+            onKeyDown={(e) => handleKeyDown(index, e)}
+            disabled={disabled}
+            className={cn(
+              "input input-bordered w-12 h-12 text-center text-lg font-mono",
+              disabled && "input-disabled"
+            )}
+          />
+        ))}
+      </div>
+    )
+  }
+)
 InputOTP.displayName = "InputOTP"
 
 const InputOTPGroup = React.forwardRef<

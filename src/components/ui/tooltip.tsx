@@ -1,28 +1,72 @@
 import * as React from "react"
-import * as TooltipPrimitive from "@radix-ui/react-tooltip"
-
 import { cn } from "@/lib/utils"
 
-const TooltipProvider = TooltipPrimitive.Provider
+export interface TooltipProps {
+  children: React.ReactNode
+  content: React.ReactNode
+  className?: string
+  position?: "top" | "bottom" | "left" | "right"
+}
 
-const Tooltip = TooltipPrimitive.Root
+const Tooltip = React.forwardRef<HTMLDivElement, TooltipProps>(
+  ({ className, children, content, position = "top", ...props }, ref) => {
+    const positionClasses = {
+      top: "tooltip-top",
+      bottom: "tooltip-bottom",
+      left: "tooltip-left",
+      right: "tooltip-right"
+    }
 
-const TooltipTrigger = TooltipPrimitive.Trigger
+    return (
+      <div
+        ref={ref}
+        className={cn("tooltip", positionClasses[position], className)}
+        data-tip={typeof content === "string" ? content : undefined}
+        {...props}
+      >
+        {children}
+        {typeof content !== "string" && (
+          <div className="tooltip-content">
+            {content}
+          </div>
+        )}
+      </div>
+    )
+  }
+)
+Tooltip.displayName = "Tooltip"
 
-const TooltipContent = React.forwardRef<
-  React.ElementRef<typeof TooltipPrimitive.Content>,
-  React.ComponentPropsWithoutRef<typeof TooltipPrimitive.Content>
->(({ className, sideOffset = 4, ...props }, ref) => (
-  <TooltipPrimitive.Content
-    ref={ref}
-    sideOffset={sideOffset}
-    className={cn(
-      "z-50 overflow-hidden rounded-md bg-slate-900 text-slate-50 px-3 py-1.5 text-sm shadow-lg animate-in fade-in-0 zoom-in-95 data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=closed]:zoom-out-95 data-[side=bottom]:slide-in-from-top-2 data-[side=left]:slide-in-from-right-2 data-[side=right]:slide-in-from-left-2 data-[side=top]:slide-in-from-bottom-2",
-      className
-    )}
-    {...props}
-  />
-))
-TooltipContent.displayName = TooltipPrimitive.Content.displayName
+const TooltipTrigger = React.forwardRef<HTMLDivElement, React.HTMLAttributes<HTMLDivElement>>(
+  ({ className, children, ...props }, ref) => {
+    return (
+      <div ref={ref} className={cn("tooltip-trigger", className)} {...props}>
+        {children}
+      </div>
+    )
+  }
+)
+TooltipTrigger.displayName = "TooltipTrigger"
 
-export { Tooltip, TooltipTrigger, TooltipContent, TooltipProvider }
+const TooltipContent = React.forwardRef<HTMLDivElement, React.HTMLAttributes<HTMLDivElement>>(
+  ({ className, children, ...props }, ref) => {
+    return (
+      <div ref={ref} className={cn("tooltip-content", className)} {...props}>
+        {children}
+      </div>
+    )
+  }
+)
+TooltipContent.displayName = "TooltipContent"
+
+const TooltipProvider = React.forwardRef<HTMLDivElement, React.HTMLAttributes<HTMLDivElement>>(
+  ({ className, children, ...props }, ref) => {
+    return (
+      <div ref={ref} className={cn("", className)} {...props}>
+        {children}
+      </div>
+    )
+  }
+)
+TooltipProvider.displayName = "TooltipProvider"
+
+export { Tooltip, TooltipProvider, TooltipTrigger, TooltipContent }

@@ -1,65 +1,75 @@
-import React from 'react';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Button } from '@/components/ui/button';
-import { X } from 'lucide-react';
+import * as React from "react"
+import { cn } from "@/lib/utils"
 
-interface ModalProps {
-    isOpen: boolean;
-    onClose: () => void;
-    title?: React.ReactNode;
-    description?: React.ReactNode;
-    children: React.ReactNode;
-    maxWidth?: string;
-    showCloseButton?: boolean;
-    showDescription?: boolean;
-    className?: string;
+export interface ModalProps {
+  isOpen: boolean
+  onClose: () => void
+  children: React.ReactNode
+  className?: string
 }
 
-export function Modal({
-    isOpen,
-    onClose,
-    title,
-    description,
-    children,
-    maxWidth = "max-w-4xl",
-    showCloseButton = true,
-    showDescription = false,
-    className = ""
-}: ModalProps) {
-    if (!isOpen) return null;
+const Modal = React.forwardRef<HTMLDivElement, ModalProps>(
+  ({ isOpen, onClose, children, className }, ref) => {
+    if (!isOpen) return null
 
     return (
-        <div className="fixed inset-0 bg-background backdrop-blur-lg flex items-center justify-center p-4 z-50">
-            <div className={`w-full ${maxWidth} max-h-[90vh] overflow-y-auto ${className}`}>
-                <Card>
-                    {(title || showCloseButton) && (
-                        <CardHeader>
-                            <div className="flex items-center justify-between">
-                                <div className="flex flex-col space-y-1.5">
-                                    {title && (
-                                        <CardTitle className="flex items-center gap-2">
-                                            {title}
-                                        </CardTitle>
-                                    )}
-                                    {showDescription && description && (
-                                        <p className="text-sm text-muted-foreground">
-                                            {description}
-                                        </p>
-                                    )}
-                                </div>
-                                {showCloseButton && (
-                                    <Button variant="ghost" size="sm" onClick={onClose}>
-                                        <X className="w-4 h-4" />
-                                    </Button>
-                                )}
-                            </div>
-                        </CardHeader>
-                    )}
-                    <CardContent>
-                        {children}
-                    </CardContent>
-                </Card>
-            </div>
+      <div className="modal modal-open">
+        <div className="modal-box" ref={ref}>
+          {children}
         </div>
-    );
-}
+        <div className="modal-backdrop" onClick={onClose}></div>
+      </div>
+    )
+  }
+)
+Modal.displayName = "Modal"
+
+const ModalHeader = React.forwardRef<
+  HTMLDivElement,
+  React.HTMLAttributes<HTMLDivElement>
+>(({ className, ...props }, ref) => (
+  <div
+    ref={ref}
+    className={cn("flex items-center justify-between mb-4", className)}
+    {...props}
+  />
+))
+ModalHeader.displayName = "ModalHeader"
+
+const ModalTitle = React.forwardRef<
+  HTMLHeadingElement,
+  React.HTMLAttributes<HTMLHeadingElement>
+>(({ className, ...props }, ref) => (
+  <h3
+    ref={ref}
+    className={cn("text-lg font-semibold", className)}
+    {...props}
+  />
+))
+ModalTitle.displayName = "ModalTitle"
+
+const ModalContent = React.forwardRef<
+  HTMLDivElement,
+  React.HTMLAttributes<HTMLDivElement>
+>(({ className, ...props }, ref) => (
+  <div
+    ref={ref}
+    className={cn("mb-4", className)}
+    {...props}
+  />
+))
+ModalContent.displayName = "ModalContent"
+
+const ModalFooter = React.forwardRef<
+  HTMLDivElement,
+  React.HTMLAttributes<HTMLDivElement>
+>(({ className, ...props }, ref) => (
+  <div
+    ref={ref}
+    className={cn("modal-action", className)}
+    {...props}
+  />
+))
+ModalFooter.displayName = "ModalFooter"
+
+export { Modal, ModalHeader, ModalTitle, ModalContent, ModalFooter }
