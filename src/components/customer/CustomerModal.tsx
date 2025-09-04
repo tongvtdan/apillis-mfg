@@ -20,6 +20,7 @@ interface CustomerModalProps {
     open: boolean;
     onClose: () => void;
     customer?: Customer | null;
+    onCustomerCreated?: (customer: Customer) => void;
 }
 
 interface CustomerFormData {
@@ -64,7 +65,7 @@ const COUNTRIES = [
     'Other'
 ];
 
-export function CustomerModal({ open, onClose, customer }: CustomerModalProps) {
+export function CustomerModal({ open, onClose, customer, onCustomerCreated }: CustomerModalProps) {
     const [loading, setLoading] = useState(false);
     const { createCustomer, updateCustomer } = useCustomers();
 

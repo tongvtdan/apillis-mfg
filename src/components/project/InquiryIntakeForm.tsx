@@ -10,13 +10,16 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
 import { Badge } from '@/components/ui/badge';
 import { Checkbox } from '@/components/ui/checkbox';
-import { CheckCircle2, Loader2, Upload, Link, Plus, X, File } from 'lucide-react';
+import { CheckCircle2, Loader2, Upload, Link, Plus, X, File, Search, Users } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { useProjects } from '@/hooks/useProjects';
 import { useAuth } from '@/contexts/AuthContext';
+import { useCustomers } from '@/hooks/useCustomers';
 import { ProjectIntakeService, ProjectIntakeData } from '@/services/projectIntakeService';
 import { IntakeMappingService } from '@/services/intakeMappingService';
 import { VolumeData } from '@/types/project';
+import { Customer } from '@/types/project';
+import { CustomerModal } from '@/components/customer/CustomerModal';
 
 // Enhanced validation schema
 const volumeItemSchema = z.object({
@@ -27,7 +30,7 @@ const volumeItemSchema = z.object({
 
 const documentItemSchema = z.object({
     type: z.string(),
-    file: z.instanceof(File).optional(),
+    file: z.any().optional(), // Changed from z.instanceof(File) to z.any() to avoid TypeScript issues
     link: z.string().url().optional(),
     uploaded: z.boolean().optional()
 }).refine(data => data.file || data.link, {
@@ -62,12 +65,15 @@ const intakeFormSchema = z.object({
     // Project reference (only for PO)
     projectReference: z.string().optional(),
 
-    // Customer information
-    customerName: z.string().min(2, 'Customer name must be at least 2 characters'),
-    companyName: z.string().min(2, 'Company name must be at least 2 characters'),
-    email: z.string().email('Invalid email address'),
+    // Customer information (for customer role)
+    customerName: z.string().min(2, 'Customer name must be at least 2 characters').optional(),
+    companyName: z.string().min(2, 'Company name must be at least 2 characters').optional(),
+    email: z.string().email('Invalid email address').optional(),
     phone: z.string().optional(),
-    country: z.string().length(2, 'Country code must be 2 characters'),
+    country: z.string().length(2, 'Country code must be 2 characters').optional(),
+
+    // Customer selector (for sales rep role)
+    selectedCustomerId: z.string().optional(),
 
     // Documents
     documents: z.array(documentItemSchema).min(2, 'At least two documents required: Drawing and BOM'),
@@ -77,6 +83,17 @@ const intakeFormSchema = z.object({
 
     // Notes
     notes: z.string().optional()
+}).refine(data => {
+    // Validate customer information based on role
+    if (data.userRole === 'customer') {
+        return data.customerName && data.companyName && data.email && data.country;
+    } else if (data.userRole === 'sales_rep') {
+        return data.selectedCustomerId;
+    }
+    return true;
+}, {
+    message: "Please provide complete customer information",
+    path: ["customerName"] // This will show the error on the customer name field
 });
 
 type IntakeFormData = z.infer<typeof intakeFormSchema>;
@@ -92,10 +109,12 @@ export function InquiryIntakeForm({ submissionType, onSuccess }: InquiryIntakeFo
     const [tempProjectId, setTempProjectId] = useState<string>('');
     const [uploadedFiles, setUploadedFiles] = useState<File[]>([]);
     const [externalLinks, setExternalLinks] = useState<string[]>([]);
+    const [showCustomerModal, setShowCustomerModal] = useState(false);
 
     const { toast } = useToast();
     const { createProject, createOrGetCustomer } = useProjects();
     const { profile } = useAuth();
+    const { customers, loading: loadingCustomers } = useCustomers();
 
     // Get intake mapping for this submission type
     const mapping = IntakeMappingService.getMapping(submissionType);
@@ -117,6 +136,24 @@ export function InquiryIntakeForm({ submissionType, onSuccess }: InquiryIntakeFo
         control: form.control,
         name: 'volumes'
     });
+
+    // Watch for role changes to show/hide customer selector
+    const selectedRole = form.watch('userRole');
+    const selectedCustomerId = form.watch('selectedCustomerId');
+
+    // Get selected customer data
+    const selectedCustomer = customers.find(c => c.id === selectedCustomerId);
+
+    // Auto-fill customer information when customer is selected
+    useEffect(() => {
+        if (selectedCustomer && selectedRole === 'sales_rep') {
+            form.setValue('customerName', selectedCustomer.contact_name || '');
+            form.setValue('companyName', selectedCustomer.company_name || '');
+            form.setValue('email', selectedCustomer.email || '');
+            form.setValue('phone', selectedCustomer.phone || '');
+            form.setValue('country', selectedCustomer.country || '');
+        }
+    }, [selectedCustomer, selectedRole, form]);
 
     // Generate temporary project ID
     useEffect(() => {
@@ -180,16 +217,26 @@ export function InquiryIntakeForm({ submissionType, onSuccess }: InquiryIntakeFo
         setIsSubmitting(true);
 
         try {
-            // Create or get customer
-            const customer = await createOrGetCustomer({
-                name: data.customerName,
-                company: data.companyName,
-                email: data.email,
-                phone: data.phone || undefined
-            });
+            let customer;
 
-            if (!customer) {
-                throw new Error('Failed to create or get customer');
+            if (data.userRole === 'sales_rep' && data.selectedCustomerId) {
+                // Use selected customer for sales rep
+                customer = customers.find(c => c.id === data.selectedCustomerId);
+                if (!customer) {
+                    throw new Error('Selected customer not found');
+                }
+            } else {
+                // Create or get customer for customer role
+                customer = await createOrGetCustomer({
+                    name: data.customerName!,
+                    company: data.companyName!,
+                    email: data.email!,
+                    phone: data.phone || undefined
+                });
+
+                if (!customer) {
+                    throw new Error('Failed to create or get customer');
+                }
             }
 
             // Prepare intake data
@@ -201,9 +248,9 @@ export function InquiryIntakeForm({ submissionType, onSuccess }: InquiryIntakeFo
                 estimated_value: data.targetPricePerUnit ?
                     data.targetPricePerUnit * data.volumes.reduce((sum, v) => sum + v.quantity, 0) : undefined,
                 due_date: data.desiredDeliveryDate,
-                contact_name: data.customerName,
-                contact_email: data.email,
-                contact_phone: data.phone,
+                contact_name: customer.contact_name || data.customerName!,
+                contact_email: customer.email || data.email!,
+                contact_phone: customer.phone || data.phone,
                 notes: data.notes,
                 intake_type: data.intakeType,
                 intake_source: 'portal',
@@ -547,95 +594,179 @@ export function InquiryIntakeForm({ submissionType, onSuccess }: InquiryIntakeFo
                     <CardHeader>
                         <CardTitle>Customer Information</CardTitle>
                         <CardDescription>
-                            Tell us about your company and the primary contact for this project.
+                            {selectedRole === 'sales_rep'
+                                ? 'Select the customer for this project'
+                                : 'Tell us about your company and the primary contact for this project.'
+                            }
                         </CardDescription>
                     </CardHeader>
                     <CardContent className="space-y-4">
-                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                            <FormField
-                                control={form.control}
-                                name="companyName"
-                                render={({ field }) => (
-                                    <FormItem>
-                                        <FormLabel>Company Name *</FormLabel>
-                                        <FormControl>
-                                            <Input placeholder="Enter company name" {...field} />
-                                        </FormControl>
-                                        <FormMessage />
-                                    </FormItem>
+                        {selectedRole === 'sales_rep' ? (
+                            // Sales Rep Customer Selector
+                            <div className="space-y-4">
+                                <FormField
+                                    control={form.control}
+                                    name="selectedCustomerId"
+                                    render={({ field }) => (
+                                        <FormItem>
+                                            <FormLabel>Select Customer *</FormLabel>
+                                            <Select onValueChange={field.onChange} value={field.value}>
+                                                <FormControl>
+                                                    <SelectTrigger>
+                                                        <SelectValue placeholder={loadingCustomers ? "Loading customers..." : "Search or select existing customer"} />
+                                                    </SelectTrigger>
+                                                </FormControl>
+                                                <SelectContent>
+                                                    {loadingCustomers ? (
+                                                        <SelectItem value="loading" disabled>
+                                                            <div className="flex items-center gap-2">
+                                                                <Loader2 className="h-4 w-4 animate-spin" />
+                                                                Loading customers...
+                                                            </div>
+                                                        </SelectItem>
+                                                    ) : customers.length === 0 ? (
+                                                        <SelectItem value="none" disabled>
+                                                            No customers found
+                                                        </SelectItem>
+                                                    ) : (
+                                                        customers.map(customer => (
+                                                            <SelectItem key={customer.id} value={customer.id}>
+                                                                <div>
+                                                                    <div className="font-medium">{customer.company_name}</div>
+                                                                    <div className="text-xs text-muted-foreground">
+                                                                        {customer.contact_name} • {customer.email}
+                                                                    </div>
+                                                                </div>
+                                                            </SelectItem>
+                                                        ))
+                                                    )}
+                                                </SelectContent>
+                                            </Select>
+                                            <FormMessage />
+                                        </FormItem>
+                                    )}
+                                />
+
+                                {/* Create New Customer Button */}
+                                <div className="flex items-center gap-2">
+                                    <Button
+                                        type="button"
+                                        variant="outline"
+                                        size="sm"
+                                        onClick={() => setShowCustomerModal(true)}
+                                    >
+                                        <Plus className="h-4 w-4 mr-2" />
+                                        Create New Customer
+                                    </Button>
+                                    <span className="text-xs text-muted-foreground">
+                                        Can't find the customer? Create a new one.
+                                    </span>
+                                </div>
+
+                                {/* Selected Customer Details */}
+                                {selectedCustomer && (
+                                    <div className="p-4 border rounded-lg bg-muted/50">
+                                        <h4 className="font-medium mb-2">Selected Customer Details:</h4>
+                                        <div className="grid grid-cols-1 md:grid-cols-2 gap-2 text-sm">
+                                            <div><strong>Company:</strong> {selectedCustomer.company_name}</div>
+                                            <div><strong>Contact:</strong> {selectedCustomer.contact_name}</div>
+                                            <div><strong>Email:</strong> {selectedCustomer.email}</div>
+                                            <div><strong>Phone:</strong> {selectedCustomer.phone || 'Not provided'}</div>
+                                            <div><strong>Country:</strong> {selectedCustomer.country || 'Not provided'}</div>
+                                        </div>
+                                    </div>
                                 )}
-                            />
-                            <FormField
-                                control={form.control}
-                                name="customerName"
-                                render={({ field }) => (
-                                    <FormItem>
-                                        <FormLabel>Contact Name *</FormLabel>
-                                        <FormControl>
-                                            <Input placeholder="Enter contact person name" {...field} />
-                                        </FormControl>
-                                        <FormMessage />
-                                    </FormItem>
-                                )}
-                            />
-                        </div>
-                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                            <FormField
-                                control={form.control}
-                                name="email"
-                                render={({ field }) => (
-                                    <FormItem>
-                                        <FormLabel>Email Address *</FormLabel>
-                                        <FormControl>
-                                            <Input type="email" placeholder="Enter email address" {...field} />
-                                        </FormControl>
-                                        <FormMessage />
-                                    </FormItem>
-                                )}
-                            />
-                            <FormField
-                                control={form.control}
-                                name="phone"
-                                render={({ field }) => (
-                                    <FormItem>
-                                        <FormLabel>Phone Number</FormLabel>
-                                        <FormControl>
-                                            <Input type="tel" placeholder="Enter phone number" {...field} />
-                                        </FormControl>
-                                        <FormMessage />
-                                    </FormItem>
-                                )}
-                            />
-                        </div>
-                        <FormField
-                            control={form.control}
-                            name="country"
-                            render={({ field }) => (
-                                <FormItem>
-                                    <FormLabel>Country *</FormLabel>
-                                    <Select onValueChange={field.onChange} defaultValue={field.value}>
-                                        <FormControl>
-                                            <SelectTrigger>
-                                                <SelectValue placeholder="Select country" />
-                                            </SelectTrigger>
-                                        </FormControl>
-                                        <SelectContent>
-                                            <SelectItem value="VN">Vietnam</SelectItem>
-                                            <SelectItem value="US">United States</SelectItem>
-                                            <SelectItem value="CN">China</SelectItem>
-                                            <SelectItem value="JP">Japan</SelectItem>
-                                            <SelectItem value="KR">South Korea</SelectItem>
-                                            <SelectItem value="DE">Germany</SelectItem>
-                                            <SelectItem value="FR">France</SelectItem>
-                                            <SelectItem value="GB">United Kingdom</SelectItem>
-                                            <SelectItem value="CA">Canada</SelectItem>
-                                            <SelectItem value="AU">Australia</SelectItem>
-                                        </SelectContent>
-                                    </Select>
-                                    <FormMessage />
-                                </FormItem>
-                            )}
-                        />
+                            </div>
+                        ) : (
+                            // Regular Customer Information Fields
+                            <>
+                                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                    <FormField
+                                        control={form.control}
+                                        name="companyName"
+                                        render={({ field }) => (
+                                            <FormItem>
+                                                <FormLabel>Company Name *</FormLabel>
+                                                <FormControl>
+                                                    <Input placeholder="Enter company name" {...field} />
+                                                </FormControl>
+                                                <FormMessage />
+                                            </FormItem>
+                                        )}
+                                    />
+                                    <FormField
+                                        control={form.control}
+                                        name="customerName"
+                                        render={({ field }) => (
+                                            <FormItem>
+                                                <FormLabel>Contact Name *</FormLabel>
+                                                <FormControl>
+                                                    <Input placeholder="Enter contact person name" {...field} />
+                                                </FormControl>
+                                                <FormMessage />
+                                            </FormItem>
+                                        )}
+                                    />
+                                </div>
+                                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                    <FormField
+                                        control={form.control}
+                                        name="email"
+                                        render={({ field }) => (
+                                            <FormItem>
+                                                <FormLabel>Email Address *</FormLabel>
+                                                <FormControl>
+                                                    <Input type="email" placeholder="Enter email address" {...field} />
+                                                </FormControl>
+                                                <FormMessage />
+                                            </FormItem>
+                                        )}
+                                    />
+                                    <FormField
+                                        control={form.control}
+                                        name="phone"
+                                        render={({ field }) => (
+                                            <FormItem>
+                                                <FormLabel>Phone Number</FormLabel>
+                                                <FormControl>
+                                                    <Input type="tel" placeholder="Enter phone number" {...field} />
+                                                </FormControl>
+                                                <FormMessage />
+                                            </FormItem>
+                                        )}
+                                    />
+                                </div>
+                                <FormField
+                                    control={form.control}
+                                    name="country"
+                                    render={({ field }) => (
+                                        <FormItem>
+                                            <FormLabel>Country *</FormLabel>
+                                            <Select onValueChange={field.onChange} defaultValue={field.value}>
+                                                <FormControl>
+                                                    <SelectTrigger>
+                                                        <SelectValue placeholder="Select country" />
+                                                    </SelectTrigger>
+                                                </FormControl>
+                                                <SelectContent>
+                                                    <SelectItem value="VN">Vietnam</SelectItem>
+                                                    <SelectItem value="US">United States</SelectItem>
+                                                    <SelectItem value="CN">China</SelectItem>
+                                                    <SelectItem value="JP">Japan</SelectItem>
+                                                    <SelectItem value="KR">South Korea</SelectItem>
+                                                    <SelectItem value="DE">Germany</SelectItem>
+                                                    <SelectItem value="FR">France</SelectItem>
+                                                    <SelectItem value="GB">United Kingdom</SelectItem>
+                                                    <SelectItem value="CA">Canada</SelectItem>
+                                                    <SelectItem value="AU">Australia</SelectItem>
+                                                </SelectContent>
+                                            </Select>
+                                            <FormMessage />
+                                        </FormItem>
+                                    )}
+                                />
+                            </>
+                        )}
                     </CardContent>
                 </Card>
 
@@ -823,6 +954,20 @@ export function InquiryIntakeForm({ submissionType, onSuccess }: InquiryIntakeFo
                     </Button>
                 </div>
             </form>
+
+            {/* Customer Modal for creating new customers */}
+            <CustomerModal
+                open={showCustomerModal}
+                onClose={() => setShowCustomerModal(false)}
+                customer={null}
+                onCustomerCreated={(newCustomer) => {
+                    // Refresh the customer list and select the new customer
+                    if (newCustomer) {
+                        form.setValue('selectedCustomerId', newCustomer.id);
+                        setShowCustomerModal(false);
+                    }
+                }}
+            />
         </Form>
     );
 }
