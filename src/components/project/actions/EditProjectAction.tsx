@@ -105,8 +105,14 @@ export function EditProjectAction({
         try {
             const { data, error } = await supabase
                 .from('contacts')
-                .select('id, company_name, contact_name, email')
-                .eq('organization_id', profile.organization_id)
+                .select(`
+                    id, 
+                    company_name, 
+                    contact_name, 
+                    email,
+                    client_organization_id,
+                    client_org:client_organization_id(name)
+                `)
                 .eq('type', 'customer')
                 .eq('is_active', true)
                 .order('company_name');
@@ -403,7 +409,12 @@ export function EditProjectAction({
                                                                     <SelectItem value="">No Customer</SelectItem>
                                                                     {existingCustomers.map((customer) => (
                                                                         <SelectItem key={customer.id} value={customer.id}>
-                                                                            {customer.company_name} - {customer.contact_name}
+                                                                            <div>
+                                                                                <div className="font-medium">{customer.company_name}</div>
+                                                                                <div className="text-xs text-muted-foreground">
+                                                                                    {customer.contact_name} • {customer.client_org?.name || 'Unknown Company'}
+                                                                                </div>
+                                                                            </div>
                                                                         </SelectItem>
                                                                     ))}
                                                                 </SelectContent>

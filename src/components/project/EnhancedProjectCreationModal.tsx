@@ -145,8 +145,15 @@ export function EnhancedProjectCreationModal({
         try {
             const { data, error } = await supabase
                 .from('contacts')
-                .select('id, company_name, contact_name, email, phone')
-                .eq('organization_id', profile.organization_id)
+                .select(`
+                    id, 
+                    company_name, 
+                    contact_name, 
+                    email, 
+                    phone,
+                    client_organization_id,
+                    client_org:client_organization_id(name)
+                `)
                 .eq('type', 'customer')
                 .eq('is_active', true)
                 .order('company_name');
@@ -517,7 +524,7 @@ export function EnhancedProjectCreationModal({
                                                                 <div>
                                                                     <div className="font-medium">{customer.company_name}</div>
                                                                     <div className="text-xs text-muted-foreground">
-                                                                        {customer.contact_name} • {customer.email}
+                                                                        {customer.contact_name} • {customer.client_org?.name || 'Unknown Company'}
                                                                     </div>
                                                                 </div>
                                                             </SelectItem>

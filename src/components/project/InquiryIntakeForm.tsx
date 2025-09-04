@@ -312,7 +312,6 @@ export function InquiryIntakeForm({ submissionType, onSuccess }: InquiryIntakeFo
         );
     }
 
-
     return (
         <Form {...form}>
             <form onSubmit={form.handleSubmit(handleSubmit)} className="space-y-6">
