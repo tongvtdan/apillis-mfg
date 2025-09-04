@@ -581,4 +581,25 @@
   [data-sidebar="header"] {
     @apply bg-sidebar border-b border-sidebar-border/50;
   }
+
+  /* DaisyUI Steps - Improve visibility in light mode */
+  .steps .step {
+    @apply text-foreground;
+  }
+
+  .steps .step::before {
+    @apply bg-muted text-foreground border border-border;
+  }
+
+  .steps .step.step-primary::before {
+    @apply bg-primary text-primary-foreground border-primary;
+  }
+
+  .steps .step::after {
+    @apply bg-border;
+  }
+
+  .steps .step.step-primary::after {
+    @apply bg-primary;
+  }
 }
