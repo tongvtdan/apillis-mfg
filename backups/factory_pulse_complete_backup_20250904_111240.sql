@@ -1663,65 +1663,6 @@ COMMENT ON COLUMN "public"."documents"."link_last_accessed" IS 'Last time the li
 
 
 
-CREATE TABLE IF NOT EXISTS "public"."google_drive_config" (
-    "id" integer NOT NULL,
-    "organization_id" "text" NOT NULL,
-    "client_id" "text" NOT NULL,
-    "client_secret" "text" NOT NULL,
-    "redirect_uri" "text" NOT NULL,
-    "is_active" boolean DEFAULT true
-);
-
-
-ALTER TABLE "public"."google_drive_config" OWNER TO "postgres";
-
-
-CREATE SEQUENCE IF NOT EXISTS "public"."google_drive_config_id_seq"
-    AS integer
-    START WITH 1
-    INCREMENT BY 1
-    NO MINVALUE
-    NO MAXVALUE
-    CACHE 1;
-
-
-ALTER SEQUENCE "public"."google_drive_config_id_seq" OWNER TO "postgres";
-
-
-ALTER SEQUENCE "public"."google_drive_config_id_seq" OWNED BY "public"."google_drive_config"."id";
-
-
-
-CREATE TABLE IF NOT EXISTS "public"."google_drive_tokens" (
-    "id" integer NOT NULL,
-    "user_id" "text" NOT NULL,
-    "organization_id" "text" NOT NULL,
-    "access_token" "text" NOT NULL,
-    "refresh_token" "text",
-    "expires_at" timestamp with time zone NOT NULL,
-    "scope" "text"
-);
-
-
-ALTER TABLE "public"."google_drive_tokens" OWNER TO "postgres";
-
-
-CREATE SEQUENCE IF NOT EXISTS "public"."google_drive_tokens_id_seq"
-    AS integer
-    START WITH 1
-    INCREMENT BY 1
-    NO MINVALUE
-    NO MAXVALUE
-    CACHE 1;
-
-
-ALTER SEQUENCE "public"."google_drive_tokens_id_seq" OWNER TO "postgres";
-
-
-ALTER SEQUENCE "public"."google_drive_tokens_id_seq" OWNED BY "public"."google_drive_tokens"."id";
-
-
-
 CREATE TABLE IF NOT EXISTS "public"."messages" (
     "id" "uuid" DEFAULT "extensions"."uuid_generate_v4"() NOT NULL,
     "organization_id" "uuid" NOT NULL,
@@ -2035,14 +1976,6 @@ CREATE TABLE IF NOT EXISTS "public"."workflow_sub_stages" (
 ALTER TABLE "public"."workflow_sub_stages" OWNER TO "postgres";
 
 
-ALTER TABLE ONLY "public"."google_drive_config" ALTER COLUMN "id" SET DEFAULT "nextval"('"public"."google_drive_config_id_seq"'::"regclass");
-
-
-
-ALTER TABLE ONLY "public"."google_drive_tokens" ALTER COLUMN "id" SET DEFAULT "nextval"('"public"."google_drive_tokens_id_seq"'::"regclass");
-
-
-
 ALTER TABLE ONLY "public"."test_table" ALTER COLUMN "id" SET DEFAULT "nextval"('"public"."test_table_id_seq"'::"regclass");
 
 
@@ -2109,16 +2042,6 @@ ALTER TABLE ONLY "public"."document_versions"
 
 ALTER TABLE ONLY "public"."documents"
     ADD CONSTRAINT "documents_pkey" PRIMARY KEY ("id");
-
-
-
-ALTER TABLE ONLY "public"."google_drive_config"
-    ADD CONSTRAINT "google_drive_config_pkey" PRIMARY KEY ("id");
-
-
-
-ALTER TABLE ONLY "public"."google_drive_tokens"
-    ADD CONSTRAINT "google_drive_tokens_pkey" PRIMARY KEY ("id");
 
 
 
@@ -2450,18 +2373,6 @@ CREATE INDEX "idx_documents_uploaded_by" ON "public"."documents" USING "btree" (
 
 
 
-CREATE INDEX "idx_google_drive_config_org_active" ON "public"."google_drive_config" USING "btree" ("organization_id", "is_active");
-
-
-
-CREATE INDEX "idx_google_drive_tokens_expires" ON "public"."google_drive_tokens" USING "btree" ("expires_at");
-
-
-
-CREATE INDEX "idx_google_drive_tokens_user_org" ON "public"."google_drive_tokens" USING "btree" ("user_id", "organization_id");
-
-
-
 CREATE INDEX "idx_messages_org_id" ON "public"."messages" USING "btree" ("organization_id");
 
 
@@ -2731,10 +2642,6 @@ CREATE OR REPLACE TRIGGER "update_contacts_updated_at" BEFORE UPDATE ON "public"
 
 
 CREATE OR REPLACE TRIGGER "update_documents_updated_at" BEFORE UPDATE ON "public"."documents" FOR EACH ROW EXECUTE FUNCTION "public"."update_updated_at_column"();
-
-
-
-CREATE OR REPLACE TRIGGER "update_google_drive_tokens_updated_at" BEFORE UPDATE ON "public"."google_drive_tokens" FOR EACH ROW EXECUTE FUNCTION "public"."update_updated_at_column"();
 
 
 
@@ -3157,20 +3064,6 @@ CREATE POLICY "Admin and management can manage sub-stages" ON "public"."workflow
 
 
 
-CREATE POLICY "Admins can manage Google Drive config" ON "public"."google_drive_config" USING (("organization_id" IN ( SELECT ("users"."organization_id")::"text" AS "organization_id"
-   FROM "public"."users"
-  WHERE (("users"."id" = "auth"."uid"()) AND ("users"."role" = 'admin'::"public"."user_role")))));
-
-
-
-CREATE POLICY "Admins can manage Google Drive config for their organization" ON "public"."google_drive_config" USING ((("organization_id" = ( SELECT ("users"."organization_id")::"text" AS "organization_id"
-   FROM "public"."users"
-  WHERE ("users"."id" = "auth"."uid"()))) AND (EXISTS ( SELECT 1
-   FROM "public"."users"
-  WHERE (("users"."id" = "auth"."uid"()) AND ("users"."role" = 'admin'::"public"."user_role"))))));
-
-
-
 CREATE POLICY "Delegators can update their delegations" ON "public"."approval_delegations" FOR UPDATE USING (("auth"."uid"() = "delegator_id"));
 
 
@@ -3268,12 +3161,6 @@ CREATE POLICY "Users can insert activity in their org" ON "public"."activity_log
 
 
 CREATE POLICY "Users can insert document access logs" ON "public"."document_access_log" FOR INSERT WITH CHECK (("user_id" = "auth"."uid"()));
-
-
-
-CREATE POLICY "Users can manage their own Google Drive tokens" ON "public"."google_drive_tokens" USING ((("user_id" = ("auth"."uid"())::"text") AND ("organization_id" = ( SELECT ("users"."organization_id")::"text" AS "organization_id"
-   FROM "public"."users"
-  WHERE ("users"."id" = "auth"."uid"())))));
 
 
 
@@ -3412,12 +3299,6 @@ COMMENT ON POLICY "Users can update their own profile" ON "public"."users" IS 'A
 
 
 CREATE POLICY "Users can upload attachments for their organization" ON "public"."approval_attachments" FOR INSERT WITH CHECK (("organization_id" IN ( SELECT "users"."organization_id"
-   FROM "public"."users"
-  WHERE ("users"."id" = "auth"."uid"()))));
-
-
-
-CREATE POLICY "Users can view Google Drive config for their organization" ON "public"."google_drive_config" FOR SELECT USING (("organization_id" = ( SELECT ("users"."organization_id")::"text" AS "organization_id"
    FROM "public"."users"
   WHERE ("users"."id" = "auth"."uid"()))));
 
@@ -3587,12 +3468,6 @@ CREATE POLICY "Users can view their organization" ON "public"."organizations" FO
 
 
 
-CREATE POLICY "Users can view their organization's Google Drive config" ON "public"."google_drive_config" FOR SELECT USING (("organization_id" IN ( SELECT ("users"."organization_id")::"text" AS "organization_id"
-   FROM "public"."users"
-  WHERE ("users"."id" = "auth"."uid"()))));
-
-
-
 CREATE POLICY "Users can view their own delegations" ON "public"."approval_delegations" FOR SELECT USING ((("auth"."uid"() = "delegator_id") OR ("auth"."uid"() = "delegate_id") OR (EXISTS ( SELECT 1
    FROM "public"."users"
   WHERE (("users"."id" = "auth"."uid"()) AND ("users"."organization_id" = "approval_delegations"."organization_id") AND ("users"."role" = ANY (ARRAY['admin'::"public"."user_role", 'management'::"public"."user_role"])))))));
@@ -3659,12 +3534,6 @@ ALTER TABLE "public"."document_versions" ENABLE ROW LEVEL SECURITY;
 
 
 ALTER TABLE "public"."documents" ENABLE ROW LEVEL SECURITY;
-
-
-ALTER TABLE "public"."google_drive_config" ENABLE ROW LEVEL SECURITY;
-
-
-ALTER TABLE "public"."google_drive_tokens" ENABLE ROW LEVEL SECURITY;
 
 
 ALTER TABLE "public"."messages" ENABLE ROW LEVEL SECURITY;
@@ -4158,30 +4027,6 @@ GRANT ALL ON TABLE "public"."document_versions" TO "service_role";
 GRANT ALL ON TABLE "public"."documents" TO "anon";
 GRANT ALL ON TABLE "public"."documents" TO "authenticated";
 GRANT ALL ON TABLE "public"."documents" TO "service_role";
-
-
-
-GRANT ALL ON TABLE "public"."google_drive_config" TO "anon";
-GRANT ALL ON TABLE "public"."google_drive_config" TO "authenticated";
-GRANT ALL ON TABLE "public"."google_drive_config" TO "service_role";
-
-
-
-GRANT ALL ON SEQUENCE "public"."google_drive_config_id_seq" TO "anon";
-GRANT ALL ON SEQUENCE "public"."google_drive_config_id_seq" TO "authenticated";
-GRANT ALL ON SEQUENCE "public"."google_drive_config_id_seq" TO "service_role";
-
-
-
-GRANT ALL ON TABLE "public"."google_drive_tokens" TO "anon";
-GRANT ALL ON TABLE "public"."google_drive_tokens" TO "authenticated";
-GRANT ALL ON TABLE "public"."google_drive_tokens" TO "service_role";
-
-
-
-GRANT ALL ON SEQUENCE "public"."google_drive_tokens_id_seq" TO "anon";
-GRANT ALL ON SEQUENCE "public"."google_drive_tokens_id_seq" TO "authenticated";
-GRANT ALL ON SEQUENCE "public"."google_drive_tokens_id_seq" TO "service_role";
 
 
 
