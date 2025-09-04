@@ -1,7 +1,8 @@
 import { useState, useEffect } from 'react';
 import { useAuth } from '@/contexts/AuthContext';
 import { Navigate, useLocation } from 'react-router-dom';
-import { Loader2, Factory, AlertCircle, Eye, EyeOff, Sun, Moon } from 'lucide-react';
+import { Loader2, Factory, AlertCircle, Eye, EyeOff } from 'lucide-react';
+import { DaisyUIThemeToggle } from '@/components/ui/daisyui-theme-toggle';
 
 export default function Auth() {
   const { signIn, signUp, resetPassword, user, loading } = useAuth();
@@ -26,21 +27,8 @@ export default function Auth() {
   });
   const [rememberMe, setRememberMe] = useState(false);
   const [errors, setErrors] = useState<string[]>([]);
-  const [isDarkMode, setIsDarkMode] = useState(false);
 
   const from = location.state?.from?.pathname || '/dashboard';
-
-  // Check current theme on mount
-  useEffect(() => {
-    const currentTheme = document.documentElement.getAttribute('data-theme');
-    setIsDarkMode(currentTheme === 'factory-pulse-dark');
-  }, []);
-
-  const toggleTheme = () => {
-    const newTheme = isDarkMode ? 'factory-pulse-light' : 'factory-pulse-dark';
-    document.documentElement.setAttribute('data-theme', newTheme);
-    setIsDarkMode(!isDarkMode);
-  };
 
   if (user && !loading) {
     return <Navigate to={from} replace />;
@@ -122,13 +110,9 @@ export default function Auth() {
   return (
     <div className="min-h-screen flex items-center justify-center bg-base-200 p-4">
       {/* Theme Toggle Button */}
-      <button
-        onClick={toggleTheme}
-        className="fixed top-4 right-4 btn btn-circle btn-ghost"
-        title={isDarkMode ? 'Switch to Light Mode' : 'Switch to Dark Mode'}
-      >
-        {isDarkMode ? <Sun className="h-5 w-5" /> : <Moon className="h-5 w-5" />}
-      </button>
+      <div className="fixed top-4 right-4">
+        <DaisyUIThemeToggle variant="icon" size="lg" />
+      </div>
 
       <div className="auth-container mx-auto space-y-8">
         {/* Header Section */}

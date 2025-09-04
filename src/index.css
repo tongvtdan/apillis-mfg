@@ -17,6 +17,9 @@
 /* Import DaisyUI component enhancements */
 @import './styles/daisyui-enhancements.css';
 
+/* Import header icon fixes */
+@import './styles/header-icon-fixes.css';
+
 /* Base styles for Factory Pulse */
 html {
   font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;

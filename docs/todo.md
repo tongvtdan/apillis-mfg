@@ -32,6 +32,15 @@
   - ✅ **Theme Persistence**: User preferences are saved and restored
   - ✅ **System Integration**: Automatically detects and follows OS theme preference
 
+- [done] 2025-09-04 - Authentication Issue Resolution ✅
+  - ✅ **Admin User Fix**: Resolved "Invalid login credentials" error for admin@factorypulse.vn
+  - ✅ **Password Reset**: Reset admin user password to default FactoryPulse@2025
+  - ✅ **Comprehensive Fix**: Reset passwords for all 18 users to ensure consistent authentication
+  - ✅ **Script Creation**: Created password reset and authentication test scripts
+  - ✅ **Verification**: Tested authentication for multiple users to confirm the fix
+  - ✅ **Documentation**: Created comprehensive resolution documentation
+  - ✅ **Prevention**: Established procedures to avoid similar issues in the future
+
 - [WIP] 2025-09-04 - Project Intake Portal Enhancement Based on Wireframe Requirements
   - [x] **Database Schema Updates**:
     - [x] Add `inquiry` to intake_type enum (current: rfq, purchase_order, project_idea, direct_request)

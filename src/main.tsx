@@ -15,7 +15,6 @@ import './styles/action-buttons-enhancements.css';
 import './styles/toast-enhancements.css';
 import './styles/toast-opacity-fix.css';
 import './styles/project-animations.css';
-import './lib/theme-init';
 import { queryClient } from './lib/queryClient';
 
 createRoot(document.getElementById('root')!).render(

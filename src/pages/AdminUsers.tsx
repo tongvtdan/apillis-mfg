@@ -571,7 +571,7 @@ export default function AdminUsers() {
               </div>
             </CardContent>
           </Card>
-        </TabsContent>
+        </DaisyUITabsContent>
         <DaisyUITabsContent value="activity">
           <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
             <div>
@@ -863,7 +863,7 @@ export default function AdminUsers() {
               </div>
             </CardContent>
           </Card>
-        </TabsContent>
+        </DaisyUITabsContent>
       </DaisyUITabs>
     </div>
   );

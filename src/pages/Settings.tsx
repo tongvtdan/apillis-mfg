@@ -152,7 +152,7 @@ export default function Settings() {
                             </p>
                         </CardContent>
                     </Card>
-                </TabsContent>
+                </DaisyUITabsContent>
 
                 {/* Admin Settings */}
                 {isManagement && (

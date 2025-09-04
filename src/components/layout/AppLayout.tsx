@@ -1,6 +1,7 @@
 import { AppSidebar } from "./AppSidebar";
 import { AppHeader } from "./AppHeader";
 import { useEffect, useState } from "react";
+import { isDarkTheme } from "@/lib/theme";
 
 interface AppLayoutProps {
   children: React.ReactNode;
@@ -14,24 +15,22 @@ export function AppLayout({ children }: AppLayoutProps) {
   useEffect(() => {
     // Check current theme
     const checkTheme = () => {
-      const html = document.documentElement;
-      const isDarkTheme =
-        html.getAttribute('data-theme') === 'factory-pulse-dark' ||
-        html.classList.contains('dark');
-      setIsDark(isDarkTheme);
+      setIsDark(isDarkTheme());
     };
 
     // Initial check
     checkTheme();
 
-    // Set up an observer to watch for attribute changes
-    const observer = new MutationObserver(checkTheme);
-    observer.observe(document.documentElement, {
-      attributes: true,
-      attributeFilter: ['data-theme', 'class']
-    });
+    // Listen for custom theme change events
+    const handleThemeChange = () => {
+      checkTheme();
+    };
 
-    return () => observer.disconnect();
+    document.addEventListener('themeChanged', handleThemeChange);
+
+    return () => {
+      document.removeEventListener('themeChanged', handleThemeChange);
+    };
   }, []);
 
   return (

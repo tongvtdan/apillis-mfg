@@ -124,7 +124,7 @@ export function AppSidebar() {
           </div>
 
           {/* Menu Items */}
-          <ul className="menu menu-lg">
+          <ul className="menu bg-base-200 w-56">
             {sidebarItems.map((group, groupIndex) => (
               <li key={groupIndex}>
                 <div className="menu-title">{group.label}</div>
@@ -135,7 +135,7 @@ export function AppSidebar() {
                         <NavLink
                           to={item.href!}
                           className={({ isActive }) =>
-                            isActive ? "active" : ""
+                            isActive ? "menu-active" : ""
                           }
                         >
                           {item.icon}

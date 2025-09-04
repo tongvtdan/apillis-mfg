@@ -319,7 +319,7 @@ export function RFQDetail() {
               <p className="text-muted-foreground">Approval history will be displayed here.</p>
             </CardContent>
           </Card>
-        </TabsContent>
+        </DaisyUITabsContent>
 
         <DaisyUITabsContent value="documents">
           <Card>
@@ -330,7 +330,7 @@ export function RFQDetail() {
               <p className="text-muted-foreground">Document management coming soon...</p>
             </CardContent>
           </Card>
-        </TabsContent>
+        </DaisyUITabsContent>
 
         <DaisyUITabsContent value="activity">
           <Card>

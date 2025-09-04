@@ -1,45 +1,16 @@
-// Factory Pulse Theme System - Enhanced for DaisyUI Light/Dark Mode
-// Comprehensive theme management with system preference detection
+// Factory Pulse Theme System - DaisyUI Native Implementation
+// Uses DaisyUI's built-in theme management with proper data-theme switching
 
 export type ThemeMode = 'light' | 'dark' | 'system';
 
-export interface ThemeColors {
-  // Teal/Cyan Blue Primary System
-  primary: string;        // #0EA5E9 - Vibrant Teal/Cyan Blue
-  primaryForeground: string;
-  secondary: string;      // #38BDF8 - Light Teal
-  secondaryForeground: string;
-  accent: string;         // #7DD3FC - Light Teal accent
-  accentForeground: string;
-
-  // Neutral Base Colors
-  background: string;     // #F8F9FA - Light neutral background
-  foreground: string;     // #212529 - High contrast text
-  card: string;          // #FFFFFF - Pure white cards
-  cardForeground: string;
-  popover: string;       // #FFFFFF - Pure white popovers
-  popoverForeground: string;
-  muted: string;         // #EBEEF1 - Light muted background
-  mutedForeground: string;
-
-  // Status Colors
-  destructive: string;   // #DC2626 - Error Red
-  destructiveForeground: string;
-  success: string;       // #059669 - Success Green
-  successForeground: string;
-  warning: string;      // #D97706 - Warning Orange
-  warningForeground: string;
-  info: string;         // #0EA5E9 - Info Teal (matches primary)
-  infoForeground: string;
-
-  // Interface Elements
-  border: string;       // #D8DFE6 - Subtle borders
-  input: string;        // #F2F4F7 - Light input backgrounds
-  ring: string;         // #0EA5E9 - Teal ring (matches primary)
-}
-
 // Theme storage key
 const THEME_STORAGE_KEY = 'factory-pulse-theme';
+
+// DaisyUI theme names
+const DAISYUI_THEMES = {
+  light: 'factory-pulse-light',
+  dark: 'factory-pulse-dark'
+} as const;
 
 // Get stored theme preference
 export const getStoredTheme = (): ThemeMode => {
@@ -68,15 +39,22 @@ export const getEffectiveTheme = (): 'light' | 'dark' => {
   return storedTheme;
 };
 
-// Apply theme to document
+// Get current DaisyUI theme name
+export const getCurrentDaisyUITheme = (): string => {
+  const effectiveTheme = getEffectiveTheme();
+  return DAISYUI_THEMES[effectiveTheme];
+};
+
+// Apply theme using DaisyUI's native method
 export const applyTheme = (theme: ThemeMode): void => {
   if (typeof document === 'undefined') return;
 
   const html = document.documentElement;
   const effectiveTheme = theme === 'system' ? getSystemTheme() : theme;
+  const daisyUITheme = DAISYUI_THEMES[effectiveTheme];
 
-  // Apply DaisyUI theme
-  html.setAttribute('data-theme', `factory-pulse-${effectiveTheme}`);
+  // Apply DaisyUI theme using data-theme attribute
+  html.setAttribute('data-theme', daisyUITheme);
 
   // Set color scheme for browser optimization
   html.style.colorScheme = effectiveTheme;
@@ -84,7 +62,7 @@ export const applyTheme = (theme: ThemeMode): void => {
   // Store preference
   setStoredTheme(theme);
 
-  console.log(`Factory Pulse Theme applied: ${theme} (effective: ${effectiveTheme})`);
+  console.log(`Factory Pulse Theme applied: ${theme} (effective: ${effectiveTheme}, daisyUI: ${daisyUITheme})`);
 };
 
 // Initialize theme system
@@ -98,12 +76,21 @@ export const initializeTheme = (): void => {
   // Listen for system theme changes
   if (typeof window !== 'undefined') {
     const mediaQuery = window.matchMedia('(prefers-color-scheme: dark)');
-    mediaQuery.addEventListener('change', (e) => {
+
+    const handleSystemThemeChange = (e: MediaQueryListEvent) => {
       const currentTheme = getStoredTheme();
       if (currentTheme === 'system') {
         applyTheme('system');
       }
-    });
+    };
+
+    // Modern browsers
+    if (mediaQuery.addEventListener) {
+      mediaQuery.addEventListener('change', handleSystemThemeChange);
+    } else {
+      // Fallback for older browsers
+      mediaQuery.addListener(handleSystemThemeChange);
+    }
   }
 };
 
@@ -157,14 +144,21 @@ export const getThemeIcon = (theme: ThemeMode): string => {
   }
 };
 
-export default {
-  getStoredTheme,
-  setStoredTheme,
-  getSystemTheme,
-  getEffectiveTheme,
-  applyTheme,
-  initializeTheme,
-  toggleTheme,
-  getThemeDisplayName,
-  getThemeIcon,
+// Check if current theme is dark
+export const isDarkTheme = (): boolean => {
+  return getEffectiveTheme() === 'dark';
 };
+
+// Get all available themes
+export const getAvailableThemes = (): ThemeMode[] => {
+  return ['light', 'dark', 'system'];
+};
+
+// Force refresh theme (useful for debugging)
+export const refreshTheme = (): void => {
+  const currentTheme = getStoredTheme();
+  applyTheme(currentTheme);
+};
+
+// Export DaisyUI theme names for external use
+export { DAISYUI_THEMES };

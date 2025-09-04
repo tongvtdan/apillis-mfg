@@ -42,10 +42,10 @@ export function SessionStatus() {
     return (
         <Popover>
             <PopoverTrigger asChild>
-                <Button variant="ghost" size="sm" className="relative">
-                    <Shield className="h-4 w-4" />
+                <Button variant="ghost" size="sm" className="relative h-8 w-8 rounded-full hover:bg-sky-100">
+                    <Shield className="h-4 w-4 text-base-content" />
                     {isExpiringSoon && (
-                        <div className="absolute -top-1 -right-1 h-2 w-2 bg-orange-500 rounded-full animate-pulse" />
+                        <div className="absolute -top-0.5 -right-0.5 h-2 w-2 bg-orange-500 rounded-full animate-pulse" />
                     )}
                 </Button>
             </PopoverTrigger>

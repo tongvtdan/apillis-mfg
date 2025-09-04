@@ -505,7 +505,7 @@ export default function Projects() {
                 }}
               />
             </ProjectErrorBoundary>
-          </TabsContent>
+          </DaisyUITabsContent>
 
           <DaisyUITabsContent value="flowchart" className="mt-4 space-y-6">
             <ProjectErrorBoundary context="Workflow Flowchart">
@@ -695,7 +695,7 @@ export default function Projects() {
                 )}
               </div>
             </ProjectErrorBoundary>
-          </TabsContent>
+          </DaisyUITabsContent>
 
           <DaisyUITabsContent value="analytics" className="mt-0">
             <ProjectErrorBoundary context="Project Analytics">
@@ -703,7 +703,7 @@ export default function Projects() {
                 projects={activeProjects.filter(p => selectedProjectType === 'all' || p.project_type === selectedProjectType)}
               />
             </ProjectErrorBoundary>
-          </TabsContent>
+          </DaisyUITabsContent>
 
           <DaisyUITabsContent value="calendar" className="mt-0">
             <ProjectErrorBoundary context="Project Calendar">
@@ -711,7 +711,7 @@ export default function Projects() {
                 projects={activeProjects.filter(p => selectedProjectType === 'all' || p.project_type === selectedProjectType)}
               />
             </ProjectErrorBoundary>
-          </TabsContent>
+          </DaisyUITabsContent>
         </DaisyUITabs>
 
         {/* New Project Modal */}

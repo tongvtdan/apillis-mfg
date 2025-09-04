@@ -1,0 +1,52 @@
+/* Header Icon Fixes - Remove unwanted outlines and ensure consistent styling */
+
+/* Remove focus outlines from header buttons */
+.AppHeader .btn:focus,
+.AppHeader button:focus {
+    outline: none !important;
+    box-shadow: none !important;
+}
+
+/* Ensure consistent styling for header icons */
+.AppHeader .btn.btn-ghost {
+    border: none !important;
+    background: transparent !important;
+}
+
+.AppHeader .btn.btn-ghost:hover {
+    background-color: hsl(var(--b2)) !important;
+    border: none !important;
+}
+
+/* Fix notification badge positioning */
+.AppHeader .badge {
+    z-index: 10;
+}
+
+/* Ensure avatar button has no border */
+.AppHeader .avatar {
+    border: none !important;
+}
+
+/* Remove any DaisyUI focus styles */
+.AppHeader .btn:focus-visible {
+    outline: none !important;
+    box-shadow: none !important;
+}
+
+/* Ensure consistent hover effects */
+.AppHeader .btn:hover {
+    transform: none !important;
+    box-shadow: none !important;
+}
+
+/* Remove any unwanted borders from buttons */
+.AppHeader .btn {
+    border: none !important;
+}
+
+/* Ensure proper icon sizing */
+.AppHeader .btn svg {
+    width: 1rem !important;
+    height: 1rem !important;
+}

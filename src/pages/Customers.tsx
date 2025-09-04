@@ -149,7 +149,7 @@ export default function Customers() {
               />
             </CardContent>
           </Card>
-        </TabsContent>
+        </DaisyUITabsContent>
 
         <DaisyUITabsContent value="analytics" className="space-y-6">
           <Card>
@@ -172,7 +172,7 @@ export default function Customers() {
               </div>
             </CardContent>
           </Card>
-        </TabsContent>
+        </DaisyUITabsContent>
       </DaisyUITabs>
 
       {/* Customer Modal */}

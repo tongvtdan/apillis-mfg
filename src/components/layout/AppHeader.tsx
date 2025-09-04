@@ -14,7 +14,7 @@ import { Badge } from "@/components/ui/badge";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { useAuth } from "@/contexts/AuthContext";
 import { SessionStatus } from "@/components/auth/SessionStatus";
-import { ThemeToggle } from "@/components/ui/theme-toggle";
+import { DaisyUIThemeToggle } from "@/components/ui/daisyui-theme-toggle";
 import { Link } from "react-router-dom";
 
 
@@ -38,7 +38,7 @@ export function AppHeader() {
       .join('');
   };
   return (
-    <header className="sticky top-0 z-50 w-full border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
+    <header className="AppHeader sticky top-0 z-50 w-full border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
       <div className="flex h-14 items-center justify-between px-4">
         <div className="flex items-center">
           {/* SidebarTrigger removed to prevent overlap with sidebar */}
@@ -57,11 +57,11 @@ export function AppHeader() {
         </div>
 
         <div className="flex items-center space-x-4">
-          <ThemeToggle variant="icon" />
+          <DaisyUIThemeToggle variant="icon" size="sm" />
 
-          <Button variant="ghost" size="sm" className="relative h-8 w-8 rounded-full border-2 border-sky-200 hover:border-sky-300 hover:bg-sky-100">
-            <Bell className="h-4 w-4 text-sky-700" />
-            <Badge className="absolute -top-1 -right-1 h-5 w-5 rounded-full p-0 flex items-center justify-center text-xs bg-red-600 text-white border-2 border-white">
+          <Button variant="ghost" size="sm" className="relative h-8 w-8 rounded-full hover:bg-sky-100">
+            <Bell className="h-4 w-4 text-base-content" />
+            <Badge className="absolute -top-0.5 -right-0.5 h-5 w-5 rounded-full p-0 flex items-center justify-center text-xs bg-red-600 text-white border-2 border-white">
               3
             </Badge>
           </Button>
@@ -70,9 +70,9 @@ export function AppHeader() {
 
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
-              <Button variant="ghost" size="sm" className="relative h-8 w-8 rounded-full border-2 border-sky-200 hover:border-sky-300 hover:bg-sky-100">
+              <Button variant="ghost" size="sm" className="relative h-8 w-8 rounded-full hover:bg-sky-100">
                 <Avatar className="h-8 w-8">
-                  <AvatarFallback className="text-xs text-sky-700">
+                  <AvatarFallback className="text-xs text-base-content">
                     {profile ? getInitials(profile.name) : 'U'}
                   </AvatarFallback>
                 </Avatar>
