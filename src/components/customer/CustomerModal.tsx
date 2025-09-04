@@ -169,11 +169,11 @@ export function CustomerModal({ open, onClose, customer }: CustomerModalProps) {
                             <CardHeader>
                                 <div className="flex items-center justify-between">
                                     <div>
-                                        <CardTitle className="flex items-center gap-2">
+                                        <CardTitle className="flex items-center gap-2 text-gray-900 dark:text-white font-bold text-xl">
                                             <Building2 className="w-5 h-5" />
                                             {isEditing ? 'Edit Customer' : 'Add New Customer'}
                                         </CardTitle>
-                                        <CardDescription>
+                                        <CardDescription className="text-gray-700 dark:text-gray-200 font-medium">
                                             {isEditing
                                                 ? 'Update customer information and contact details.'
                                                 : 'Add a new customer to your database with their contact information.'
