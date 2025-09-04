@@ -20,6 +20,9 @@
 /* Import header icon fixes */
 @import './styles/header-icon-fixes.css';
 
+/* Import priority card variants */
+@import './styles/priority-card-variants.css';
+
 /* Base styles for Factory Pulse */
 html {
   font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;

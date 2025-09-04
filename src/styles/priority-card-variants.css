@@ -1,0 +1,80 @@
+/* DaisyUI Card Variants with Custom Colors for Priority Action Items */
+
+/* Priority Action Item Cards */
+.card-priority-urgent {
+    @apply bg-red-50 border-red-200 dark:bg-red-950/20 dark:border-red-800;
+    box-shadow: 0 2px 4px rgba(239, 68, 68, 0.1);
+}
+
+.card-priority-high {
+    @apply bg-red-50 border-red-200 dark:bg-red-950/20 dark:border-red-800;
+    box-shadow: 0 2px 4px rgba(239, 68, 68, 0.1);
+}
+
+.card-priority-medium {
+    @apply bg-orange-50 border-orange-200 dark:bg-orange-950/20 dark:border-orange-800;
+    box-shadow: 0 2px 4px rgba(249, 115, 22, 0.1);
+}
+
+.card-priority-normal {
+    @apply bg-base-100 border-base-300;
+}
+
+.card-priority-success {
+    @apply bg-green-50 border-green-200 dark:bg-green-950/20 dark:border-green-800;
+    box-shadow: 0 2px 4px rgba(34, 197, 94, 0.1);
+}
+
+/* Hover effects for priority cards */
+.card-priority-urgent:hover {
+    @apply bg-red-100 dark:bg-red-950/30;
+    box-shadow: 0 4px 8px rgba(239, 68, 68, 0.15);
+}
+
+.card-priority-high:hover {
+    @apply bg-red-100 dark:bg-red-950/30;
+    box-shadow: 0 4px 8px rgba(239, 68, 68, 0.15);
+}
+
+.card-priority-medium:hover {
+    @apply bg-orange-100 dark:bg-orange-950/30;
+    box-shadow: 0 4px 8px rgba(249, 115, 22, 0.15);
+}
+
+.card-priority-success:hover {
+    @apply bg-green-100 dark:bg-green-950/30;
+    box-shadow: 0 4px 8px rgba(34, 197, 94, 0.15);
+}
+
+/* Text colors for priority cards */
+.text-priority-urgent {
+    @apply text-red-700 dark:text-red-300;
+}
+
+.text-priority-high {
+    @apply text-red-700 dark:text-red-300;
+}
+
+.text-priority-medium {
+    @apply text-orange-700 dark:text-orange-300;
+}
+
+.text-priority-normal {
+    @apply text-base-content;
+}
+
+/* Status badges for priority cards */
+.badge-priority-urgent {
+    @apply bg-red-100 text-red-800 dark:bg-red-900/30 dark:text-red-300;
+    box-shadow: 0 2px 4px rgba(239, 68, 68, 0.2);
+}
+
+.badge-priority-high {
+    @apply bg-red-100 text-red-800 dark:bg-red-900/30 dark:text-red-300;
+    box-shadow: 0 2px 4px rgba(239, 68, 68, 0.15);
+}
+
+.badge-priority-medium {
+    @apply bg-orange-100 text-orange-800 dark:bg-orange-900/30 dark:text-orange-300;
+    box-shadow: 0 2px 4px rgba(249, 115, 22, 0.15);
+}

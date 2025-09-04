@@ -1,5 +1,6 @@
 import { useNavigate } from "react-router-dom";
 import { Badge } from "@/components/ui/badge";
+import { Card } from "@/components/ui/card";
 import {
   Users,
   Calendar,
@@ -124,24 +125,36 @@ export function ProjectSummaryCard({ project, showUrgencyIndicators = false }: P
   const hasRisks = project.priority === 'high' && Math.random() > 0.5;
   const hasApprovals = project.current_stage !== 'inquiry_received' && Math.random() > 0.3;
 
-  // Enhanced list item classes based on urgency level
-  const getListItemClasses = () => {
-    if (!showUrgencyIndicators) return 'enhanced-list-item enhanced-list-item-normal';
+  // Get card color classes based on urgency level
+  const getCardColorClasses = () => {
+    if (!showUrgencyIndicators) return 'card-priority-normal';
 
     switch (urgency.level) {
-      case 'critical': return 'enhanced-list-item enhanced-list-item-urgent border-l-4 border-l-red-500 bg-red-50/10 dark:bg-red-950/20 shadow-md';
-      case 'high': return 'enhanced-list-item enhanced-list-item-high border-l-4 border-l-orange-500 bg-orange-50/10 dark:bg-orange-950/10';
-      case 'medium': return 'enhanced-list-item enhanced-list-item-medium border-l-4 border-l-yellow-500 bg-yellow-50/10 dark:bg-yellow-950/10';
-      default: return 'enhanced-list-item enhanced-list-item-normal';
+      case 'critical': return 'card-priority-urgent';
+      case 'high': return 'card-priority-high';
+      case 'medium': return 'card-priority-medium';
+      default: return 'card-priority-normal';
+    }
+  };
+
+  // Get text color classes based on urgency level
+  const getTextColorClasses = () => {
+    if (!showUrgencyIndicators) return 'text-priority-normal';
+
+    switch (urgency.level) {
+      case 'critical': return 'text-priority-urgent';
+      case 'high': return 'text-priority-high';
+      case 'medium': return 'text-priority-medium';
+      default: return 'text-priority-normal';
     }
   };
 
   // Get status badge class based on priority
   const getStatusBadgeClass = (priority: string) => {
     switch (priority) {
-      case 'urgent': return 'status-badge status-badge-sm status-urgent';
-      case 'high': return 'status-badge status-badge-sm status-high';
-      case 'medium': return 'status-badge status-badge-sm status-medium';
+      case 'urgent': return 'badge-priority-urgent';
+      case 'high': return 'badge-priority-high';
+      case 'medium': return 'badge-priority-medium';
       case 'low': return 'status-badge status-badge-sm status-low';
       default: return 'status-badge status-badge-sm';
     }
@@ -163,100 +176,102 @@ export function ProjectSummaryCard({ project, showUrgencyIndicators = false }: P
     isBefore(parseISO(project.estimated_delivery_date), new Date());
 
   return (
-    <div
-      className={`flex items-center gap-4 ${getListItemClasses()} cursor-pointer hover:shadow-md`}
+    <Card
+      className={`cursor-pointer transition-all duration-200 hover:shadow-lg hover:scale-105 ${getCardColorClasses()}`}
       onClick={handleCardClick}
     >
-      <div className="flex items-center gap-2 flex-1">
-        <div className={getPriorityIndicatorClass(project.priority_level || project.priority)}></div>
-        <span className="font-medium">{project.project_id}</span>
-        <span className="text-muted-foreground">–</span>
-        <span className="font-medium">{project.title}</span>
+      <div className={`flex items-center gap-4 p-4 ${getTextColorClasses()}`}>
+        <div className="flex items-center gap-2 flex-1">
+          <div className={getPriorityIndicatorClass(project.priority_level || project.priority)}></div>
+          <span className="font-medium">{project.project_id}</span>
+          <span className="text-muted-foreground">–</span>
+          <span className="font-medium">{project.title}</span>
 
-        <div className={getStatusBadgeClass(project.priority_level || project.priority)}>
-          {project.priority_level || project.priority} priority
-        </div>
-
-        {/* Urgency indicators */}
-        {showUrgencyIndicators && urgency.reasons.length > 0 && (
-          <div className="flex items-center gap-2">
-            {urgency.level === 'critical' && (
-              <div className="status-badge status-badge-sm status-urgent">
-                URGENT
-              </div>
-            )}
-            {urgency.level === 'high' && (
-              <div className="status-badge status-badge-sm status-high">
-                ACTION NEEDED
-              </div>
-            )}
-            {urgency.level === 'medium' && (
-              <div className="status-badge status-badge-sm status-medium">
-                ATTENTION
-              </div>
-            )}
+          <div className={`${getStatusBadgeClass(project.priority_level || project.priority)} ${getTextColorClasses()}`}>
+            {project.priority_level || project.priority} priority
           </div>
-        )}
-      </div>
 
-      <div className="flex items-center gap-4 text-sm text-muted-foreground">
-        <div className="flex items-center gap-1">
-          <Users className="h-3 w-3" />
-          <AssigneeDisplay assigneeId={assigneeId} displayName={assigneeDisplayName} />
-        </div>
-        <div className="flex items-center gap-1">
-          <Calendar className="h-3 w-3" />
-          <span>{new Date(project.created_at).toLocaleDateString()}</span>
-        </div>
-        <div className="flex items-center gap-1">
-          <Paperclip className="h-3 w-3" />
-          <span>{fileCount} files</span>
+          {/* Urgency indicators */}
+          {showUrgencyIndicators && urgency.reasons.length > 0 && (
+            <div className="flex items-center gap-2">
+              {urgency.level === 'critical' && (
+                <div className="badge-priority-urgent">
+                  URGENT
+                </div>
+              )}
+              {urgency.level === 'high' && (
+                <div className="badge-priority-high">
+                  ACTION NEEDED
+                </div>
+              )}
+              {urgency.level === 'medium' && (
+                <div className="badge-priority-medium">
+                  ATTENTION
+                </div>
+              )}
+            </div>
+          )}
         </div>
 
-        {/* Time in stage indicator */}
-        {showUrgencyIndicators && project.days_in_stage && (
-          <div className={`flex items-center gap-1 rounded-full text-xs ${project.days_in_stage > 7
-            ? 'status-badge status-badge-sm status-overdue'
-            : project.days_in_stage > 3
-              ? 'status-badge status-badge-sm status-medium'
-              : 'status-badge status-badge-sm'
-            }`}>
-            <Clock className="h-3 w-3" />
-            <span>{project.days_in_stage}d in stage</span>
+        <div className="flex items-center gap-4 text-sm text-red-600 dark:text-red-400">
+          <div className="flex items-center gap-1">
+            <Users className="h-3 w-3" />
+            <AssigneeDisplay assigneeId={assigneeId} displayName={assigneeDisplayName} />
           </div>
-        )}
+          <div className="flex items-center gap-1">
+            <Calendar className="h-3 w-3" />
+            <span>{new Date(project.created_at).toLocaleDateString()}</span>
+          </div>
+          <div className="flex items-center gap-1">
+            <Paperclip className="h-3 w-3" />
+            <span>{fileCount} files</span>
+          </div>
 
-        {/* Estimated delivery date */}
-        {project.estimated_delivery_date && (
-          <div className={`flex items-center gap-1 rounded-full text-xs px-2 py-0.5 ${isDeliveryOverdue
+          {/* Time in stage indicator */}
+          {showUrgencyIndicators && project.days_in_stage && (
+            <div className={`flex items-center gap-1 rounded-full text-xs ${project.days_in_stage > 7
+              ? 'status-badge status-badge-sm status-overdue'
+              : project.days_in_stage > 3
+                ? 'status-badge status-badge-sm status-medium'
+                : 'status-badge status-badge-sm'
+              }`}>
+              <Clock className="h-3 w-3" />
+              <span>{project.days_in_stage}d in stage</span>
+            </div>
+          )}
+
+          {/* Estimated delivery date */}
+          {project.estimated_delivery_date && (
+            <div className={`flex items-center gap-1 rounded-full text-xs px-2 py-0.5 ${isDeliveryOverdue
               ? 'bg-red-100 text-red-800 dark:bg-red-900/30 dark:text-red-400'
               : 'bg-blue-100 text-blue-800 dark:bg-blue-900/30 dark:text-blue-400'
-            }`}>
-            <Truck className="h-3 w-3" />
-            <span>
-              {isDeliveryOverdue ? 'Due: ' : 'Est: '}
-              {format(parseISO(project.estimated_delivery_date), 'MMM d')}
-            </span>
-          </div>
-        )}
+              }`}>
+              <Truck className="h-3 w-3" />
+              <span>
+                {isDeliveryOverdue ? 'Due: ' : 'Est: '}
+                {format(parseISO(project.estimated_delivery_date), 'MMM d')}
+              </span>
+            </div>
+          )}
 
-        {/* Additional urgency information as tooltip */}
-        {showUrgencyIndicators && urgency.reasons.length > 0 && (
-          <div
-            className="text-xs text-muted-foreground ml-2 cursor-help"
-            title={urgency.reasons.join(' • ')}
-          >
-            <div className="flex items-center gap-1">
-              <AlertTriangle className={`h-4 w-4 ${urgency.level === 'critical' ? 'text-red-500' :
+          {/* Additional urgency information as tooltip */}
+          {showUrgencyIndicators && urgency.reasons.length > 0 && (
+            <div
+              className="text-xs text-muted-foreground ml-2 cursor-help"
+              title={urgency.reasons.join(' • ')}
+            >
+              <div className="flex items-center gap-1">
+                <AlertTriangle className={`h-4 w-4 ${urgency.level === 'critical' ? 'text-red-500' :
                   urgency.level === 'high' ? 'text-orange-500' :
                     'text-yellow-500'
-                }`} />
-              <span className="sr-only">Urgency information</span>
+                  }`} />
+                <span className="sr-only">Urgency information</span>
+              </div>
             </div>
-          </div>
-        )}
+          )}
+        </div>
       </div>
-    </div>
+    </Card>
   );
 }
 

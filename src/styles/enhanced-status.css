@@ -24,20 +24,19 @@
 
 /* Status colors - Priority */
 .status-urgent {
-    @apply bg-error text-error-content;
-    box-shadow: 0 2px 8px rgba(224, 49, 49, 0.4);
+    @apply bg-red-100 text-red-800 dark:bg-red-900/30 dark:text-red-300;
+    box-shadow: 0 2px 8px rgba(239, 68, 68, 0.2);
     transform: scale(1.05);
 }
 
 .status-high {
-    @apply bg-error text-error-content;
-    box-shadow: 0 2px 6px rgba(224, 49, 49, 0.3);
-    opacity: 0.9;
+    @apply bg-red-100 text-red-800 dark:bg-red-900/30 dark:text-red-300;
+    box-shadow: 0 2px 6px rgba(239, 68, 68, 0.15);
 }
 
 .status-medium {
-    @apply bg-warning text-warning-content;
-    box-shadow: 0 2px 5px rgba(234, 179, 8, 0.3);
+    @apply bg-orange-100 text-orange-800 dark:bg-orange-900/30 dark:text-orange-300;
+    box-shadow: 0 2px 5px rgba(249, 115, 22, 0.15);
 }
 
 .status-low {
@@ -100,32 +99,27 @@
 }
 
 .enhanced-list-item-urgent {
-    @apply bg-error border-error;
-    box-shadow: 0 3px 6px rgba(224, 49, 49, 0.15);
-    opacity: 0.1;
+    @apply bg-red-50 border-red-200 dark:bg-red-950/20 dark:border-red-800;
+    box-shadow: 0 2px 4px rgba(239, 68, 68, 0.1);
 }
 
 .enhanced-list-item-high {
-    @apply bg-error border-error;
-    box-shadow: 0 2px 4px rgba(224, 49, 49, 0.1);
-    opacity: 0.05;
+    @apply bg-red-50 border-red-200 dark:bg-red-950/20 dark:border-red-800;
+    box-shadow: 0 2px 4px rgba(239, 68, 68, 0.1);
 }
 
 .enhanced-list-item-medium {
-    @apply bg-warning border-warning;
-    box-shadow: 0 2px 4px rgba(234, 179, 8, 0.1);
-    opacity: 0.05;
+    @apply bg-orange-50 border-orange-200 dark:bg-orange-950/20 dark:border-orange-800;
+    box-shadow: 0 2px 4px rgba(249, 115, 22, 0.1);
 }
 
 .enhanced-list-item-normal {
     @apply bg-base-200 border-base-300 hover:bg-base-300;
-    opacity: 0.3;
 }
 
 .enhanced-list-item-active {
-    @apply bg-success border-success;
+    @apply bg-green-50 border-green-200 dark:bg-green-950/20 dark:border-green-800;
     box-shadow: 0 2px 4px rgba(34, 197, 94, 0.1);
-    opacity: 0.05;
 }
 
 /* Removed pulse animation for simplified UI */
@@ -172,21 +166,18 @@
     }
 
     .enhanced-list-item-urgent {
-        @apply bg-error border-error;
+        @apply bg-red-950/20 border-red-800;
         box-shadow: 0 0 10px rgba(248, 113, 113, 0.2);
-        opacity: 0.2;
     }
 
     .enhanced-list-item-high {
-        @apply bg-error border-error;
+        @apply bg-red-950/20 border-red-800;
         box-shadow: 0 0 8px rgba(248, 113, 113, 0.15);
-        opacity: 0.15;
     }
 
     .enhanced-list-item-medium {
-        @apply bg-warning border-warning;
+        @apply bg-orange-950/20 border-orange-800;
         box-shadow: 0 0 8px rgba(250, 204, 21, 0.15);
-        opacity: 0.15;
     }
 
     .priority-indicator-urgent {
