@@ -128,7 +128,16 @@ export function InquiryIntakeForm({ submissionType, onSuccess }: InquiryIntakeFo
                 submissionType === 'Purchase Order' ? 'purchase_order' : 'project_idea',
             volumes: [{ quantity: 1000, unit: 'pcs', frequency: 'per year' }],
             documents: [],
-            agreedToTerms: true
+            agreedToTerms: true,
+            // Set a default delivery date (7 days from now)
+            desiredDeliveryDate: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toISOString().split('T')[0],
+            // Add placeholder values for required customer fields
+            projectTitle: '',
+            description: '',
+            customerName: '',
+            companyName: '',
+            email: '',
+            country: ''
         },
         mode: 'onChange' // Enable real-time validation
     });
@@ -316,6 +325,81 @@ export function InquiryIntakeForm({ submissionType, onSuccess }: InquiryIntakeFo
     return (
         <Form {...form}>
             <form onSubmit={form.handleSubmit(handleSubmit)} className="space-y-6">
+                {/* Form Validation Summary */}
+                {!form.formState.isValid && (
+                    <Card className="border-orange-200 bg-orange-50">
+                        <CardContent className="pt-6">
+                            <div className="flex items-center gap-2 mb-2">
+                                <div className="h-2 w-2 rounded-full bg-orange-500"></div>
+                                <span className="text-sm font-medium text-orange-800">Form Incomplete</span>
+                            </div>
+                            <p className="text-sm text-orange-700">
+                                Please complete all required fields marked with * to submit your project.
+                            </p>
+                        </CardContent>
+                    </Card>
+                )}
+
+                {/* Form Progress */}
+                <Card>
+                    <CardContent className="pt-6">
+                        <div className="flex items-center justify-between mb-2">
+                            <span className="text-sm font-medium">Form Progress</span>
+                            <span className="text-sm text-muted-foreground">
+                                {form.formState.isValid ? 'Complete' : 'Incomplete'}
+                            </span>
+                        </div>
+                        <div className="w-full bg-gray-200 rounded-full h-2">
+                            <div
+                                className={`h-2 rounded-full transition-all duration-300 ${form.formState.isValid ? 'bg-green-500' : 'bg-orange-500'
+                                    }`}
+                                style={{
+                                    width: `${form.formState.isValid ? 100 :
+                                        Object.keys(form.formState.errors).length > 0 ?
+                                            Math.max(20, 100 - Object.keys(form.formState.errors).length * 10) : 50}%`
+                                }}
+                            ></div>
+                        </div>
+                    </CardContent>
+                </Card>
+
+                {/* Form Tips */}
+                <Card className="border-blue-200 bg-blue-50">
+                    <CardContent className="pt-6">
+                        <div className="flex items-center gap-2 mb-3">
+                            <div className="h-2 w-2 rounded-full bg-blue-500"></div>
+                            <span className="text-sm font-medium text-blue-800">Quick Tips</span>
+                        </div>
+                        <ul className="text-sm text-blue-700 space-y-1">
+                            <li>• Fields marked with * are required</li>
+                            <li>• Be specific in your project description for better quotes</li>
+                            <li>• Upload technical drawings or provide cloud storage links</li>
+                            <li>• You can save as draft and return later</li>
+                        </ul>
+                    </CardContent>
+                </Card>
+
+                {/* Required Fields Summary */}
+                <Card className="border-amber-200 bg-amber-50">
+                    <CardContent className="pt-6">
+                        <div className="flex items-center gap-2 mb-3">
+                            <div className="h-2 w-2 rounded-full bg-amber-500"></div>
+                            <span className="text-sm font-medium text-amber-800">Required Fields</span>
+                        </div>
+                        <div className="text-sm text-amber-700">
+                            <p className="mb-2">To submit your project, you need to complete:</p>
+                            <ul className="space-y-1 ml-4">
+                                <li>• Project Title (3-100 characters)</li>
+                                <li>• Description (at least 50 characters)</li>
+                                <li>• At least one volume entry</li>
+                                <li>• Desired delivery date</li>
+                                <li>• Complete customer information</li>
+                                <li>• Agreement to terms</li>
+                            </ul>
+                        </div>
+                    </CardContent>
+                </Card>
+
                 {/* Project ID Display */}
                 <div className="text-center p-4 bg-muted rounded-lg">
                     <p className="text-sm text-muted-foreground mb-1">Temporary Project ID</p>
@@ -410,6 +494,16 @@ export function InquiryIntakeForm({ submissionType, onSuccess }: InquiryIntakeFo
                                         <Input placeholder={`Enter ${submissionType.toLowerCase()} title`} {...field} />
                                     </FormControl>
                                     <FormMessage />
+                                    <div className="flex justify-between items-center">
+                                        <p className="text-xs text-muted-foreground">
+                                            Must be 3-100 characters. Be specific and descriptive.
+                                        </p>
+                                        <span className={`text-xs ${field.value.length < 3 ? 'text-red-500' :
+                                            field.value.length > 100 ? 'text-red-500' : 'text-green-500'
+                                            }`}>
+                                            {field.value.length}/100
+                                        </span>
+                                    </div>
                                 </FormItem>
                             )}
                         />
@@ -428,6 +522,15 @@ export function InquiryIntakeForm({ submissionType, onSuccess }: InquiryIntakeFo
                                         />
                                     </FormControl>
                                     <FormMessage />
+                                    <div className="flex justify-between items-center">
+                                        <p className="text-xs text-muted-foreground">
+                                            Must be at least 50 characters. Include technical specifications, materials, tolerances, and any special requirements.
+                                        </p>
+                                        <span className={`text-xs ${field.value.length < 50 ? 'text-red-500' : 'text-green-500'
+                                            }`}>
+                                            {field.value.length}/50
+                                        </span>
+                                    </div>
                                 </FormItem>
                             )}
                         />
@@ -446,6 +549,9 @@ export function InquiryIntakeForm({ submissionType, onSuccess }: InquiryIntakeFo
                                     Add Volume
                                 </Button>
                             </div>
+                            <p className="text-xs text-muted-foreground">
+                                At least one volume entry is required. Add multiple entries for different phases or products.
+                            </p>
 
                             {volumeFields.map((field, index) => (
                                 <div key={field.id} className="grid grid-cols-1 md:grid-cols-4 gap-4 p-4 border rounded-lg">
@@ -454,16 +560,20 @@ export function InquiryIntakeForm({ submissionType, onSuccess }: InquiryIntakeFo
                                         name={`volumes.${index}.quantity`}
                                         render={({ field }) => (
                                             <FormItem>
-                                                <FormLabel>Quantity</FormLabel>
+                                                <FormLabel>Quantity *</FormLabel>
                                                 <FormControl>
                                                     <Input
                                                         type="number"
                                                         placeholder="5000"
+                                                        min="1"
                                                         {...field}
                                                         onChange={(e) => field.onChange(parseInt(e.target.value) || 0)}
                                                     />
                                                 </FormControl>
                                                 <FormMessage />
+                                                <p className="text-xs text-muted-foreground">
+                                                    Must be greater than 0
+                                                </p>
                                             </FormItem>
                                         )}
                                     />
@@ -473,7 +583,7 @@ export function InquiryIntakeForm({ submissionType, onSuccess }: InquiryIntakeFo
                                         name={`volumes.${index}.unit`}
                                         render={({ field }) => (
                                             <FormItem>
-                                                <FormLabel>Unit</FormLabel>
+                                                <FormLabel>Unit *</FormLabel>
                                                 <Select onValueChange={field.onChange} defaultValue={field.value}>
                                                     <FormControl>
                                                         <SelectTrigger>
@@ -496,7 +606,7 @@ export function InquiryIntakeForm({ submissionType, onSuccess }: InquiryIntakeFo
                                         name={`volumes.${index}.frequency`}
                                         render={({ field }) => (
                                             <FormItem>
-                                                <FormLabel>Frequency</FormLabel>
+                                                <FormLabel>Frequency *</FormLabel>
                                                 <Select onValueChange={field.onChange} defaultValue={field.value}>
                                                     <FormControl>
                                                         <SelectTrigger>
@@ -548,6 +658,9 @@ export function InquiryIntakeForm({ submissionType, onSuccess }: InquiryIntakeFo
                                         />
                                     </FormControl>
                                     <FormMessage />
+                                    <p className="text-xs text-muted-foreground">
+                                        Optional. Helps us provide more accurate quotes and recommendations.
+                                    </p>
                                 </FormItem>
                             )}
                         />
@@ -584,6 +697,9 @@ export function InquiryIntakeForm({ submissionType, onSuccess }: InquiryIntakeFo
                                         />
                                     </FormControl>
                                     <FormMessage />
+                                    <p className="text-xs text-muted-foreground">
+                                        Must be at least 7 days from today. Earlier dates may require rush fees.
+                                    </p>
                                 </FormItem>
                             )}
                         />
@@ -647,6 +763,9 @@ export function InquiryIntakeForm({ submissionType, onSuccess }: InquiryIntakeFo
                                                 </SelectContent>
                                             </Select>
                                             <FormMessage />
+                                            <p className="text-xs text-muted-foreground">
+                                                Select an existing customer or create a new one below.
+                                            </p>
                                         </FormItem>
                                     )}
                                 />
@@ -695,6 +814,9 @@ export function InquiryIntakeForm({ submissionType, onSuccess }: InquiryIntakeFo
                                                     <Input placeholder="Enter company name" {...field} />
                                                 </FormControl>
                                                 <FormMessage />
+                                                <p className="text-xs text-muted-foreground">
+                                                    Must be at least 2 characters. Your company or organization name.
+                                                </p>
                                             </FormItem>
                                         )}
                                     />
@@ -708,6 +830,9 @@ export function InquiryIntakeForm({ submissionType, onSuccess }: InquiryIntakeFo
                                                     <Input placeholder="Enter contact person name" {...field} />
                                                 </FormControl>
                                                 <FormMessage />
+                                                <p className="text-xs text-muted-foreground">
+                                                    Must be at least 2 characters. Primary contact for this project.
+                                                </p>
                                             </FormItem>
                                         )}
                                     />
@@ -723,6 +848,9 @@ export function InquiryIntakeForm({ submissionType, onSuccess }: InquiryIntakeFo
                                                     <Input type="email" placeholder="Enter email address" {...field} />
                                                 </FormControl>
                                                 <FormMessage />
+                                                <p className="text-xs text-muted-foreground">
+                                                    Valid email address required for project communications.
+                                                </p>
                                             </FormItem>
                                         )}
                                     />
@@ -736,6 +864,9 @@ export function InquiryIntakeForm({ submissionType, onSuccess }: InquiryIntakeFo
                                                     <Input type="tel" placeholder="Enter phone number" {...field} />
                                                 </FormControl>
                                                 <FormMessage />
+                                                <p className="text-xs text-muted-foreground">
+                                                    Optional. Include country code for international numbers.
+                                                </p>
                                             </FormItem>
                                         )}
                                     />
@@ -766,6 +897,9 @@ export function InquiryIntakeForm({ submissionType, onSuccess }: InquiryIntakeFo
                                                 </SelectContent>
                                             </Select>
                                             <FormMessage />
+                                            <p className="text-xs text-muted-foreground">
+                                                Required for shipping and compliance purposes.
+                                            </p>
                                         </FormItem>
                                     )}
                                 />
@@ -941,13 +1075,17 @@ export function InquiryIntakeForm({ submissionType, onSuccess }: InquiryIntakeFo
                     {/* Debug: Show validation state */}
                     {process.env.NODE_ENV === 'development' && (
                         <div className="text-xs text-muted-foreground mr-auto">
-                            Form valid: {form.formState.isValid ? 'Yes' : 'No'} |
-                            Errors: {Object.keys(form.formState.errors).length}
+                            <div className="mb-2">
+                                <strong>Form Status:</strong> {form.formState.isValid ? '✅ Valid' : '❌ Invalid'} |
+                                <strong>Errors:</strong> {Object.keys(form.formState.errors).length} |
+                                <strong>Dirty:</strong> {form.formState.isDirty ? 'Yes' : 'No'}
+                            </div>
                             {Object.keys(form.formState.errors).length > 0 && (
-                                <div className="mt-1">
+                                <div className="mt-1 p-2 bg-red-50 border border-red-200 rounded">
+                                    <strong className="text-red-700">Validation Errors:</strong>
                                     {Object.entries(form.formState.errors).map(([field, error]) => (
-                                        <div key={field} className="text-red-500">
-                                            {field}: {error?.message}
+                                        <div key={field} className="text-red-600 text-xs">
+                                            • {field}: {error?.message}
                                         </div>
                                     ))}
                                 </div>
@@ -973,6 +1111,15 @@ export function InquiryIntakeForm({ submissionType, onSuccess }: InquiryIntakeFo
                         )}
                     </Button>
                 </div>
+
+                {/* Form Status Message */}
+                {!form.formState.isValid && (
+                    <div className="text-center p-4 bg-amber-50 border border-amber-200 rounded-lg">
+                        <p className="text-sm text-amber-700">
+                            <strong>Form not ready:</strong> Please complete all required fields marked with * to enable submission.
+                        </p>
+                    </div>
+                )}
             </form>
 
             {/* Customer Modal for creating new customers */}
