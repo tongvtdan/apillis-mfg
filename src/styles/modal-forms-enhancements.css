@@ -30,33 +30,40 @@
 .modal-form-input {
     @apply border-base-300 focus:border-accent transition-colors;
     border-width: 1px;
-    background-color: var(--fp-input);
-    color: var(--fp-foreground);
+    background-color: white !important;
+    color: #1a1a1a !important;
+    font-weight: 500;
 }
 
 .modal-form-input:focus {
     @apply ring-2;
     border-color: var(--fp-accent);
     ring-color: rgba(255, 215, 64, 0.5);
+    background-color: white !important;
+    color: #1a1a1a !important;
 }
 
 .modal-form-textarea {
     @apply border-base-300 focus:border-accent transition-colors;
     border-width: 1px;
-    background-color: var(--fp-input);
-    color: var(--fp-foreground);
+    background-color: white !important;
+    color: #1a1a1a !important;
+    font-weight: 500;
 }
 
 .modal-form-textarea:focus {
     @apply ring-2;
     border-color: var(--fp-accent);
     ring-color: rgba(255, 215, 64, 0.5);
+    background-color: white !important;
+    color: #1a1a1a !important;
 }
 
 .modal-select-trigger {
     @apply border-base-300 transition-colors;
-    background-color: var(--fp-input);
-    color: var(--fp-foreground);
+    background-color: white !important;
+    color: #1a1a1a !important;
+    font-weight: 500;
 }
 
 .modal-select-trigger[data-state="open"] {

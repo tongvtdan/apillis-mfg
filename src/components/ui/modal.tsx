@@ -29,7 +29,7 @@ export function Modal({
     if (!isOpen) return null;
 
     return (
-        <div className="fixed inset-0 bg-background/95 backdrop-blur-xl flex items-center justify-center p-4 z-50">
+        <div className="fixed inset-0 bg-background backdrop-blur-lg flex items-center justify-center p-4 z-50">
             <div className={`w-full ${maxWidth} max-h-[90vh] overflow-y-auto ${className}`}>
                 <Card>
                     {(title || showCloseButton) && (

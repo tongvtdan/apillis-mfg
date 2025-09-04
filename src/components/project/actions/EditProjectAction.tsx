@@ -236,9 +236,9 @@ export function EditProjectAction({
 
             {/* Project Edit Modal */}
             {isOpen && (
-                <div className="fixed inset-0 bg-background/95 backdrop-blur-lg flex items-center justify-center p-4 z-50">
+                <div className="fixed inset-0 bg-black/80 flex items-center justify-center p-4 z-50">
                     <div className="w-full max-w-4xl max-h-[90vh] overflow-y-auto">
-                        <Card>
+                        <Card className="shadow-lg border border-border bg-base-100">
                             <CardHeader>
                                 <div className="flex items-center justify-between">
                                     <div>

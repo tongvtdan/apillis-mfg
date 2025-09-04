@@ -626,7 +626,10 @@ export function InquiryIntakeForm({ submissionType, onSuccess }: InquiryIntakeFo
                                                         </SelectItem>
                                                     ) : customers.length === 0 ? (
                                                         <SelectItem value="none" disabled>
-                                                            No customers found
+                                                            <div className="flex items-center gap-2">
+                                                                <Users className="h-4 w-4" />
+                                                                No customers found
+                                                            </div>
                                                         </SelectItem>
                                                     ) : (
                                                         customers.map(customer => (
@@ -960,13 +963,6 @@ export function InquiryIntakeForm({ submissionType, onSuccess }: InquiryIntakeFo
                 open={showCustomerModal}
                 onClose={() => setShowCustomerModal(false)}
                 customer={null}
-                onCustomerCreated={(newCustomer) => {
-                    // Refresh the customer list and select the new customer
-                    if (newCustomer) {
-                        form.setValue('selectedCustomerId', newCustomer.id);
-                        setShowCustomerModal(false);
-                    }
-                }}
             />
         </Form>
     );
