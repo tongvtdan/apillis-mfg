@@ -2,7 +2,7 @@ import { useState } from "react";
 import { useAuth } from "@/contexts/AuthContext";
 import { supabase } from "@/integrations/supabase/client";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { DaisyUITabs, DaisyUITabsList, DaisyUITabsTrigger, DaisyUITabsContent } from "@/components/ui/daisyui-tabs";
 import { Badge } from "@/components/ui/badge";
 import {
     Settings as SettingsIcon,
@@ -70,29 +70,29 @@ export default function Settings() {
 
             </div>
 
-            <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-6">
-                <TabsList className="grid w-full grid-cols-2 lg:grid-cols-3">
-                    <TabsTrigger value="general" className="flex items-center gap-2">
+            <DaisyUITabs value={activeTab} onValueChange={setActiveTab} className="space-y-6" variant="lift">
+                <DaisyUITabsList className="grid w-full grid-cols-2 lg:grid-cols-3">
+                    <DaisyUITabsTrigger value="general" className="flex items-center gap-2">
                         <SettingsIcon className="h-4 w-4" />
                         General
-                    </TabsTrigger>
-                    <TabsTrigger value="notifications" className="flex items-center gap-2">
+                    </DaisyUITabsTrigger>
+                    <DaisyUITabsTrigger value="notifications" className="flex items-center gap-2">
                         <Bell className="h-4 w-4" />
                         Notifications
-                    </TabsTrigger>
+                    </DaisyUITabsTrigger>
                     {isManagement && (
-                        <TabsTrigger value="admin" className="flex items-center gap-2">
+                        <DaisyUITabsTrigger value="admin" className="flex items-center gap-2">
                             <Shield className="h-4 w-4" />
                             Admin
-                        </TabsTrigger>
+                        </DaisyUITabsTrigger>
                     )}
 
-                </TabsList>
+                </DaisyUITabsList>
 
 
 
                 {/* General Settings */}
-                <TabsContent value="general" className="space-y-6">
+                <DaisyUITabsContent value="general" className="space-y-6">
                     <Card>
                         <CardHeader>
                             <CardTitle className="flex items-center gap-2">
@@ -132,10 +132,10 @@ export default function Settings() {
                             </div>
                         </CardContent>
                     </Card>
-                </TabsContent>
+                </DaisyUITabsContent>
 
                 {/* Notifications Settings */}
-                <TabsContent value="notifications" className="space-y-6">
+                <DaisyUITabsContent value="notifications" className="space-y-6">
                     <Card>
                         <CardHeader>
                             <CardTitle className="flex items-center gap-2">
@@ -156,7 +156,7 @@ export default function Settings() {
 
                 {/* Admin Settings */}
                 {isManagement && (
-                    <TabsContent value="admin" className="space-y-6">
+                    <DaisyUITabsContent value="admin" className="space-y-6">
                         <Card>
                             <CardHeader>
                                 <CardTitle className="flex items-center gap-2">
@@ -216,11 +216,11 @@ export default function Settings() {
                                 </div>
                             </CardContent>
                         </Card>
-                    </TabsContent>
+                    </DaisyUITabsContent>
                 )}
 
 
-            </Tabs>
+            </DaisyUITabs>
         </div>
     );
 }

@@ -2,239 +2,313 @@
 
 ## Overview
 
-The Factory Pulse application uses a hybrid tab system that combines DaisyUI tabs and custom tab components. This document outlines the implementation, fixes applied, and usage patterns.
+The Factory Pulse application now uses a **unified DaisyUI tab system** with custom colors using CSS custom properties. This provides consistent styling, better accessibility, and flexible color customization across all tab implementations.
 
-## Tab Implementations
+## Tab Implementation
 
-### 1. DaisyUI Tabs (Native DaisyUI)
-**Used in:** `src/pages/Auth.tsx`
+### DaisyUI Tabs with Custom Colors
+**Used in:** All pages (Auth, Projects, Customers, RFQDetail, AdminUsers, Settings)
 
 **Implementation:**
 ```tsx
-<div className="tabs tabs-boxed mb-6">
-  <button
-    className={`tab flex-1 ${activeTab === 'signin' ? 'tab-active' : ''}`}
-    onClick={() => setActiveTab('signin')}
-  >
-    Sign In
-  </button>
-  <button
-    className={`tab flex-1 ${activeTab === 'signup' ? 'tab-active' : ''}`}
-    onClick={() => setActiveTab('signup')}
-  >
-    Sign Up
-  </button>
-</div>
+import { DaisyUITabs, DaisyUITabsList, DaisyUITabsTrigger, DaisyUITabsContent } from '@/components/ui/daisyui-tabs';
+
+<DaisyUITabs defaultValue="tab1" variant="lift">
+  <DaisyUITabsList>
+    <DaisyUITabsTrigger value="tab1">Tab 1</DaisyUITabsTrigger>
+    <DaisyUITabsTrigger value="tab2">Tab 2</DaisyUITabsTrigger>
+  </DaisyUITabsList>
+  
+  <DaisyUITabsContent value="tab1">
+    Content for tab 1
+  </DaisyUITabsContent>
+  
+  <DaisyUITabsContent value="tab2">
+    Content for tab 2
+  </DaisyUITabsContent>
+</DaisyUITabs>
 ```
 
-**Styling Classes:**
-- `tabs tabs-boxed` - Container
-- `tab` - Individual tab
-- `tab-active` - Active tab state
-
-### 2. Custom Tab Components
-**Used in:** Projects, Customers, RFQDetail, AdminUsers, Settings pages
-
-**Implementation:**
+**Custom Colors:**
 ```tsx
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-
-<Tabs defaultValue="customers" className="w-full">
-  <TabsList>
-    <TabsTrigger value="customers">All Customers</TabsTrigger>
-    <TabsTrigger value="analytics">Analytics</TabsTrigger>
-  </TabsList>
-  
-  <TabsContent value="customers" className="space-y-6">
-    {/* Content */}
-  </TabsContent>
-  
-  <TabsContent value="analytics" className="space-y-6">
-    {/* Content */}
-  </TabsContent>
-</Tabs>
+<DaisyUITabsTrigger 
+  value="tab1"
+  activeColor="white"
+  activeBgColor="orange"
+  activeBorderColor="orange"
+>
+  Custom Orange Tab
+</DaisyUITabsTrigger>
 ```
 
 **Components:**
-- `Tabs` - Main container
-- `TabsList` - Tab navigation container
-- `TabsTrigger` - Individual tab button
-- `TabsContent` - Tab content panel
+- `DaisyUITabs` - Main container with variant support
+- `DaisyUITabsList` - Tab navigation container
+- `DaisyUITabsTrigger` - Individual tab button with custom colors
+- `DaisyUITabsContent` - Tab content panel
 
 ## Pages Using Tabs
 
 ### 1. Auth Page (`/auth`)
-- **Implementation:** DaisyUI tabs
+- **Implementation:** DaisyUI tabs with lift variant
 - **Tabs:** Sign In, Sign Up
-- **Status:** ✅ Fixed
+- **Status:** ✅ Migrated to unified system
 
 ### 2. Projects Page (`/projects`)
-- **Implementation:** Custom tabs with special classes
+- **Implementation:** DaisyUI tabs with lift variant
 - **Tabs:** List, Workflow, Calendar, Analytics
-- **Special Classes:** `auth-tabs-list`, `auth-tab-trigger`
-- **Status:** ✅ Fixed
+- **Status:** ✅ Migrated to unified system
 
 ### 3. Customers Page (`/customers`)
-- **Implementation:** Custom tabs
+- **Implementation:** DaisyUI tabs with lift variant
 - **Tabs:** All Customers, Analytics
-- **Status:** ✅ Working
+- **Status:** ✅ Migrated to unified system
 
 ### 4. RFQDetail Page (`/rfq/:id`)
-- **Implementation:** Custom tabs
+- **Implementation:** DaisyUI tabs with lift variant
 - **Tabs:** Overview, Internal Reviews, Approvals, Documents, Activity Log
-- **Status:** ✅ Working
+- **Status:** ✅ Migrated to unified system
 
 ### 5. AdminUsers Page (`/admin/users`)
-- **Implementation:** Custom tabs
+- **Implementation:** DaisyUI tabs with lift variant
 - **Tabs:** Users, Activity
-- **Status:** ✅ Working
+- **Status:** ✅ Migrated to unified system
 
 ### 6. Settings Page (`/settings`)
-- **Implementation:** Custom tabs
+- **Implementation:** DaisyUI tabs with lift variant
 - **Tabs:** General, Notifications, Admin (conditional)
-- **Status:** ✅ Working
+- **Status:** ✅ Migrated to unified system
 
 ## CSS Files
 
-### 1. `src/styles/tab-system-fix.css` (NEW)
-- **Purpose:** Comprehensive fix for all tab display issues
+### 1. `src/styles/tab-system-fix.css`
+- **Purpose:** Unified tab styling with custom color support
 - **Features:**
-  - DaisyUI tab enhancements
-  - Custom tab component fixes
-  - Projects page specific fixes (`auth-tabs-list`, `auth-tab-trigger`)
-  - Dark mode support
+  - CSS custom properties for dynamic colors
+  - Support for all DaisyUI tab variants
+  - Dark mode enhancements
   - Responsive design
   - High specificity overrides
 
-### 2. `src/styles/project-tabs-fix.css`
-- **Purpose:** Project-specific tab styling
-- **Status:** Still used, but enhanced by tab-system-fix.css
+### 2. `src/components/ui/daisyui-tabs.tsx`
+- **Purpose:** Unified tab component implementation
+- **Features:**
+  - Custom color support via CSS custom properties
+  - Multiple variant support (lift, boxed, bordered)
+  - Proper accessibility attributes
+  - TypeScript interfaces
 
-### 3. `src/styles/project-view-tabs.css`
-- **Purpose:** Project view tab enhancements
-- **Status:** Still used, but enhanced by tab-system-fix.css
+## Tab Variants
 
-### 4. `src/styles/auth-ui-enhancements.css`
-- **Purpose:** Auth page specific styling
-- **Status:** Still used for auth page tabs
+### 1. Lift Variant (`variant="lift"`)
+- Tabs appear to lift when active
+- Enhanced shadow effects
+- Smooth transitions
 
-## Key Fixes Applied
+### 2. Boxed Variant (`variant="boxed"`)
+- Tabs in a boxed container
+- Background and border styling
+- Good for contained layouts
 
-### 1. Missing CSS Classes
-**Problem:** Projects page used `auth-tabs-list` and `auth-tab-trigger` classes that didn't exist.
+### 3. Bordered Variant (`variant="bordered"`)
+- Tabs with borders
+- Bottom border for active tab
+- Clean, minimal appearance
 
-**Solution:** Added comprehensive CSS definitions:
+## Custom Colors
+
+### CSS Custom Properties
+The tab system uses CSS custom properties for dynamic color changes:
+
 ```css
-.auth-tabs-list {
-    @apply tabs tabs-boxed mb-4;
-    display: grid;
-    grid-template-columns: repeat(4, 1fr);
-    gap: 0.25rem;
-}
-
-.auth-tab-trigger {
-    @apply tab transition-all duration-200 font-medium;
-    border-radius: 0.375rem;
-    text-align: center;
+.tab-active {
+    color: var(--tab-color, hsl(var(--p))) !important;
+    background-color: var(--tab-bg, hsl(var(--p))) !important;
+    border-color: var(--tab-border-color, hsl(var(--p))) !important;
 }
 ```
 
-### 2. Inconsistent Styling
-**Problem:** DaisyUI tabs and custom tabs had different styling.
+### Color Properties
+- `activeColor` - Text color when active
+- `activeBgColor` - Background color when active
+- `activeBorderColor` - Border color when active
 
-**Solution:** Unified styling approach with high specificity overrides:
-```css
-.tab-active,
-.auth-tab-trigger.tab-active {
-    background-color: hsl(var(--p)) !important;
-    color: hsl(var(--pc)) !important;
-    font-weight: 600 !important;
-}
-```
-
-### 3. Accessibility Issues
-**Problem:** Custom tab components lacked proper accessibility attributes.
-
-**Solution:** Enhanced tab components with ARIA attributes:
+### Color Examples
 ```tsx
-<div className={`tabs-list ${className}`} role="tablist">
-<button role="tab" aria-selected={isActive} aria-disabled={disabled}>
-<div role="tabpanel" aria-hidden={!isActive}>
+// Orange tabs
+<DaisyUITabsTrigger 
+  activeColor="white"
+  activeBgColor="orange"
+  activeBorderColor="orange"
+>
+
+// Success green tabs
+<DaisyUITabsTrigger 
+  activeColor="white"
+  activeBgColor="#10b981"
+  activeBorderColor="#10b981"
+>
+
+// Custom purple tabs
+<DaisyUITabsTrigger 
+  activeColor="white"
+  activeBgColor="#8b5cf6"
+  activeBorderColor="#8b5cf6"
+>
 ```
+
+## Accessibility
+
+### ARIA Attributes
+- `role="tab"` - Identifies the element as a tab
+- `aria-selected` - Indicates if the tab is selected
+- `aria-disabled` - Indicates if the tab is disabled
+- `role="tablist"` - Container for tabs
+- `role="tabpanel"` - Content area for each tab
+
+### Keyboard Navigation
+- Tab key navigation between tabs
+- Enter/Space to activate tabs
+- Arrow keys for tab switching (future enhancement)
 
 ## Theme Support
 
 ### Light Theme
-- Background: `hsl(var(--b2))`
-- Active tab: `hsl(var(--p))` (primary color)
-- Text: `hsl(var(--bc))` (base content)
+- Uses theme primary colors by default
+- Custom colors override theme colors
+- Consistent with DaisyUI theme system
 
 ### Dark Theme
-- Background: `hsl(var(--b2))` (darker)
-- Active tab: `hsl(var(--p))` with enhanced shadow
-- Text: `hsl(var(--bc))` (lighter)
+- Automatically adapts to dark theme
+- Custom colors work in both themes
+- Enhanced shadows and effects
 
 ## Responsive Design
 
 ### Desktop (768px+)
-- Projects page: 4-column grid
-- Other pages: Flexible layout
+- Full tab labels
+- Standard padding and spacing
+- All variants work properly
 
 ### Tablet (480px-768px)
-- Projects page: 2-column grid
-- Reduced padding and font size
+- Reduced padding
+- Smaller font sizes
+- Maintains functionality
 
 ### Mobile (<480px)
-- Projects page: 1-column stack
-- Increased padding for touch targets
+- Increased touch targets
+- Simplified layouts
+- Maintains accessibility
+
+## Usage Examples
+
+### Basic Usage
+```tsx
+<DaisyUITabs defaultValue="tab1" variant="lift">
+  <DaisyUITabsList>
+    <DaisyUITabsTrigger value="tab1">Tab 1</DaisyUITabsTrigger>
+    <DaisyUITabsTrigger value="tab2">Tab 2</DaisyUITabsTrigger>
+  </DaisyUITabsList>
+  
+  <DaisyUITabsContent value="tab1">
+    Content for tab 1
+  </DaisyUITabsContent>
+  
+  <DaisyUITabsContent value="tab2">
+    Content for tab 2
+  </DaisyUITabsContent>
+</DaisyUITabs>
+```
+
+### Custom Colors
+```tsx
+<DaisyUITabs defaultValue="custom" variant="boxed">
+  <DaisyUITabsList>
+    <DaisyUITabsTrigger 
+      value="custom"
+      activeColor="white"
+      activeBgColor="orange"
+      activeBorderColor="orange"
+    >
+      Custom Tab
+    </DaisyUITabsTrigger>
+  </DaisyUITabsList>
+  
+  <DaisyUITabsContent value="custom">
+    Custom colored tab content
+  </DaisyUITabsContent>
+</DaisyUITabs>
+```
+
+### Multiple Variants
+```tsx
+// Lift variant
+<DaisyUITabs variant="lift">
+
+// Boxed variant
+<DaisyUITabs variant="boxed">
+
+// Bordered variant
+<DaisyUITabs variant="bordered">
+```
 
 ## Testing Checklist
 
-- [ ] Auth page tabs display properly
-- [ ] Projects page all 4 tabs work
-- [ ] Customers page tabs functional
-- [ ] RFQDetail page all 5 tabs work
-- [ ] AdminUsers page tabs functional
-- [ ] Settings page tabs work (including conditional Admin tab)
-- [ ] Dark mode support for all tabs
-- [ ] Light mode support for all tabs
-- [ ] Responsive design on mobile
+- [ ] All tab variants work correctly
+- [ ] Custom colors display properly
+- [ ] Theme switching works
+- [ ] Responsive design functions
 - [ ] Keyboard navigation works
 - [ ] Screen reader accessibility
-
-## Future Considerations
-
-1. **Unification:** Consider migrating all tabs to a single implementation
-2. **Component Library:** Create a unified tab component that works with DaisyUI
-3. **State Management:** Consider tab state persistence across navigation
-4. **Animation:** Add smooth transitions between tab content
-5. **Testing:** Add comprehensive unit tests for tab components
+- [ ] Tab state persistence
+- [ ] Performance is maintained
 
 ## Troubleshooting
 
 ### Common Issues
 
-1. **Tabs not visible:**
-   - Check if `tab-system-fix.css` is imported in `main.tsx`
-   - Verify CSS classes are properly applied
+1. **Custom colors not showing:**
+   - Check CSS custom properties are set correctly
+   - Verify color values are valid CSS colors
+   - Ensure CSS specificity is high enough
 
-2. **Active state not showing:**
-   - Check for conflicting CSS specificity
-   - Verify `tab-active` class is applied
+2. **Tabs not responding:**
+   - Check event handlers are properly connected
+   - Verify tab values match content values
+   - Ensure no JavaScript errors in console
 
 3. **Styling inconsistencies:**
-   - Check theme variables in `tailwind.config.ts`
-   - Verify DaisyUI theme is properly loaded
-
-4. **Responsive issues:**
-   - Check media queries in `tab-system-fix.css`
-   - Test on different screen sizes
+   - Check theme variables are loaded
+   - Verify CSS imports are correct
+   - Test in both light and dark themes
 
 ### Debug Steps
 
 1. Open browser dev tools
 2. Inspect tab elements
-3. Check applied CSS classes
-4. Verify CSS specificity
-5. Test theme switching
+3. Check applied CSS custom properties
+4. Verify ARIA attributes
+5. Test keyboard navigation
 6. Check console for errors
+
+## Future Enhancements
+
+1. **Animation Improvements:**
+   - Smooth transitions between tabs
+   - Enhanced hover effects
+   - Loading states for tab content
+
+2. **Additional Variants:**
+   - Vertical tabs
+   - Pill-shaped tabs
+   - Icon-only tabs
+
+3. **Advanced Features:**
+   - Tab state persistence
+   - URL-based tab routing
+   - Dynamic tab generation
+
+4. **Performance Optimizations:**
+   - Lazy loading for tab content
+   - Virtual scrolling for many tabs
+   - Optimized re-renders

@@ -1,7 +1,7 @@
 import React from "react";
 
 
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { DaisyUITabs, DaisyUITabsList, DaisyUITabsTrigger, DaisyUITabsContent } from "@/components/ui/daisyui-tabs";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
@@ -418,23 +418,23 @@ export default function Projects() {
           />
         )}
 
-        <Tabs value={defaultTab} onValueChange={handleTabChange} className="w-full relative">
+        <DaisyUITabs value={defaultTab} onValueChange={handleTabChange} className="w-full relative" variant="lift">
           <div className="mb-6 flex justify-between items-center">
             <div className="flex items-center gap-6">
-              <TabsList className="auth-tabs-list grid !grid-cols-4 w-full">
-                <TabsTrigger value="enhanced" className="auth-tab-trigger" disabled={isRetrying}>
+              <DaisyUITabsList className="grid !grid-cols-4 w-full">
+                <DaisyUITabsTrigger value="enhanced" disabled={isRetrying}>
                   List
-                </TabsTrigger>
-                <TabsTrigger value="flowchart" className="auth-tab-trigger" disabled={isRetrying}>
+                </DaisyUITabsTrigger>
+                <DaisyUITabsTrigger value="flowchart" disabled={isRetrying}>
                   Workflow
-                </TabsTrigger>
-                <TabsTrigger value="calendar" className="auth-tab-trigger" disabled={isRetrying}>
+                </DaisyUITabsTrigger>
+                <DaisyUITabsTrigger value="calendar" disabled={isRetrying}>
                   Calendar
-                </TabsTrigger>
-                <TabsTrigger value="analytics" className="auth-tab-trigger" disabled={isRetrying}>
+                </DaisyUITabsTrigger>
+                <DaisyUITabsTrigger value="analytics" disabled={isRetrying}>
                   Analytics
-                </TabsTrigger>
-              </TabsList>
+                </DaisyUITabsTrigger>
+              </DaisyUITabsList>
 
               {/* Project Type Filter */}
               <div className="flex items-center space-x-3">
@@ -476,7 +476,7 @@ export default function Projects() {
             </div>
           </div>
 
-          <TabsContent value="enhanced" className="mt-4">
+          <DaisyUITabsContent value="enhanced" className="mt-4">
             <ProjectErrorBoundary context="Enhanced Project List">
               <EnhancedProjectList
                 projects={activeProjects.filter(p => selectedProjectType === 'all' || p.project_type === selectedProjectType)}
@@ -507,7 +507,7 @@ export default function Projects() {
             </ProjectErrorBoundary>
           </TabsContent>
 
-          <TabsContent value="flowchart" className="mt-4 space-y-6">
+          <DaisyUITabsContent value="flowchart" className="mt-4 space-y-6">
             <ProjectErrorBoundary context="Workflow Flowchart">
               <div className="space-y-6">
                 {/* Workflow Visualization - Horizontal Flow */}
@@ -697,7 +697,7 @@ export default function Projects() {
             </ProjectErrorBoundary>
           </TabsContent>
 
-          <TabsContent value="analytics" className="mt-0">
+          <DaisyUITabsContent value="analytics" className="mt-0">
             <ProjectErrorBoundary context="Project Analytics">
               <ProjectWorkflowAnalytics
                 projects={activeProjects.filter(p => selectedProjectType === 'all' || p.project_type === selectedProjectType)}
@@ -705,14 +705,14 @@ export default function Projects() {
             </ProjectErrorBoundary>
           </TabsContent>
 
-          <TabsContent value="calendar" className="mt-0">
+          <DaisyUITabsContent value="calendar" className="mt-0">
             <ProjectErrorBoundary context="Project Calendar">
               <ProjectCalendar
                 projects={activeProjects.filter(p => selectedProjectType === 'all' || p.project_type === selectedProjectType)}
               />
             </ProjectErrorBoundary>
           </TabsContent>
-        </Tabs>
+        </DaisyUITabs>
 
         {/* New Project Modal */}
         <Modal

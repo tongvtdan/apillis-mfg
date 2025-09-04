@@ -30,7 +30,7 @@ import {
 } from '@/components/ui/select';
 import { Badge } from '@/components/ui/badge';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/tabs';
+import { DaisyUITabs, DaisyUITabsList, DaisyUITabsTrigger, DaisyUITabsContent } from '@/components/ui/daisyui-tabs';
 import {
   Users,
   Search,
@@ -275,12 +275,12 @@ export default function AdminUsers() {
         <p className="text-muted-foreground">Manage users and their roles within your organization</p>
       </div>
 
-      <Tabs defaultValue="users" className="w-full">
-        <TabsList className="grid w-full grid-cols-2">
-          <TabsTrigger value="users">Users</TabsTrigger>
-          <TabsTrigger value="activity">Activity</TabsTrigger>
-        </TabsList>
-        <TabsContent value="users">
+      <DaisyUITabs defaultValue="users" className="w-full" variant="lift">
+        <DaisyUITabsList className="grid w-full grid-cols-2">
+          <DaisyUITabsTrigger value="users">Users</DaisyUITabsTrigger>
+          <DaisyUITabsTrigger value="activity">Activity</DaisyUITabsTrigger>
+        </DaisyUITabsList>
+        <DaisyUITabsContent value="users">
           <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
             <div>
               <h1 className="text-3xl font-bold flex items-center gap-2 text-base-content">
@@ -572,7 +572,7 @@ export default function AdminUsers() {
             </CardContent>
           </Card>
         </TabsContent>
-        <TabsContent value="activity">
+        <DaisyUITabsContent value="activity">
           <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
             <div>
               <h1 className="text-3xl font-bold flex items-center gap-2 text-base-content">
@@ -864,7 +864,7 @@ export default function AdminUsers() {
             </CardContent>
           </Card>
         </TabsContent>
-      </Tabs>
+      </DaisyUITabs>
     </div>
   );
 }

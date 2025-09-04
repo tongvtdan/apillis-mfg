@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { DaisyUITabs, DaisyUITabsList, DaisyUITabsTrigger, DaisyUITabsContent } from '@/components/ui/daisyui-tabs';
 import {
   Building2,
   Users,
@@ -128,13 +128,13 @@ export default function Customers() {
       </div>
 
       {/* Main Content */}
-      <Tabs defaultValue="customers" className="w-full">
-        <TabsList>
-          <TabsTrigger value="customers">All Customers</TabsTrigger>
-          <TabsTrigger value="analytics">Analytics</TabsTrigger>
-        </TabsList>
+      <DaisyUITabs defaultValue="customers" className="w-full" variant="lift">
+        <DaisyUITabsList>
+          <DaisyUITabsTrigger value="customers">All Customers</DaisyUITabsTrigger>
+          <DaisyUITabsTrigger value="analytics">Analytics</DaisyUITabsTrigger>
+        </DaisyUITabsList>
 
-        <TabsContent value="customers" className="space-y-6">
+        <DaisyUITabsContent value="customers" className="space-y-6">
           <Card>
             <CardHeader>
               <CardTitle>Customer Database</CardTitle>
@@ -151,7 +151,7 @@ export default function Customers() {
           </Card>
         </TabsContent>
 
-        <TabsContent value="analytics" className="space-y-6">
+        <DaisyUITabsContent value="analytics" className="space-y-6">
           <Card>
             <CardHeader>
               <CardTitle className="flex items-center">
@@ -173,7 +173,7 @@ export default function Customers() {
             </CardContent>
           </Card>
         </TabsContent>
-      </Tabs>
+      </DaisyUITabs>
 
       {/* Customer Modal */}
       <CustomerModal

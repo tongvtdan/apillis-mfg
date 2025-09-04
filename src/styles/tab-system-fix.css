@@ -1,34 +1,45 @@
 /**
- * Tab System Fix - Comprehensive Tab Display Resolution
- * Fixes display issues for both DaisyUI tabs and custom tab components
- * Ensures consistent styling across all tab implementations
+ * DaisyUI Tab System with Custom Colors
+ * Unified tab system using DaisyUI tabs with CSS custom properties for custom colors
  */
 
 /* ===== DAISYUI TABS ENHANCEMENTS ===== */
-/* Enhanced DaisyUI tab styling for better visibility */
-.tabs.tabs-boxed {
-    @apply bg-base-200 p-1 rounded-lg border border-base-300;
-    background-color: hsl(var(--b2));
-    border: 1px solid hsl(var(--b3));
+/* Enhanced DaisyUI tab styling with custom color support */
+.tabs.tabs-lift,
+.tabs.tabs-boxed,
+.tabs.tabs-bordered {
+    @apply w-full;
 }
 
+.tabs-list {
+    @apply mb-4;
+}
+
+/* Tab styling with custom color support */
 .tab {
-    @apply rounded-md transition-all duration-200 font-medium;
+    @apply transition-all duration-200 font-medium;
     border: none;
     background: transparent;
     color: hsl(var(--bc));
     padding: 0.75rem 1rem;
     font-weight: 500;
+    border-radius: 0.375rem;
+    text-align: center;
+    cursor: pointer;
+    text-decoration: none;
+    display: inline-block;
 }
 
+/* Active tab with custom colors using CSS custom properties */
 .tab-active {
-    @apply shadow-md bg-primary text-primary-content;
-    background-color: hsl(var(--p)) !important;
-    color: hsl(var(--pc)) !important;
+    color: var(--tab-color, hsl(var(--p))) !important;
+    background-color: var(--tab-bg, hsl(var(--p))) !important;
+    border-color: var(--tab-border-color, hsl(var(--p))) !important;
     font-weight: 600;
     box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
 }
 
+/* Inactive tab styling */
 .tab:not(.tab-active) {
     @apply bg-base-100 text-base-content hover:bg-base-200;
     background-color: hsl(var(--b1));
@@ -40,92 +51,109 @@
     transform: translateY(-1px);
 }
 
-/* ===== CUSTOM TAB COMPONENT FIXES ===== */
-/* Fix for custom Tabs component styling */
-.tabs-list {
-    @apply tabs tabs-boxed mb-4;
-    background-color: hsl(var(--b2));
-    border: 1px solid hsl(var(--b3));
-    border-radius: 0.5rem;
-    padding: 0.25rem;
+/* Disabled tab styling */
+.tab[aria-disabled="true"] {
+    @apply opacity-50 cursor-not-allowed;
+    transform: none !important;
 }
 
+/* Tab content styling */
 .tab-content {
     @apply mt-4;
     animation: fadeIn 0.2s ease-in-out;
 }
 
-/* ===== PROJECTS PAGE SPECIFIC FIXES ===== */
-/* Fix for auth-tabs-list and auth-tab-trigger classes used in Projects.tsx */
-.auth-tabs-list {
-    @apply tabs tabs-boxed mb-4;
+/* ===== TAB VARIANTS ===== */
+/* Lift variant - tabs appear to lift when active */
+.tabs-lift .tab-active {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.15);
+}
+
+/* Boxed variant - tabs in a boxed container */
+.tabs-boxed {
+    @apply bg-base-200 p-1 rounded-lg border border-base-300;
     background-color: hsl(var(--b2));
     border: 1px solid hsl(var(--b3));
-    border-radius: 0.5rem;
-    padding: 0.25rem;
-    display: grid;
-    grid-template-columns: repeat(4, 1fr);
-    gap: 0.25rem;
 }
 
-.auth-tab-trigger {
-    @apply tab transition-all duration-200 font-medium;
-    border: none;
-    background: transparent;
-    color: hsl(var(--bc));
-    padding: 0.75rem 1rem;
-    font-weight: 500;
-    border-radius: 0.375rem;
-    text-align: center;
+/* Bordered variant - tabs with borders */
+.tabs-bordered .tab {
+    border: 1px solid hsl(var(--b3));
+    border-bottom: none;
 }
 
-.auth-tab-trigger.tab-active {
-    @apply shadow-md bg-primary text-primary-content;
-    background-color: hsl(var(--p)) !important;
-    color: hsl(var(--pc)) !important;
-    font-weight: 600;
-    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+.tabs-bordered .tab-active {
+    border-bottom: 2px solid var(--tab-border-color, hsl(var(--p)));
 }
 
-.auth-tab-trigger:not(.tab-active) {
-    @apply bg-base-100 text-base-content hover:bg-base-200;
-    background-color: hsl(var(--b1));
-    color: hsl(var(--bc));
+/* ===== CUSTOM COLOR PRESETS ===== */
+/* Primary color preset */
+.tab-primary.tab-active {
+    --tab-color: hsl(var(--p));
+    --tab-bg: hsl(var(--p));
+    --tab-border-color: hsl(var(--p));
 }
 
-.auth-tab-trigger:not(.tab-active):hover {
-    background-color: hsl(var(--b2));
-    transform: translateY(-1px);
+/* Secondary color preset */
+.tab-secondary.tab-active {
+    --tab-color: hsl(var(--s));
+    --tab-bg: hsl(var(--s));
+    --tab-border-color: hsl(var(--s));
 }
 
-.auth-tab-trigger:disabled {
-    @apply opacity-50 cursor-not-allowed;
-    transform: none !important;
+/* Accent color preset */
+.tab-accent.tab-active {
+    --tab-color: hsl(var(--a));
+    --tab-bg: hsl(var(--a));
+    --tab-border-color: hsl(var(--a));
+}
+
+/* Success color preset */
+.tab-success.tab-active {
+    --tab-color: hsl(var(--su));
+    --tab-bg: hsl(var(--su));
+    --tab-border-color: hsl(var(--su));
+}
+
+/* Warning color preset */
+.tab-warning.tab-active {
+    --tab-color: hsl(var(--wa));
+    --tab-bg: hsl(var(--wa));
+    --tab-border-color: hsl(var(--wa));
+}
+
+/* Error color preset */
+.tab-error.tab-active {
+    --tab-color: hsl(var(--er));
+    --tab-bg: hsl(var(--er));
+    --tab-border-color: hsl(var(--er));
+}
+
+/* Info color preset */
+.tab-info.tab-active {
+    --tab-color: hsl(var(--in));
+    --tab-bg: hsl(var(--in));
+    --tab-border-color: hsl(var(--in));
 }
 
 /* ===== DARK MODE ENHANCEMENTS ===== */
 @media (prefers-color-scheme: dark) {
-
-    .tabs.tabs-boxed,
-    .tabs-list,
-    .auth-tabs-list {
+    .tabs-boxed {
         background-color: hsl(var(--b2)) !important;
         border-color: hsl(var(--b3)) !important;
     }
 
-    .tab:not(.tab-active),
-    .auth-tab-trigger:not(.tab-active) {
+    .tab:not(.tab-active) {
         background-color: hsl(var(--b1)) !important;
         color: hsl(var(--bc)) !important;
     }
 
-    .tab:not(.tab-active):hover,
-    .auth-tab-trigger:not(.tab-active):hover {
+    .tab:not(.tab-active):hover {
         background-color: hsl(var(--b2)) !important;
     }
 
-    .tab-active,
-    .auth-tab-trigger.tab-active {
+    .tab-active {
         box-shadow: 0 0 8px rgba(var(--p), 0.3) !important;
     }
 }
@@ -145,24 +173,14 @@
 
 /* ===== RESPONSIVE DESIGN ===== */
 @media (max-width: 768px) {
-    .auth-tabs-list {
-        grid-template-columns: repeat(2, 1fr);
-        gap: 0.125rem;
-    }
-
-    .auth-tab-trigger {
+    .tab {
         padding: 0.5rem 0.75rem;
         font-size: 0.875rem;
     }
 }
 
 @media (max-width: 480px) {
-    .auth-tabs-list {
-        grid-template-columns: 1fr;
-        gap: 0.125rem;
-    }
-
-    .auth-tab-trigger {
+    .tab {
         padding: 0.75rem;
         font-size: 0.875rem;
     }
@@ -170,18 +188,49 @@
 
 /* ===== HIGH SPECIFICITY OVERRIDES ===== */
 /* Ensure our styles take precedence over any conflicting DaisyUI styles */
-.tabs.tabs-boxed .tab-active,
-.auth-tabs-list .auth-tab-trigger.tab-active {
+.tabs .tab-active {
     --tw-bg-opacity: 1 !important;
-    background-color: hsl(var(--p) / var(--tw-bg-opacity)) !important;
+    background-color: var(--tab-bg, hsl(var(--p) / var(--tw-bg-opacity))) !important;
     --tw-text-opacity: 1 !important;
-    color: hsl(var(--pc) / var(--tw-text-opacity)) !important;
+    color: var(--tab-color, hsl(var(--pc) / var(--tw-text-opacity))) !important;
 }
 
 /* Force override for any conflicting styles */
-.tab-active,
-.auth-tab-trigger.tab-active {
-    background-color: hsl(var(--p)) !important;
-    color: hsl(var(--pc)) !important;
+.tab-active {
+    background-color: var(--tab-bg, hsl(var(--p))) !important;
+    color: var(--tab-color, hsl(var(--pc))) !important;
     font-weight: 600 !important;
+}
+
+/* ===== LEGACY SUPPORT ===== */
+/* Support for old auth-tabs-list and auth-tab-trigger classes */
+.auth-tabs-list {
+    @apply tabs-list;
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 0.25rem;
+}
+
+.auth-tab-trigger {
+    @apply tab;
+}
+
+/* ===== ACCESSIBILITY ===== */
+/* Focus styles for keyboard navigation */
+.tab:focus-visible {
+    outline: 2px solid hsl(var(--p));
+    outline-offset: 2px;
+}
+
+/* Screen reader only text */
+.sr-only {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    padding: 0;
+    margin: -1px;
+    overflow: hidden;
+    clip: rect(0, 0, 0, 0);
+    white-space: nowrap;
+    border: 0;
 }

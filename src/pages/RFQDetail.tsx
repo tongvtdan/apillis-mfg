@@ -3,7 +3,7 @@ import { useParams, Navigate } from 'react-router-dom';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { DaisyUITabs, DaisyUITabsList, DaisyUITabsTrigger, DaisyUITabsContent } from '@/components/ui/daisyui-tabs';
 import { useRFQs } from '@/hooks/useRFQs';
 import { useReviews } from '@/hooks/useReviews';
 import { usePermissions } from '@/hooks/usePermissions';
@@ -106,16 +106,16 @@ export function RFQDetail() {
         </div>
       </div>
 
-      <Tabs defaultValue="overview" className="space-y-4">
-        <TabsList>
-          <TabsTrigger value="overview">Overview</TabsTrigger>
-          <TabsTrigger value="reviews">Internal Reviews</TabsTrigger>
-          <TabsTrigger value="approvals">Approvals</TabsTrigger>
-          <TabsTrigger value="documents">Documents</TabsTrigger>
-          <TabsTrigger value="activity">Activity Log</TabsTrigger>
-        </TabsList>
+      <DaisyUITabs defaultValue="overview" className="space-y-4" variant="lift">
+        <DaisyUITabsList>
+          <DaisyUITabsTrigger value="overview">Overview</DaisyUITabsTrigger>
+          <DaisyUITabsTrigger value="reviews">Internal Reviews</DaisyUITabsTrigger>
+          <DaisyUITabsTrigger value="approvals">Approvals</DaisyUITabsTrigger>
+          <DaisyUITabsTrigger value="documents">Documents</DaisyUITabsTrigger>
+          <DaisyUITabsTrigger value="activity">Activity Log</DaisyUITabsTrigger>
+        </DaisyUITabsList>
 
-        <TabsContent value="overview" className="space-y-6">
+        <DaisyUITabsContent value="overview" className="space-y-6">
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
             {/* Basic Information */}
             <Card>
@@ -235,9 +235,9 @@ export function RFQDetail() {
               </CardContent>
             </Card>
           )}
-        </TabsContent>
+        </DaisyUITabsContent>
 
-        <TabsContent value="reviews" className="space-y-6">
+        <DaisyUITabsContent value="reviews" className="space-y-6">
           {reviewsLoading ? (
             <div className="text-center py-8">Loading review data...</div>
           ) : (
@@ -285,9 +285,9 @@ export function RFQDetail() {
               />
             </>
           )}
-        </TabsContent>
+        </DaisyUITabsContent>
 
-        <TabsContent value="approvals" className="space-y-6">
+        <DaisyUITabsContent value="approvals" className="space-y-6">
           <div className="flex justify-between items-center mb-4">
             <h3 className="text-lg font-semibold">RFQ Approvals</h3>
             <Button
@@ -321,7 +321,7 @@ export function RFQDetail() {
           </Card>
         </TabsContent>
 
-        <TabsContent value="documents">
+        <DaisyUITabsContent value="documents">
           <Card>
             <CardHeader>
               <CardTitle>Attachments & Documents</CardTitle>
@@ -332,7 +332,7 @@ export function RFQDetail() {
           </Card>
         </TabsContent>
 
-        <TabsContent value="activity">
+        <DaisyUITabsContent value="activity">
           <Card>
             <CardHeader>
               <CardTitle>Activity Log</CardTitle>
@@ -342,7 +342,7 @@ export function RFQDetail() {
             </CardContent>
           </Card>
         </TabsContent>
-      </Tabs>
+      </DaisyUITabs>
     </div>
   );
 }

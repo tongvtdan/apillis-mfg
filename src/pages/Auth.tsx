@@ -160,19 +160,23 @@ export default function Auth() {
             )}
 
             {/* Tab Navigation */}
-            <div className="tabs tabs-boxed mb-6">
-              <button
+            <div role="tablist" className="tabs tabs-lift mb-6">
+              <a
+                role="tab"
                 className={`tab flex-1 ${activeTab === 'signin' ? 'tab-active' : ''}`}
                 onClick={() => setActiveTab('signin')}
+                aria-selected={activeTab === 'signin'}
               >
                 Sign In
-              </button>
-              <button
+              </a>
+              <a
+                role="tab"
                 className={`tab flex-1 ${activeTab === 'signup' ? 'tab-active' : ''}`}
                 onClick={() => setActiveTab('signup')}
+                aria-selected={activeTab === 'signup'}
               >
                 Sign Up
-              </button>
+              </a>
             </div>
 
             {/* Sign In Form */}
