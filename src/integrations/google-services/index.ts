@@ -17,7 +17,10 @@ export type {
 
 // Re-export commonly used functions
 export {
-  googleDriveService,
+  googleDriveService
+} from './googleDriveService';
+
+export {
   extractGoogleDriveFileId,
   generateGoogleDriveSharingUrl,
   isValidGoogleDriveUrl,
