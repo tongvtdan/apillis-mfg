@@ -631,7 +631,7 @@ export function EnhancedProjectList({
                                     Clear Filters
                                 </Button>
                             )}
-                            <Button onClick={() => navigate("/projects/new")}>
+                            <Button variant="outline" onClick={() => navigate("/projects/new")}>
                                 <Plus className="h-4 w-4 mr-2" />
                                 Create Project
                             </Button>

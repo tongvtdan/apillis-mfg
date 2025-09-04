@@ -2,6 +2,8 @@ import React from "react";
 import { useNavigate } from "react-router-dom";
 import { ProjectIntakePortal } from "@/components/project/ProjectIntakePortal";
 import { useToast } from "@/hooks/use-toast";
+import { Button } from "@/components/ui/button";
+import { ArrowLeft } from "lucide-react";
 
 export default function CreateProject() {
     const navigate = useNavigate();
@@ -19,6 +21,18 @@ export default function CreateProject() {
 
     return (
         <div className="container mx-auto py-6">
+            {/* Back Button */}
+            <div className="mb-6">
+                <Button
+                    variant="outline"
+                    onClick={() => navigate(-1)}
+                    className="flex items-center gap-2"
+                >
+                    <ArrowLeft className="h-4 w-4" />
+                    Back
+                </Button>
+            </div>
+
             <ProjectIntakePortal onSuccess={handleSuccess} />
         </div>
     );

@@ -464,7 +464,7 @@ export default function Projects() {
             <div className="flex items-center">
               <Button
                 onClick={() => navigate("/projects/new")}
-                className="bg-primary hover:bg-primary/90 text-primary-foreground"
+                variant="outline"
                 disabled={isRetrying}
               >
                 <Plus className="mr-2 h-4 w-4" />

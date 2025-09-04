@@ -159,7 +159,7 @@ export function ProjectActions({
             {showCreateButton && (
                 <Button
                     onClick={() => navigate("/projects/new")}
-                    variant={variant}
+                    variant="outline"
                     size={size}
                     className="flex items-center gap-2"
                 >
