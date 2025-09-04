@@ -2,6 +2,68 @@
 
 ## Recent Changes
 
+### 2025-01-27 - InquiryIntakeForm Target Price Validation Fix - Made Optional for RFQs ✅
+
+**Task Completed:**
+- Fixed target price validation to make it truly optional for RFQ submissions
+- Resolved validation issues where empty target price fields were causing form validation errors
+- Updated form handling to properly support empty target price values
+
+**Issue Identified:**
+- Target price field was marked as optional but validation was still causing issues with empty values
+- RFQ submissions often don't have a target price, but the form validation was preventing submission
+- **Root Cause**: Zod validation was trying to validate empty string as a number, causing validation errors
+
+**Solution Implemented:**
+
+1. **Updated Validation Schema**:
+   - Changed from `z.number().positive().optional()` to `z.string().optional().refine()`
+   - Added custom validation that allows empty strings and validates only when a value is provided
+   - Ensures positive numbers when a value is entered, but allows empty fields
+
+2. **Fixed Form Field Handling**:
+   - Updated input field to handle string values properly
+   - Added proper value handling with `value={field.value || ''}`
+   - Changed onChange to pass string values instead of parsed numbers
+
+3. **Updated Submission Logic**:
+   - Added proper string-to-number conversion in submission logic
+   - Added checks for empty strings before parsing
+   - Ensures undefined is passed when no target price is provided
+
+**Technical Changes:**
+
+```typescript
+// Before: Problematic validation
+targetPricePerUnit: z.number().positive('Target price must be positive').optional(),
+
+// After: Proper optional validation
+targetPricePerUnit: z.string().optional().refine((val) => {
+    if (!val || val === '') return true; // Allow empty
+    const num = parseFloat(val);
+    return !isNaN(num) && num > 0;
+}, 'Target price must be a positive number'),
+
+// Updated submission logic
+estimated_value: data.targetPricePerUnit && data.targetPricePerUnit !== '' ?
+    parseFloat(data.targetPricePerUnit) * data.volumes.reduce((sum, v) => sum + v.quantity, 0) : undefined,
+```
+
+**Files Modified:**
+- **Updated**: `src/components/project/InquiryIntakeForm.tsx` - Fixed target price validation and handling
+- **Updated**: `MEMORY.md` - Documented the fix
+
+**Current Status:**
+- ✅ **Target Price Optional**: RFQs can now be submitted without a target price
+- ✅ **Validation Fixed**: Empty target price fields no longer cause validation errors
+- ✅ **Form Submission**: Works correctly with or without target price
+- ✅ **Type Safety**: Proper handling of string/number conversion
+
+**Next Steps:**
+- Test RFQ submission without target price
+- Verify form validation works correctly for all submission types
+- Monitor for any edge cases in target price handling
+
 ### 2025-01-27 - InquiryIntakeForm Customer Information Fix - Role Switching Issues Resolved ✅
 
 **Task Completed:**

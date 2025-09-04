@@ -53,7 +53,11 @@ const intakeFormSchema = z.object({
     volumes: z.array(volumeItemSchema).min(1, 'At least one volume entry is required'),
 
     // Pricing
-    targetPricePerUnit: z.number().positive('Target price must be positive').optional(),
+    targetPricePerUnit: z.string().optional().refine((val) => {
+        if (!val || val === '') return true; // Allow empty
+        const num = parseFloat(val);
+        return !isNaN(num) && num > 0;
+    }, 'Target price must be a positive number'),
 
     // Delivery
     desiredDeliveryDate: z.string().refine(date => {
@@ -315,8 +319,8 @@ export function InquiryIntakeForm({ submissionType, onSuccess }: InquiryIntakeFo
                 description: data.description,
                 customer_id: customer.id,
                 priority: 'medium',
-                estimated_value: data.targetPricePerUnit ?
-                    data.targetPricePerUnit * data.volumes.reduce((sum, v) => sum + v.quantity, 0) : undefined,
+                estimated_value: data.targetPricePerUnit && data.targetPricePerUnit !== '' ?
+                    parseFloat(data.targetPricePerUnit) * data.volumes.reduce((sum, v) => sum + v.quantity, 0) : undefined,
                 due_date: data.desiredDeliveryDate,
                 contact_name: customer.contact_name || data.customerName!,
                 contact_email: customer.email || data.email!,
@@ -325,7 +329,7 @@ export function InquiryIntakeForm({ submissionType, onSuccess }: InquiryIntakeFo
                 intake_type: data.intakeType,
                 intake_source: 'portal',
                 volume: data.volumes as VolumeData[],
-                target_price_per_unit: data.targetPricePerUnit,
+                target_price_per_unit: data.targetPricePerUnit && data.targetPricePerUnit !== '' ? parseFloat(data.targetPricePerUnit) : undefined,
                 project_reference: data.projectReference,
                 desired_delivery_date: data.desiredDeliveryDate
             };
@@ -705,7 +709,8 @@ export function InquiryIntakeForm({ submissionType, onSuccess }: InquiryIntakeFo
                                                     step="0.01"
                                                     placeholder="8.50"
                                                     {...field}
-                                                    onChange={(e) => field.onChange(parseFloat(e.target.value) || undefined)}
+                                                    value={field.value || ''}
+                                                    onChange={(e) => field.onChange(e.target.value)}
                                                 />
                                             </FormControl>
                                             <FormMessage />
