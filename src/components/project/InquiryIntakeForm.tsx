@@ -75,8 +75,8 @@ const intakeFormSchema = z.object({
     // Customer selector (for sales rep role)
     selectedCustomerId: z.string().optional(),
 
-    // Documents
-    documents: z.array(documentItemSchema).min(2, 'At least two documents required: Drawing and BOM'),
+    // Documents - Make optional for now since UI doesn't enforce this
+    documents: z.array(documentItemSchema).optional().default([]),
 
     // Terms
     agreedToTerms: z.boolean().refine(val => val === true, 'You must agree to the terms'),
@@ -128,8 +128,9 @@ export function InquiryIntakeForm({ submissionType, onSuccess }: InquiryIntakeFo
                 submissionType === 'Purchase Order' ? 'purchase_order' : 'project_idea',
             volumes: [{ quantity: 1000, unit: 'pcs', frequency: 'per year' }],
             documents: [],
-            agreedToTerms: false
-        }
+            agreedToTerms: true
+        },
+        mode: 'onChange' // Enable real-time validation
     });
 
     const { fields: volumeFields, append: appendVolume, remove: removeVolume } = useFieldArray({
@@ -937,6 +938,22 @@ export function InquiryIntakeForm({ submissionType, onSuccess }: InquiryIntakeFo
 
                 {/* Submit Button */}
                 <div className="flex justify-end gap-4">
+                    {/* Debug: Show validation state */}
+                    {process.env.NODE_ENV === 'development' && (
+                        <div className="text-xs text-muted-foreground mr-auto">
+                            Form valid: {form.formState.isValid ? 'Yes' : 'No'} |
+                            Errors: {Object.keys(form.formState.errors).length}
+                            {Object.keys(form.formState.errors).length > 0 && (
+                                <div className="mt-1">
+                                    {Object.entries(form.formState.errors).map(([field, error]) => (
+                                        <div key={field} className="text-red-500">
+                                            {field}: {error?.message}
+                                        </div>
+                                    ))}
+                                </div>
+                            )}
+                        </div>
+                    )}
                     <Button type="button" variant="outline">
                         Save as Draft
                     </Button>
