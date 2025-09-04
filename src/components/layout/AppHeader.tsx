@@ -14,6 +14,7 @@ import { Badge } from "@/components/ui/badge";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { useAuth } from "@/contexts/AuthContext";
 import { SessionStatus } from "@/components/auth/SessionStatus";
+import { ThemeToggle } from "@/components/ui/theme-toggle";
 import { Link } from "react-router-dom";
 
 
@@ -56,6 +57,8 @@ export function AppHeader() {
         </div>
 
         <div className="flex items-center space-x-4">
+          <ThemeToggle variant="icon" />
+
           <Button variant="ghost" size="sm" className="relative h-8 w-8 rounded-full border-2 border-sky-200 hover:border-sky-300 hover:bg-sky-100">
             <Bell className="h-4 w-4 text-sky-700" />
             <Badge className="absolute -top-1 -right-1 h-5 w-5 rounded-full p-0 flex items-center justify-center text-xs bg-red-600 text-white border-2 border-white">

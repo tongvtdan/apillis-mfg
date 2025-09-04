@@ -108,7 +108,7 @@ const Index = () => {
               {user ? (
                 <>
                   <Link to="/dashboard">
-                    <Button size="lg" className="gradient-primary text-lg px-8 py-6 text-primary-foreground">
+                    <Button size="lg" className="btn-primary text-lg px-8 py-6 font-bold shadow-lg hover:shadow-xl">
                       Go to Dashboard
                       <ArrowRight className="ml-2 h-5 w-5" />
                     </Button>
@@ -122,7 +122,7 @@ const Index = () => {
               ) : (
                 <>
                   <Link to="/rfq/submit">
-                    <Button size="lg" className="gradient-primary text-lg px-8 py-6 text-primary-foreground">
+                    <Button size="lg" className="btn-primary text-lg px-8 py-6 font-bold shadow-lg hover:shadow-xl">
                       Submit RFQ Request
                       <ArrowRight className="ml-2 h-5 w-5" />
                     </Button>
@@ -179,7 +179,7 @@ const Index = () => {
             </div>
 
             <Link to="/rfq/submit">
-              <Button size="lg" className="gradient-primary text-lg px-8 py-6 text-primary-foreground">
+              <Button size="lg" className="btn-primary text-lg px-8 py-6 font-bold shadow-lg hover:shadow-xl">
                 Submit Your RFQ Request
                 <ArrowRight className="ml-2 h-5 w-5" />
               </Button>

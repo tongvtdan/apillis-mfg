@@ -1,41 +1,35 @@
-import * as React from "react"
-import { cva, type VariantProps } from "class-variance-authority"
-import { cn } from "@/lib/utils"
+import React from 'react';
 
-const badgeVariants = cva(
-  "badge",
-  {
-    variants: {
-      variant: {
-        default: "badge-primary",
-        secondary: "badge-secondary",
-        destructive: "badge-error",
-        outline: "badge-outline",
-        success: "badge-success",
-        warning: "badge-warning",
-        info: "badge-info",
-      },
-      size: {
-        default: "badge-md",
-        sm: "badge-sm",
-        lg: "badge-lg",
-      },
-    },
-    defaultVariants: {
-      variant: "default",
-      size: "default",
-    },
-  }
-)
-
-export interface BadgeProps
-  extends React.HTMLAttributes<HTMLDivElement>,
-  VariantProps<typeof badgeVariants> { }
-
-function Badge({ className, variant, size, ...props }: BadgeProps) {
-  return (
-    <div className={cn(badgeVariants({ variant, size }), className)} {...props} />
-  )
+interface BadgeProps extends React.HTMLAttributes<HTMLDivElement> {
+  variant?: 'default' | 'secondary' | 'destructive' | 'outline';
+  children: React.ReactNode;
+  className?: string;
 }
 
-export { Badge, badgeVariants }
+export const Badge: React.FC<BadgeProps> = ({
+  variant = 'default',
+  className = "",
+  children,
+  ...props
+}) => {
+  const getVariantClasses = () => {
+    switch (variant) {
+      case 'secondary':
+        return 'badge-secondary';
+      case 'destructive':
+        return 'badge-error';
+      case 'outline':
+        return 'badge-outline';
+      default:
+        return 'badge-primary';
+    }
+  };
+
+  const badgeClasses = `badge ${getVariantClasses()} ${className}`.trim();
+
+  return (
+    <div className={badgeClasses} {...props}>
+      {children}
+    </div>
+  );
+};

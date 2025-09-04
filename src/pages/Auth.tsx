@@ -1,118 +1,45 @@
 import { useState, useEffect } from 'react';
 import { useAuth } from '@/contexts/AuthContext';
 import { Navigate, useLocation } from 'react-router-dom';
-import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
-import { Checkbox } from '@/components/ui/checkbox';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { Alert, AlertDescription } from '@/components/ui/alert';
-import { Loader2, Factory, AlertCircle, CheckCircle, Eye, EyeOff } from 'lucide-react';
-import { validateLoginForm, validateRegistrationForm } from '@/lib/auth-validation';
-import {
-  extractDomain,
-  buildEmail,
-  saveDomain,
-  getSavedDomain,
-  saveUsername,
-  getSavedUsername,
-  saveRememberPassword,
-  getRememberPassword,
-  savePassword,
-  getSavedPassword
-} from '@/lib/auth-utils';
+import { Loader2, Factory, AlertCircle, Eye, EyeOff, Sun, Moon } from 'lucide-react';
 
 export default function Auth() {
   const { signIn, signUp, resetPassword, user, loading } = useAuth();
   const location = useLocation();
   const [isLoading, setIsLoading] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
+  const [activeTab, setActiveTab] = useState('signin');
 
   // Form states
   const [signInData, setSignInData] = useState({
-    username: '',
     domain: '',
+    username: '',
     password: ''
   });
-  const [rememberPassword, setRememberPassword] = useState(false);
   const [signUpData, setSignUpData] = useState({
+    domain: '',
+    username: '',
     email: '',
     password: '',
     confirmPassword: '',
     displayName: ''
   });
-  const [resetEmail, setResetEmail] = useState('');
+  const [rememberMe, setRememberMe] = useState(false);
   const [errors, setErrors] = useState<string[]>([]);
-  const [passwordStrength, setPasswordStrength] = useState<{
-    score: number;
-    feedback: string[];
-  }>({ score: 0, feedback: [] });
+  const [isDarkMode, setIsDarkMode] = useState(false);
 
   const from = location.state?.from?.pathname || '/dashboard';
 
-  // Load saved authentication data on component mount
+  // Check current theme on mount
   useEffect(() => {
-    const savedDomain = getSavedDomain();
-    const savedUsername = getSavedUsername();
-    const savedRememberPassword = getRememberPassword();
-    const savedPassword = getSavedPassword();
-
-    setSignInData(prev => ({
-      ...prev,
-      domain: savedDomain,
-      username: savedUsername,
-      password: savedRememberPassword ? savedPassword : '' // Only load password if remember me is enabled
-    }));
-    setRememberPassword(savedRememberPassword);
+    const currentTheme = document.documentElement.getAttribute('data-theme');
+    setIsDarkMode(currentTheme === 'factory-pulse-dark');
   }, []);
 
-  // Handle domain input change with smart parsing
-  const handleDomainChange = (value: string) => {
-    let cleanDomain = value;
-
-    // If user pastes a full email, extract the domain
-    if (value.includes('@')) {
-      cleanDomain = extractDomain(value);
-    } else {
-      // Remove http://, https://, www. prefixes if user types them
-      cleanDomain = value.replace(/^(https?:\/\/)?(www\.)?/, '');
-    }
-
-    setSignInData(prev => ({ ...prev, domain: cleanDomain }));
-  };
-
-  // Handle username input change with smart parsing
-  const handleUsernameChange = (value: string) => {
-    let cleanUsername = value;
-
-    // If user pastes a full email, extract the username
-    if (value.includes('@')) {
-      cleanUsername = value.split('@')[0];
-    }
-
-    setSignInData(prev => ({ ...prev, username: cleanUsername }));
-  };
-
-  // Handle remember password change
-  const handleRememberPasswordChange = (checked: boolean) => {
-    setRememberPassword(checked);
-    if (!checked) {
-      // Clear password field when remember me is unchecked
-      setSignInData(prev => ({ ...prev, password: '' }));
-    } else {
-      // Load saved password when remember me is checked
-      const savedPassword = getSavedPassword();
-      if (savedPassword) {
-        setSignInData(prev => ({ ...prev, password: savedPassword }));
-      }
-    }
-  };
-
-  // Get the full email for display
-  const getFullEmail = () => {
-    if (!signInData.username || !signInData.domain) return '';
-    return buildEmail(signInData.username, signInData.domain);
+  const toggleTheme = () => {
+    const newTheme = isDarkMode ? 'factory-pulse-light' : 'factory-pulse-dark';
+    document.documentElement.setAttribute('data-theme', newTheme);
+    setIsDarkMode(!isDarkMode);
   };
 
   if (user && !loading) {
@@ -123,38 +50,37 @@ export default function Auth() {
     e.preventDefault();
     setErrors([]);
 
-    // Build full email from username and domain
-    const fullEmail = getFullEmail();
+    // Check if username contains @ (full email)
+    const isFullEmail = signInData.username.includes('@');
 
-    if (!fullEmail) {
-      setErrors(['Please enter both username and domain']);
+    if (!signInData.username || !signInData.password) {
+      setErrors(['Please enter username/email and password']);
       return;
     }
 
-    // Validate form
-    const validation = validateLoginForm({ email: fullEmail, password: signInData.password });
-    if (!validation.isValid) {
-      setErrors(validation.errors);
+    // Domain is only required if username is not a full email
+    if (!isFullEmail && !signInData.domain) {
+      setErrors(['Please enter domain when using username only']);
       return;
     }
 
     setIsLoading(true);
     try {
-      await signIn(fullEmail, signInData.password);
-
-      // Save authentication preferences on successful login
-      if (signInData.domain) {
-        saveDomain(signInData.domain);
+      // Check if username already contains @ (full email)
+      let email;
+      if (isFullEmail) {
+        // Username is already a full email address
+        email = signInData.username;
+      } else {
+        // Construct email from username and domain
+        email = `${signInData.username}@${signInData.domain}`;
       }
-      if (signInData.username) {
-        saveUsername(signInData.username);
-      }
 
-      saveRememberPassword(rememberPassword);
-      savePassword(signInData.password, rememberPassword);
-
+      console.log('Attempting sign in with email:', email);
+      await signIn(email, signInData.password);
     } catch (error) {
       console.error('Sign in error:', error);
+      setErrors(['Invalid credentials']);
     } finally {
       setIsLoading(false);
     }
@@ -164,10 +90,13 @@ export default function Auth() {
     e.preventDefault();
     setErrors([]);
 
-    // Validate form
-    const validation = validateRegistrationForm(signUpData);
-    if (!validation.isValid) {
-      setErrors(validation.errors);
+    if (!signUpData.domain || !signUpData.username || !signUpData.email || !signUpData.password || !signUpData.displayName) {
+      setErrors(['Please fill in all fields']);
+      return;
+    }
+
+    if (signUpData.password !== signUpData.confirmPassword) {
+      setErrors(['Passwords do not match']);
       return;
     }
 
@@ -176,19 +105,7 @@ export default function Auth() {
       await signUp(signUpData.email, signUpData.password, signUpData.displayName);
     } catch (error) {
       console.error('Sign up error:', error);
-    } finally {
-      setIsLoading(false);
-    }
-  };
-
-  const handleResetPassword = async (e: React.FormEvent) => {
-    e.preventDefault();
-    setIsLoading(true);
-    try {
-      await resetPassword(resetEmail);
-      setResetEmail('');
-    } catch (error) {
-      console.error('Password reset error:', error);
+      setErrors(['Failed to create account']);
     } finally {
       setIsLoading(false);
     }
@@ -196,257 +113,252 @@ export default function Auth() {
 
   if (loading) {
     return (
-      <div className="min-h-screen flex items-center justify-center">
-        <Loader2 className="h-8 w-8 animate-spin" />
+      <div className="min-h-screen flex items-center justify-center bg-base-100">
+        <Loader2 className="h-8 w-8 animate-spin text-primary" />
       </div>
     );
   }
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gradient-to-b from-background to-base-200/50 p-4">
+    <div className="min-h-screen flex items-center justify-center bg-base-200 p-4">
+      {/* Theme Toggle Button */}
+      <button
+        onClick={toggleTheme}
+        className="fixed top-4 right-4 btn btn-circle btn-ghost"
+        title={isDarkMode ? 'Switch to Light Mode' : 'Switch to Dark Mode'}
+      >
+        {isDarkMode ? <Sun className="h-5 w-5" /> : <Moon className="h-5 w-5" />}
+      </button>
+
       <div className="auth-container mx-auto space-y-8">
+        {/* Header Section */}
         <div className="text-center">
           <div className="flex justify-center mb-4">
             <Factory className="auth-logo" />
           </div>
-          <h1 className="text-3xl font-bold tracking-tight text-primary-900">Apillis Manufacturing Portal</h1>
-          <p className="text-muted-foreground mt-2">Complete Manufacturing Operations Platform</p>
+          <h1 className="text-3xl font-bold tracking-tight text-primary">Apillis Manufacturing Portal</h1>
+          <p className="text-base-content/70 mt-2">Complete Manufacturing Operations Platform</p>
         </div>
 
-        <Card className="auth-card">
-          <CardHeader>
-            <CardTitle>Authentication</CardTitle>
-            <CardDescription>
-              Sign in to your account or create a new one
-            </CardDescription>
-          </CardHeader>
-          <CardContent>
+        {/* Authentication Card */}
+        <div className="auth-card card">
+          <div className="card-body">
+            <h2 className="card-title text-2xl font-bold text-base-content">Authentication</h2>
+            <p className="text-base-content/70 mb-6">Sign in to your account or create a new one</p>
+
             {errors.length > 0 && (
-              <Alert className="mb-4" variant="destructive">
+              <div className="alert alert-error mb-4">
                 <AlertCircle className="h-4 w-4" />
-                <AlertDescription>
+                <div>
                   <ul className="list-disc pl-4 space-y-1">
                     {errors.map((error, index) => (
                       <li key={index}>{error}</li>
                     ))}
                   </ul>
-                </AlertDescription>
-              </Alert>
+                </div>
+              </div>
             )}
-            <Tabs defaultValue="signin" className="w-full">
-              <TabsList className="auth-tabs-list">
-                <TabsTrigger value="signin" className="auth-tab-trigger">Sign In</TabsTrigger>
-                <TabsTrigger value="signup" className="auth-tab-trigger">Sign Up</TabsTrigger>
-              </TabsList>
 
-              <TabsContent value="signin" className="space-y-4">
-                <form onSubmit={handleSignIn} className="space-y-4">
-                  <div className="space-y-2">
-                    <Label htmlFor="signin-domain">Domain</Label>
-                    <Input
-                      id="signin-domain"
+            {/* Tab Navigation */}
+            <div className="tabs tabs-boxed mb-6">
+              <button
+                className={`tab flex-1 ${activeTab === 'signin' ? 'tab-active' : ''}`}
+                onClick={() => setActiveTab('signin')}
+              >
+                Sign In
+              </button>
+              <button
+                className={`tab flex-1 ${activeTab === 'signup' ? 'tab-active' : ''}`}
+                onClick={() => setActiveTab('signup')}
+              >
+                Sign Up
+              </button>
+            </div>
+
+            {/* Sign In Form */}
+            {activeTab === 'signin' && (
+              <form onSubmit={handleSignIn} className="space-y-4">
+                <div className="form-control">
+                  <label className="label">
+                    <span className="label-text text-base-content">Username or Email</span>
+                  </label>
+                  <input
+                    type="text"
+                    placeholder="Enter username (e.g., senior.engineer) or full email"
+                    className="input input-bordered w-full"
+                    value={signInData.username}
+                    onChange={(e) => setSignInData(prev => ({ ...prev, username: e.target.value }))}
+                    required
+                  />
+                </div>
+
+                {!signInData.username.includes('@') && (
+                  <div className="form-control">
+                    <label className="label">
+                      <span className="label-text text-base-content">Domain</span>
+                    </label>
+                    <input
                       type="text"
                       placeholder="Enter your domain (e.g., factorypulse.vn)"
+                      className="input input-bordered w-full"
                       value={signInData.domain}
-                      onChange={(e) => handleDomainChange(e.target.value)}
-                      className="border-base-300 focus:border-primary transition-colors"
+                      onChange={(e) => setSignInData(prev => ({ ...prev, domain: e.target.value }))}
+                      required={!signInData.username.includes('@')}
+                    />
+                  </div>
+                )}
+
+                <div className="form-control">
+                  <label className="label">
+                    <span className="label-text text-base-content">Password</span>
+                  </label>
+                  <div className="relative">
+                    <input
+                      type={showPassword ? "text" : "password"}
+                      placeholder="Enter your password"
+                      className="input input-bordered w-full pr-10"
+                      value={signInData.password}
+                      onChange={(e) => setSignInData(prev => ({ ...prev, password: e.target.value }))}
                       required
                     />
+                    <button
+                      type="button"
+                      className="btn btn-ghost btn-sm absolute right-1 top-1/2 -translate-y-1/2 h-8 w-8 p-0"
+                      onClick={() => setShowPassword(!showPassword)}
+                    >
+                      {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+                    </button>
                   </div>
-                  <div className="space-y-2">
-                    <Label htmlFor="signin-username">Username</Label>
-                    <Input
-                      id="signin-username"
-                      type="text"
-                      placeholder="Enter your username"
-                      value={signInData.username}
-                      onChange={(e) => handleUsernameChange(e.target.value)}
-                      className="border-base-300 focus:border-primary transition-colors"
-                      required
+                </div>
+
+                <div className="form-control">
+                  <label className="label cursor-pointer justify-start gap-2">
+                    <input
+                      type="checkbox"
+                      className="checkbox checkbox-primary"
+                      checked={rememberMe}
+                      onChange={(e) => setRememberMe(e.target.checked)}
                     />
-                  </div>
+                    <span className="label-text text-base-content">Remember me</span>
+                  </label>
+                </div>
 
-                  {/* Show constructed email for verification */}
-                  {getFullEmail() && (
-                    <div className="p-3 bg-muted/50 rounded-md border">
-                      <p className="text-sm text-muted-foreground">
-                        Signing in as: <span className="font-medium text-foreground">{getFullEmail()}</span>
-                      </p>
-                    </div>
-                  )}
-
-                  <div className="space-y-2">
-                    <Label htmlFor="signin-password">Password</Label>
-                    <div className="relative">
-                      <Input
-                        id="signin-password"
-                        type={showPassword ? "text" : "password"}
-                        placeholder="Enter your password"
-                        value={signInData.password}
-                        onChange={(e) => setSignInData(prev => ({ ...prev, password: e.target.value }))}
-                        className="border-base-300 focus:border-primary transition-colors pr-10"
-                        required
-                      />
-                      <Button
-                        type="button"
-                        variant="ghost"
-                        size="sm"
-                        className="absolute right-1 top-1/2 -translate-y-1/2 h-8 w-8 p-0 hover:bg-transparent"
-                        onClick={() => setShowPassword(!showPassword)}
-                      >
-                        {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
-                      </Button>
-                    </div>
-                  </div>
-
-                  <div className="flex items-center space-x-2">
-                    <Checkbox
-                      id="remember-password"
-                      checked={rememberPassword}
-                      onCheckedChange={handleRememberPasswordChange}
-                    />
-                    <Label htmlFor="remember-password" className="text-sm text-muted-foreground">
-                      Remember me
-                    </Label>
-                  </div>
-
-                  <Button type="submit" className="auth-button" disabled={isLoading}>
-                    {isLoading ? <Loader2 className="h-4 w-4 animate-spin mr-2" /> : null}
-                    Sign In
-                  </Button>
-                </form>
+                <button
+                  type="submit"
+                  className="auth-button btn btn-primary w-full"
+                  disabled={isLoading}
+                >
+                  {isLoading ? <Loader2 className="h-4 w-4 animate-spin mr-2" /> : null}
+                  Sign In
+                </button>
 
                 <div className="text-center">
-                  <Button
-                    variant="link"
-                    onClick={() => {
-                      const email = prompt('Enter your email address:');
-                      if (email) {
-                        setResetEmail(email);
-                        handleResetPassword({ preventDefault: () => { } } as React.FormEvent);
-                      }
-                    }}
-                    className="text-sm"
-                  >
+                  <button type="button" className="link link-primary">
                     Forgot your password?
-                  </Button>
+                  </button>
                 </div>
-              </TabsContent>
+              </form>
+            )}
 
-              <TabsContent value="signup" className="space-y-4">
-                <form onSubmit={handleSignUp} className="space-y-4">
-                  <div className="space-y-2">
-                    <Label htmlFor="signup-name">Display Name</Label>
-                    <Input
-                      id="signup-name"
-                      type="text"
-                      placeholder="Enter your full name"
-                      value={signUpData.displayName}
-                      onChange={(e) => setSignUpData(prev => ({ ...prev, displayName: e.target.value }))}
-                      required
-                    />
-                  </div>
-                  <div className="space-y-2">
-                    <Label htmlFor="signup-email">Email</Label>
-                    <Input
-                      id="signup-email"
-                      type="email"
-                      placeholder="Enter your email"
-                      value={signUpData.email}
-                      onChange={(e) => setSignUpData(prev => ({ ...prev, email: e.target.value }))}
-                      required
-                    />
-                  </div>
-                  <div className="space-y-2">
-                    <Label htmlFor="signup-password">Password</Label>
-                    <Input
-                      id="signup-password"
-                      type="password"
-                      placeholder="Enter your password"
-                      value={signUpData.password}
-                      onChange={(e) => {
-                        const password = e.target.value;
-                        setSignUpData(prev => ({ ...prev, password }));
+            {/* Sign Up Form */}
+            {activeTab === 'signup' && (
+              <form onSubmit={handleSignUp} className="space-y-4">
+                <div className="form-control">
+                  <label className="label">
+                    <span className="label-text text-base-content">Domain</span>
+                  </label>
+                  <input
+                    type="text"
+                    placeholder="Enter your domain (e.g., factorypulse.vn)"
+                    className="input input-bordered w-full"
+                    value={signUpData.domain}
+                    onChange={(e) => setSignUpData(prev => ({ ...prev, domain: e.target.value }))}
+                    required
+                  />
+                </div>
 
-                        // Update password strength indicator
-                        let score = 0;
-                        const feedback: string[] = [];
+                <div className="form-control">
+                  <label className="label">
+                    <span className="label-text text-base-content">Username</span>
+                  </label>
+                  <input
+                    type="text"
+                    placeholder="Enter your username"
+                    className="input input-bordered w-full"
+                    value={signUpData.username}
+                    onChange={(e) => setSignUpData(prev => ({ ...prev, username: e.target.value }))}
+                    required
+                  />
+                </div>
 
-                        if (password.length >= 8) score += 1;
-                        else feedback.push('At least 8 characters');
+                <div className="form-control">
+                  <label className="label">
+                    <span className="label-text text-base-content">Display Name</span>
+                  </label>
+                  <input
+                    type="text"
+                    placeholder="Enter your full name"
+                    className="input input-bordered w-full"
+                    value={signUpData.displayName}
+                    onChange={(e) => setSignUpData(prev => ({ ...prev, displayName: e.target.value }))}
+                    required
+                  />
+                </div>
 
-                        if (/[A-Z]/.test(password)) score += 1;
-                        else feedback.push('One uppercase letter');
+                <div className="form-control">
+                  <label className="label">
+                    <span className="label-text text-base-content">Email</span>
+                  </label>
+                  <input
+                    type="email"
+                    placeholder="Enter your email"
+                    className="input input-bordered w-full"
+                    value={signUpData.email}
+                    onChange={(e) => setSignUpData(prev => ({ ...prev, email: e.target.value }))}
+                    required
+                  />
+                </div>
 
-                        if (/[a-z]/.test(password)) score += 1;
-                        else feedback.push('One lowercase letter');
+                <div className="form-control">
+                  <label className="label">
+                    <span className="label-text text-base-content">Password</span>
+                  </label>
+                  <input
+                    type="password"
+                    placeholder="Enter your password"
+                    className="input input-bordered w-full"
+                    value={signUpData.password}
+                    onChange={(e) => setSignUpData(prev => ({ ...prev, password: e.target.value }))}
+                    required
+                  />
+                </div>
 
-                        if (/\d/.test(password)) score += 1;
-                        else feedback.push('One number');
+                <div className="form-control">
+                  <label className="label">
+                    <span className="label-text text-base-content">Confirm Password</span>
+                  </label>
+                  <input
+                    type="password"
+                    placeholder="Confirm your password"
+                    className="input input-bordered w-full"
+                    value={signUpData.confirmPassword}
+                    onChange={(e) => setSignUpData(prev => ({ ...prev, confirmPassword: e.target.value }))}
+                    required
+                  />
+                </div>
 
-                        if (/[!@#$%^&*()_+\-=\[\]{};':"\\|,.<>\/?]/.test(password)) score += 1;
-                        else feedback.push('One special character');
-
-                        setPasswordStrength({ score, feedback });
-                      }}
-                      required
-                    />
-
-                    {/* Password Strength Indicator */}
-                    {signUpData.password && (
-                      <div className="mt-2 space-y-2">
-                        <div className="flex space-x-1">
-                          {[1, 2, 3, 4, 5].map((level) => (
-                            <div
-                              key={level}
-                              className={`h-1 flex-1 rounded ${level <= passwordStrength.score
-                                ? passwordStrength.score <= 2
-                                  ? 'bg-red-500'
-                                  : passwordStrength.score <= 3
-                                    ? 'bg-yellow-500'
-                                    : 'bg-green-500'
-                                : 'bg-gray-200'
-                                }`}
-                            />
-                          ))}
-                        </div>
-                        <div className="text-xs text-muted-foreground">
-                          <span className="font-medium">
-                            Password strength: {
-                              passwordStrength.score <= 2 ? 'Weak' :
-                                passwordStrength.score <= 3 ? 'Fair' :
-                                  passwordStrength.score <= 4 ? 'Good' : 'Strong'
-                            }
-                          </span>
-                          {passwordStrength.feedback.length > 0 && (
-                            <div className="mt-1">
-                              Missing: {passwordStrength.feedback.join(', ')}
-                            </div>
-                          )}
-                        </div>
-                      </div>
-                    )}
-                  </div>
-                  <div className="space-y-2">
-                    <Label htmlFor="signup-confirm">Confirm Password</Label>
-                    <Input
-                      id="signup-confirm"
-                      type="password"
-                      placeholder="Confirm your password"
-                      value={signUpData.confirmPassword}
-                      onChange={(e) => setSignUpData(prev => ({ ...prev, confirmPassword: e.target.value }))}
-                      required
-                    />
-                  </div>
-                  <Button type="submit" className="auth-button" disabled={isLoading}>
-                    {isLoading ? <Loader2 className="h-4 w-4 animate-spin mr-2" /> : null}
-                    Create Account
-                  </Button>
-                </form>
-              </TabsContent>
-            </Tabs>
-          </CardContent>
-        </Card>
+                <button
+                  type="submit"
+                  className="auth-button btn btn-primary w-full"
+                  disabled={isLoading}
+                >
+                  {isLoading ? <Loader2 className="h-4 w-4 animate-spin mr-2" /> : null}
+                  Create Account
+                </button>
+              </form>
+            )}
+          </div>
+        </div>
       </div>
     </div>
   );

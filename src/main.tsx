@@ -9,6 +9,7 @@ import './styles/auth-ui-enhancements.css';
 import './styles/project-form-enhancements.css';
 import './styles/project-tabs-fix.css';
 import './styles/project-view-tabs.css';
+import './styles/tab-system-fix.css';
 import './styles/modal-forms-enhancements.css';
 import './styles/action-buttons-enhancements.css';
 import './styles/toast-enhancements.css';

@@ -25,8 +25,9 @@ import NewRFQ from "./pages/NewRFQ";
 import Settings from "./pages/Settings";
 import Profile from "./pages/Profile";
 import Approvals from "./pages/Approvals";
+import DaisyUITest from "./pages/DaisyUITest";
 
-import { applyAdaptiveTheme } from "@/lib/theme";
+import { initializeTheme } from "@/lib/theme";
 import "@/styles/smooth-transitions.css";
 
 // Temporary debug - remove this later
@@ -46,9 +47,9 @@ function SessionManagerWrapper({ children }: { children: React.ReactNode }) {
 }
 
 const App = () => {
-  // Apply adaptive theme on initial render
+  // Initialize theme system on initial render
   useEffect(() => {
-    applyAdaptiveTheme();
+    initializeTheme();
   }, []);
 
   return (
@@ -107,6 +108,11 @@ const App = () => {
           <Route path="/approvals" element={
             <ProtectedRoute requiredRoles={['engineering', 'qa', 'production', 'management', 'admin', 'procurement']}>
               <AppLayout><Approvals /></AppLayout>
+            </ProtectedRoute>
+          } />
+          <Route path="/daisyui-test" element={
+            <ProtectedRoute>
+              <AppLayout><DaisyUITest /></AppLayout>
             </ProtectedRoute>
           } />
           <Route path="/project/:id" element={

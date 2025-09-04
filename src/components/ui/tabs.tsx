@@ -1,53 +1,121 @@
-import * as React from "react"
-import { cn } from "@/lib/utils"
+import React from 'react';
 
-export interface TabsProps extends React.HTMLAttributes<HTMLDivElement> {
-  children: React.ReactNode
-  className?: string
+interface TabsProps {
+  defaultValue?: string;
+  value?: string;
+  onValueChange?: (value: string) => void;
+  className?: string;
+  children: React.ReactNode;
 }
 
-const Tabs = React.forwardRef<HTMLDivElement, TabsProps>(
-  ({ className, children, ...props }, ref) => {
-    return (
-      <div ref={ref} className={cn("tabs tabs-boxed", className)} {...props}>
-        {children}
-      </div>
-    )
-  }
-)
-Tabs.displayName = "Tabs"
+interface TabsListProps {
+  className?: string;
+  children: React.ReactNode;
+}
 
-const TabsList = React.forwardRef<HTMLDivElement, React.HTMLAttributes<HTMLDivElement>>(
-  ({ className, children, ...props }, ref) => {
-    return (
-      <div ref={ref} className={cn("tabs", className)} {...props}>
-        {children}
-      </div>
-    )
-  }
-)
-TabsList.displayName = "TabsList"
+interface TabsTriggerProps {
+  value: string;
+  className?: string;
+  disabled?: boolean;
+  children: React.ReactNode;
+}
 
-const TabsTrigger = React.forwardRef<HTMLButtonElement, React.ButtonHTMLAttributes<HTMLButtonElement>>(
-  ({ className, children, ...props }, ref) => {
-    return (
-      <button ref={ref} className={cn("tab", className)} {...props}>
-        {children}
-      </button>
-    )
-  }
-)
-TabsTrigger.displayName = "TabsTrigger"
+interface TabsContentProps {
+  value: string;
+  className?: string;
+  children: React.ReactNode;
+}
 
-const TabsContent = React.forwardRef<HTMLDivElement, React.HTMLAttributes<HTMLDivElement>>(
-  ({ className, children, ...props }, ref) => {
-    return (
-      <div ref={ref} className={cn("tab-content", className)} {...props}>
-        {children}
-      </div>
-    )
-  }
-)
-TabsContent.displayName = "TabsContent"
+export const Tabs: React.FC<TabsProps> = ({
+  defaultValue,
+  value,
+  onValueChange,
+  className = "",
+  children
+}) => {
+  const [activeTab, setActiveTab] = React.useState(value || defaultValue || '');
 
-export { Tabs, TabsList, TabsTrigger, TabsContent }
+  React.useEffect(() => {
+    if (value !== undefined) {
+      setActiveTab(value);
+    }
+  }, [value]);
+
+  const handleTabChange = (newValue: string) => {
+    setActiveTab(newValue);
+    onValueChange?.(newValue);
+  };
+
+  return (
+    <div className={`tabs ${className}`} data-active-tab={activeTab}>
+      {React.Children.map(children, (child) => {
+        if (React.isValidElement(child)) {
+          return React.cloneElement(child, {
+            activeTab,
+            onTabChange: handleTabChange
+          });
+        }
+        return child;
+      })}
+    </div>
+  );
+};
+
+export const TabsList: React.FC<TabsListProps> = ({
+  className = "",
+  children
+}) => {
+  return (
+    <div className={`tabs-list ${className}`} role="tablist">
+      {children}
+    </div>
+  );
+};
+
+export const TabsTrigger: React.FC<TabsTriggerProps> = ({
+  value,
+  className = "",
+  disabled = false,
+  children,
+  ...props
+}) => {
+  const { activeTab, onTabChange } = props as any;
+  const isActive = activeTab === value;
+
+  return (
+    <button
+      className={`tab ${isActive ? 'tab-active' : ''} ${className}`}
+      onClick={() => !disabled && onTabChange?.(value)}
+      disabled={disabled}
+      data-value={value}
+      role="tab"
+      aria-selected={isActive}
+      aria-disabled={disabled}
+    >
+      {children}
+    </button>
+  );
+};
+
+export const TabsContent: React.FC<TabsContentProps> = ({
+  value,
+  className = "",
+  children,
+  ...props
+}) => {
+  const { activeTab } = props as any;
+  const isActive = activeTab === value;
+
+  if (!isActive) return null;
+
+  return (
+    <div
+      className={`tab-content ${className}`}
+      data-value={value}
+      role="tabpanel"
+      aria-hidden={!isActive}
+    >
+      {children}
+    </div>
+  );
+};

@@ -1,59 +1,63 @@
-import * as React from "react"
-import { cva, type VariantProps } from "class-variance-authority"
-import { cn } from "@/lib/utils"
+import React from 'react';
 
-const alertVariants = cva(
-  "alert",
-  {
-    variants: {
-      variant: {
-        default: "alert-info",
-        destructive: "alert-error",
-        success: "alert-success",
-        warning: "alert-warning",
-      },
-    },
-    defaultVariants: {
-      variant: "default",
-    },
-  }
-)
+interface AlertProps extends React.HTMLAttributes<HTMLDivElement> {
+  variant?: 'default' | 'destructive';
+  children: React.ReactNode;
+  className?: string;
+}
 
-const Alert = React.forwardRef<
-  HTMLDivElement,
-  React.HTMLAttributes<HTMLDivElement> & VariantProps<typeof alertVariants>
->(({ className, variant, ...props }, ref) => (
-  <div
-    ref={ref}
-    role="alert"
-    className={cn(alertVariants({ variant }), className)}
-    {...props}
-  />
-))
-Alert.displayName = "Alert"
+interface AlertDescriptionProps {
+  children: React.ReactNode;
+  className?: string;
+}
 
-const AlertTitle = React.forwardRef<
-  HTMLParagraphElement,
-  React.HTMLAttributes<HTMLHeadingElement>
->(({ className, ...props }, ref) => (
-  <h5
-    ref={ref}
-    className={cn("font-medium", className)}
-    {...props}
-  />
-))
-AlertTitle.displayName = "AlertTitle"
+export const Alert: React.FC<AlertProps> = ({
+  variant = 'default',
+  className = "",
+  children,
+  ...props
+}) => {
+  const getVariantClasses = () => {
+    switch (variant) {
+      case 'destructive':
+        return 'alert-error';
+      default:
+        return 'alert-info';
+    }
+  };
 
-const AlertDescription = React.forwardRef<
-  HTMLParagraphElement,
-  React.HTMLAttributes<HTMLParagraphElement>
->(({ className, ...props }, ref) => (
-  <div
-    ref={ref}
-    className={cn("text-sm", className)}
-    {...props}
-  />
-))
-AlertDescription.displayName = "AlertDescription"
+  const alertClasses = `alert ${getVariantClasses()} ${className}`.trim();
 
-export { Alert, AlertTitle, AlertDescription }
+  return (
+    <div className={alertClasses} {...props}>
+      {children}
+    </div>
+  );
+};
+
+interface AlertTitleProps {
+  children: React.ReactNode;
+  className?: string;
+}
+
+export const AlertDescription: React.FC<AlertDescriptionProps> = ({
+  className = "",
+  children
+}) => {
+  return (
+    <div className={`alert-description ${className}`}>
+      {children}
+    </div>
+  );
+};
+
+export const AlertTitle: React.FC<AlertTitleProps> = ({
+  className = "",
+  children
+}) => {
+  return (
+    <h5 className={`alert-title ${className}`}>
+      {children}
+    </h5>
+  );
+};

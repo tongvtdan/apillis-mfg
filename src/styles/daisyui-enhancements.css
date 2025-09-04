@@ -1,0 +1,154 @@
+/**
+ * DaisyUI Component Enhancements
+ * Ensures proper styling for migrated components
+ */
+
+/* Card component enhancements */
+.card {
+    @apply bg-base-100 border border-base-300 shadow-lg;
+    border-radius: var(--rounded-box);
+}
+
+.card-header {
+    @apply p-6 pb-0;
+}
+
+.card-title {
+    @apply text-xl font-bold text-base-content;
+}
+
+.card-description {
+    @apply text-sm;
+    opacity: 0.7;
+}
+
+.card-body {
+    @apply p-6;
+}
+
+.card-footer {
+    @apply p-6 pt-0;
+}
+
+/* Tabs component enhancements */
+.tabs {
+    @apply w-full;
+}
+
+.tabs-list {
+    @apply tabs tabs-boxed mb-4;
+}
+
+.tab {
+    @apply transition-all duration-200;
+}
+
+.tab-active {
+    @apply bg-primary text-primary-content;
+}
+
+.tab-content {
+    @apply mt-4;
+}
+
+/* Button component enhancements */
+.btn {
+    @apply font-medium transition-all duration-200;
+}
+
+.btn-primary {
+    @apply bg-primary text-primary-content border-primary;
+    font-weight: 600;
+    text-shadow: 0 1px 2px rgba(0, 0, 0, 0.1);
+}
+
+.btn-primary:hover {
+    background-color: #0284C7;
+    @apply text-primary-content;
+    transform: translateY(-1px);
+    box-shadow: 0 4px 12px rgba(14, 165, 233, 0.3);
+}
+
+.btn:active {
+    transform: translateY(0);
+}
+
+.btn-outline {
+    @apply border-2 border-base-content text-base-content bg-transparent;
+    font-weight: 600;
+}
+
+.btn-outline:hover {
+    @apply bg-base-content text-base-100;
+    transform: translateY(-1px);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+}
+
+/* Input component enhancements */
+.input {
+    @apply transition-all duration-200;
+}
+
+.input:focus {
+    @apply ring-2;
+    box-shadow: 0 0 0 2px hsl(var(--p) / 0.2);
+}
+
+/* Label component enhancements */
+.label {
+    @apply mb-2;
+}
+
+.label-text {
+    @apply text-base-content font-medium;
+}
+
+/* Badge component enhancements */
+.badge {
+    @apply font-medium;
+}
+
+/* Alert component enhancements */
+.alert {
+    @apply border border-base-300;
+}
+
+.alert-description {
+    @apply text-sm;
+}
+
+/* Form control enhancements */
+.form-control {
+    @apply mb-4;
+}
+
+/* Link enhancements */
+.link {
+    @apply transition-colors duration-200;
+}
+
+.link:hover {
+    opacity: 0.8;
+}
+
+/* Dark mode specific adjustments */
+[data-theme="factory-pulse-dark"] .card {
+    @apply bg-base-100 border-base-300;
+    box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.3);
+}
+
+[data-theme="factory-pulse-dark"] .input {
+    @apply bg-base-100 border-base-300 text-base-content;
+}
+
+[data-theme="factory-pulse-dark"] .input::placeholder {
+    opacity: 0.5;
+}
+
+[data-theme="factory-pulse-dark"] .tabs-list {
+    @apply bg-base-200 border-base-300;
+}
+
+[data-theme="factory-pulse-dark"] .tab:not(.tab-active) {
+    @apply bg-base-100 text-base-content hover:bg-base-200;
+}

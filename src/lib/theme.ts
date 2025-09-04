@@ -1,5 +1,7 @@
-// Factory Pulse Theme System - Simplified and Clean
-// Single theme that adapts to environment using CSS custom properties
+// Factory Pulse Theme System - Enhanced for DaisyUI Light/Dark Mode
+// Comprehensive theme management with system preference detection
+
+export type ThemeMode = 'light' | 'dark' | 'system';
 
 export interface ThemeColors {
   // Teal/Cyan Blue Primary System
@@ -36,65 +38,133 @@ export interface ThemeColors {
   ring: string;         // #0EA5E9 - Teal ring (matches primary)
 }
 
-// Factory Pulse Adaptive Theme - Single theme that adapts to environment
-export const ADAPTIVE_THEME: ThemeColors = {
-  // Teal/Cyan Blue Primary System
-  primary: 'hsl(199 89% 48%)',       // #0EA5E9 - Vibrant Teal/Cyan Blue
-  primaryForeground: 'hsl(0 0% 100%)', // #FFFFFF - White text on primary
-  secondary: 'hsl(199 89% 58%)',     // #38BDF8 - Light Teal
-  secondaryForeground: 'hsl(0 0% 100%)', // #FFFFFF - White text on secondary
-  accent: 'hsl(199 89% 68%)',        // #7DD3FC - Light Teal accent
-  accentForeground: 'hsl(220 13% 18%)', // #1F2937 - Dark text on accent
+// Theme storage key
+const THEME_STORAGE_KEY = 'factory-pulse-theme';
 
-  // Neutral Base Colors
-  background: 'hsl(210 13% 96%)',    // #F8F9FA - Light neutral background
-  foreground: 'hsl(220 13% 18%)',   // #212529 - High contrast text
-  card: 'hsl(0 0% 100%)',           // #FFFFFF - Pure white cards
-  cardForeground: 'hsl(220 13% 18%)', // #212529 - Dark text on cards
-  popover: 'hsl(0 0% 100%)',        // #FFFFFF - Pure white popovers
-  popoverForeground: 'hsl(220 13% 18%)', // #212529 - Dark text in popovers
-  muted: 'hsl(210 15% 92%)',        // #EBEEF1 - Light muted background
-  mutedForeground: 'hsl(215 16% 47%)', // #6C757D - Muted text
-
-  // Status Colors
-  destructive: 'hsl(0 84% 60%)',    // #DC2626 - Error Red
-  destructiveForeground: 'hsl(0 0% 100%)', // #FFFFFF - White text on error
-  success: 'hsl(160 84% 39%)',       // #059669 - Success Green
-  successForeground: 'hsl(0 0% 100%)', // #FFFFFF - White text on success
-  warning: 'hsl(32 95% 44%)',        // #D97706 - Warning Orange
-  warningForeground: 'hsl(0 0% 100%)', // #FFFFFF - White text on warning
-  info: 'hsl(199 89% 48%)',          // #0EA5E9 - Info Teal (matches primary)
-  infoForeground: 'hsl(0 0% 100%)',  // #FFFFFF - White text on info
-
-  // Interface Elements
-  border: 'hsl(214 15% 85%)',       // #D8DFE6 - Subtle borders
-  input: 'hsl(210 15% 95%)',        // #F2F4F7 - Light input backgrounds
-  ring: 'hsl(199 89% 48%)',         // #0EA5E9 - Teal ring (matches primary)
+// Get stored theme preference
+export const getStoredTheme = (): ThemeMode => {
+  if (typeof localStorage === 'undefined') return 'system';
+  return (localStorage.getItem(THEME_STORAGE_KEY) as ThemeMode) || 'system';
 };
 
-// Simplified theme application
-export const applyAdaptiveTheme = (): void => {
-  if (typeof document === 'undefined') return;
-
-  // Apply the theme to the HTML element
-  const html = document.documentElement;
-  html.setAttribute('data-theme', 'factory-pulse-adaptive');
-  html.classList.add('adaptive-theme');
-
-  // Set color scheme for browser optimization
-  html.style.colorScheme = 'light dark';
-
-  console.log('Factory Pulse Adaptive Theme initialized');
+// Store theme preference
+export const setStoredTheme = (theme: ThemeMode): void => {
+  if (typeof localStorage === 'undefined') return;
+  localStorage.setItem(THEME_STORAGE_KEY, theme);
 };
 
-// Theme detection utilities
+// Get system theme preference
 export const getSystemTheme = (): 'light' | 'dark' => {
   if (typeof window === 'undefined') return 'light';
   return window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
 };
 
+// Get effective theme (resolves 'system' to actual theme)
+export const getEffectiveTheme = (): 'light' | 'dark' => {
+  const storedTheme = getStoredTheme();
+  if (storedTheme === 'system') {
+    return getSystemTheme();
+  }
+  return storedTheme;
+};
+
+// Apply theme to document
+export const applyTheme = (theme: ThemeMode): void => {
+  if (typeof document === 'undefined') return;
+
+  const html = document.documentElement;
+  const effectiveTheme = theme === 'system' ? getSystemTheme() : theme;
+
+  // Apply DaisyUI theme
+  html.setAttribute('data-theme', `factory-pulse-${effectiveTheme}`);
+
+  // Set color scheme for browser optimization
+  html.style.colorScheme = effectiveTheme;
+
+  // Store preference
+  setStoredTheme(theme);
+
+  console.log(`Factory Pulse Theme applied: ${theme} (effective: ${effectiveTheme})`);
+};
+
+// Initialize theme system
+export const initializeTheme = (): void => {
+  if (typeof document === 'undefined') return;
+
+  // Get stored preference or default to system
+  const theme = getStoredTheme();
+  applyTheme(theme);
+
+  // Listen for system theme changes
+  if (typeof window !== 'undefined') {
+    const mediaQuery = window.matchMedia('(prefers-color-scheme: dark)');
+    mediaQuery.addEventListener('change', (e) => {
+      const currentTheme = getStoredTheme();
+      if (currentTheme === 'system') {
+        applyTheme('system');
+      }
+    });
+  }
+};
+
+// Theme toggle function
+export const toggleTheme = (): void => {
+  const currentTheme = getStoredTheme();
+  let newTheme: ThemeMode;
+
+  switch (currentTheme) {
+    case 'light':
+      newTheme = 'dark';
+      break;
+    case 'dark':
+      newTheme = 'system';
+      break;
+    case 'system':
+      newTheme = 'light';
+      break;
+    default:
+      newTheme = 'system';
+  }
+
+  applyTheme(newTheme);
+};
+
+// Get theme display name
+export const getThemeDisplayName = (theme: ThemeMode): string => {
+  switch (theme) {
+    case 'light':
+      return 'Light';
+    case 'dark':
+      return 'Dark';
+    case 'system':
+      return 'System';
+    default:
+      return 'System';
+  }
+};
+
+// Get theme icon
+export const getThemeIcon = (theme: ThemeMode): string => {
+  switch (theme) {
+    case 'light':
+      return '☀️';
+    case 'dark':
+      return '🌙';
+    case 'system':
+      return '💻';
+    default:
+      return '💻';
+  }
+};
+
 export default {
-  ADAPTIVE_THEME,
-  applyAdaptiveTheme,
-  getSystemTheme
+  getStoredTheme,
+  setStoredTheme,
+  getSystemTheme,
+  getEffectiveTheme,
+  applyTheme,
+  initializeTheme,
+  toggleTheme,
+  getThemeDisplayName,
+  getThemeIcon,
 };

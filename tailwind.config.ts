@@ -70,19 +70,20 @@ export default {
 	daisyui: {
 		themes: [
 			{
-				"factory-pulse": {
+				"factory-pulse-light": {
 					// Teal/Cyan Blue Primary System
 					"primary": "#0EA5E9",          // Vibrant Teal/Cyan Blue
+					"primary-focus": "#0284C7",    // Darker Teal for focus/hover
 					"primary-content": "#FFFFFF",  // White text on primary
 					"secondary": "#38BDF8",        // Light Teal
 					"secondary-content": "#FFFFFF", // White text on secondary
 					"accent": "#7DD3FC",           // Light Teal accent
 					"accent-content": "#1F2937",   // Dark text on accent
 
-					// Neutral Base Colors
-					"base-100": "#F8F9FA",         // Light neutral background
-					"base-200": "#EBEEF1",         // Light muted background
-					"base-300": "#D8DFE6",         // Subtle borders
+					// Neutral Base Colors - Light Theme
+					"base-100": "#FFFFFF",         // Pure white background
+					"base-200": "#F8F9FA",         // Light neutral background
+					"base-300": "#EBEEF1",         // Light muted background
 					"base-content": "#212529",     // Dark text
 
 					// Status Colors
@@ -110,9 +111,50 @@ export default {
 					"--tab-border": "1px",
 					"--tab-radius": "0.5rem",
 				},
+				"factory-pulse-dark": {
+					// Teal/Cyan Blue Primary System
+					"primary": "#0EA5E9",          // Vibrant Teal/Cyan Blue
+					"primary-focus": "#0284C7",    // Darker Teal for focus/hover
+					"primary-content": "#FFFFFF",  // White text on primary
+					"secondary": "#38BDF8",        // Light Teal
+					"secondary-content": "#FFFFFF", // White text on secondary
+					"accent": "#7DD3FC",           // Light Teal accent
+					"accent-content": "#1F2937",   // Dark text on accent
+
+					// Neutral Base Colors - Dark Theme
+					"base-100": "#1F2937",         // Dark background
+					"base-200": "#374151",         // Dark muted background
+					"base-300": "#4B5563",         // Dark borders
+					"base-content": "#F9FAFB",     // Light text
+
+					// Status Colors
+					"success": "#059669",          // Success Green
+					"success-content": "#FFFFFF",  // White text on success
+					"warning": "#D97706",          // Warning Orange
+					"warning-content": "#FFFFFF",  // White text on warning
+					"error": "#DC2626",            // Error Red
+					"error-content": "#FFFFFF",    // White text on error
+					"info": "#0EA5E9",             // Info Teal (matches primary)
+					"info-content": "#FFFFFF",     // White text on info
+
+					// Neutral Colors
+					"neutral": "#F9FAFB",          // Light slate
+					"neutral-content": "#1F2937",  // Dark text on neutral
+
+					// DaisyUI Properties
+					"--rounded-box": "1rem",
+					"--rounded-btn": "0.5rem",
+					"--rounded-badge": "1.9rem",
+					"--animation-btn": "0.25s",
+					"--animation-input": "0.2s",
+					"--btn-focus-scale": "0.95",
+					"--border-btn": "1px",
+					"--tab-border": "1px",
+					"--tab-radius": "0.5rem",
+				}
 			},
 		],
-		darkTheme: "factory-pulse",
+		darkTheme: "factory-pulse-dark",
 		base: true,
 		styled: true,
 		utils: true,
