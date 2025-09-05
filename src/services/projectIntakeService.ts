@@ -6,7 +6,8 @@ import { useProjects } from '@/hooks/useProjects';
 export interface ProjectIntakeData {
     title: string;
     description?: string;
-    customer_id?: string;
+    customer_organization_id?: string;
+    point_of_contacts?: string[];
     priority?: string;
     estimated_value?: number;
     due_date?: string;
@@ -58,7 +59,8 @@ export class ProjectIntakeService {
             const project = await createProjectFn({
                 title: intakeData.title || `${intakeData.intake_type} from ${intakeData.contact_name || 'Customer'}`,
                 description: intakeData.description,
-                customer_id: intakeData.customer_id,
+                customer_organization_id: intakeData.customer_organization_id,
+                point_of_contacts: intakeData.point_of_contacts || [],
                 priority: priority,
                 estimated_value: intakeData.estimated_value,
                 due_date: intakeData.due_date,

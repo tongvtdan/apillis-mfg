@@ -154,14 +154,37 @@ interface Project {
 - `setPrimaryContact(projectId, contactId)` - Set primary (move to front)
 - `reorderContacts(projectId, orderedContactIds)` - Reorder contacts
 
+### New ProjectActionServiceSimplified
+**File**: `src/services/projectActionServiceSimplified.ts`
+
+**Purpose**: High-level action service for project operations using simplified contact model
+
+**Key Methods**:
+- `createProject(data)` - Create new projects with authentication
+- `updateProject(projectId, data)` - Update projects with partial data
+- `duplicateProject(sourceId, title, modifications)` - Clone projects
+- `archiveProject(projectId)` / `restoreProject(projectId)` - Lifecycle management
+- `bulkUpdateProjects(projectIds, updates)` - Batch operations
+- `moveProjectToStage(projectId, stageId)` - Workflow transitions
+- `assignProject(projectId, userId)` - User assignment
+- `addTagsToProject(projectId, tags)` / `removeTagsFromProject(projectId, tags)` - Tag management
+
+**Features**:
+- Automatic user authentication and organization context
+- Uses `customer_organization_id` and `point_of_contacts` array
+- Comprehensive error handling and logging
+- Business logic layer above data services
+- Support for project duplication and bulk operations
+
 ### Updated Query Service
 **File**: `src/services/optimizedQueryService.ts`
 
 **Changes**:
-- Removed `customer_id` from field presets
-- Removed `contact_points:project_contact_points` joins
-- Updated to use `point_of_contacts` array
-- Simplified query patterns
+- Updated customer filtering from `customer_id` to `customer_organization_id`
+- Removed `contact_points:project_contact_points` joins from field presets
+- Updated to use `point_of_contacts` array in field selections
+- Simplified query patterns for better performance
+- Maintained API compatibility while using organization-based model
 
 ## Database Functions Reference
 

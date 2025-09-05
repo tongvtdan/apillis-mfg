@@ -11,7 +11,8 @@ export interface ProjectActionData {
     status?: ProjectStatus;
 
     // Customer Information
-    customer_id?: string;
+    customer_organization_id?: string;
+    point_of_contacts?: string[];
 
     // Project Details
     estimated_value?: number;

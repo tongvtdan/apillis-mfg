@@ -49,6 +49,7 @@
 - **TanStack Query (React Query)** - Server state management and caching
 - **React Context API** - Client-side state management
 - **Custom Hooks** - Reusable logic and state patterns
+- **Layered Service Architecture** - Business logic and data access separation
 
 ### Development Tools
 - **ESLint 8.0.0** - Code linting and quality enforcement
@@ -140,7 +141,7 @@ src/
 │   └── ...
 ├── pages/         # Page-level components
 ├── hooks/         # Custom React hooks
-├── services/      # API and external service integrations
+├── services/      # Layered service architecture (data & business logic)
 ├── contexts/      # React context providers
 ├── types/         # TypeScript type definitions
 ├── utils/         # Utility functions
@@ -150,6 +151,27 @@ src/
 └── test/         # Test files
 ```
 
+## Service Architecture
+
+The application uses a layered service architecture for clean separation of concerns:
+
+### Business Logic Layer
+- **ProjectActionServiceSimplified** - High-level project operations with authentication
+- **Comprehensive Operations** - Create, update, duplicate, archive, bulk operations
+- **Automatic Context** - User authentication and organization resolution
+- **Error Handling** - Consistent error management and logging
+
+### Data Access Layer
+- **ProjectServiceSimplified** - Core CRUD operations for projects
+- **ProjectContactService** - Specialized contact management with arrays
+- **Optimized Queries** - Efficient database operations with proper indexing
+
+### Key Benefits
+- **Simplified Contact Model** - Array-based storage instead of junction tables
+- **Organization-based Customers** - Stable relationships via customer organizations
+- **Performance Optimized** - Direct array operations and reduced JOINs
+- **Type Safety** - Full TypeScript integration across all layers
+
 ## Key Features
 
 ### Project Management
@@ -157,6 +179,8 @@ src/
 - **Real-time Updates** - Live synchronization across all users
 - **Document Management** - File upload, version control, and categorization
 - **Role-based Access** - Granular permissions for different user roles
+- **Simplified Contact Model** - Array-based contact management with primary contact logic
+- **Organization-based Customers** - Stable customer relationships via organizations
 
 ### Dashboard & Analytics
 - **Project Statistics** - Real-time project counts and progress

@@ -220,6 +220,37 @@ SELECT * FROM validate_contact_migration();
 
 ## Application Code Updates
 
+### New Service Layer Architecture
+
+#### ProjectActionServiceSimplified
+**File**: `src/services/projectActionServiceSimplified.ts`
+
+High-level action service that provides business logic for project operations:
+
+```typescript
+// Create project with simplified contact model
+const project = await ProjectActionServiceSimplified.createProject({
+  title: "New Manufacturing Project",
+  customer_organization_id: "org-uuid",
+  point_of_contacts: ["contact-1-uuid", "contact-2-uuid"], // Primary first
+  project_type: "manufacturing",
+  priority_level: "high"
+});
+
+// Duplicate project with modifications
+const duplicatedProject = await ProjectActionServiceSimplified.duplicateProject(
+  sourceProjectId,
+  "Copy of Original Project",
+  { priority_level: "medium" }
+);
+
+// Bulk operations
+await ProjectActionServiceSimplified.bulkUpdateProjects(
+  ["project-1", "project-2"],
+  { priority_level: "urgent" }
+);
+```
+
 ### TypeScript Interface Updates
 ```typescript
 // Updated Project interface
@@ -229,11 +260,22 @@ interface Project {
   point_of_contacts: string[]; // Array of contact UUIDs
   // Primary contact is point_of_contacts[0]
 }
+
+// ProjectActionData interface for service operations
+interface ProjectActionData {
+  title: string;
+  description?: string;
+  customer_organization_id?: string;
+  point_of_contacts?: string[];
+  project_type?: string;
+  priority_level?: string;
+  // ... other fields
+}
 ```
 
 ### Query Updates
 ```typescript
-// Before: Complex JOIN query
+// Before: Complex JOIN query with old customer model
 const { data } = await supabase
   .from('projects')
   .select(`
@@ -241,15 +283,27 @@ const { data } = await supabase
     contact_points:project_contact_points(
       contact:contacts(*)
     )
-  `);
+  `)
+  .eq('customer_id', customerId);
 
-// After: Simple array access
+// After: Simple array access with organization-based model
 const { data } = await supabase
   .from('projects')
   .select(`
     *,
-    contacts:point_of_contacts(*)
-  `);
+    point_of_contacts,
+    customer_organization:organizations!customer_organization_id(*)
+  `)
+  .eq('customer_organization_id', organizationId);
+```
+
+### Service Layer Updates
+```typescript
+// OptimizedQueryService updated for organization-based filtering
+// Customer filter now uses customer_organization_id instead of customer_id
+if (options.customerId) {
+    query = query.eq('customer_organization_id', options.customerId);
+}
 ```
 
 ### Contact Management
@@ -307,6 +361,8 @@ WHERE array_length(p.point_of_contacts, 1) > 0;
 ✅ **Helper Functions**: 5 PostgreSQL functions created for contact management  
 ✅ **Validation**: All validation checks passed  
 ✅ **Performance**: GIN index optimized for array queries  
+✅ **Query Services**: OptimizedQueryService updated for organization-based filtering  
+✅ **Application Code**: All services updated to use new data model  
 
 ## Next Steps
 

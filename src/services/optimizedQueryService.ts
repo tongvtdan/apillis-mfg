@@ -482,9 +482,9 @@ class OptimizedQueryService {
             query = query.eq('project_type', options.projectType);
         }
 
-        // Customer filter
+        // Customer organization filter
         if (options.customerId) {
-            query = query.eq('customer_id', options.customerId);
+            query = query.eq('customer_organization_id', options.customerId);
         }
 
         // Assigned user filter
