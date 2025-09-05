@@ -168,7 +168,7 @@ class ProjectService {
                         project_id,
                         title,
                         description,
-                        customer_id,
+                        customer_organization_id,
                     customer_organization_id,
                         current_stage_id,
                         status,
@@ -184,7 +184,7 @@ class ProjectService {
                         notes,
                         created_at,
                         updated_at,
-                        customer:contacts!customer_id(
+                        customer_organization:organizations!customer_organization_id(
                             id,
                             company_name,
                             contact_name,
@@ -224,7 +224,7 @@ class ProjectService {
                             project_id,
                             title,
                             description,
-                            customer_id,
+                            customer_organization_id,
                     customer_organization_id,
                             current_stage_id,
                             status,
@@ -240,7 +240,7 @@ class ProjectService {
                             notes,
                             created_at,
                             updated_at,
-                            customer:contacts!customer_id(
+                            customer_organization:organizations!customer_organization_id(
                                 id,
                                 company_name,
                                 contact_name,
@@ -317,7 +317,7 @@ class ProjectService {
                         project_id,
                         title,
                         description,
-                        customer_id,
+                        customer_organization_id,
                     customer_organization_id,
                         current_stage_id,
                         status,
@@ -333,7 +333,7 @@ class ProjectService {
                         notes,
                         created_at,
                         updated_at,
-                        customer:contacts!customer_id(
+                        customer_organization:organizations!customer_organization_id(
                             id,
                             company_name,
                             contact_name,
@@ -561,7 +561,7 @@ class ProjectService {
                     project_id,
                     title,
                     description,
-                    customer_id,
+                    customer_organization_id,
                     customer_organization_id,
                     current_stage_id,
                     status,
@@ -577,7 +577,7 @@ class ProjectService {
                     notes,
                     created_at,
                     updated_at,
-                    customer:contacts!customer_id(
+                    customer_organization:organizations!customer_organization_id(
                         id,
                         organization_id,
                         type,
@@ -715,7 +715,7 @@ class ProjectService {
                     project_id,
                     title,
                     description,
-                    customer_id,
+                    customer_organization_id,
                     customer_organization_id,
                     current_stage_id,
                     status,
@@ -731,7 +731,7 @@ class ProjectService {
                     notes,
                     created_at,
                     updated_at,
-                    customer:contacts!customer_id(
+                    customer_organization:organizations!customer_organization_id(
                         id,
                         organization_id,
                         type,
@@ -845,7 +845,7 @@ class ProjectService {
                     project_id,
                     title,
                     description,
-                    customer_id,
+                    customer_organization_id,
                     customer_organization_id,
                     current_stage_id,
                     status,
@@ -861,7 +861,7 @@ class ProjectService {
                     notes,
                     created_at,
                     updated_at,
-                    customer:contacts!customer_id(
+                    customer_organization:organizations!customer_organization_id(
                         id,
                         organization_id,
                         type,
@@ -931,7 +931,7 @@ class ProjectService {
                     project_id,
                     title,
                     description,
-                    customer_id,
+                    customer_organization_id,
                     customer_organization_id,
                     current_stage_id,
                     status,
@@ -947,7 +947,7 @@ class ProjectService {
                     notes,
                     created_at,
                     updated_at,
-                    customer:contacts!customer_id(
+                    customer_organization:organizations!customer_organization_id(
                         id,
                         organization_id,
                         type,

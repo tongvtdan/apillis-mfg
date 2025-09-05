@@ -30,9 +30,8 @@ const projectCreationSchema = z.object({
     priority_level: z.enum(['low', 'medium', 'high', 'critical']).default('medium'),
 
     // Customer Information
-    customer_type: z.enum(['existing_org', 'existing_contact', 'new']),
+    customer_type: z.enum(['existing_org', 'new']),
     existing_customer_organization_id: z.string().optional(),
-    existing_customer_id: z.string().optional(),
 
     // New customer fields (only required if customer_type is 'new')
     company_name: z.string().optional(),
@@ -54,10 +53,6 @@ const projectCreationSchema = z.object({
     // If customer_type is 'existing_org', existing_customer_organization_id is required
     if (data.customer_type === 'existing_org') {
         return !!data.existing_customer_organization_id;
-    }
-    // If customer_type is 'existing_contact', existing_customer_id is required
-    if (data.customer_type === 'existing_contact') {
-        return !!data.existing_customer_id;
     }
     // If customer_type is 'new', company_name and contact_name are required
     if (data.customer_type === 'new') {
@@ -184,7 +179,6 @@ export function EnhancedProjectCreationModal({
 
         setIsSubmitting(true);
         try {
-            let customerId = data.existing_customer_id;
             let customerOrganizationId = data.existing_customer_organization_id;
 
             // Create new customer if needed
@@ -216,7 +210,6 @@ export function EnhancedProjectCreationModal({
                 description: data.description || null,
                 project_type: data.project_type,
                 priority_level: data.priority_level,
-                customer_id: customerId,
                 customer_organization_id: customerOrganizationId,
                 estimated_value: data.estimated_value || null,
                 estimated_delivery_date: data.estimated_delivery_date || null,
@@ -235,7 +228,6 @@ export function EnhancedProjectCreationModal({
                 .insert(projectData)
                 .select(`
           *,
-          customer:contacts(*),
           customer_organization:organizations(*),
           current_stage:workflow_stages(*)
         `)
@@ -541,50 +533,6 @@ export function EnhancedProjectCreationModal({
                                 />
                             )}
 
-                            {customerType === 'existing_contact' && (
-                                <FormField
-                                    control={form.control}
-                                    name="existing_customer_id"
-                                    render={({ field }) => (
-                                        <FormItem>
-                                            <FormLabel>Select Customer Contact *</FormLabel>
-                                            <Select onValueChange={field.onChange} value={field.value}>
-                                                <FormControl>
-                                                    <SelectTrigger>
-                                                        <SelectValue placeholder="Choose an existing customer contact" />
-                                                    </SelectTrigger>
-                                                </FormControl>
-                                                <SelectContent>
-                                                    {loadingCustomers ? (
-                                                        <SelectItem value="loading" disabled>
-                                                            <div className="flex items-center gap-2">
-                                                                <Loader2 className="h-4 w-4 animate-spin" />
-                                                                Loading customers...
-                                                            </div>
-                                                        </SelectItem>
-                                                    ) : existingCustomers.length === 0 ? (
-                                                        <SelectItem value="none" disabled>
-                                                            No customers found
-                                                        </SelectItem>
-                                                    ) : (
-                                                        existingCustomers.map(customer => (
-                                                            <SelectItem key={customer.id} value={customer.id}>
-                                                                <div>
-                                                                    <div className="font-medium">{customer.company_name}</div>
-                                                                    <div className="text-xs text-muted-foreground">
-                                                                        {customer.contact_name} • {customer.email}
-                                                                    </div>
-                                                                </div>
-                                                            </SelectItem>
-                                                        ))
-                                                    )}
-                                                </SelectContent>
-                                            </Select>
-                                            <FormMessage />
-                                        </FormItem>
-                                    )}
-                                />
-                            )}
 
                             {customerType === 'new' && (
                                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">

@@ -716,7 +716,7 @@ export function useProjects() {
   const createProject = async (projectData: {
     title: string;
     description?: string;
-    customer_id?: string;
+    customer_organization_id?: string;
     priority?: ProjectPriority;
     estimated_value?: number;
     due_date?: string;
@@ -741,7 +741,7 @@ export function useProjects() {
           organization_id: organizationId,
           title: projectData.title,
           description: projectData.description,
-          customer_organization_id: projectData.customer_id,
+          customer_organization_id: projectData.customer_organization_id,
           priority_level: projectData.priority || 'medium',
           estimated_value: projectData.estimated_value,
           estimated_delivery_date: projectData.due_date,
