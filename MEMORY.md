@@ -2,6 +2,42 @@
 
 ## Recent Changes
 
+### 2025-01-27 - Reordered Form Sections: Customer Information Above Project Details ✅
+
+**Task Completed:**
+- Moved Customer Information section above Project Details section in InquiryIntakeForm.tsx
+- Improved user experience flow by having users identify themselves before describing their project
+- Enhanced customer selection workflow for internal users
+- Maintained all existing functionality including customer auto-fill and form validation
+
+**Implementation Details:**
+1. **Section Reordering**: 
+   - Customer Information section (lines 248-421) now appears first
+   - Project Details section (lines 423-638) follows after customer information
+   - File Attachments, Additional Notes, and Terms Agreement remain in original order
+2. **Functionality Preserved**: 
+   - Customer selection dropdown and auto-fill logic unchanged
+   - Form validation schema and submission logic intact
+   - All React Hook Form field management preserved
+3. **UX Benefits**: 
+   - Context-first approach: users identify themselves before project details
+   - Reduced cognitive load with simpler fields first
+   - Better mobile experience with shorter initial form height
+   - Enhanced customer selection workflow for internal users
+
+**Technical Changes:**
+- Simple JSX reordering with no breaking changes
+- Zero impact on form state management or validation
+- Customer selection and auto-fill functionality preserved
+- All form submission logic remains unchanged
+
+**Benefits Achieved:**
+- Improved user experience flow
+- Enhanced customer selection workflow
+- Better business process alignment (customer → project)
+- Reduced form abandonment risk
+- Zero technical complexity
+
 ### 2025-01-27 - Added Customer Selection Dropdown with Auto-Fill ✅
 
 **Task Completed:**
