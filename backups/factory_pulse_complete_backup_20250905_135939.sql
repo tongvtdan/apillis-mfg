@@ -1529,7 +1529,8 @@ CREATE TABLE IF NOT EXISTS "public"."contacts" (
     "ai_last_analyzed" timestamp with time zone,
     "created_at" timestamp with time zone DEFAULT "now"(),
     "updated_at" timestamp with time zone DEFAULT "now"(),
-    "created_by" "uuid"
+    "created_by" "uuid",
+    "client_organization_id" "uuid"
 );
 
 
@@ -1791,7 +1792,11 @@ CREATE TABLE IF NOT EXISTS "public"."projects" (
     "created_by" "uuid",
     "assigned_to" "uuid",
     "intake_type" "public"."intake_type",
-    "intake_source" character varying(50) DEFAULT 'portal'::character varying
+    "intake_source" character varying(50) DEFAULT 'portal'::character varying,
+    "volume" "jsonb",
+    "target_price_per_unit" numeric(15,2),
+    "project_reference" "text",
+    "desired_delivery_date" "date"
 );
 
 
@@ -1803,6 +1808,22 @@ COMMENT ON COLUMN "public"."projects"."intake_type" IS 'Classification of how th
 
 
 COMMENT ON COLUMN "public"."projects"."intake_source" IS 'Source of the project intake (portal, email, api, etc.)';
+
+
+
+COMMENT ON COLUMN "public"."projects"."volume" IS 'Multi-tier volume data with quantity, unit, and frequency (JSONB format)';
+
+
+
+COMMENT ON COLUMN "public"."projects"."target_price_per_unit" IS 'Target price per unit in USD';
+
+
+
+COMMENT ON COLUMN "public"."projects"."project_reference" IS 'External project reference (e.g., PO-2025-TECHNOVA-001)';
+
+
+
+COMMENT ON COLUMN "public"."projects"."desired_delivery_date" IS 'Customer desired delivery date (separate from estimated_delivery_date)';
 
 
 
@@ -2461,6 +2482,10 @@ CREATE INDEX "idx_projects_customer" ON "public"."projects" USING "btree" ("cust
 
 
 
+CREATE INDEX "idx_projects_desired_delivery_date" ON "public"."projects" USING "btree" ("desired_delivery_date");
+
+
+
 CREATE INDEX "idx_projects_intake_source" ON "public"."projects" USING "btree" ("intake_source");
 
 
@@ -2481,11 +2506,23 @@ CREATE INDEX "idx_projects_project_id" ON "public"."projects" USING "btree" ("pr
 
 
 
+CREATE INDEX "idx_projects_project_reference" ON "public"."projects" USING "btree" ("project_reference");
+
+
+
 CREATE INDEX "idx_projects_stage" ON "public"."projects" USING "btree" ("current_stage_id");
 
 
 
 CREATE INDEX "idx_projects_status" ON "public"."projects" USING "btree" ("status");
+
+
+
+CREATE INDEX "idx_projects_target_price" ON "public"."projects" USING "btree" ("target_price_per_unit");
+
+
+
+CREATE INDEX "idx_projects_volume" ON "public"."projects" USING "gin" ("volume");
 
 
 
@@ -2814,6 +2851,11 @@ ALTER TABLE ONLY "public"."approvals"
 
 ALTER TABLE ONLY "public"."approvals"
     ADD CONSTRAINT "approvals_requested_by_fkey" FOREIGN KEY ("requested_by") REFERENCES "public"."users"("id");
+
+
+
+ALTER TABLE ONLY "public"."contacts"
+    ADD CONSTRAINT "contacts_client_organization_id_fkey" FOREIGN KEY ("client_organization_id") REFERENCES "public"."organizations"("id");
 
 
 
