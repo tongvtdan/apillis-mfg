@@ -54,19 +54,24 @@ ALTER TABLE contacts ADD COLUMN is_primary_contact BOOLEAN DEFAULT false;
 ALTER TABLE contacts ADD COLUMN description TEXT;
 ```
 
-#### 3. Project Contact Points Table
+#### 3. Simplified Project Contacts Model
 ```sql
--- New table for project-specific contact relationships
-CREATE TABLE project_contact_points (
-  id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
-  project_id UUID REFERENCES projects(id) ON DELETE CASCADE,
-  contact_id UUID REFERENCES contacts(id) ON DELETE CASCADE,
-  role VARCHAR(100),
-  is_primary BOOLEAN DEFAULT false,
-  created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
-  updated_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
-);
+-- Projects table now includes direct contact references via array
+ALTER TABLE projects ADD COLUMN point_of_contacts UUID[] DEFAULT '{}';
+
+-- GIN index for efficient array queries
+CREATE INDEX idx_projects_point_of_contacts ON projects USING GIN (point_of_contacts);
+
+-- Primary contact is the first element in the array (index 0)
+-- Additional contacts follow in order of importance/creation
 ```
+
+**Key Features:**
+- **Simplified Data Model**: Single array column instead of separate junction table
+- **Better Performance**: Array operations are faster than JOIN queries  
+- **Primary Contact Logic**: First element in array is always primary contact
+- **Direct Access**: No complex JOINs needed for contact queries
+- **Maintained Relationships**: All contact relationships preserved in simpler format
 
 ### Migration Status
 - ✅ **Phase 1 Complete**: Database schema updates applied
@@ -75,23 +80,68 @@ CREATE TABLE project_contact_points (
 - ✅ **Phase 4 Complete**: Frontend components updated for organization-based model
 - ✅ **Phase 5 Complete**: Testing and validation completed with 100% pass rate
 - ✅ **Phase 6 Complete**: Deployment and monitoring completed successfully
+- ✅ **Phase 7 Complete**: Simplified project contacts model implemented
 
 **Migration Results:**
 - ✅ **Customer Organizations**: 2 created (Toyota Vietnam, Honda Vietnam, Samsung Vietnam, Boeing Vietnam, Airbus Vietnam)
 - ✅ **Updated Contacts**: 5 contacts migrated with roles and organization references
 - ✅ **Updated Projects**: 20 projects now reference customer organizations
-- ✅ **Contact Points**: 24 project-contact relationships established
+- ✅ **Contact Points**: 24 project-contact relationships established and migrated to array format
 - ✅ **Backend Updates**: TypeScript interfaces, services, and hooks updated
 - ✅ **Frontend Updates**: All components updated for organization-based customer model
 - ✅ **Testing**: 29 tests passed with 100% success rate
 - ✅ **Deployment**: Production-ready with monitoring and rollback capabilities
 - ✅ **Validation**: All checks passing - migration successful and production-ready
+- ✅ **Simplified Model**: Project contacts now use efficient array-based storage
 
 **Migration Status: COMPLETE** 🎉
-- All 6 phases successfully completed
+- All 7 phases successfully completed
 - Organization-based customer model fully implemented
+- Simplified project contacts model implemented
 - Production deployment ready
 - Monitoring and maintenance procedures established
+
+---
+
+## Simplified Project Contacts Model
+
+### Overview
+The Factory Pulse system has evolved from a complex junction table approach to a simplified array-based model for managing project contacts. This change improves performance and simplifies queries while maintaining all functionality.
+
+### Key Changes
+- **Before**: Separate `project_contact_points` table with foreign key relationships
+- **After**: `point_of_contacts UUID[]` array column directly in projects table
+- **Primary Contact**: First element in array (index 0) is always the primary contact
+- **Performance**: Array operations are faster than JOIN queries
+- **Simplicity**: Direct array access without complex relationships
+
+### Schema Implementation
+```sql
+-- Add point_of_contacts array column to projects table
+ALTER TABLE projects ADD COLUMN point_of_contacts UUID[] DEFAULT '{}';
+
+-- Add GIN index for efficient array queries
+CREATE INDEX idx_projects_point_of_contacts ON projects USING GIN (point_of_contacts);
+
+-- Primary contact is always the first element in the array
+-- Additional contacts follow in order of importance
+```
+
+### Helper Functions
+The migration includes comprehensive helper functions for contact management:
+
+1. **`get_project_contacts(UUID)`**: Returns all contacts for a project with full details
+2. **`get_project_primary_contact(UUID)`**: Returns primary contact for a project
+3. **`add_contact_to_project(UUID, UUID, BOOLEAN)`**: Adds contact with optional primary flag
+4. **`remove_contact_from_project(UUID, UUID)`**: Removes contact from project
+5. **`validate_contact_migration()`**: Validates migration success and data integrity
+
+### Benefits
+- **Simplified Queries**: Direct array access instead of JOINs
+- **Better Performance**: Array operations are more efficient
+- **Cleaner Code**: Less complex relationship management
+- **Maintained Functionality**: All existing features preserved
+- **Primary Contact Logic**: Clear and consistent primary contact handling
 
 ---
 

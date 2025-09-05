@@ -32,16 +32,8 @@ export interface Organization {
   updated_at: string;
 }
 
-export interface ProjectContactPoint {
-  id: string;
-  project_id: string;
-  contact_id: string;
-  role?: string;
-  is_primary: boolean;
-  created_at: string;
-  updated_at: string;
-  contact?: Contact;
-}
+// ProjectContactPoint interface removed - replaced with point_of_contacts array in Project
+// Primary contact is the first contact in the point_of_contacts array
 
 export interface Contact {
   // Core database fields - must match database schema exactly
@@ -150,8 +142,8 @@ export interface Project {
   project_id: string; // P-25082001 format
   title: string;
   description?: string;
-  customer_id?: string; // Keep for backward compatibility
-  customer_organization_id?: string; // New field for organization-based customer model
+  customer_organization_id: string; // Required - references organizations table
+  point_of_contacts: string[]; // Array of contact IDs, first is primary contact
   current_stage_id?: string;
   status: ProjectStatus;
   priority_level?: ProjectPriority;
@@ -173,9 +165,9 @@ export interface Project {
   actual_delivery_date?: string;
 
   // Computed/joined fields (not in database)
-  customer?: Contact; // Keep for backward compatibility
-  customer_organization?: Organization; // New field for organization-based customer model
-  contact_points?: ProjectContactPoint[]; // New field for project-specific contact points
+  customer_organization?: Organization; // Resolved from customer_organization_id
+  contacts?: Contact[]; // Resolved from point_of_contacts array
+  primary_contact?: Contact; // First contact in point_of_contacts array
   current_stage?: WorkflowStage;
   assignee?: any; // User interface to be defined
   creator?: any; // User interface to be defined

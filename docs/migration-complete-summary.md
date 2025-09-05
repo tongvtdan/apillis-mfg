@@ -24,7 +24,7 @@ The organization-based customer model migration has been **successfully complete
 ### ✅ Database Changes Applied
 - **New Column**: `customer_organization_id` in `projects` table
 - **New Columns**: `role`, `is_primary_contact`, `description` in `contacts` table
-- **New Table**: `project_contact_points` for project-specific contact relationships
+- **New Column**: `point_of_contacts UUID[]` array in `projects` table for simplified contact relationships
 - **Enhanced**: `organizations` table with address fields
 - **Indexes**: Optimized for performance
 - **RLS Policies**: Secure access control

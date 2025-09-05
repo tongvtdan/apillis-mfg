@@ -37,19 +37,12 @@ export const FIELD_PRESETS = {
     status,
     priority_level,
     current_stage_id,
-    customer_id,
     customer_organization_id,
+    point_of_contacts,
     assigned_to,
     estimated_value,
     created_at,
     updated_at,
-    customer:contacts!customer_id(
-      id,
-      company_name,
-      contact_name,
-      role,
-      is_primary_contact
-    ),
     customer_organization:organizations!customer_organization_id(
       id,
       name,
@@ -69,8 +62,8 @@ export const FIELD_PRESETS = {
     project_id,
     title,
     description,
-    customer_id,
     customer_organization_id,
+    point_of_contacts,
     current_stage_id,
     status,
     priority_level,
@@ -87,18 +80,6 @@ export const FIELD_PRESETS = {
     notes,
     created_at,
     updated_at,
-    customer:contacts!customer_id(
-      id,
-      company_name,
-      contact_name,
-      email,
-      phone,
-      type,
-      role,
-      is_primary_contact,
-      description,
-      is_active
-    ),
     customer_organization:organizations!customer_organization_id(
       id,
       name,
@@ -114,20 +95,6 @@ export const FIELD_PRESETS = {
       logo_url,
       is_active
     ),
-    contact_points:project_contact_points(
-      id,
-      contact_id,
-      role,
-      is_primary,
-      contact:contacts(
-        id,
-        contact_name,
-        email,
-        phone,
-        role,
-        is_primary_contact
-      )
-    ),
     current_stage:workflow_stages!current_stage_id(
       id,
       name,
@@ -141,12 +108,7 @@ export const FIELD_PRESETS = {
     // Full fields for comprehensive operations
     FULL: `
     *,
-    customer:contacts!customer_id(*),
     customer_organization:organizations!customer_organization_id(*),
-    contact_points:project_contact_points(
-      *,
-      contact:contacts(*)
-    ),
     current_stage:workflow_stages!current_stage_id(*),
     assigned_user:users!assigned_to(
       id,
