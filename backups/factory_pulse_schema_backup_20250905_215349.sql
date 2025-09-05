@@ -187,6 +187,54 @@ CREATE TYPE "public"."user_status" AS ENUM (
 ALTER TYPE "public"."user_status" OWNER TO "postgres";
 
 
+CREATE OR REPLACE FUNCTION "public"."add_contact_to_project"("project_uuid" "uuid", "contact_uuid" "uuid", "make_primary" boolean DEFAULT false) RETURNS boolean
+    LANGUAGE "plpgsql" SECURITY DEFINER
+    AS $$
+DECLARE
+    current_contacts UUID[];
+    new_contacts UUID[];
+BEGIN
+    -- Get current contacts
+    SELECT point_of_contacts INTO current_contacts
+    FROM projects 
+    WHERE id = project_uuid;
+    
+    -- Check if contact already exists
+    IF contact_uuid = ANY(current_contacts) THEN
+        -- If making primary and not already primary, move to front
+        IF make_primary AND current_contacts[1] != contact_uuid THEN
+            -- Remove from current position and add to front
+            new_contacts := ARRAY[contact_uuid] || array_remove(current_contacts, contact_uuid);
+            
+            UPDATE projects 
+            SET point_of_contacts = new_contacts
+            WHERE id = project_uuid;
+        END IF;
+        
+        RETURN true;
+    END IF;
+    
+    -- Add new contact
+    IF make_primary THEN
+        -- Add to front
+        new_contacts := ARRAY[contact_uuid] || current_contacts;
+    ELSE
+        -- Add to end
+        new_contacts := current_contacts || ARRAY[contact_uuid];
+    END IF;
+    
+    UPDATE projects 
+    SET point_of_contacts = new_contacts
+    WHERE id = project_uuid;
+    
+    RETURN true;
+END;
+$$;
+
+
+ALTER FUNCTION "public"."add_contact_to_project"("project_uuid" "uuid", "contact_uuid" "uuid", "make_primary" boolean) OWNER TO "postgres";
+
+
 CREATE OR REPLACE FUNCTION "public"."auto_expire_overdue_approvals"() RETURNS integer
     LANGUAGE "plpgsql" SECURITY DEFINER
     AS $$
@@ -870,6 +918,55 @@ $$;
 ALTER FUNCTION "public"."get_pending_approvals_for_user"("p_user_id" "uuid") OWNER TO "postgres";
 
 
+CREATE OR REPLACE FUNCTION "public"."get_project_contacts"("project_uuid" "uuid") RETURNS TABLE("contact_id" "uuid", "contact_name" character varying, "email" character varying, "phone" character varying, "role" character varying, "is_primary_contact" boolean, "is_project_primary" boolean, "company_name" character varying)
+    LANGUAGE "plpgsql" SECURITY DEFINER
+    AS $$
+BEGIN
+    RETURN QUERY
+    SELECT 
+        c.id as contact_id,
+        c.contact_name,
+        c.email,
+        c.phone,
+        c.role,
+        c.is_primary_contact,
+        (c.id = p.point_of_contacts[1]) as is_project_primary,
+        c.company_name
+    FROM projects p
+    CROSS JOIN UNNEST(p.point_of_contacts) WITH ORDINALITY AS contact_ids(contact_id, position)
+    JOIN contacts c ON c.id = contact_ids.contact_id
+    WHERE p.id = project_uuid
+    ORDER BY contact_ids.position;
+END;
+$$;
+
+
+ALTER FUNCTION "public"."get_project_contacts"("project_uuid" "uuid") OWNER TO "postgres";
+
+
+CREATE OR REPLACE FUNCTION "public"."get_project_primary_contact"("project_uuid" "uuid") RETURNS TABLE("contact_id" "uuid", "contact_name" character varying, "email" character varying, "phone" character varying, "role" character varying, "company_name" character varying)
+    LANGUAGE "plpgsql" SECURITY DEFINER
+    AS $$
+BEGIN
+    RETURN QUERY
+    SELECT 
+        c.id as contact_id,
+        c.contact_name,
+        c.email,
+        c.phone,
+        c.role,
+        c.company_name
+    FROM projects p
+    JOIN contacts c ON c.id = p.point_of_contacts[1]
+    WHERE p.id = project_uuid
+    AND array_length(p.point_of_contacts, 1) > 0;
+END;
+$$;
+
+
+ALTER FUNCTION "public"."get_project_primary_contact"("project_uuid" "uuid") OWNER TO "postgres";
+
+
 CREATE OR REPLACE FUNCTION "public"."get_user_organization"() RETURNS "uuid"
     LANGUAGE "plpgsql" SECURITY DEFINER
     AS $$
@@ -1062,6 +1159,22 @@ ALTER FUNCTION "public"."log_activity"() OWNER TO "postgres";
 
 COMMENT ON FUNCTION "public"."log_activity"() IS 'Enhanced activity logging function that automatically populates project_id for better analytics. Handles edge cases with better error logging.';
 
+
+
+CREATE OR REPLACE FUNCTION "public"."remove_contact_from_project"("project_uuid" "uuid", "contact_uuid" "uuid") RETURNS boolean
+    LANGUAGE "plpgsql" SECURITY DEFINER
+    AS $$
+BEGIN
+    UPDATE projects 
+    SET point_of_contacts = array_remove(point_of_contacts, contact_uuid)
+    WHERE id = project_uuid;
+    
+    RETURN true;
+END;
+$$;
+
+
+ALTER FUNCTION "public"."remove_contact_from_project"("project_uuid" "uuid", "contact_uuid" "uuid") OWNER TO "postgres";
 
 
 CREATE OR REPLACE FUNCTION "public"."set_approval_expires_at"() RETURNS "trigger"
@@ -1261,6 +1374,166 @@ $$;
 
 
 ALTER FUNCTION "public"."update_workflow_stage_sub_stages_count"() OWNER TO "postgres";
+
+
+CREATE OR REPLACE FUNCTION "public"."validate_contact_migration"() RETURNS TABLE("validation_type" character varying, "count_value" integer, "status" character varying)
+    LANGUAGE "plpgsql" SECURITY DEFINER
+    AS $$
+BEGIN
+    -- Check projects with contact points but empty array
+    RETURN QUERY
+    SELECT 
+        'projects_missing_contacts'::VARCHAR(50) as validation_type,
+        COUNT(*)::INTEGER as count_value,
+        CASE 
+            WHEN COUNT(*) = 0 THEN 'PASS'::VARCHAR(20)
+            ELSE 'FAIL'::VARCHAR(20)
+        END as status
+    FROM projects p
+    WHERE EXISTS (
+        SELECT 1 FROM project_contact_points pcp 
+        WHERE pcp.project_id = p.id
+    )
+    AND (p.point_of_contacts IS NULL OR array_length(p.point_of_contacts, 1) IS NULL);
+    
+    -- Check for invalid contact IDs in arrays
+    RETURN QUERY
+    SELECT 
+        'invalid_contact_ids'::VARCHAR(50) as validation_type,
+        COUNT(*)::INTEGER as count_value,
+        CASE 
+            WHEN COUNT(*) = 0 THEN 'PASS'::VARCHAR(20)
+            ELSE 'FAIL'::VARCHAR(20)
+        END as status
+    FROM (
+        SELECT UNNEST(p.point_of_contacts) as contact_id
+        FROM projects p
+        WHERE p.point_of_contacts IS NOT NULL
+    ) contact_ids
+    LEFT JOIN contacts c ON contact_ids.contact_id = c.id
+    WHERE c.id IS NULL;
+    
+    -- Check primary contact consistency
+    RETURN QUERY
+    SELECT 
+        'primary_contact_consistency'::VARCHAR(50) as validation_type,
+        COUNT(*)::INTEGER as count_value,
+        CASE 
+            WHEN COUNT(*) = 0 THEN 'PASS'::VARCHAR(20)
+            ELSE 'WARNING'::VARCHAR(20)
+        END as status
+    FROM projects p
+    WHERE array_length(p.point_of_contacts, 1) > 0
+    AND NOT EXISTS (
+        SELECT 1 FROM project_contact_points pcp
+        WHERE pcp.project_id = p.id 
+        AND pcp.contact_id = p.point_of_contacts[1]
+        AND pcp.is_primary = true
+    );
+END;
+$$;
+
+
+ALTER FUNCTION "public"."validate_contact_migration"() OWNER TO "postgres";
+
+
+CREATE OR REPLACE FUNCTION "public"."validate_customer_organization_migration"() RETURNS TABLE("validation_type" character varying, "count_value" integer, "status" character varying)
+    LANGUAGE "plpgsql" SECURITY DEFINER
+    AS $$
+BEGIN
+    -- Check for projects with customer_id but no customer_organization_id
+    RETURN QUERY
+    SELECT 
+        'projects_without_org'::VARCHAR(50) as validation_type,
+        COUNT(*)::INTEGER as count_value,
+        CASE 
+            WHEN COUNT(*) = 0 THEN 'PASS'::VARCHAR(20)
+            ELSE 'FAIL'::VARCHAR(20)
+        END as status
+    FROM projects 
+    WHERE customer_id IS NOT NULL AND customer_organization_id IS NULL;
+    
+    -- Check for orphaned project_contact_points
+    RETURN QUERY
+    SELECT 
+        'orphaned_contact_points'::VARCHAR(50) as validation_type,
+        COUNT(*)::INTEGER as count_value,
+        CASE 
+            WHEN COUNT(*) = 0 THEN 'PASS'::VARCHAR(20)
+            ELSE 'FAIL'::VARCHAR(20)
+        END as status
+    FROM project_contact_points pcp
+    LEFT JOIN projects p ON pcp.project_id = p.id
+    WHERE p.id IS NULL;
+    
+    -- Check for contacts without organization_id
+    RETURN QUERY
+    SELECT 
+        'contacts_without_org'::VARCHAR(50) as validation_type,
+        COUNT(*)::INTEGER as count_value,
+        CASE 
+            WHEN COUNT(*) = 0 THEN 'PASS'::VARCHAR(20)
+            ELSE 'FAIL'::VARCHAR(20)
+        END as status
+    FROM contacts 
+    WHERE type = 'customer' AND organization_id IS NULL;
+END;
+$$;
+
+
+ALTER FUNCTION "public"."validate_customer_organization_migration"() OWNER TO "postgres";
+
+
+CREATE OR REPLACE FUNCTION "public"."validate_migration_before_cleanup"() RETURNS TABLE("validation_type" character varying, "count_value" integer, "status" character varying, "details" "text")
+    LANGUAGE "plpgsql" SECURITY DEFINER
+    AS $$
+BEGIN
+    -- Check all projects have been migrated
+    RETURN QUERY
+    SELECT 
+        'projects_with_contacts'::VARCHAR(50) as validation_type,
+        COUNT(*)::INTEGER as count_value,
+        CASE 
+            WHEN COUNT(*) > 0 THEN 'PASS'::VARCHAR(20)
+            ELSE 'FAIL'::VARCHAR(20)
+        END as status,
+        'Projects with migrated contact arrays'::TEXT as details
+    FROM projects 
+    WHERE point_of_contacts IS NOT NULL AND array_length(point_of_contacts, 1) > 0;
+    
+    -- Check for projects that still rely on customer_id
+    RETURN QUERY
+    SELECT 
+        'projects_using_customer_id'::VARCHAR(50) as validation_type,
+        COUNT(*)::INTEGER as count_value,
+        CASE 
+            WHEN COUNT(*) = 0 THEN 'PASS'::VARCHAR(20)
+            ELSE 'WARNING'::VARCHAR(20)
+        END as status,
+        'Projects still using old customer_id field'::TEXT as details
+    FROM projects 
+    WHERE customer_id IS NOT NULL 
+    AND (point_of_contacts IS NULL OR array_length(point_of_contacts, 1) IS NULL);
+    
+    -- Check data consistency between old and new models
+    RETURN QUERY
+    SELECT 
+        'data_consistency_check'::VARCHAR(50) as validation_type,
+        COUNT(*)::INTEGER as count_value,
+        CASE 
+            WHEN COUNT(*) = 0 THEN 'PASS'::VARCHAR(20)
+            ELSE 'WARNING'::VARCHAR(20)
+        END as status,
+        'Projects where old customer_id is not in new contact array'::TEXT as details
+    FROM projects p
+    WHERE p.customer_id IS NOT NULL 
+    AND p.point_of_contacts IS NOT NULL
+    AND NOT (p.customer_id = ANY(p.point_of_contacts));
+END;
+$$;
+
+
+ALTER FUNCTION "public"."validate_migration_before_cleanup"() OWNER TO "postgres";
 
 SET default_tablespace = '';
 
@@ -1530,11 +1803,26 @@ CREATE TABLE IF NOT EXISTS "public"."contacts" (
     "created_at" timestamp with time zone DEFAULT "now"(),
     "updated_at" timestamp with time zone DEFAULT "now"(),
     "created_by" "uuid",
-    "client_organization_id" "uuid"
+    "client_organization_id" "uuid",
+    "role" character varying(100),
+    "is_primary_contact" boolean DEFAULT false,
+    "description" "text"
 );
 
 
 ALTER TABLE "public"."contacts" OWNER TO "postgres";
+
+
+COMMENT ON COLUMN "public"."contacts"."role" IS 'Role of the contact person (purchasing, engineering, quality, etc.)';
+
+
+
+COMMENT ON COLUMN "public"."contacts"."is_primary_contact" IS 'Indicates if this is the primary contact for the organization';
+
+
+
+COMMENT ON COLUMN "public"."contacts"."description" IS 'Additional context or description for the contact';
+
 
 
 CREATE TABLE IF NOT EXISTS "public"."document_access_log" (
@@ -1725,7 +2013,13 @@ CREATE TABLE IF NOT EXISTS "public"."organizations" (
     "subscription_plan" "public"."subscription_plan" DEFAULT 'starter'::"public"."subscription_plan",
     "is_active" boolean DEFAULT true,
     "created_at" timestamp with time zone DEFAULT "now"(),
-    "updated_at" timestamp with time zone DEFAULT "now"()
+    "updated_at" timestamp with time zone DEFAULT "now"(),
+    "address" "text",
+    "city" character varying(100),
+    "state" character varying(100),
+    "country" character varying(100),
+    "postal_code" character varying(20),
+    "website" character varying(255)
 );
 
 
@@ -1746,25 +2040,23 @@ CREATE TABLE IF NOT EXISTS "public"."project_assignments" (
 ALTER TABLE "public"."project_assignments" OWNER TO "postgres";
 
 
-CREATE TABLE IF NOT EXISTS "public"."project_sub_stage_progress" (
-    "id" "uuid" DEFAULT "extensions"."uuid_generate_v4"() NOT NULL,
-    "organization_id" "uuid" NOT NULL,
-    "project_id" "uuid" NOT NULL,
-    "workflow_stage_id" "uuid" NOT NULL,
-    "sub_stage_id" "uuid" NOT NULL,
-    "status" character varying(50) DEFAULT 'pending'::character varying,
-    "started_at" timestamp with time zone,
-    "completed_at" timestamp with time zone,
-    "assigned_to" "uuid",
-    "notes" "text",
-    "metadata" "jsonb" DEFAULT '{}'::"jsonb",
-    "created_at" timestamp with time zone DEFAULT "now"(),
-    "updated_at" timestamp with time zone DEFAULT "now"(),
-    CONSTRAINT "project_sub_stage_progress_status_check" CHECK ((("status")::"text" = ANY (ARRAY[('pending'::character varying)::"text", ('in_progress'::character varying)::"text", ('completed'::character varying)::"text", ('skipped'::character varying)::"text", ('blocked'::character varying)::"text"])))
+CREATE TABLE IF NOT EXISTS "public"."project_contact_points_backup" (
+    "id" "uuid",
+    "project_id" "uuid",
+    "contact_id" "uuid",
+    "role" character varying(100),
+    "is_primary" boolean,
+    "created_at" timestamp with time zone,
+    "updated_at" timestamp with time zone,
+    "backup_created_at" timestamp with time zone
 );
 
 
-ALTER TABLE "public"."project_sub_stage_progress" OWNER TO "postgres";
+ALTER TABLE "public"."project_contact_points_backup" OWNER TO "postgres";
+
+
+COMMENT ON TABLE "public"."project_contact_points_backup" IS 'Backup of project_contact_points before migration cleanup. Can be dropped after verification.';
+
 
 
 CREATE TABLE IF NOT EXISTS "public"."projects" (
@@ -1773,7 +2065,6 @@ CREATE TABLE IF NOT EXISTS "public"."projects" (
     "project_id" character varying(50) NOT NULL,
     "title" character varying(255) NOT NULL,
     "description" "text",
-    "customer_id" "uuid",
     "current_stage_id" "uuid",
     "status" "public"."project_status" DEFAULT 'active'::"public"."project_status",
     "priority_score" integer DEFAULT 50,
@@ -1796,7 +2087,9 @@ CREATE TABLE IF NOT EXISTS "public"."projects" (
     "volume" "jsonb",
     "target_price_per_unit" numeric(15,2),
     "project_reference" "text",
-    "desired_delivery_date" "date"
+    "desired_delivery_date" "date",
+    "customer_organization_id" "uuid",
+    "point_of_contacts" "uuid"[] DEFAULT '{}'::"uuid"[]
 );
 
 
@@ -1825,6 +2118,102 @@ COMMENT ON COLUMN "public"."projects"."project_reference" IS 'External project r
 
 COMMENT ON COLUMN "public"."projects"."desired_delivery_date" IS 'Customer desired delivery date (separate from estimated_delivery_date)';
 
+
+
+COMMENT ON COLUMN "public"."projects"."customer_organization_id" IS 'References the customer organization for this project. Replaces direct customer contact relationship.';
+
+
+
+COMMENT ON COLUMN "public"."projects"."point_of_contacts" IS 'Array of contact IDs for this project. First contact is primary contact.';
+
+
+
+CREATE OR REPLACE VIEW "public"."project_details_view" AS
+ SELECT "p"."id",
+    "p"."organization_id",
+    "p"."project_id",
+    "p"."title",
+    "p"."description",
+    "p"."current_stage_id",
+    "p"."status",
+    "p"."priority_score",
+    "p"."priority_level",
+    "p"."estimated_value",
+    "p"."estimated_delivery_date",
+    "p"."actual_delivery_date",
+    "p"."source",
+    "p"."tags",
+    "p"."metadata",
+    "p"."stage_entered_at",
+    "p"."project_type",
+    "p"."notes",
+    "p"."created_at",
+    "p"."updated_at",
+    "p"."created_by",
+    "p"."assigned_to",
+    "p"."intake_type",
+    "p"."intake_source",
+    "p"."volume",
+    "p"."target_price_per_unit",
+    "p"."project_reference",
+    "p"."desired_delivery_date",
+    "p"."customer_organization_id",
+    "p"."point_of_contacts",
+    "o"."name" AS "customer_organization_name",
+    "o"."slug" AS "customer_organization_slug",
+    "o"."address" AS "customer_address",
+    "o"."city" AS "customer_city",
+    "o"."country" AS "customer_country",
+    "o"."website" AS "customer_website",
+        CASE
+            WHEN ("array_length"("p"."point_of_contacts", 1) > 0) THEN ( SELECT "c"."contact_name"
+               FROM "public"."contacts" "c"
+              WHERE ("c"."id" = "p"."point_of_contacts"[1]))
+            ELSE NULL::character varying
+        END AS "primary_contact_name",
+        CASE
+            WHEN ("array_length"("p"."point_of_contacts", 1) > 0) THEN ( SELECT "c"."email"
+               FROM "public"."contacts" "c"
+              WHERE ("c"."id" = "p"."point_of_contacts"[1]))
+            ELSE NULL::character varying
+        END AS "primary_contact_email",
+        CASE
+            WHEN ("array_length"("p"."point_of_contacts", 1) > 0) THEN ( SELECT "c"."phone"
+               FROM "public"."contacts" "c"
+              WHERE ("c"."id" = "p"."point_of_contacts"[1]))
+            ELSE NULL::character varying
+        END AS "primary_contact_phone",
+    COALESCE("array_length"("p"."point_of_contacts", 1), 0) AS "contact_count"
+   FROM ("public"."projects" "p"
+     LEFT JOIN "public"."organizations" "o" ON (("p"."customer_organization_id" = "o"."id")));
+
+
+ALTER VIEW "public"."project_details_view" OWNER TO "postgres";
+
+
+COMMENT ON VIEW "public"."project_details_view" IS 'Optimized view for project details with customer organization and primary contact info';
+
+
+
+CREATE TABLE IF NOT EXISTS "public"."project_sub_stage_progress" (
+    "id" "uuid" DEFAULT "extensions"."uuid_generate_v4"() NOT NULL,
+    "organization_id" "uuid" NOT NULL,
+    "project_id" "uuid" NOT NULL,
+    "workflow_stage_id" "uuid" NOT NULL,
+    "sub_stage_id" "uuid" NOT NULL,
+    "status" character varying(50) DEFAULT 'pending'::character varying,
+    "started_at" timestamp with time zone,
+    "completed_at" timestamp with time zone,
+    "assigned_to" "uuid",
+    "notes" "text",
+    "metadata" "jsonb" DEFAULT '{}'::"jsonb",
+    "created_at" timestamp with time zone DEFAULT "now"(),
+    "updated_at" timestamp with time zone DEFAULT "now"(),
+    CONSTRAINT "project_sub_stage_progress_status_check" CHECK ((("status")::"text" = ANY (ARRAY[('pending'::character varying)::"text", ('in_progress'::character varying)::"text", ('completed'::character varying)::"text", ('skipped'::character varying)::"text", ('blocked'::character varying)::"text"])))
+);
+
+
+ALTER TABLE "public"."project_sub_stage_progress" OWNER TO "postgres";
 
 
 CREATE TABLE IF NOT EXISTS "public"."reviews" (
@@ -2334,7 +2723,15 @@ CREATE INDEX "idx_contacts_company" ON "public"."contacts" USING "btree" ("compa
 
 
 
+CREATE INDEX "idx_contacts_is_primary_contact" ON "public"."contacts" USING "btree" ("is_primary_contact");
+
+
+
 CREATE INDEX "idx_contacts_org_id" ON "public"."contacts" USING "btree" ("organization_id");
+
+
+
+CREATE INDEX "idx_contacts_role" ON "public"."contacts" USING "btree" ("role");
 
 
 
@@ -2430,6 +2827,14 @@ CREATE INDEX "idx_notifications_user_id" ON "public"."notifications" USING "btre
 
 
 
+CREATE INDEX "idx_organizations_city" ON "public"."organizations" USING "btree" ("city");
+
+
+
+CREATE INDEX "idx_organizations_country" ON "public"."organizations" USING "btree" ("country");
+
+
+
 CREATE INDEX "idx_organizations_domain" ON "public"."organizations" USING "btree" ("domain");
 
 
@@ -2478,7 +2883,7 @@ CREATE INDEX "idx_projects_created_by" ON "public"."projects" USING "btree" ("cr
 
 
 
-CREATE INDEX "idx_projects_customer" ON "public"."projects" USING "btree" ("customer_id");
+CREATE INDEX "idx_projects_customer_organization_id" ON "public"."projects" USING "btree" ("customer_organization_id");
 
 
 
@@ -2495,6 +2900,10 @@ CREATE INDEX "idx_projects_intake_type" ON "public"."projects" USING "btree" ("i
 
 
 CREATE INDEX "idx_projects_org_id" ON "public"."projects" USING "btree" ("organization_id");
+
+
+
+CREATE INDEX "idx_projects_point_of_contacts" ON "public"."projects" USING "gin" ("point_of_contacts");
 
 
 
@@ -3005,7 +3414,7 @@ ALTER TABLE ONLY "public"."projects"
 
 
 ALTER TABLE ONLY "public"."projects"
-    ADD CONSTRAINT "projects_customer_id_fkey" FOREIGN KEY ("customer_id") REFERENCES "public"."contacts"("id");
+    ADD CONSTRAINT "projects_customer_organization_id_fkey" FOREIGN KEY ("customer_organization_id") REFERENCES "public"."organizations"("id");
 
 
 
@@ -3817,6 +4226,12 @@ GRANT USAGE ON SCHEMA "public" TO "service_role";
 
 
 
+GRANT ALL ON FUNCTION "public"."add_contact_to_project"("project_uuid" "uuid", "contact_uuid" "uuid", "make_primary" boolean) TO "anon";
+GRANT ALL ON FUNCTION "public"."add_contact_to_project"("project_uuid" "uuid", "contact_uuid" "uuid", "make_primary" boolean) TO "authenticated";
+GRANT ALL ON FUNCTION "public"."add_contact_to_project"("project_uuid" "uuid", "contact_uuid" "uuid", "make_primary" boolean) TO "service_role";
+
+
+
 GRANT ALL ON FUNCTION "public"."auto_expire_overdue_approvals"() TO "anon";
 GRANT ALL ON FUNCTION "public"."auto_expire_overdue_approvals"() TO "authenticated";
 GRANT ALL ON FUNCTION "public"."auto_expire_overdue_approvals"() TO "service_role";
@@ -3901,6 +4316,18 @@ GRANT ALL ON FUNCTION "public"."get_pending_approvals_for_user"("p_user_id" "uui
 
 
 
+GRANT ALL ON FUNCTION "public"."get_project_contacts"("project_uuid" "uuid") TO "anon";
+GRANT ALL ON FUNCTION "public"."get_project_contacts"("project_uuid" "uuid") TO "authenticated";
+GRANT ALL ON FUNCTION "public"."get_project_contacts"("project_uuid" "uuid") TO "service_role";
+
+
+
+GRANT ALL ON FUNCTION "public"."get_project_primary_contact"("project_uuid" "uuid") TO "anon";
+GRANT ALL ON FUNCTION "public"."get_project_primary_contact"("project_uuid" "uuid") TO "authenticated";
+GRANT ALL ON FUNCTION "public"."get_project_primary_contact"("project_uuid" "uuid") TO "service_role";
+
+
+
 GRANT ALL ON FUNCTION "public"."get_user_organization"() TO "anon";
 GRANT ALL ON FUNCTION "public"."get_user_organization"() TO "authenticated";
 GRANT ALL ON FUNCTION "public"."get_user_organization"() TO "service_role";
@@ -3934,6 +4361,12 @@ GRANT ALL ON FUNCTION "public"."is_portal_user"() TO "service_role";
 GRANT ALL ON FUNCTION "public"."log_activity"() TO "anon";
 GRANT ALL ON FUNCTION "public"."log_activity"() TO "authenticated";
 GRANT ALL ON FUNCTION "public"."log_activity"() TO "service_role";
+
+
+
+GRANT ALL ON FUNCTION "public"."remove_contact_from_project"("project_uuid" "uuid", "contact_uuid" "uuid") TO "anon";
+GRANT ALL ON FUNCTION "public"."remove_contact_from_project"("project_uuid" "uuid", "contact_uuid" "uuid") TO "authenticated";
+GRANT ALL ON FUNCTION "public"."remove_contact_from_project"("project_uuid" "uuid", "contact_uuid" "uuid") TO "service_role";
 
 
 
@@ -3982,6 +4415,24 @@ GRANT ALL ON FUNCTION "public"."update_updated_at_column"() TO "service_role";
 GRANT ALL ON FUNCTION "public"."update_workflow_stage_sub_stages_count"() TO "anon";
 GRANT ALL ON FUNCTION "public"."update_workflow_stage_sub_stages_count"() TO "authenticated";
 GRANT ALL ON FUNCTION "public"."update_workflow_stage_sub_stages_count"() TO "service_role";
+
+
+
+GRANT ALL ON FUNCTION "public"."validate_contact_migration"() TO "anon";
+GRANT ALL ON FUNCTION "public"."validate_contact_migration"() TO "authenticated";
+GRANT ALL ON FUNCTION "public"."validate_contact_migration"() TO "service_role";
+
+
+
+GRANT ALL ON FUNCTION "public"."validate_customer_organization_migration"() TO "anon";
+GRANT ALL ON FUNCTION "public"."validate_customer_organization_migration"() TO "authenticated";
+GRANT ALL ON FUNCTION "public"."validate_customer_organization_migration"() TO "service_role";
+
+
+
+GRANT ALL ON FUNCTION "public"."validate_migration_before_cleanup"() TO "anon";
+GRANT ALL ON FUNCTION "public"."validate_migration_before_cleanup"() TO "authenticated";
+GRANT ALL ON FUNCTION "public"."validate_migration_before_cleanup"() TO "service_role";
 
 
 
@@ -4096,15 +4547,27 @@ GRANT ALL ON TABLE "public"."project_assignments" TO "service_role";
 
 
 
-GRANT ALL ON TABLE "public"."project_sub_stage_progress" TO "anon";
-GRANT ALL ON TABLE "public"."project_sub_stage_progress" TO "authenticated";
-GRANT ALL ON TABLE "public"."project_sub_stage_progress" TO "service_role";
+GRANT ALL ON TABLE "public"."project_contact_points_backup" TO "anon";
+GRANT ALL ON TABLE "public"."project_contact_points_backup" TO "authenticated";
+GRANT ALL ON TABLE "public"."project_contact_points_backup" TO "service_role";
 
 
 
 GRANT ALL ON TABLE "public"."projects" TO "anon";
 GRANT ALL ON TABLE "public"."projects" TO "authenticated";
 GRANT ALL ON TABLE "public"."projects" TO "service_role";
+
+
+
+GRANT ALL ON TABLE "public"."project_details_view" TO "anon";
+GRANT ALL ON TABLE "public"."project_details_view" TO "authenticated";
+GRANT ALL ON TABLE "public"."project_details_view" TO "service_role";
+
+
+
+GRANT ALL ON TABLE "public"."project_sub_stage_progress" TO "anon";
+GRANT ALL ON TABLE "public"."project_sub_stage_progress" TO "authenticated";
+GRANT ALL ON TABLE "public"."project_sub_stage_progress" TO "service_role";
 
 
 

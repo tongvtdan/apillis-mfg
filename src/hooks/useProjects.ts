@@ -81,7 +81,6 @@ export function useProjects() {
           project_id,
           title,
           description,
-          customer_id,
           customer_organization_id,
           current_stage_id,
           status,
@@ -99,20 +98,6 @@ export function useProjects() {
           notes,
           created_at,
           updated_at,
-          customer:contacts!customer_id(
-            id,
-            company_name,
-            contact_name,
-            email,
-            phone,
-            type,
-            role,
-            is_primary_contact,
-            description,
-            is_active,
-            created_at,
-            updated_at
-          ),
           customer_organization:organizations!customer_organization_id(
             id,
             name,
@@ -402,7 +387,7 @@ export function useProjects() {
         .from('projects')
         .select(`
           *,
-          customer:contacts(*),
+          customer_organization:organizations(*),
           current_stage:workflow_stages(*)
         `)
         .eq('organization_id', profile.organization_id); // Add organization filter
@@ -422,7 +407,7 @@ export function useProjects() {
         .from('projects')
         .select(`
           *,
-          customer:contacts(*),
+          customer_organization:organizations(*),
           current_stage:workflow_stages(*)
         `)
         .eq('id', id)
@@ -745,7 +730,7 @@ export function useProjects() {
           organization_id: profile.organization_id,
           title: projectData.title,
           description: projectData.description,
-          customer_id: projectData.customer_id,
+          customer_organization_id: projectData.customer_id,
           priority_level: projectData.priority || 'medium',
           estimated_value: projectData.estimated_value,
           estimated_delivery_date: projectData.due_date,
@@ -764,7 +749,7 @@ export function useProjects() {
         })
         .select(`
           *,
-          customer:contacts(*),
+          customer_organization:organizations(*),
           current_stage:workflow_stages(*)
         `)
         .single();
