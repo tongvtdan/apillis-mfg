@@ -2,29 +2,34 @@
 
 ## Recent Changes
 
-### 2025-01-27 - Enhanced Placeholder Text Styling ✅
+### 2025-01-27 - Updated Country Dropdown with Vietnam and Reordered Countries ✅
 
 **Task Completed:**
-- Updated placeholder text styling across all input components to be more grayed out
-- Applied 20% opacity reduction to make placeholders visually distinct from actual input values
-- Enhanced user experience by clearly indicating placeholder text vs. user input
-- Maintained accessibility and readability in both light and dark modes
+- Added Vietnam to the country dropdown in customer information section
+- Reordered countries with United States first, then Vietnam, then Japan
+- Enhanced form accessibility for Vietnamese customers
+- Maintained all existing country options and functionality
 
 **Implementation Details:**
-1. **Input Component**: Updated placeholder styling with gray colors and opacity
-2. **Textarea Component**: Applied same grayed-out styling for consistency
-3. **CommandInput Component**: Updated command search input placeholder styling
-4. **Color Scheme**:
-   - Light mode: `text-gray-400` with `opacity-60` (40% opacity)
-   - Dark mode: `text-gray-500` with `opacity-50` (50% opacity)
-5. **Visual Distinction**: Placeholders now appear significantly more muted than actual input text
+1. **New Country Added**: Added Vietnam with country code "VN"
+2. **Country Reordering**: 
+   - United States (US) - First position
+   - Vietnam (VN) - Second position  
+   - Japan (JP) - Third position
+   - Other countries follow in original order
+3. **Consistent Design**: Follows same pattern as existing country options
+4. **Form Validation**: Maintains existing country validation requirements
+5. **User Experience**: Improved accessibility for Vietnamese customers
 
 **Technical Changes:**
-- Updated `Input` component in `src/components/ui/input.tsx`
-- Updated `Textarea` component in `src/components/ui/textarea.tsx`
-- Updated `CommandInput` component in `src/components/ui/command.tsx`
-- Replaced `placeholder:text-muted-foreground` with explicit gray colors and opacity
-- Ensured consistent styling across all form input components
+- Updated country SelectContent in `InquiryIntakeForm.tsx`
+- Added `<SelectItem value="VN">Vietnam</SelectItem>` in second position
+- Reordered existing countries to prioritize US -> Vietnam -> Japan
+- Maintained all existing country codes and display names
+
+### 2025-01-27 - Added One Time Order Frequency Option ✅
+
+### 2025-01-27 - Enhanced Placeholder Text Styling ✅
 
 ### 2025-01-27 - Fixed Form Validation Message Color Issue ✅
 

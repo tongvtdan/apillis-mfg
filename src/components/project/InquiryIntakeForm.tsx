@@ -21,7 +21,7 @@ import { IntakeMappingService } from '@/services/intakeMappingService';
 const volumeItemSchema = z.object({
     qty: z.number().positive('Quantity must be positive'),
     unit: z.enum(['pcs', 'units', 'kits']),
-    freq: z.enum(['per year', 'per month', 'per quarter', 'prototype', 'initial'])
+    freq: z.enum(['per year', 'per month', 'per quarter', 'prototype', 'initial', 'one_time'])
 });
 
 // Document item schema
@@ -329,6 +329,7 @@ export function InquiryIntakeForm({ submissionType, onSuccess }: InquiryIntakeFo
                                                         <SelectItem value="per quarter">Per Quarter</SelectItem>
                                                         <SelectItem value="prototype">Prototype</SelectItem>
                                                         <SelectItem value="initial">Initial Order</SelectItem>
+                                                        <SelectItem value="one_time">One Time Order</SelectItem>
                                                     </SelectContent>
                                                 </Select>
                                                 <FormMessage />
@@ -524,12 +525,13 @@ export function InquiryIntakeForm({ submissionType, onSuccess }: InquiryIntakeFo
                                         </FormControl>
                                         <SelectContent>
                                             <SelectItem value="US">United States</SelectItem>
+                                            <SelectItem value="VN">Vietnam</SelectItem>
+                                            <SelectItem value="JP">Japan</SelectItem>
                                             <SelectItem value="CA">Canada</SelectItem>
                                             <SelectItem value="MX">Mexico</SelectItem>
                                             <SelectItem value="GB">United Kingdom</SelectItem>
                                             <SelectItem value="DE">Germany</SelectItem>
                                             <SelectItem value="FR">France</SelectItem>
-                                            <SelectItem value="JP">Japan</SelectItem>
                                             <SelectItem value="CN">China</SelectItem>
                                             <SelectItem value="IN">India</SelectItem>
                                             <SelectItem value="AU">Australia</SelectItem>
