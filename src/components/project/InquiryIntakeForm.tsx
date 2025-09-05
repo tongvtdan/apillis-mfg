@@ -41,6 +41,7 @@ const inquiryFormSchema = z.object({
     description: z.string().min(50, 'Description must be at least 50 characters'),
     volumes: z.array(volumeItemSchema).optional(),
     targetPricePerUnit: z.number().positive('Target price must be positive').optional(),
+    priority: z.enum(['low', 'medium', 'high', 'urgent']).default('medium'),
     desiredDeliveryDate: z.string().refine(date => new Date(date) > new Date(Date.now() + 604800000), 'Delivery date must be at least 7 days from now'),
     projectReference: z.string().optional(), // Only for PO
     customerName: z.string().min(2, 'Customer name must be at least 2 characters'),
@@ -79,6 +80,7 @@ export function InquiryIntakeForm({ submissionType, onSuccess }: InquiryIntakeFo
         defaultValues: {
             intakeType: submissionType === 'RFQ' ? 'rfq' : submissionType === 'Purchase Order' ? 'po' : 'design_idea',
             volumes: [{ qty: 1000, unit: 'pcs', freq: 'per year' }],
+            priority: 'medium',
             documents: [
                 { type: 'Drawing', file: undefined, link: '', uploaded: false },
                 { type: 'BOM', file: undefined, link: '', uploaded: false }
@@ -157,7 +159,7 @@ export function InquiryIntakeForm({ submissionType, onSuccess }: InquiryIntakeFo
                 title: data.projectTitle,
                 description: data.description,
                 customer_id: customer.id,
-                priority: 'medium',
+                priority: data.priority,
                 estimated_value: data.targetPricePerUnit && data.volumes ?
                     data.targetPricePerUnit * data.volumes.reduce((sum, v) => sum + v.qty, 0) : undefined,
                 due_date: data.desiredDeliveryDate,
@@ -381,19 +383,45 @@ export function InquiryIntakeForm({ submissionType, onSuccess }: InquiryIntakeFo
                             )}
                         />
 
-                        <FormField
-                            control={form.control}
-                            name="desiredDeliveryDate"
-                            render={({ field }) => (
-                                <FormItem>
-                                    <FormLabel>Desired Delivery Date *</FormLabel>
-                                    <FormControl>
-                                        <Input type="date" {...field} />
-                                    </FormControl>
-                                    <FormMessage />
-                                </FormItem>
-                            )}
-                        />
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                            <FormField
+                                control={form.control}
+                                name="priority"
+                                render={({ field }) => (
+                                    <FormItem>
+                                        <FormLabel>Priority *</FormLabel>
+                                        <Select onValueChange={field.onChange} defaultValue={field.value}>
+                                            <FormControl>
+                                                <SelectTrigger>
+                                                    <SelectValue placeholder="Select priority" />
+                                                </SelectTrigger>
+                                            </FormControl>
+                                            <SelectContent>
+                                                <SelectItem value="low">Low</SelectItem>
+                                                <SelectItem value="medium">Medium</SelectItem>
+                                                <SelectItem value="high">High</SelectItem>
+                                                <SelectItem value="urgent">Urgent</SelectItem>
+                                            </SelectContent>
+                                        </Select>
+                                        <FormMessage />
+                                    </FormItem>
+                                )}
+                            />
+
+                            <FormField
+                                control={form.control}
+                                name="desiredDeliveryDate"
+                                render={({ field }) => (
+                                    <FormItem>
+                                        <FormLabel>Desired Delivery Date *</FormLabel>
+                                        <FormControl>
+                                            <Input type="date" {...field} />
+                                        </FormControl>
+                                        <FormMessage />
+                                    </FormItem>
+                                )}
+                            />
+                        </div>
 
                         {submissionType === 'Purchase Order' && (
                             <FormField

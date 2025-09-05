@@ -2,6 +2,29 @@
 
 ## Recent Changes
 
+### 2025-01-27 - Priority Field Added to InquiryIntakeForm ✅
+
+**Task Completed:**
+- Added Priority field next to Desired Delivery Date in InquiryIntakeForm.tsx
+- Updated Zod validation schema to include priority field with enum values: low, medium, high, urgent
+- Modified form layout to display Priority and Delivery Date in same row using grid layout
+- Updated form submission logic to pass priority value to ProjectIntakeData
+- Set default priority to 'medium' in form initialization
+- Maintained existing form validation and user experience
+
+**Implementation Details:**
+1. **Schema Update**: Added priority field to inquiryFormSchema with enum validation
+2. **Form Layout**: Used grid layout (grid-cols-1 md:grid-cols-2) for responsive design
+3. **Default Values**: Set priority default to 'medium' in form initialization
+4. **Submission Logic**: Updated intakeData to use form's priority value instead of hardcoded 'medium'
+5. **UI Components**: Used Select component with proper options and validation
+
+**Technical Changes:**
+- Updated Zod schema with priority enum validation
+- Added priority field to form defaultValues
+- Modified form layout to display fields side-by-side
+- Updated ProjectIntakeData mapping to use dynamic priority value
+
 ### 2025-01-27 - Create New Project Dialog Converted to Dedicated Page ✅
 
 **Task Completed:**
