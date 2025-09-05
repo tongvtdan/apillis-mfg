@@ -289,3 +289,98 @@ This migration strategy requires approval from:
 2. Customer management requirements
 3. Project workflow specifications
 4. Data model design guidelines
+
+### 3. Create Project-Contact Relationship Table
+```sql
+-- Create new table for project-specific contact points
+CREATE TABLE project_contact_points (
+  id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+  project_id UUID REFERENCES projects(id) ON DELETE CASCADE,
+  contact_id UUID REFERENCES contacts(id) ON DELETE CASCADE,
+  role VARCHAR(100),
+  is_primary BOOLEAN DEFAULT false,
+  created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
+);
+
+-- Add indexes for performance
+CREATE INDEX IF NOT EXISTS idx_project_contact_points_project_id ON project_contact_points(project_id);
+CREATE INDEX IF NOT EXISTS idx_project_contact_points_contact_id ON project_contact_points(contact_id);
+CREATE INDEX IF NOT EXISTS idx_project_contact_points_role ON project_contact_points(role);
+```
+
+## Implementation Phases
+
+### Phase 1: Database Schema Updates (Week 1)
+1. Create migration script with all schema changes
+2. Apply migration to development environment
+3. Verify backward compatibility
+4. Update database documentation
+
+### Phase 2: Data Migration (Week 2)
+1. Develop data migration script to map existing contacts to organizations
+2. Create mapping logic for contact roles
+3. Test migration with sample data
+4. Execute migration on development environment
+
+### Phase 3: Backend Updates (Week 3-4)
+1. Update TypeScript interfaces
+2. Modify database queries to use new schema
+3. Update services to handle both old and new data models
+4. Implement fallback mechanisms for backward compatibility
+
+### Phase 4: Frontend Updates (Week 5-6)
+1. Update customer management components
+2. Modify project creation flow
+3. Update project detail views
+4. Implement contact point selection interfaces
+
+### Phase 5: Testing and Validation (Week 7)
+1. Comprehensive testing of all customer-related functionality
+2. Validate data integrity after migration
+3. Test backward compatibility
+4. Performance testing with new schema
+
+### Phase 6: Deployment and Monitoring (Week 8)
+1. Deploy to staging environment
+2. Conduct user acceptance testing
+3. Deploy to production with rollback plan
+4. Monitor system performance and data integrity
+
+## Code Changes Required
+
+### 1. Update Type Definitions
+```typescript
+// src/types/project.ts
+export interface Project {
+  // ... existing fields ...
+  customer_id?: string; // Keep for backward compatibility
+  customer_organization_id?: string; // New field
+  // ... existing code ...
+}
+
+export interface Contact {
+  // ... existing fields ...
+  role?: string; // 'purchasing', 'engineering', 'quality', etc.
+  is_primary_contact?: boolean;
+  description?: string;
+  // ... existing code ...
+}
+```
+
+### 2. Update Project Queries
+```typescript
+// Update hooks and services to fetch organization data instead of contact data
+let query = supabase
+  .from('projects')
+  .select(`
+    id,
+    organization_id,
+    project_id,
+    title,
+    description,
+    customer_organization_id,
+    current_stage_id,
+    status,
+    priority_level,
+    source,
+    assigned_to,
