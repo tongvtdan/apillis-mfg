@@ -2,6 +2,29 @@
 
 ## Recent Changes
 
+### 2025-01-27 - Enhanced Form Validation Message Styling ✅
+
+**Task Completed:**
+- Updated FormMessage component styling to make validation messages italic and highlighted
+- Added red background highlighting that works in both light and dark modes
+- Enhanced visual prominence of form validation errors for better user experience
+- Maintained accessibility and existing functionality while improving visual design
+
+**Implementation Details:**
+1. **Styling Updates**: Added italic font style to validation messages
+2. **Background Highlighting**: 
+   - Light mode: `bg-red-50` with `border-red-200` border
+   - Dark mode: `bg-red-950/20` with `border-red-800/30` border
+3. **Visual Enhancement**: Added padding (`px-2 py-1`) and rounded corners (`rounded-md`)
+4. **Smooth Transitions**: Added `transition-colors duration-200` for smooth theme changes
+5. **Responsive Design**: Maintains proper contrast in both light and dark themes
+
+**Technical Changes:**
+- Updated `FormMessage` component in `src/components/ui/form.tsx`
+- Used Tailwind CSS classes for consistent theming
+- Preserved existing `text-destructive` color for text
+- Added dark mode variants for background and border colors
+
 ### 2025-01-27 - Priority Field Added to InquiryIntakeForm ✅
 
 **Task Completed:**
