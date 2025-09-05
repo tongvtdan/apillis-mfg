@@ -27,18 +27,46 @@ export function useProjects() {
   const lastFetchTimeRef = useRef<number>(0);
 
   const fetchProjects = useCallback(async (forceRefresh = false, options?: ProjectQueryOptions) => {
-    // Check if user is authenticated and has a profile with organization
-    if (!user || !profile?.organization_id) {
-      console.log('⚠️ No authenticated user or organization, returning empty projects array');
-      console.log('User:', user);
-      console.log('Profile:', profile);
+    // Check if user is authenticated
+    if (!user) {
+      console.log('⚠️ No authenticated user, returning empty projects array');
       setProjects([]);
       setLoading(false);
       return;
     }
 
+    // Get organization_id with fallback logic similar to dashboard function
+    let organizationId = profile?.organization_id;
+
+    if (!organizationId) {
+      console.log('⚠️ No organization_id in profile, trying fallback...');
+      try {
+        // Try to get the first organization as fallback (same as dashboard function)
+        const { data: fallbackOrg } = await supabase
+          .from('organizations')
+          .select('id')
+          .limit(1)
+          .maybeSingle();
+
+        if (fallbackOrg?.id) {
+          organizationId = fallbackOrg.id;
+          console.log('✅ Using fallback organization_id:', organizationId);
+        } else {
+          console.log('❌ No fallback organization found, returning empty projects array');
+          setProjects([]);
+          setLoading(false);
+          return;
+        }
+      } catch (fallbackError) {
+        console.error('❌ Error getting fallback organization:', fallbackError);
+        setProjects([]);
+        setLoading(false);
+        return;
+      }
+    }
+
     try {
-      console.log('🔍 Fetching projects for user:', user.id, 'organization:', profile.organization_id);
+      console.log('🔍 Fetching projects for user:', user.id, 'organization:', organizationId);
 
       // Check cache based on whether options are applied
       if (!forceRefresh) {
@@ -71,7 +99,7 @@ export function useProjects() {
       setLoading(true);
       setError(null);
 
-      // Use optimized query with selective field specification and organization filtering
+      // Use simplified query with only existing tables
       console.log('📡 Fetching projects from database...');
       let query = supabase
         .from('projects')
@@ -115,24 +143,7 @@ export function useProjects() {
             created_at,
             updated_at
           ),
-          contact_points:project_contact_points(
-            id,
-            contact_id,
-            role,
-            is_primary,
-            created_at,
-            updated_at,
-            contact:contacts(
-              id,
-              contact_name,
-              email,
-              phone,
-              role,
-              is_primary_contact,
-              description
-            )
-          ),
-          current_stage:workflow_stages!current_stage_id(
+          current_stage:workflow_stages!projects_current_stage_id_fkey(
             id,
             name,
             description,
@@ -142,7 +153,7 @@ export function useProjects() {
             updated_at
           ) 
         `)
-        .eq('organization_id', profile.organization_id); // Add organization filter
+        .eq('organization_id', organizationId); // Add organization filter
 
       // Apply filters if provided
       if (options?.status) {
@@ -390,7 +401,7 @@ export function useProjects() {
           customer_organization:organizations(*),
           current_stage:workflow_stages(*)
         `)
-        .eq('organization_id', profile.organization_id); // Add organization filter
+        .eq('organization_id', organizationId); // Add organization filter
 
       if (allProjectsError) {
         console.error('❌ Error fetching all projects:', allProjectsError);
@@ -411,7 +422,7 @@ export function useProjects() {
           current_stage:workflow_stages(*)
         `)
         .eq('id', id)
-        .eq('organization_id', profile.organization_id) // Add organization filter
+        .eq('organization_id', organizationId) // Add organization filter
         .single();
 
       if (error) {
@@ -425,7 +436,7 @@ export function useProjects() {
             current_stage:workflow_stages(*)
           `)
           .eq('project_id', id)
-          .eq('organization_id', profile.organization_id) // Add organization filter
+          .eq('organization_id', organizationId) // Add organization filter
           .single();
 
         if (altError) {
@@ -727,7 +738,7 @@ export function useProjects() {
       const { data, error } = await supabase
         .from('projects')
         .insert({
-          organization_id: profile.organization_id,
+          organization_id: organizationId,
           title: projectData.title,
           description: projectData.description,
           customer_organization_id: projectData.customer_id,
@@ -790,7 +801,7 @@ export function useProjects() {
       const { data: existingCustomer } = await supabase
         .from('contacts')
         .select('*')
-        .eq('organization_id', profile.organization_id)
+        .eq('organization_id', organizationId)
         .eq('type', 'customer')
         .eq('company_name', customerData.company)
         .single();
@@ -803,7 +814,7 @@ export function useProjects() {
       const { data: newCustomer, error } = await supabase
         .from('contacts')
         .insert({
-          organization_id: profile.organization_id,
+          organization_id: organizationId,
           type: 'customer',
           company_name: customerData.company,
           contact_name: customerData.name,

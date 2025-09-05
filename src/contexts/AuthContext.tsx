@@ -207,10 +207,17 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
             }
           }
 
+          // Get the default organization for fallback profile
+          const { data: defaultOrg } = await supabase
+            .from('organizations')
+            .select('id')
+            .eq('slug', 'factory-pulse-vietnam')
+            .maybeSingle();
+
           // Map auth user data to profile format
           const fallbackProfile: UserProfile = {
             id: authUser.id,
-            organization_id: '',
+            organization_id: defaultOrg?.id || '',
             email: authUser.email,
             name: authUser.user_metadata?.name || authUser.email.split('@')[0],
             role: fallbackRole,
