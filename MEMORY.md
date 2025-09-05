@@ -2,30 +2,46 @@
 
 ## Recent Changes
 
-### 2025-01-27 - Updated Country Dropdown with Vietnam and Reordered Countries ✅
+### 2025-01-27 - Added Customer Selection Dropdown with Auto-Fill ✅
 
 **Task Completed:**
-- Added Vietnam to the country dropdown in customer information section
-- Reordered countries with United States first, then Vietnam, then Japan
-- Enhanced form accessibility for Vietnamese customers
-- Maintained all existing country options and functionality
+- Added customer selection dropdown to Customer Information section for internal use
+- Implemented searchable dropdown using Command component with Popover
+- Added auto-fill functionality when customer is selected
+- Enhanced form for internal users to quickly select existing customers
+- Maintained manual entry option for new customers
 
 **Implementation Details:**
-1. **New Country Added**: Added Vietnam with country code "VN"
-2. **Country Reordering**: 
-   - United States (US) - First position
-   - Vietnam (VN) - Second position  
-   - Japan (JP) - Third position
-   - Other countries follow in original order
-3. **Consistent Design**: Follows same pattern as existing country options
-4. **Form Validation**: Maintains existing country validation requirements
-5. **User Experience**: Improved accessibility for Vietnamese customers
+1. **Customer Selection Dropdown**: 
+   - Uses Command component with Popover for searchable interface
+   - Displays company name, contact name, and email for easy identification
+   - Shows check mark for selected customer
+2. **Search Functionality**: 
+   - Real-time search by company name, contact name, or email
+   - Filters customers as user types
+   - Shows loading state and empty state messages
+3. **Auto-Fill Logic**: 
+   - Automatically fills customer information fields when customer is selected
+   - Sets selectedCustomerId, customerName, company, email, phone, and country
+   - Closes dropdown and clears search after selection
+4. **Form Schema**: Added selectedCustomerId field to validation schema
+5. **User Experience**: Optional field that doesn't interfere with manual entry
 
 **Technical Changes:**
-- Updated country SelectContent in `InquiryIntakeForm.tsx`
-- Added `<SelectItem value="VN">Vietnam</SelectItem>` in second position
-- Reordered existing countries to prioritize US -> Vietnam -> Japan
-- Maintained all existing country codes and display names
+- Updated `inquiryFormSchema` to include `selectedCustomerId` field
+- Added `useCustomers` hook for customer data and search functionality
+- Implemented `handleCustomerSelect` callback for auto-fill logic
+- Added `filteredCustomers` memoized computation for search filtering
+- Used Command, Popover, and Button components for dropdown interface
+- Added customer search state management (customerSearchOpen, customerSearchQuery)
+
+**UI Components Added:**
+- Customer selection dropdown with search input
+- Customer list with company, contact, and email display
+- Check mark indicator for selected customer
+- Loading and empty states for better UX
+
+### 2025-01-27 - Updated Country Dropdown with Vietnam and Reordered Countries ✅
 
 ### 2025-01-27 - Added One Time Order Frequency Option ✅
 

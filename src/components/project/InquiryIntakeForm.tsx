@@ -10,12 +10,17 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
 import { Checkbox } from '@/components/ui/checkbox';
 import { Badge } from '@/components/ui/badge';
-import { CheckCircle2, Loader2, Plus, Trash2, Upload, FileText, Link, X } from 'lucide-react';
+import { Command, CommandEmpty, CommandGroup, CommandInput, CommandItem, CommandList } from '@/components/ui/command';
+import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
+import { CheckCircle2, Loader2, Plus, Trash2, Upload, FileText, Link, X, Check, ChevronsUpDown } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { useProjects } from '@/hooks/useProjects';
+import { useCustomers } from '@/hooks/useCustomers';
 import { useAuth } from '@/contexts/AuthContext';
 import { ProjectIntakeService, ProjectIntakeData } from '@/services/projectIntakeService';
 import { IntakeMappingService } from '@/services/intakeMappingService';
+import { Customer } from '@/types/project';
+import { cn } from '@/lib/utils';
 
 // Volume item schema
 const volumeItemSchema = z.object({
@@ -41,9 +46,10 @@ const inquiryFormSchema = z.object({
     description: z.string().min(50, 'Description must be at least 50 characters'),
     volumes: z.array(volumeItemSchema).optional(),
     targetPricePerUnit: z.number().positive('Target price must be positive').optional(),
-    priority: z.enum(['low', 'medium', 'high', 'urgent']).default('medium'),
+    priority: z.enum(['low', 'medium', 'high', 'urgent']).optional(),
     desiredDeliveryDate: z.string().refine(date => new Date(date) > new Date(Date.now() + 604800000), 'Delivery date must be at least 7 days from now'),
     projectReference: z.string().optional(), // Only for PO
+    selectedCustomerId: z.string().optional(), // For customer selection
     customerName: z.string().min(2, 'Customer name must be at least 2 characters'),
     company: z.string().min(2, 'Company name must be at least 2 characters'),
     email: z.string().email('Invalid email address'),
@@ -66,9 +72,12 @@ export function InquiryIntakeForm({ submissionType, onSuccess }: InquiryIntakeFo
     const [isSubmitted, setIsSubmitted] = useState(false);
     const [tempProjectId, setTempProjectId] = useState<string>('');
     const [isDragOver, setIsDragOver] = useState(false);
+    const [customerSearchOpen, setCustomerSearchOpen] = useState(false);
+    const [customerSearchQuery, setCustomerSearchQuery] = useState('');
 
     const { toast } = useToast();
     const { createProject, createOrGetCustomer } = useProjects();
+    const { customers, loading: customersLoading, searchCustomers } = useCustomers();
     const { profile } = useAuth();
 
     // Get intake mapping for this submission type
@@ -99,19 +108,27 @@ export function InquiryIntakeForm({ submissionType, onSuccess }: InquiryIntakeFo
         name: 'documents'
     });
 
-    // Generate temporary project ID
-    React.useEffect(() => {
-        const generateTempId = () => {
-            const now = new Date();
-            const year = now.getFullYear();
-            const month = String(now.getMonth() + 1).padStart(2, '0');
-            const day = String(now.getDate()).padStart(2, '0');
-            const sequence = String(Math.floor(Math.random() * 100)).padStart(2, '0');
-            return `P-${year}${month}${day}${sequence}`;
-        };
+    // Handle customer selection and auto-fill
+    const handleCustomerSelect = useCallback((customer: Customer) => {
+        form.setValue('selectedCustomerId', customer.id);
+        form.setValue('customerName', customer.contact_name || '');
+        form.setValue('company', customer.company_name || '');
+        form.setValue('email', customer.email || '');
+        form.setValue('phone', customer.phone || '');
+        form.setValue('country', customer.country || '');
+        setCustomerSearchOpen(false);
+        setCustomerSearchQuery('');
+    }, [form]);
 
-        setTempProjectId(generateTempId());
-    }, []);
+    // Filter customers based on search query
+    const filteredCustomers = React.useMemo(() => {
+        if (!customerSearchQuery) return customers;
+        return customers.filter(customer =>
+            customer.company_name.toLowerCase().includes(customerSearchQuery.toLowerCase()) ||
+            customer.contact_name?.toLowerCase().includes(customerSearchQuery.toLowerCase()) ||
+            customer.email?.toLowerCase().includes(customerSearchQuery.toLowerCase())
+        );
+    }, [customers, customerSearchQuery]);
 
     // Handle file upload
     const handleFileUpload = useCallback((file: File, documentIndex: number) => {
@@ -147,32 +164,35 @@ export function InquiryIntakeForm({ submissionType, onSuccess }: InquiryIntakeFo
         try {
             // Create or get customer
             const customer = await createOrGetCustomer({
-                company_name: data.company,
-                contact_name: data.customerName,
+                name: data.customerName,
+                company: data.company,
                 email: data.email,
-                phone: data.phone || '',
-                country: data.country
+                phone: data.phone || ''
             });
+
+            // Check if customer creation was successful
+            if (!customer || !(customer as any).id) {
+                throw new Error('Failed to create or retrieve customer');
+            }
+
+            // Type assertion to ensure customer is the correct type
+            const validCustomer = customer as any;
 
             // Prepare intake data
             const intakeData: ProjectIntakeData = {
                 title: data.projectTitle,
                 description: data.description,
-                customer_id: customer.id,
+                customer_id: validCustomer.id,
                 priority: data.priority,
                 estimated_value: data.targetPricePerUnit && data.volumes ?
                     data.targetPricePerUnit * data.volumes.reduce((sum, v) => sum + v.qty, 0) : undefined,
                 due_date: data.desiredDeliveryDate,
-                contact_name: customer.contact_name || data.customerName,
-                contact_email: customer.email || data.email,
-                contact_phone: customer.phone || data.phone,
+                contact_name: validCustomer.contact_name || data.customerName,
+                contact_email: validCustomer.email || data.email,
+                contact_phone: validCustomer.phone || data.phone,
                 notes: data.notes,
                 intake_type: data.intakeType,
-                intake_source: 'portal',
-                volume: data.volumes,
-                target_price_per_unit: data.targetPricePerUnit,
-                project_reference: data.projectReference,
-                desired_delivery_date: data.desiredDeliveryDate
+                intake_source: 'portal'
             };
 
             // Create project using intake service
@@ -451,6 +471,79 @@ export function InquiryIntakeForm({ submissionType, onSuccess }: InquiryIntakeFo
                         </CardDescription>
                     </CardHeader>
                     <CardContent className="space-y-4">
+                        {/* Customer Selection */}
+                        <FormField
+                            control={form.control}
+                            name="selectedCustomerId"
+                            render={({ field }) => (
+                                <FormItem className="flex flex-col">
+                                    <FormLabel>Select Existing Customer (Optional)</FormLabel>
+                                    <Popover open={customerSearchOpen} onOpenChange={setCustomerSearchOpen}>
+                                        <PopoverTrigger asChild>
+                                            <FormControl>
+                                                <Button
+                                                    variant="outline"
+                                                    role="combobox"
+                                                    aria-expanded={customerSearchOpen}
+                                                    className="w-full justify-between"
+                                                >
+                                                    {field.value ?
+                                                        customers.find(customer => customer.id === field.value)?.company_name || "Select customer..."
+                                                        : "Select customer..."
+                                                    }
+                                                    <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
+                                                </Button>
+                                            </FormControl>
+                                        </PopoverTrigger>
+                                        <PopoverContent className="w-full p-0">
+                                            <Command>
+                                                <CommandInput
+                                                    placeholder="Search customers..."
+                                                    value={customerSearchQuery}
+                                                    onValueChange={setCustomerSearchQuery}
+                                                />
+                                                <CommandList>
+                                                    <CommandEmpty>
+                                                        {customersLoading ? "Loading customers..." : "No customers found."}
+                                                    </CommandEmpty>
+                                                    <CommandGroup>
+                                                        {filteredCustomers.map((customer) => (
+                                                            <CommandItem
+                                                                key={customer.id}
+                                                                value={customer.id}
+                                                                onSelect={() => handleCustomerSelect(customer)}
+                                                            >
+                                                                <Check
+                                                                    className={cn(
+                                                                        "mr-2 h-4 w-4",
+                                                                        field.value === customer.id ? "opacity-100" : "opacity-0"
+                                                                    )}
+                                                                />
+                                                                <div className="flex flex-col">
+                                                                    <span className="font-medium">{customer.company_name}</span>
+                                                                    {customer.contact_name && (
+                                                                        <span className="text-sm text-muted-foreground">
+                                                                            {customer.contact_name}
+                                                                        </span>
+                                                                    )}
+                                                                    {customer.email && (
+                                                                        <span className="text-sm text-muted-foreground">
+                                                                            {customer.email}
+                                                                        </span>
+                                                                    )}
+                                                                </div>
+                                                            </CommandItem>
+                                                        ))}
+                                                    </CommandGroup>
+                                                </CommandList>
+                                            </Command>
+                                        </PopoverContent>
+                                    </Popover>
+                                    <FormMessage />
+                                </FormItem>
+                            )}
+                        />
+
                         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                             <FormField
                                 control={form.control}
