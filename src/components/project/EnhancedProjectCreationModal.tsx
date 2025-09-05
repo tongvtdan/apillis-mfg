@@ -13,7 +13,7 @@ import { Badge } from '@/components/ui/badge';
 import { Separator } from '@/components/ui/separator';
 import { Calendar, Building2, User, DollarSign, AlertCircle, CheckCircle2, Loader2 } from 'lucide-react';
 import { ProjectType, ProjectPriority, PROJECT_TYPE_LABELS, PROJECT_TYPE_DESCRIPTIONS } from '@/types/project';
-import { useToast } from '@/hooks/use-toast';
+import { useCustomerOrganizations } from '@/hooks/useCustomerOrganizations';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
 
@@ -30,7 +30,8 @@ const projectCreationSchema = z.object({
     priority_level: z.enum(['low', 'medium', 'high', 'critical']).default('medium'),
 
     // Customer Information
-    customer_type: z.enum(['existing', 'new']),
+    customer_type: z.enum(['existing_org', 'existing_contact', 'new']),
+    existing_customer_organization_id: z.string().optional(),
     existing_customer_id: z.string().optional(),
 
     // New customer fields (only required if customer_type is 'new')
@@ -50,8 +51,12 @@ const projectCreationSchema = z.object({
     tags: z.string().optional(),
     notes: z.string().max(500, 'Notes must be less than 500 characters').optional(),
 }).refine(data => {
-    // If customer_type is 'existing', existing_customer_id is required
-    if (data.customer_type === 'existing') {
+    // If customer_type is 'existing_org', existing_customer_organization_id is required
+    if (data.customer_type === 'existing_org') {
+        return !!data.existing_customer_organization_id;
+    }
+    // If customer_type is 'existing_contact', existing_customer_id is required
+    if (data.customer_type === 'existing_contact') {
         return !!data.existing_customer_id;
     }
     // If customer_type is 'new', company_name and contact_name are required
@@ -83,12 +88,13 @@ export function EnhancedProjectCreationModal({
     const [generatedProjectId, setGeneratedProjectId] = useState<string>('');
     const [existingCustomers, setExistingCustomers] = useState<any[]>([]);
     const [loadingCustomers, setLoadingCustomers] = useState(false);
+    const { organizations: customerOrganizations, loading: loadingOrganizations } = useCustomerOrganizations();
 
     const form = useForm<ProjectCreationFormData>({
         resolver: zodResolver(projectCreationSchema),
         defaultValues: {
             priority_level: 'medium',
-            customer_type: 'new',
+            customer_type: 'existing_org',
             project_type: 'fabrication'
         }
     });
@@ -179,6 +185,7 @@ export function EnhancedProjectCreationModal({
         setIsSubmitting(true);
         try {
             let customerId = data.existing_customer_id;
+            let customerOrganizationId = data.existing_customer_organization_id;
 
             // Create new customer if needed
             if (data.customer_type === 'new') {
@@ -210,6 +217,7 @@ export function EnhancedProjectCreationModal({
                 project_type: data.project_type,
                 priority_level: data.priority_level,
                 customer_id: customerId,
+                customer_organization_id: customerOrganizationId,
                 estimated_value: data.estimated_value || null,
                 estimated_delivery_date: data.estimated_delivery_date || null,
                 status: 'active' as const,
@@ -228,6 +236,7 @@ export function EnhancedProjectCreationModal({
                 .select(`
           *,
           customer:contacts(*),
+          customer_organization:organizations(*),
           current_stage:workflow_stages(*)
         `)
                 .single();
@@ -460,7 +469,7 @@ export function EnhancedProjectCreationModal({
                                 Customer Information
                             </CardTitle>
                             <CardDescription>
-                                Select an existing customer or create a new one
+                                Select a customer organization or individual contact
                             </CardDescription>
                         </CardHeader>
                         <CardContent className="space-y-4">
@@ -477,7 +486,8 @@ export function EnhancedProjectCreationModal({
                                                 </SelectTrigger>
                                             </FormControl>
                                             <SelectContent>
-                                                <SelectItem value="existing">Existing Customer</SelectItem>
+                                                <SelectItem value="existing_org">Customer Organization</SelectItem>
+                                                <SelectItem value="existing_contact">Individual Contact</SelectItem>
                                                 <SelectItem value="new">New Customer</SelectItem>
                                             </SelectContent>
                                         </Select>
@@ -486,17 +496,62 @@ export function EnhancedProjectCreationModal({
                                 )}
                             />
 
-                            {customerType === 'existing' && (
+                            {customerType === 'existing_org' && (
+                                <FormField
+                                    control={form.control}
+                                    name="existing_customer_organization_id"
+                                    render={({ field }) => (
+                                        <FormItem>
+                                            <FormLabel>Select Customer Organization *</FormLabel>
+                                            <Select onValueChange={field.onChange} value={field.value}>
+                                                <FormControl>
+                                                    <SelectTrigger>
+                                                        <SelectValue placeholder="Choose a customer organization" />
+                                                    </SelectTrigger>
+                                                </FormControl>
+                                                <SelectContent>
+                                                    {loadingOrganizations ? (
+                                                        <SelectItem value="loading" disabled>
+                                                            <div className="flex items-center gap-2">
+                                                                <Loader2 className="h-4 w-4 animate-spin" />
+                                                                Loading organizations...
+                                                            </div>
+                                                        </SelectItem>
+                                                    ) : customerOrganizations.length === 0 ? (
+                                                        <SelectItem value="none" disabled>
+                                                            No organizations found
+                                                        </SelectItem>
+                                                    ) : (
+                                                        customerOrganizations.map(org => (
+                                                            <SelectItem key={org.id} value={org.id}>
+                                                                <div>
+                                                                    <div className="font-medium">{org.name}</div>
+                                                                    <div className="text-xs text-muted-foreground">
+                                                                        {org.industry} • {org.contacts?.length || 0} contacts
+                                                                    </div>
+                                                                </div>
+                                                            </SelectItem>
+                                                        ))
+                                                    )}
+                                                </SelectContent>
+                                            </Select>
+                                            <FormMessage />
+                                        </FormItem>
+                                    )}
+                                />
+                            )}
+
+                            {customerType === 'existing_contact' && (
                                 <FormField
                                     control={form.control}
                                     name="existing_customer_id"
                                     render={({ field }) => (
                                         <FormItem>
-                                            <FormLabel>Select Customer *</FormLabel>
+                                            <FormLabel>Select Customer Contact *</FormLabel>
                                             <Select onValueChange={field.onChange} value={field.value}>
                                                 <FormControl>
                                                     <SelectTrigger>
-                                                        <SelectValue placeholder="Choose an existing customer" />
+                                                        <SelectValue placeholder="Choose an existing customer contact" />
                                                     </SelectTrigger>
                                                 </FormControl>
                                                 <SelectContent>

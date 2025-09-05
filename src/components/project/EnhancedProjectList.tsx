@@ -657,10 +657,16 @@ export function EnhancedProjectList({
                                                 <h4 className="font-semibold text-base text-base-content group-hover:text-primary transition-colors">
                                                     {project.project_id} - {project.title}
                                                 </h4>
-                                                {project.customer?.company_name && (
+                                                {project.customer_organization?.name && (
                                                     <p className="text-sm text-muted-foreground flex items-center gap-1">
                                                         <Building2 className="h-3 w-3" />
-                                                        {project.customer.company_name}
+                                                        {project.customer_organization.name}
+                                                    </p>
+                                                )}
+                                                {project.contact_points && project.contact_points.length > 0 && (
+                                                    <p className="text-xs text-muted-foreground">
+                                                        Contact: {project.contact_points.find(cp => cp.is_primary)?.contact?.contact_name ||
+                                                            project.contact_points[0]?.contact?.contact_name || 'N/A'}
                                                     </p>
                                                 )}
                                             </div>

@@ -85,10 +85,15 @@ export function AnimatedTableRow({
                 <TableCell>
                     <div>
                         <div className="font-medium">
-                            {project.customer?.company_name || 'No Customer'}
+                            {project.customer_organization?.name || project.customer?.company_name || 'No Customer'}
                         </div>
                         <div className="text-sm text-muted-foreground">
-                            {project.customer?.email || ''}
+                            {project.contact_points && project.contact_points.length > 0 ? (
+                                project.contact_points.find(cp => cp.is_primary)?.contact?.contact_name ||
+                                project.contact_points[0]?.contact?.contact_name || 'No Contact'
+                            ) : (
+                                project.customer?.email || ''
+                            )}
                         </div>
                     </div>
                 </TableCell>

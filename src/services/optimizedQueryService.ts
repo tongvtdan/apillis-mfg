@@ -38,6 +38,7 @@ export const FIELD_PRESETS = {
     priority_level,
     current_stage_id,
     customer_id,
+    customer_organization_id,
     assigned_to,
     estimated_value,
     created_at,
@@ -45,7 +46,14 @@ export const FIELD_PRESETS = {
     customer:contacts!customer_id(
       id,
       company_name,
-      contact_name
+      contact_name,
+      role,
+      is_primary_contact
+    ),
+    customer_organization:organizations!customer_organization_id(
+      id,
+      name,
+      slug
     ),
     current_stage:workflow_stages!current_stage_id(
       id,
@@ -62,6 +70,7 @@ export const FIELD_PRESETS = {
     title,
     description,
     customer_id,
+    customer_organization_id,
     current_stage_id,
     status,
     priority_level,
@@ -85,7 +94,39 @@ export const FIELD_PRESETS = {
       email,
       phone,
       type,
+      role,
+      is_primary_contact,
+      description,
       is_active
+    ),
+    customer_organization:organizations!customer_organization_id(
+      id,
+      name,
+      slug,
+      description,
+      industry,
+      address,
+      city,
+      state,
+      country,
+      postal_code,
+      website,
+      logo_url,
+      is_active
+    ),
+    contact_points:project_contact_points(
+      id,
+      contact_id,
+      role,
+      is_primary,
+      contact:contacts(
+        id,
+        contact_name,
+        email,
+        phone,
+        role,
+        is_primary_contact
+      )
     ),
     current_stage:workflow_stages!current_stage_id(
       id,
@@ -101,6 +142,11 @@ export const FIELD_PRESETS = {
     FULL: `
     *,
     customer:contacts!customer_id(*),
+    customer_organization:organizations!customer_organization_id(*),
+    contact_points:project_contact_points(
+      *,
+      contact:contacts(*)
+    ),
     current_stage:workflow_stages!current_stage_id(*),
     assigned_user:users!assigned_to(
       id,

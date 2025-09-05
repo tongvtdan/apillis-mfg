@@ -238,6 +238,7 @@ export function EnhancedProjectOverviewCard({
 
     // Get customer display name
     const getCustomerDisplayName = (): string => {
+        if (project.customer_organization?.name) return project.customer_organization.name;
         if (project.customer?.company_name) return project.customer.company_name;
         if (project.customer?.contact_name) return project.customer.contact_name;
         return 'N/A';

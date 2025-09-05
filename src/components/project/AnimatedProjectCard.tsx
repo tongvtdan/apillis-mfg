@@ -187,7 +187,15 @@ export function AnimatedProjectCard({
                                 <p className="font-medium text-sm">{project.title}</p>
                                 <div className="flex items-center space-x-1 text-xs text-muted-foreground mt-1">
                                     <Building2 className="h-3 w-3 flex-shrink-0" />
-                                    {project.customer?.id ? (
+                                    {project.customer_organization ? (
+                                        <button
+                                            onClick={handleCustomerClick}
+                                            className="hover:bg-accent hover:text-accent-foreground px-1 py-0.5 rounded transition-all duration-200 flex items-center space-x-1 group"
+                                        >
+                                            <span>{project.customer_organization.name}</span>
+                                            <ExternalLink className="h-2.5 w-2.5 opacity-0 group-hover:opacity-100 transition-opacity duration-200" />
+                                        </button>
+                                    ) : project.customer?.id ? (
                                         <button
                                             onClick={handleCustomerClick}
                                             className="hover:bg-accent hover:text-accent-foreground px-1 py-0.5 rounded transition-all duration-200 flex items-center space-x-1 group"
@@ -199,6 +207,13 @@ export function AnimatedProjectCard({
                                         <span>{project.customer?.company_name || project.contact_name || 'Unknown'}</span>
                                     )}
                                 </div>
+                                {/* Show primary contact if available */}
+                                {project.contact_points && project.contact_points.length > 0 && (
+                                    <div className="text-xs text-muted-foreground mt-1">
+                                        Contact: {project.contact_points.find(cp => cp.is_primary)?.contact?.contact_name ||
+                                            project.contact_points[0]?.contact?.contact_name || 'N/A'}
+                                    </div>
+                                )}
                             </div>
 
                             <div className="space-y-2 text-xs">

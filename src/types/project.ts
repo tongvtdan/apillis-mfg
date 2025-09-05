@@ -14,6 +14,35 @@ export type IntakeSource = 'portal' | 'email' | 'api' | 'phone' | 'walk_in';
 // Use Contact interface with type='customer' instead
 export type Customer = Contact & { type: 'customer' };
 
+export interface Organization {
+  id: string;
+  name: string;
+  slug: string;
+  description?: string;
+  industry?: string;
+  address?: string;
+  city?: string;
+  state?: string;
+  country?: string;
+  postal_code?: string;
+  website?: string;
+  logo_url?: string;
+  is_active: boolean;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface ProjectContactPoint {
+  id: string;
+  project_id: string;
+  contact_id: string;
+  role?: string;
+  is_primary: boolean;
+  created_at: string;
+  updated_at: string;
+  contact?: Contact;
+}
+
 export interface Contact {
   // Core database fields - must match database schema exactly
   id: string;
@@ -36,6 +65,11 @@ export interface Contact {
   notes?: string;
   created_at?: string; // Optional in database (has default)
   updated_at?: string;
+
+  // New fields for organization-based customer model
+  role?: string; // 'purchasing', 'engineering', 'quality', etc.
+  is_primary_contact?: boolean;
+  description?: string;
 
   // AI and metadata fields from database schema
   metadata?: Record<string, any>;
@@ -116,7 +150,8 @@ export interface Project {
   project_id: string; // P-25082001 format
   title: string;
   description?: string;
-  customer_id?: string;
+  customer_id?: string; // Keep for backward compatibility
+  customer_organization_id?: string; // New field for organization-based customer model
   current_stage_id?: string;
   status: ProjectStatus;
   priority_level?: ProjectPriority;
@@ -138,7 +173,9 @@ export interface Project {
   actual_delivery_date?: string;
 
   // Computed/joined fields (not in database)
-  customer?: Contact;
+  customer?: Contact; // Keep for backward compatibility
+  customer_organization?: Organization; // New field for organization-based customer model
+  contact_points?: ProjectContactPoint[]; // New field for project-specific contact points
   current_stage?: WorkflowStage;
   assignee?: any; // User interface to be defined
   creator?: any; // User interface to be defined
