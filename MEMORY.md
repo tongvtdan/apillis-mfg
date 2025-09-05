@@ -10,6 +10,7 @@
 - Improved user experience with full-page form layout and proper browser navigation
 - Added back button for easy navigation to previous page
 - Applied consistent outline styling to all "New Project" buttons for visual consistency
+- **CRITICAL FIX**: Replaced SimplifiedIntakeForm with comprehensive InquiryIntakeForm
 - Maintained all existing functionality while enhancing UX
 
 **Implementation Details:**
@@ -32,18 +33,27 @@
    - Better mobile experience with full-screen layout
    - **Back Button**: Added back button for easy navigation to previous page
    - **Consistent Styling**: All "New Project" buttons now use outline variant for visual consistency
+   - **Comprehensive Form**: Now uses InquiryIntakeForm with all advanced features
    - Consistent with existing `/rfq/new` pattern
+
+4. **CRITICAL FORM ENHANCEMENT**:
+   - **Created**: `InquiryIntakeForm.tsx` - Comprehensive intake form with all advanced features
+   - **Updated**: `ProjectIntakePortal.tsx` - Now uses InquiryIntakeForm instead of SimplifiedIntakeForm
+   - **Advanced Features**: Volume fields, target price, file uploads, country selection, terms agreement
+   - **File Upload**: Drag & drop support with multiple document types
+   - **Volume Management**: Multi-tier volume support with quantity, unit, and frequency
+   - **Project Reference**: Conditional field for Purchase Order types
 
 **Technical Changes:**
 
 ```typescript
-// Before: Modal approach with inconsistent styling
+// Before: Modal approach with simplified form
 <Button onClick={() => setShowNewProjectModal(true)}>
   <Plus className="mr-2 h-4 w-4" />
   New Project
 </Button>
 
-// After: Navigation approach with consistent outline styling
+// After: Navigation approach with comprehensive form
 <Button variant="outline" onClick={() => navigate("/projects/new")}>
   <Plus className="mr-2 h-4 w-4" />
   New Project
@@ -54,14 +64,22 @@
   <ArrowLeft className="h-4 w-4" />
   Back
 </Button>
+
+// Comprehensive form with advanced features
+<InquiryIntakeForm
+  submissionType="RFQ"
+  onSuccess={handleFormSuccess}
+/>
 ```
 
 **Files Modified:**
 - **Created**: `src/pages/CreateProject.tsx` - New dedicated project creation page with back button
+- **Created**: `src/components/project/InquiryIntakeForm.tsx` - Comprehensive intake form with all advanced features
 - **Updated**: `src/App.tsx` - Added `/projects/new` route
 - **Updated**: `src/pages/Projects.tsx` - Removed modal, updated button to navigate with outline styling
 - **Updated**: `src/components/project/actions/ProjectActions.tsx` - Updated to navigate instead of modal with outline styling
 - **Updated**: `src/components/project/EnhancedProjectList.tsx` - Updated to navigate instead of modal with outline styling
+- **Updated**: `src/components/project/ProjectIntakePortal.tsx` - Now uses InquiryIntakeForm instead of SimplifiedIntakeForm
 - **Updated**: `MEMORY.md` - Documented the conversion
 
 **Benefits:**
@@ -71,6 +89,9 @@
 - ✅ **Mobile Friendly**: Better experience on mobile devices
 - ✅ **Easy Navigation**: Back button for quick return to previous page
 - ✅ **Visual Consistency**: All "New Project" buttons use consistent outline styling
+- ✅ **Comprehensive Form**: Full-featured intake form with volume, pricing, file uploads
+- ✅ **File Management**: Drag & drop file uploads with multiple document types
+- ✅ **Volume Support**: Multi-tier volume management with quantity, unit, frequency
 - ✅ **Consistency**: Aligns with existing `/rfq/new` pattern
 - ✅ **Maintainability**: Cleaner code without modal state management
 
@@ -81,10 +102,17 @@
 - ✅ **Success Handling**: Proper navigation back to projects list with toast notification
 - ✅ **Back Button**: Easy navigation back to previous page
 - ✅ **Consistent Styling**: All "New Project" buttons use outline variant for visual consistency
+- ✅ **Comprehensive Form**: InquiryIntakeForm with all advanced features is now active
+- ✅ **File Uploads**: Drag & drop file upload functionality working
+- ✅ **Volume Management**: Multi-tier volume support implemented
+- ✅ **Target Pricing**: Target price per unit field available
+- ✅ **Country Selection**: Country dropdown implemented
+- ✅ **Terms Agreement**: Terms and conditions checkbox implemented
 
 **Next Steps:**
-- Test project creation flow end-to-end
+- Test project creation flow end-to-end with new comprehensive form
 - Verify all form validation and submission works correctly
+- Test file upload functionality
 - Monitor user feedback on new page-based experience
 
 ### 2025-09-04 - Git Secret Scanning Security Fix ✅
