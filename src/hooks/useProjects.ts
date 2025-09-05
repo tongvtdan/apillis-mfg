@@ -99,10 +99,9 @@ export function useProjects() {
       setLoading(true);
       setError(null);
 
-      // Use simplified query with only existing tables
-      console.log('📡 Fetching projects from database...');
+      // Use projects_view instead of projects table to avoid ambiguous column issues
       let query = supabase
-        .from('projects')
+        .from('projects_view')
         .select(`
           id,
           organization_id,
@@ -126,32 +125,26 @@ export function useProjects() {
           notes,
           created_at,
           updated_at,
-          customer_organization:organizations!customer_organization_id(
-            id,
-            name,
-            slug,
-            description,
-            industry,
-            address,
-            city,
-            state,
-            country,
-            postal_code,
-            website,
-            logo_url,
-            is_active,
-            created_at,
-            updated_at
-          ),
-          current_stage:workflow_stages!projects_current_stage_id_fkey(
-            id,
-            name,
-            description,
-            stage_order,
-            is_active,
-            created_at,
-            updated_at
-          ) 
+          customer_organization_name,
+          customer_organization_slug,
+          customer_organization_description,
+          customer_organization_industry,
+          customer_organization_address,
+          customer_organization_city,
+          customer_organization_state,
+          customer_organization_country,
+          customer_organization_postal_code,
+          customer_organization_website,
+          customer_organization_logo_url,
+          customer_organization_is_active,
+          customer_organization_created_at,
+          customer_organization_updated_at,
+          current_stage_name,
+          current_stage_description,
+          current_stage_order,
+          current_stage_is_active,
+          current_stage_created_at,
+          current_stage_updated_at
         `)
         .eq('organization_id', organizationId); // Add organization filter
 
@@ -192,7 +185,7 @@ export function useProjects() {
         return;
       }
 
-      // Validate and transform the data
+      // Validate and transform the data from projects_view
       const mappedProjects = (data || []).map(project => ({
         ...project,
         // Ensure required fields have proper defaults
@@ -208,11 +201,34 @@ export function useProjects() {
         // Add computed fields for compatibility
         due_date: project.estimated_delivery_date, // Map estimated_delivery_date to due_date for compatibility
         priority: project.priority_level, // Map priority_level to priority for legacy compatibility
-        // Add stage_order to current_stage if it exists
-        current_stage: project.current_stage ? {
-          ...project.current_stage,
-          stage_order: project.current_stage.stage_order
-        } : undefined
+        // Map customer organization data from flattened fields
+        customer_organization: project.customer_organization_name ? {
+          id: project.customer_organization_id,
+          name: project.customer_organization_name,
+          slug: project.customer_organization_slug,
+          description: project.customer_organization_description,
+          industry: project.customer_organization_industry,
+          address: project.customer_organization_address,
+          city: project.customer_organization_city,
+          state: project.customer_organization_state,
+          country: project.customer_organization_country,
+          postal_code: project.customer_organization_postal_code,
+          website: project.customer_organization_website,
+          logo_url: project.customer_organization_logo_url,
+          is_active: project.customer_organization_is_active,
+          created_at: project.customer_organization_created_at,
+          updated_at: project.customer_organization_updated_at
+        } : null,
+        // Map current stage data from flattened fields
+        current_stage: project.current_stage_name ? {
+          id: project.current_stage_id,
+          name: project.current_stage_name,
+          description: project.current_stage_description,
+          stage_order: project.current_stage_order,
+          is_active: project.current_stage_is_active,
+          created_at: project.current_stage_created_at,
+          updated_at: project.current_stage_updated_at
+        } : null
       }));
 
       console.log('✅ Successfully mapped projects:', mappedProjects.length);

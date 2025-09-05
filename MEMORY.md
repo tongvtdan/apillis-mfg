@@ -49,3 +49,29 @@
 
 **Result**: Project list now displays proper customer organization names instead of "No Customer"
 
+### [done] 2025-01-30 - Database Schema Ambiguity Fix - Final Resolution ✅
+**Problem**: Frontend still showed "No Customer" despite database data being correct due to ambiguous column reference error in database queries
+**Root Cause**: The `projects` table had an ambiguous column reference issue with `project_id` that prevented all queries from working with anon key, even though service role queries worked perfectly
+**Solution**: 
+- ✅ Created `projects_view` database view that flattens all related data (organizations, workflow_stages) into a single queryable interface
+- ✅ Updated `useProjects` hook to use `projects_view` instead of `projects` table with complex joins
+- ✅ Updated data mapping logic to reconstruct nested objects from flattened view fields
+- ✅ Fixed RLS policies to use simpler organization-based access control
+- ✅ Verified customer names now display correctly: "Airbus Vietnam", "Toyota Vietnam", "Samsung Vietnam", "Honda Vietnam"
+
+**Technical Details**:
+- Database schema had ambiguous column reference preventing anon key queries on `projects` table
+- Service role queries worked perfectly, confirming data was correct
+- Created `projects_view` that joins projects with organizations and workflow_stages tables
+- View provides flattened fields like `customer_organization_name`, `current_stage_name`, etc.
+- Frontend mapping logic reconstructs nested `customer_organization` and `current_stage` objects
+- RLS policies simplified to use organization-based access instead of complex function calls
+
+**Files Modified**:
+- `supabase/migrations/20250130000006_fix_rls_policy.sql` - Simplified RLS policies
+- `supabase/migrations/20250130000007_create_projects_view.sql` - Created projects_view
+- `src/hooks/useProjects.ts` - Updated to use projects_view and new mapping logic
+
+**Result**: Frontend now displays proper customer organization names and stage names instead of "No Customer"
+
+
