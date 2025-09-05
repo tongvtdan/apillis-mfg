@@ -106,7 +106,7 @@ export function StageConfigurationPanel({ project, onStageUpdate }: StageConfigu
         // Basic logic to determine requirement status based on project data
         const lowerCriterion = criterion.toLowerCase();
 
-        if (lowerCriterion.includes('customer') && project.customer_id) {
+        if (lowerCriterion.includes('customer') && project.customer_organization_id) {
             return 'completed';
         }
         if (lowerCriterion.includes('description') && project.description) {
@@ -133,7 +133,7 @@ export function StageConfigurationPanel({ project, onStageUpdate }: StageConfigu
                         name: 'Customer Information',
                         description: 'Customer details and contact information must be complete',
                         type: 'data',
-                        status: project.customer_id ? 'completed' : 'pending',
+                        status: project.customer_organization_id ? 'completed' : 'pending',
                         required: true
                     },
                     {

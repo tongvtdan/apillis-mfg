@@ -91,7 +91,7 @@ export function EnhancedStageProgression({
         // In a real implementation, this would check actual completion criteria
         switch (stage.name) {
             case 'Inquiry Received':
-                return (project.customer_id ? 50 : 0) + (project.description ? 50 : 0);
+                return (project.customer_organization_id ? 50 : 0) + (project.description ? 50 : 0);
             case 'Technical Review':
                 return project.notes ? 75 : 25;
             case 'Supplier RFQ':

@@ -280,7 +280,7 @@ export function EnhancedProjectSummary({
                 </div>
 
                 {/* Customer Information */}
-                {project.customer && (
+                {project.customer_organization && (
                     <div className="p-3 bg-muted/50 rounded-lg">
                         <div className="flex items-center gap-2 text-sm font-medium mb-2">
                             <MapPin className="h-4 w-4" />
@@ -288,21 +288,21 @@ export function EnhancedProjectSummary({
                         </div>
                         <div className="grid grid-cols-1 md:grid-cols-2 gap-2 text-sm">
                             <div>
-                                <span className="font-medium">Company:</span> {project.customer.company_name}
+                                <span className="font-medium">Company:</span> {project.customer_organization.name}
                             </div>
-                            {project.customer.email && (
+                            {project.customer_organization.website && (
                                 <div>
-                                    <span className="font-medium">Email:</span> {project.customer.email}
+                                    <span className="font-medium">Website:</span> {project.customer_organization.website}
                                 </div>
                             )}
-                            {project.customer.phone && (
+                            {project.customer_organization.industry && (
                                 <div>
-                                    <span className="font-medium">Phone:</span> {project.customer.phone}
+                                    <span className="font-medium">Industry:</span> {project.customer_organization.industry}
                                 </div>
                             )}
-                            {project.customer.country && (
+                            {project.customer_organization.country && (
                                 <div>
-                                    <span className="font-medium">Country:</span> {project.customer.country}
+                                    <span className="font-medium">Country:</span> {project.customer_organization.country}
                                 </div>
                             )}
                         </div>

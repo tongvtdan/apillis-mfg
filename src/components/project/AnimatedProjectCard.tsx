@@ -104,7 +104,9 @@ export function AnimatedProjectCard({
     // Handle customer navigation
     const handleCustomerClick = (e: React.MouseEvent) => {
         e.stopPropagation();
-        if (project.customer?.id) {
+        if (project.customer_organization?.id) {
+            navigate(`/organizations/${project.customer_organization.id}`);
+        } else if (project.customer?.id) {
             navigate(`/customers/${project.customer.id}`);
         }
     };
