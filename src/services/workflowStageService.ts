@@ -17,11 +17,20 @@ class WorkflowStageService {
         }
 
         try {
-            const { data, error } = await supabase
+            const { data: userData } = await supabase.auth.getUser();
+            const organizationId = userData.user?.user_metadata?.organization_id;
+
+            let query = supabase
                 .from('workflow_stages')
                 .select('*')
-                .eq('is_active', true)
-                .order('stage_order', { ascending: true });
+                .eq('is_active', true);
+
+            // Filter by organization if available
+            if (organizationId) {
+                query = query.eq('organization_id', organizationId);
+            }
+
+            const { data, error } = await query.order('stage_order', { ascending: true });
 
             if (error) {
                 console.error('Error fetching workflow stages:', error);
