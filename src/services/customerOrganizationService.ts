@@ -35,8 +35,8 @@ export class CustomerOrganizationService {
                         is_active
                     )
                 `)
-                .eq('contacts.type', 'customer')
-                .eq('contacts.is_active', true)
+                .eq('organization_type', 'customer')
+                .eq('is_active', true)
                 .order('name');
 
             if (error) {
@@ -82,8 +82,8 @@ export class CustomerOrganizationService {
                     )
                 `)
                 .eq('id', id)
-                .eq('contacts.type', 'customer')
-                .eq('contacts.is_active', true)
+                .eq('organization_type', 'customer')
+                .eq('is_active', true)
                 .single();
 
             if (error) {

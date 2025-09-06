@@ -352,6 +352,7 @@ export function InquiryIntakeForm({ submissionType, onSuccess }: InquiryIntakeFo
             if (!customerOrganizationId && data.company) {
                 const newOrganization = await createOrganization({
                     name: data.company,
+                    organization_type: 'customer',
                     country: getCountryCode(data.country),
                     website: data.website || undefined,
                     description: 'Customer Organization'

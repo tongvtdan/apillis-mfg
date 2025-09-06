@@ -27,6 +27,7 @@ export interface Organization {
   postal_code?: string;
   website?: string;
   logo_url?: string;
+  organization_type: 'internal' | 'customer' | 'supplier' | 'partner';
   is_active: boolean;
   created_at: string;
   updated_at: string;
