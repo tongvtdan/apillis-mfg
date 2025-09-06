@@ -38,14 +38,6 @@ class ProjectDataService {
                 .from('projects')
                 .select(`
           *,
-          customer_organization:organizations(
-            id,
-            name
-          ),
-          current_stage:workflow_stages(
-            id,
-            name
-          ),
           documents:documents(
             id,
             organization_id,

@@ -126,10 +126,6 @@ export function useProjects() {
           notes,
           created_at,
           updated_at,
-          customer_organization:organizations(
-            id,
-            name
-          )
         `);
 
       // Add organization filter
@@ -172,8 +168,8 @@ export function useProjects() {
         return;
       }
 
-      // Validate and transform the data from projects table with proper relations
-      const mappedProjects = (data || []).map(project => ({
+      // Validate and transform the data from projects table
+      let mappedProjects = (data || []).map(project => ({
         ...project,
         // Ensure required fields have proper defaults
         status: project.status || 'active',
@@ -189,12 +185,48 @@ export function useProjects() {
         // Add computed fields for compatibility
         due_date: project.estimated_delivery_date, // Map estimated_delivery_date to due_date for compatibility
         priority: project.priority_level, // Map priority_level to priority for legacy compatibility
-        // Customer organization is already properly structured from the join
-        // Current stage is already properly structured from the join
+        // Customer organization will be fetched separately
+        customer_organization: null, // Will be populated below
+        // Current stage will be fetched separately
+        current_stage: null, // Will be populated below
         // Contacts will be fetched separately when needed using point_of_contacts IDs
         // Primary contact can be derived from the first contact ID in the array
         primary_contact: null // Will be populated separately when needed
       }));
+
+      // Fetch customer organizations separately to avoid ambiguous joins
+      if (mappedProjects.length > 0) {
+        const customerOrgIds = [...new Set(mappedProjects
+          .map(p => p.customer_organization_id)
+          .filter(id => id)
+        )];
+
+        if (customerOrgIds.length > 0) {
+          try {
+            const { data: orgs, error: orgError } = await supabase
+              .from('organizations')
+              .select('id, name')
+              .in('id', customerOrgIds);
+
+            if (!orgError && orgs) {
+              // Create a lookup map for organizations
+              const orgMap = orgs.reduce((acc, org) => {
+                acc[org.id] = org;
+                return acc;
+              }, {});
+
+              // Update projects with customer organization data
+              mappedProjects = mappedProjects.map(project => ({
+                ...project,
+                customer_organization: project.customer_organization_id ?
+                  orgMap[project.customer_organization_id] || null : null
+              }));
+            }
+          } catch (error) {
+            console.error('Error fetching customer organizations:', error);
+          }
+        }
+      }
 
       console.log('✅ Successfully mapped projects:', mappedProjects.length);
       setProjects(mappedProjects as Project[]);
