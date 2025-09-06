@@ -318,7 +318,7 @@ CREATE TABLE activity_log (
   id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
   organization_id UUID NOT NULL REFERENCES organizations(id),
   user_id UUID REFERENCES users(id),
-  project_id UUID REFERENCES projects(id),
+  project_id UUID REFERENCES projects(id), -- Added project_id column
   entity_type TEXT NOT NULL,
   entity_id TEXT NOT NULL,
   action TEXT NOT NULL,
@@ -332,6 +332,10 @@ CREATE TABLE activity_log (
 );
 ```
 
+**Key Updates**:
+- Added `project_id` column for better project-specific audit tracking
+- Enhanced relationship with projects table for comprehensive logging
+
 ### 12. Project Assignments
 **Purpose**: Project team management
 
@@ -344,6 +348,55 @@ CREATE TABLE project_assignments (
   assigned_at TIMESTAMPTZ DEFAULT now(),
   assigned_by UUID REFERENCES users(id),
   is_active BOOLEAN DEFAULT true
+);
+```
+
+### 13. Reviews
+**Purpose**: Project review and approval system
+
+```sql
+CREATE TABLE reviews (
+  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  organization_id UUID NOT NULL REFERENCES organizations(id),
+  project_id UUID NOT NULL REFERENCES projects(id),
+  reviewer_id UUID NOT NULL REFERENCES users(id),
+  review_type TEXT NOT NULL,
+  status TEXT,
+  priority priority_level_enum,
+  due_date TIMESTAMPTZ,
+  completed_at TIMESTAMPTZ,
+  decision TEXT,
+  decision_reason TEXT,
+  comments TEXT,
+  recommendations TEXT,
+  metadata JSONB,
+  created_by UUID REFERENCES users(id),
+  created_at TIMESTAMPTZ DEFAULT now(),
+  updated_at TIMESTAMPTZ DEFAULT now()
+);
+```
+
+### 14. Supplier Quotes
+**Purpose**: Supplier quotation management
+
+```sql
+CREATE TABLE supplier_quotes (
+  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  organization_id UUID NOT NULL REFERENCES organizations(id),
+  project_id UUID NOT NULL REFERENCES projects(id),
+  supplier_id UUID NOT NULL REFERENCES contacts(id),
+  quote_number TEXT,
+  total_amount NUMERIC,
+  currency TEXT,
+  lead_time_days INTEGER,
+  valid_until TIMESTAMPTZ,
+  submitted_at TIMESTAMPTZ,
+  status TEXT,
+  terms_and_conditions TEXT,
+  notes TEXT,
+  metadata JSONB,
+  created_at TIMESTAMPTZ DEFAULT now(),
+  updated_at TIMESTAMPTZ DEFAULT now()
 );
 ```
 
@@ -374,6 +427,90 @@ CREATE TYPE intake_type AS ENUM ('rfq', 'purchase_order', 'project_idea', 'direc
 
 -- Subscription plans
 CREATE TYPE subscription_plan AS ENUM ('starter', 'growth', 'enterprise');
+```
+
+## Database Functions
+
+### Security Functions
+```sql
+-- Get current user's organization ID
+CREATE FUNCTION get_current_user_org_id() RETURNS UUID
+AS $$
+  SELECT organization_id FROM users WHERE id = auth.uid();
+$$ LANGUAGE SQL SECURITY DEFINER;
+
+-- Get current user's role
+CREATE FUNCTION get_current_user_role() RETURNS TEXT
+AS $$
+  SELECT role FROM users WHERE id = auth.uid();
+$$ LANGUAGE SQL SECURITY DEFINER;
+
+-- Check if user can access a project
+CREATE FUNCTION can_access_project(project_id UUID) RETURNS BOOLEAN
+AS $$
+  SELECT EXISTS (
+    SELECT 1 FROM projects p
+    WHERE p.id = project_id
+    AND (
+      p.organization_id = get_current_user_org_id()
+      OR p.assigned_to = auth.uid()
+      OR p.created_by = auth.uid()
+    )
+  );
+$$ LANGUAGE SQL SECURITY DEFINER;
+
+-- Check if user is internal (not customer/supplier)
+CREATE FUNCTION is_internal_user() RETURNS BOOLEAN
+AS $$
+  SELECT role NOT IN ('customer', 'supplier') FROM users WHERE id = auth.uid();
+$$ LANGUAGE SQL SECURITY DEFINER;
+
+-- Check if user is portal user (customer/supplier)
+CREATE FUNCTION is_portal_user() RETURNS BOOLEAN
+AS $$
+  SELECT role IN ('customer', 'supplier') FROM users WHERE id = auth.uid();
+$$ LANGUAGE SQL SECURITY DEFINER;
+```
+
+### Notification Functions
+```sql
+-- Create notification for user
+CREATE FUNCTION create_notification(
+  p_user_id UUID,
+  p_type TEXT,
+  p_title TEXT,
+  p_message TEXT,
+  p_priority priority_level DEFAULT 'medium',
+  p_action_url TEXT DEFAULT NULL,
+  p_action_label TEXT DEFAULT NULL,
+  p_related_entity_type TEXT DEFAULT NULL,
+  p_related_entity_id TEXT DEFAULT NULL
+) RETURNS UUID
+AS $$
+  INSERT INTO notifications (
+    user_id, type, title, message, priority,
+    action_url, action_label, related_entity_type, related_entity_id,
+    organization_id
+  ) VALUES (
+    p_user_id, p_type, p_title, p_message, p_priority,
+    p_action_url, p_action_label, p_related_entity_type, p_related_entity_id,
+    get_current_user_org_id()
+  ) RETURNING id;
+$$ LANGUAGE SQL SECURITY DEFINER;
+```
+
+### Dashboard Functions
+```sql
+-- Get dashboard summary data
+CREATE FUNCTION get_dashboard_summary() RETURNS JSON
+AS $$
+  SELECT json_build_object(
+    'total_projects', (SELECT COUNT(*) FROM projects WHERE organization_id = get_current_user_org_id()),
+    'active_projects', (SELECT COUNT(*) FROM projects WHERE organization_id = get_current_user_org_id() AND status = 'active'),
+    'completed_projects', (SELECT COUNT(*) FROM projects WHERE organization_id = get_current_user_org_id() AND status = 'completed'),
+    'pending_reviews', (SELECT COUNT(*) FROM reviews WHERE organization_id = get_current_user_org_id() AND status = 'pending')
+  );
+$$ LANGUAGE SQL SECURITY DEFINER;
 ```
 
 ## Key Relationships
@@ -452,6 +589,49 @@ Workflow Responsibilities
 - User role-based access control
 - Project-specific permissions
 - Document access restrictions
+
+#### Current RLS Policies
+
+**Organizations Table**:
+```sql
+-- Allow all authenticated users to view organizations (for customer display)
+CREATE POLICY "Users can view all organizations" ON organizations FOR SELECT USING (true);
+CREATE POLICY "Users can insert organizations" ON organizations FOR INSERT WITH CHECK (auth.role() = 'authenticated');
+CREATE POLICY "Users can update their organization" ON organizations FOR UPDATE USING (auth.role() = 'authenticated');
+```
+
+**Projects Table**:
+```sql
+-- Complex project access based on user role and assignment
+CREATE POLICY "Users can modify projects" ON projects USING (
+  can_access_project(id) AND (
+    get_current_user_role() = ANY (ARRAY['admin', 'management']) OR
+    (get_current_user_role() = 'sales' AND current_stage_id IN (
+      SELECT id FROM workflow_stages WHERE 'sales' = ANY(responsible_roles)
+    )) OR
+    assigned_to = auth.uid() OR
+    created_by = auth.uid()
+  )
+);
+```
+
+**Documents Table**:
+```sql
+-- Document access based on project permissions
+CREATE POLICY "Users can view documents" ON documents FOR SELECT USING (
+  project_id IN (
+    SELECT id FROM projects WHERE can_access_project(id)
+  )
+);
+```
+
+**Activity Log Table**:
+```sql
+-- Activity logging restricted to organization
+CREATE POLICY "Users can view activity in their org" ON activity_log FOR SELECT USING (
+  organization_id = get_current_user_org_id()
+);
+```
 
 ### Authentication
 - Supabase Auth integration

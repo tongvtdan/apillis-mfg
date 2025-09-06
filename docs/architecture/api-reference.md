@@ -4,7 +4,60 @@
 
 Factory Pulse uses Supabase as the backend API, providing REST and GraphQL endpoints. This document outlines the key API endpoints, data structures, and integration patterns.
 
-## Authentication API
+## Database Functions API
+
+### Security Functions
+
+#### Get Current User Organization
+```typescript
+const { data, error } = await supabase.rpc('get_current_user_org_id');
+```
+
+#### Get Current User Role
+```typescript
+const { data, error } = await supabase.rpc('get_current_user_role');
+```
+
+#### Check Project Access
+```typescript
+const { data, error } = await supabase.rpc('can_access_project', {
+  project_id: projectId
+});
+```
+
+#### Check User Type
+```typescript
+// Check if user is internal (not customer/supplier)
+const { data: isInternal } = await supabase.rpc('is_internal_user');
+
+// Check if user is portal user (customer/supplier)
+const { data: isPortal } = await supabase.rpc('is_portal_user');
+```
+
+### Notification Functions
+
+#### Create Notification
+```typescript
+const { data, error } = await supabase.rpc('create_notification', {
+  p_user_id: userId,
+  p_type: 'project_update',
+  p_title: 'Project Status Changed',
+  p_message: 'Project has been moved to next stage',
+  p_priority: 'medium',
+  p_action_url: `/projects/${projectId}`,
+  p_action_label: 'View Project',
+  p_related_entity_type: 'project',
+  p_related_entity_id: projectId
+});
+```
+
+### Dashboard Functions
+
+#### Get Dashboard Summary
+```typescript
+const { data, error } = await supabase.rpc('get_dashboard_summary');
+// Returns: { total_projects, active_projects, completed_projects, pending_reviews }
+```
 
 ### Sign In
 ```typescript
@@ -357,6 +410,82 @@ const { data, error } = await supabase
   `)
   .eq('project_id', projectId)
   .order('created_at', { ascending: false });
+```
+
+## Reviews API
+
+### Get Reviews
+```typescript
+const { data, error } = await supabase
+  .from('reviews')
+  .select(`
+    *,
+    reviewer:users(name, email),
+    project:projects(title)
+  `)
+  .eq('project_id', projectId)
+  .order('created_at', { ascending: false });
+```
+
+### Create Review
+```typescript
+const { data, error } = await supabase
+  .from('reviews')
+  .insert({
+    organization_id: orgId,
+    project_id: projectId,
+    reviewer_id: reviewerId,
+    review_type: 'technical',
+    priority: 'high',
+    due_date: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toISOString(),
+    created_by: userId
+  });
+```
+
+### Update Review
+```typescript
+const { data, error } = await supabase
+  .from('reviews')
+  .update({
+    status: 'completed',
+    decision: 'approved',
+    decision_reason: 'All requirements met',
+    completed_at: new Date().toISOString()
+  })
+  .eq('id', reviewId);
+```
+
+## Supplier Quotes API
+
+### Get Supplier Quotes
+```typescript
+const { data, error } = await supabase
+  .from('supplier_quotes')
+  .select(`
+    *,
+    supplier:contacts(company_name, contact_name, email),
+    project:projects(title)
+  `)
+  .eq('project_id', projectId)
+  .order('submitted_at', { ascending: false });
+```
+
+### Create Supplier Quote
+```typescript
+const { data, error } = await supabase
+  .from('supplier_quotes')
+  .insert({
+    organization_id: orgId,
+    project_id: projectId,
+    supplier_id: supplierId,
+    quote_number: 'Q-2025-001',
+    total_amount: 50000,
+    currency: 'USD',
+    lead_time_days: 30,
+    valid_until: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString(),
+    status: 'submitted',
+    submitted_at: new Date().toISOString()
+  });
 ```
 
 ## Organizations API
