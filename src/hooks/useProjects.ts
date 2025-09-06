@@ -175,13 +175,6 @@ export function useProjects() {
         error: fetchError
       });
 
-      // Debug customer organization data
-      if (data && data.length > 0) {
-        console.log('🔍 First project raw data:', data[0]);
-        console.log('🏢 Customer organization in first project:', data[0].customer_organization);
-        console.log('🏢 Current stage in first project:', data[0].current_stage);
-      }
-
       if (fetchError) {
         console.error('❌ Error fetching projects:', fetchError);
         const errorMessage = fetchError.code === 'PGRST116'
@@ -217,8 +210,6 @@ export function useProjects() {
       }));
 
       console.log('✅ Successfully mapped projects:', mappedProjects.length);
-      console.log('First project customer data:', mappedProjects[0]?.customer_organization);
-      console.log('Raw project data sample:', data?.[0]);
       setProjects(mappedProjects as Project[]);
 
       // Cache the data appropriately
