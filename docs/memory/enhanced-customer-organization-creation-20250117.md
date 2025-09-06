@@ -106,25 +106,30 @@ INSERT INTO contacts (organization_id, type, contact_name, email, phone, is_prim
 **Files Modified:**
 - `src/components/project/intake/InquiryIntakeForm.tsx` (modal form fields)
 
-## Modal Visibility Improvements
+## Modal UI Enhancements
 
-### **Issue:** Transparent background making dialog hard to see
-
-**Root Cause:** Missing DialogOverlay and modal CSS classes
+### **Issue:** Limited contact information and poor organization
 
 **Solution:**
-- Added `DialogOverlay` with `bg-black/50` for backdrop
-- Applied modal CSS classes (`modal-dialog`, `modal-dialog-header`, etc.)
-- Added proper form input styling (`modal-form-input`, `modal-select-trigger`)
-- Styled buttons with `modal-button-primary` and `modal-button-secondary`
+- **Reorganized Layout:** Organization info at top, contact details at bottom
+- **Enhanced Contact Fields:** Added address, city, state, postal code, role, website, notes
+- **Better Visual Hierarchy:** Section headers with borders and proper spacing
+- **Improved Layout:** `max-w-4xl` with responsive grid and scrollable content
+- **Comprehensive Data:** Saves complete organization and contact information
+
+### **New Contact Fields Added:**
+- **Role:** Purchasing, Engineering, Quality Control, Management, Sales
+- **Address Information:** Street, City, State/Province, Postal Code
+- **Contact Website:** Personal website or LinkedIn profile
+- **Notes:** Additional contact information
+- **Industry:** Organization industry classification
 
 ### **Visual Improvements:**
-- **Backdrop:** Semi-transparent dark overlay (`bg-black/50`)
-- **Modal Content:** Proper shadow and border styling
-- **Header:** Gradient background with amber accent border
-- **Form Elements:** Consistent styling with focus states
-- **Buttons:** Amber-themed primary button with hover effects
-- **Max Width:** `max-w-2xl` for better layout
+- **Section Headers:** Clear separation with borders and typography
+- **Responsive Grid:** Works on mobile and desktop
+- **Scrollable Content:** `max-h-[90vh] overflow-y-auto` for long forms
+- **Better Spacing:** Improved padding and margins throughout
+- **Form Validation:** Enhanced validation for all required fields
 
 ## Testing
 
