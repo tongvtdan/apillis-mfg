@@ -103,6 +103,7 @@ export function InquiryIntakeForm({ submissionType, onSuccess }: InquiryIntakeFo
     const [pointOfContactsOpen, setPointOfContactsOpen] = useState(false);
     const [selectedContacts, setSelectedContacts] = useState<string[]>([]);
     const [showCountryDropdown, setShowCountryDropdown] = useState(false);
+    const [isCreatingOrganization, setIsCreatingOrganization] = useState(false);
 
     // Collapsible sections state
     const [collapsedSections, setCollapsedSections] = useState<Record<string, boolean>>({
@@ -224,6 +225,76 @@ export function InquiryIntakeForm({ submissionType, onSuccess }: InquiryIntakeFo
             [sectionKey]: !prev[sectionKey]
         }));
     }, []);
+
+    // Handle organization creation with primary contact
+    const handleCreateOrganization = useCallback(async () => {
+        setIsCreatingOrganization(true);
+
+        try {
+            const formData = form.getValues();
+
+            // Validate required fields
+            if (!formData.company || !formData.customerName || !formData.email || !formData.country) {
+                toast({
+                    title: "Missing Required Information",
+                    description: "Please fill in all required fields (Organization Name, Contact Name, Email, Country).",
+                    variant: "destructive",
+                });
+                return;
+            }
+
+            // Create organization with primary contact
+            const newOrganization = await createOrganization({
+                name: formData.company,
+                organization_type: 'customer',
+                country: getCountryCode(formData.country),
+                website: formData.website || undefined,
+                description: 'Customer Organization'
+            }, {
+                contact_name: formData.customerName,
+                email: formData.email,
+                phone: formData.phone || undefined,
+                role: 'primary',
+                is_primary_contact: true,
+                country: getCountryCode(formData.country)
+            });
+
+            // Auto-select the newly created organization
+            form.setValue('selectedCustomerId', newOrganization.id);
+
+            // Auto-fill form fields
+            form.setValue('company', newOrganization.name);
+            form.setValue('country', formData.country);
+            form.setValue('website', newOrganization.website || '');
+
+            // Auto-select the primary contact
+            if (newOrganization.primary_contact) {
+                setSelectedContacts([newOrganization.primary_contact.id]);
+                form.setValue('pointOfContacts', [newOrganization.primary_contact.id]);
+                form.setValue('customerName', newOrganization.primary_contact.contact_name || '');
+                form.setValue('email', newOrganization.primary_contact.email || '');
+                form.setValue('phone', newOrganization.primary_contact.phone || '');
+            }
+
+            // Close modal and show success
+            setCreateCustomerOpen(false);
+
+            toast({
+                title: "Organization Created Successfully!",
+                description: `${newOrganization.name} has been created with primary contact ${formData.customerName}.`,
+            });
+
+        } catch (error) {
+            console.error('Error creating organization:', error);
+            toast({
+                title: "Organization Creation Failed",
+                description: "There was an error creating the organization. Please try again.",
+                variant: "destructive",
+            });
+        } finally {
+            setIsCreatingOrganization(false);
+        }
+    }, [form, createOrganization, toast]);
 
     // Filter organizations based on search query
     const filteredOrganizations = React.useMemo(() => {
@@ -1286,7 +1357,7 @@ export function InquiryIntakeForm({ submissionType, onSuccess }: InquiryIntakeFo
                     <DialogHeader>
                         <DialogTitle>Create New Organization</DialogTitle>
                         <DialogDescription>
-                            Add a new customer organization to the system
+                            Add a new customer organization to the system. A primary contact will be automatically created and selected for this project.
                         </DialogDescription>
                     </DialogHeader>
                     <div className="space-y-4">
@@ -1346,36 +1417,51 @@ export function InquiryIntakeForm({ submissionType, onSuccess }: InquiryIntakeFo
                                 )}
                             />
                         </div>
-                        <FormField
-                            control={form.control}
-                            name="country"
-                            render={({ field }) => (
-                                <FormItem>
-                                    <FormLabel>Country *</FormLabel>
-                                    <Select onValueChange={field.onChange} defaultValue={field.value}>
+                        <div className="grid grid-cols-2 gap-4">
+                            <FormField
+                                control={form.control}
+                                name="country"
+                                render={({ field }) => (
+                                    <FormItem>
+                                        <FormLabel>Country *</FormLabel>
+                                        <Select onValueChange={field.onChange} defaultValue={field.value}>
+                                            <FormControl>
+                                                <SelectTrigger>
+                                                    <SelectValue placeholder="Select country" />
+                                                </SelectTrigger>
+                                            </FormControl>
+                                            <SelectContent>
+                                                <SelectItem value="US">United States</SelectItem>
+                                                <SelectItem value="VN">Vietnam</SelectItem>
+                                                <SelectItem value="JP">Japan</SelectItem>
+                                                <SelectItem value="CA">Canada</SelectItem>
+                                                <SelectItem value="MX">Mexico</SelectItem>
+                                                <SelectItem value="GB">United Kingdom</SelectItem>
+                                                <SelectItem value="DE">Germany</SelectItem>
+                                                <SelectItem value="FR">France</SelectItem>
+                                                <SelectItem value="CN">China</SelectItem>
+                                                <SelectItem value="IN">India</SelectItem>
+                                                <SelectItem value="AU">Australia</SelectItem>
+                                            </SelectContent>
+                                        </Select>
+                                        <FormMessage />
+                                    </FormItem>
+                                )}
+                            />
+                            <FormField
+                                control={form.control}
+                                name="website"
+                                render={({ field }) => (
+                                    <FormItem>
+                                        <FormLabel>Website</FormLabel>
                                         <FormControl>
-                                            <SelectTrigger>
-                                                <SelectValue placeholder="Select country" />
-                                            </SelectTrigger>
+                                            <Input placeholder="https://example.com" {...field} />
                                         </FormControl>
-                                        <SelectContent>
-                                            <SelectItem value="US">United States</SelectItem>
-                                            <SelectItem value="VN">Vietnam</SelectItem>
-                                            <SelectItem value="JP">Japan</SelectItem>
-                                            <SelectItem value="CA">Canada</SelectItem>
-                                            <SelectItem value="MX">Mexico</SelectItem>
-                                            <SelectItem value="GB">United Kingdom</SelectItem>
-                                            <SelectItem value="DE">Germany</SelectItem>
-                                            <SelectItem value="FR">France</SelectItem>
-                                            <SelectItem value="CN">China</SelectItem>
-                                            <SelectItem value="IN">India</SelectItem>
-                                            <SelectItem value="AU">Australia</SelectItem>
-                                        </SelectContent>
-                                    </Select>
-                                    <FormMessage />
-                                </FormItem>
-                            )}
-                        />
+                                        <FormMessage />
+                                    </FormItem>
+                                )}
+                            />
+                        </div>
                         <div className="flex justify-end gap-2">
                             <Button
                                 type="button"
@@ -1386,9 +1472,17 @@ export function InquiryIntakeForm({ submissionType, onSuccess }: InquiryIntakeFo
                             </Button>
                             <Button
                                 type="button"
-                                onClick={() => setCreateCustomerOpen(false)}
+                                onClick={handleCreateOrganization}
+                                disabled={isCreatingOrganization}
                             >
-                                Create Organization
+                                {isCreatingOrganization ? (
+                                    <>
+                                        <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                                        Creating...
+                                    </>
+                                ) : (
+                                    'Create Organization'
+                                )}
                             </Button>
                         </div>
                     </div>

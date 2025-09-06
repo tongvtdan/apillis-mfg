@@ -2,7 +2,7 @@
 // React hook for managing organization-based customer model
 
 import { useState, useEffect, useCallback } from 'react';
-import { CustomerOrganizationService, CustomerOrganization, ProjectContactPointWithDetails } from '@/services/customerOrganizationService';
+import { CustomerOrganizationServiceSimplified as CustomerOrganizationService, CustomerOrganization } from '@/services/customerOrganizationServiceSimplified';
 import { Contact, Organization } from '@/types/project';
 
 export interface UseCustomerOrganizationsOptions {
@@ -28,11 +28,11 @@ export function useCustomerOrganizations(options: UseCustomerOrganizationsOption
         }
     }, []);
 
-    const createOrganization = useCallback(async (organizationData: Partial<Organization>) => {
+    const createOrganization = useCallback(async (organizationData: Partial<Organization>, primaryContactData?: Partial<Contact>) => {
         try {
             setLoading(true);
             setError(null);
-            const newOrganization = await CustomerOrganizationService.createCustomerOrganization(organizationData);
+            const newOrganization = await CustomerOrganizationService.createCustomerOrganization(organizationData, primaryContactData);
             setOrganizations(prev => [...prev, newOrganization]);
             return newOrganization;
         } catch (err) {
