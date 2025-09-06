@@ -3757,9 +3757,9 @@ CREATE POLICY "Users can view attachments for their organization" ON "public"."a
 
 
 
-CREATE POLICY "Users can view contacts in their org" ON "public"."contacts" USING (("organization_id" IN ( SELECT "users"."organization_id"
+CREATE POLICY "Users can view contacts for project intake" ON "public"."contacts" FOR SELECT USING ((("organization_id" IN ( SELECT "users"."organization_id"
    FROM "public"."users"
-  WHERE ("users"."id" = "auth"."uid"()))));
+  WHERE ("users"."id" = "auth"."uid"()))) OR (("type" = 'customer'::"public"."contact_type") AND ("is_active" = true))));
 
 
 

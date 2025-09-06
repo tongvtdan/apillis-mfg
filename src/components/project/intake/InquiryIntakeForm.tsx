@@ -1,4 +1,4 @@
-import React, { useState, useCallback } from 'react';
+import React, { useState, useCallback, useEffect } from 'react';
 import { useForm, useFieldArray } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
@@ -22,6 +22,7 @@ import { ProjectIntakeService, ProjectIntakeData } from '@/services/projectIntak
 import { IntakeMappingService } from '@/services/intakeMappingService';
 import { Customer, Organization, Contact } from '@/types/project';
 import { cn } from '@/lib/utils';
+import { supabase } from '@/integrations/supabase/client';
 
 // Volume item schema
 const volumeItemSchema = z.object({
@@ -152,14 +153,49 @@ export function InquiryIntakeForm({ submissionType, onSuccess }: InquiryIntakeFo
     }, [form]);
 
     // Get contacts for the selected organization
-    const getOrganizationContacts = useCallback(() => {
-        const selectedOrganizationId = form.getValues('selectedCustomerId');
-        if (!selectedOrganizationId) return [];
+    const [organizationContacts, setOrganizationContacts] = useState<Contact[]>([]);
+    const [loadingContacts, setLoadingContacts] = useState(false);
 
-        // Find the selected organization and return its contacts
-        const selectedOrganization = organizations.find(org => org.id === selectedOrganizationId);
-        return selectedOrganization?.contacts || [];
-    }, [organizations, form]);
+    const getOrganizationContacts = useCallback(async (organizationId: string) => {
+        if (!organizationId) {
+            setOrganizationContacts([]);
+            return;
+        }
+
+        try {
+            setLoadingContacts(true);
+            const { data, error } = await supabase
+                .from('contacts')
+                .select('*')
+                .eq('organization_id', organizationId)
+                .eq('type', 'customer')
+                .eq('is_active', true)
+                .order('is_primary_contact', { ascending: false })
+                .order('contact_name');
+
+            if (error) {
+                console.error('Error fetching organization contacts:', error);
+                setOrganizationContacts([]);
+            } else {
+                setOrganizationContacts(data || []);
+            }
+        } catch (error) {
+            console.error('Error fetching organization contacts:', error);
+            setOrganizationContacts([]);
+        } finally {
+            setLoadingContacts(false);
+        }
+    }, []);
+
+    // Fetch contacts when organization changes
+    useEffect(() => {
+        const selectedOrganizationId = form.watch('selectedCustomerId');
+        if (selectedOrganizationId) {
+            getOrganizationContacts(selectedOrganizationId);
+        } else {
+            setOrganizationContacts([]);
+        }
+    }, [form.watch('selectedCustomerId'), getOrganizationContacts]);
 
     // Handle file upload
     const handleFileUpload = useCallback((file: File, documentIndex: number) => {
@@ -409,28 +445,39 @@ export function InquiryIntakeForm({ submissionType, onSuccess }: InquiryIntakeFo
                                                     <Command>
                                                         <CommandList>
                                                             <CommandGroup>
-                                                                {getOrganizationContacts().map((contact) => (
-                                                                    <CommandItem
-                                                                        key={contact.id}
-                                                                        value={contact.id}
-                                                                        onSelect={() => handlePointOfContactToggle(contact.id)}
-                                                                    >
-                                                                        <Check
-                                                                            className={cn(
-                                                                                "mr-2 h-4 w-4",
-                                                                                selectedContacts.includes(contact.id) ? "opacity-100" : "opacity-0"
-                                                                            )}
-                                                                        />
-                                                                        <div className="flex flex-col">
-                                                                            <span className="font-medium">
-                                                                                {contact.contact_name || 'Unnamed Contact'}
-                                                                            </span>
-                                                                            <span className="text-sm text-muted-foreground">
-                                                                                {contact.email || 'No email'}
-                                                                            </span>
-                                                                        </div>
+                                                                {loadingContacts ? (
+                                                                    <CommandItem disabled>
+                                                                        <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                                                                        Loading contacts...
                                                                     </CommandItem>
-                                                                ))}
+                                                                ) : organizationContacts.length === 0 ? (
+                                                                    <CommandItem disabled>
+                                                                        No contacts found for this organization
+                                                                    </CommandItem>
+                                                                ) : (
+                                                                    organizationContacts.map((contact) => (
+                                                                        <CommandItem
+                                                                            key={contact.id}
+                                                                            value={contact.id}
+                                                                            onSelect={() => handlePointOfContactToggle(contact.id)}
+                                                                        >
+                                                                            <Check
+                                                                                className={cn(
+                                                                                    "mr-2 h-4 w-4",
+                                                                                    selectedContacts.includes(contact.id) ? "opacity-100" : "opacity-0"
+                                                                                )}
+                                                                            />
+                                                                            <div className="flex flex-col">
+                                                                                <span className="font-medium">
+                                                                                    {contact.contact_name || 'Unnamed Contact'}
+                                                                                </span>
+                                                                                <span className="text-sm text-muted-foreground">
+                                                                                    {contact.email || 'No email'}
+                                                                                </span>
+                                                                            </div>
+                                                                        </CommandItem>
+                                                                    ))
+                                                                )}
                                                             </CommandGroup>
                                                         </CommandList>
                                                     </Command>
@@ -439,7 +486,7 @@ export function InquiryIntakeForm({ submissionType, onSuccess }: InquiryIntakeFo
                                             {selectedContacts.length > 0 && (
                                                 <div className="flex flex-wrap gap-1 mt-2">
                                                     {selectedContacts.map(contactId => {
-                                                        const contact = getOrganizationContacts().find(c => c.id === contactId);
+                                                        const contact = organizationContacts.find(c => c.id === contactId);
                                                         return contact ? (
                                                             <Badge key={contactId} variant="secondary" className="text-xs">
                                                                 {contact.contact_name || contact.email}
