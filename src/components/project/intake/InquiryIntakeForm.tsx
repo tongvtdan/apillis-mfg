@@ -71,6 +71,27 @@ interface InquiryIntakeFormProps {
     onSuccess?: (projectId: string) => void;
 }
 
+// Country code to name mapping
+const COUNTRY_NAMES: Record<string, string> = {
+    'US': 'United States',
+    'VN': 'Vietnam',
+    'JP': 'Japan',
+    'CA': 'Canada',
+    'MX': 'Mexico',
+    'GB': 'United Kingdom',
+    'DE': 'Germany',
+    'FR': 'France',
+    'CN': 'China',
+    'IN': 'India',
+    'AU': 'Australia'
+};
+
+// Helper function to get country code from display name
+const getCountryCode = (displayName: string): string => {
+    const entry = Object.entries(COUNTRY_NAMES).find(([_, name]) => name === displayName);
+    return entry ? entry[0] : displayName; // Return code if found, otherwise return as-is
+};
+
 export function InquiryIntakeForm({ submissionType, onSuccess }: InquiryIntakeFormProps) {
     const [isSubmitting, setIsSubmitting] = useState(false);
     const [isSubmitted, setIsSubmitted] = useState(false);
@@ -81,7 +102,7 @@ export function InquiryIntakeForm({ submissionType, onSuccess }: InquiryIntakeFo
     const [createCustomerOpen, setCreateCustomerOpen] = useState(false);
     const [pointOfContactsOpen, setPointOfContactsOpen] = useState(false);
     const [selectedContacts, setSelectedContacts] = useState<string[]>([]);
-    const [countryKey, setCountryKey] = useState(0); // Force re-render of country select
+    const [showCountryDropdown, setShowCountryDropdown] = useState(false);
 
     const { toast } = useToast();
     const { createProject } = useProjects();
@@ -123,12 +144,13 @@ export function InquiryIntakeForm({ submissionType, onSuccess }: InquiryIntakeFo
         form.setValue('company', organization.name || '');
 
         // Auto-fill organization-level information
-        const countryValue = organization.country || '';
-        form.setValue('country', countryValue);
+        const countryCode = organization.country || '';
+        const countryDisplay = countryCode ? (COUNTRY_NAMES[countryCode] || countryCode) : '';
+        form.setValue('country', countryDisplay);
         form.setValue('website', organization.website || '');
 
-        // Force re-render of country select component
-        setCountryKey(prev => prev + 1);
+        // Show country dropdown if organization doesn't have country
+        setShowCountryDropdown(!organization.country);
 
         // Show alert if organization doesn't have country information
         if (!organization.country) {
@@ -152,16 +174,23 @@ export function InquiryIntakeForm({ submissionType, onSuccess }: InquiryIntakeFo
     }, [form, toast]);
 
     // Handle country selection - update organization if needed
-    const handleCountryChange = useCallback(async (countryValue: string) => {
+    const handleCountryChange = useCallback(async (countryCode: string) => {
         const selectedOrganizationId = form.getValues('selectedCustomerId');
 
-        if (selectedOrganizationId && countryValue) {
+        if (selectedOrganizationId && countryCode) {
             try {
-                // Update the organization with the selected country
+                // Update the organization with the selected country code
                 await supabase
                     .from('organizations')
-                    .update({ country: countryValue } as any)
+                    .update({ country: countryCode } as any)
                     .eq('id', selectedOrganizationId as any);
+
+                // Update the form to show the full country name
+                const countryDisplay = COUNTRY_NAMES[countryCode] || countryCode;
+                form.setValue('country', countryDisplay);
+
+                // Hide country dropdown after selection
+                setShowCountryDropdown(false);
 
                 // Show success message
                 toast({
@@ -323,7 +352,7 @@ export function InquiryIntakeForm({ submissionType, onSuccess }: InquiryIntakeFo
             if (!customerOrganizationId && data.company) {
                 const newOrganization = await createOrganization({
                     name: data.company,
-                    country: data.country,
+                    country: getCountryCode(data.country),
                     website: data.website || undefined,
                     description: 'Customer Organization'
                 });
@@ -688,29 +717,40 @@ export function InquiryIntakeForm({ submissionType, onSuccess }: InquiryIntakeFo
                                 render={({ field }) => (
                                     <FormItem>
                                         <FormLabel>Country *</FormLabel>
-                                        <Select key={countryKey} onValueChange={(value) => {
-                                            field.onChange(value);
-                                            handleCountryChange(value);
-                                        }} value={field.value}>
-                                            <FormControl>
-                                                <SelectTrigger>
-                                                    <SelectValue placeholder="Select country" />
-                                                </SelectTrigger>
+                                        <div className="flex gap-2">
+                                            <FormControl className="flex-1">
+                                                <Input
+                                                    placeholder="Country will auto-fill when organization is selected"
+                                                    {...field}
+                                                    readOnly={!!field.value && !showCountryDropdown}
+                                                />
                                             </FormControl>
-                                            <SelectContent>
-                                                <SelectItem value="US">United States</SelectItem>
-                                                <SelectItem value="VN">Vietnam</SelectItem>
-                                                <SelectItem value="JP">Japan</SelectItem>
-                                                <SelectItem value="CA">Canada</SelectItem>
-                                                <SelectItem value="MX">Mexico</SelectItem>
-                                                <SelectItem value="GB">United Kingdom</SelectItem>
-                                                <SelectItem value="DE">Germany</SelectItem>
-                                                <SelectItem value="FR">France</SelectItem>
-                                                <SelectItem value="CN">China</SelectItem>
-                                                <SelectItem value="IN">India</SelectItem>
-                                                <SelectItem value="AU">Australia</SelectItem>
-                                            </SelectContent>
-                                        </Select>
+                                            {showCountryDropdown && (
+                                                <Select onValueChange={(value) => {
+                                                    field.onChange(value);
+                                                    handleCountryChange(value);
+                                                }} value="">
+                                                    <FormControl>
+                                                        <SelectTrigger className="w-[200px]">
+                                                            <SelectValue placeholder="Select country" />
+                                                        </SelectTrigger>
+                                                    </FormControl>
+                                                    <SelectContent>
+                                                        <SelectItem value="US">United States</SelectItem>
+                                                        <SelectItem value="VN">Vietnam</SelectItem>
+                                                        <SelectItem value="JP">Japan</SelectItem>
+                                                        <SelectItem value="CA">Canada</SelectItem>
+                                                        <SelectItem value="MX">Mexico</SelectItem>
+                                                        <SelectItem value="GB">United Kingdom</SelectItem>
+                                                        <SelectItem value="DE">Germany</SelectItem>
+                                                        <SelectItem value="FR">France</SelectItem>
+                                                        <SelectItem value="CN">China</SelectItem>
+                                                        <SelectItem value="IN">India</SelectItem>
+                                                        <SelectItem value="AU">Australia</SelectItem>
+                                                    </SelectContent>
+                                                </Select>
+                                            )}
+                                        </div>
                                         <FormMessage />
                                     </FormItem>
                                 )}
