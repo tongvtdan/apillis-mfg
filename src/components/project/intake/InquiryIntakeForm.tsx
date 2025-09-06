@@ -119,17 +119,98 @@ export function InquiryIntakeForm({ submissionType, onSuccess }: InquiryIntakeFo
     const handleOrganizationSelect = useCallback((organization: Organization) => {
         form.setValue('selectedCustomerId', organization.id);
         form.setValue('company', organization.name || '');
-        // Clear contact-related fields since we're selecting organization
-        form.setValue('customerName', '');
-        form.setValue('email', '');
-        form.setValue('phone', '');
+
+        // Auto-fill organization-level information
         form.setValue('country', organization.country || '');
+
+        // Show alert if organization doesn't have country information
+        if (!organization.country) {
+            toast({
+                title: "Country Information Missing",
+                description: "This organization doesn't have country information. Please select a country below.",
+                variant: "destructive",
+            });
+        }
+
         // Reset point of contacts when organization changes
         form.setValue('pointOfContacts', []);
         setSelectedContacts([]);
         setCustomerSearchOpen(false);
         setCustomerSearchQuery('');
-    }, [form]);
+
+        // Clear individual contact fields - they will be auto-filled when contacts are selected
+        form.setValue('customerName', '');
+        form.setValue('email', '');
+        form.setValue('phone', '');
+    }, [form, toast]);
+
+    // Handle country selection - update primary contact if needed
+    const handleCountryChange = useCallback(async (countryValue: string) => {
+        const selectedOrganizationId = form.getValues('selectedCustomerId');
+
+        if (selectedOrganizationId && countryValue) {
+            try {
+                // Find the primary contact for this organization
+                const { data: primaryContact, error: contactError } = await supabase
+                    .from('contacts')
+                    .select('id')
+                    .eq('organization_id', selectedOrganizationId as any)
+                    .eq('type', 'customer' as any)
+                    .eq('is_primary_contact', true as any)
+                    .single();
+
+                if (contactError && contactError.code !== 'PGRST116') {
+                    throw contactError;
+                }
+
+                let contactIdToUpdate = (primaryContact as any)?.id;
+
+                // If no primary contact, find the first contact
+                if (!contactIdToUpdate) {
+                    const { data: firstContact, error: firstContactError } = await supabase
+                        .from('contacts')
+                        .select('id')
+                        .eq('organization_id', selectedOrganizationId as any)
+                        .eq('type', 'customer' as any)
+                        .eq('is_active', true as any)
+                        .limit(1)
+                        .single();
+
+                    if (firstContactError && firstContactError.code !== 'PGRST116') {
+                        throw firstContactError;
+                    }
+                    contactIdToUpdate = (firstContact as any)?.id;
+                }
+
+                if (contactIdToUpdate) {
+                    // Update the primary contact with the selected country
+                    await supabase
+                        .from('contacts')
+                        .update({ country: countryValue } as any)
+                        .eq('id', contactIdToUpdate);
+
+                    // Show success message
+                    toast({
+                        title: "Contact Updated",
+                        description: `Country information has been updated for the primary contact.`,
+                    });
+                } else {
+                    toast({
+                        title: "No Contact Found",
+                        description: "No active contacts found for this organization to update.",
+                        variant: "destructive",
+                    });
+                }
+            } catch (error) {
+                console.error('Error updating contact country:', error);
+                toast({
+                    title: "Update Failed",
+                    description: "Failed to update contact country information.",
+                    variant: "destructive",
+                });
+            }
+        }
+    }, [form, toast]);
 
     // Filter organizations based on search query
     const filteredOrganizations = React.useMemo(() => {
@@ -141,6 +222,10 @@ export function InquiryIntakeForm({ submissionType, onSuccess }: InquiryIntakeFo
         );
     }, [organizations, customerSearchQuery]);
 
+    // Get contacts for the selected organization
+    const [organizationContacts, setOrganizationContacts] = useState<Contact[]>([]);
+    const [loadingContacts, setLoadingContacts] = useState(false);
+
     // Handle point of contact selection
     const handlePointOfContactToggle = useCallback((contactId: string) => {
         setSelectedContacts(prev => {
@@ -148,13 +233,28 @@ export function InquiryIntakeForm({ submissionType, onSuccess }: InquiryIntakeFo
                 ? prev.filter(id => id !== contactId)
                 : [...prev, contactId];
             form.setValue('pointOfContacts', newSelected);
+
+            // Auto-fill contact information when a contact is selected
+            if (!prev.includes(contactId)) {
+                // Contact is being added (not removed)
+                const selectedContact = organizationContacts.find(contact => contact.id === contactId);
+                if (selectedContact) {
+                    // Auto-fill the contact form fields (excluding country - use organization country only)
+                    form.setValue('customerName', selectedContact.contact_name || '');
+                    form.setValue('email', selectedContact.email || '');
+                    form.setValue('phone', selectedContact.phone || '');
+                    // Note: Country is handled separately from organization data
+
+                    // If organization name is not set, use the contact's company name
+                    if (!form.getValues('company')) {
+                        form.setValue('company', selectedContact.company_name || '');
+                    }
+                }
+            }
+
             return newSelected;
         });
-    }, [form]);
-
-    // Get contacts for the selected organization
-    const [organizationContacts, setOrganizationContacts] = useState<Contact[]>([]);
-    const [loadingContacts, setLoadingContacts] = useState(false);
+    }, [form, organizationContacts]);
 
     const getOrganizationContacts = useCallback(async (organizationId: string) => {
         if (!organizationId) {
@@ -167,9 +267,9 @@ export function InquiryIntakeForm({ submissionType, onSuccess }: InquiryIntakeFo
             const { data, error } = await supabase
                 .from('contacts')
                 .select('*')
-                .eq('organization_id', organizationId)
-                .eq('type', 'customer')
-                .eq('is_active', true)
+                .eq('organization_id', organizationId as any)
+                .eq('type', 'customer' as any)
+                .eq('is_active', true as any)
                 .order('is_primary_contact', { ascending: false })
                 .order('contact_name');
 
@@ -177,7 +277,7 @@ export function InquiryIntakeForm({ submissionType, onSuccess }: InquiryIntakeFo
                 console.error('Error fetching organization contacts:', error);
                 setOrganizationContacts([]);
             } else {
-                setOrganizationContacts(data || []);
+                setOrganizationContacts((data as any) || []);
             }
         } catch (error) {
             console.error('Error fetching organization contacts:', error);
@@ -196,6 +296,27 @@ export function InquiryIntakeForm({ submissionType, onSuccess }: InquiryIntakeFo
             setOrganizationContacts([]);
         }
     }, [form.watch('selectedCustomerId'), getOrganizationContacts]);
+
+    // Auto-select primary contact when contacts are loaded
+    useEffect(() => {
+        if (organizationContacts.length > 0 && selectedContacts.length === 0) {
+            // Find the primary contact
+            const primaryContact = organizationContacts.find(contact => contact.is_primary_contact);
+            const contactToSelect = primaryContact || organizationContacts[0]; // Fallback to first contact
+
+            if (contactToSelect) {
+                // Auto-select the primary/first contact
+                setSelectedContacts([contactToSelect.id]);
+                form.setValue('pointOfContacts', [contactToSelect.id]);
+
+                // Auto-fill contact information (excluding country - use organization country only)
+                form.setValue('customerName', contactToSelect.contact_name || '');
+                form.setValue('email', contactToSelect.email || '');
+                form.setValue('phone', contactToSelect.phone || '');
+                // Note: Country is handled separately from organization data
+            }
+        }
+    }, [organizationContacts, selectedContacts.length, form]);
 
     // Handle file upload
     const handleFileUpload = useCallback((file: File, documentIndex: number) => {
@@ -467,10 +588,17 @@ export function InquiryIntakeForm({ submissionType, onSuccess }: InquiryIntakeFo
                                                                                     selectedContacts.includes(contact.id) ? "opacity-100" : "opacity-0"
                                                                                 )}
                                                                             />
-                                                                            <div className="flex flex-col">
-                                                                                <span className="font-medium">
-                                                                                    {contact.contact_name || 'Unnamed Contact'}
-                                                                                </span>
+                                                                            <div className="flex flex-col flex-1">
+                                                                                <div className="flex items-center gap-2">
+                                                                                    <span className="font-medium">
+                                                                                        {contact.contact_name || 'Unnamed Contact'}
+                                                                                    </span>
+                                                                                    {contact.is_primary_contact && (
+                                                                                        <span className="text-xs bg-yellow-100 text-yellow-800 px-1.5 py-0.5 rounded">
+                                                                                            Primary
+                                                                                        </span>
+                                                                                    )}
+                                                                                </div>
                                                                                 <span className="text-sm text-muted-foreground">
                                                                                     {contact.email || 'No email'}
                                                                                 </span>
@@ -488,8 +616,15 @@ export function InquiryIntakeForm({ submissionType, onSuccess }: InquiryIntakeFo
                                                     {selectedContacts.map(contactId => {
                                                         const contact = organizationContacts.find(c => c.id === contactId);
                                                         return contact ? (
-                                                            <Badge key={contactId} variant="secondary" className="text-xs">
+                                                            <Badge
+                                                                key={contactId}
+                                                                variant={contact.is_primary_contact ? "default" : "secondary"}
+                                                                className="text-xs"
+                                                            >
                                                                 {contact.contact_name || contact.email}
+                                                                {contact.is_primary_contact && (
+                                                                    <span className="ml-1 text-xs">⭐</span>
+                                                                )}
                                                                 <X
                                                                     className="ml-1 h-3 w-3 cursor-pointer"
                                                                     onClick={() => handlePointOfContactToggle(contactId)}
@@ -571,7 +706,10 @@ export function InquiryIntakeForm({ submissionType, onSuccess }: InquiryIntakeFo
                                 render={({ field }) => (
                                     <FormItem>
                                         <FormLabel>Country *</FormLabel>
-                                        <Select onValueChange={field.onChange} defaultValue={field.value}>
+                                        <Select onValueChange={(value) => {
+                                            field.onChange(value);
+                                            handleCountryChange(value);
+                                        }} value={field.value}>
                                             <FormControl>
                                                 <SelectTrigger>
                                                     <SelectValue placeholder="Select country" />
@@ -668,7 +806,10 @@ export function InquiryIntakeForm({ submissionType, onSuccess }: InquiryIntakeFo
                                             render={({ field }) => (
                                                 <FormItem className="flex-1">
                                                     <FormLabel>Unit</FormLabel>
-                                                    <Select onValueChange={field.onChange} defaultValue={field.value}>
+                                                    <Select onValueChange={(value) => {
+                                                        field.onChange(value);
+                                                        handleCountryChange(value);
+                                                    }} value={field.value}>
                                                         <FormControl>
                                                             <SelectTrigger>
                                                                 <SelectValue placeholder="Select unit" />
@@ -691,7 +832,10 @@ export function InquiryIntakeForm({ submissionType, onSuccess }: InquiryIntakeFo
                                             render={({ field }) => (
                                                 <FormItem className="flex-1">
                                                     <FormLabel>Frequency</FormLabel>
-                                                    <Select onValueChange={field.onChange} defaultValue={field.value}>
+                                                    <Select onValueChange={(value) => {
+                                                        field.onChange(value);
+                                                        handleCountryChange(value);
+                                                    }} value={field.value}>
                                                         <FormControl>
                                                             <SelectTrigger>
                                                                 <SelectValue placeholder="Select frequency" />
@@ -765,7 +909,10 @@ export function InquiryIntakeForm({ submissionType, onSuccess }: InquiryIntakeFo
                                     render={({ field }) => (
                                         <FormItem>
                                             <FormLabel>Priority *</FormLabel>
-                                            <Select onValueChange={field.onChange} defaultValue={field.value}>
+                                            <Select onValueChange={(value) => {
+                                                field.onChange(value);
+                                                handleCountryChange(value);
+                                            }} value={field.value}>
                                                 <FormControl>
                                                     <SelectTrigger>
                                                         <SelectValue placeholder="Select priority" />
@@ -834,7 +981,10 @@ export function InquiryIntakeForm({ submissionType, onSuccess }: InquiryIntakeFo
                                             name={`documents.${index}.type`}
                                             render={({ field }) => (
                                                 <FormItem className="flex-1">
-                                                    <Select onValueChange={field.onChange} defaultValue={field.value}>
+                                                    <Select onValueChange={(value) => {
+                                                        field.onChange(value);
+                                                        handleCountryChange(value);
+                                                    }} value={field.value}>
                                                         <FormControl>
                                                             <SelectTrigger>
                                                                 <SelectValue placeholder="Select document type" />
