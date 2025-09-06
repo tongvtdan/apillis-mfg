@@ -38,8 +38,32 @@ class ProjectDataService {
                 .from('projects')
                 .select(`
           *,
-          customer_organization:organizations!customer_organization_id(*),
-          current_stage:workflow_stages!current_stage_id(*),
+          customer_organization:organizations!customer_organization_id(
+            id,
+            name,
+            slug,
+            description,
+            industry,
+            address,
+            city,
+            state,
+            country,
+            postal_code,
+            website,
+            logo_url,
+            is_active,
+            created_at,
+            updated_at
+          ),
+          current_stage:workflow_stages!current_stage_id(
+            id,
+            name,
+            description,
+            stage_order,
+            is_active,
+            created_at,
+            updated_at
+          ),
           documents:documents(
             id,
             organization_id,
