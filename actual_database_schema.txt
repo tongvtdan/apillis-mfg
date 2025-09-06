@@ -1,0 +1,529 @@
+=== Factory Pulse Database Schema Extraction ===
+Date: Sat Sep  6 15:40:33 +07 2025
+Database: Local Supabase (127.0.0.1:54322)
+
+=== TABLE LIST ===
+                     List of relations
+ Schema |             Name              | Type  |  Owner   
+--------+-------------------------------+-------+----------
+ public | activity_log                  | table | postgres
+ public | approval_attachments          | table | postgres
+ public | approval_chains               | table | postgres
+ public | approval_delegation_mappings  | table | postgres
+ public | approval_delegations          | table | postgres
+ public | approval_history              | table | postgres
+ public | approval_notifications        | table | postgres
+ public | approvals                     | table | postgres
+ public | contacts                      | table | postgres
+ public | document_access_log           | table | postgres
+ public | document_versions             | table | postgres
+ public | documents                     | table | postgres
+ public | messages                      | table | postgres
+ public | notifications                 | table | postgres
+ public | organizations                 | table | postgres
+ public | project_assignments           | table | postgres
+ public | project_contact_points_backup | table | postgres
+ public | project_sub_stage_progress    | table | postgres
+ public | projects                      | table | postgres
+ public | reviews                       | table | postgres
+ public | supplier_quotes               | table | postgres
+ public | supplier_rfqs                 | table | postgres
+ public | users                         | table | postgres
+ public | workflow_stages               | table | postgres
+ public | workflow_sub_stages           | table | postgres
+(25 rows)
+
+
+=== ENUM TYPES ===
+         typname         |         enumlabel          
+-------------------------+----------------------------
+ aal_level               | aal1
+ aal_level               | aal2
+ aal_level               | aal3
+ action                  | INSERT
+ action                  | UPDATE
+ action                  | DELETE
+ action                  | TRUNCATE
+ action                  | ERROR
+ approval_priority       | low
+ approval_priority       | normal
+ approval_priority       | high
+ approval_priority       | urgent
+ approval_priority       | critical
+ approval_status         | pending
+ approval_status         | in_review
+ approval_status         | approved
+ approval_status         | rejected
+ approval_status         | delegated
+ approval_status         | expired
+ approval_status         | cancelled
+ approval_status         | auto_approved
+ approval_status         | escalated
+ approval_type           | stage_transition
+ approval_type           | document_approval
+ approval_type           | engineering_change
+ approval_type           | supplier_qualification
+ approval_type           | purchase_order
+ approval_type           | cost_approval
+ approval_type           | quality_review
+ approval_type           | production_release
+ approval_type           | shipping_approval
+ approval_type           | contract_approval
+ approval_type           | budget_approval
+ approval_type           | safety_review
+ approval_type           | custom
+ buckettype              | STANDARD
+ buckettype              | ANALYTICS
+ code_challenge_method   | s256
+ code_challenge_method   | plain
+ contact_type            | customer
+ contact_type            | supplier
+ contact_type            | partner
+ contact_type            | internal
+ equality_op             | eq
+ equality_op             | neq
+ equality_op             | lt
+ equality_op             | lte
+ equality_op             | gt
+ equality_op             | gte
+ equality_op             | in
+ factor_status           | unverified
+ factor_status           | verified
+ factor_type             | totp
+ factor_type             | webauthn
+ factor_type             | phone
+ intake_type             | rfq
+ intake_type             | purchase_order
+ intake_type             | project_idea
+ intake_type             | direct_request
+ oauth_registration_type | dynamic
+ oauth_registration_type | manual
+ one_time_token_type     | confirmation_token
+ one_time_token_type     | reauthentication_token
+ one_time_token_type     | recovery_token
+ one_time_token_type     | email_change_token_new
+ one_time_token_type     | email_change_token_current
+ one_time_token_type     | phone_change_token
+ organization_type_enum  | internal
+ organization_type_enum  | customer
+ organization_type_enum  | supplier
+ organization_type_enum  | partner
+ priority_level          | low
+ priority_level          | medium
+ priority_level          | high
+ priority_level          | critical
+ project_status          | active
+ project_status          | completed
+ project_status          | cancelled
+ project_status          | on_hold
+ request_status          | PENDING
+ request_status          | SUCCESS
+ request_status          | ERROR
+ subscription_plan       | starter
+ subscription_plan       | growth
+ subscription_plan       | enterprise
+ user_role               | admin
+ user_role               | management
+ user_role               | sales
+ user_role               | engineering
+ user_role               | qa
+ user_role               | production
+ user_role               | procurement
+ user_role               | supplier
+ user_role               | customer
+ user_status             | active
+ user_status             | inactive
+ user_status             | pending
+ user_status             | suspended
+(98 rows)
+
+
+=== DATABASE FUNCTIONS ===
+               routine_name               | routine_type 
+------------------------------------------+--------------
+ add_contact_to_project                   | FUNCTION
+ auto_expire_overdue_approvals            | FUNCTION
+ can_access_project                       | FUNCTION
+ cleanup_old_document_versions            | FUNCTION
+ create_approval                          | FUNCTION
+ create_initial_document_version          | FUNCTION
+ create_notification                      | FUNCTION
+ create_project_sub_stage_progress        | FUNCTION
+ expire_approval_delegations              | FUNCTION
+ generate_project_id                      | FUNCTION
+ get_current_user_org_id                  | FUNCTION
+ get_current_user_role                    | FUNCTION
+ get_dashboard_summary                    | FUNCTION
+ get_document_version_history             | FUNCTION
+ get_pending_approvals_for_user           | FUNCTION
+ get_project_contacts                     | FUNCTION
+ get_project_primary_contact              | FUNCTION
+ get_user_organization                    | FUNCTION
+ handle_project_stage_change              | FUNCTION
+ is_approval_overdue                      | FUNCTION
+ is_internal_user                         | FUNCTION
+ is_portal_user                           | FUNCTION
+ log_activity                             | FUNCTION
+ remove_contact_from_project              | FUNCTION
+ set_approval_expires_at                  | FUNCTION
+ submit_approval_decision                 | FUNCTION
+ update_approval_delegations_updated_at   | FUNCTION
+ update_approval_updated_at               | FUNCTION
+ update_document_link_access              | FUNCTION
+ update_document_on_version_change        | FUNCTION
+ update_updated_at_column                 | FUNCTION
+ update_workflow_stage_sub_stages_count   | FUNCTION
+ validate_contact_migration               | FUNCTION
+ validate_customer_organization_migration | FUNCTION
+ validate_migration_before_cleanup        | FUNCTION
+(35 rows)
+
+
+=== RLS POLICIES COUNT ===
+ schemaname |          tablename           |                        policyname                         
+------------+------------------------------+-----------------------------------------------------------
+ public     | activity_log                 | Users can create activity logs
+ public     | activity_log                 | Users can delete activity in their org
+ public     | activity_log                 | Users can insert activity in their org
+ public     | activity_log                 | Users can update activity in their org
+ public     | activity_log                 | Users can view activity in their org
+ public     | approval_attachments         | Users can delete attachments they uploaded
+ public     | approval_attachments         | Users can upload attachments for their organization
+ public     | approval_attachments         | Users can view attachments for their organization
+ public     | approval_chains              | Users can create approval chains for their organization
+ public     | approval_chains              | Users can delete approval chains they created
+ public     | approval_chains              | Users can update approval chains they created
+ public     | approval_chains              | Users can view approval chains for their organization
+ public     | approval_delegation_mappings | Users can create delegation mappings
+ public     | approval_delegations         | Delegators can update their delegations
+ public     | approval_delegations         | Users can create their own delegations
+ public     | approval_history             | System can insert approval history
+ public     | approval_history             | Users can view approval history for their organization
+ public     | approval_notifications       | System can insert notifications
+ public     | approval_notifications       | Users can update their notifications
+ public     | approval_notifications       | Users can view their notifications
+ public     | approvals                    | Users can create approvals for their organization
+ public     | approvals                    | Users can delete approvals they created
+ public     | approvals                    | Users can update approvals they are involved with
+ public     | approvals                    | Users can view approvals for their organization
+ public     | contacts                     | Allow all operations for authenticated users
+ public     | contacts                     | Allow anonymous access
+ public     | document_access_log          | Users can insert document access logs
+ public     | document_access_log          | Users can view their own document access logs
+ public     | document_versions            | Users can create document versions for their organization
+ public     | document_versions            | Users can delete document versions they uploaded
+ public     | document_versions            | Users can update document versions they uploaded
+ public     | document_versions            | Users can view document versions for their organization
+ public     | documents                    | Users can modify documents
+ public     | documents                    | Users can modify documents in their org
+ public     | documents                    | Users can view documents
+ public     | documents                    | Users can view documents in their org
+ public     | messages                     | Users can send messages
+ public     | messages                     | Users can send messages in their org
+ public     | messages                     | Users can view messages
+ public     | messages                     | Users can view messages in their org
+ public     | notifications                | Users can update their own notifications
+ public     | notifications                | Users can view their own notifications
+ public     | organizations                | Allow all operations for authenticated users
+ public     | organizations                | Allow anonymous access
+ public     | project_assignments          | Users can modify project assignments
+ public     | project_assignments          | Users can view project assignments
+ public     | project_assignments          | Users can view project assignments in their org
+ public     | project_sub_stage_progress   | Users can view sub-stage progress for their organization
+ public     | projects                     | Users can modify projects
+ public     | projects                     | Users can modify projects in their org
+ public     | projects                     | Users can view projects
+ public     | projects                     | Users can view projects in their org
+ public     | reviews                      | Users can modify reviews
+ public     | reviews                      | Users can modify reviews in their org
+ public     | reviews                      | Users can view reviews
+ public     | reviews                      | Users can view reviews in their org
+ public     | supplier_quotes              | Users can modify supplier quotes
+ public     | supplier_quotes              | Users can view supplier quotes
+ public     | supplier_quotes              | Users can view supplier quotes in their org
+ public     | supplier_rfqs                | Users can create supplier RFQs in their org
+ public     | supplier_rfqs                | Users can view supplier RFQs in their org
+ public     | users                        | Users can create profiles
+ public     | users                        | Users can insert users
+ public     | users                        | Users can update their own profile
+ public     | users                        | Users can update users
+ public     | users                        | Users can view other users in their org
+ public     | users                        | Users can view their own profile
+ public     | users                        | Users can view users
+ public     | workflow_stages              | Users can modify workflow stages
+ public     | workflow_stages              | Users can view workflow stages in their org
+ public     | workflow_sub_stages          | Users can view sub-stages for their organization
+(71 rows)
+
+
+=== FOREIGN KEY RELATIONSHIPS ===
+          table_name          |       column_name        |  foreign_table_name  | foreign_column_name 
+------------------------------+--------------------------+----------------------+---------------------
+ activity_log                 | organization_id          | organizations        | id
+ activity_log                 | project_id               | projects             | id
+ activity_log                 | user_id                  | users                | id
+ approval_attachments         | approval_id              | approvals            | id
+ approval_attachments         | organization_id          | organizations        | id
+ approval_attachments         | uploaded_by              | users                | id
+ approval_chains              | created_by               | users                | id
+ approval_chains              | organization_id          | organizations        | id
+ approval_delegation_mappings | approval_id              | reviews              | id
+ approval_delegation_mappings | delegation_id            | approval_delegations | id
+ approval_history             | action_by                | users                | id
+ approval_history             | approval_id              | approvals            | id
+ approval_history             | organization_id          | organizations        | id
+ approval_notifications       | approval_id              | approvals            | id
+ approval_notifications       | organization_id          | organizations        | id
+ approval_notifications       | recipient_id             | users                | id
+ approvals                    | approval_chain_id        | approval_chains      | id
+ approvals                    | created_by               | users                | id
+ approvals                    | current_approver_id      | users                | id
+ approvals                    | decided_by               | users                | id
+ approvals                    | delegated_from           | users                | id
+ approvals                    | delegated_to             | users                | id
+ approvals                    | escalated_from           | approvals            | id
+ approvals                    | escalated_to             | users                | id
+ approvals                    | organization_id          | organizations        | id
+ approvals                    | requested_by             | users                | id
+ contacts                     | organization_id          | organizations        | id
+ document_access_log          | document_id              | documents            | id
+ document_access_log          | user_id                  | users                | id
+ document_versions            | document_id              | documents            | id
+ document_versions            | organization_id          | organizations        | id
+ document_versions            | uploaded_by              | users                | id
+ documents                    | approved_by              | users                | id
+ documents                    | organization_id          | organizations        | id
+ documents                    | project_id               | projects             | id
+ documents                    | uploaded_by              | users                | id
+ messages                     | organization_id          | organizations        | id
+ messages                     | parent_message_id        | messages             | id
+ messages                     | project_id               | projects             | id
+ messages                     | recipient_id             | users                | id
+ messages                     | sender_id                | users                | id
+ notifications                | organization_id          | organizations        | id
+ notifications                | user_id                  | users                | id
+ project_assignments          | assigned_by              | users                | id
+ project_assignments          | project_id               | projects             | id
+ project_assignments          | user_id                  | users                | id
+ project_sub_stage_progress   | assigned_to              | users                | id
+ project_sub_stage_progress   | organization_id          | organizations        | id
+ project_sub_stage_progress   | project_id               | projects             | id
+ project_sub_stage_progress   | sub_stage_id             | workflow_sub_stages  | id
+ project_sub_stage_progress   | workflow_stage_id        | workflow_stages      | id
+ projects                     | assigned_to              | users                | id
+ projects                     | created_by               | users                | id
+ projects                     | current_stage_id         | workflow_stages      | id
+ projects                     | customer_organization_id | organizations        | id
+ projects                     | organization_id          | organizations        | id
+ reviews                      | created_by               | users                | id
+ reviews                      | organization_id          | organizations        | id
+ reviews                      | project_id               | projects             | id
+ reviews                      | reviewer_id              | users                | id
+ supplier_quotes              | organization_id          | organizations        | id
+ supplier_quotes              | project_id               | projects             | id
+ supplier_quotes              | supplier_id              | contacts             | id
+ supplier_rfqs                | created_by               | users                | id
+ supplier_rfqs                | project_id               | projects             | id
+ supplier_rfqs                | supplier_id              | contacts             | id
+ users                        | direct_manager_id        | users                | id
+ users                        | organization_id          | organizations        | id
+ workflow_stages              | organization_id          | organizations        | id
+ workflow_sub_stages          | organization_id          | organizations        | id
+ workflow_sub_stages          | workflow_stage_id        | workflow_stages      | id
+(71 rows)
+
+
+=== INDEXES ===
+ schemaname |          tablename           |                         indexname                          |                                                                            indexdef                                                                            
+------------+------------------------------+------------------------------------------------------------+----------------------------------------------------------------------------------------------------------------------------------------------------------------
+ public     | activity_log                 | activity_log_pkey                                          | CREATE UNIQUE INDEX activity_log_pkey ON public.activity_log USING btree (id)
+ public     | activity_log                 | activity_log_project_id_idx                                | CREATE INDEX activity_log_project_id_idx ON public.activity_log USING btree (project_id)
+ public     | activity_log                 | idx_activity_log_created_at                                | CREATE INDEX idx_activity_log_created_at ON public.activity_log USING btree (created_at)
+ public     | activity_log                 | idx_activity_log_entity                                    | CREATE INDEX idx_activity_log_entity ON public.activity_log USING btree (entity_type, entity_id)
+ public     | activity_log                 | idx_activity_log_org_id                                    | CREATE INDEX idx_activity_log_org_id ON public.activity_log USING btree (organization_id)
+ public     | activity_log                 | idx_activity_log_user_id                                   | CREATE INDEX idx_activity_log_user_id ON public.activity_log USING btree (user_id)
+ public     | approval_attachments         | approval_attachments_pkey                                  | CREATE UNIQUE INDEX approval_attachments_pkey ON public.approval_attachments USING btree (id)
+ public     | approval_attachments         | idx_approval_attachments_approval                          | CREATE INDEX idx_approval_attachments_approval ON public.approval_attachments USING btree (approval_id)
+ public     | approval_attachments         | idx_approval_attachments_type                              | CREATE INDEX idx_approval_attachments_type ON public.approval_attachments USING btree (attachment_type)
+ public     | approval_attachments         | idx_approval_attachments_uploaded_by                       | CREATE INDEX idx_approval_attachments_uploaded_by ON public.approval_attachments USING btree (uploaded_by)
+ public     | approval_chains              | approval_chains_pkey                                       | CREATE UNIQUE INDEX approval_chains_pkey ON public.approval_chains USING btree (id)
+ public     | approval_delegation_mappings | approval_delegation_mappings_delegation_id_approval_id_key | CREATE UNIQUE INDEX approval_delegation_mappings_delegation_id_approval_id_key ON public.approval_delegation_mappings USING btree (delegation_id, approval_id)
+ public     | approval_delegation_mappings | approval_delegation_mappings_pkey                          | CREATE UNIQUE INDEX approval_delegation_mappings_pkey ON public.approval_delegation_mappings USING btree (id)
+ public     | approval_delegation_mappings | idx_approval_delegation_mappings_approval                  | CREATE INDEX idx_approval_delegation_mappings_approval ON public.approval_delegation_mappings USING btree (approval_id)
+ public     | approval_delegation_mappings | idx_approval_delegation_mappings_delegation                | CREATE INDEX idx_approval_delegation_mappings_delegation ON public.approval_delegation_mappings USING btree (delegation_id)
+ public     | approval_delegations         | approval_delegations_pkey                                  | CREATE UNIQUE INDEX approval_delegations_pkey ON public.approval_delegations USING btree (id)
+ public     | approval_delegations         | idx_approval_delegations_dates                             | CREATE INDEX idx_approval_delegations_dates ON public.approval_delegations USING btree (start_date, end_date)
+ public     | approval_delegations         | idx_approval_delegations_delegate                          | CREATE INDEX idx_approval_delegations_delegate ON public.approval_delegations USING btree (delegate_id)
+ public     | approval_delegations         | idx_approval_delegations_delegator                         | CREATE INDEX idx_approval_delegations_delegator ON public.approval_delegations USING btree (delegator_id)
+ public     | approval_delegations         | idx_approval_delegations_org                               | CREATE INDEX idx_approval_delegations_org ON public.approval_delegations USING btree (organization_id)
+ public     | approval_delegations         | idx_approval_delegations_status                            | CREATE INDEX idx_approval_delegations_status ON public.approval_delegations USING btree (status)
+ public     | approval_history             | approval_history_pkey                                      | CREATE UNIQUE INDEX approval_history_pkey ON public.approval_history USING btree (id)
+ public     | approval_history             | idx_approval_history_action_at                             | CREATE INDEX idx_approval_history_action_at ON public.approval_history USING btree (action_at)
+ public     | approval_history             | idx_approval_history_action_by                             | CREATE INDEX idx_approval_history_action_by ON public.approval_history USING btree (action_by)
+ public     | approval_history             | idx_approval_history_approval                              | CREATE INDEX idx_approval_history_approval ON public.approval_history USING btree (approval_id)
+ public     | approval_history             | idx_approval_history_status                                | CREATE INDEX idx_approval_history_status ON public.approval_history USING btree (old_status, new_status)
+ public     | approval_notifications       | approval_notifications_pkey                                | CREATE UNIQUE INDEX approval_notifications_pkey ON public.approval_notifications USING btree (id)
+ public     | approval_notifications       | idx_approval_notifications_approval                        | CREATE INDEX idx_approval_notifications_approval ON public.approval_notifications USING btree (approval_id)
+ public     | approval_notifications       | idx_approval_notifications_recipient                       | CREATE INDEX idx_approval_notifications_recipient ON public.approval_notifications USING btree (recipient_id)
+ public     | approval_notifications       | idx_approval_notifications_sent_at                         | CREATE INDEX idx_approval_notifications_sent_at ON public.approval_notifications USING btree (sent_at)
+ public     | approval_notifications       | idx_approval_notifications_status                          | CREATE INDEX idx_approval_notifications_status ON public.approval_notifications USING btree (delivery_status)
+ public     | approval_notifications       | idx_approval_notifications_type                            | CREATE INDEX idx_approval_notifications_type ON public.approval_notifications USING btree (notification_type)
+ public     | approvals                    | approvals_pkey                                             | CREATE UNIQUE INDEX approvals_pkey ON public.approvals USING btree (id)
+ public     | approvals                    | idx_approvals_chain                                        | CREATE INDEX idx_approvals_chain ON public.approvals USING btree (approval_chain_id, step_number)
+ public     | approvals                    | idx_approvals_created_at                                   | CREATE INDEX idx_approvals_created_at ON public.approvals USING btree (created_at)
+ public     | approvals                    | idx_approvals_current_approver                             | CREATE INDEX idx_approvals_current_approver ON public.approvals USING btree (current_approver_id)
+ public     | approvals                    | idx_approvals_due_date                                     | CREATE INDEX idx_approvals_due_date ON public.approvals USING btree (due_date)
+ public     | approvals                    | idx_approvals_entity                                       | CREATE INDEX idx_approvals_entity ON public.approvals USING btree (entity_type, entity_id)
+ public     | approvals                    | idx_approvals_expires_at                                   | CREATE INDEX idx_approvals_expires_at ON public.approvals USING btree (expires_at)
+ public     | approvals                    | idx_approvals_organization                                 | CREATE INDEX idx_approvals_organization ON public.approvals USING btree (organization_id)
+ public     | approvals                    | idx_approvals_priority                                     | CREATE INDEX idx_approvals_priority ON public.approvals USING btree (priority)
+ public     | approvals                    | idx_approvals_requested_by                                 | CREATE INDEX idx_approvals_requested_by ON public.approvals USING btree (requested_by)
+ public     | approvals                    | idx_approvals_status                                       | CREATE INDEX idx_approvals_status ON public.approvals USING btree (status)
+ public     | approvals                    | idx_approvals_type                                         | CREATE INDEX idx_approvals_type ON public.approvals USING btree (approval_type)
+ public     | contacts                     | contacts_pkey                                              | CREATE UNIQUE INDEX contacts_pkey ON public.contacts USING btree (id)
+ public     | contacts                     | idx_contacts_active                                        | CREATE INDEX idx_contacts_active ON public.contacts USING btree (is_active)
+ public     | contacts                     | idx_contacts_company                                       | CREATE INDEX idx_contacts_company ON public.contacts USING btree (company_name)
+ public     | contacts                     | idx_contacts_is_primary_contact                            | CREATE INDEX idx_contacts_is_primary_contact ON public.contacts USING btree (is_primary_contact)
+ public     | contacts                     | idx_contacts_org_id                                        | CREATE INDEX idx_contacts_org_id ON public.contacts USING btree (organization_id)
+ public     | contacts                     | idx_contacts_role                                          | CREATE INDEX idx_contacts_role ON public.contacts USING btree (role)
+ public     | contacts                     | idx_contacts_type                                          | CREATE INDEX idx_contacts_type ON public.contacts USING btree (type)
+ public     | document_access_log          | document_access_log_pkey                                   | CREATE UNIQUE INDEX document_access_log_pkey ON public.document_access_log USING btree (id)
+ public     | document_versions            | document_versions_pkey                                     | CREATE UNIQUE INDEX document_versions_pkey ON public.document_versions USING btree (id)
+ public     | document_versions            | idx_document_versions_document_id                          | CREATE INDEX idx_document_versions_document_id ON public.document_versions USING btree (document_id)
+ public     | document_versions            | idx_document_versions_is_current                           | CREATE INDEX idx_document_versions_is_current ON public.document_versions USING btree (document_id, is_current)
+ public     | document_versions            | idx_document_versions_organization                         | CREATE INDEX idx_document_versions_organization ON public.document_versions USING btree (organization_id)
+ public     | document_versions            | idx_document_versions_uploaded_at                          | CREATE INDEX idx_document_versions_uploaded_at ON public.document_versions USING btree (uploaded_at)
+ public     | document_versions            | idx_document_versions_uploaded_by                          | CREATE INDEX idx_document_versions_uploaded_by ON public.document_versions USING btree (uploaded_by)
+ public     | document_versions            | idx_document_versions_version_number                       | CREATE INDEX idx_document_versions_version_number ON public.document_versions USING btree (document_id, version_number)
+ public     | document_versions            | unique_document_version                                    | CREATE UNIQUE INDEX unique_document_version ON public.document_versions USING btree (document_id, version_number)
+ public     | documents                    | documents_pkey                                             | CREATE UNIQUE INDEX documents_pkey ON public.documents USING btree (id)
+ public     | documents                    | idx_documents_category                                     | CREATE INDEX idx_documents_category ON public.documents USING btree (category)
+ public     | documents                    | idx_documents_external_id                                  | CREATE INDEX idx_documents_external_id ON public.documents USING btree (external_id)
+ public     | documents                    | idx_documents_link_type                                    | CREATE INDEX idx_documents_link_type ON public.documents USING btree (link_type)
+ public     | documents                    | idx_documents_org_id                                       | CREATE INDEX idx_documents_org_id ON public.documents USING btree (organization_id)
+ public     | documents                    | idx_documents_project_id                                   | CREATE INDEX idx_documents_project_id ON public.documents USING btree (project_id)
+ public     | documents                    | idx_documents_sync_status                                  | CREATE INDEX idx_documents_sync_status ON public.documents USING btree (sync_status)
+ public     | documents                    | idx_documents_uploaded_by                                  | CREATE INDEX idx_documents_uploaded_by ON public.documents USING btree (uploaded_by)
+ public     | messages                     | idx_messages_org_id                                        | CREATE INDEX idx_messages_org_id ON public.messages USING btree (organization_id)
+ public     | messages                     | idx_messages_project_id                                    | CREATE INDEX idx_messages_project_id ON public.messages USING btree (project_id)
+ public     | messages                     | idx_messages_recipient                                     | CREATE INDEX idx_messages_recipient ON public.messages USING btree (recipient_id)
+ public     | messages                     | idx_messages_sender                                        | CREATE INDEX idx_messages_sender ON public.messages USING btree (sender_id)
+ public     | messages                     | idx_messages_thread                                        | CREATE INDEX idx_messages_thread ON public.messages USING btree (thread_id)
+ public     | messages                     | messages_pkey                                              | CREATE UNIQUE INDEX messages_pkey ON public.messages USING btree (id)
+ public     | notifications                | idx_notifications_org_id                                   | CREATE INDEX idx_notifications_org_id ON public.notifications USING btree (organization_id)
+ public     | notifications                | idx_notifications_status                                   | CREATE INDEX idx_notifications_status ON public.notifications USING btree (status)
+ public     | notifications                | idx_notifications_type                                     | CREATE INDEX idx_notifications_type ON public.notifications USING btree (type)
+ public     | notifications                | idx_notifications_user_id                                  | CREATE INDEX idx_notifications_user_id ON public.notifications USING btree (user_id)
+ public     | notifications                | notifications_pkey                                         | CREATE UNIQUE INDEX notifications_pkey ON public.notifications USING btree (id)
+ public     | organizations                | idx_organizations_city                                     | CREATE INDEX idx_organizations_city ON public.organizations USING btree (city)
+ public     | organizations                | idx_organizations_country                                  | CREATE INDEX idx_organizations_country ON public.organizations USING btree (country)
+ public     | organizations                | idx_organizations_is_active                                | CREATE INDEX idx_organizations_is_active ON public.organizations USING btree (is_active)
+ public     | organizations                | idx_organizations_slug                                     | CREATE INDEX idx_organizations_slug ON public.organizations USING btree (slug)
+ public     | organizations                | organizations_pkey                                         | CREATE UNIQUE INDEX organizations_pkey ON public.organizations USING btree (id)
+ public     | organizations                | organizations_slug_key                                     | CREATE UNIQUE INDEX organizations_slug_key ON public.organizations USING btree (slug)
+ public     | project_assignments          | idx_project_assignments_project                            | CREATE INDEX idx_project_assignments_project ON public.project_assignments USING btree (project_id)
+ public     | project_assignments          | idx_project_assignments_user                               | CREATE INDEX idx_project_assignments_user ON public.project_assignments USING btree (user_id)
+ public     | project_assignments          | project_assignments_pkey                                   | CREATE UNIQUE INDEX project_assignments_pkey ON public.project_assignments USING btree (id)
+ public     | project_assignments          | project_assignments_project_id_user_id_role_key            | CREATE UNIQUE INDEX project_assignments_project_id_user_id_role_key ON public.project_assignments USING btree (project_id, user_id, role)
+ public     | project_sub_stage_progress   | idx_project_sub_stage_progress_assigned_to                 | CREATE INDEX idx_project_sub_stage_progress_assigned_to ON public.project_sub_stage_progress USING btree (assigned_to)
+ public     | project_sub_stage_progress   | idx_project_sub_stage_progress_project_id                  | CREATE INDEX idx_project_sub_stage_progress_project_id ON public.project_sub_stage_progress USING btree (project_id)
+ public     | project_sub_stage_progress   | idx_project_sub_stage_progress_status                      | CREATE INDEX idx_project_sub_stage_progress_status ON public.project_sub_stage_progress USING btree (status)
+ public     | project_sub_stage_progress   | idx_project_sub_stage_progress_sub_stage_id                | CREATE INDEX idx_project_sub_stage_progress_sub_stage_id ON public.project_sub_stage_progress USING btree (sub_stage_id)
+ public     | project_sub_stage_progress   | idx_project_sub_stage_progress_workflow_stage_id           | CREATE INDEX idx_project_sub_stage_progress_workflow_stage_id ON public.project_sub_stage_progress USING btree (workflow_stage_id)
+ public     | project_sub_stage_progress   | project_sub_stage_progress_pkey                            | CREATE UNIQUE INDEX project_sub_stage_progress_pkey ON public.project_sub_stage_progress USING btree (id)
+ public     | project_sub_stage_progress   | project_sub_stage_progress_project_id_sub_stage_id_key     | CREATE UNIQUE INDEX project_sub_stage_progress_project_id_sub_stage_id_key ON public.project_sub_stage_progress USING btree (project_id, sub_stage_id)
+ public     | projects                     | idx_projects_assigned_to                                   | CREATE INDEX idx_projects_assigned_to ON public.projects USING btree (assigned_to)
+ public     | projects                     | idx_projects_created_by                                    | CREATE INDEX idx_projects_created_by ON public.projects USING btree (created_by)
+ public     | projects                     | idx_projects_customer_organization_id                      | CREATE INDEX idx_projects_customer_organization_id ON public.projects USING btree (customer_organization_id)
+ public     | projects                     | idx_projects_desired_delivery_date                         | CREATE INDEX idx_projects_desired_delivery_date ON public.projects USING btree (desired_delivery_date)
+ public     | projects                     | idx_projects_intake_source                                 | CREATE INDEX idx_projects_intake_source ON public.projects USING btree (intake_source)
+ public     | projects                     | idx_projects_intake_type                                   | CREATE INDEX idx_projects_intake_type ON public.projects USING btree (intake_type)
+ public     | projects                     | idx_projects_org_id                                        | CREATE INDEX idx_projects_org_id ON public.projects USING btree (organization_id)
+ public     | projects                     | idx_projects_point_of_contacts                             | CREATE INDEX idx_projects_point_of_contacts ON public.projects USING gin (point_of_contacts)
+ public     | projects                     | idx_projects_priority                                      | CREATE INDEX idx_projects_priority ON public.projects USING btree (priority_level)
+ public     | projects                     | idx_projects_project_id                                    | CREATE INDEX idx_projects_project_id ON public.projects USING btree (project_id)
+ public     | projects                     | idx_projects_project_reference                             | CREATE INDEX idx_projects_project_reference ON public.projects USING btree (project_reference)
+ public     | projects                     | idx_projects_stage                                         | CREATE INDEX idx_projects_stage ON public.projects USING btree (current_stage_id)
+ public     | projects                     | idx_projects_status                                        | CREATE INDEX idx_projects_status ON public.projects USING btree (status)
+ public     | projects                     | idx_projects_target_price                                  | CREATE INDEX idx_projects_target_price ON public.projects USING btree (target_price_per_unit)
+ public     | projects                     | idx_projects_volume                                        | CREATE INDEX idx_projects_volume ON public.projects USING gin (volume)
+ public     | projects                     | projects_pkey                                              | CREATE UNIQUE INDEX projects_pkey ON public.projects USING btree (id)
+ public     | projects                     | projects_project_id_key                                    | CREATE UNIQUE INDEX projects_project_id_key ON public.projects USING btree (project_id)
+ public     | reviews                      | idx_reviews_org_id                                         | CREATE INDEX idx_reviews_org_id ON public.reviews USING btree (organization_id)
+ public     | reviews                      | idx_reviews_project_id                                     | CREATE INDEX idx_reviews_project_id ON public.reviews USING btree (project_id)
+ public     | reviews                      | idx_reviews_reviewer                                       | CREATE INDEX idx_reviews_reviewer ON public.reviews USING btree (reviewer_id)
+ public     | reviews                      | idx_reviews_status                                         | CREATE INDEX idx_reviews_status ON public.reviews USING btree (status)
+ public     | reviews                      | idx_reviews_type                                           | CREATE INDEX idx_reviews_type ON public.reviews USING btree (review_type)
+ public     | reviews                      | reviews_pkey                                               | CREATE UNIQUE INDEX reviews_pkey ON public.reviews USING btree (id)
+ public     | supplier_quotes              | idx_supplier_quotes_org_id                                 | CREATE INDEX idx_supplier_quotes_org_id ON public.supplier_quotes USING btree (organization_id)
+ public     | supplier_quotes              | idx_supplier_quotes_project                                | CREATE INDEX idx_supplier_quotes_project ON public.supplier_quotes USING btree (project_id)
+ public     | supplier_quotes              | idx_supplier_quotes_supplier                               | CREATE INDEX idx_supplier_quotes_supplier ON public.supplier_quotes USING btree (supplier_id)
+ public     | supplier_quotes              | supplier_quotes_pkey                                       | CREATE UNIQUE INDEX supplier_quotes_pkey ON public.supplier_quotes USING btree (id)
+ public     | supplier_rfqs                | idx_supplier_rfqs_project_id                               | CREATE INDEX idx_supplier_rfqs_project_id ON public.supplier_rfqs USING btree (project_id)
+ public     | supplier_rfqs                | idx_supplier_rfqs_status                                   | CREATE INDEX idx_supplier_rfqs_status ON public.supplier_rfqs USING btree (status)
+ public     | supplier_rfqs                | idx_supplier_rfqs_supplier_id                              | CREATE INDEX idx_supplier_rfqs_supplier_id ON public.supplier_rfqs USING btree (supplier_id)
+ public     | supplier_rfqs                | supplier_rfqs_pkey                                         | CREATE UNIQUE INDEX supplier_rfqs_pkey ON public.supplier_rfqs USING btree (id)
+ public     | supplier_rfqs                | supplier_rfqs_rfq_number_key                               | CREATE UNIQUE INDEX supplier_rfqs_rfq_number_key ON public.supplier_rfqs USING btree (rfq_number)
+ public     | users                        | idx_users_email                                            | CREATE INDEX idx_users_email ON public.users USING btree (email)
+ public     | users                        | idx_users_manager                                          | CREATE INDEX idx_users_manager ON public.users USING btree (direct_manager_id)
+ public     | users                        | idx_users_org_id                                           | CREATE INDEX idx_users_org_id ON public.users USING btree (organization_id)
+ public     | users                        | idx_users_role                                             | CREATE INDEX idx_users_role ON public.users USING btree (role)
+ public     | users                        | idx_users_status                                           | CREATE INDEX idx_users_status ON public.users USING btree (status)
+ public     | users                        | users_email_key                                            | CREATE UNIQUE INDEX users_email_key ON public.users USING btree (email)
+ public     | users                        | users_pkey                                                 | CREATE UNIQUE INDEX users_pkey ON public.users USING btree (id)
+ public     | workflow_stages              | idx_workflow_stages_active                                 | CREATE INDEX idx_workflow_stages_active ON public.workflow_stages USING btree (organization_id, is_active)
+ public     | workflow_stages              | idx_workflow_stages_order                                  | CREATE INDEX idx_workflow_stages_order ON public.workflow_stages USING btree (organization_id, stage_order)
+ public     | workflow_stages              | idx_workflow_stages_org_id                                 | CREATE INDEX idx_workflow_stages_org_id ON public.workflow_stages USING btree (organization_id)
+ public     | workflow_stages              | workflow_stages_organization_id_slug_key                   | CREATE UNIQUE INDEX workflow_stages_organization_id_slug_key ON public.workflow_stages USING btree (organization_id, slug)
+ public     | workflow_stages              | workflow_stages_organization_id_stage_order_key            | CREATE UNIQUE INDEX workflow_stages_organization_id_stage_order_key ON public.workflow_stages USING btree (organization_id, stage_order)
+ public     | workflow_stages              | workflow_stages_pkey                                       | CREATE UNIQUE INDEX workflow_stages_pkey ON public.workflow_stages USING btree (id)
+ public     | workflow_sub_stages          | idx_workflow_sub_stages_is_active                          | CREATE INDEX idx_workflow_sub_stages_is_active ON public.workflow_sub_stages USING btree (is_active)
+ public     | workflow_sub_stages          | idx_workflow_sub_stages_order                              | CREATE INDEX idx_workflow_sub_stages_order ON public.workflow_sub_stages USING btree (workflow_stage_id, sub_stage_order)
+ public     | workflow_sub_stages          | idx_workflow_sub_stages_organization_id                    | CREATE INDEX idx_workflow_sub_stages_organization_id ON public.workflow_sub_stages USING btree (organization_id)
+ public     | workflow_sub_stages          | idx_workflow_sub_stages_workflow_stage_id                  | CREATE INDEX idx_workflow_sub_stages_workflow_stage_id ON public.workflow_sub_stages USING btree (workflow_stage_id)
+ public     | workflow_sub_stages          | workflow_sub_stages_pkey                                   | CREATE UNIQUE INDEX workflow_sub_stages_pkey ON public.workflow_sub_stages USING btree (id)
+ public     | workflow_sub_stages          | workflow_sub_stages_workflow_stage_id_slug_key             | CREATE UNIQUE INDEX workflow_sub_stages_workflow_stage_id_slug_key ON public.workflow_sub_stages USING btree (workflow_stage_id, slug)
+ public     | workflow_sub_stages          | workflow_sub_stages_workflow_stage_id_sub_stage_order_key  | CREATE UNIQUE INDEX workflow_sub_stages_workflow_stage_id_sub_stage_order_key ON public.workflow_sub_stages USING btree (workflow_stage_id, sub_stage_order)
+(148 rows)
+
+
+=== TRIGGERS ===
+                  trigger_name                  | event_manipulation |     event_object_table     |                     action_statement                      
+------------------------------------------------+--------------------+----------------------------+-----------------------------------------------------------
+ update_approval_delegations_updated_at         | UPDATE             | approval_delegations       | EXECUTE FUNCTION update_approval_delegations_updated_at()
+ trigger_set_approval_expires_at                | UPDATE             | approvals                  | EXECUTE FUNCTION set_approval_expires_at()
+ trigger_set_approval_expires_at                | INSERT             | approvals                  | EXECUTE FUNCTION set_approval_expires_at()
+ trigger_update_approval_updated_at             | UPDATE             | approvals                  | EXECUTE FUNCTION update_approval_updated_at()
+ log_contacts_activity                          | DELETE             | contacts                   | EXECUTE FUNCTION log_activity()
+ log_contacts_activity                          | INSERT             | contacts                   | EXECUTE FUNCTION log_activity()
+ log_contacts_activity                          | UPDATE             | contacts                   | EXECUTE FUNCTION log_activity()
+ update_contacts_updated_at                     | UPDATE             | contacts                   | EXECUTE FUNCTION update_updated_at_column()
+ document_link_access_trigger                   | INSERT             | document_access_log        | EXECUTE FUNCTION update_document_link_access()
+ trigger_update_document_on_version_change      | UPDATE             | document_versions          | EXECUTE FUNCTION update_document_on_version_change()
+ trigger_create_initial_document_version        | INSERT             | documents                  | EXECUTE FUNCTION create_initial_document_version()
+ update_documents_updated_at                    | UPDATE             | documents                  | EXECUTE FUNCTION update_updated_at_column()
+ update_messages_updated_at                     | UPDATE             | messages                   | EXECUTE FUNCTION update_updated_at_column()
+ update_notifications_updated_at                | UPDATE             | notifications              | EXECUTE FUNCTION update_updated_at_column()
+ update_organizations_updated_at                | UPDATE             | organizations              | EXECUTE FUNCTION update_updated_at_column()
+ set_project_sub_stage_progress_updated_at      | UPDATE             | project_sub_stage_progress | EXECUTE FUNCTION update_updated_at_column()
+ generate_project_id_trigger                    | INSERT             | projects                   | EXECUTE FUNCTION generate_project_id()
+ log_projects_activity                          | UPDATE             | projects                   | EXECUTE FUNCTION log_activity()
+ log_projects_activity                          | DELETE             | projects                   | EXECUTE FUNCTION log_activity()
+ log_projects_activity                          | INSERT             | projects                   | EXECUTE FUNCTION log_activity()
+ trigger_create_project_sub_stage_progress      | UPDATE             | projects                   | EXECUTE FUNCTION create_project_sub_stage_progress()
+ update_projects_updated_at                     | UPDATE             | projects                   | EXECUTE FUNCTION update_updated_at_column()
+ log_reviews_activity                           | UPDATE             | reviews                    | EXECUTE FUNCTION log_activity()
+ log_reviews_activity                           | DELETE             | reviews                    | EXECUTE FUNCTION log_activity()
+ log_reviews_activity                           | INSERT             | reviews                    | EXECUTE FUNCTION log_activity()
+ update_reviews_updated_at                      | UPDATE             | reviews                    | EXECUTE FUNCTION update_updated_at_column()
+ update_supplier_quotes_updated_at              | UPDATE             | supplier_quotes            | EXECUTE FUNCTION update_updated_at_column()
+ update_users_updated_at                        | UPDATE             | users                      | EXECUTE FUNCTION update_updated_at_column()
+ update_workflow_stages_updated_at              | UPDATE             | workflow_stages            | EXECUTE FUNCTION update_updated_at_column()
+ set_workflow_sub_stages_updated_at             | UPDATE             | workflow_sub_stages        | EXECUTE FUNCTION update_updated_at_column()
+ trigger_update_workflow_stage_sub_stages_count | UPDATE             | workflow_sub_stages        | EXECUTE FUNCTION update_workflow_stage_sub_stages_count()
+ trigger_update_workflow_stage_sub_stages_count | DELETE             | workflow_sub_stages        | EXECUTE FUNCTION update_workflow_stage_sub_stages_count()
+ trigger_update_workflow_stage_sub_stages_count | INSERT             | workflow_sub_stages        | EXECUTE FUNCTION update_workflow_stage_sub_stages_count()
+(33 rows)
+
+
+=== EXTRACTION COMPLETE ===

@@ -4,6 +4,10 @@
 
 Factory Pulse is a comprehensive Manufacturing Execution System (MES) built with React, TypeScript, and Supabase. This document provides detailed information about the current database schema, relationships, and data structures.
 
+**Last Updated:** 2025-01-17  
+**Database Version:** Local Supabase (25 tables, 35 functions, 11 enums)  
+**RLS Policies:** 71+ active policies
+
 ## Database Architecture
 
 ### Technology Stack
@@ -19,6 +23,8 @@ Factory Pulse is a comprehensive Manufacturing Execution System (MES) built with
 - Comprehensive audit logging for compliance
 - Role-based access control (RBAC)
 - Document management with version control
+- Advanced approval workflow system
+- Supplier management and RFQ system
 
 ## Core Tables
 
@@ -400,6 +406,242 @@ CREATE TABLE supplier_quotes (
 );
 ```
 
+### 15. Supplier RFQs
+**Purpose**: Request for Quotation management
+
+```sql
+CREATE TABLE supplier_rfqs (
+  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  project_id UUID REFERENCES projects(id),
+  supplier_id UUID REFERENCES contacts(id),
+  rfq_number VARCHAR(50) NOT NULL UNIQUE,
+  status VARCHAR(20) DEFAULT 'draft',
+  sent_at TIMESTAMPTZ,
+  viewed_at TIMESTAMPTZ,
+  due_date TIMESTAMPTZ,
+  expected_response_date DATE,
+  priority VARCHAR(10) DEFAULT 'medium',
+  requirements TEXT,
+  special_instructions TEXT,
+  created_by UUID REFERENCES users(id),
+  created_at TIMESTAMPTZ DEFAULT now(),
+  updated_at TIMESTAMPTZ DEFAULT now()
+);
+```
+
+## Approval System Tables
+
+### 16. Approvals
+**Purpose**: Core approval workflow management
+
+```sql
+CREATE TABLE approvals (
+  id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+  organization_id UUID NOT NULL REFERENCES organizations(id),
+  approval_type approval_type NOT NULL,
+  title VARCHAR(255) NOT NULL,
+  description TEXT,
+  reference_id VARCHAR(100),
+  entity_type VARCHAR(50) NOT NULL,
+  entity_id UUID NOT NULL,
+  approval_chain_id UUID REFERENCES approval_chains(id),
+  step_number INTEGER DEFAULT 1,
+  total_steps INTEGER DEFAULT 1,
+  requested_by UUID NOT NULL REFERENCES users(id),
+  requested_at TIMESTAMPTZ DEFAULT now(),
+  request_reason TEXT,
+  request_metadata JSONB DEFAULT '{}',
+  current_approver_id UUID REFERENCES users(id),
+  current_approver_role VARCHAR(50),
+  current_approver_department VARCHAR(100),
+  status approval_status DEFAULT 'pending',
+  priority approval_priority DEFAULT 'normal',
+  due_date TIMESTAMPTZ,
+  expires_at TIMESTAMPTZ,
+  decision_comments TEXT,
+  decision_reason TEXT,
+  decision_metadata JSONB DEFAULT '{}',
+  decided_at TIMESTAMPTZ,
+  decided_by UUID REFERENCES users(id),
+  escalated_from UUID REFERENCES approvals(id),
+  escalated_to UUID REFERENCES users(id),
+  escalated_at TIMESTAMPTZ,
+  escalation_reason TEXT,
+  delegated_from UUID REFERENCES users(id),
+  delegated_to UUID REFERENCES users(id),
+  delegated_at TIMESTAMPTZ,
+  delegation_reason TEXT,
+  delegation_end_date TIMESTAMPTZ,
+  auto_approval_rules JSONB DEFAULT '{}',
+  auto_approved_at TIMESTAMPTZ,
+  auto_approval_reason TEXT,
+  created_at TIMESTAMPTZ DEFAULT now(),
+  updated_at TIMESTAMPTZ DEFAULT now(),
+  created_by UUID REFERENCES users(id)
+);
+```
+
+### 17. Approval Chains
+**Purpose**: Configurable approval workflow definitions
+
+```sql
+CREATE TABLE approval_chains (
+  id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+  organization_id UUID REFERENCES organizations(id),
+  chain_name VARCHAR(255) NOT NULL,
+  entity_type VARCHAR(50) NOT NULL,
+  conditions JSONB NOT NULL,
+  steps JSONB NOT NULL,
+  is_active BOOLEAN DEFAULT true,
+  created_at TIMESTAMPTZ DEFAULT now(),
+  updated_at TIMESTAMPTZ DEFAULT now(),
+  created_by UUID REFERENCES users(id)
+);
+```
+
+### 18. Approval History
+**Purpose**: Audit trail for approval decisions
+
+```sql
+CREATE TABLE approval_history (
+  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  organization_id UUID NOT NULL REFERENCES organizations(id),
+  approval_id UUID NOT NULL REFERENCES approvals(id),
+  action VARCHAR(50) NOT NULL,
+  performed_by UUID REFERENCES users(id),
+  performed_at TIMESTAMPTZ DEFAULT now(),
+  comments TEXT,
+  metadata JSONB DEFAULT '{}'
+);
+```
+
+### 19. Approval Attachments
+**Purpose**: File attachments for approvals
+
+```sql
+CREATE TABLE approval_attachments (
+  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  organization_id UUID NOT NULL REFERENCES organizations(id),
+  approval_id UUID NOT NULL REFERENCES approvals(id),
+  file_name VARCHAR(255) NOT NULL,
+  file_path TEXT NOT NULL,
+  file_size BIGINT,
+  mime_type VARCHAR(100),
+  uploaded_by UUID REFERENCES users(id),
+  uploaded_at TIMESTAMPTZ DEFAULT now()
+);
+```
+
+### 20. Approval Delegations
+**Purpose**: Temporary approval delegation management
+
+```sql
+CREATE TABLE approval_delegations (
+  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  organization_id UUID NOT NULL REFERENCES organizations(id),
+  delegator_id UUID NOT NULL REFERENCES users(id),
+  delegate_id UUID NOT NULL REFERENCES users(id),
+  start_date TIMESTAMPTZ NOT NULL,
+  end_date TIMESTAMPTZ NOT NULL,
+  reason TEXT,
+  is_active BOOLEAN DEFAULT true,
+  created_at TIMESTAMPTZ DEFAULT now(),
+  updated_at TIMESTAMPTZ DEFAULT now()
+);
+```
+
+### 21. Approval Delegation Mappings
+**Purpose**: Role-based delegation mappings
+
+```sql
+CREATE TABLE approval_delegation_mappings (
+  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  organization_id UUID NOT NULL REFERENCES organizations(id),
+  delegation_id UUID NOT NULL REFERENCES approval_delegations(id),
+  role VARCHAR(50) NOT NULL,
+  department VARCHAR(100),
+  conditions JSONB DEFAULT '{}',
+  created_at TIMESTAMPTZ DEFAULT now()
+);
+```
+
+### 22. Approval Notifications
+**Purpose**: Notification management for approvals
+
+```sql
+CREATE TABLE approval_notifications (
+  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  organization_id UUID NOT NULL REFERENCES organizations(id),
+  approval_id UUID NOT NULL REFERENCES approvals(id),
+  user_id UUID NOT NULL REFERENCES users(id),
+  notification_type VARCHAR(50) NOT NULL,
+  title VARCHAR(255) NOT NULL,
+  message TEXT NOT NULL,
+  sent_at TIMESTAMPTZ DEFAULT now(),
+  read_at TIMESTAMPTZ,
+  metadata JSONB DEFAULT '{}'
+);
+```
+
+## Document Management Tables
+
+### 23. Document Versions
+**Purpose**: Document version control system
+
+```sql
+CREATE TABLE document_versions (
+  id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+  organization_id UUID NOT NULL REFERENCES organizations(id),
+  document_id UUID NOT NULL REFERENCES documents(id),
+  version_number INTEGER NOT NULL,
+  file_name VARCHAR(255) NOT NULL,
+  file_path TEXT NOT NULL,
+  file_size BIGINT NOT NULL,
+  mime_type VARCHAR(100),
+  title VARCHAR(255) NOT NULL,
+  description TEXT,
+  change_summary TEXT,
+  uploaded_by UUID REFERENCES users(id),
+  uploaded_at TIMESTAMPTZ DEFAULT now(),
+  is_current BOOLEAN DEFAULT false,
+  metadata JSONB DEFAULT '{}',
+  created_at TIMESTAMPTZ DEFAULT now(),
+  updated_at TIMESTAMPTZ DEFAULT now(),
+  UNIQUE(document_id, version_number)
+);
+```
+
+### 24. Document Access Log
+**Purpose**: Document access audit trail
+
+```sql
+CREATE TABLE document_access_log (
+  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  document_id UUID NOT NULL REFERENCES documents(id),
+  user_id UUID NOT NULL REFERENCES users(id),
+  access_type VARCHAR(50) NOT NULL,
+  accessed_at TIMESTAMPTZ DEFAULT now(),
+  ip_address INET,
+  user_agent TEXT,
+  metadata JSONB DEFAULT '{}'
+);
+```
+
+### 25. Project Contact Points Backup
+**Purpose**: Backup table for project contact relationships
+
+```sql
+CREATE TABLE project_contact_points_backup (
+  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  project_id UUID NOT NULL REFERENCES projects(id),
+  contact_id UUID NOT NULL REFERENCES contacts(id),
+  role VARCHAR(100),
+  is_primary BOOLEAN DEFAULT false,
+  created_at TIMESTAMPTZ DEFAULT now(),
+  updated_at TIMESTAMPTZ DEFAULT now()
+);
+```
+
 ## Enums and Types
 
 ### Database Enums
@@ -427,6 +669,28 @@ CREATE TYPE intake_type AS ENUM ('rfq', 'purchase_order', 'project_idea', 'direc
 
 -- Subscription plans
 CREATE TYPE subscription_plan AS ENUM ('starter', 'growth', 'enterprise');
+
+-- Approval system enums
+CREATE TYPE approval_type AS ENUM (
+  'stage_transition', 'document_approval', 'engineering_change',
+  'supplier_qualification', 'purchase_order', 'cost_approval',
+  'quality_review', 'production_release', 'shipping_approval',
+  'contract_approval', 'budget_approval', 'safety_review', 'custom'
+);
+
+CREATE TYPE approval_status AS ENUM (
+  'pending', 'in_review', 'approved', 'rejected', 'delegated',
+  'expired', 'cancelled', 'auto_approved', 'escalated'
+);
+
+CREATE TYPE approval_priority AS ENUM (
+  'low', 'normal', 'high', 'urgent', 'critical'
+);
+
+-- Organization types
+CREATE TYPE organization_type_enum AS ENUM (
+  'internal', 'customer', 'supplier', 'partner'
+);
 ```
 
 ## Database Functions
@@ -472,37 +736,147 @@ AS $$
 $$ LANGUAGE SQL SECURITY DEFINER;
 ```
 
+### Approval Functions
+```sql
+-- Create approval
+CREATE FUNCTION create_approval(
+  p_organization_id UUID,
+  p_approval_type approval_type,
+  p_title VARCHAR,
+  p_description TEXT,
+  p_entity_type VARCHAR,
+  p_entity_id UUID,
+  p_requested_by UUID,
+  p_current_approver_id UUID,
+  p_current_approver_role VARCHAR,
+  p_priority approval_priority DEFAULT 'normal',
+  p_due_date TIMESTAMPTZ DEFAULT NULL,
+  p_request_reason TEXT DEFAULT NULL,
+  p_request_metadata JSONB DEFAULT '{}'
+) RETURNS UUID;
+
+-- Submit approval decision
+CREATE FUNCTION submit_approval_decision(
+  p_approval_id UUID,
+  p_decision approval_status,
+  p_comments TEXT DEFAULT NULL,
+  p_reason TEXT DEFAULT NULL,
+  p_metadata JSONB DEFAULT '{}'
+) RETURNS BOOLEAN;
+
+-- Get pending approvals for user
+CREATE FUNCTION get_pending_approvals_for_user(p_user_id UUID)
+RETURNS TABLE(
+  approval_id UUID,
+  approval_type approval_type,
+  title VARCHAR,
+  description TEXT,
+  entity_type VARCHAR,
+  entity_id UUID,
+  priority approval_priority,
+  due_date TIMESTAMPTZ,
+  created_at TIMESTAMPTZ,
+  requested_by_name VARCHAR,
+  days_overdue INTEGER
+);
+
+-- Check if approval is overdue
+CREATE FUNCTION is_approval_overdue(p_approval_id UUID) RETURNS BOOLEAN;
+
+-- Auto expire overdue approvals
+CREATE FUNCTION auto_expire_overdue_approvals() RETURNS INTEGER;
+
+-- Expire approval delegations
+CREATE FUNCTION expire_approval_delegations() RETURNS VOID;
+```
+
+### Document Functions
+```sql
+-- Get document version history
+CREATE FUNCTION get_document_version_history(p_document_id UUID)
+RETURNS TABLE(
+  version_id UUID,
+  version_number INTEGER,
+  file_name VARCHAR,
+  file_size BIGINT,
+  mime_type VARCHAR,
+  title VARCHAR,
+  description TEXT,
+  change_summary TEXT,
+  uploaded_by UUID,
+  uploader_name VARCHAR,
+  uploader_email VARCHAR,
+  uploaded_at TIMESTAMPTZ,
+  is_current BOOLEAN
+);
+
+-- Cleanup old document versions
+CREATE FUNCTION cleanup_old_document_versions(
+  p_document_id UUID,
+  p_keep_versions INTEGER DEFAULT 10
+) RETURNS INTEGER;
+```
+
+### Project Contact Functions
+```sql
+-- Add contact to project
+CREATE FUNCTION add_contact_to_project(
+  project_uuid UUID,
+  contact_uuid UUID,
+  make_primary BOOLEAN DEFAULT false
+) RETURNS BOOLEAN;
+
+-- Remove contact from project
+CREATE FUNCTION remove_contact_from_project(
+  project_uuid UUID,
+  contact_uuid UUID
+) RETURNS BOOLEAN;
+
+-- Get project contacts
+CREATE FUNCTION get_project_contacts(project_uuid UUID)
+RETURNS TABLE(
+  contact_id UUID,
+  contact_name VARCHAR,
+  email VARCHAR,
+  phone VARCHAR,
+  role VARCHAR,
+  is_primary_contact BOOLEAN,
+  is_project_primary BOOLEAN,
+  company_name VARCHAR
+);
+
+-- Get project primary contact
+CREATE FUNCTION get_project_primary_contact(project_uuid UUID)
+RETURNS TABLE(
+  contact_id UUID,
+  contact_name VARCHAR,
+  email VARCHAR,
+  phone VARCHAR,
+  role VARCHAR,
+  company_name VARCHAR
+);
+```
+
 ### Notification Functions
 ```sql
 -- Create notification for user
 CREATE FUNCTION create_notification(
   p_user_id UUID,
-  p_type TEXT,
   p_title TEXT,
   p_message TEXT,
+  p_type TEXT,
   p_priority priority_level DEFAULT 'medium',
   p_action_url TEXT DEFAULT NULL,
   p_action_label TEXT DEFAULT NULL,
   p_related_entity_type TEXT DEFAULT NULL,
-  p_related_entity_id TEXT DEFAULT NULL
-) RETURNS UUID
-AS $$
-  INSERT INTO notifications (
-    user_id, type, title, message, priority,
-    action_url, action_label, related_entity_type, related_entity_id,
-    organization_id
-  ) VALUES (
-    p_user_id, p_type, p_title, p_message, p_priority,
-    p_action_url, p_action_label, p_related_entity_type, p_related_entity_id,
-    get_current_user_org_id()
-  ) RETURNING id;
-$$ LANGUAGE SQL SECURITY DEFINER;
+  p_related_entity_id UUID DEFAULT NULL
+) RETURNS UUID;
 ```
 
 ### Dashboard Functions
 ```sql
 -- Get dashboard summary data
-CREATE FUNCTION get_dashboard_summary() RETURNS JSON
+CREATE FUNCTION get_dashboard_summary() RETURNS JSONB
 AS $$
   SELECT json_build_object(
     'total_projects', (SELECT COUNT(*) FROM projects WHERE organization_id = get_current_user_org_id()),
@@ -511,6 +885,73 @@ AS $$
     'pending_reviews', (SELECT COUNT(*) FROM reviews WHERE organization_id = get_current_user_org_id() AND status = 'pending')
   );
 $$ LANGUAGE SQL SECURITY DEFINER;
+```
+
+### Trigger Functions
+```sql
+-- Update updated_at column
+CREATE FUNCTION update_updated_at_column() RETURNS TRIGGER;
+
+-- Generate project ID
+CREATE FUNCTION generate_project_id() RETURNS TRIGGER;
+
+-- Handle project stage change
+CREATE FUNCTION handle_project_stage_change() RETURNS TRIGGER;
+
+-- Create project sub stage progress
+CREATE FUNCTION create_project_sub_stage_progress() RETURNS TRIGGER;
+
+-- Log activity
+CREATE FUNCTION log_activity() RETURNS TRIGGER;
+
+-- Create initial document version
+CREATE FUNCTION create_initial_document_version() RETURNS TRIGGER;
+
+-- Update document on version change
+CREATE FUNCTION update_document_on_version_change() RETURNS TRIGGER;
+
+-- Update document link access
+CREATE FUNCTION update_document_link_access() RETURNS TRIGGER;
+
+-- Set approval expires at
+CREATE FUNCTION set_approval_expires_at() RETURNS TRIGGER;
+
+-- Update approval updated at
+CREATE FUNCTION update_approval_updated_at() RETURNS TRIGGER;
+
+-- Update approval delegations updated at
+CREATE FUNCTION update_approval_delegations_updated_at() RETURNS TRIGGER;
+
+-- Update workflow stage sub stages count
+CREATE FUNCTION update_workflow_stage_sub_stages_count() RETURNS TRIGGER;
+```
+
+### Migration Validation Functions
+```sql
+-- Validate contact migration
+CREATE FUNCTION validate_contact_migration()
+RETURNS TABLE(
+  validation_type VARCHAR,
+  count_value INTEGER,
+  status VARCHAR
+);
+
+-- Validate customer organization migration
+CREATE FUNCTION validate_customer_organization_migration()
+RETURNS TABLE(
+  validation_type VARCHAR,
+  count_value INTEGER,
+  status VARCHAR
+);
+
+-- Validate migration before cleanup
+CREATE FUNCTION validate_migration_before_cleanup()
+RETURNS TABLE(
+  validation_type VARCHAR,
+  count_value INTEGER,
+  status VARCHAR,
+  details TEXT
+);
 ```
 
 ## Key Relationships
