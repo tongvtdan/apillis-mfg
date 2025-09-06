@@ -30,11 +30,6 @@ export class CustomerOrganizationService {
                         contact_name,
                         email,
                         phone,
-                        country,
-                        address,
-                        city,
-                        state,
-                        postal_code,
                         role,
                         is_primary_contact,
                         is_active
@@ -49,12 +44,11 @@ export class CustomerOrganizationService {
                 throw new Error(`Failed to fetch customer organizations: ${error.message}`);
             }
 
-            // Process organizations to set primary contact and country from primary contact
+            // Process organizations to set primary contact
             const organizations = (data || []).map(org => {
                 const primaryContact = org.contacts?.find((c: Contact) => c.is_primary_contact) || org.contacts?.[0] || null;
                 return {
                     ...org,
-                    country: primaryContact?.country || org.country, // Use primary contact's country, fallback to org country
                     primary_contact: primaryContact
                 };
             });
@@ -82,11 +76,6 @@ export class CustomerOrganizationService {
                         contact_name,
                         email,
                         phone,
-                        country,
-                        address,
-                        city,
-                        state,
-                        postal_code,
                         role,
                         is_primary_contact,
                         is_active
@@ -105,11 +94,10 @@ export class CustomerOrganizationService {
                 throw new Error(`Failed to fetch customer organization: ${error.message}`);
             }
 
-            // Set primary contact and country from primary contact
+            // Set primary contact
             const primaryContact = data.contacts?.find((c: Contact) => c.is_primary_contact) || data.contacts?.[0] || null;
             const organization = {
                 ...data,
-                country: primaryContact?.country || data.country, // Use primary contact's country, fallback to org country
                 primary_contact: primaryContact
             };
 

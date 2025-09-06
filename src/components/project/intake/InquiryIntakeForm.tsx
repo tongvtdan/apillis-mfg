@@ -144,68 +144,28 @@ export function InquiryIntakeForm({ submissionType, onSuccess }: InquiryIntakeFo
         form.setValue('phone', '');
     }, [form, toast]);
 
-    // Handle country selection - update primary contact if needed
+    // Handle country selection - update organization if needed
     const handleCountryChange = useCallback(async (countryValue: string) => {
         const selectedOrganizationId = form.getValues('selectedCustomerId');
 
         if (selectedOrganizationId && countryValue) {
             try {
-                // Find the primary contact for this organization
-                const { data: primaryContact, error: contactError } = await supabase
-                    .from('contacts')
-                    .select('id')
-                    .eq('organization_id', selectedOrganizationId as any)
-                    .eq('type', 'customer' as any)
-                    .eq('is_primary_contact', true as any)
-                    .single();
+                // Update the organization with the selected country
+                await supabase
+                    .from('organizations')
+                    .update({ country: countryValue } as any)
+                    .eq('id', selectedOrganizationId as any);
 
-                if (contactError && contactError.code !== 'PGRST116') {
-                    throw contactError;
-                }
-
-                let contactIdToUpdate = (primaryContact as any)?.id;
-
-                // If no primary contact, find the first contact
-                if (!contactIdToUpdate) {
-                    const { data: firstContact, error: firstContactError } = await supabase
-                        .from('contacts')
-                        .select('id')
-                        .eq('organization_id', selectedOrganizationId as any)
-                        .eq('type', 'customer' as any)
-                        .eq('is_active', true as any)
-                        .limit(1)
-                        .single();
-
-                    if (firstContactError && firstContactError.code !== 'PGRST116') {
-                        throw firstContactError;
-                    }
-                    contactIdToUpdate = (firstContact as any)?.id;
-                }
-
-                if (contactIdToUpdate) {
-                    // Update the primary contact with the selected country
-                    await supabase
-                        .from('contacts')
-                        .update({ country: countryValue } as any)
-                        .eq('id', contactIdToUpdate);
-
-                    // Show success message
-                    toast({
-                        title: "Contact Updated",
-                        description: `Country information has been updated for the primary contact.`,
-                    });
-                } else {
-                    toast({
-                        title: "No Contact Found",
-                        description: "No active contacts found for this organization to update.",
-                        variant: "destructive",
-                    });
-                }
+                // Show success message
+                toast({
+                    title: "Organization Updated",
+                    description: `Country information has been updated for this organization.`,
+                });
             } catch (error) {
-                console.error('Error updating contact country:', error);
+                console.error('Error updating organization country:', error);
                 toast({
                     title: "Update Failed",
-                    description: "Failed to update contact country information.",
+                    description: "Failed to update organization country information.",
                     variant: "destructive",
                 });
             }
