@@ -38,8 +38,8 @@ class ProjectDataService {
                 .from('projects')
                 .select(`
           *,
-          customer_organization:organizations(*),
-          current_stage:workflow_stages(*),
+          customer_organization:organizations!customer_organization_id(*),
+          current_stage:workflow_stages!current_stage_id(*),
           contacts:point_of_contacts(
             id,
             organization_id,
@@ -147,8 +147,8 @@ class ProjectDataService {
                 .from('projects')
                 .select(`
           *,
-          customer_organization:organizations(*),
-          current_stage:workflow_stages(*),
+          customer_organization:organizations!customer_organization_id(*),
+          current_stage:workflow_stages!current_stage_id(*),
           contacts:point_of_contacts(
             id,
             organization_id,
@@ -219,8 +219,8 @@ class ProjectDataService {
                 .from('projects')
                 .select(`
           *,
-          customer_organization:organizations(*),
-          current_stage:workflow_stages(*),
+          customer_organization:organizations!customer_organization_id(*),
+          current_stage:workflow_stages!current_stage_id(*),
           contacts:point_of_contacts(
             id,
             company_name,
@@ -442,8 +442,8 @@ class ProjectDataService {
                 .from('projects')
                 .select(`
           *,
-          customer_organization:organizations(*),
-          current_stage:workflow_stages(*),
+          customer_organization:organizations!customer_organization_id(*),
+          current_stage:workflow_stages!current_stage_id(*),
           contacts:point_of_contacts(
             id,
             company_name,

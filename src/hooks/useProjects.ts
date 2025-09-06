@@ -126,7 +126,7 @@ export function useProjects() {
           notes,
           created_at,
           updated_at,
-          customer_organization:organizations(
+          customer_organization:organizations!customer_organization_id(
             id,
             name,
             slug,
@@ -143,7 +143,7 @@ export function useProjects() {
             created_at,
             updated_at
           ),
-          current_stage:workflow_stages(
+          current_stage:workflow_stages!current_stage_id(
             id,
             name,
             description,
