@@ -22,20 +22,21 @@ export class CustomerOrganizationService {
             const { data, error } = await supabase
                 .from('organizations')
                 .select(`
-          *,
-          contacts:contacts(
-            id,
-            contact_name,
-            email,
-            phone,
-            role,
-            is_primary_contact,
-            description,
-            is_active
-          )
-        `)
-                .eq('description', 'Customer Organization')
-                .eq('is_active', true)
+                    *,
+                    contacts:contacts!organization_id(
+                        id,
+                        type,
+                        company_name,
+                        contact_name,
+                        email,
+                        phone,
+                        role,
+                        is_primary_contact,
+                        is_active
+                    )
+                `)
+                .eq('contacts.type', 'customer')
+                .eq('contacts.is_active', true)
                 .order('name');
 
             if (error) {
@@ -43,7 +44,13 @@ export class CustomerOrganizationService {
                 throw new Error(`Failed to fetch customer organizations: ${error.message}`);
             }
 
-            return data || [];
+            // Process organizations to set primary contact
+            const organizations = (data || []).map(org => ({
+                ...org,
+                primary_contact: org.contacts?.find((c: Contact) => c.is_primary_contact) || org.contacts?.[0] || null
+            }));
+
+            return organizations;
         } catch (error) {
             console.error('CustomerOrganizationService.getCustomerOrganizations error:', error);
             throw error;
@@ -58,20 +65,22 @@ export class CustomerOrganizationService {
             const { data, error } = await supabase
                 .from('organizations')
                 .select(`
-          *,
-          contacts:contacts(
-            id,
-            contact_name,
-            email,
-            phone,
-            role,
-            is_primary_contact,
-            description,
-            is_active
-          )
-        `)
+                    *,
+                    contacts:contacts!organization_id(
+                        id,
+                        type,
+                        company_name,
+                        contact_name,
+                        email,
+                        phone,
+                        role,
+                        is_primary_contact,
+                        is_active
+                    )
+                `)
                 .eq('id', id)
-                .eq('description', 'Customer Organization')
+                .eq('contacts.type', 'customer')
+                .eq('contacts.is_active', true)
                 .single();
 
             if (error) {
@@ -82,7 +91,13 @@ export class CustomerOrganizationService {
                 throw new Error(`Failed to fetch customer organization: ${error.message}`);
             }
 
-            return data;
+            // Set primary contact
+            const organization = {
+                ...data,
+                primary_contact: data.contacts?.find((c: Contact) => c.is_primary_contact) || data.contacts?.[0] || null
+            };
+
+            return organization;
         } catch (error) {
             console.error('CustomerOrganizationService.getCustomerOrganizationById error:', error);
             throw error;
@@ -98,7 +113,6 @@ export class CustomerOrganizationService {
                 .from('organizations')
                 .insert({
                     ...organizationData,
-                    description: 'Customer Organization',
                     is_active: true,
                 })
                 .select()
@@ -125,7 +139,6 @@ export class CustomerOrganizationService {
                 .from('organizations')
                 .update(updates)
                 .eq('id', id)
-                .eq('description', 'Customer Organization')
                 .select()
                 .single();
 
