@@ -35,7 +35,7 @@ class ProjectDataService {
         try {
             // Build the query with all relationships
             let query = supabase
-                .from('projects_view')
+                .from('projects')
                 .select(`
           *,
           customer_organization:organizations(*),
@@ -144,7 +144,7 @@ class ProjectDataService {
 
         try {
             let query = supabase
-                .from('projects_view')
+                .from('projects')
                 .select(`
           *,
           customer_organization:organizations(*),
@@ -216,7 +216,7 @@ class ProjectDataService {
 
         try {
             let query = supabase
-                .from('projects_view')
+                .from('projects')
                 .select(`
           *,
           customer_organization:organizations(*),
@@ -439,7 +439,7 @@ class ProjectDataService {
     ): Promise<ProjectWithRelations[]> {
         try {
             let query = supabase
-                .from('projects_view')
+                .from('projects')
                 .select(`
           *,
           customer_organization:organizations(*),

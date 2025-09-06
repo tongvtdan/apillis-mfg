@@ -28,10 +28,11 @@ Implemented multi-layered fixes addressing database schema, RLS policies, and fr
 ## Technical Details
 
 ### Database Schema Changes:
-- Created `projects_view` that flattens related data (organizations, workflow_stages)
+- ✅ **ARCHITECTURAL UPDATE**: Migrated from `projects_view` to direct `projects` table usage
 - Simplified RLS policies to use organization-based access instead of complex function calls
 - Fixed ambiguous column references in `projects` table queries
 - Updated all projects to have valid `customer_organization_id` references
+- **NEW APPROACH**: Using normalized relational structure with proper ID lookups instead of denormalized view
 
 ### Frontend Component Updates:
 - Updated `getCustomerDisplayName()` function to prioritize `project.customer_organization?.name`
