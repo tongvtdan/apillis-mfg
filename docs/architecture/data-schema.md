@@ -35,23 +35,39 @@ Factory Pulse is a comprehensive Manufacturing Execution System (MES) built with
 CREATE TABLE organizations (
   id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
   name TEXT NOT NULL,
-  slug TEXT UNIQUE NOT NULL,
+  slug TEXT, -- UNIQUE constraint enforced
   description TEXT,
-  domain TEXT,
   industry TEXT,
+  address TEXT,
+  city TEXT,
+  state TEXT,
+  country TEXT,
+  postal_code TEXT,
+  website TEXT,
   logo_url TEXT,
+  organization_type TEXT DEFAULT 'customer', -- Type of organization: internal, customer, supplier, or partner
   is_active BOOLEAN DEFAULT true,
-  subscription_plan subscription_plan_enum DEFAULT 'starter',
-  settings JSONB,
   created_at TIMESTAMPTZ DEFAULT now(),
   updated_at TIMESTAMPTZ DEFAULT now()
 );
 ```
 
 **Key Fields**:
-- `slug`: URL-friendly identifier for organization routing
-- `subscription_plan`: Tier-based feature access control
-- `settings`: Flexible configuration storage
+- `slug`: URL-friendly identifier for organization routing (UNIQUE)
+- `organization_type`: Categorization as 'internal', 'customer', 'supplier', or 'partner'
+- Geographic fields: Complete address information for contact and shipping
+- `is_active`: Soft delete mechanism for organization lifecycle management
+
+**Indexes**:
+- `idx_organizations_city` on (city)
+- `idx_organizations_country` on (country)
+- `idx_organizations_is_active` on (is_active)
+- `idx_organizations_slug` on (slug)
+- `organizations_slug_key` UNIQUE on (slug)
+
+**RLS Policies**:
+- Allow all operations for authenticated users
+- Allow anonymous access for viewing
 
 ### 2. Users
 **Purpose**: User management and authentication
@@ -131,30 +147,34 @@ CREATE TABLE contacts (
 CREATE TABLE projects (
   id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
   organization_id UUID NOT NULL REFERENCES organizations(id),
-  project_id TEXT NOT NULL, -- Format: P-25082001
-  title TEXT NOT NULL,
+  project_id VARCHAR(50) NOT NULL UNIQUE, -- Format: P-25082001
+  title VARCHAR(255) NOT NULL,
   description TEXT,
-  customer_organization_id UUID REFERENCES organizations(id),
-  point_of_contacts UUID[] DEFAULT '{}', -- Contact IDs
   current_stage_id UUID REFERENCES workflow_stages(id),
-  status project_status_enum DEFAULT 'active',
-  priority_level priority_level_enum,
-  priority_score NUMERIC,
-  source TEXT,
-  assigned_to UUID REFERENCES users(id),
-  created_by UUID REFERENCES users(id),
-  estimated_value NUMERIC,
-  tags TEXT[],
-  metadata JSONB,
-  stage_entered_at TIMESTAMPTZ,
-  project_type TEXT,
-  intake_type intake_type_enum,
-  intake_source TEXT,
+  status project_status DEFAULT 'active',
+  priority_score INTEGER DEFAULT 50,
+  priority_level priority_level DEFAULT 'medium',
+  estimated_value NUMERIC(15,2),
+  estimated_delivery_date TIMESTAMPTZ,
+  actual_delivery_date TIMESTAMPTZ,
+  source VARCHAR(50),
+  tags TEXT[] DEFAULT '{}',
+  metadata JSONB DEFAULT '{}',
+  stage_entered_at TIMESTAMPTZ DEFAULT now(),
+  project_type VARCHAR(100),
   notes TEXT,
   created_at TIMESTAMPTZ DEFAULT now(),
   updated_at TIMESTAMPTZ DEFAULT now(),
-  estimated_delivery_date DATE,
-  actual_delivery_date DATE
+  created_by UUID REFERENCES users(id),
+  assigned_to UUID REFERENCES users(id),
+  intake_type intake_type, -- Classification of how the project was submitted
+  intake_source VARCHAR(50) DEFAULT 'portal', -- Source: portal, email, api, etc.
+  volume JSONB, -- Multi-tier volume data with quantity, unit, and frequency
+  target_price_per_unit NUMERIC(15,2), -- Target price per unit in USD
+  project_reference TEXT, -- External project reference (e.g., PO-2025-TECHNOVA-001)
+  desired_delivery_date DATE, -- Customer desired delivery date
+  customer_organization_id UUID REFERENCES organizations(id), -- Customer organization
+  point_of_contacts UUID[] DEFAULT '{}' -- Array of contact IDs (first is primary)
 );
 ```
 
@@ -163,6 +183,34 @@ CREATE TABLE projects (
 - `completed`: Successfully finished
 - `cancelled`: Terminated before completion
 - `on_hold`: Temporarily paused
+
+**Key Fields**:
+- `project_id`: Unique project identifier with format P-25082001
+- `customer_organization_id`: Links to customer organization (replaces direct customer contacts)
+- `point_of_contacts`: Array of contact UUIDs (first contact is primary)
+- `volume`: JSONB with multi-tier volume data (quantity, unit, frequency)
+- `target_price_per_unit`: Pricing target per unit
+- `project_reference`: External reference (e.g., PO-2025-TECHNOVA-001)
+- `desired_delivery_date`: Customer's requested delivery date
+- `intake_type`: How project was submitted (RFQ, Purchase Order, etc.)
+- `intake_source`: Source system (portal, email, api, etc.)
+
+**Indexes** (18 total):
+- `projects_project_id_key` UNIQUE on (project_id)
+- `idx_projects_assigned_to` on (assigned_to)
+- `idx_projects_created_by` on (created_by)
+- `idx_projects_customer_organization_id` on (customer_organization_id)
+- `idx_projects_desired_delivery_date` on (desired_delivery_date)
+- `idx_projects_intake_source` on (intake_source)
+- `idx_projects_intake_type` on (intake_type)
+- `idx_projects_org_id` on (organization_id)
+- `idx_projects_point_of_contacts` GIN on (point_of_contacts)
+- `idx_projects_priority` on (priority_level)
+- `idx_projects_project_reference` on (project_reference)
+- `idx_projects_stage` on (current_stage_id)
+- `idx_projects_status` on (status)
+- `idx_projects_target_price` on (target_price_per_unit)
+- `idx_projects_volume` GIN on (volume)
 
 ### 5. Workflow Stages
 **Purpose**: Dynamic workflow configuration
@@ -521,16 +569,33 @@ CREATE TABLE approval_history (
 ```sql
 CREATE TABLE approval_attachments (
   id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-  organization_id UUID NOT NULL REFERENCES organizations(id),
   approval_id UUID NOT NULL REFERENCES approvals(id),
+  organization_id UUID NOT NULL REFERENCES organizations(id),
   file_name VARCHAR(255) NOT NULL,
-  file_path TEXT NOT NULL,
-  file_size BIGINT,
+  original_file_name VARCHAR(255) NOT NULL,
+  file_type VARCHAR(100) NOT NULL,
+  file_size BIGINT NOT NULL,
+  file_url TEXT NOT NULL,
   mime_type VARCHAR(100),
-  uploaded_by UUID REFERENCES users(id),
-  uploaded_at TIMESTAMPTZ DEFAULT now()
+  attachment_type VARCHAR(50) DEFAULT 'supporting_document',
+  description TEXT,
+  uploaded_by UUID NOT NULL REFERENCES users(id),
+  uploaded_at TIMESTAMPTZ DEFAULT now(),
+  created_at TIMESTAMPTZ DEFAULT now()
 );
 ```
+
+**Key Fields**:
+- `original_file_name`: Original filename from user upload
+- `file_type`: File type category (document, image, etc.)
+- `file_url`: Storage URL for the uploaded file
+- `attachment_type`: Purpose of attachment (supporting_document, contract, etc.)
+- `description`: Optional description of attachment contents
+
+**Indexes**:
+- `idx_approval_attachments_approval` on (approval_id)
+- `idx_approval_attachments_type` on (attachment_type)
+- `idx_approval_attachments_uploaded_by` on (uploaded_by)
 
 ### 20. Approval Delegations
 **Purpose**: Temporary approval delegation management
