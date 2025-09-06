@@ -88,9 +88,16 @@ export function useProjects() {
             const cachedProjects = cacheService.getProjects();
             if (cachedProjects) {
               console.log('📦 Using cached projects:', cachedProjects.length);
-              setProjects(cachedProjects);
-              setLoading(false);
-              return;
+              // Check if cached projects have customer organization data
+              const hasCustomerData = cachedProjects.some(p => p.customer_organization?.name);
+              if (!hasCustomerData) {
+                console.log('⚠️ Cached projects missing customer data, forcing refresh');
+                cacheService.clearCache();
+              } else {
+                setProjects(cachedProjects);
+                setLoading(false);
+                return;
+              }
             }
           }
         }
@@ -201,12 +208,21 @@ export function useProjects() {
           .filter(id => id)
         )];
 
+        console.log('🔍 Customer organization IDs found:', customerOrgIds);
+
         if (customerOrgIds.length > 0) {
           try {
             const { data: orgs, error: orgError } = await supabase
               .from('organizations')
               .select('id, name')
               .in('id', customerOrgIds);
+
+            console.log('📊 Organizations query result:', {
+              orgsLength: orgs?.length,
+              hasError: !!orgError,
+              error: orgError,
+              orgs: orgs
+            });
 
             if (!orgError && orgs) {
               // Create a lookup map for organizations
@@ -215,16 +231,26 @@ export function useProjects() {
                 return acc;
               }, {});
 
+              console.log('🗺️ Organization map created:', orgMap);
+
               // Update projects with customer organization data
-              mappedProjects = mappedProjects.map(project => ({
-                ...project,
-                customer_organization: project.customer_organization_id ?
-                  orgMap[project.customer_organization_id] || null : null
-              }));
+              mappedProjects = mappedProjects.map(project => {
+                const customerOrg = project.customer_organization_id ?
+                  orgMap[project.customer_organization_id] || null : null;
+
+                console.log(`📝 Project ${project.project_id}: customer_organization_id=${project.customer_organization_id}, customerOrg=`, customerOrg);
+
+                return {
+                  ...project,
+                  customer_organization: customerOrg
+                };
+              });
             }
           } catch (error) {
-            console.error('Error fetching customer organizations:', error);
+            console.error('❌ Error fetching customer organizations:', error);
           }
+        } else {
+          console.log('⚠️ No customer organization IDs found in projects');
         }
       }
 
@@ -702,6 +728,76 @@ export function useProjects() {
     await fetchProjects(forceRefresh);
   }, [fetchProjects]); // Add fetchProjects dependency
 
+  // Clear cache and refetch
+  const clearCacheAndRefetch = useCallback(async () => {
+    console.log('🧹 Clearing cache and refetching projects');
+    cacheService.clearCache();
+    await fetchProjects(true);
+  }, [fetchProjects]);
+
+  // Test customer organization fetching directly
+  const testCustomerOrganizationFetching = useCallback(async () => {
+    console.log('🧪 Testing customer organization fetching directly...');
+
+    try {
+      // Get all projects first
+      const { data: projects, error: projectsError } = await supabase
+        .from('projects')
+        .select('id, project_id, title, customer_organization_id')
+        .eq('organization_id', profile?.organization_id)
+        .limit(5);
+
+      if (projectsError) {
+        console.error('❌ Error fetching projects:', projectsError);
+        return;
+      }
+
+      console.log('📋 Projects fetched:', projects);
+
+      // Get customer organization IDs
+      const customerOrgIds = [...new Set(projects
+        .map(p => p.customer_organization_id)
+        .filter(id => id)
+      )];
+
+      console.log('🔍 Customer organization IDs found:', customerOrgIds);
+
+      if (customerOrgIds.length > 0) {
+        // Fetch organizations
+        const { data: orgs, error: orgError } = await supabase
+          .from('organizations')
+          .select('id, name')
+          .in('id', customerOrgIds);
+
+        console.log('📊 Organizations query result:', {
+          orgsLength: orgs?.length,
+          hasError: !!orgError,
+          error: orgError,
+          orgs: orgs
+        });
+
+        if (!orgError && orgs) {
+          // Create lookup map
+          const orgMap = orgs.reduce((acc, org) => {
+            acc[org.id] = org;
+            return acc;
+          }, {});
+
+          console.log('🗺️ Organization map created:', orgMap);
+
+          // Test mapping
+          projects.forEach(project => {
+            const customerOrg = project.customer_organization_id ?
+              orgMap[project.customer_organization_id] || null : null;
+            console.log(`📝 Project ${project.project_id}: customer_organization_id=${project.customer_organization_id}, customerOrg=`, customerOrg);
+          });
+        }
+      }
+    } catch (error) {
+      console.error('❌ Error in test:', error);
+    }
+  }, [profile?.organization_id]);
+
   // Get bottleneck analysis for projects
   const getBottleneckAnalysis = async (): Promise<BottleneckAlert[]> => {
     try {
@@ -909,6 +1005,8 @@ export function useProjects() {
     createProject,
     createOrGetCustomer,
     subscribeToProjectUpdates,
-    ensureProjectSubscription
+    ensureProjectSubscription,
+    clearCacheAndRefetch,
+    testCustomerOrganizationFetching
   };
 }

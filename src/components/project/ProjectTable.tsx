@@ -16,7 +16,7 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-import { Project, ProjectStatus, PROJECT_STAGES } from "@/types/project";
+import { Project, ProjectStatus, PROJECT_STAGES, WorkflowStage } from "@/types/project";
 import { useProjects } from "@/hooks/useProjects";
 import { ExternalLink, User, ArrowUpDown, ArrowUp, ArrowDown } from "lucide-react";
 import { useNavigate } from "react-router-dom";
@@ -28,6 +28,7 @@ import { DataUnavailable, LoadingFallback } from "@/components/error/FallbackMec
 
 interface ProjectTableProps {
   projects: Project[];
+  workflowStages?: WorkflowStage[];
   updateProjectStatusOptimistic?: (projectId: string, newStatus: ProjectStatus) => Promise<boolean>;
   refetch?: (forceRefresh?: boolean) => Promise<void>;
 }
@@ -50,7 +51,7 @@ const priorityVariants = {
   urgent: "bg-red-200 text-red-900",
 } as const;
 
-export function ProjectTable({ projects, updateProjectStatusOptimistic: externalUpdateFn, refetch: externalRefetch }: ProjectTableProps) {
+export function ProjectTable({ projects, workflowStages = [], updateProjectStatusOptimistic: externalUpdateFn, refetch: externalRefetch }: ProjectTableProps) {
   const { updateProjectStatusOptimistic: hookUpdateFn, refetch: hookRefetch } = useProjects();
   const navigate = useNavigate();
   const [updatingProjects, setUpdatingProjects] = useState<Set<string>>(new Set());
@@ -338,6 +339,7 @@ export function ProjectTable({ projects, updateProjectStatusOptimistic: external
                 <AnimatedTableRow
                   key={project.id}
                   project={project}
+                  workflowStages={workflowStages}
                   onStatusChange={handleStatusChange}
                   onViewProject={handleViewProject}
                   statusVariants={statusVariants}

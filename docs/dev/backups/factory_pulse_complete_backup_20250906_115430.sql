@@ -2218,101 +2218,6 @@ CREATE TABLE IF NOT EXISTS "public"."project_sub_stage_progress" (
 ALTER TABLE "public"."project_sub_stage_progress" OWNER TO "postgres";
 
 
-CREATE TABLE IF NOT EXISTS "public"."workflow_stages" (
-    "id" "uuid" DEFAULT "extensions"."uuid_generate_v4"() NOT NULL,
-    "organization_id" "uuid" NOT NULL,
-    "name" character varying(255) NOT NULL,
-    "slug" character varying(100) NOT NULL,
-    "description" "text",
-    "color" character varying(7) DEFAULT '#3B82F6'::character varying,
-    "stage_order" integer NOT NULL,
-    "is_active" boolean DEFAULT true,
-    "exit_criteria" "text",
-    "responsible_roles" "public"."user_role"[] DEFAULT '{}'::"public"."user_role"[],
-    "created_at" timestamp with time zone DEFAULT "now"(),
-    "updated_at" timestamp with time zone DEFAULT "now"(),
-    "estimated_duration_days" integer DEFAULT 0
-);
-
-
-ALTER TABLE "public"."workflow_stages" OWNER TO "postgres";
-
-
-COMMENT ON COLUMN "public"."workflow_stages"."estimated_duration_days" IS 'Estimated duration of this stage in days for project planning';
-
-
-
-CREATE OR REPLACE VIEW "public"."projects_view" AS
- SELECT "p"."id",
-    "p"."organization_id",
-    "p"."project_id",
-    "p"."title",
-    "p"."description",
-    "p"."current_stage_id",
-    "p"."status",
-    "p"."priority_score",
-    "p"."priority_level",
-    "p"."estimated_value",
-    "p"."estimated_delivery_date",
-    "p"."actual_delivery_date",
-    "p"."source",
-    "p"."tags",
-    "p"."metadata",
-    "p"."stage_entered_at",
-    "p"."project_type",
-    "p"."notes",
-    "p"."created_at",
-    "p"."updated_at",
-    "p"."created_by",
-    "p"."assigned_to",
-    "p"."intake_type",
-    "p"."intake_source",
-    "p"."volume",
-    "p"."target_price_per_unit",
-    "p"."project_reference",
-    "p"."desired_delivery_date",
-    "p"."customer_organization_id",
-    "p"."point_of_contacts",
-    "o"."name" AS "customer_organization_name",
-    "o"."slug" AS "customer_organization_slug",
-    "o"."description" AS "customer_organization_description",
-    "o"."industry" AS "customer_organization_industry",
-    "o"."address" AS "customer_organization_address",
-    "o"."city" AS "customer_organization_city",
-    "o"."state" AS "customer_organization_state",
-    "o"."country" AS "customer_organization_country",
-    "o"."postal_code" AS "customer_organization_postal_code",
-    "o"."website" AS "customer_organization_website",
-    "o"."logo_url" AS "customer_organization_logo_url",
-    "o"."is_active" AS "customer_organization_is_active",
-    "o"."created_at" AS "customer_organization_created_at",
-    "o"."updated_at" AS "customer_organization_updated_at",
-    "ws"."name" AS "current_stage_name",
-    "ws"."description" AS "current_stage_description",
-    "ws"."stage_order" AS "current_stage_order",
-    "ws"."is_active" AS "current_stage_is_active",
-    "ws"."created_at" AS "current_stage_created_at",
-    "ws"."updated_at" AS "current_stage_updated_at",
-        CASE
-            WHEN ("array_length"("p"."point_of_contacts", 1) > 0) THEN ( SELECT "c"."contact_name"
-               FROM "public"."contacts" "c"
-              WHERE ("c"."id" = "p"."point_of_contacts"[1]))
-            ELSE NULL::character varying
-        END AS "primary_contact_name",
-        CASE
-            WHEN ("array_length"("p"."point_of_contacts", 1) > 0) THEN ( SELECT "c"."email"
-               FROM "public"."contacts" "c"
-              WHERE ("c"."id" = "p"."point_of_contacts"[1]))
-            ELSE NULL::character varying
-        END AS "primary_contact_email"
-   FROM (("public"."projects" "p"
-     LEFT JOIN "public"."organizations" "o" ON (("p"."customer_organization_id" = "o"."id")))
-     LEFT JOIN "public"."workflow_stages" "ws" ON (("p"."current_stage_id" = "ws"."id")));
-
-
-ALTER VIEW "public"."projects_view" OWNER TO "postgres";
-
-
 CREATE TABLE IF NOT EXISTS "public"."reviews" (
     "id" "uuid" DEFAULT "extensions"."uuid_generate_v4"() NOT NULL,
     "organization_id" "uuid" NOT NULL,
@@ -2383,31 +2288,6 @@ CREATE TABLE IF NOT EXISTS "public"."supplier_rfqs" (
 ALTER TABLE "public"."supplier_rfqs" OWNER TO "postgres";
 
 
-CREATE TABLE IF NOT EXISTS "public"."test_table" (
-    "id" integer NOT NULL,
-    "name" "text"
-);
-
-
-ALTER TABLE "public"."test_table" OWNER TO "postgres";
-
-
-CREATE SEQUENCE IF NOT EXISTS "public"."test_table_id_seq"
-    AS integer
-    START WITH 1
-    INCREMENT BY 1
-    NO MINVALUE
-    NO MAXVALUE
-    CACHE 1;
-
-
-ALTER SEQUENCE "public"."test_table_id_seq" OWNER TO "postgres";
-
-
-ALTER SEQUENCE "public"."test_table_id_seq" OWNED BY "public"."test_table"."id";
-
-
-
 CREATE TABLE IF NOT EXISTS "public"."users" (
     "id" "uuid" NOT NULL,
     "organization_id" "uuid" NOT NULL,
@@ -2430,6 +2310,30 @@ CREATE TABLE IF NOT EXISTS "public"."users" (
 
 
 ALTER TABLE "public"."users" OWNER TO "postgres";
+
+
+CREATE TABLE IF NOT EXISTS "public"."workflow_stages" (
+    "id" "uuid" DEFAULT "extensions"."uuid_generate_v4"() NOT NULL,
+    "organization_id" "uuid" NOT NULL,
+    "name" character varying(255) NOT NULL,
+    "slug" character varying(100) NOT NULL,
+    "description" "text",
+    "color" character varying(7) DEFAULT '#3B82F6'::character varying,
+    "stage_order" integer NOT NULL,
+    "is_active" boolean DEFAULT true,
+    "exit_criteria" "text",
+    "responsible_roles" "public"."user_role"[] DEFAULT '{}'::"public"."user_role"[],
+    "created_at" timestamp with time zone DEFAULT "now"(),
+    "updated_at" timestamp with time zone DEFAULT "now"(),
+    "estimated_duration_days" integer DEFAULT 0
+);
+
+
+ALTER TABLE "public"."workflow_stages" OWNER TO "postgres";
+
+
+COMMENT ON COLUMN "public"."workflow_stages"."estimated_duration_days" IS 'Estimated duration of this stage in days for project planning';
+
 
 
 CREATE TABLE IF NOT EXISTS "public"."workflow_sub_stages" (
@@ -2457,10 +2361,6 @@ CREATE TABLE IF NOT EXISTS "public"."workflow_sub_stages" (
 
 
 ALTER TABLE "public"."workflow_sub_stages" OWNER TO "postgres";
-
-
-ALTER TABLE ONLY "public"."test_table" ALTER COLUMN "id" SET DEFAULT "nextval"('"public"."test_table_id_seq"'::"regclass");
-
 
 
 ALTER TABLE ONLY "public"."activity_log"
@@ -2595,11 +2495,6 @@ ALTER TABLE ONLY "public"."supplier_rfqs"
 
 ALTER TABLE ONLY "public"."supplier_rfqs"
     ADD CONSTRAINT "supplier_rfqs_rfq_number_key" UNIQUE ("rfq_number");
-
-
-
-ALTER TABLE ONLY "public"."test_table"
-    ADD CONSTRAINT "test_table_pkey" PRIMARY KEY ("id");
 
 
 
@@ -4644,18 +4539,6 @@ GRANT ALL ON TABLE "public"."project_sub_stage_progress" TO "service_role";
 
 
 
-GRANT ALL ON TABLE "public"."workflow_stages" TO "anon";
-GRANT ALL ON TABLE "public"."workflow_stages" TO "authenticated";
-GRANT ALL ON TABLE "public"."workflow_stages" TO "service_role";
-
-
-
-GRANT ALL ON TABLE "public"."projects_view" TO "anon";
-GRANT ALL ON TABLE "public"."projects_view" TO "authenticated";
-GRANT ALL ON TABLE "public"."projects_view" TO "service_role";
-
-
-
 GRANT ALL ON TABLE "public"."reviews" TO "anon";
 GRANT ALL ON TABLE "public"."reviews" TO "authenticated";
 GRANT ALL ON TABLE "public"."reviews" TO "service_role";
@@ -4674,21 +4557,15 @@ GRANT ALL ON TABLE "public"."supplier_rfqs" TO "service_role";
 
 
 
-GRANT ALL ON TABLE "public"."test_table" TO "anon";
-GRANT ALL ON TABLE "public"."test_table" TO "authenticated";
-GRANT ALL ON TABLE "public"."test_table" TO "service_role";
-
-
-
-GRANT ALL ON SEQUENCE "public"."test_table_id_seq" TO "anon";
-GRANT ALL ON SEQUENCE "public"."test_table_id_seq" TO "authenticated";
-GRANT ALL ON SEQUENCE "public"."test_table_id_seq" TO "service_role";
-
-
-
 GRANT ALL ON TABLE "public"."users" TO "anon";
 GRANT ALL ON TABLE "public"."users" TO "authenticated";
 GRANT ALL ON TABLE "public"."users" TO "service_role";
+
+
+
+GRANT ALL ON TABLE "public"."workflow_stages" TO "anon";
+GRANT ALL ON TABLE "public"."workflow_stages" TO "authenticated";
+GRANT ALL ON TABLE "public"."workflow_stages" TO "service_role";
 
 
 

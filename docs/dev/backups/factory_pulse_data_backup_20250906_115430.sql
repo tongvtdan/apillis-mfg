@@ -416,7 +416,8 @@ INSERT INTO "auth"."audit_log_entries" ("instance_id", "id", "payload", "created
 	('00000000-0000-0000-0000-000000000000', '316ab0e4-bba1-4f40-a268-c680bd19f289', '{"action":"token_revoked","actor_id":"a3b8e7b3-f0d9-4edd-abd4-ec78f3816d11","actor_name":"Võ Đình Tài","actor_username":"admin@factorypulse.vn","actor_via_sso":false,"log_type":"token"}', '2025-09-05 12:34:11.554634+00', ''),
 	('00000000-0000-0000-0000-000000000000', '0484bf8d-8ad3-462e-90d8-455633d65652', '{"action":"token_refreshed","actor_id":"a3b8e7b3-f0d9-4edd-abd4-ec78f3816d11","actor_name":"Võ Đình Tài","actor_username":"admin@factorypulse.vn","actor_via_sso":false,"log_type":"token"}', '2025-09-05 14:45:20.564218+00', ''),
 	('00000000-0000-0000-0000-000000000000', '37f502a4-2c60-4b3d-976c-d00118158496', '{"action":"token_revoked","actor_id":"a3b8e7b3-f0d9-4edd-abd4-ec78f3816d11","actor_name":"Võ Đình Tài","actor_username":"admin@factorypulse.vn","actor_via_sso":false,"log_type":"token"}', '2025-09-05 14:45:20.568605+00', ''),
-	('00000000-0000-0000-0000-000000000000', '55d6e44b-969d-47c9-a70f-c5efe0a45699', '{"action":"login","actor_id":"ceafa7d8-dda2-4645-b253-894839eee7b3","actor_name":"Nguyễn Quang Minh","actor_username":"ceo@factorypulse.vn","actor_via_sso":false,"log_type":"account","traits":{"provider":"email"}}', '2025-09-06 02:40:46.090962+00', '');
+	('00000000-0000-0000-0000-000000000000', '55d6e44b-969d-47c9-a70f-c5efe0a45699', '{"action":"login","actor_id":"ceafa7d8-dda2-4645-b253-894839eee7b3","actor_name":"Nguyễn Quang Minh","actor_username":"ceo@factorypulse.vn","actor_via_sso":false,"log_type":"account","traits":{"provider":"email"}}', '2025-09-06 02:40:46.090962+00', ''),
+	('00000000-0000-0000-0000-000000000000', 'd361957f-d77b-4e9b-82ef-ceb4388147aa', '{"action":"login","actor_id":"497809e4-7429-437c-a81c-6f43e2fa77c1","actor_name":"Trần Ngọc Hương","actor_username":"operations@factorypulse.vn","actor_via_sso":false,"log_type":"account","traits":{"provider":"email"}}', '2025-09-06 04:53:59.007797+00', '');
 
 
 --
@@ -446,8 +447,8 @@ INSERT INTO "auth"."users" ("instance_id", "id", "aud", "role", "email", "encryp
 	('00000000-0000-0000-0000-000000000000', '5f7e1c5b-9f36-4e84-a670-45903bab3ee2', 'authenticated', 'authenticated', 'procurement@factorypulse.vn', '$2a$10$XAdZ3i3xJE9.nyqCT1D20et0TrDFY4a86WrhuRCX8wbcfUvKSEx3K', '2025-09-03 12:36:06.493014+00', NULL, '', NULL, '', NULL, '', '', NULL, NULL, '{"provider": "email", "providers": ["email"]}', '{"name": "Lê Văn Phúc", "role": "procurement", "email_verified": true}', NULL, '2025-09-03 12:36:06.491736+00', '2025-09-04 14:56:25.113413+00', NULL, NULL, '', '', NULL, '', 0, NULL, '', NULL, false, NULL, false),
 	('00000000-0000-0000-0000-000000000000', 'f111223f-0745-44ab-b996-1b4a726bc855', 'authenticated', 'authenticated', 'sales.manager@factorypulse.vn', '$2a$10$932zhf072e5kmPuDA8JWWelo7cmE5yMKvEBhm9YCICm5ZBf9u6uLa', '2025-09-03 12:36:06.439549+00', NULL, '', NULL, '', NULL, '', '', NULL, NULL, '{"provider": "email", "providers": ["email"]}', '{"name": "Bùi Thị Thu", "role": "sales", "email_verified": true}', NULL, '2025-09-03 12:36:06.437395+00', '2025-09-04 14:56:25.282233+00', NULL, NULL, '', '', NULL, '', 0, NULL, '', NULL, false, NULL, false),
 	('00000000-0000-0000-0000-000000000000', 'a3b8e7b3-f0d9-4edd-abd4-ec78f3816d11', 'authenticated', 'authenticated', 'admin@factorypulse.vn', '$2a$10$SwGEK1Ne/.tQWChOjWhxn.Kcqmthne9a0CKQJX6uy3QZhXSw68WAC', '2025-08-30 23:52:10.639627+00', NULL, '', NULL, '', NULL, '', '', NULL, '2025-09-04 15:06:38.831478+00', '{"provider": "email", "providers": ["email"]}', '{"name": "Võ Đình Tài", "role": "admin", "phone": "+84-28-7300-0014", "full_name": "Võ Đình Tài", "avatar_url": "https://storage.googleapis.com/factory-pulse-assets/avatars/admin.jpg", "department": "IT", "employee_id": "EMP-VDT-550e", "display_name": "Võ Đình Tài", "email_verified": true}', NULL, '2025-08-30 23:52:10.638335+00', '2025-09-05 14:45:20.572703+00', NULL, NULL, '', '', NULL, '', 0, NULL, '', NULL, false, NULL, false),
-	('00000000-0000-0000-0000-000000000000', '497809e4-7429-437c-a81c-6f43e2fa77c1', 'authenticated', 'authenticated', 'operations@factorypulse.vn', '$2a$10$U4658BuP.r84gU/zQ/m2s.4Y5lsq2GmtQUz0R/7s1gaWFrYaJPkZy', '2025-08-30 23:52:09.99909+00', NULL, '', NULL, '', NULL, '', '', NULL, '2025-09-04 14:12:57.114003+00', '{"provider": "email", "providers": ["email"]}', '{"name": "Trần Ngọc Hương", "role": "management", "phone": "+84-28-7300-0002", "full_name": "Trần Ngọc Hương", "avatar_url": "https://storage.googleapis.com/factory-pulse-assets/avatars/operations.jpg", "department": "Operations", "employee_id": "EMP-TTH-550e", "display_name": "Trần Ngọc Hương", "email_verified": true}', NULL, '2025-08-30 23:52:09.997708+00', '2025-09-04 14:56:27.45975+00', NULL, NULL, '', '', NULL, '', 0, NULL, '', NULL, false, NULL, false),
-	('00000000-0000-0000-0000-000000000000', 'ceafa7d8-dda2-4645-b253-894839eee7b3', 'authenticated', 'authenticated', 'ceo@factorypulse.vn', '$2a$10$TI.gaeO2/vkYWNpFFDCLbu1hcD2WChZY4BbcA6I/bBT8YyviQ8vGO', '2025-08-30 23:52:09.944885+00', NULL, '', NULL, '', NULL, '', '', NULL, '2025-09-06 02:40:46.091747+00', '{"provider": "email", "providers": ["email"]}', '{"name": "Nguyễn Quang Minh", "role": "management", "phone": "+84-28-7300-0001", "full_name": "Nguyễn Quang Minh", "avatar_url": "https://storage.googleapis.com/factory-pulse-assets/avatars/ceo.jpg", "department": "Executive", "employee_id": "EMP-NVM-550e", "display_name": "Nguyễn Quang Minh", "email_verified": true}', NULL, '2025-08-30 23:52:09.942037+00', '2025-09-06 02:40:46.09345+00', NULL, NULL, '', '', NULL, '', 0, NULL, '', NULL, false, NULL, false);
+	('00000000-0000-0000-0000-000000000000', 'ceafa7d8-dda2-4645-b253-894839eee7b3', 'authenticated', 'authenticated', 'ceo@factorypulse.vn', '$2a$10$TI.gaeO2/vkYWNpFFDCLbu1hcD2WChZY4BbcA6I/bBT8YyviQ8vGO', '2025-08-30 23:52:09.944885+00', NULL, '', NULL, '', NULL, '', '', NULL, '2025-09-06 02:40:46.091747+00', '{"provider": "email", "providers": ["email"]}', '{"name": "Nguyễn Quang Minh", "role": "management", "phone": "+84-28-7300-0001", "full_name": "Nguyễn Quang Minh", "avatar_url": "https://storage.googleapis.com/factory-pulse-assets/avatars/ceo.jpg", "department": "Executive", "employee_id": "EMP-NVM-550e", "display_name": "Nguyễn Quang Minh", "email_verified": true}', NULL, '2025-08-30 23:52:09.942037+00', '2025-09-06 02:40:46.09345+00', NULL, NULL, '', '', NULL, '', 0, NULL, '', NULL, false, NULL, false),
+	('00000000-0000-0000-0000-000000000000', '497809e4-7429-437c-a81c-6f43e2fa77c1', 'authenticated', 'authenticated', 'operations@factorypulse.vn', '$2a$10$U4658BuP.r84gU/zQ/m2s.4Y5lsq2GmtQUz0R/7s1gaWFrYaJPkZy', '2025-08-30 23:52:09.99909+00', NULL, '', NULL, '', NULL, '', '', NULL, '2025-09-06 04:53:59.008784+00', '{"provider": "email", "providers": ["email"]}', '{"name": "Trần Ngọc Hương", "role": "management", "phone": "+84-28-7300-0002", "full_name": "Trần Ngọc Hương", "avatar_url": "https://storage.googleapis.com/factory-pulse-assets/avatars/operations.jpg", "department": "Operations", "employee_id": "EMP-TTH-550e", "display_name": "Trần Ngọc Hương", "email_verified": true}', NULL, '2025-08-30 23:52:09.997708+00', '2025-09-06 04:53:59.010123+00', NULL, NULL, '', '', NULL, '', 0, NULL, '', NULL, false, NULL, false);
 
 
 --
@@ -487,7 +488,8 @@ INSERT INTO "auth"."identities" ("provider_id", "user_id", "identity_data", "pro
 
 INSERT INTO "auth"."sessions" ("id", "user_id", "created_at", "updated_at", "factor_id", "aal", "not_after", "refreshed_at", "user_agent", "ip", "tag") VALUES
 	('72bb2023-bd64-46f3-a179-add59080a091', 'a3b8e7b3-f0d9-4edd-abd4-ec78f3816d11', '2025-09-04 15:06:38.831526+00', '2025-09-05 14:45:20.574739+00', NULL, 'aal1', NULL, '2025-09-05 14:45:20.574616', 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/139.0.0.0 Safari/537.36', '172.18.0.1', NULL),
-	('5dcc2f80-f6b6-49b9-b339-9845981bef6b', 'ceafa7d8-dda2-4645-b253-894839eee7b3', '2025-09-06 02:40:46.091801+00', '2025-09-06 02:40:46.091801+00', NULL, 'aal1', NULL, NULL, 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/139.0.0.0 Safari/537.36', '172.18.0.1', NULL);
+	('5dcc2f80-f6b6-49b9-b339-9845981bef6b', 'ceafa7d8-dda2-4645-b253-894839eee7b3', '2025-09-06 02:40:46.091801+00', '2025-09-06 02:40:46.091801+00', NULL, 'aal1', NULL, NULL, 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/139.0.0.0 Safari/537.36', '172.18.0.1', NULL),
+	('11903841-b484-48af-9f07-4b95d65a40d8', '497809e4-7429-437c-a81c-6f43e2fa77c1', '2025-09-06 04:53:59.008845+00', '2025-09-06 04:53:59.008845+00', NULL, 'aal1', NULL, NULL, 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/139.0.0.0 Safari/537.36', '172.18.0.1', NULL);
 
 
 --
@@ -496,7 +498,8 @@ INSERT INTO "auth"."sessions" ("id", "user_id", "created_at", "updated_at", "fac
 
 INSERT INTO "auth"."mfa_amr_claims" ("session_id", "created_at", "updated_at", "authentication_method", "id") VALUES
 	('72bb2023-bd64-46f3-a179-add59080a091', '2025-09-04 15:06:38.832992+00', '2025-09-04 15:06:38.832992+00', 'password', 'd2ecaaca-a0e6-4013-a5dc-d1e11cc5002b'),
-	('5dcc2f80-f6b6-49b9-b339-9845981bef6b', '2025-09-06 02:40:46.093956+00', '2025-09-06 02:40:46.093956+00', 'password', '9e7e7db0-3a23-4011-95ad-7098b46cd20b');
+	('5dcc2f80-f6b6-49b9-b339-9845981bef6b', '2025-09-06 02:40:46.093956+00', '2025-09-06 02:40:46.093956+00', 'password', '9e7e7db0-3a23-4011-95ad-7098b46cd20b'),
+	('11903841-b484-48af-9f07-4b95d65a40d8', '2025-09-06 04:53:59.010403+00', '2025-09-06 04:53:59.010403+00', 'password', 'c4aeedd4-a7f0-4530-8fde-b1cd14b5f7a7');
 
 
 --
@@ -536,7 +539,8 @@ INSERT INTO "auth"."refresh_tokens" ("instance_id", "id", "token", "user_id", "r
 	('00000000-0000-0000-0000-000000000000', 139, 'g4esr42lvcho', 'a3b8e7b3-f0d9-4edd-abd4-ec78f3816d11', true, '2025-09-05 03:41:09.954777+00', '2025-09-05 12:34:11.555115+00', 'tjmt3i2gduho', '72bb2023-bd64-46f3-a179-add59080a091'),
 	('00000000-0000-0000-0000-000000000000', 140, 'b57fkchmev2l', 'a3b8e7b3-f0d9-4edd-abd4-ec78f3816d11', true, '2025-09-05 12:34:11.556316+00', '2025-09-05 14:45:20.569737+00', 'g4esr42lvcho', '72bb2023-bd64-46f3-a179-add59080a091'),
 	('00000000-0000-0000-0000-000000000000', 141, '3sbhq3auw5kn', 'a3b8e7b3-f0d9-4edd-abd4-ec78f3816d11', false, '2025-09-05 14:45:20.571667+00', '2025-09-05 14:45:20.571667+00', 'b57fkchmev2l', '72bb2023-bd64-46f3-a179-add59080a091'),
-	('00000000-0000-0000-0000-000000000000', 142, 'tmsw7nsauytu', 'ceafa7d8-dda2-4645-b253-894839eee7b3', false, '2025-09-06 02:40:46.092576+00', '2025-09-06 02:40:46.092576+00', NULL, '5dcc2f80-f6b6-49b9-b339-9845981bef6b');
+	('00000000-0000-0000-0000-000000000000', 142, 'tmsw7nsauytu', 'ceafa7d8-dda2-4645-b253-894839eee7b3', false, '2025-09-06 02:40:46.092576+00', '2025-09-06 02:40:46.092576+00', NULL, '5dcc2f80-f6b6-49b9-b339-9845981bef6b'),
+	('00000000-0000-0000-0000-000000000000', 143, 't7gjrryl4ddl', '497809e4-7429-437c-a81c-6f43e2fa77c1', false, '2025-09-06 04:53:59.009391+00', '2025-09-06 04:53:59.009391+00', NULL, '11903841-b484-48af-9f07-4b95d65a40d8');
 
 
 --
@@ -1895,14 +1899,6 @@ INSERT INTO "public"."project_sub_stage_progress" ("id", "organization_id", "pro
 
 
 --
--- Data for Name: test_table; Type: TABLE DATA; Schema: public; Owner: postgres
---
-
-INSERT INTO "public"."test_table" ("id", "name") VALUES
-	(1, 'test');
-
-
---
 -- Data for Name: buckets; Type: TABLE DATA; Schema: storage; Owner: supabase_storage_admin
 --
 
@@ -1974,14 +1970,7 @@ INSERT INTO "storage"."prefixes" ("bucket_id", "name", "created_at", "updated_at
 -- Name: refresh_tokens_id_seq; Type: SEQUENCE SET; Schema: auth; Owner: supabase_auth_admin
 --
 
-SELECT pg_catalog.setval('"auth"."refresh_tokens_id_seq"', 142, true);
-
-
---
--- Name: test_table_id_seq; Type: SEQUENCE SET; Schema: public; Owner: postgres
---
-
-SELECT pg_catalog.setval('"public"."test_table_id_seq"', 1, true);
+SELECT pg_catalog.setval('"auth"."refresh_tokens_id_seq"', 143, true);
 
 
 --

@@ -12,6 +12,7 @@ import { useUserDisplayName, useUsers } from "@/hooks/useUsers";
 
 interface AnimatedTableRowProps {
     project: Project;
+    workflowStages?: WorkflowStage[];
     onStatusChange: (projectId: string, newStatus: ProjectStatus) => Promise<void>;
     onViewProject: (projectId: string) => void;
     statusVariants: Record<string, string>;
@@ -23,6 +24,7 @@ interface AnimatedTableRowProps {
 
 export function AnimatedTableRow({
     project,
+    workflowStages = [],
     onStatusChange,
     onViewProject,
     statusVariants,
@@ -34,21 +36,6 @@ export function AnimatedTableRow({
     // Get assignee display name using correct database field name with fallback
     const assigneeId = project.assigned_to || project.assignee_id;
     const assigneeDisplayName = useUserDisplayName(assigneeId);
-    const [workflowStages, setWorkflowStages] = useState<WorkflowStage[]>([]);
-
-    // Load workflow stages
-    useEffect(() => {
-        const loadStages = async () => {
-            try {
-                const stages = await workflowStageService.getWorkflowStages();
-                setWorkflowStages(stages);
-            } catch (error) {
-                console.error('Error loading workflow stages:', error);
-                setWorkflowStages([]);
-            }
-        };
-        loadStages();
-    }, []);
 
     const handleStatusChange = async (projectId: string, newStatus: ProjectStatus) => {
         console.log(`🔄 AnimatedTableRow: Status change triggered for project ${projectId} to ${newStatus}`);
@@ -99,15 +86,22 @@ export function AnimatedTableRow({
                 </TableCell>
                 <TableCell>
                     <Select
-                        value={project.current_stage?.id || project.current_stage_legacy || ''}
-                        onValueChange={(value: ProjectStage) => onStatusChange(project.id, value as ProjectStatus)}
+                        value={project.current_stage_id || ''}
+                        onValueChange={(value: string) => onStatusChange(project.id, value as ProjectStatus)}
                         disabled={isUpdating}
                     >
                         <SelectTrigger className="w-[180px]">
                             <SelectValue>
-                                <Badge className={statusVariants[(project.current_stage?.id || project.current_stage_legacy) as keyof typeof statusVariants]}>
-                                    {project.current_stage?.name || PROJECT_STAGES.find(s => s.id === project.current_stage_legacy)?.name || 'Unknown Stage'}
-                                </Badge>
+                                {(() => {
+                                    const currentStage = workflowStages.find(stage => stage.id === project.current_stage_id);
+                                    return currentStage ? (
+                                        <Badge className={workflowStageService.getStageColor(currentStage)}>
+                                            {currentStage.name}
+                                        </Badge>
+                                    ) : (
+                                        <Badge variant="outline">Unknown Stage</Badge>
+                                    );
+                                })()}
                             </SelectValue>
                         </SelectTrigger>
                         <SelectContent>

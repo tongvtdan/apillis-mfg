@@ -749,6 +749,7 @@ export function ProjectList({
             ) : (
                 <ProjectTable
                     projects={sortedProjects}
+                    workflowStages={workflowStages}
                     updateProjectStatusOptimistic={async (projectId, newStatus) => {
                         if (onProjectUpdate) {
                             await onProjectUpdate(projectId, { status: newStatus });

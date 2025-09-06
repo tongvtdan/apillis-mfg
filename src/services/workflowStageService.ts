@@ -18,16 +18,32 @@ class WorkflowStageService {
 
         try {
             const { data: userData } = await supabase.auth.getUser();
-            const organizationId = userData.user?.user_metadata?.organization_id;
+            const userId = userData.user?.id;
 
             let query = supabase
                 .from('workflow_stages')
                 .select('*')
                 .eq('is_active', true);
 
-            // Filter by organization if available
-            if (organizationId) {
-                query = query.eq('organization_id', organizationId);
+            let userProfile = null;
+
+            // Get organization_id from users table if user is authenticated
+            if (userId) {
+                const { data: profileData, error: userError } = await supabase
+                    .from('users')
+                    .select('organization_id')
+                    .eq('id', userId)
+                    .single();
+
+                if (userError) {
+                    console.error('Error fetching user profile:', userError);
+                } else {
+                    userProfile = profileData;
+                }
+
+                if (userProfile?.organization_id) {
+                    query = query.eq('organization_id', userProfile.organization_id);
+                }
             }
 
             const { data, error } = await query.order('stage_order', { ascending: true });
@@ -238,6 +254,12 @@ class WorkflowStageService {
     clearCache(): void {
         this.cachedStages = null;
         this.cacheTimestamp = 0;
+    }
+
+    // Force refresh workflow stages
+    async forceRefresh(): Promise<WorkflowStage[]> {
+        this.clearCache();
+        return await this.getWorkflowStages(true);
     }
 }
 

@@ -195,8 +195,11 @@ export default function Projects() {
     const loadWorkflowStages = async () => {
       try {
         setStagesLoading(true);
-        const stages = await workflowStageService.getWorkflowStages();
-        console.log('Workflow stages loaded:', stages);
+
+        // Clear cache and force refresh to get latest stages
+        workflowStageService.clearCache();
+        const stages = await workflowStageService.getWorkflowStages(true);
+
         // Sort stages by stage_order
         const sortedStages = stages.sort((a, b) => a.stage_order - b.stage_order);
         setWorkflowStages(sortedStages);
@@ -216,6 +219,7 @@ export default function Projects() {
 
     loadWorkflowStages();
   }, []);
+
 
   // Get default tab from URL params or localStorage
   const getDefaultTab = () => {
