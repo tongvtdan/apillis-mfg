@@ -57,6 +57,7 @@ const inquiryFormSchema = z.object({
     email: z.string().email('Invalid email address'),
     phone: z.string().optional(),
     country: z.string().min(2, 'Country is required'),
+    website: z.string().url('Invalid website URL').optional().or(z.literal('')),
     pointOfContacts: z.array(z.string()).optional(), // Array of contact IDs
     documents: z.array(documentItemSchema).min(2, 'At least two items required: Drawing and BOM'),
     notes: z.string().optional(),
@@ -122,6 +123,7 @@ export function InquiryIntakeForm({ submissionType, onSuccess }: InquiryIntakeFo
 
         // Auto-fill organization-level information
         form.setValue('country', organization.country || '');
+        form.setValue('website', organization.website || '');
 
         // Show alert if organization doesn't have country information
         if (!organization.country) {
@@ -317,6 +319,7 @@ export function InquiryIntakeForm({ submissionType, onSuccess }: InquiryIntakeFo
                 const newOrganization = await createOrganization({
                     name: data.company,
                     country: data.country,
+                    website: data.website || undefined,
                     description: 'Customer Organization'
                 });
                 customerOrganizationId = newOrganization.id;
@@ -659,6 +662,20 @@ export function InquiryIntakeForm({ submissionType, onSuccess }: InquiryIntakeFo
                                     )}
                                 />
                             </div>
+
+                            <FormField
+                                control={form.control}
+                                name="website"
+                                render={({ field }) => (
+                                    <FormItem>
+                                        <FormLabel>Website</FormLabel>
+                                        <FormControl>
+                                            <Input placeholder="https://example.com" {...field} />
+                                        </FormControl>
+                                        <FormMessage />
+                                    </FormItem>
+                                )}
+                            />
 
                             <FormField
                                 control={form.control}
