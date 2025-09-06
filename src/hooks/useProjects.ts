@@ -126,22 +126,9 @@ export function useProjects() {
           notes,
           created_at,
           updated_at,
-          customer_organization:organizations!customer_organization_id(
+          customer_organization:organizations(
             id,
-            name,
-            slug,
-            description,
-            industry,
-            address,
-            city,
-            state,
-            country,
-            postal_code,
-            website,
-            logo_url,
-            is_active,
-            created_at,
-            updated_at
+            name
           )
         `);
 
