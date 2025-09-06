@@ -13,7 +13,7 @@ import { Checkbox } from '@/components/ui/checkbox';
 import { Badge } from '@/components/ui/badge';
 import { Command, CommandEmpty, CommandGroup, CommandInput, CommandItem, CommandList } from '@/components/ui/command';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
-import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
+import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger, DialogOverlay } from '@/components/ui/dialog';
 import { CheckCircle2, Loader2, Plus, Trash2, Upload, FileText, Link, X, Check, ChevronsUpDown, Building2, ChevronDown, ChevronRight } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { useProjects } from '@/hooks/useProjects';
@@ -1354,10 +1354,11 @@ export function InquiryIntakeForm({ submissionType, onSuccess }: InquiryIntakeFo
 
             {/* Create Customer Modal */}
             <Dialog open={createCustomerOpen} onOpenChange={setCreateCustomerOpen}>
-                <DialogContent>
-                    <DialogHeader>
-                        <DialogTitle>Create New Organization</DialogTitle>
-                        <DialogDescription>
+                <DialogOverlay className="bg-black/50" />
+                <DialogContent className="modal-dialog max-w-2xl">
+                    <DialogHeader className="modal-dialog-header">
+                        <DialogTitle className="modal-dialog-title">Create New Organization</DialogTitle>
+                        <DialogDescription className="modal-dialog-description">
                             Add a new customer organization to the system. A primary contact will be automatically created and selected for this project.
                         </DialogDescription>
                     </DialogHeader>
@@ -1368,6 +1369,7 @@ export function InquiryIntakeForm({ submissionType, onSuccess }: InquiryIntakeFo
                                 <Input
                                     id="modal-company"
                                     placeholder="Organization Name"
+                                    className="modal-form-input"
                                     value={form.watch('company') || ''}
                                     onChange={(e) => form.setValue('company', e.target.value)}
                                 />
@@ -1377,6 +1379,7 @@ export function InquiryIntakeForm({ submissionType, onSuccess }: InquiryIntakeFo
                                 <Input
                                     id="modal-customer-name"
                                     placeholder="Contact Name"
+                                    className="modal-form-input"
                                     value={form.watch('customerName') || ''}
                                     onChange={(e) => form.setValue('customerName', e.target.value)}
                                 />
@@ -1389,6 +1392,7 @@ export function InquiryIntakeForm({ submissionType, onSuccess }: InquiryIntakeFo
                                     id="modal-email"
                                     type="email"
                                     placeholder="email@company.com"
+                                    className="modal-form-input"
                                     value={form.watch('email') || ''}
                                     onChange={(e) => form.setValue('email', e.target.value)}
                                 />
@@ -1398,6 +1402,7 @@ export function InquiryIntakeForm({ submissionType, onSuccess }: InquiryIntakeFo
                                 <Input
                                     id="modal-phone"
                                     placeholder="+1-555-123-4567"
+                                    className="modal-form-input"
                                     value={form.watch('phone') || ''}
                                     onChange={(e) => form.setValue('phone', e.target.value)}
                                 />
@@ -1410,7 +1415,7 @@ export function InquiryIntakeForm({ submissionType, onSuccess }: InquiryIntakeFo
                                     value={form.watch('country') || ''}
                                     onValueChange={(value) => form.setValue('country', value)}
                                 >
-                                    <SelectTrigger>
+                                    <SelectTrigger className="modal-select-trigger">
                                         <SelectValue placeholder="Select country" />
                                     </SelectTrigger>
                                     <SelectContent>
@@ -1433,6 +1438,7 @@ export function InquiryIntakeForm({ submissionType, onSuccess }: InquiryIntakeFo
                                 <Input
                                     id="modal-website"
                                     placeholder="https://example.com"
+                                    className="modal-form-input"
                                     value={form.watch('website') || ''}
                                     onChange={(e) => form.setValue('website', e.target.value)}
                                 />
@@ -1442,12 +1448,14 @@ export function InquiryIntakeForm({ submissionType, onSuccess }: InquiryIntakeFo
                             <Button
                                 type="button"
                                 variant="outline"
+                                className="modal-button-secondary"
                                 onClick={() => setCreateCustomerOpen(false)}
                             >
                                 Cancel
                             </Button>
                             <Button
                                 type="button"
+                                className="modal-button-primary"
                                 onClick={handleCreateOrganization}
                                 disabled={isCreatingOrganization}
                             >

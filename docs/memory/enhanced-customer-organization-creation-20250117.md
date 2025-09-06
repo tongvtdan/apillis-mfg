@@ -106,6 +106,26 @@ INSERT INTO contacts (organization_id, type, contact_name, email, phone, is_prim
 **Files Modified:**
 - `src/components/project/intake/InquiryIntakeForm.tsx` (modal form fields)
 
+## Modal Visibility Improvements
+
+### **Issue:** Transparent background making dialog hard to see
+
+**Root Cause:** Missing DialogOverlay and modal CSS classes
+
+**Solution:**
+- Added `DialogOverlay` with `bg-black/50` for backdrop
+- Applied modal CSS classes (`modal-dialog`, `modal-dialog-header`, etc.)
+- Added proper form input styling (`modal-form-input`, `modal-select-trigger`)
+- Styled buttons with `modal-button-primary` and `modal-button-secondary`
+
+### **Visual Improvements:**
+- **Backdrop:** Semi-transparent dark overlay (`bg-black/50`)
+- **Modal Content:** Proper shadow and border styling
+- **Header:** Gradient background with amber accent border
+- **Form Elements:** Consistent styling with focus states
+- **Buttons:** Amber-themed primary button with hover effects
+- **Max Width:** `max-w-2xl` for better layout
+
 ## Testing
 
 - ✅ Build compilation successful
@@ -113,6 +133,7 @@ INSERT INTO contacts (organization_id, type, contact_name, email, phone, is_prim
 - ✅ TypeScript validation passed
 - ✅ Component integration verified
 - ✅ Modal form context issue resolved
+- ✅ Modal visibility and styling improved
 
 ## Future Enhancements
 
