@@ -1790,36 +1790,28 @@ COMMENT ON COLUMN "public"."approvals"."auto_approval_rules" IS 'JSON rules for 
 
 
 CREATE TABLE IF NOT EXISTS "public"."contacts" (
-    "id" "uuid" DEFAULT "extensions"."uuid_generate_v4"() NOT NULL,
-    "organization_id" "uuid" NOT NULL,
-    "type" "public"."contact_type" NOT NULL,
-    "company_name" character varying(255) NOT NULL,
-    "contact_name" character varying(255),
-    "email" character varying(255),
-    "phone" character varying(50),
+    "id" "uuid" DEFAULT "gen_random_uuid"() NOT NULL,
+    "organization_id" "uuid",
+    "type" "text" DEFAULT 'customer'::"text",
+    "company_name" "text",
+    "contact_name" "text",
+    "email" "text",
+    "phone" "text",
     "address" "text",
-    "city" character varying(100),
-    "state" character varying(100),
-    "country" character varying(100),
-    "postal_code" character varying(20),
-    "website" character varying(255),
-    "tax_id" character varying(50),
-    "payment_terms" character varying(100),
-    "credit_limit" numeric(15,2),
+    "city" "text",
+    "state" "text",
+    "country" "text",
+    "postal_code" "text",
+    "website" "text",
+    "tax_id" "text",
+    "payment_terms" "text",
+    "credit_limit" numeric,
     "is_active" boolean DEFAULT true,
-    "notes" "text",
-    "metadata" "jsonb" DEFAULT '{}'::"jsonb",
-    "ai_category" "jsonb" DEFAULT '{}'::"jsonb",
-    "ai_capabilities" "text"[] DEFAULT '{}'::"text"[],
-    "ai_risk_score" numeric(5,2),
-    "ai_last_analyzed" timestamp with time zone,
-    "created_at" timestamp with time zone DEFAULT "now"(),
-    "updated_at" timestamp with time zone DEFAULT "now"(),
-    "created_by" "uuid",
-    "client_organization_id" "uuid",
-    "role" character varying(100),
+    "role" "text",
     "is_primary_contact" boolean DEFAULT false,
-    "description" "text"
+    "notes" "text",
+    "created_at" timestamp with time zone DEFAULT "now"(),
+    "updated_at" timestamp with time zone DEFAULT "now"()
 );
 
 
@@ -1831,10 +1823,6 @@ COMMENT ON COLUMN "public"."contacts"."role" IS 'Role of the contact person (pur
 
 
 COMMENT ON COLUMN "public"."contacts"."is_primary_contact" IS 'Indicates if this is the primary contact for the organization';
-
-
-
-COMMENT ON COLUMN "public"."contacts"."description" IS 'Additional context or description for the contact';
 
 
 
@@ -2015,25 +2003,22 @@ ALTER TABLE "public"."notifications" OWNER TO "postgres";
 
 
 CREATE TABLE IF NOT EXISTS "public"."organizations" (
-    "id" "uuid" DEFAULT "extensions"."uuid_generate_v4"() NOT NULL,
-    "name" character varying(255) NOT NULL,
-    "slug" character varying(100) NOT NULL,
-    "domain" character varying(255),
-    "logo_url" "text",
+    "id" "uuid" DEFAULT "gen_random_uuid"() NOT NULL,
+    "name" "text" NOT NULL,
+    "slug" "text",
     "description" "text",
-    "industry" character varying(100),
-    "settings" "jsonb" DEFAULT '{}'::"jsonb",
-    "subscription_plan" "public"."subscription_plan" DEFAULT 'starter'::"public"."subscription_plan",
+    "industry" "text",
+    "address" "text",
+    "city" "text",
+    "state" "text",
+    "country" "text",
+    "postal_code" "text",
+    "website" "text",
+    "logo_url" "text",
+    "organization_type" "text" DEFAULT 'customer'::"text",
     "is_active" boolean DEFAULT true,
     "created_at" timestamp with time zone DEFAULT "now"(),
-    "updated_at" timestamp with time zone DEFAULT "now"(),
-    "address" "text",
-    "city" character varying(100),
-    "state" character varying(100),
-    "country" character varying(100),
-    "postal_code" character varying(20),
-    "website" character varying(255),
-    "organization_type" "public"."organization_type_enum" NOT NULL
+    "updated_at" timestamp with time zone DEFAULT "now"()
 );
 
 
@@ -2184,21 +2169,21 @@ CREATE OR REPLACE VIEW "public"."project_details_view" AS
     "o"."country" AS "customer_country",
     "o"."website" AS "customer_website",
         CASE
-            WHEN ("array_length"("p"."point_of_contacts", 1) > 0) THEN ( SELECT "c"."contact_name"
+            WHEN ("array_length"("p"."point_of_contacts", 1) > 0) THEN (( SELECT "c"."contact_name"
                FROM "public"."contacts" "c"
-              WHERE ("c"."id" = "p"."point_of_contacts"[1]))
+              WHERE ("c"."id" = "p"."point_of_contacts"[1])))::character varying
             ELSE NULL::character varying
         END AS "primary_contact_name",
         CASE
-            WHEN ("array_length"("p"."point_of_contacts", 1) > 0) THEN ( SELECT "c"."email"
+            WHEN ("array_length"("p"."point_of_contacts", 1) > 0) THEN (( SELECT "c"."email"
                FROM "public"."contacts" "c"
-              WHERE ("c"."id" = "p"."point_of_contacts"[1]))
+              WHERE ("c"."id" = "p"."point_of_contacts"[1])))::character varying
             ELSE NULL::character varying
         END AS "primary_contact_email",
         CASE
-            WHEN ("array_length"("p"."point_of_contacts", 1) > 0) THEN ( SELECT "c"."phone"
+            WHEN ("array_length"("p"."point_of_contacts", 1) > 0) THEN (( SELECT "c"."phone"
                FROM "public"."contacts" "c"
-              WHERE ("c"."id" = "p"."point_of_contacts"[1]))
+              WHERE ("c"."id" = "p"."point_of_contacts"[1])))::character varying
             ELSE NULL::character varying
         END AS "primary_contact_phone",
     COALESCE("array_length"("p"."point_of_contacts", 1), 0) AS "contact_count"
@@ -2305,21 +2290,22 @@ ALTER TABLE "public"."supplier_rfqs" OWNER TO "postgres";
 
 
 CREATE TABLE IF NOT EXISTS "public"."users" (
-    "id" "uuid" NOT NULL,
-    "organization_id" "uuid" NOT NULL,
-    "email" character varying(255) NOT NULL,
-    "name" character varying(255) NOT NULL,
-    "role" "public"."user_role" NOT NULL,
-    "department" character varying(100),
-    "phone" character varying(50),
+    "id" "uuid" DEFAULT "gen_random_uuid"() NOT NULL,
+    "user_id" "uuid",
+    "organization_id" "uuid",
+    "email" "text" NOT NULL,
+    "name" "text",
+    "role" "text" DEFAULT 'sales'::"text",
+    "department" "text",
+    "phone" "text",
     "avatar_url" "text",
-    "status" "public"."user_status" DEFAULT 'active'::"public"."user_status",
+    "status" "text" DEFAULT 'active'::"text",
     "description" "text",
-    "employee_id" character varying(50),
+    "employee_id" "text",
     "direct_manager_id" "uuid",
-    "direct_reports" "uuid"[] DEFAULT '{}'::"uuid"[],
+    "direct_reports" "uuid"[],
     "last_login_at" timestamp with time zone,
-    "preferences" "jsonb" DEFAULT '{}'::"jsonb",
+    "preferences" "jsonb",
     "created_at" timestamp with time zone DEFAULT "now"(),
     "updated_at" timestamp with time zone DEFAULT "now"()
 );
@@ -2819,10 +2805,6 @@ CREATE INDEX "idx_organizations_country" ON "public"."organizations" USING "btre
 
 
 
-CREATE INDEX "idx_organizations_domain" ON "public"."organizations" USING "btree" ("domain");
-
-
-
 CREATE INDEX "idx_organizations_is_active" ON "public"."organizations" USING "btree" ("is_active");
 
 
@@ -3248,17 +3230,7 @@ ALTER TABLE ONLY "public"."approvals"
 
 
 ALTER TABLE ONLY "public"."contacts"
-    ADD CONSTRAINT "contacts_client_organization_id_fkey" FOREIGN KEY ("client_organization_id") REFERENCES "public"."organizations"("id");
-
-
-
-ALTER TABLE ONLY "public"."contacts"
-    ADD CONSTRAINT "contacts_created_by_fkey" FOREIGN KEY ("created_by") REFERENCES "public"."users"("id");
-
-
-
-ALTER TABLE ONLY "public"."contacts"
-    ADD CONSTRAINT "contacts_organization_id_fkey" FOREIGN KEY ("organization_id") REFERENCES "public"."organizations"("id") ON DELETE CASCADE;
+    ADD CONSTRAINT "contacts_organization_id_fkey" FOREIGN KEY ("organization_id") REFERENCES "public"."organizations"("id");
 
 
 
@@ -3487,15 +3459,19 @@ ALTER TABLE ONLY "public"."workflow_sub_stages"
 
 
 
-CREATE POLICY "Admin and management can manage sub-stage progress" ON "public"."project_sub_stage_progress" USING (("organization_id" IN ( SELECT "users"."organization_id"
-   FROM "public"."users"
-  WHERE (("users"."id" = "auth"."uid"()) AND ("users"."role" = ANY (ARRAY['admin'::"public"."user_role", 'management'::"public"."user_role"]))))));
+CREATE POLICY "Allow all operations for authenticated users" ON "public"."contacts" USING ((("auth"."role"() = 'authenticated'::"text") OR ("auth"."role"() = 'service_role'::"text")));
 
 
 
-CREATE POLICY "Admin and management can manage sub-stages" ON "public"."workflow_sub_stages" USING (("organization_id" IN ( SELECT "users"."organization_id"
-   FROM "public"."users"
-  WHERE (("users"."id" = "auth"."uid"()) AND ("users"."role" = ANY (ARRAY['admin'::"public"."user_role", 'management'::"public"."user_role"]))))));
+CREATE POLICY "Allow all operations for authenticated users" ON "public"."organizations" USING ((("auth"."role"() = 'authenticated'::"text") OR ("auth"."role"() = 'service_role'::"text")));
+
+
+
+CREATE POLICY "Allow anonymous access" ON "public"."contacts" USING (("auth"."role"() = 'anon'::"text"));
+
+
+
+CREATE POLICY "Allow anonymous access" ON "public"."organizations" USING (("auth"."role"() = 'anon'::"text"));
 
 
 
@@ -3599,7 +3575,7 @@ CREATE POLICY "Users can insert document access logs" ON "public"."document_acce
 
 
 
-CREATE POLICY "Users can modify contacts" ON "public"."contacts" USING ((("organization_id" = "public"."get_current_user_org_id"()) AND ("public"."get_current_user_role"() = ANY (ARRAY['admin'::"text", 'management'::"text", 'sales'::"text", 'procurement'::"text"]))));
+CREATE POLICY "Users can insert users" ON "public"."users" FOR INSERT WITH CHECK (("auth"."role"() = 'authenticated'::"text"));
 
 
 
@@ -3695,14 +3671,6 @@ CREATE POLICY "Users can update approvals they are involved with" ON "public"."a
 
 
 
-CREATE POLICY "Users can update assigned sub-stage progress" ON "public"."project_sub_stage_progress" FOR UPDATE USING ((("organization_id" IN ( SELECT "users"."organization_id"
-   FROM "public"."users"
-  WHERE ("users"."id" = "auth"."uid"()))) AND (("assigned_to" = "auth"."uid"()) OR (EXISTS ( SELECT 1
-   FROM "public"."users"
-  WHERE (("users"."id" = "auth"."uid"()) AND ("users"."role" = ANY (ARRAY['admin'::"public"."user_role", 'management'::"public"."user_role"]))))))));
-
-
-
 CREATE POLICY "Users can update document versions they uploaded" ON "public"."document_versions" FOR UPDATE USING ((("organization_id" IN ( SELECT "users"."organization_id"
    FROM "public"."users"
   WHERE ("users"."id" = "auth"."uid"()))) AND ("uploaded_by" = "auth"."uid"())));
@@ -3712,12 +3680,6 @@ CREATE POLICY "Users can update document versions they uploaded" ON "public"."do
 CREATE POLICY "Users can update their notifications" ON "public"."approval_notifications" FOR UPDATE USING ((("organization_id" IN ( SELECT "users"."organization_id"
    FROM "public"."users"
   WHERE ("users"."id" = "auth"."uid"()))) AND ("recipient_id" = "auth"."uid"())));
-
-
-
-CREATE POLICY "Users can update their organization" ON "public"."organizations" FOR UPDATE USING (("id" IN ( SELECT "users"."organization_id"
-   FROM "public"."users"
-  WHERE (("users"."id" = "auth"."uid"()) AND ("users"."role" = ANY (ARRAY['admin'::"public"."user_role", 'management'::"public"."user_role"]))))));
 
 
 
@@ -3733,6 +3695,10 @@ COMMENT ON POLICY "Users can update their own profile" ON "public"."users" IS 'A
 
 
 
+CREATE POLICY "Users can update users" ON "public"."users" FOR UPDATE USING (("auth"."role"() = 'authenticated'::"text"));
+
+
+
 CREATE POLICY "Users can upload attachments for their organization" ON "public"."approval_attachments" FOR INSERT WITH CHECK (("organization_id" IN ( SELECT "users"."organization_id"
    FROM "public"."users"
   WHERE ("users"."id" = "auth"."uid"()))));
@@ -3742,10 +3708,6 @@ CREATE POLICY "Users can upload attachments for their organization" ON "public".
 CREATE POLICY "Users can view activity in their org" ON "public"."activity_log" FOR SELECT USING (("organization_id" IN ( SELECT "users"."organization_id"
    FROM "public"."users"
   WHERE ("users"."id" = "auth"."uid"()))));
-
-
-
-CREATE POLICY "Users can view all organizations" ON "public"."organizations" FOR SELECT USING (true);
 
 
 
@@ -3770,20 +3732,6 @@ CREATE POLICY "Users can view approvals for their organization" ON "public"."app
 CREATE POLICY "Users can view attachments for their organization" ON "public"."approval_attachments" FOR SELECT USING (("organization_id" IN ( SELECT "users"."organization_id"
    FROM "public"."users"
   WHERE ("users"."id" = "auth"."uid"()))));
-
-
-
-CREATE POLICY "Users can view contacts for project intake" ON "public"."contacts" FOR SELECT USING ((("organization_id" IN ( SELECT "users"."organization_id"
-   FROM "public"."users"
-  WHERE ("users"."id" = "auth"."uid"()))) OR (("type" = 'customer'::"public"."contact_type") AND ("is_active" = true))));
-
-
-
-CREATE POLICY "Users can view delegation mappings" ON "public"."approval_delegation_mappings" FOR SELECT USING ((EXISTS ( SELECT 1
-   FROM "public"."approval_delegations"
-  WHERE (("approval_delegations"."id" = "approval_delegation_mappings"."delegation_id") AND (("auth"."uid"() = "approval_delegations"."delegator_id") OR ("auth"."uid"() = "approval_delegations"."delegate_id") OR (EXISTS ( SELECT 1
-           FROM "public"."users"
-          WHERE (("users"."id" = "auth"."uid"()) AND ("users"."organization_id" = "approval_delegations"."organization_id") AND ("users"."role" = ANY (ARRAY['admin'::"public"."user_role", 'management'::"public"."user_role"]))))))))));
 
 
 
@@ -3901,12 +3849,6 @@ CREATE POLICY "Users can view their notifications" ON "public"."approval_notific
 
 
 
-CREATE POLICY "Users can view their own delegations" ON "public"."approval_delegations" FOR SELECT USING ((("auth"."uid"() = "delegator_id") OR ("auth"."uid"() = "delegate_id") OR (EXISTS ( SELECT 1
-   FROM "public"."users"
-  WHERE (("users"."id" = "auth"."uid"()) AND ("users"."organization_id" = "approval_delegations"."organization_id") AND ("users"."role" = ANY (ARRAY['admin'::"public"."user_role", 'management'::"public"."user_role"])))))));
-
-
-
 CREATE POLICY "Users can view their own document access logs" ON "public"."document_access_log" FOR SELECT USING ((("user_id" = "auth"."uid"()) OR ("document_id" IN ( SELECT "documents"."id"
    FROM "public"."documents"
   WHERE ("documents"."organization_id" = ( SELECT "users"."organization_id"
@@ -3924,6 +3866,10 @@ CREATE POLICY "Users can view their own profile" ON "public"."users" FOR SELECT 
 
 
 COMMENT ON POLICY "Users can view their own profile" ON "public"."users" IS 'Allows users to view their own profile';
+
+
+
+CREATE POLICY "Users can view users" ON "public"."users" FOR SELECT USING (("auth"."role"() = 'authenticated'::"text"));
 
 
 
