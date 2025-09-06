@@ -3729,6 +3729,10 @@ CREATE POLICY "Users can view activity in their org" ON "public"."activity_log" 
 
 
 
+CREATE POLICY "Users can view all organizations" ON "public"."organizations" FOR SELECT USING (true);
+
+
+
 CREATE POLICY "Users can view approval chains for their organization" ON "public"."approval_chains" FOR SELECT USING (("organization_id" IN ( SELECT "users"."organization_id"
    FROM "public"."users"
   WHERE ("users"."id" = "auth"."uid"()))));
@@ -3878,12 +3882,6 @@ CREATE POLICY "Users can view supplier quotes in their org" ON "public"."supplie
 CREATE POLICY "Users can view their notifications" ON "public"."approval_notifications" FOR SELECT USING ((("organization_id" IN ( SELECT "users"."organization_id"
    FROM "public"."users"
   WHERE ("users"."id" = "auth"."uid"()))) AND ("recipient_id" = "auth"."uid"())));
-
-
-
-CREATE POLICY "Users can view their organization" ON "public"."organizations" FOR SELECT USING (("id" IN ( SELECT "users"."organization_id"
-   FROM "public"."users"
-  WHERE ("users"."id" = "auth"."uid"()))));
 
 
 
