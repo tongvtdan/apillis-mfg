@@ -128,6 +128,17 @@ CREATE TYPE "public"."intake_type" AS ENUM (
 ALTER TYPE "public"."intake_type" OWNER TO "postgres";
 
 
+CREATE TYPE "public"."organization_type_enum" AS ENUM (
+    'internal',
+    'customer',
+    'supplier',
+    'partner'
+);
+
+
+ALTER TYPE "public"."organization_type_enum" OWNER TO "postgres";
+
+
 CREATE TYPE "public"."priority_level" AS ENUM (
     'low',
     'medium',
@@ -2021,11 +2032,16 @@ CREATE TABLE IF NOT EXISTS "public"."organizations" (
     "state" character varying(100),
     "country" character varying(100),
     "postal_code" character varying(20),
-    "website" character varying(255)
+    "website" character varying(255),
+    "organization_type" "public"."organization_type_enum" NOT NULL
 );
 
 
 ALTER TABLE "public"."organizations" OWNER TO "postgres";
+
+
+COMMENT ON COLUMN "public"."organizations"."organization_type" IS 'Type of organization: internal, customer, supplier, or partner';
+
 
 
 CREATE TABLE IF NOT EXISTS "public"."project_assignments" (
