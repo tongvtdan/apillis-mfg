@@ -1,4 +1,4 @@
-import { Bar, BarChart, CartesianGrid, Cell, Legend, Pie, PieChart, ResponsiveContainer, Tooltip, XAxis, YAxis, ComposedChart, Rectangle } from "recharts";
+import { Bar, BarChart, CartesianGrid, Cell, Legend, Pie, PieChart, Tooltip, XAxis, YAxis, ComposedChart, Rectangle } from "recharts";
 import { useNavigate } from "react-router-dom";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { ChartContainer, ChartTooltip, ChartTooltipContent } from "@/components/ui/chart";
@@ -89,33 +89,33 @@ export function ProjectStageChart({ data }: ProjectStageChartProps) {
                 </CardHeader>
                 <CardContent>
                     <ChartContainer config={chartConfig} className="min-h-[200px] w-full">
-                        <ResponsiveContainer width="100%" height={200}>
-                            <ComposedChart
-                                data={chartData}
-                                margin={{ top: 10, right: 30, left: 20, bottom: 10 }}
+                        <ComposedChart
+                            width={234}
+                            height={200}
+                            data={chartData}
+                            margin={{ top: 10, right: 30, left: 20, bottom: 10 }}
+                        >
+                            <CartesianGrid strokeDasharray="3 3" opacity={0.3} />
+                            <XAxis dataKey="name" axisLine={false} tickLine={false} />
+                            <YAxis axisLine={false} tickLine={false} />
+                            <Tooltip content={<CustomTooltip />} />
+                            <Bar
+                                dataKey="value"
+                                name="Projects"
+                                onClick={handleBarClick}
+                                cursor="pointer"
+                                radius={[4, 4, 0, 0]}
+                                shape={<CustomBar />}
                             >
-                                <CartesianGrid strokeDasharray="3 3" opacity={0.3} />
-                                <XAxis dataKey="name" axisLine={false} tickLine={false} />
-                                <YAxis axisLine={false} tickLine={false} />
-                                <Tooltip content={<CustomTooltip />} />
-                                <Bar
-                                    dataKey="value"
-                                    name="Projects"
-                                    onClick={handleBarClick}
-                                    cursor="pointer"
-                                    radius={[4, 4, 0, 0]}
-                                    shape={<CustomBar />}
-                                >
-                                    {chartData.map((entry, index) => (
-                                        <Cell
-                                            key={`cell-${index}`}
-                                            fill={entry.color}
-                                            onClick={() => handleBarClick(entry)}
-                                        />
-                                    ))}
-                                </Bar>
-                            </ComposedChart>
-                        </ResponsiveContainer>
+                                {chartData.map((entry, index) => (
+                                    <Cell
+                                        key={`cell-${index}`}
+                                        fill={entry.color}
+                                        onClick={() => handleBarClick(entry)}
+                                    />
+                                ))}
+                            </Bar>
+                        </ComposedChart>
                     </ChartContainer>
                 </CardContent>
             </Card>
@@ -127,34 +127,35 @@ export function ProjectStageChart({ data }: ProjectStageChartProps) {
                 </CardHeader>
                 <CardContent>
                     <ChartContainer config={chartConfig} className="min-h-[200px] w-full">
-                        <ResponsiveContainer width="100%" height={200}>
-                            <PieChart>
-                                <Tooltip content={<CustomTooltip />} />
-                                <Legend />
-                                <Pie
-                                    data={chartData}
-                                    cx="50%"
-                                    cy="50%"
-                                    labelLine={false}
-                                    outerRadius={80}
-                                    fill="#8884d8"
-                                    dataKey="value"
-                                    nameKey="name"
-                                    label={({ name, percent }) => `${name} ${(percent * 100).toFixed(0)}%`}
-                                    onClick={handlePieClick}
-                                    cursor="pointer"
-                                >
-                                    {chartData.map((entry, index) => (
-                                        <Cell
-                                            key={`cell-${index}`}
-                                            fill={entry.color}
-                                            fillOpacity={0.85}
-                                            onClick={() => handlePieClick(entry)}
-                                        />
-                                    ))}
-                                </Pie>
-                            </PieChart>
-                        </ResponsiveContainer>
+                        <PieChart
+                            width={234}
+                            height={200}
+                        >
+                            <Tooltip content={<CustomTooltip />} />
+                            <Legend />
+                            <Pie
+                                data={chartData}
+                                cx="50%"
+                                cy="50%"
+                                labelLine={false}
+                                outerRadius={80}
+                                fill="#8884d8"
+                                dataKey="value"
+                                nameKey="name"
+                                label={({ name, percent }) => `${name} ${(percent * 100).toFixed(0)}%`}
+                                onClick={handlePieClick}
+                                cursor="pointer"
+                            >
+                                {chartData.map((entry, index) => (
+                                    <Cell
+                                        key={`cell-${index}`}
+                                        fill={entry.color}
+                                        fillOpacity={0.85}
+                                        onClick={() => handlePieClick(entry)}
+                                    />
+                                ))}
+                            </Pie>
+                        </PieChart>
                     </ChartContainer>
                 </CardContent>
             </Card>

@@ -9,7 +9,6 @@ import {
     YAxis,
     CartesianGrid,
     Tooltip,
-    ResponsiveContainer,
     PieChart,
     Pie,
     Cell
@@ -175,21 +174,23 @@ export function ProjectWorkflowAnalytics({ projects }: ProjectWorkflowAnalyticsP
                         <CardDescription>Projects by current workflow stage</CardDescription>
                     </CardHeader>
                     <CardContent>
-                        <ResponsiveContainer width="100%" height={300}>
-                            <BarChart data={analytics.stageDistribution}>
-                                <CartesianGrid strokeDasharray="3 3" />
-                                <XAxis
-                                    dataKey="name"
-                                    angle={-45}
-                                    textAnchor="end"
-                                    height={80}
-                                    fontSize={12}
-                                />
-                                <YAxis />
-                                <Tooltip />
-                                <Bar dataKey="count" fill="#3B82F6" />
-                            </BarChart>
-                        </ResponsiveContainer>
+                        <BarChart
+                            width={400}
+                            height={300}
+                            data={analytics.stageDistribution}
+                        >
+                            <CartesianGrid strokeDasharray="3 3" />
+                            <XAxis
+                                dataKey="name"
+                                angle={-45}
+                                textAnchor="end"
+                                height={80}
+                                fontSize={12}
+                            />
+                            <YAxis />
+                            <Tooltip />
+                            <Bar dataKey="count" fill="#3B82F6" />
+                        </BarChart>
                     </CardContent>
                 </Card>
 
@@ -200,25 +201,26 @@ export function ProjectWorkflowAnalytics({ projects }: ProjectWorkflowAnalyticsP
                         <CardDescription>Projects by priority level</CardDescription>
                     </CardHeader>
                     <CardContent>
-                        <ResponsiveContainer width="100%" height={300}>
-                            <PieChart>
-                                <Pie
-                                    data={analytics.priorityDistribution.filter(p => p.count > 0)}
-                                    cx="50%"
-                                    cy="50%"
-                                    labelLine={false}
-                                    label={({ name, count, percent }) => `${name}: ${count} (${(percent * 100).toFixed(0)}%)`}
-                                    outerRadius={80}
-                                    fill="#8884d8"
-                                    dataKey="count"
-                                >
-                                    {analytics.priorityDistribution.map((entry, index) => (
-                                        <Cell key={`cell-${index}`} fill={entry.color} />
-                                    ))}
-                                </Pie>
-                                <Tooltip />
-                            </PieChart>
-                        </ResponsiveContainer>
+                        <PieChart
+                            width={400}
+                            height={300}
+                        >
+                            <Pie
+                                data={analytics.priorityDistribution.filter(p => p.count > 0)}
+                                cx="50%"
+                                cy="50%"
+                                labelLine={false}
+                                label={({ name, count, percent }) => `${name}: ${count} (${(percent * 100).toFixed(0)}%)`}
+                                outerRadius={80}
+                                fill="#8884d8"
+                                dataKey="count"
+                            >
+                                {analytics.priorityDistribution.map((entry, index) => (
+                                    <Cell key={`cell-${index}`} fill={entry.color} />
+                                ))}
+                            </Pie>
+                            <Tooltip />
+                        </PieChart>
                     </CardContent>
                 </Card>
             </div>
