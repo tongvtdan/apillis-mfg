@@ -4,7 +4,7 @@ export type ProjectStage = 'inquiry_received' | 'technical_review' | 'supplier_r
 // Dynamic stage type based on database workflow_stages
 export type WorkflowStageId = string; // UUID from workflow_stages table
 export type ProjectStatus = 'active' | 'on_hold' | 'cancelled' | 'completed';
-export type ProjectPriority = 'low' | 'medium' | 'high' | 'urgent';
+export type ProjectPriority = 'low' | 'medium' | 'high' | 'critical';
 export type ProjectType = 'system_build' | 'fabrication' | 'manufacturing';
 export type ProjectSource = 'manual' | 'portal' | 'email' | 'api' | 'import' | 'migration';
 export type IntakeType = 'rfq' | 'purchase_order' | 'project_idea' | 'direct_request';
@@ -355,7 +355,7 @@ export const STAGE_COLORS: Record<ProjectStage, string> = {
 };
 
 export const PRIORITY_COLORS: Record<ProjectPriority, string> = {
-  urgent: 'bg-red-100 text-red-800 border-red-200',
+  critical: 'bg-red-100 text-red-800 border-red-200',
   high: 'bg-orange-100 text-orange-800 border-orange-200',
   medium: 'bg-yellow-100 text-yellow-800 border-yellow-200',
   low: 'bg-green-100 text-green-800 border-green-200'
@@ -396,5 +396,5 @@ export function isValidProjectStatus(status: string): status is ProjectStatus {
 }
 
 export function isValidProjectPriority(priority: string): priority is ProjectPriority {
-  return ['low', 'medium', 'high', 'urgent'].includes(priority);
+  return ['low', 'medium', 'high', 'critical'].includes(priority);
 }

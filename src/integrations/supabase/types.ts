@@ -671,7 +671,7 @@ export type Database = {
           created_at: string | null
           created_by: string | null
           current_stage_id: string | null
-          customer_id: string | null
+          customer_organization_id: string | null
           description: string | null
           estimated_delivery_date: string | null
           estimated_value: number | null
@@ -679,6 +679,7 @@ export type Database = {
           metadata: Json | null
           notes: string | null
           organization_id: string
+          point_of_contacts: string[] | null
           priority_level: Database["public"]["Enums"]["priority_level"] | null
           priority_score: number | null
           project_id: string
@@ -698,7 +699,7 @@ export type Database = {
           created_at?: string | null
           created_by?: string | null
           current_stage_id?: string | null
-          customer_id?: string | null
+          customer_organization_id?: string | null
           description?: string | null
           estimated_delivery_date?: string | null
           estimated_value?: number | null
@@ -706,6 +707,7 @@ export type Database = {
           metadata?: Json | null
           notes?: string | null
           organization_id: string
+          point_of_contacts?: string[] | null
           priority_level?: Database["public"]["Enums"]["priority_level"] | null
           priority_score?: number | null
           project_id: string
@@ -725,7 +727,7 @@ export type Database = {
           created_at?: string | null
           created_by?: string | null
           current_stage_id?: string | null
-          customer_id?: string | null
+          customer_organization_id?: string | null
           description?: string | null
           estimated_delivery_date?: string | null
           estimated_value?: number | null
@@ -733,6 +735,7 @@ export type Database = {
           metadata?: Json | null
           notes?: string | null
           organization_id?: string
+          point_of_contacts?: string[] | null
           priority_level?: Database["public"]["Enums"]["priority_level"] | null
           priority_score?: number | null
           project_id?: string
@@ -769,10 +772,10 @@ export type Database = {
             referencedColumns: ["id"]
           },
           {
-            foreignKeyName: "projects_customer_id_fkey"
-            columns: ["customer_id"]
+            foreignKeyName: "projects_customer_organization_id_fkey"
+            columns: ["customer_organization_id"]
             isOneToOne: false
-            referencedRelation: "contacts"
+            referencedRelation: "organizations"
             referencedColumns: ["id"]
           },
           {

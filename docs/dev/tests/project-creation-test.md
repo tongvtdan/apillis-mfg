@@ -292,3 +292,4 @@ SELECT u.email, o.name as organization_name FROM users u JOIN organizations o ON
 ---
 
 **This test script ensures comprehensive validation of the project creation workflow and data storage integrity.**
+
