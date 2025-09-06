@@ -32,12 +32,12 @@ const intakeFormSchema = z.object({
 
 type IntakeFormData = z.infer<typeof intakeFormSchema>;
 
-interface SimplifiedIntakeFormProps {
+interface IntakeFormProps {
     submissionType: 'RFQ' | 'Purchase Order' | 'Project Idea';
     onSuccess?: (projectId: string) => void;
 }
 
-export function SimplifiedIntakeForm({ submissionType, onSuccess }: SimplifiedIntakeFormProps) {
+export function IntakeForm({ submissionType, onSuccess }: IntakeFormProps) {
     const [isSubmitting, setIsSubmitting] = useState(false);
     const [isSubmitted, setIsSubmitted] = useState(false);
     const [tempProjectId, setTempProjectId] = useState<string>('');
