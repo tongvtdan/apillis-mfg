@@ -698,64 +698,66 @@ export function InquiryIntakeForm({ submissionType, onSuccess }: InquiryIntakeFo
                                 />
                             </div>
 
-                            <FormField
-                                control={form.control}
-                                name="website"
-                                render={({ field }) => (
-                                    <FormItem>
-                                        <FormLabel>Website</FormLabel>
-                                        <FormControl>
-                                            <Input placeholder="https://example.com" {...field} />
-                                        </FormControl>
-                                        <FormMessage />
-                                    </FormItem>
-                                )}
-                            />
+                            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                <FormField
+                                    control={form.control}
+                                    name="country"
+                                    render={({ field }) => (
+                                        <FormItem>
+                                            <FormLabel>Country *</FormLabel>
+                                            <div className="flex gap-2">
+                                                <FormControl className="flex-1">
+                                                    <Input
+                                                        placeholder="Country will auto-fill when organization is selected"
+                                                        {...field}
+                                                        readOnly={!!field.value && !showCountryDropdown}
+                                                    />
+                                                </FormControl>
+                                                {showCountryDropdown && (
+                                                    <Select onValueChange={(value) => {
+                                                        field.onChange(value);
+                                                        handleCountryChange(value);
+                                                    }} value="">
+                                                        <FormControl>
+                                                            <SelectTrigger className="w-[200px]">
+                                                                <SelectValue placeholder="Select country" />
+                                                            </SelectTrigger>
+                                                        </FormControl>
+                                                        <SelectContent>
+                                                            <SelectItem value="US">United States</SelectItem>
+                                                            <SelectItem value="VN">Vietnam</SelectItem>
+                                                            <SelectItem value="JP">Japan</SelectItem>
+                                                            <SelectItem value="CA">Canada</SelectItem>
+                                                            <SelectItem value="MX">Mexico</SelectItem>
+                                                            <SelectItem value="GB">United Kingdom</SelectItem>
+                                                            <SelectItem value="DE">Germany</SelectItem>
+                                                            <SelectItem value="FR">France</SelectItem>
+                                                            <SelectItem value="CN">China</SelectItem>
+                                                            <SelectItem value="IN">India</SelectItem>
+                                                            <SelectItem value="AU">Australia</SelectItem>
+                                                        </SelectContent>
+                                                    </Select>
+                                                )}
+                                            </div>
+                                            <FormMessage />
+                                        </FormItem>
+                                    )}
+                                />
 
-                            <FormField
-                                control={form.control}
-                                name="country"
-                                render={({ field }) => (
-                                    <FormItem>
-                                        <FormLabel>Country *</FormLabel>
-                                        <div className="flex gap-2">
-                                            <FormControl className="flex-1">
-                                                <Input
-                                                    placeholder="Country will auto-fill when organization is selected"
-                                                    {...field}
-                                                    readOnly={!!field.value && !showCountryDropdown}
-                                                />
+                                <FormField
+                                    control={form.control}
+                                    name="website"
+                                    render={({ field }) => (
+                                        <FormItem>
+                                            <FormLabel>Website</FormLabel>
+                                            <FormControl>
+                                                <Input placeholder="https://example.com" {...field} />
                                             </FormControl>
-                                            {showCountryDropdown && (
-                                                <Select onValueChange={(value) => {
-                                                    field.onChange(value);
-                                                    handleCountryChange(value);
-                                                }} value="">
-                                                    <FormControl>
-                                                        <SelectTrigger className="w-[200px]">
-                                                            <SelectValue placeholder="Select country" />
-                                                        </SelectTrigger>
-                                                    </FormControl>
-                                                    <SelectContent>
-                                                        <SelectItem value="US">United States</SelectItem>
-                                                        <SelectItem value="VN">Vietnam</SelectItem>
-                                                        <SelectItem value="JP">Japan</SelectItem>
-                                                        <SelectItem value="CA">Canada</SelectItem>
-                                                        <SelectItem value="MX">Mexico</SelectItem>
-                                                        <SelectItem value="GB">United Kingdom</SelectItem>
-                                                        <SelectItem value="DE">Germany</SelectItem>
-                                                        <SelectItem value="FR">France</SelectItem>
-                                                        <SelectItem value="CN">China</SelectItem>
-                                                        <SelectItem value="IN">India</SelectItem>
-                                                        <SelectItem value="AU">Australia</SelectItem>
-                                                    </SelectContent>
-                                                </Select>
-                                            )}
-                                        </div>
-                                        <FormMessage />
-                                    </FormItem>
-                                )}
-                            />
+                                            <FormMessage />
+                                        </FormItem>
+                                    )}
+                                />
+                            </div>
                         </CardContent>
                     </Card>
 
