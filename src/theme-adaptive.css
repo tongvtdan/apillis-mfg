@@ -233,33 +233,33 @@
 @media (prefers-color-scheme: dark) {
 
     /* Ensure card readability by using solid backgrounds instead of gradients */
-    .enhanced-list-item {
+    .list-item {
         background-color: var(--fp-card) !important;
         border-color: var(--fp-border) !important;
     }
 
     /* Status cards with colored borders but solid backgrounds for better readability */
-    .enhanced-list-item-urgent,
-    .enhanced-list-item-high,
-    .enhanced-list-item-medium,
-    .enhanced-list-item-active {
+    .list-item-urgent,
+    .list-item-high,
+    .list-item-medium,
+    .list-item-active {
         background-color: var(--fp-card) !important;
     }
 
     /* Ensure proper contrast for status cards in dark mode */
-    .enhanced-list-item-urgent {
+    .list-item-urgent {
         border-color: var(--fp-destructive) !important;
     }
 
-    .enhanced-list-item-high {
+    .list-item-high {
         border-color: var(--fp-warning) !important;
     }
 
-    .enhanced-list-item-medium {
+    .list-item-medium {
         border-color: var(--fp-accent) !important;
     }
 
-    .enhanced-list-item-active {
+    .list-item-active {
         border-color: var(--fp-success) !important;
     }
 }

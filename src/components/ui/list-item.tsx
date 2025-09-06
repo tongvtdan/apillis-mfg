@@ -16,7 +16,7 @@ export function ListItem({
     className = '',
 }: ListItemProps) {
     // Build the className based on priority
-    const listItemClassName = `enhanced-list-item enhanced-list-item-${priority} ${className}`;
+    const listItemClassName = `list-item list-item-${priority} ${className}`;
 
     return (
         <div

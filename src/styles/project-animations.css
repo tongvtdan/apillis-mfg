@@ -33,6 +33,7 @@
   from {
     transform: rotate(0deg);
   }
+
   to {
     transform: rotate(360deg);
   }
@@ -70,9 +71,11 @@
   0% {
     transform: scale(1);
   }
+
   50% {
     transform: scale(1.1);
   }
+
   100% {
     transform: scale(1);
   }
@@ -83,15 +86,6 @@
   transition: grid-template-columns 0.3s cubic-bezier(0.4, 0.0, 0.2, 1);
 }
 
-/* Enhanced button hover effects */
-.action-button-enhanced {
-  transition: all 0.2s cubic-bezier(0.4, 0.0, 0.2, 1);
-}
-
-.action-button-enhanced:hover {
-  transform: translateY(-1px);
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
-}
 
 /* Smooth table row transitions */
 .table-row-transition {
@@ -103,15 +97,6 @@
   transform: translateX(2px);
 }
 
-/* Enhanced dropdown animations */
-.dropdown-enhanced {
-  transition: all 0.2s cubic-bezier(0.4, 0.0, 0.2, 1);
-}
-
-.dropdown-enhanced:hover {
-  transform: translateY(-1px);
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
-}
 
 /* Smooth stage selection indicator */
 .stage-selection-indicator {
@@ -123,15 +108,6 @@
   box-shadow: 0 0 0 3px hsl(var(--primary) / 0.2);
 }
 
-/* Enhanced loading states */
-.loading-enhanced {
-  transition: all 0.2s cubic-bezier(0.4, 0.0, 0.2, 1);
-}
-
-.loading-enhanced.loading {
-  opacity: 0.7;
-  pointer-events: none;
-}
 
 /* Smooth priority badge transitions */
 .priority-badge-transition {
@@ -166,14 +142,4 @@
 .workflow-stage-transition.current {
   transform: scale(1.1);
   filter: brightness(1.2);
-}
-
-/* Enhanced toast animations */
-.toast-enhanced {
-  transition: all 0.3s cubic-bezier(0.4, 0.0, 0.2, 1);
-}
-
-.toast-enhanced:hover {
-  transform: translateY(-1px);
-  box-shadow: 0 8px 25px -5px rgba(0, 0, 0, 0.1), 0 8px 10px -5px rgba(0, 0, 0, 0.04);
 }

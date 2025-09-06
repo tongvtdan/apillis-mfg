@@ -122,7 +122,7 @@ export function PriorityActionItems({ projects }: PriorityActionItemsProps) {
             <ProjectSummaryCard key={project.id} project={project} showUrgencyIndicators={true} />
           ))
         ) : (
-          <Card className="enhanced-list-item enhanced-list-item-active p-6 text-center border-dashed border-2 border-green-300 dark:border-green-800 bg-green-50/10 dark:bg-green-950/10">
+          <Card className="list-item list-item-active p-6 text-center border-dashed border-2 border-green-300 dark:border-green-800 bg-green-50/10 dark:bg-green-950/10">
             <div className="flex flex-col items-center gap-2 text-green-700 dark:text-green-400">
               <div className="p-2 rounded-full bg-green-100 dark:bg-green-900/50">
                 <CheckCircle className="h-8 w-8 text-green-600 dark:text-green-400" />
