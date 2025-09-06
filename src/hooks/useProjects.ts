@@ -151,34 +151,6 @@ export function useProjects() {
             is_active,
             created_at,
             updated_at
-          ),
-          contacts:point_of_contacts(
-            id,
-            organization_id,
-            type,
-            company_name,
-            contact_name,
-            email,
-            phone,
-            address,
-            city,
-            state,
-            country,
-            postal_code,
-            website,
-            tax_id,
-            payment_terms,
-            credit_limit,
-            is_active,
-            notes,
-            metadata,
-            ai_category,
-            ai_capabilities,
-            ai_risk_score,
-            ai_last_analyzed,
-            created_at,
-            updated_at,
-            created_by
           )
         `)
         .eq('organization_id', organizationId); // Add organization filter
@@ -239,9 +211,9 @@ export function useProjects() {
         priority: project.priority_level, // Map priority_level to priority for legacy compatibility
         // Customer organization is already properly structured from the join
         // Current stage is already properly structured from the join
-        // Contacts array is already properly structured from the point_of_contacts join
-        // Primary contact can be derived from the first contact in the array
-        primary_contact: project.contacts && project.contacts.length > 0 ? project.contacts[0] : null
+        // Contacts will be fetched separately when needed using point_of_contacts IDs
+        // Primary contact can be derived from the first contact ID in the array
+        primary_contact: null // Will be populated separately when needed
       }));
 
       console.log('✅ Successfully mapped projects:', mappedProjects.length);

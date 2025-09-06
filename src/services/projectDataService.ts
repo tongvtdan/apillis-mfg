@@ -40,34 +40,6 @@ class ProjectDataService {
           *,
           customer_organization:organizations!customer_organization_id(*),
           current_stage:workflow_stages!current_stage_id(*),
-          contacts:point_of_contacts(
-            id,
-            organization_id,
-            type,
-            company_name,
-            contact_name,
-            email,
-            phone,
-            address,
-            city,
-            state,
-            country,
-            postal_code,
-            website,
-            tax_id,
-            payment_terms,
-            credit_limit,
-            is_active,
-            notes,
-            metadata,
-            ai_category,
-            ai_capabilities,
-            ai_risk_score,
-            ai_last_analyzed,
-            created_at,
-            updated_at,
-            created_by
-          ),
           documents:documents(
             id,
             organization_id,
@@ -149,18 +121,6 @@ class ProjectDataService {
           *,
           customer_organization:organizations!customer_organization_id(*),
           current_stage:workflow_stages!current_stage_id(*),
-          contacts:point_of_contacts(
-            id,
-            organization_id,
-            type,
-            company_name,
-            contact_name,
-            email,
-            phone,
-            is_active,
-            created_at,
-            updated_at
-          ),
           documents:documents(
             id,
             file_name,
@@ -221,14 +181,6 @@ class ProjectDataService {
           *,
           customer_organization:organizations!customer_organization_id(*),
           current_stage:workflow_stages!current_stage_id(*),
-          contacts:point_of_contacts(
-            id,
-            company_name,
-            contact_name,
-            email,
-            phone,
-            is_active
-          ),
           documents:documents(count),
           activities:activity_log(count)
         `)
@@ -443,14 +395,7 @@ class ProjectDataService {
                 .select(`
           *,
           customer_organization:organizations!customer_organization_id(*),
-          current_stage:workflow_stages!current_stage_id(*),
-          contacts:point_of_contacts(
-            id,
-            company_name,
-            contact_name,
-            email,
-            phone
-          )
+          current_stage:workflow_stages!current_stage_id(*)
         `)
                 .eq('organization_id', organizationId);
 
