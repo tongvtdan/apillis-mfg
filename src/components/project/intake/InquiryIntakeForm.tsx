@@ -81,6 +81,7 @@ export function InquiryIntakeForm({ submissionType, onSuccess }: InquiryIntakeFo
     const [createCustomerOpen, setCreateCustomerOpen] = useState(false);
     const [pointOfContactsOpen, setPointOfContactsOpen] = useState(false);
     const [selectedContacts, setSelectedContacts] = useState<string[]>([]);
+    const [countryKey, setCountryKey] = useState(0); // Force re-render of country select
 
     const { toast } = useToast();
     const { createProject } = useProjects();
@@ -122,8 +123,12 @@ export function InquiryIntakeForm({ submissionType, onSuccess }: InquiryIntakeFo
         form.setValue('company', organization.name || '');
 
         // Auto-fill organization-level information
-        form.setValue('country', organization.country || '');
+        const countryValue = organization.country || '';
+        form.setValue('country', countryValue);
         form.setValue('website', organization.website || '');
+
+        // Force re-render of country select component
+        setCountryKey(prev => prev + 1);
 
         // Show alert if organization doesn't have country information
         if (!organization.country) {
@@ -683,7 +688,7 @@ export function InquiryIntakeForm({ submissionType, onSuccess }: InquiryIntakeFo
                                 render={({ field }) => (
                                     <FormItem>
                                         <FormLabel>Country *</FormLabel>
-                                        <Select onValueChange={(value) => {
+                                        <Select key={countryKey} onValueChange={(value) => {
                                             field.onChange(value);
                                             handleCountryChange(value);
                                         }} value={field.value}>
