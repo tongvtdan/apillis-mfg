@@ -6,9 +6,9 @@
 -- IMPORTANT: This script will DELETE all business data!
 -- Tables to PRESERVE (keep data):
 -- - users (user accounts and authentication data)
--- - organizations (organization structure)
 
 -- Tables to CLEAR (remove all data):
+-- - organizations (organization data)
 -- - projects and related tables
 -- - contacts (customer/supplier data)
 -- - approvals and approval chains
@@ -64,6 +64,9 @@ DELETE FROM workflow_stages;
 -- 8. Clear contacts (customer/supplier data)
 DELETE FROM contacts;
 
+-- 9. Clear organizations (organization data)
+DELETE FROM organizations;
+
 -- Re-enable triggers
 SET session_replication_role = DEFAULT;
 
@@ -77,8 +80,6 @@ COMMIT;
 
 -- Verification queries (run these after the cleanup to verify results)
 -- SELECT 'users' as table_name, COUNT(*) as row_count FROM users
--- UNION ALL
--- SELECT 'organizations' as table_name, COUNT(*) as row_count FROM organizations
 -- UNION ALL
 -- SELECT 'projects' as table_name, COUNT(*) as row_count FROM projects
 -- UNION ALL
