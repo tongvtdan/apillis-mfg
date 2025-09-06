@@ -679,8 +679,8 @@ BEGIN
     current_user_id := auth.uid();
     
     -- Try to get user's organization ID
-    SELECT organization_id INTO user_org_id 
-    FROM users 
+    SELECT organization_id INTO user_org_id
+    FROM users
     WHERE id = current_user_id;
     
     -- Create debug info
@@ -711,60 +711,60 @@ BEGIN
     
     -- Add organization ID to debug info
     debug_info := debug_info || jsonb_build_object('using_organization_id', user_org_id);
-
+    
     -- Get project counts by status
     status_counts := '{}';
-    FOR project_record IN 
-        SELECT 
+    FOR project_record IN
+        SELECT
             status,
             COUNT(*) as count
-        FROM projects 
+        FROM projects
         WHERE organization_id = user_org_id
         GROUP BY status
     LOOP
         status_counts := status_counts || jsonb_build_object(project_record.status, project_record.count);
     END LOOP;
-
+    
     -- Get project counts by type
     type_counts := '{}';
-    FOR project_record IN 
-        SELECT 
+    FOR project_record IN
+        SELECT
             project_type,
             COUNT(*) as count
-        FROM projects 
+        FROM projects
         WHERE organization_id = user_org_id
         GROUP BY project_type
     LOOP
         -- Use 'other' for null project_type instead of 'unspecified' to avoid enum issues
         type_counts := type_counts || jsonb_build_object(COALESCE(project_record.project_type, 'other'), project_record.count);
     END LOOP;
-
+    
     -- Get project counts by priority - FIX: Use valid enum values for priority_level
     priority_counts := '{}';
-    FOR project_record IN 
-        SELECT 
+    FOR project_record IN
+        SELECT
             COALESCE(priority_level, 'medium') as priority, -- Set default to 'medium' instead of 'unspecified'
             COUNT(*) as count
-        FROM projects 
+        FROM projects
         WHERE organization_id = user_org_id
         GROUP BY COALESCE(priority_level, 'medium') -- Group with the default value
     LOOP
         priority_counts := priority_counts || jsonb_build_object(project_record.priority, project_record.count);
     END LOOP;
-
+    
     -- Get project counts by stage
     stage_counts := '{}';
-    FOR project_record IN 
-        SELECT 
+    FOR project_record IN
+        SELECT
             current_stage_id,
             COUNT(*) as count
-        FROM projects 
+        FROM projects
         WHERE organization_id = user_org_id AND current_stage_id IS NOT NULL
         GROUP BY current_stage_id
     LOOP
         stage_counts := stage_counts || jsonb_build_object(project_record.current_stage_id, project_record.count);
     END LOOP;
-
+    
     -- Build project counts object
     project_counts := jsonb_build_object(
         'total', (SELECT COUNT(*) FROM projects WHERE organization_id = user_org_id),
@@ -773,7 +773,7 @@ BEGIN
         'by_priority', priority_counts,
         'by_stage', stage_counts
     );
-
+    
     -- Get recent projects with customer information
     recent_projects := (
         SELECT jsonb_agg(
@@ -786,11 +786,11 @@ BEGIN
                 'priority_level', COALESCE(p.priority_level, 'medium'), -- Set default to 'medium' for NULL values
                 'project_type', p.project_type,
                 'created_at', p.created_at,
-                'customer_name', c.company_name,
+                'customer_name', p.customer_organization_name, -- Use the joined organization name
                 'estimated_delivery_date', p.estimated_delivery_date,
                 'current_stage', p.current_stage_id,
-                'days_in_stage', 
-                CASE 
+                'days_in_stage',
+                CASE
                     WHEN p.stage_entered_at IS NOT NULL THEN
                         EXTRACT(DAY FROM (NOW() - p.stage_entered_at))
                     ELSE NULL
@@ -798,26 +798,28 @@ BEGIN
             )
         )
         FROM (
-            SELECT *
-            FROM projects 
-            WHERE organization_id = user_org_id
-            ORDER BY created_at DESC
+            SELECT 
+                p.*,
+                o.name as customer_organization_name
+            FROM projects p
+            LEFT JOIN organizations o ON p.customer_organization_id = o.id
+            WHERE p.organization_id = user_org_id
+            ORDER BY p.created_at DESC
             LIMIT 10
         ) p
-        LEFT JOIN contacts c ON p.customer_id = c.id
     );
-
+    
     -- If no recent projects, set to empty array
     IF recent_projects IS NULL THEN
         recent_projects := '[]';
     END IF;
-
+    
     -- Count projects for debug info
     debug_info := debug_info || jsonb_build_object(
         'project_count', (SELECT COUNT(*) FROM projects WHERE organization_id = user_org_id),
         'project_query', format('SELECT * FROM projects WHERE organization_id = %L', user_org_id)
     );
-
+    
     -- Build final result
     result := jsonb_build_object(
         'projects', project_counts,
@@ -825,7 +827,7 @@ BEGIN
         'generated_at', extract(epoch from now()),
         'debug', debug_info
     );
-
+    
     RETURN result;
 END;
 $$;
@@ -1675,8 +1677,8 @@ CREATE TABLE IF NOT EXISTS "public"."approval_notifications" (
     "delivery_status" character varying(20) DEFAULT 'sent'::character varying,
     "delivery_method" character varying(20) DEFAULT 'in_app'::character varying,
     "created_at" timestamp with time zone DEFAULT "now"(),
-    CONSTRAINT "approval_notifications_delivery_method_check" CHECK ((("delivery_method")::"text" = ANY ((ARRAY['in_app'::character varying, 'email'::character varying, 'sms'::character varying, 'push'::character varying])::"text"[]))),
-    CONSTRAINT "approval_notifications_delivery_status_check" CHECK ((("delivery_status")::"text" = ANY ((ARRAY['sent'::character varying, 'delivered'::character varying, 'read'::character varying, 'failed'::character varying])::"text"[])))
+    CONSTRAINT "approval_notifications_delivery_method_check" CHECK ((("delivery_method")::"text" = ANY (ARRAY[('in_app'::character varying)::"text", ('email'::character varying)::"text", ('sms'::character varying)::"text", ('push'::character varying)::"text"]))),
+    CONSTRAINT "approval_notifications_delivery_status_check" CHECK ((("delivery_status")::"text" = ANY (ARRAY[('sent'::character varying)::"text", ('delivered'::character varying)::"text", ('read'::character varying)::"text", ('failed'::character varying)::"text"])))
 );
 
 
@@ -1833,7 +1835,7 @@ CREATE TABLE IF NOT EXISTS "public"."document_access_log" (
     "ip_address" "inet",
     "user_agent" "text",
     "accessed_at" timestamp with time zone DEFAULT "now"(),
-    CONSTRAINT "document_access_log_action_check" CHECK ((("action")::"text" = ANY ((ARRAY['view'::character varying, 'download'::character varying, 'upload'::character varying, 'delete'::character varying, 'share'::character varying, 'comment'::character varying, 'approve'::character varying])::"text"[])))
+    CONSTRAINT "document_access_log_action_check" CHECK ((("action")::"text" = ANY (ARRAY[('view'::character varying)::"text", ('download'::character varying)::"text", ('upload'::character varying)::"text", ('delete'::character varying)::"text", ('share'::character varying)::"text", ('comment'::character varying)::"text", ('approve'::character varying)::"text"])))
 );
 
 
@@ -1922,10 +1924,10 @@ CREATE TABLE IF NOT EXISTS "public"."documents" (
     "link_expires_at" timestamp with time zone,
     "link_access_count" integer DEFAULT 0,
     "link_last_accessed" timestamp with time zone,
-    CONSTRAINT "documents_ai_processing_status_check" CHECK ((("ai_processing_status")::"text" = ANY ((ARRAY['pending'::character varying, 'processing'::character varying, 'completed'::character varying, 'failed'::character varying, 'skipped'::character varying])::"text"[]))),
-    CONSTRAINT "documents_link_type_check" CHECK ((("link_type")::"text" = ANY ((ARRAY['file'::character varying, 'folder'::character varying, 'shared_link'::character varying, 'embed'::character varying])::"text"[]))),
-    CONSTRAINT "documents_storage_provider_check" CHECK ((("storage_provider")::"text" = ANY ((ARRAY['supabase'::character varying, 'google_drive'::character varying, 'dropbox'::character varying, 'onedrive'::character varying, 's3'::character varying, 'azure_blob'::character varying])::"text"[]))),
-    CONSTRAINT "documents_sync_status_check" CHECK ((("sync_status")::"text" = ANY ((ARRAY['synced'::character varying, 'pending'::character varying, 'failed'::character varying, 'conflict'::character varying])::"text"[])))
+    CONSTRAINT "documents_ai_processing_status_check" CHECK ((("ai_processing_status")::"text" = ANY (ARRAY[('pending'::character varying)::"text", ('processing'::character varying)::"text", ('completed'::character varying)::"text", ('failed'::character varying)::"text", ('skipped'::character varying)::"text"]))),
+    CONSTRAINT "documents_link_type_check" CHECK ((("link_type")::"text" = ANY (ARRAY[('file'::character varying)::"text", ('folder'::character varying)::"text", ('shared_link'::character varying)::"text", ('embed'::character varying)::"text"]))),
+    CONSTRAINT "documents_storage_provider_check" CHECK ((("storage_provider")::"text" = ANY (ARRAY[('supabase'::character varying)::"text", ('google_drive'::character varying)::"text", ('dropbox'::character varying)::"text", ('onedrive'::character varying)::"text", ('s3'::character varying)::"text", ('azure_blob'::character varying)::"text"]))),
+    CONSTRAINT "documents_sync_status_check" CHECK ((("sync_status")::"text" = ANY (ARRAY[('synced'::character varying)::"text", ('pending'::character varying)::"text", ('failed'::character varying)::"text", ('conflict'::character varying)::"text"])))
 );
 
 
@@ -2216,6 +2218,101 @@ CREATE TABLE IF NOT EXISTS "public"."project_sub_stage_progress" (
 ALTER TABLE "public"."project_sub_stage_progress" OWNER TO "postgres";
 
 
+CREATE TABLE IF NOT EXISTS "public"."workflow_stages" (
+    "id" "uuid" DEFAULT "extensions"."uuid_generate_v4"() NOT NULL,
+    "organization_id" "uuid" NOT NULL,
+    "name" character varying(255) NOT NULL,
+    "slug" character varying(100) NOT NULL,
+    "description" "text",
+    "color" character varying(7) DEFAULT '#3B82F6'::character varying,
+    "stage_order" integer NOT NULL,
+    "is_active" boolean DEFAULT true,
+    "exit_criteria" "text",
+    "responsible_roles" "public"."user_role"[] DEFAULT '{}'::"public"."user_role"[],
+    "created_at" timestamp with time zone DEFAULT "now"(),
+    "updated_at" timestamp with time zone DEFAULT "now"(),
+    "estimated_duration_days" integer DEFAULT 0
+);
+
+
+ALTER TABLE "public"."workflow_stages" OWNER TO "postgres";
+
+
+COMMENT ON COLUMN "public"."workflow_stages"."estimated_duration_days" IS 'Estimated duration of this stage in days for project planning';
+
+
+
+CREATE OR REPLACE VIEW "public"."projects_view" AS
+ SELECT "p"."id",
+    "p"."organization_id",
+    "p"."project_id",
+    "p"."title",
+    "p"."description",
+    "p"."current_stage_id",
+    "p"."status",
+    "p"."priority_score",
+    "p"."priority_level",
+    "p"."estimated_value",
+    "p"."estimated_delivery_date",
+    "p"."actual_delivery_date",
+    "p"."source",
+    "p"."tags",
+    "p"."metadata",
+    "p"."stage_entered_at",
+    "p"."project_type",
+    "p"."notes",
+    "p"."created_at",
+    "p"."updated_at",
+    "p"."created_by",
+    "p"."assigned_to",
+    "p"."intake_type",
+    "p"."intake_source",
+    "p"."volume",
+    "p"."target_price_per_unit",
+    "p"."project_reference",
+    "p"."desired_delivery_date",
+    "p"."customer_organization_id",
+    "p"."point_of_contacts",
+    "o"."name" AS "customer_organization_name",
+    "o"."slug" AS "customer_organization_slug",
+    "o"."description" AS "customer_organization_description",
+    "o"."industry" AS "customer_organization_industry",
+    "o"."address" AS "customer_organization_address",
+    "o"."city" AS "customer_organization_city",
+    "o"."state" AS "customer_organization_state",
+    "o"."country" AS "customer_organization_country",
+    "o"."postal_code" AS "customer_organization_postal_code",
+    "o"."website" AS "customer_organization_website",
+    "o"."logo_url" AS "customer_organization_logo_url",
+    "o"."is_active" AS "customer_organization_is_active",
+    "o"."created_at" AS "customer_organization_created_at",
+    "o"."updated_at" AS "customer_organization_updated_at",
+    "ws"."name" AS "current_stage_name",
+    "ws"."description" AS "current_stage_description",
+    "ws"."stage_order" AS "current_stage_order",
+    "ws"."is_active" AS "current_stage_is_active",
+    "ws"."created_at" AS "current_stage_created_at",
+    "ws"."updated_at" AS "current_stage_updated_at",
+        CASE
+            WHEN ("array_length"("p"."point_of_contacts", 1) > 0) THEN ( SELECT "c"."contact_name"
+               FROM "public"."contacts" "c"
+              WHERE ("c"."id" = "p"."point_of_contacts"[1]))
+            ELSE NULL::character varying
+        END AS "primary_contact_name",
+        CASE
+            WHEN ("array_length"("p"."point_of_contacts", 1) > 0) THEN ( SELECT "c"."email"
+               FROM "public"."contacts" "c"
+              WHERE ("c"."id" = "p"."point_of_contacts"[1]))
+            ELSE NULL::character varying
+        END AS "primary_contact_email"
+   FROM (("public"."projects" "p"
+     LEFT JOIN "public"."organizations" "o" ON (("p"."customer_organization_id" = "o"."id")))
+     LEFT JOIN "public"."workflow_stages" "ws" ON (("p"."current_stage_id" = "ws"."id")));
+
+
+ALTER VIEW "public"."projects_view" OWNER TO "postgres";
+
+
 CREATE TABLE IF NOT EXISTS "public"."reviews" (
     "id" "uuid" DEFAULT "extensions"."uuid_generate_v4"() NOT NULL,
     "organization_id" "uuid" NOT NULL,
@@ -2279,7 +2376,7 @@ CREATE TABLE IF NOT EXISTS "public"."supplier_rfqs" (
     "created_by" "uuid",
     "created_at" timestamp with time zone DEFAULT "now"(),
     "updated_at" timestamp with time zone DEFAULT "now"(),
-    CONSTRAINT "supplier_rfqs_status_check" CHECK ((("status")::"text" = ANY ((ARRAY['draft'::character varying, 'sent'::character varying, 'viewed'::character varying, 'quoted'::character varying, 'declined'::character varying, 'expired'::character varying, 'cancelled'::character varying])::"text"[])))
+    CONSTRAINT "supplier_rfqs_status_check" CHECK ((("status")::"text" = ANY (ARRAY[('draft'::character varying)::"text", ('sent'::character varying)::"text", ('viewed'::character varying)::"text", ('quoted'::character varying)::"text", ('declined'::character varying)::"text", ('expired'::character varying)::"text", ('cancelled'::character varying)::"text"])))
 );
 
 
@@ -2333,30 +2430,6 @@ CREATE TABLE IF NOT EXISTS "public"."users" (
 
 
 ALTER TABLE "public"."users" OWNER TO "postgres";
-
-
-CREATE TABLE IF NOT EXISTS "public"."workflow_stages" (
-    "id" "uuid" DEFAULT "extensions"."uuid_generate_v4"() NOT NULL,
-    "organization_id" "uuid" NOT NULL,
-    "name" character varying(255) NOT NULL,
-    "slug" character varying(100) NOT NULL,
-    "description" "text",
-    "color" character varying(7) DEFAULT '#3B82F6'::character varying,
-    "stage_order" integer NOT NULL,
-    "is_active" boolean DEFAULT true,
-    "exit_criteria" "text",
-    "responsible_roles" "public"."user_role"[] DEFAULT '{}'::"public"."user_role"[],
-    "created_at" timestamp with time zone DEFAULT "now"(),
-    "updated_at" timestamp with time zone DEFAULT "now"(),
-    "estimated_duration_days" integer DEFAULT 0
-);
-
-
-ALTER TABLE "public"."workflow_stages" OWNER TO "postgres";
-
-
-COMMENT ON COLUMN "public"."workflow_stages"."estimated_duration_days" IS 'Estimated duration of this stage in days for project planning';
-
 
 
 CREATE TABLE IF NOT EXISTS "public"."workflow_sub_stages" (
@@ -3027,7 +3100,7 @@ CREATE INDEX "idx_workflow_sub_stages_workflow_stage_id" ON "public"."workflow_s
 
 
 
-CREATE OR REPLACE TRIGGER "document_link_access_trigger" AFTER INSERT ON "public"."document_access_log" FOR EACH ROW WHEN ((("new"."action")::"text" = ANY ((ARRAY['view'::character varying, 'download'::character varying])::"text"[]))) EXECUTE FUNCTION "public"."update_document_link_access"();
+CREATE OR REPLACE TRIGGER "document_link_access_trigger" AFTER INSERT ON "public"."document_access_log" FOR EACH ROW WHEN ((("new"."action")::"text" = ANY (ARRAY[('view'::character varying)::"text", ('download'::character varying)::"text"]))) EXECUTE FUNCTION "public"."update_document_link_access"();
 
 
 
@@ -4571,6 +4644,18 @@ GRANT ALL ON TABLE "public"."project_sub_stage_progress" TO "service_role";
 
 
 
+GRANT ALL ON TABLE "public"."workflow_stages" TO "anon";
+GRANT ALL ON TABLE "public"."workflow_stages" TO "authenticated";
+GRANT ALL ON TABLE "public"."workflow_stages" TO "service_role";
+
+
+
+GRANT ALL ON TABLE "public"."projects_view" TO "anon";
+GRANT ALL ON TABLE "public"."projects_view" TO "authenticated";
+GRANT ALL ON TABLE "public"."projects_view" TO "service_role";
+
+
+
 GRANT ALL ON TABLE "public"."reviews" TO "anon";
 GRANT ALL ON TABLE "public"."reviews" TO "authenticated";
 GRANT ALL ON TABLE "public"."reviews" TO "service_role";
@@ -4604,12 +4689,6 @@ GRANT ALL ON SEQUENCE "public"."test_table_id_seq" TO "service_role";
 GRANT ALL ON TABLE "public"."users" TO "anon";
 GRANT ALL ON TABLE "public"."users" TO "authenticated";
 GRANT ALL ON TABLE "public"."users" TO "service_role";
-
-
-
-GRANT ALL ON TABLE "public"."workflow_stages" TO "anon";
-GRANT ALL ON TABLE "public"."workflow_stages" TO "authenticated";
-GRANT ALL ON TABLE "public"."workflow_stages" TO "service_role";
 
 
 
