@@ -125,7 +125,7 @@ export function useProjects() {
           project_type,
           notes,
           created_at,
-          updated_at,
+          updated_at
         `);
 
       // Add organization filter
