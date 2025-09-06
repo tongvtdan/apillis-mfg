@@ -85,7 +85,7 @@ export function AnimatedTableRow({
                 <TableCell>
                     <div>
                         <div className="font-medium">
-                            {project.customer_organization?.name || project.customer?.company_name || 'No Customer'}
+                            {project.customer_organization?.name || 'No Customer'}
                         </div>
                         <div className="text-sm text-muted-foreground">
                             {project.contact_points && project.contact_points.length > 0 ? (

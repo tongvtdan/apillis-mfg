@@ -142,18 +142,11 @@ export function useProjects() {
             is_active,
             created_at,
             updated_at
-          ),
-          current_stage:workflow_stages!current_stage_id(
-            id,
-            name,
-            description,
-            stage_order,
-            is_active,
-            created_at,
-            updated_at
           )
-        `)
-        .eq('organization_id', organizationId); // Add organization filter
+        `);
+
+      // Add organization filter
+      query = query.eq('organization_id', organizationId);
 
       // Apply filters if provided
       if (options?.status) {
@@ -181,6 +174,13 @@ export function useProjects() {
         hasError: !!fetchError,
         error: fetchError
       });
+
+      // Debug customer organization data
+      if (data && data.length > 0) {
+        console.log('🔍 First project raw data:', data[0]);
+        console.log('🏢 Customer organization in first project:', data[0].customer_organization);
+        console.log('🏢 Current stage in first project:', data[0].current_stage);
+      }
 
       if (fetchError) {
         console.error('❌ Error fetching projects:', fetchError);
@@ -217,7 +217,8 @@ export function useProjects() {
       }));
 
       console.log('✅ Successfully mapped projects:', mappedProjects.length);
-      console.log('Mapped projects data:', mappedProjects);
+      console.log('First project customer data:', mappedProjects[0]?.customer_organization);
+      console.log('Raw project data sample:', data?.[0]);
       setProjects(mappedProjects as Project[]);
 
       // Cache the data appropriately
