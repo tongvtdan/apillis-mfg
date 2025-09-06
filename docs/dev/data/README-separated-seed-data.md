@@ -185,7 +185,7 @@ To restore from backup later:
 
 # Restore full backup (schema + data)
 supabase db reset --local
-psql -h 127.0.0.1 -p 54322 -U postgres -d postgres < backups/factory_pulse_backup_20250831_085425.sql
+psql -h 127.0.0.1 -p 54322 -U postgres -d postgres < docs/dev/backups/factory_pulse_backup_20250831_085425.sql
 
 # Or restore just data to existing schema
-psql -h 127.0.0.1 -p 54322 -U postgres -d postgres < backups/factory_pulse_data_backup_20250831_085438.sql
+psql -h 127.0.0.1 -p 54322 -U postgres -d postgres < docs/dev/backups/factory_pulse_data_backup_20250831_085438.sql

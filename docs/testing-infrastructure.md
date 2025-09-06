@@ -32,7 +32,7 @@ npm run test:coverage
 
 ### Directory Organization
 ```
-src/test/
+docs/dev/tests/
 ├── setup.ts                           # Test environment configuration
 ├── mocks/
 │   ├── supabase.ts                    # Supabase client mocking
@@ -373,8 +373,8 @@ npm run test:ui
 - [Testing Best Practices](https://kentcdodds.com/blog/common-mistakes-with-react-testing-library)
 
 ### Internal Resources
-- `src/test/setup.ts` - Test environment configuration
-- `src/test/mocks/` - Mock implementations and test data
+- `docs/dev/tests/setup.ts` - Test environment configuration
+- `docs/dev/tests/mocks/` - Mock implementations and test data
 - `package.json` - Test script definitions and dependencies
 - `vitest.config.ts` - Vitest configuration and settings
 
