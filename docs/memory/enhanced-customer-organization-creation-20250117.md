@@ -117,7 +117,14 @@ INSERT INTO contacts (organization_id, type, contact_name, email, phone, is_prim
 - **Improved Layout:** `max-w-4xl` with responsive grid and scrollable content
 - **Comprehensive Data:** Saves complete organization and contact information
 
-### **New Contact Fields Added:**
+### **New Fields Added:**
+#### **Organization Fields:**
+- **Organization Address:** Street address for the organization
+- **City:** Organization city
+- **State/Province:** Organization state or province
+- **Postal Code:** Organization postal/ZIP code
+
+#### **Contact Fields:**
 - **Role:** Purchasing, Engineering, Quality Control, Management, Sales
 - **Address Information:** Street, City, State/Province, Postal Code
 - **Contact Website:** Personal website or LinkedIn profile

@@ -251,6 +251,10 @@ export function InquiryIntakeForm({ submissionType, onSuccess }: InquiryIntakeFo
                 country: getCountryCode(formData.country),
                 website: formData.website || undefined,
                 industry: formData.industry || undefined,
+                address: formData.orgAddress || undefined,
+                city: formData.orgCity || undefined,
+                state: formData.orgState || undefined,
+                postal_code: formData.orgPostalCode || undefined,
                 description: 'Customer Organization'
             }, {
                 contact_name: formData.customerName,
@@ -287,6 +291,10 @@ export function InquiryIntakeForm({ submissionType, onSuccess }: InquiryIntakeFo
 
             // Clear modal form fields
             form.setValue('industry', '');
+            form.setValue('orgAddress', '');
+            form.setValue('orgCity', '');
+            form.setValue('orgState', '');
+            form.setValue('orgPostalCode', '');
             form.setValue('contactRole', 'general');
             form.setValue('contactAddress', '');
             form.setValue('contactCity', '');
@@ -1439,6 +1447,50 @@ export function InquiryIntakeForm({ submissionType, onSuccess }: InquiryIntakeFo
                                         className="modal-form-input"
                                         value={form.watch('industry') || ''}
                                         onChange={(e) => form.setValue('industry', e.target.value)}
+                                    />
+                                </div>
+                            </div>
+
+                            {/* Organization Address Information */}
+                            <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mt-4">
+                                <div className="space-y-2">
+                                    <Label htmlFor="modal-org-address">Organization Address</Label>
+                                    <Input
+                                        id="modal-org-address"
+                                        placeholder="Street Address"
+                                        className="modal-form-input"
+                                        value={form.watch('orgAddress') || ''}
+                                        onChange={(e) => form.setValue('orgAddress', e.target.value)}
+                                    />
+                                </div>
+                                <div className="space-y-2">
+                                    <Label htmlFor="modal-org-city">City</Label>
+                                    <Input
+                                        id="modal-org-city"
+                                        placeholder="City"
+                                        className="modal-form-input"
+                                        value={form.watch('orgCity') || ''}
+                                        onChange={(e) => form.setValue('orgCity', e.target.value)}
+                                    />
+                                </div>
+                                <div className="space-y-2">
+                                    <Label htmlFor="modal-org-state">State/Province</Label>
+                                    <Input
+                                        id="modal-org-state"
+                                        placeholder="State or Province"
+                                        className="modal-form-input"
+                                        value={form.watch('orgState') || ''}
+                                        onChange={(e) => form.setValue('orgState', e.target.value)}
+                                    />
+                                </div>
+                                <div className="space-y-2">
+                                    <Label htmlFor="modal-org-postal-code">Postal Code</Label>
+                                    <Input
+                                        id="modal-org-postal-code"
+                                        placeholder="Postal Code"
+                                        className="modal-form-input"
+                                        value={form.watch('orgPostalCode') || ''}
+                                        onChange={(e) => form.setValue('orgPostalCode', e.target.value)}
                                     />
                                 </div>
                             </div>
