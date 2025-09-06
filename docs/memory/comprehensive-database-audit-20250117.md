@@ -85,14 +85,14 @@ CREATE TABLE organizations (
 
 ## Database Statistics - Actual vs Documented
 
-| Component | Actual Database | Previous Documentation | Status |
-|-----------|----------------|----------------------|--------|
-| Tables | 25 | 12 | ✅ Fixed |
-| Functions | 35 | 7 | ✅ Fixed |
-| Enums | 11 | 7 | ✅ Fixed |
-| Organization Columns | 15 | 10 (wrong) | ✅ Fixed |
-| Project Columns | 29 | 25 (incomplete) | ✅ Fixed |
-| Approval Attachment Columns | 12 | 7 | ✅ Fixed |
+| Component                   | Actual Database | Previous Documentation | Status  |
+| --------------------------- | --------------- | ---------------------- | ------- |
+| Tables                      | 25              | 12                     | ✅ Fixed |
+| Functions                   | 35              | 7                      | ✅ Fixed |
+| Enums                       | 11              | 7                      | ✅ Fixed |
+| Organization Columns        | 15              | 10 (wrong)             | ✅ Fixed |
+| Project Columns             | 29              | 25 (incomplete)        | ✅ Fixed |
+| Approval Attachment Columns | 12              | 7                      | ✅ Fixed |
 
 ## Key Business Logic Fields Discovered
 
