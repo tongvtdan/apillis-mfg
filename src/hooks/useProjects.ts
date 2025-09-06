@@ -99,9 +99,9 @@ export function useProjects() {
       setLoading(true);
       setError(null);
 
-      // Use projects_view instead of projects table to avoid ambiguous column issues
+      // Use projects table with proper lookups - cleaner approach than denormalized view
       let query = supabase
-        .from('projects_view')
+        .from('projects')
         .select(`
           id,
           organization_id,
@@ -109,6 +109,7 @@ export function useProjects() {
           title,
           description,
           customer_organization_id,
+          point_of_contacts,
           current_stage_id,
           status,
           priority_level,
@@ -125,26 +126,60 @@ export function useProjects() {
           notes,
           created_at,
           updated_at,
-          customer_organization_name,
-          customer_organization_slug,
-          customer_organization_description,
-          customer_organization_industry,
-          customer_organization_address,
-          customer_organization_city,
-          customer_organization_state,
-          customer_organization_country,
-          customer_organization_postal_code,
-          customer_organization_website,
-          customer_organization_logo_url,
-          customer_organization_is_active,
-          customer_organization_created_at,
-          customer_organization_updated_at,
-          current_stage_name,
-          current_stage_description,
-          current_stage_order,
-          current_stage_is_active,
-          current_stage_created_at,
-          current_stage_updated_at
+          customer_organization:organizations(
+            id,
+            name,
+            slug,
+            description,
+            industry,
+            address,
+            city,
+            state,
+            country,
+            postal_code,
+            website,
+            logo_url,
+            is_active,
+            created_at,
+            updated_at
+          ),
+          current_stage:workflow_stages(
+            id,
+            name,
+            description,
+            stage_order,
+            is_active,
+            created_at,
+            updated_at
+          ),
+          contacts:point_of_contacts(
+            id,
+            organization_id,
+            type,
+            company_name,
+            contact_name,
+            email,
+            phone,
+            address,
+            city,
+            state,
+            country,
+            postal_code,
+            website,
+            tax_id,
+            payment_terms,
+            credit_limit,
+            is_active,
+            notes,
+            metadata,
+            ai_category,
+            ai_capabilities,
+            ai_risk_score,
+            ai_last_analyzed,
+            created_at,
+            updated_at,
+            created_by
+          )
         `)
         .eq('organization_id', organizationId); // Add organization filter
 
@@ -185,7 +220,7 @@ export function useProjects() {
         return;
       }
 
-      // Validate and transform the data from projects_view
+      // Validate and transform the data from projects table with proper relations
       const mappedProjects = (data || []).map(project => ({
         ...project,
         // Ensure required fields have proper defaults
@@ -194,6 +229,7 @@ export function useProjects() {
         source: project.source || 'portal',
         tags: project.tags || [],
         metadata: project.metadata || {},
+        point_of_contacts: project.point_of_contacts || [],
         // Calculate days in stage if stage_entered_at exists
         days_in_stage: project.stage_entered_at
           ? Math.floor((new Date().getTime() - new Date(project.stage_entered_at).getTime()) / (1000 * 60 * 60 * 24))
@@ -201,34 +237,11 @@ export function useProjects() {
         // Add computed fields for compatibility
         due_date: project.estimated_delivery_date, // Map estimated_delivery_date to due_date for compatibility
         priority: project.priority_level, // Map priority_level to priority for legacy compatibility
-        // Map customer organization data from flattened fields
-        customer_organization: project.customer_organization_name ? {
-          id: project.customer_organization_id,
-          name: project.customer_organization_name,
-          slug: project.customer_organization_slug,
-          description: project.customer_organization_description,
-          industry: project.customer_organization_industry,
-          address: project.customer_organization_address,
-          city: project.customer_organization_city,
-          state: project.customer_organization_state,
-          country: project.customer_organization_country,
-          postal_code: project.customer_organization_postal_code,
-          website: project.customer_organization_website,
-          logo_url: project.customer_organization_logo_url,
-          is_active: project.customer_organization_is_active,
-          created_at: project.customer_organization_created_at,
-          updated_at: project.customer_organization_updated_at
-        } : null,
-        // Map current stage data from flattened fields
-        current_stage: project.current_stage_name ? {
-          id: project.current_stage_id,
-          name: project.current_stage_name,
-          description: project.current_stage_description,
-          stage_order: project.current_stage_order,
-          is_active: project.current_stage_is_active,
-          created_at: project.current_stage_created_at,
-          updated_at: project.current_stage_updated_at
-        } : null
+        // Customer organization is already properly structured from the join
+        // Current stage is already properly structured from the join
+        // Contacts array is already properly structured from the point_of_contacts join
+        // Primary contact can be derived from the first contact in the array
+        primary_contact: project.contacts && project.contacts.length > 0 ? project.contacts[0] : null
       }));
 
       console.log('✅ Successfully mapped projects:', mappedProjects.length);

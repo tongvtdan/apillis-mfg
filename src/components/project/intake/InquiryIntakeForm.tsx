@@ -288,12 +288,12 @@ export function InquiryIntakeForm({ submissionType, onSuccess }: InquiryIntakeFo
                 <form onSubmit={form.handleSubmit(handleSubmit)} className="space-y-6">
                     {/* Customer Information */}
                     <Card>
-                    <CardHeader>
-                        <CardTitle>Customer Organization</CardTitle>
-                        <CardDescription>
-                            Select an existing customer organization or create a new one for project communication
-                        </CardDescription>
-                    </CardHeader>
+                        <CardHeader>
+                            <CardTitle>Customer Organization</CardTitle>
+                            <CardDescription>
+                                Select an existing customer organization or create a new one for project communication
+                            </CardDescription>
+                        </CardHeader>
                         <CardContent className="space-y-4">
                             {/* Customer Selection and Creation */}
                             <div className="flex gap-2">
@@ -306,61 +306,61 @@ export function InquiryIntakeForm({ submissionType, onSuccess }: InquiryIntakeFo
                                             <Popover open={customerSearchOpen} onOpenChange={setCustomerSearchOpen}>
                                                 <PopoverTrigger asChild>
                                                     <FormControl>
-                                                <Button
-                                                    variant="outline"
-                                                    role="combobox"
-                                                    aria-expanded={customerSearchOpen}
-                                                    className="w-full justify-between"
-                                                >
-                                                    {field.value ?
-                                                        organizations.find(org => org.id === field.value)?.name || "Select organization..."
-                                                        : "Select organization..."
-                                                    }
+                                                        <Button
+                                                            variant="outline"
+                                                            role="combobox"
+                                                            aria-expanded={customerSearchOpen}
+                                                            className="w-full justify-between"
+                                                        >
+                                                            {field.value ?
+                                                                organizations.find(org => org.id === field.value)?.name || "Select organization..."
+                                                                : "Select organization..."
+                                                            }
                                                             <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
                                                         </Button>
                                                     </FormControl>
                                                 </PopoverTrigger>
                                                 <PopoverContent className="w-full p-0">
                                                     <Command>
-                                                    <CommandInput
-                                                        placeholder="Search organizations..."
-                                                        value={customerSearchQuery}
-                                                        onValueChange={setCustomerSearchQuery}
-                                                    />
-                                                <CommandList>
-                                                    <CommandEmpty>
-                                                        {organizationsLoading ? "Loading organizations..." : "No organizations found."}
-                                                    </CommandEmpty>
-                                                    <CommandGroup>
-                                                        {filteredOrganizations.map((organization) => (
-                                                            <CommandItem
-                                                                key={organization.id}
-                                                                value={organization.id}
-                                                                onSelect={() => handleOrganizationSelect(organization)}
-                                                            >
-                                                                <Check
-                                                                    className={cn(
-                                                                        "mr-2 h-4 w-4",
-                                                                        field.value === organization.id ? "opacity-100" : "opacity-0"
-                                                                    )}
-                                                                />
-                                                                <div className="flex flex-col">
-                                                                    <span className="font-medium">{organization.name}</span>
-                                                                    {organization.industry && (
-                                                                        <span className="text-sm text-muted-foreground">
-                                                                            {organization.industry}
-                                                                        </span>
-                                                                    )}
-                                                                    {organization.description && (
-                                                                        <span className="text-sm text-muted-foreground">
-                                                                            {organization.description}
-                                                                        </span>
-                                                                    )}
-                                                                </div>
-                                                            </CommandItem>
-                                                        ))}
-                                                    </CommandGroup>
-                                                </CommandList>
+                                                        <CommandInput
+                                                            placeholder="Search organizations..."
+                                                            value={customerSearchQuery}
+                                                            onValueChange={setCustomerSearchQuery}
+                                                        />
+                                                        <CommandList>
+                                                            <CommandEmpty>
+                                                                {organizationsLoading ? "Loading organizations..." : "No organizations found."}
+                                                            </CommandEmpty>
+                                                            <CommandGroup>
+                                                                {filteredOrganizations.map((organization) => (
+                                                                    <CommandItem
+                                                                        key={organization.id}
+                                                                        value={organization.id}
+                                                                        onSelect={() => handleOrganizationSelect(organization)}
+                                                                    >
+                                                                        <Check
+                                                                            className={cn(
+                                                                                "mr-2 h-4 w-4",
+                                                                                field.value === organization.id ? "opacity-100" : "opacity-0"
+                                                                            )}
+                                                                        />
+                                                                        <div className="flex flex-col">
+                                                                            <span className="font-medium">{organization.name}</span>
+                                                                            {organization.industry && (
+                                                                                <span className="text-sm text-muted-foreground">
+                                                                                    {organization.industry}
+                                                                                </span>
+                                                                            )}
+                                                                            {organization.description && (
+                                                                                <span className="text-sm text-muted-foreground">
+                                                                                    {organization.description}
+                                                                                </span>
+                                                                            )}
+                                                                        </div>
+                                                                    </CommandItem>
+                                                                ))}
+                                                            </CommandGroup>
+                                                        </CommandList>
                                                     </Command>
                                                 </PopoverContent>
                                             </Popover>
@@ -407,9 +407,9 @@ export function InquiryIntakeForm({ submissionType, onSuccess }: InquiryIntakeFo
                                                 </PopoverTrigger>
                                                 <PopoverContent className="w-full p-0">
                                                     <Command>
-                                                <CommandList>
-                                                    <CommandGroup>
-                                                            {getOrganizationContacts().map((contact) => (
+                                                        <CommandList>
+                                                            <CommandGroup>
+                                                                {getOrganizationContacts().map((contact) => (
                                                                     <CommandItem
                                                                         key={contact.id}
                                                                         value={contact.id}
@@ -438,9 +438,9 @@ export function InquiryIntakeForm({ submissionType, onSuccess }: InquiryIntakeFo
                                             </Popover>
                                             {selectedContacts.length > 0 && (
                                                 <div className="flex flex-wrap gap-1 mt-2">
-                                                {selectedContacts.map(contactId => {
-                                                    const contact = getOrganizationContacts().find(c => c.id === contactId);
-                                                    return contact ? (
+                                                    {selectedContacts.map(contactId => {
+                                                        const contact = getOrganizationContacts().find(c => c.id === contactId);
+                                                        return contact ? (
                                                             <Badge key={contactId} variant="secondary" className="text-xs">
                                                                 {contact.contact_name || contact.email}
                                                                 <X
@@ -958,12 +958,12 @@ export function InquiryIntakeForm({ submissionType, onSuccess }: InquiryIntakeFo
             {/* Create Customer Modal */}
             <Dialog open={createCustomerOpen} onOpenChange={setCreateCustomerOpen}>
                 <DialogContent>
-                <DialogHeader>
-                    <DialogTitle>Create New Organization</DialogTitle>
-                    <DialogDescription>
-                        Add a new customer organization to the system
-                    </DialogDescription>
-                </DialogHeader>
+                    <DialogHeader>
+                        <DialogTitle>Create New Organization</DialogTitle>
+                        <DialogDescription>
+                            Add a new customer organization to the system
+                        </DialogDescription>
+                    </DialogHeader>
                     <div className="space-y-4">
                         <div className="grid grid-cols-2 gap-4">
                             <FormField
@@ -1059,12 +1059,12 @@ export function InquiryIntakeForm({ submissionType, onSuccess }: InquiryIntakeFo
                             >
                                 Cancel
                             </Button>
-                        <Button
-                            type="button"
-                            onClick={() => setCreateCustomerOpen(false)}
-                        >
-                            Create Organization
-                        </Button>
+                            <Button
+                                type="button"
+                                onClick={() => setCreateCustomerOpen(false)}
+                            >
+                                Create Organization
+                            </Button>
                         </div>
                     </div>
                 </DialogContent>
