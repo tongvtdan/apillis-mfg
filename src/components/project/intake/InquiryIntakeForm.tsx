@@ -12,7 +12,8 @@ import { Checkbox } from '@/components/ui/checkbox';
 import { Badge } from '@/components/ui/badge';
 import { Command, CommandEmpty, CommandGroup, CommandInput, CommandItem, CommandList } from '@/components/ui/command';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
-import { CheckCircle2, Loader2, Plus, Trash2, Upload, FileText, Link, X, Check, ChevronsUpDown } from 'lucide-react';
+import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
+import { CheckCircle2, Loader2, Plus, Trash2, Upload, FileText, Link, X, Check, ChevronsUpDown, Building2 } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { useProjects } from '@/hooks/useProjects';
 import { useCustomers } from '@/hooks/useCustomers';
@@ -55,6 +56,7 @@ const inquiryFormSchema = z.object({
     email: z.string().email('Invalid email address'),
     phone: z.string().optional(),
     country: z.string().min(2, 'Country is required'),
+    pointOfContacts: z.array(z.string()).optional(), // Array of contact IDs
     documents: z.array(documentItemSchema).min(2, 'At least two items required: Drawing and BOM'),
     notes: z.string().optional(),
     agreedToTerms: z.boolean().refine(val => val === true, 'You must agree to the terms')
@@ -74,6 +76,9 @@ export function InquiryIntakeForm({ submissionType, onSuccess }: InquiryIntakeFo
     const [isDragOver, setIsDragOver] = useState(false);
     const [customerSearchOpen, setCustomerSearchOpen] = useState(false);
     const [customerSearchQuery, setCustomerSearchQuery] = useState('');
+    const [createCustomerOpen, setCreateCustomerOpen] = useState(false);
+    const [pointOfContactsOpen, setPointOfContactsOpen] = useState(false);
+    const [selectedContacts, setSelectedContacts] = useState<string[]>([]);
 
     const { toast } = useToast();
     const { createProject, createOrGetCustomer } = useProjects();
@@ -94,6 +99,7 @@ export function InquiryIntakeForm({ submissionType, onSuccess }: InquiryIntakeFo
                 { type: 'Drawing', file: undefined, link: '', uploaded: false },
                 { type: 'BOM', file: undefined, link: '', uploaded: false }
             ],
+            pointOfContacts: [],
             agreedToTerms: false
         }
     });
@@ -116,6 +122,9 @@ export function InquiryIntakeForm({ submissionType, onSuccess }: InquiryIntakeFo
         form.setValue('email', customer.email || '');
         form.setValue('phone', customer.phone || '');
         form.setValue('country', customer.country || '');
+        // Reset point of contacts when customer changes
+        form.setValue('pointOfContacts', []);
+        setSelectedContacts([]);
         setCustomerSearchOpen(false);
         setCustomerSearchQuery('');
     }, [form]);
@@ -129,6 +138,28 @@ export function InquiryIntakeForm({ submissionType, onSuccess }: InquiryIntakeFo
             customer.email?.toLowerCase().includes(customerSearchQuery.toLowerCase())
         );
     }, [customers, customerSearchQuery]);
+
+    // Handle point of contact selection
+    const handlePointOfContactToggle = useCallback((contactId: string) => {
+        setSelectedContacts(prev => {
+            const newSelected = prev.includes(contactId)
+                ? prev.filter(id => id !== contactId)
+                : [...prev, contactId];
+            form.setValue('pointOfContacts', newSelected);
+            return newSelected;
+        });
+    }, [form]);
+
+    // Get contacts for the selected customer (simplified - in real app, fetch from API)
+    const getCustomerContacts = useCallback(() => {
+        const selectedCustomerId = form.getValues('selectedCustomerId');
+        if (!selectedCustomerId) return [];
+
+        // For now, return the selected customer as the primary contact
+        // In a real implementation, you'd fetch all contacts for the customer's organization
+        const selectedCustomer = customers.find(c => c.id === selectedCustomerId);
+        return selectedCustomer ? [selectedCustomer] : [];
+    }, [customers, form]);
 
     // Handle file upload
     const handleFileUpload = useCallback((file: File, documentIndex: number) => {
@@ -183,7 +214,9 @@ export function InquiryIntakeForm({ submissionType, onSuccess }: InquiryIntakeFo
                 title: data.projectTitle,
                 description: data.description,
                 customer_organization_id: validCustomer.id, // Fixed: Use customer_organization_id
-                point_of_contacts: [validCustomer.id], // Add point of contact
+                point_of_contacts: data.pointOfContacts && data.pointOfContacts.length > 0
+                    ? data.pointOfContacts
+                    : [validCustomer.id], // Use selected contacts or default to customer
                 priority: data.priority,
                 estimated_value: data.targetPricePerUnit && data.volumes ?
                     data.targetPricePerUnit * data.volumes.reduce((sum, v) => sum + v.qty, 0) : data.targetPricePerUnit,
@@ -250,6 +283,7 @@ export function InquiryIntakeForm({ submissionType, onSuccess }: InquiryIntakeFo
     }
 
     return (
+        <>
         <Form {...form}>
             <form onSubmit={form.handleSubmit(handleSubmit)} className="space-y-6">
                 {/* Customer Information */}
@@ -257,82 +291,172 @@ export function InquiryIntakeForm({ submissionType, onSuccess }: InquiryIntakeFo
                     <CardHeader>
                         <CardTitle>Customer Information</CardTitle>
                         <CardDescription>
-                            Your contact details for project communication
+                            Select an existing customer or create a new one for project communication
                         </CardDescription>
                     </CardHeader>
                     <CardContent className="space-y-4">
-                        {/* Customer Selection */}
-                        <FormField
-                            control={form.control}
-                            name="selectedCustomerId"
-                            render={({ field }) => (
-                                <FormItem className="flex flex-col">
-                                    <FormLabel>Select Existing Customer (Optional)</FormLabel>
-                                    <Popover open={customerSearchOpen} onOpenChange={setCustomerSearchOpen}>
-                                        <PopoverTrigger asChild>
-                                            <FormControl>
-                                                <Button
-                                                    variant="outline"
-                                                    role="combobox"
-                                                    aria-expanded={customerSearchOpen}
-                                                    className="w-full justify-between"
-                                                >
-                                                    {field.value ?
-                                                        customers.find(customer => customer.id === field.value)?.company_name || "Select customer..."
-                                                        : "Select customer..."
-                                                    }
-                                                    <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
-                                                </Button>
-                                            </FormControl>
-                                        </PopoverTrigger>
-                                        <PopoverContent className="w-full p-0">
-                                            <Command>
-                                                <CommandInput
-                                                    placeholder="Search customers..."
-                                                    value={customerSearchQuery}
-                                                    onValueChange={setCustomerSearchQuery}
-                                                />
-                                                <CommandList>
-                                                    <CommandEmpty>
-                                                        {customersLoading ? "Loading customers..." : "No customers found."}
-                                                    </CommandEmpty>
-                                                    <CommandGroup>
-                                                        {filteredCustomers.map((customer) => (
-                                                            <CommandItem
-                                                                key={customer.id}
-                                                                value={customer.id}
-                                                                onSelect={() => handleCustomerSelect(customer)}
-                                                            >
-                                                                <Check
-                                                                    className={cn(
-                                                                        "mr-2 h-4 w-4",
-                                                                        field.value === customer.id ? "opacity-100" : "opacity-0"
-                                                                    )}
-                                                                />
-                                                                <div className="flex flex-col">
-                                                                    <span className="font-medium">{customer.company_name}</span>
-                                                                    {customer.contact_name && (
-                                                                        <span className="text-sm text-muted-foreground">
-                                                                            {customer.contact_name}
+                        {/* Customer Selection and Creation */}
+                        <div className="flex gap-2">
+                            <FormField
+                                control={form.control}
+                                name="selectedCustomerId"
+                                render={({ field }) => (
+                                    <FormItem className="flex-1">
+                                        <FormLabel>Select Existing Customer (Optional)</FormLabel>
+                                        <Popover open={customerSearchOpen} onOpenChange={setCustomerSearchOpen}>
+                                            <PopoverTrigger asChild>
+                                                <FormControl>
+                                                    <Button
+                                                        variant="outline"
+                                                        role="combobox"
+                                                        aria-expanded={customerSearchOpen}
+                                                        className="w-full justify-between"
+                                                    >
+                                                        {field.value ?
+                                                            customers.find(customer => customer.id === field.value)?.company_name || "Select customer..."
+                                                            : "Select customer..."
+                                                        }
+                                                        <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
+                                                    </Button>
+                                                </FormControl>
+                                            </PopoverTrigger>
+                                            <PopoverContent className="w-full p-0">
+                                                <Command>
+                                                    <CommandInput
+                                                        placeholder="Search customers..."
+                                                        value={customerSearchQuery}
+                                                        onValueChange={setCustomerSearchQuery}
+                                                    />
+                                                    <CommandList>
+                                                        <CommandEmpty>
+                                                            {customersLoading ? "Loading customers..." : "No customers found."}
+                                                        </CommandEmpty>
+                                                        <CommandGroup>
+                                                            {filteredCustomers.map((customer) => (
+                                                                <CommandItem
+                                                                    key={customer.id}
+                                                                    value={customer.id}
+                                                                    onSelect={() => handleCustomerSelect(customer)}
+                                                                >
+                                                                    <Check
+                                                                        className={cn(
+                                                                            "mr-2 h-4 w-4",
+                                                                            field.value === customer.id ? "opacity-100" : "opacity-0"
+                                                                        )}
+                                                                    />
+                                                                    <div className="flex flex-col">
+                                                                        <span className="font-medium">{customer.company_name}</span>
+                                                                        {customer.contact_name && (
+                                                                            <span className="text-sm text-muted-foreground">
+                                                                                {customer.contact_name}
+                                                                            </span>
+                                                                        )}
+                                                                        {customer.email && (
+                                                                            <span className="text-sm text-muted-foreground">
+                                                                                {customer.email}
+                                                                            </span>
+                                                                        )}
+                                                                    </div>
+                                                                </CommandItem>
+                                                            ))}
+                                                        </CommandGroup>
+                                                    </CommandList>
+                                                </Command>
+                                            </PopoverContent>
+                                        </Popover>
+                                        <FormMessage />
+                                    </FormItem>
+                                )}
+                            />
+                            <div className="flex items-end">
+                                <Button
+                                    type="button"
+                                    variant="outline"
+                                    onClick={() => setCreateCustomerOpen(true)}
+                                    className="px-3"
+                                >
+                                    <Building2 className="h-4 w-4" />
+                                </Button>
+                            </div>
+                        </div>
+
+                        {/* Point of Contacts Selection */}
+                        {form.watch('selectedCustomerId') && (
+                            <FormField
+                                control={form.control}
+                                name="pointOfContacts"
+                                render={({ field }) => (
+                                    <FormItem>
+                                        <FormLabel>Point of Contacts</FormLabel>
+                                        <Popover open={pointOfContactsOpen} onOpenChange={setPointOfContactsOpen}>
+                                            <PopoverTrigger asChild>
+                                                <FormControl>
+                                                    <Button
+                                                        variant="outline"
+                                                        role="combobox"
+                                                        aria-expanded={pointOfContactsOpen}
+                                                        className="w-full justify-between"
+                                                    >
+                                                        {selectedContacts.length > 0
+                                                            ? `${selectedContacts.length} contact${selectedContacts.length > 1 ? 's' : ''} selected`
+                                                            : "Select point of contacts..."
+                                                        }
+                                                        <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
+                                                    </Button>
+                                                </FormControl>
+                                            </PopoverTrigger>
+                                            <PopoverContent className="w-full p-0">
+                                                <Command>
+                                                    <CommandList>
+                                                        <CommandGroup>
+                                                            {getCustomerContacts().map((contact) => (
+                                                                <CommandItem
+                                                                    key={contact.id}
+                                                                    value={contact.id}
+                                                                    onSelect={() => handlePointOfContactToggle(contact.id)}
+                                                                >
+                                                                    <Check
+                                                                        className={cn(
+                                                                            "mr-2 h-4 w-4",
+                                                                            selectedContacts.includes(contact.id) ? "opacity-100" : "opacity-0"
+                                                                        )}
+                                                                    />
+                                                                    <div className="flex flex-col">
+                                                                        <span className="font-medium">
+                                                                            {contact.contact_name || 'Unnamed Contact'}
                                                                         </span>
-                                                                    )}
-                                                                    {customer.email && (
                                                                         <span className="text-sm text-muted-foreground">
-                                                                            {customer.email}
+                                                                            {contact.email || 'No email'}
                                                                         </span>
-                                                                    )}
-                                                                </div>
-                                                            </CommandItem>
-                                                        ))}
-                                                    </CommandGroup>
-                                                </CommandList>
-                                            </Command>
-                                        </PopoverContent>
-                                    </Popover>
-                                    <FormMessage />
-                                </FormItem>
-                            )}
-                        />
+                                                                    </div>
+                                                                </CommandItem>
+                                                            ))}
+                                                        </CommandGroup>
+                                                    </CommandList>
+                                                </Command>
+                                            </PopoverContent>
+                                        </Popover>
+                                        {selectedContacts.length > 0 && (
+                                            <div className="flex flex-wrap gap-1 mt-2">
+                                                {selectedContacts.map(contactId => {
+                                                    const contact = getCustomerContacts().find(c => c.id === contactId);
+                                                    return contact ? (
+                                                        <Badge key={contactId} variant="secondary" className="text-xs">
+                                                            {contact.contact_name || contact.email}
+                                                            <X
+                                                                className="ml-1 h-3 w-3 cursor-pointer"
+                                                                onClick={() => handlePointOfContactToggle(contactId)}
+                                                            />
+                                                        </Badge>
+                                                    ) : null;
+                                                })}
+                                            </div>
+                                        )}
+                                        <FormMessage />
+                                    </FormItem>
+                                )}
+                            />
+                        )}
 
                         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                             <FormField
@@ -830,5 +954,121 @@ export function InquiryIntakeForm({ submissionType, onSuccess }: InquiryIntakeFo
                 </div>
             </form>
         </Form>
+
+        {/* Create Customer Modal */}
+        <Dialog open={createCustomerOpen} onOpenChange={setCreateCustomerOpen}>
+            <DialogContent>
+                <DialogHeader>
+                    <DialogTitle>Create New Customer</DialogTitle>
+                    <DialogDescription>
+                        Add a new customer organization to the system
+                    </DialogDescription>
+                </DialogHeader>
+                <div className="space-y-4">
+                    <div className="grid grid-cols-2 gap-4">
+                        <FormField
+                            control={form.control}
+                            name="company"
+                            render={({ field }) => (
+                                <FormItem>
+                                    <FormLabel>Company Name *</FormLabel>
+                                    <FormControl>
+                                        <Input placeholder="Company Name" {...field} />
+                                    </FormControl>
+                                    <FormMessage />
+                                </FormItem>
+                            )}
+                        />
+                        <FormField
+                            control={form.control}
+                            name="customerName"
+                            render={({ field }) => (
+                                <FormItem>
+                                    <FormLabel>Contact Name *</FormLabel>
+                                    <FormControl>
+                                        <Input placeholder="Contact Name" {...field} />
+                                    </FormControl>
+                                    <FormMessage />
+                                </FormItem>
+                            )}
+                        />
+                    </div>
+                    <div className="grid grid-cols-2 gap-4">
+                        <FormField
+                            control={form.control}
+                            name="email"
+                            render={({ field }) => (
+                                <FormItem>
+                                    <FormLabel>Email *</FormLabel>
+                                    <FormControl>
+                                        <Input type="email" placeholder="email@company.com" {...field} />
+                                    </FormControl>
+                                    <FormMessage />
+                                </FormItem>
+                            )}
+                        />
+                        <FormField
+                            control={form.control}
+                            name="phone"
+                            render={({ field }) => (
+                                <FormItem>
+                                    <FormLabel>Phone</FormLabel>
+                                    <FormControl>
+                                        <Input placeholder="+1-555-123-4567" {...field} />
+                                    </FormControl>
+                                    <FormMessage />
+                                </FormItem>
+                            )}
+                        />
+                    </div>
+                    <FormField
+                        control={form.control}
+                        name="country"
+                        render={({ field }) => (
+                            <FormItem>
+                                <FormLabel>Country *</FormLabel>
+                                <Select onValueChange={field.onChange} defaultValue={field.value}>
+                                    <FormControl>
+                                        <SelectTrigger>
+                                            <SelectValue placeholder="Select country" />
+                                        </SelectTrigger>
+                                    </FormControl>
+                                    <SelectContent>
+                                        <SelectItem value="US">United States</SelectItem>
+                                        <SelectItem value="VN">Vietnam</SelectItem>
+                                        <SelectItem value="JP">Japan</SelectItem>
+                                        <SelectItem value="CA">Canada</SelectItem>
+                                        <SelectItem value="MX">Mexico</SelectItem>
+                                        <SelectItem value="GB">United Kingdom</SelectItem>
+                                        <SelectItem value="DE">Germany</SelectItem>
+                                        <SelectItem value="FR">France</SelectItem>
+                                        <SelectItem value="CN">China</SelectItem>
+                                        <SelectItem value="IN">India</SelectItem>
+                                        <SelectItem value="AU">Australia</SelectItem>
+                                    </SelectContent>
+                                </Select>
+                                <FormMessage />
+                            </FormItem>
+                        )}
+                    />
+                    <div className="flex justify-end gap-2">
+                        <Button
+                            type="button"
+                            variant="outline"
+                            onClick={() => setCreateCustomerOpen(false)}
+                        >
+                            Cancel
+                        </Button>
+                        <Button
+                            type="button"
+                            onClick={() => setCreateCustomerOpen(false)}
+                        >
+                            Create Customer
+                        </Button>
+                    </div>
+                </div>
+            </DialogContent>
+        </Dialog>
+        </>
     );
 }

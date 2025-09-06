@@ -532,24 +532,32 @@ class ProjectService {
             }
 
             // Prepare data for database insertion
-            const insertData = {
+            const insertData: any = {
                 organization_id: projectData.organization_id,
                 project_id: projectData.project_id,
                 title: projectData.title,
                 description: projectData.description || null,
-                customer_id: projectData.customer_id || null,
+                customer_organization_id: (projectData as any).customer_organization_id || projectData.customer_id || null,
+                point_of_contacts: (projectData as any).point_of_contacts || null,
                 current_stage_id: projectData.current_stage_id || null,
                 status: projectData.status || 'active',
-                priority_level: projectData.priority_level || 'medium',
+                priority_level: projectData.priority_level || (projectData as any).priority || 'medium',
                 source: projectData.source || 'portal',
                 assigned_to: projectData.assigned_to || null,
                 created_by: projectData.created_by || null,
                 estimated_value: projectData.estimated_value || null,
+                estimated_delivery_date: (projectData as any).estimated_delivery_date || null,
                 tags: projectData.tags || null,
                 metadata: projectData.metadata || {},
                 stage_entered_at: projectData.stage_entered_at || new Date().toISOString(),
                 project_type: projectData.project_type || null,
-                notes: projectData.notes || null
+                notes: projectData.notes || null,
+                intake_type: (projectData as any).intake_type || null,
+                intake_source: (projectData as any).intake_source || 'portal',
+                volume: (projectData as any).volume || null,
+                target_price_per_unit: (projectData as any).target_price_per_unit || null,
+                desired_delivery_date: (projectData as any).desired_delivery_date || null,
+                project_reference: (projectData as any).project_reference || null
             };
 
             const { data, error } = await supabase

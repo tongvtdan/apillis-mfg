@@ -18,6 +18,11 @@ export interface ProjectIntakeData {
     tags?: string[];
     intake_type: string;
     intake_source?: IntakeSource;
+    // Additional database fields
+    volume?: string;
+    target_price_per_unit?: number;
+    desired_delivery_date?: string;
+    project_reference?: string;
 }
 
 export class ProjectIntakeService {
@@ -57,13 +62,14 @@ export class ProjectIntakeService {
 
             // Create project with intake-specific data
             const project = await createProjectFn({
+                organization_id: organizationId, // Ensure organization_id is passed
                 title: intakeData.title || `${intakeData.intake_type} from ${intakeData.contact_name || 'Customer'}`,
                 description: intakeData.description,
                 customer_organization_id: intakeData.customer_organization_id,
                 point_of_contacts: intakeData.point_of_contacts || [],
-                priority: priority,
+                priority_level: priority, // Use correct field name
                 estimated_value: intakeData.estimated_value,
-                due_date: intakeData.due_date,
+                estimated_delivery_date: intakeData.due_date, // Map to correct field name
                 contact_name: intakeData.contact_name,
                 contact_email: intakeData.contact_email,
                 contact_phone: intakeData.contact_phone,
@@ -72,7 +78,12 @@ export class ProjectIntakeService {
                 intake_type: mapping.intakeType,
                 intake_source: intakeData.intake_source || 'portal',
                 project_type: projectType,
-                current_stage_id: stageId
+                current_stage_id: stageId,
+                // Additional database fields
+                volume: intakeData.volume,
+                target_price_per_unit: intakeData.target_price_per_unit,
+                desired_delivery_date: intakeData.desired_delivery_date,
+                project_reference: intakeData.project_reference
             });
 
             return project;
