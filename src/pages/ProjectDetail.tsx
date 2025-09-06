@@ -47,7 +47,7 @@ import { ProjectDetailHeader } from "@/components/project/ProjectDetailHeader";
 import { ProjectSummaryCard } from "@/components/project/ProjectSummaryCard";
 import { VisualTimelineProgression } from "@/components/project/ui";
 import { useWorkflowStages } from "@/hooks/useWorkflowStages";
-import { ResponsiveNavigationWrapper, TabTransition } from "@/components/project/ui";
+import { ResponsiveNavigationWrapper, TabTransition, TabContentWrapper } from "@/components/project/ui";
 import { useProjectNavigation } from "@/hooks/useProjectNavigation";
 import { useSmoothProjectUpdates } from "@/hooks/useSmoothProjectUpdates";
 

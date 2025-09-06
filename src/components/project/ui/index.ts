@@ -5,5 +5,5 @@ export { InteractiveNavigationSidebar } from './InteractiveNavigationSidebar';
 export { ProjectCardWrapper } from './ProjectCardWrapper';
 export { ProjectTabs } from './ProjectTabs';
 export { ResponsiveNavigationWrapper } from './ResponsiveNavigationWrapper';
-export { TabTransition } from './TabTransition';
+export { TabTransition, TabContentWrapper } from './TabTransition';
 export { VisualTimelineProgression } from './VisualTimelineProgression';
