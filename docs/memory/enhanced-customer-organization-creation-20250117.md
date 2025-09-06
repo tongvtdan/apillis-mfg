@@ -91,12 +91,28 @@ INSERT INTO contacts (organization_id, type, contact_name, email, phone, is_prim
 - **Validated:** Comprehensive validation and error handling
 - **Responsive:** Loading states and visual feedback
 
+## Bug Fixes
+
+### React Hook Form Context Issue
+**Issue:** `Cannot destructure property 'getFieldState' of 'useFormContext(...)' as it is null.`
+
+**Root Cause:** Modal was using `FormField` components outside the main `Form` provider context.
+
+**Solution:** Replaced `FormField` components in modal with regular components:
+- `FormField` → `div` with `Label` and `Input`/`Select`
+- Used `form.watch()` and `form.setValue()` for state management
+- Added `Label` import for proper form labels
+
+**Files Modified:**
+- `src/components/project/intake/InquiryIntakeForm.tsx` (modal form fields)
+
 ## Testing
 
 - ✅ Build compilation successful
 - ✅ No linting errors
 - ✅ TypeScript validation passed
 - ✅ Component integration verified
+- ✅ Modal form context issue resolved
 
 ## Future Enhancements
 

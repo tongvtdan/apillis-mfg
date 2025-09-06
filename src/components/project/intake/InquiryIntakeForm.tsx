@@ -5,6 +5,7 @@ import { z } from 'zod';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
@@ -1362,105 +1363,80 @@ export function InquiryIntakeForm({ submissionType, onSuccess }: InquiryIntakeFo
                     </DialogHeader>
                     <div className="space-y-4">
                         <div className="grid grid-cols-2 gap-4">
-                            <FormField
-                                control={form.control}
-                                name="company"
-                                render={({ field }) => (
-                                    <FormItem>
-                                        <FormLabel>Organization Name *</FormLabel>
-                                        <FormControl>
-                                            <Input placeholder="Organization Name" {...field} />
-                                        </FormControl>
-                                        <FormMessage />
-                                    </FormItem>
-                                )}
-                            />
-                            <FormField
-                                control={form.control}
-                                name="customerName"
-                                render={({ field }) => (
-                                    <FormItem>
-                                        <FormLabel>Contact Name *</FormLabel>
-                                        <FormControl>
-                                            <Input placeholder="Contact Name" {...field} />
-                                        </FormControl>
-                                        <FormMessage />
-                                    </FormItem>
-                                )}
-                            />
+                            <div className="space-y-2">
+                                <Label htmlFor="modal-company">Organization Name *</Label>
+                                <Input
+                                    id="modal-company"
+                                    placeholder="Organization Name"
+                                    value={form.watch('company') || ''}
+                                    onChange={(e) => form.setValue('company', e.target.value)}
+                                />
+                            </div>
+                            <div className="space-y-2">
+                                <Label htmlFor="modal-customer-name">Contact Name *</Label>
+                                <Input
+                                    id="modal-customer-name"
+                                    placeholder="Contact Name"
+                                    value={form.watch('customerName') || ''}
+                                    onChange={(e) => form.setValue('customerName', e.target.value)}
+                                />
+                            </div>
                         </div>
                         <div className="grid grid-cols-2 gap-4">
-                            <FormField
-                                control={form.control}
-                                name="email"
-                                render={({ field }) => (
-                                    <FormItem>
-                                        <FormLabel>Email *</FormLabel>
-                                        <FormControl>
-                                            <Input type="email" placeholder="email@company.com" {...field} />
-                                        </FormControl>
-                                        <FormMessage />
-                                    </FormItem>
-                                )}
-                            />
-                            <FormField
-                                control={form.control}
-                                name="phone"
-                                render={({ field }) => (
-                                    <FormItem>
-                                        <FormLabel>Phone</FormLabel>
-                                        <FormControl>
-                                            <Input placeholder="+1-555-123-4567" {...field} />
-                                        </FormControl>
-                                        <FormMessage />
-                                    </FormItem>
-                                )}
-                            />
+                            <div className="space-y-2">
+                                <Label htmlFor="modal-email">Email *</Label>
+                                <Input
+                                    id="modal-email"
+                                    type="email"
+                                    placeholder="email@company.com"
+                                    value={form.watch('email') || ''}
+                                    onChange={(e) => form.setValue('email', e.target.value)}
+                                />
+                            </div>
+                            <div className="space-y-2">
+                                <Label htmlFor="modal-phone">Phone</Label>
+                                <Input
+                                    id="modal-phone"
+                                    placeholder="+1-555-123-4567"
+                                    value={form.watch('phone') || ''}
+                                    onChange={(e) => form.setValue('phone', e.target.value)}
+                                />
+                            </div>
                         </div>
                         <div className="grid grid-cols-2 gap-4">
-                            <FormField
-                                control={form.control}
-                                name="country"
-                                render={({ field }) => (
-                                    <FormItem>
-                                        <FormLabel>Country *</FormLabel>
-                                        <Select onValueChange={field.onChange} defaultValue={field.value}>
-                                            <FormControl>
-                                                <SelectTrigger>
-                                                    <SelectValue placeholder="Select country" />
-                                                </SelectTrigger>
-                                            </FormControl>
-                                            <SelectContent>
-                                                <SelectItem value="US">United States</SelectItem>
-                                                <SelectItem value="VN">Vietnam</SelectItem>
-                                                <SelectItem value="JP">Japan</SelectItem>
-                                                <SelectItem value="CA">Canada</SelectItem>
-                                                <SelectItem value="MX">Mexico</SelectItem>
-                                                <SelectItem value="GB">United Kingdom</SelectItem>
-                                                <SelectItem value="DE">Germany</SelectItem>
-                                                <SelectItem value="FR">France</SelectItem>
-                                                <SelectItem value="CN">China</SelectItem>
-                                                <SelectItem value="IN">India</SelectItem>
-                                                <SelectItem value="AU">Australia</SelectItem>
-                                            </SelectContent>
-                                        </Select>
-                                        <FormMessage />
-                                    </FormItem>
-                                )}
-                            />
-                            <FormField
-                                control={form.control}
-                                name="website"
-                                render={({ field }) => (
-                                    <FormItem>
-                                        <FormLabel>Website</FormLabel>
-                                        <FormControl>
-                                            <Input placeholder="https://example.com" {...field} />
-                                        </FormControl>
-                                        <FormMessage />
-                                    </FormItem>
-                                )}
-                            />
+                            <div className="space-y-2">
+                                <Label htmlFor="modal-country">Country *</Label>
+                                <Select
+                                    value={form.watch('country') || ''}
+                                    onValueChange={(value) => form.setValue('country', value)}
+                                >
+                                    <SelectTrigger>
+                                        <SelectValue placeholder="Select country" />
+                                    </SelectTrigger>
+                                    <SelectContent>
+                                        <SelectItem value="US">United States</SelectItem>
+                                        <SelectItem value="VN">Vietnam</SelectItem>
+                                        <SelectItem value="JP">Japan</SelectItem>
+                                        <SelectItem value="CA">Canada</SelectItem>
+                                        <SelectItem value="MX">Mexico</SelectItem>
+                                        <SelectItem value="GB">United Kingdom</SelectItem>
+                                        <SelectItem value="DE">Germany</SelectItem>
+                                        <SelectItem value="FR">France</SelectItem>
+                                        <SelectItem value="CN">China</SelectItem>
+                                        <SelectItem value="IN">India</SelectItem>
+                                        <SelectItem value="AU">Australia</SelectItem>
+                                    </SelectContent>
+                                </Select>
+                            </div>
+                            <div className="space-y-2">
+                                <Label htmlFor="modal-website">Website</Label>
+                                <Input
+                                    id="modal-website"
+                                    placeholder="https://example.com"
+                                    value={form.watch('website') || ''}
+                                    onChange={(e) => form.setValue('website', e.target.value)}
+                                />
+                            </div>
                         </div>
                         <div className="flex justify-end gap-2">
                             <Button
