@@ -43,7 +43,7 @@ interface StageStatus {
     };
 }
 
-export function EnhancedStageProgression({
+export function StageProgression({
     project,
     onStageClick,
     showDetails = true,

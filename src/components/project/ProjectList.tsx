@@ -48,7 +48,7 @@ interface FilterState {
 type SortField = 'title' | 'created_at' | 'priority_level' | 'estimated_value' | 'estimated_delivery_date';
 type SortDirection = 'asc' | 'desc';
 
-export function EnhancedProjectList({
+export function ProjectList({
     projects,
     workflowStages,
     loading = false,

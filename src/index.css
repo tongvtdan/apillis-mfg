@@ -208,37 +208,6 @@
   }
 }
 
-/* Make DaisyUI theme classes work consistently across the application */
-.bg-base-100 {
-  background-color: hsl(var(--background)) !important;
-}
-
-.text-base-content {
-  color: hsl(var(--foreground)) !important;
-}
-
-.bg-base-200 {
-  background-color: hsl(var(--muted)) !important;
-}
-
-.bg-base-300 {
-  background-color: hsl(var(--border)) !important;
-}
-
-/* Add border color rule for border-border */
-.border-border {
-  border-color: hsl(var(--border)) !important;
-}
-
-/* Add border color rule for base-300 */
-.border-base-300 {
-  border-color: hsl(var(--border)) !important;
-}
-
-/* Add background color rule for bg-border to ensure separators use border color */
-.bg-border {
-  background-color: hsl(var(--border)) !important;
-}
 
 /* Custom styles for elevated cards and gradients - from HTML website */
 .card-elevated {

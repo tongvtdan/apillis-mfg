@@ -3,7 +3,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { EnhancedSwitch } from '@/components/ui/enhanced-switch';
+import { Switch } from '@/components/ui/switch';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Badge } from '@/components/ui/badge';
 import { Separator } from '@/components/ui/separator';
@@ -129,7 +129,7 @@ export function ReviewConfiguration({ projectId, onClose, onSave, isOpen }: Revi
                                 Automatically advance project when all reviews are approved
                             </p>
                         </div>
-                        <EnhancedSwitch
+                        <Switch
                             checked={config.autoAdvanceOnApproval}
                             onCheckedChange={(checked) => updateConfig({ autoAdvanceOnApproval: checked })}
                         />
@@ -142,7 +142,7 @@ export function ReviewConfiguration({ projectId, onClose, onSave, isOpen }: Revi
                                 All departments must complete review before proceeding
                             </p>
                         </div>
-                        <EnhancedSwitch
+                        <Switch
                             checked={config.requireAllDepartments}
                             onCheckedChange={(checked) => updateConfig({ requireAllDepartments: checked })}
                         />
@@ -155,7 +155,7 @@ export function ReviewConfiguration({ projectId, onClose, onSave, isOpen }: Revi
                                 Automatically escalate high-risk items to management
                             </p>
                         </div>
-                        <EnhancedSwitch
+                        <Switch
                             checked={config.enableRiskEscalation}
                             onCheckedChange={(checked) => updateConfig({ enableRiskEscalation: checked })}
                         />
@@ -168,7 +168,7 @@ export function ReviewConfiguration({ projectId, onClose, onSave, isOpen }: Revi
                                 Automatically assign reviews based on workload
                             </p>
                         </div>
-                        <EnhancedSwitch
+                        <Switch
                             checked={config.autoAssignment}
                             onCheckedChange={(checked) => updateConfig({ autoAssignment: checked })}
                         />
@@ -259,7 +259,7 @@ export function ReviewConfiguration({ projectId, onClose, onSave, isOpen }: Revi
                                 Notify when a review is submitted
                             </p>
                         </div>
-                        <EnhancedSwitch
+                        <Switch
                             checked={config.notificationSettings.onReviewSubmitted}
                             onCheckedChange={(checked) => updateNotification('onReviewSubmitted', checked)}
                         />
@@ -272,7 +272,7 @@ export function ReviewConfiguration({ projectId, onClose, onSave, isOpen }: Revi
                                 Notify when a review is approved
                             </p>
                         </div>
-                        <EnhancedSwitch
+                        <Switch
                             checked={config.notificationSettings.onReviewApproved}
                             onCheckedChange={(checked) => updateNotification('onReviewApproved', checked)}
                         />
@@ -285,7 +285,7 @@ export function ReviewConfiguration({ projectId, onClose, onSave, isOpen }: Revi
                                 Notify when a review is rejected
                             </p>
                         </div>
-                        <EnhancedSwitch
+                        <Switch
                             checked={config.notificationSettings.onReviewRejected}
                             onCheckedChange={(checked) => updateNotification('onReviewRejected', checked)}
                         />
@@ -298,7 +298,7 @@ export function ReviewConfiguration({ projectId, onClose, onSave, isOpen }: Revi
                                 Notify when high risks are identified
                             </p>
                         </div>
-                        <EnhancedSwitch
+                        <Switch
                             checked={config.notificationSettings.onRiskIdentified}
                             onCheckedChange={(checked) => updateNotification('onRiskIdentified', checked)}
                         />

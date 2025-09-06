@@ -2,7 +2,7 @@
 export { WorkflowStepper } from '../WorkflowStepper';
 export { StageConfigurationPanel } from '../StageConfigurationPanel';
 export { StageTransitionValidator } from '../StageTransitionValidator';
-export { EnhancedStageProgression } from '../EnhancedStageProgression';
+export { StageProgression } from '../StageProgression';
 export { ExitCriteriaIndicator } from '../ExitCriteriaIndicator';
 export { WorkflowBypassDialog } from '../WorkflowBypassDialog';
 export { StageHistoryTimeline } from '../StageHistoryTimeline';

@@ -17,7 +17,7 @@
 }
 
 .auth-card {
-    @apply shadow-lg border border-base-200;
+    @apply shadow-lg border border-border;
 }
 
 /* Enhanced button styling for light/dark mode adaptability */

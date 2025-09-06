@@ -20,7 +20,7 @@ import { LoadingFallback, OfflineState, GracefulDegradation } from "@/components
 import { useErrorHandling } from "@/hooks/useErrorHandling";
 import { ProjectWorkflowAnalytics } from "@/components/project/ProjectWorkflowAnalytics";
 import { ProjectCalendar } from "@/components/project/ProjectCalendar";
-import { EnhancedProjectList } from "@/components/project/EnhancedProjectList";
+import { ProjectList } from "@/components/project/ProjectList";
 import { AnimatedProjectCard } from "@/components/project/AnimatedProjectCard";
 import { workflowStageService } from "@/services/workflowStageService";
 import { useToast } from "@/hooks/use-toast";
@@ -402,7 +402,7 @@ export default function Projects() {
         handleError(error, 'Projects Page Component');
       }}
     >
-      <div className="p-6 bg-base-100 text-base-content min-h-screen">
+      <div className="p-6 bg-background text-foreground min-h-screen">
         {/* Show degraded mode if there are issues but some functionality works */}
         {projects.length === 0 && !loading && !hasError && !isRetrying && (
           <GracefulDegradation
@@ -435,7 +435,7 @@ export default function Projects() {
 
               {/* Project Type Filter */}
               <div className="flex items-center space-x-3">
-                <span className="text-sm text-base-content/70">Filter by type:</span>
+                <span className="text-sm text-muted-foreground">Filter by type:</span>
                 <Select
                   value={selectedProjectType}
                   onValueChange={(value) => setSelectedProjectType(value as ProjectType | 'all')}
@@ -475,7 +475,7 @@ export default function Projects() {
 
           <TabsContent value="enhanced" className="mt-4">
             <ProjectErrorBoundary context="Enhanced Project List">
-              <EnhancedProjectList
+              <ProjectList
                 projects={activeProjects.filter(p => selectedProjectType === 'all' || p.project_type === selectedProjectType)}
                 workflowStages={workflowStages}
                 loading={loading}

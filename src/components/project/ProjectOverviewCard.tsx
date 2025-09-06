@@ -68,7 +68,7 @@ interface ProjectMetrics {
     progressPercentage: number;
 }
 
-export function EnhancedProjectOverviewCard({
+export function ProjectOverviewCard({
     project,
     workflowStages = [],
     onEdit,

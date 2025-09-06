@@ -249,7 +249,7 @@ export default function Auth() {
                       placeholder="Enter your domain (e.g., factorypulse.vn)"
                       value={signInData.domain}
                       onChange={(e) => handleDomainChange(e.target.value)}
-                      className="border-base-300 focus:border-primary transition-colors"
+                      className="border-border focus:border-primary transition-colors"
                       required
                     />
                   </div>
@@ -261,7 +261,7 @@ export default function Auth() {
                       placeholder="Enter your username"
                       value={signInData.username}
                       onChange={(e) => handleUsernameChange(e.target.value)}
-                      className="border-base-300 focus:border-primary transition-colors"
+                      className="border-border focus:border-primary transition-colors"
                       required
                     />
                   </div>

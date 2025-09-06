@@ -26,7 +26,7 @@ import {
 import { cn } from "@/lib/utils";
 import { format, formatDistanceToNow, differenceInDays, parseISO } from "date-fns";
 import type { Project, WorkflowStage, ProjectPriority } from "@/types/project";
-import { EnhancedProjectOverviewCard } from "./EnhancedProjectOverviewCard";
+import { ProjectOverviewCard } from "./ProjectOverviewCard";
 import { WorkflowStepper } from "./WorkflowStepper";
 import { useUserDisplayName } from "@/hooks/useUsers";
 import { useOwnerDisplayName } from "@/hooks/useOwnerDisplayName";
