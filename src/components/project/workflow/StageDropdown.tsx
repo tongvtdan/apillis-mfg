@@ -16,7 +16,7 @@ import {
     TooltipTrigger,
 } from "@/components/ui/tooltip";
 
-interface EnhancedStageDropdownProps {
+interface StageDropdownProps {
     project: Project;
     onStatusChange: (project: Project, newStatus: ProjectStatus) => Promise<void>;
     getAvailableStages: (project: Project) => Array<{
@@ -30,11 +30,11 @@ interface EnhancedStageDropdownProps {
     }>;
 }
 
-export function EnhancedStageDropdown({
+export function StageDropdown({
     project,
     onStatusChange,
     getAvailableStages
-}: EnhancedStageDropdownProps) {
+}: StageDropdownProps) {
 
     const handleUpdateStatus = async (project: Project, newStatus: ProjectStatus) => {
         await onStatusChange(project, newStatus);
