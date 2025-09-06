@@ -182,17 +182,24 @@ export function InquiryIntakeForm({ submissionType, onSuccess }: InquiryIntakeFo
             const intakeData: ProjectIntakeData = {
                 title: data.projectTitle,
                 description: data.description,
-                customer_id: validCustomer.id,
+                customer_organization_id: validCustomer.id, // Fixed: Use customer_organization_id
+                point_of_contacts: [validCustomer.id], // Add point of contact
                 priority: data.priority,
                 estimated_value: data.targetPricePerUnit && data.volumes ?
-                    data.targetPricePerUnit * data.volumes.reduce((sum, v) => sum + v.qty, 0) : undefined,
+                    data.targetPricePerUnit * data.volumes.reduce((sum, v) => sum + v.qty, 0) : data.targetPricePerUnit,
                 due_date: data.desiredDeliveryDate,
                 contact_name: validCustomer.contact_name || data.customerName,
                 contact_email: validCustomer.email || data.email,
                 contact_phone: validCustomer.phone || data.phone,
                 notes: data.notes,
+                tags: data.intakeType === 'po' ? [data.projectReference].filter(Boolean) : undefined,
                 intake_type: data.intakeType,
-                intake_source: 'portal'
+                intake_source: 'portal',
+                // Additional fields for database
+                volume: data.volumes ? JSON.stringify(data.volumes) : undefined,
+                target_price_per_unit: data.targetPricePerUnit,
+                desired_delivery_date: data.desiredDeliveryDate,
+                project_reference: data.projectReference
             };
 
             // Create project using intake service
@@ -475,7 +482,7 @@ export function InquiryIntakeForm({ submissionType, onSuccess }: InquiryIntakeFo
                                                 <FormControl>
                                                     <Input
                                                         type="number"
-                                                        placeholder="1000"
+                                                        placeholder="100"
                                                         {...field}
                                                         onChange={(e) => field.onChange(parseInt(e.target.value) || 0)}
                                                     />
@@ -500,6 +507,7 @@ export function InquiryIntakeForm({ submissionType, onSuccess }: InquiryIntakeFo
                                                         <SelectItem value="pcs">Pieces</SelectItem>
                                                         <SelectItem value="units">Units</SelectItem>
                                                         <SelectItem value="kits">Kits</SelectItem>
+                                                        <SelectItem value="assembly">Assembly</SelectItem>
                                                     </SelectContent>
                                                 </Select>
                                                 <FormMessage />
