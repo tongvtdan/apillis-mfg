@@ -27,7 +27,7 @@ import { useAuth } from "@/contexts/AuthContext";
 import { useApprovals } from "@/hooks/useApprovals";
 import { ApprovalStatusWidget } from "@/components/approval/ApprovalStatusWidget";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { DocumentValidationPanel } from "./DocumentValidationPanel";
+import { DocumentValidationPanel } from "../documents";
 
 interface StageTransitionValidatorProps {
     project: Project;

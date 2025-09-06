@@ -6,7 +6,7 @@ import { CheckCircle, AlertCircle, ChevronRight, Play, Pause } from "lucide-reac
 import { ProjectStatus, Project, ProjectType, WorkflowStage } from "@/types/project";
 import { useProjects } from "@/hooks/useProjects";
 import { motion, AnimatePresence } from 'framer-motion';
-import { ProjectCardWrapper } from './ProjectCardWrapper';
+import { ProjectCardWrapper } from '../ui';
 import { workflowStageService } from '@/services/workflowStageService';
 
 interface WorkflowFlowchartProps {

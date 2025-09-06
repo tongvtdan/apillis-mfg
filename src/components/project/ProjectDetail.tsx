@@ -25,9 +25,9 @@ import { InlineProjectEditor } from "./InlineProjectEditor";
 import { ProjectStatusManager } from "./ProjectStatusManager";
 
 // Import existing components for tab content
-import { DocumentManager } from "./DocumentManager";
+import { DocumentManager } from "./documents";
 import ProjectCommunication from "./ProjectCommunication";
-import { ReviewList } from "./ReviewList";
+import { ReviewList } from "./workflow";
 
 export function EnhancedProjectDetail() {
     const { id } = useParams<{ id: string }>();

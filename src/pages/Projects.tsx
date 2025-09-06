@@ -18,10 +18,10 @@ import { ProjectErrorBoundary } from "@/components/error/ProjectErrorBoundary";
 import { DatabaseErrorHandler } from "@/components/error/DatabaseErrorHandler";
 import { LoadingFallback, OfflineState, GracefulDegradation } from "@/components/error/FallbackMechanisms";
 import { useErrorHandling } from "@/hooks/useErrorHandling";
-import { ProjectWorkflowAnalytics } from "@/components/project/ProjectWorkflowAnalytics";
+import { ProjectWorkflowAnalytics } from "@/components/project/workflow";
 import { ProjectCalendar } from "@/components/project/ProjectCalendar";
 import { ProjectList } from "@/components/project/ProjectList";
-import { AnimatedProjectCard } from "@/components/project/AnimatedProjectCard";
+import { AnimatedProjectCard } from "@/components/project/ui";
 import { workflowStageService } from "@/services/workflowStageService";
 import { useToast } from "@/hooks/use-toast";
 

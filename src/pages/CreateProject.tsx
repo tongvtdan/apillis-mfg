@@ -1,6 +1,6 @@
 import React from "react";
 import { useNavigate } from "react-router-dom";
-import { ProjectIntakePortal } from "@/components/project/ProjectIntakePortal";
+import { ProjectIntakePortal } from "@/components/project/intake";
 import { useToast } from "@/hooks/use-toast";
 import { Button } from "@/components/ui/button";
 import { ArrowLeft } from "lucide-react";

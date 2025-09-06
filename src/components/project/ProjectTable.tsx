@@ -20,7 +20,7 @@ import { Project, ProjectStatus, PROJECT_STAGES } from "@/types/project";
 import { useProjects } from "@/hooks/useProjects";
 import { ExternalLink, User, ArrowUpDown, ArrowUp, ArrowDown } from "lucide-react";
 import { useNavigate } from "react-router-dom";
-import { AnimatedTableRow } from "./AnimatedTableRow";
+import { AnimatedTableRow } from "./ui";
 import { WorkflowValidator } from "@/lib/workflow-validator";
 import { ProjectErrorBoundary } from "@/components/error/ProjectErrorBoundary";
 import { useErrorHandling } from "@/hooks/useErrorHandling";
