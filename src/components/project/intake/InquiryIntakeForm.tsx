@@ -106,6 +106,22 @@ export function InquiryIntakeForm({ submissionType, onSuccess }: InquiryIntakeFo
     const [showCountryDropdown, setShowCountryDropdown] = useState(false);
     const [isCreatingOrganization, setIsCreatingOrganization] = useState(false);
 
+    // Modal form state (separate from main form)
+    const [modalFormData, setModalFormData] = useState({
+        industry: '',
+        orgAddress: '',
+        orgCity: '',
+        orgState: '',
+        orgPostalCode: '',
+        contactRole: 'general',
+        contactAddress: '',
+        contactCity: '',
+        contactState: '',
+        contactPostalCode: '',
+        contactWebsite: '',
+        contactNotes: ''
+    });
+
     // Collapsible sections state
     const [collapsedSections, setCollapsedSections] = useState<Record<string, boolean>>({
         customerInfo: false,
@@ -250,25 +266,25 @@ export function InquiryIntakeForm({ submissionType, onSuccess }: InquiryIntakeFo
                 organization_type: 'customer',
                 country: getCountryCode(formData.country),
                 website: formData.website || undefined,
-                industry: formData.industry || undefined,
-                address: formData.orgAddress || undefined,
-                city: formData.orgCity || undefined,
-                state: formData.orgState || undefined,
-                postal_code: formData.orgPostalCode || undefined,
+                industry: modalFormData.industry || undefined,
+                address: modalFormData.orgAddress || undefined,
+                city: modalFormData.orgCity || undefined,
+                state: modalFormData.orgState || undefined,
+                postal_code: modalFormData.orgPostalCode || undefined,
                 description: 'Customer Organization'
             }, {
                 contact_name: formData.customerName,
                 email: formData.email,
                 phone: formData.phone || undefined,
-                role: formData.contactRole || 'general',
+                role: modalFormData.contactRole || 'general',
                 is_primary_contact: true,
-                address: formData.contactAddress || undefined,
-                city: formData.contactCity || undefined,
-                state: formData.contactState || undefined,
+                address: modalFormData.contactAddress || undefined,
+                city: modalFormData.contactCity || undefined,
+                state: modalFormData.contactState || undefined,
                 country: getCountryCode(formData.country),
-                postal_code: formData.contactPostalCode || undefined,
-                website: formData.contactWebsite || undefined,
-                notes: formData.contactNotes || undefined,
+                postal_code: modalFormData.contactPostalCode || undefined,
+                website: modalFormData.contactWebsite || undefined,
+                notes: modalFormData.contactNotes || undefined,
                 is_active: true
             });
 
@@ -290,18 +306,20 @@ export function InquiryIntakeForm({ submissionType, onSuccess }: InquiryIntakeFo
             }
 
             // Clear modal form fields
-            form.setValue('industry', '');
-            form.setValue('orgAddress', '');
-            form.setValue('orgCity', '');
-            form.setValue('orgState', '');
-            form.setValue('orgPostalCode', '');
-            form.setValue('contactRole', 'general');
-            form.setValue('contactAddress', '');
-            form.setValue('contactCity', '');
-            form.setValue('contactState', '');
-            form.setValue('contactPostalCode', '');
-            form.setValue('contactWebsite', '');
-            form.setValue('contactNotes', '');
+            setModalFormData({
+                industry: '',
+                orgAddress: '',
+                orgCity: '',
+                orgState: '',
+                orgPostalCode: '',
+                contactRole: 'general',
+                contactAddress: '',
+                contactCity: '',
+                contactState: '',
+                contactPostalCode: '',
+                contactWebsite: '',
+                contactNotes: ''
+            });
 
             // Close modal and show success
             setCreateCustomerOpen(false);
@@ -1445,8 +1463,8 @@ export function InquiryIntakeForm({ submissionType, onSuccess }: InquiryIntakeFo
                                         id="modal-industry"
                                         placeholder="e.g., Manufacturing, Technology"
                                         className="modal-form-input"
-                                        value={form.watch('industry') || ''}
-                                        onChange={(e) => form.setValue('industry', e.target.value)}
+                                        value={modalFormData.industry}
+                                        onChange={(e) => setModalFormData(prev => ({ ...prev, industry: e.target.value }))}
                                     />
                                 </div>
                             </div>
@@ -1459,8 +1477,8 @@ export function InquiryIntakeForm({ submissionType, onSuccess }: InquiryIntakeFo
                                         id="modal-org-address"
                                         placeholder="Street Address"
                                         className="modal-form-input"
-                                        value={form.watch('orgAddress') || ''}
-                                        onChange={(e) => form.setValue('orgAddress', e.target.value)}
+                                        value={modalFormData.orgAddress}
+                                        onChange={(e) => setModalFormData(prev => ({ ...prev, orgAddress: e.target.value }))}
                                     />
                                 </div>
                                 <div className="space-y-2">
@@ -1469,8 +1487,8 @@ export function InquiryIntakeForm({ submissionType, onSuccess }: InquiryIntakeFo
                                         id="modal-org-city"
                                         placeholder="City"
                                         className="modal-form-input"
-                                        value={form.watch('orgCity') || ''}
-                                        onChange={(e) => form.setValue('orgCity', e.target.value)}
+                                        value={modalFormData.orgCity}
+                                        onChange={(e) => setModalFormData(prev => ({ ...prev, orgCity: e.target.value }))}
                                     />
                                 </div>
                                 <div className="space-y-2">
@@ -1479,8 +1497,8 @@ export function InquiryIntakeForm({ submissionType, onSuccess }: InquiryIntakeFo
                                         id="modal-org-state"
                                         placeholder="State or Province"
                                         className="modal-form-input"
-                                        value={form.watch('orgState') || ''}
-                                        onChange={(e) => form.setValue('orgState', e.target.value)}
+                                        value={modalFormData.orgState}
+                                        onChange={(e) => setModalFormData(prev => ({ ...prev, orgState: e.target.value }))}
                                     />
                                 </div>
                                 <div className="space-y-2">
@@ -1489,8 +1507,8 @@ export function InquiryIntakeForm({ submissionType, onSuccess }: InquiryIntakeFo
                                         id="modal-org-postal-code"
                                         placeholder="Postal Code"
                                         className="modal-form-input"
-                                        value={form.watch('orgPostalCode') || ''}
-                                        onChange={(e) => form.setValue('orgPostalCode', e.target.value)}
+                                        value={modalFormData.orgPostalCode}
+                                        onChange={(e) => setModalFormData(prev => ({ ...prev, orgPostalCode: e.target.value }))}
                                     />
                                 </div>
                             </div>
@@ -1515,8 +1533,8 @@ export function InquiryIntakeForm({ submissionType, onSuccess }: InquiryIntakeFo
                                 <div className="space-y-2">
                                     <Label htmlFor="modal-contact-role">Role</Label>
                                     <Select
-                                        value={form.watch('contactRole') || 'general'}
-                                        onValueChange={(value) => form.setValue('contactRole', value)}
+                                        value={modalFormData.contactRole}
+                                        onValueChange={(value) => setModalFormData(prev => ({ ...prev, contactRole: value }))}
                                     >
                                         <SelectTrigger className="modal-select-trigger">
                                             <SelectValue placeholder="Select role" />
@@ -1562,8 +1580,8 @@ export function InquiryIntakeForm({ submissionType, onSuccess }: InquiryIntakeFo
                                         id="modal-address"
                                         placeholder="Street Address"
                                         className="modal-form-input"
-                                        value={form.watch('contactAddress') || ''}
-                                        onChange={(e) => form.setValue('contactAddress', e.target.value)}
+                                        value={modalFormData.contactAddress}
+                                        onChange={(e) => setModalFormData(prev => ({ ...prev, contactAddress: e.target.value }))}
                                     />
                                 </div>
                                 <div className="space-y-2">
@@ -1572,8 +1590,8 @@ export function InquiryIntakeForm({ submissionType, onSuccess }: InquiryIntakeFo
                                         id="modal-city"
                                         placeholder="City"
                                         className="modal-form-input"
-                                        value={form.watch('contactCity') || ''}
-                                        onChange={(e) => form.setValue('contactCity', e.target.value)}
+                                        value={modalFormData.contactCity}
+                                        onChange={(e) => setModalFormData(prev => ({ ...prev, contactCity: e.target.value }))}
                                     />
                                 </div>
                                 <div className="space-y-2">
@@ -1582,8 +1600,8 @@ export function InquiryIntakeForm({ submissionType, onSuccess }: InquiryIntakeFo
                                         id="modal-state"
                                         placeholder="State or Province"
                                         className="modal-form-input"
-                                        value={form.watch('contactState') || ''}
-                                        onChange={(e) => form.setValue('contactState', e.target.value)}
+                                        value={modalFormData.contactState}
+                                        onChange={(e) => setModalFormData(prev => ({ ...prev, contactState: e.target.value }))}
                                     />
                                 </div>
                                 <div className="space-y-2">
@@ -1592,8 +1610,8 @@ export function InquiryIntakeForm({ submissionType, onSuccess }: InquiryIntakeFo
                                         id="modal-postal-code"
                                         placeholder="Postal Code"
                                         className="modal-form-input"
-                                        value={form.watch('contactPostalCode') || ''}
-                                        onChange={(e) => form.setValue('contactPostalCode', e.target.value)}
+                                        value={modalFormData.contactPostalCode}
+                                        onChange={(e) => setModalFormData(prev => ({ ...prev, contactPostalCode: e.target.value }))}
                                     />
                                 </div>
                             </div>
@@ -1606,8 +1624,8 @@ export function InquiryIntakeForm({ submissionType, onSuccess }: InquiryIntakeFo
                                         id="modal-contact-website"
                                         placeholder="Personal website or LinkedIn"
                                         className="modal-form-input"
-                                        value={form.watch('contactWebsite') || ''}
-                                        onChange={(e) => form.setValue('contactWebsite', e.target.value)}
+                                        value={modalFormData.contactWebsite}
+                                        onChange={(e) => setModalFormData(prev => ({ ...prev, contactWebsite: e.target.value }))}
                                     />
                                 </div>
                                 <div className="space-y-2">
@@ -1616,8 +1634,8 @@ export function InquiryIntakeForm({ submissionType, onSuccess }: InquiryIntakeFo
                                         id="modal-notes"
                                         placeholder="Additional contact notes"
                                         className="modal-form-input"
-                                        value={form.watch('contactNotes') || ''}
-                                        onChange={(e) => form.setValue('contactNotes', e.target.value)}
+                                        value={modalFormData.contactNotes}
+                                        onChange={(e) => setModalFormData(prev => ({ ...prev, contactNotes: e.target.value }))}
                                     />
                                 </div>
                             </div>
