@@ -398,32 +398,21 @@ class ProjectService {
             throw new Error('No project data provided for transformation');
         }
 
-        console.log('🔍 TransformProjectData: Starting transformation for project:', data.id);
-        console.log('🔍 TransformProjectData: Full data object:', data);
-        console.log('🔍 TransformProjectData: Field types check:', {
-            id: typeof data.id,
-            title: typeof data.title,
-            description: typeof data.description,
-            priority_level: typeof data.priority_level,
-            status: typeof data.status,
-            source: typeof data.source,
-            organization_id: typeof data.organization_id
-        });
 
         try {
             // Handle nullable fields properly with proper type checking
             const transformedProject: Project = {
                 // Core database fields - direct mapping with type safety
-                id: (() => { console.log('🔍 Validating id:', data.id, typeof data.id); return this.validateString(data.id, 'id'); })(),
-                organization_id: (() => { console.log('🔍 Validating organization_id:', data.organization_id, typeof data.organization_id); return this.validateString(data.organization_id, 'organization_id'); })(),
-                project_id: (() => { console.log('🔍 Validating project_id:', data.project_id, typeof data.project_id); return this.validateString(data.project_id, 'project_id'); })(),
-                title: (() => { console.log('🔍 Validating title:', data.title, typeof data.title); return this.validateString(data.title, 'title'); })(),
+                id: this.validateString(data.id, 'id'),
+                organization_id: this.validateString(data.organization_id, 'organization_id'),
+                project_id: this.validateString(data.project_id, 'project_id'),
+                title: this.validateString(data.title, 'title'),
                 description: this.validateOptionalString(data.description),
                 customer_id: this.validateOptionalString(data.customer_id),
                 current_stage_id: this.validateOptionalString(data.current_stage_id),
-                status: (() => { console.log('🔍 Validating status:', data.status, typeof data.status); return this.validateString(data.status, 'status'); })(),
+                status: this.validateString(data.status, 'status'),
                 priority_level: this.validateOptionalString(data.priority_level),
-                source: (() => { console.log('🔍 Validating source:', data.source, typeof data.source); return this.validateOptionalString(data.source); })(),
+                source: this.validateOptionalString(data.source),
                 assigned_to: this.validateOptionalString(data.assigned_to),
                 created_by: this.validateOptionalString(data.created_by),
                 estimated_value: this.validateOptionalNumber(data.estimated_value),
@@ -445,17 +434,7 @@ class ProjectService {
 
             return transformedProject;
         } catch (error) {
-            console.error('❌ TransformProjectData Error Details:', {
-                error: error,
-                message: error instanceof Error ? error.message : 'Unknown error',
-                stack: error instanceof Error ? error.stack : 'No stack trace',
-                data: data ? {
-                    id: data.id,
-                    title: data.title,
-                    priority_level: data.priority_level,
-                    priority_level_type: typeof data.priority_level
-                } : 'No data'
-            });
+            console.error('Error transforming project data:', error);
             throw new Error(`Failed to transform project data: ${error instanceof Error ? error.message : 'Unknown error'}`);
         }
     }
@@ -1006,13 +985,6 @@ class ProjectService {
     // Helper methods for data validation and transformation
     private validateString(value: any, fieldName: string): string {
         if (typeof value !== 'string' || value.trim() === '') {
-            console.error('❌ ValidateString Error:', {
-                fieldName: fieldName,
-                value: value,
-                valueType: typeof value,
-                isString: typeof value === 'string',
-                isEmpty: typeof value === 'string' ? value.trim() === '' : 'N/A'
-            });
             throw new Error(`Invalid ${fieldName}: expected non-empty string, got ${typeof value}`);
         }
         return value.trim();
