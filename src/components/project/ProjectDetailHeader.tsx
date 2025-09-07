@@ -26,8 +26,8 @@ import {
 import { cn } from "@/lib/utils";
 import { format, formatDistanceToNow, differenceInDays, parseISO } from "date-fns";
 import type { Project, WorkflowStage, ProjectPriority } from "@/types/project";
-import { EnhancedProjectOverviewCard } from "./EnhancedProjectOverviewCard";
-import { WorkflowStepper } from "./WorkflowStepper";
+import { ProjectOverviewCard } from "./ProjectOverviewCard";
+import { WorkflowStepper } from "./workflow";
 import { useUserDisplayName } from "@/hooks/useUsers";
 import { useOwnerDisplayName } from "@/hooks/useOwnerDisplayName";
 import { useToast } from "@/hooks/use-toast";
@@ -152,6 +152,7 @@ export function ProjectDetailHeader({
 
     // Get customer display name
     const getCustomerDisplayName = (): string => {
+        if (project.customer_organization?.name) return project.customer_organization.name;
         if (project.customer?.company_name) return project.customer.company_name;
         if (project.customer?.contact_name) return project.customer.contact_name;
         return 'N/A';

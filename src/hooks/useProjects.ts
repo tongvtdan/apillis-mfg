@@ -27,18 +27,46 @@ export function useProjects() {
   const lastFetchTimeRef = useRef<number>(0);
 
   const fetchProjects = useCallback(async (forceRefresh = false, options?: ProjectQueryOptions) => {
-    // Check if user is authenticated and has a profile with organization
-    if (!user || !profile?.organization_id) {
-      console.log('⚠️ No authenticated user or organization, returning empty projects array');
-      console.log('User:', user);
-      console.log('Profile:', profile);
+    // Check if user is authenticated
+    if (!user) {
+      console.log('⚠️ No authenticated user, returning empty projects array');
       setProjects([]);
       setLoading(false);
       return;
     }
 
+    // Get organization_id with fallback logic similar to dashboard function
+    let organizationId = profile?.organization_id;
+
+    if (!organizationId) {
+      console.log('⚠️ No organization_id in profile, trying fallback...');
+      try {
+        // Try to get the first organization as fallback (same as dashboard function)
+        const { data: fallbackOrg } = await supabase
+          .from('organizations')
+          .select('id')
+          .limit(1)
+          .maybeSingle();
+
+        if (fallbackOrg?.id) {
+          organizationId = fallbackOrg.id;
+          console.log('✅ Using fallback organization_id:', organizationId);
+        } else {
+          console.log('❌ No fallback organization found, returning empty projects array');
+          setProjects([]);
+          setLoading(false);
+          return;
+        }
+      } catch (fallbackError) {
+        console.error('❌ Error getting fallback organization:', fallbackError);
+        setProjects([]);
+        setLoading(false);
+        return;
+      }
+    }
+
     try {
-      console.log('🔍 Fetching projects for user:', user.id, 'organization:', profile.organization_id);
+      console.log('🔍 Fetching projects for user:', user.id, 'organization:', organizationId);
 
       // Check cache based on whether options are applied
       if (!forceRefresh) {
@@ -60,9 +88,16 @@ export function useProjects() {
             const cachedProjects = cacheService.getProjects();
             if (cachedProjects) {
               console.log('📦 Using cached projects:', cachedProjects.length);
-              setProjects(cachedProjects);
-              setLoading(false);
-              return;
+              // Check if cached projects have customer organization data
+              const hasCustomerData = cachedProjects.some(p => p.customer_organization?.name);
+              if (!hasCustomerData) {
+                console.log('⚠️ Cached projects missing customer data, forcing refresh');
+                cacheService.clearCache();
+              } else {
+                setProjects(cachedProjects);
+                setLoading(false);
+                return;
+              }
             }
           }
         }
@@ -71,8 +106,7 @@ export function useProjects() {
       setLoading(true);
       setError(null);
 
-      // Use optimized query with selective field specification and organization filtering
-      console.log('📡 Fetching projects from database...');
+      // Use projects table with proper lookups - cleaner approach than denormalized view
       let query = supabase
         .from('projects')
         .select(`
@@ -81,7 +115,8 @@ export function useProjects() {
           project_id,
           title,
           description,
-          customer_id,
+          customer_organization_id,
+          point_of_contacts,
           current_stage_id,
           status,
           priority_level,
@@ -97,29 +132,11 @@ export function useProjects() {
           project_type,
           notes,
           created_at,
-          updated_at,
-          customer:contacts!customer_id(
-            id,
-            company_name,
-            contact_name,
-            email,
-            phone,
-            type,
-            is_active,
-            created_at,
-            updated_at
-          ),
-          current_stage:workflow_stages!current_stage_id(
-            id,
-            name,
-            description,
-            stage_order,
-            is_active,
-            created_at,
-            updated_at
-          ) 
-        `)
-        .eq('organization_id', profile.organization_id); // Add organization filter
+          updated_at
+        `);
+
+      // Add organization filter
+      query = query.eq('organization_id', organizationId);
 
       // Apply filters if provided
       if (options?.status) {
@@ -158,15 +175,16 @@ export function useProjects() {
         return;
       }
 
-      // Validate and transform the data
-      const mappedProjects = (data || []).map(project => ({
+      // Validate and transform the data from projects table
+      let mappedProjects = (data || []).map(project => ({
         ...project,
         // Ensure required fields have proper defaults
         status: project.status || 'active',
-        priority_level: project.priority_level || 'medium',
+        priority_level: project.priority_level || 'normal',
         source: project.source || 'portal',
         tags: project.tags || [],
         metadata: project.metadata || {},
+        point_of_contacts: project.point_of_contacts || [],
         // Calculate days in stage if stage_entered_at exists
         days_in_stage: project.stage_entered_at
           ? Math.floor((new Date().getTime() - new Date(project.stage_entered_at).getTime()) / (1000 * 60 * 60 * 24))
@@ -174,15 +192,69 @@ export function useProjects() {
         // Add computed fields for compatibility
         due_date: project.estimated_delivery_date, // Map estimated_delivery_date to due_date for compatibility
         priority: project.priority_level, // Map priority_level to priority for legacy compatibility
-        // Add stage_order to current_stage if it exists
-        current_stage: project.current_stage ? {
-          ...project.current_stage,
-          stage_order: project.current_stage.stage_order
-        } : undefined
+        // Customer organization will be fetched separately
+        customer_organization: null, // Will be populated below
+        // Current stage will be fetched separately
+        current_stage: null, // Will be populated below
+        // Contacts will be fetched separately when needed using point_of_contacts IDs
+        // Primary contact can be derived from the first contact ID in the array
+        primary_contact: null // Will be populated separately when needed
       }));
 
+      // Fetch customer organizations separately to avoid ambiguous joins
+      if (mappedProjects.length > 0) {
+        const customerOrgIds = [...new Set(mappedProjects
+          .map(p => p.customer_organization_id)
+          .filter(id => id)
+        )];
+
+        console.log('🔍 Customer organization IDs found:', customerOrgIds);
+
+        if (customerOrgIds.length > 0) {
+          try {
+            const { data: orgs, error: orgError } = await supabase
+              .from('organizations')
+              .select('id, name')
+              .in('id', customerOrgIds);
+
+            console.log('📊 Organizations query result:', {
+              orgsLength: orgs?.length,
+              hasError: !!orgError,
+              error: orgError,
+              orgs: orgs
+            });
+
+            if (!orgError && orgs) {
+              // Create a lookup map for organizations
+              const orgMap = orgs.reduce((acc, org) => {
+                acc[org.id] = org;
+                return acc;
+              }, {});
+
+              console.log('🗺️ Organization map created:', orgMap);
+
+              // Update projects with customer organization data
+              mappedProjects = mappedProjects.map(project => {
+                const customerOrg = project.customer_organization_id ?
+                  orgMap[project.customer_organization_id] || null : null;
+
+                console.log(`📝 Project ${project.project_id}: customer_organization_id=${project.customer_organization_id}, customerOrg=`, customerOrg);
+
+                return {
+                  ...project,
+                  customer_organization: customerOrg
+                };
+              });
+            }
+          } catch (error) {
+            console.error('❌ Error fetching customer organizations:', error);
+          }
+        } else {
+          console.log('⚠️ No customer organization IDs found in projects');
+        }
+      }
+
       console.log('✅ Successfully mapped projects:', mappedProjects.length);
-      console.log('Mapped projects data:', mappedProjects);
       setProjects(mappedProjects as Project[]);
 
       // Cache the data appropriately
@@ -364,10 +436,10 @@ export function useProjects() {
         .from('projects')
         .select(`
           *,
-          customer:contacts(*),
+          customer_organization:organizations(*),
           current_stage:workflow_stages(*)
         `)
-        .eq('organization_id', profile.organization_id); // Add organization filter
+        .eq('organization_id', organizationId); // Add organization filter
 
       if (allProjectsError) {
         console.error('❌ Error fetching all projects:', allProjectsError);
@@ -384,11 +456,11 @@ export function useProjects() {
         .from('projects')
         .select(`
           *,
-          customer:contacts(*),
+          customer_organization:organizations(*),
           current_stage:workflow_stages(*)
         `)
         .eq('id', id)
-        .eq('organization_id', profile.organization_id) // Add organization filter
+        .eq('organization_id', organizationId) // Add organization filter
         .single();
 
       if (error) {
@@ -402,7 +474,7 @@ export function useProjects() {
             current_stage:workflow_stages(*)
           `)
           .eq('project_id', id)
-          .eq('organization_id', profile.organization_id) // Add organization filter
+          .eq('organization_id', organizationId) // Add organization filter
           .single();
 
         if (altError) {
@@ -656,6 +728,76 @@ export function useProjects() {
     await fetchProjects(forceRefresh);
   }, [fetchProjects]); // Add fetchProjects dependency
 
+  // Clear cache and refetch
+  const clearCacheAndRefetch = useCallback(async () => {
+    console.log('🧹 Clearing cache and refetching projects');
+    cacheService.clearCache();
+    await fetchProjects(true);
+  }, [fetchProjects]);
+
+  // Test customer organization fetching directly
+  const testCustomerOrganizationFetching = useCallback(async () => {
+    console.log('🧪 Testing customer organization fetching directly...');
+
+    try {
+      // Get all projects first
+      const { data: projects, error: projectsError } = await supabase
+        .from('projects')
+        .select('id, project_id, title, customer_organization_id')
+        .eq('organization_id', profile?.organization_id)
+        .limit(5);
+
+      if (projectsError) {
+        console.error('❌ Error fetching projects:', projectsError);
+        return;
+      }
+
+      console.log('📋 Projects fetched:', projects);
+
+      // Get customer organization IDs
+      const customerOrgIds = [...new Set(projects
+        .map(p => p.customer_organization_id)
+        .filter(id => id)
+      )];
+
+      console.log('🔍 Customer organization IDs found:', customerOrgIds);
+
+      if (customerOrgIds.length > 0) {
+        // Fetch organizations
+        const { data: orgs, error: orgError } = await supabase
+          .from('organizations')
+          .select('id, name')
+          .in('id', customerOrgIds);
+
+        console.log('📊 Organizations query result:', {
+          orgsLength: orgs?.length,
+          hasError: !!orgError,
+          error: orgError,
+          orgs: orgs
+        });
+
+        if (!orgError && orgs) {
+          // Create lookup map
+          const orgMap = orgs.reduce((acc, org) => {
+            acc[org.id] = org;
+            return acc;
+          }, {});
+
+          console.log('🗺️ Organization map created:', orgMap);
+
+          // Test mapping
+          projects.forEach(project => {
+            const customerOrg = project.customer_organization_id ?
+              orgMap[project.customer_organization_id] || null : null;
+            console.log(`📝 Project ${project.project_id}: customer_organization_id=${project.customer_organization_id}, customerOrg=`, customerOrg);
+          });
+        }
+      }
+    } catch (error) {
+      console.error('❌ Error in test:', error);
+    }
+  }, [profile?.organization_id]);
+
   // Get bottleneck analysis for projects
   const getBottleneckAnalysis = async (): Promise<BottleneckAlert[]> => {
     try {
@@ -682,7 +824,7 @@ export function useProjects() {
   const createProject = async (projectData: {
     title: string;
     description?: string;
-    customer_id?: string;
+    customer_organization_id?: string;
     priority?: ProjectPriority;
     estimated_value?: number;
     due_date?: string;
@@ -704,10 +846,10 @@ export function useProjects() {
       const { data, error } = await supabase
         .from('projects')
         .insert({
-          organization_id: profile.organization_id,
+          organization_id: organizationId,
           title: projectData.title,
           description: projectData.description,
-          customer_id: projectData.customer_id,
+          customer_organization_id: projectData.customer_organization_id,
           priority_level: projectData.priority || 'medium',
           estimated_value: projectData.estimated_value,
           estimated_delivery_date: projectData.due_date,
@@ -726,7 +868,7 @@ export function useProjects() {
         })
         .select(`
           *,
-          customer:contacts(*),
+          customer_organization:organizations(*),
           current_stage:workflow_stages(*)
         `)
         .single();
@@ -767,7 +909,7 @@ export function useProjects() {
       const { data: existingCustomer } = await supabase
         .from('contacts')
         .select('*')
-        .eq('organization_id', profile.organization_id)
+        .eq('organization_id', organizationId)
         .eq('type', 'customer')
         .eq('company_name', customerData.company)
         .single();
@@ -780,7 +922,7 @@ export function useProjects() {
       const { data: newCustomer, error } = await supabase
         .from('contacts')
         .insert({
-          organization_id: profile.organization_id,
+          organization_id: organizationId,
           type: 'customer',
           company_name: customerData.company,
           contact_name: customerData.name,
@@ -863,6 +1005,8 @@ export function useProjects() {
     createProject,
     createOrGetCustomer,
     subscribeToProjectUpdates,
-    ensureProjectSubscription
+    ensureProjectSubscription,
+    clearCacheAndRefetch,
+    testCustomerOrganizationFetching
   };
 }

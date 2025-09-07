@@ -168,7 +168,7 @@ class ProjectService {
                         project_id,
                         title,
                         description,
-                        customer_id,
+                        customer_organization_id,
                         current_stage_id,
                         status,
                         priority_level,
@@ -183,7 +183,7 @@ class ProjectService {
                         notes,
                         created_at,
                         updated_at,
-                        customer:contacts!customer_id(
+                        customer_organization:organizations!customer_organization_id(
                             id,
                             company_name,
                             contact_name,
@@ -223,7 +223,7 @@ class ProjectService {
                             project_id,
                             title,
                             description,
-                            customer_id,
+                            customer_organization_id,
                             current_stage_id,
                             status,
                             priority_level,
@@ -238,7 +238,7 @@ class ProjectService {
                             notes,
                             created_at,
                             updated_at,
-                            customer:contacts!customer_id(
+                            customer_organization:organizations!customer_organization_id(
                                 id,
                                 company_name,
                                 contact_name,
@@ -315,7 +315,7 @@ class ProjectService {
                         project_id,
                         title,
                         description,
-                        customer_id,
+                        customer_organization_id,
                         current_stage_id,
                         status,
                         priority_level,
@@ -330,7 +330,7 @@ class ProjectService {
                         notes,
                         created_at,
                         updated_at,
-                        customer:contacts!customer_id(
+                        customer_organization:organizations!customer_organization_id(
                             id,
                             company_name,
                             contact_name,
@@ -398,6 +398,7 @@ class ProjectService {
             throw new Error('No project data provided for transformation');
         }
 
+
         try {
             // Handle nullable fields properly with proper type checking
             const transformedProject: Project = {
@@ -410,8 +411,8 @@ class ProjectService {
                 customer_id: this.validateOptionalString(data.customer_id),
                 current_stage_id: this.validateOptionalString(data.current_stage_id),
                 status: this.validateString(data.status, 'status'),
-                priority_level: this.validateString(data.priority_level, 'priority_level'),
-                source: this.validateString(data.source, 'source'),
+                priority_level: this.validateOptionalString(data.priority_level),
+                source: this.validateOptionalString(data.source),
                 assigned_to: this.validateOptionalString(data.assigned_to),
                 created_by: this.validateOptionalString(data.created_by),
                 estimated_value: this.validateOptionalNumber(data.estimated_value),
@@ -529,24 +530,32 @@ class ProjectService {
             }
 
             // Prepare data for database insertion
-            const insertData = {
+            const insertData: any = {
                 organization_id: projectData.organization_id,
                 project_id: projectData.project_id,
                 title: projectData.title,
                 description: projectData.description || null,
-                customer_id: projectData.customer_id || null,
+                customer_organization_id: (projectData as any).customer_organization_id || projectData.customer_id || null,
+                point_of_contacts: (projectData as any).point_of_contacts || null,
                 current_stage_id: projectData.current_stage_id || null,
                 status: projectData.status || 'active',
-                priority_level: projectData.priority_level || 'medium',
+                priority_level: projectData.priority_level || (projectData as any).priority || 'medium',
                 source: projectData.source || 'portal',
                 assigned_to: projectData.assigned_to || null,
                 created_by: projectData.created_by || null,
                 estimated_value: projectData.estimated_value || null,
+                estimated_delivery_date: (projectData as any).estimated_delivery_date || null,
                 tags: projectData.tags || null,
                 metadata: projectData.metadata || {},
                 stage_entered_at: projectData.stage_entered_at || new Date().toISOString(),
                 project_type: projectData.project_type || null,
-                notes: projectData.notes || null
+                notes: projectData.notes || null,
+                intake_type: (projectData as any).intake_type || null,
+                intake_source: (projectData as any).intake_source || 'portal',
+                volume: (projectData as any).volume || null,
+                target_price_per_unit: (projectData as any).target_price_per_unit || null,
+                desired_delivery_date: (projectData as any).desired_delivery_date || null,
+                project_reference: (projectData as any).project_reference || null
             };
 
             const { data, error } = await supabase
@@ -558,7 +567,7 @@ class ProjectService {
                     project_id,
                     title,
                     description,
-                    customer_id,
+                    customer_organization_id,
                     current_stage_id,
                     status,
                     priority_level,
@@ -573,33 +582,23 @@ class ProjectService {
                     notes,
                     created_at,
                     updated_at,
-                    customer:contacts!customer_id(
+                    customer_organization:organizations!customer_organization_id(
                         id,
-                        organization_id,
-                        type,
-                        company_name,
-                        contact_name,
-                        email,
-                        phone,
+                        name,
+                        slug,
+                        description,
+                        industry,
                         address,
                         city,
                         state,
                         country,
                         postal_code,
                         website,
-                        tax_id,
-                        payment_terms,
-                        credit_limit,
+                        logo_url,
+                        organization_type,
                         is_active,
-                        notes,
-                        metadata,
-                        ai_category,
-                        ai_capabilities,
-                        ai_risk_score,
-                        ai_last_analyzed,
                         created_at,
-                        updated_at,
-                        created_by
+                        updated_at
                     ),
                     current_stage:workflow_stages!current_stage_id(
                         id,
@@ -649,7 +648,7 @@ class ProjectService {
                         throw new Error('Invalid project status. Must be one of: active, on_hold, delayed, cancelled, completed.');
                     }
                     if (error.message.includes('priority_level')) {
-                        throw new Error('Invalid priority level. Must be one of: low, medium, high, urgent.');
+                        throw new Error('Invalid priority level. Must be one of: low, normal, high, urgent.');
                     }
                     throw new Error('Invalid data provided. Please check your input values.');
                 }
@@ -708,7 +707,7 @@ class ProjectService {
                     project_id,
                     title,
                     description,
-                    customer_id,
+                    customer_organization_id,
                     current_stage_id,
                     status,
                     priority_level,
@@ -723,33 +722,23 @@ class ProjectService {
                     notes,
                     created_at,
                     updated_at,
-                    customer:contacts!customer_id(
+                    customer_organization:organizations!customer_organization_id(
                         id,
-                        organization_id,
-                        type,
-                        company_name,
-                        contact_name,
-                        email,
-                        phone,
+                        name,
+                        slug,
+                        description,
+                        industry,
                         address,
                         city,
                         state,
                         country,
                         postal_code,
                         website,
-                        tax_id,
-                        payment_terms,
-                        credit_limit,
+                        logo_url,
+                        organization_type,
                         is_active,
-                        notes,
-                        metadata,
-                        ai_category,
-                        ai_capabilities,
-                        ai_risk_score,
-                        ai_last_analyzed,
                         created_at,
-                        updated_at,
-                        created_by
+                        updated_at
                     ),
                     current_stage:workflow_stages!current_stage_id(
                         id,
@@ -798,7 +787,7 @@ class ProjectService {
                         throw new Error('Invalid project status. Must be one of: active, on_hold, delayed, cancelled, completed.');
                     }
                     if (error.message.includes('priority_level')) {
-                        throw new Error('Invalid priority level. Must be one of: low, medium, high, urgent.');
+                        throw new Error('Invalid priority level. Must be one of: low, normal, high, urgent.');
                     }
                     throw new Error('Invalid data provided. Please check your input values.');
                 }
@@ -834,7 +823,7 @@ class ProjectService {
                     project_id,
                     title,
                     description,
-                    customer_id,
+                    customer_organization_id,
                     current_stage_id,
                     status,
                     priority_level,
@@ -849,33 +838,23 @@ class ProjectService {
                     notes,
                     created_at,
                     updated_at,
-                    customer:contacts!customer_id(
+                    customer_organization:organizations!customer_organization_id(
                         id,
-                        organization_id,
-                        type,
-                        company_name,
-                        contact_name,
-                        email,
-                        phone,
+                        name,
+                        slug,
+                        description,
+                        industry,
                         address,
                         city,
                         state,
                         country,
                         postal_code,
                         website,
-                        tax_id,
-                        payment_terms,
-                        credit_limit,
+                        logo_url,
+                        organization_type,
                         is_active,
-                        notes,
-                        metadata,
-                        ai_category,
-                        ai_capabilities,
-                        ai_risk_score,
-                        ai_last_analyzed,
                         created_at,
-                        updated_at,
-                        created_by
+                        updated_at
                     ),
                     current_stage:workflow_stages!current_stage_id(
                         id,
@@ -916,7 +895,7 @@ class ProjectService {
                     project_id,
                     title,
                     description,
-                    customer_id,
+                    customer_organization_id,
                     current_stage_id,
                     status,
                     priority_level,
@@ -931,33 +910,23 @@ class ProjectService {
                     notes,
                     created_at,
                     updated_at,
-                    customer:contacts!customer_id(
+                    customer_organization:organizations!customer_organization_id(
                         id,
-                        organization_id,
-                        type,
-                        company_name,
-                        contact_name,
-                        email,
-                        phone,
+                        name,
+                        slug,
+                        description,
+                        industry,
                         address,
                         city,
                         state,
                         country,
                         postal_code,
                         website,
-                        tax_id,
-                        payment_terms,
-                        credit_limit,
+                        logo_url,
+                        organization_type,
                         is_active,
-                        notes,
-                        metadata,
-                        ai_category,
-                        ai_capabilities,
-                        ai_risk_score,
-                        ai_last_analyzed,
                         created_at,
-                        updated_at,
-                        created_by
+                        updated_at
                     ),
                     current_stage:workflow_stages!current_stage_id(
                         id,

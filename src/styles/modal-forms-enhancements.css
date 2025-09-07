@@ -28,7 +28,7 @@
 
 /* Form elements styling */
 .modal-form-input {
-    @apply border-base-300 focus:border-accent transition-colors;
+    @apply border-border focus:border-accent transition-colors;
     border-width: 1px;
     background-color: var(--fp-input);
     color: var(--fp-foreground);
@@ -41,7 +41,7 @@
 }
 
 .modal-form-textarea {
-    @apply border-base-300 focus:border-accent transition-colors;
+    @apply border-border focus:border-accent transition-colors;
     border-width: 1px;
     background-color: var(--fp-input);
     color: var(--fp-foreground);
@@ -54,7 +54,7 @@
 }
 
 .modal-select-trigger {
-    @apply border-base-300 transition-colors;
+    @apply border-border transition-colors;
     background-color: var(--fp-input);
     color: var(--fp-foreground);
 }
@@ -103,7 +103,7 @@
 }
 
 .modal-button-secondary {
-    @apply border-base-300 hover:bg-base-200 hover:text-base-content;
+    @apply border-border hover:bg-muted hover:text-foreground;
     border-width: 1px;
     background-color: var(--fp-background);
     color: var(--fp-foreground);

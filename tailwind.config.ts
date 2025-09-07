@@ -189,66 +189,6 @@ export default {
 		}
 	},
 	plugins: [
-		require("tailwindcss-animate"),
-		require("daisyui")
+		require("tailwindcss-animate")
 	],
-	daisyui: {
-		themes: [
-			{
-				"factory-pulse-adaptive": {
-					// Neutral base that adapts to environment
-					"background": "#F8F9FA",       // Light neutral background
-					"foreground": "#212529",       // High contrast text
-					"card": "#FFFFFF",             // Pure white cards for clarity
-					"card-foreground": "#212529",  // Dark text on cards
-					"popover": "#FFFFFF",          // Pure white popovers
-					"popover-foreground": "#212529", // Dark text in popovers
-
-					// Industry-standard accent colors
-					"primary": "#0066CC",          // Industrial Blue (trusted in manufacturing)
-					"primary-content": "#FFFFFF",  // White text on primary
-					"secondary": "#BB86FC",        // Purple (brand continuity)
-					"secondary-content": "#FFFFFF", // White text on secondary
-					"accent": "#FFD740",           // Amber (brand continuity)
-					"accent-content": "#1F2937",   // Dark text on accent
-
-					// Status colors - industry-standard for clarity
-					"success": "#009966",          // Success Green
-					"success-content": "#FFFFFF",  // White text on success
-					"warning": "#FF9900",          // Warning Orange
-					"warning-content": "#FFFFFF",  // White text on warning
-					"error": "#CC0033",            // Error Red
-					"error-content": "#FFFFFF",    // White text on error
-					"info": "#2196F3",             // Info Blue (brand continuity)
-					"info-content": "#FFFFFF",     // White text on info
-
-					// Neutral colors for borders and muted elements
-					"neutral": "#1F2937",          // Dark slate for base elements
-					"neutral-content": "#FFFFFF",  // White text on neutral
-					"base-100": "#F8F9FA",         // Light background
-					"base-200": "#EBEEF1",         // Light muted background
-					"base-300": "#D8DFE6",         // Subtle borders
-					"base-content": "#212529",     // Dark text
-
-					// Additional custom properties
-					"--rounded-box": "1rem",       // border radius rounded-box utility class, used in card and other large boxes
-					"--rounded-btn": "0.5rem",     // border radius rounded-btn utility class, used in buttons and similar element
-					"--rounded-badge": "1.9rem",   // border radius rounded-badge utility class, used in badges and similar
-					"--animation-btn": "0.25s",    // duration of animation when you click on button
-					"--animation-input": "0.2s",   // duration of animation for inputs like checkbox, toggle, radio, etc
-					"--btn-focus-scale": "0.95",   // scale transform of button when you focus on it
-					"--border-btn": "1px",         // border width of buttons
-					"--tab-border": "1px",         // border width of tabs
-					"--tab-radius": "0.5rem",      // border radius of tabs
-				},
-			},
-		],
-		darkTheme: "factory-pulse-adaptive", // Uses the same theme but adapts via CSS
-		base: true,
-		styled: true,
-		utils: true,
-		prefix: "",
-		logs: true,
-		themeRoot: "html",
-	},
 } satisfies Config;

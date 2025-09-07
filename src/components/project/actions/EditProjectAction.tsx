@@ -82,7 +82,7 @@ export function EditProjectAction({
             project_type: project.project_type || 'fabrication',
             priority_level: project.priority_level || 'medium',
             status: project.status || 'active',
-            customer_id: project.customer_id || '',
+            customer_organization_id: project.customer_organization_id || '',
             estimated_value: project.estimated_value?.toString() || '',
             estimated_delivery_date: project.estimated_delivery_date || '',
             tags: project.tags?.join(', ') || '',
@@ -213,7 +213,7 @@ export function EditProjectAction({
                 project_type: project.project_type || 'fabrication',
                 priority_level: project.priority_level || 'medium',
                 status: project.status || 'active',
-                customer_id: project.customer_id || '',
+                customer_organization_id: project.customer_organization_id || '',
                 estimated_value: project.estimated_value?.toString() || '',
                 estimated_delivery_date: project.estimated_delivery_date || '',
                 tags: project.tags?.join(', ') || '',
@@ -334,9 +334,9 @@ export function EditProjectAction({
                                                                 </FormControl>
                                                                 <SelectContent>
                                                                     <SelectItem value="low">Low</SelectItem>
-                                                                    <SelectItem value="medium">Medium</SelectItem>
+                                                                    <SelectItem value="normal">Normal</SelectItem>
                                                                     <SelectItem value="high">High</SelectItem>
-                                                                    <SelectItem value="critical">Critical</SelectItem>
+                                                                    <SelectItem value="urgent">Urgent</SelectItem>
                                                                 </SelectContent>
                                                             </Select>
                                                             <FormMessage />

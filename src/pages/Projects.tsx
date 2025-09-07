@@ -18,10 +18,10 @@ import { ProjectErrorBoundary } from "@/components/error/ProjectErrorBoundary";
 import { DatabaseErrorHandler } from "@/components/error/DatabaseErrorHandler";
 import { LoadingFallback, OfflineState, GracefulDegradation } from "@/components/error/FallbackMechanisms";
 import { useErrorHandling } from "@/hooks/useErrorHandling";
-import { ProjectWorkflowAnalytics } from "@/components/project/ProjectWorkflowAnalytics";
+import { ProjectWorkflowAnalytics } from "@/components/project/workflow";
 import { ProjectCalendar } from "@/components/project/ProjectCalendar";
-import { EnhancedProjectList } from "@/components/project/EnhancedProjectList";
-import { AnimatedProjectCard } from "@/components/project/AnimatedProjectCard";
+import { ProjectList } from "@/components/project/ProjectList";
+import { AnimatedProjectCard } from "@/components/project/ui";
 import { workflowStageService } from "@/services/workflowStageService";
 import { useToast } from "@/hooks/use-toast";
 
@@ -195,8 +195,11 @@ export default function Projects() {
     const loadWorkflowStages = async () => {
       try {
         setStagesLoading(true);
-        const stages = await workflowStageService.getWorkflowStages();
-        console.log('Workflow stages loaded:', stages);
+
+        // Clear cache and force refresh to get latest stages
+        workflowStageService.clearCache();
+        const stages = await workflowStageService.getWorkflowStages(true);
+
         // Sort stages by stage_order
         const sortedStages = stages.sort((a, b) => a.stage_order - b.stage_order);
         setWorkflowStages(sortedStages);
@@ -216,6 +219,7 @@ export default function Projects() {
 
     loadWorkflowStages();
   }, []);
+
 
   // Get default tab from URL params or localStorage
   const getDefaultTab = () => {
@@ -402,7 +406,7 @@ export default function Projects() {
         handleError(error, 'Projects Page Component');
       }}
     >
-      <div className="p-6 bg-base-100 text-base-content min-h-screen">
+      <div className="p-6 bg-background text-foreground min-h-screen">
         {/* Show degraded mode if there are issues but some functionality works */}
         {projects.length === 0 && !loading && !hasError && !isRetrying && (
           <GracefulDegradation
@@ -435,7 +439,7 @@ export default function Projects() {
 
               {/* Project Type Filter */}
               <div className="flex items-center space-x-3">
-                <span className="text-sm text-base-content/70">Filter by type:</span>
+                <span className="text-sm text-muted-foreground">Filter by type:</span>
                 <Select
                   value={selectedProjectType}
                   onValueChange={(value) => setSelectedProjectType(value as ProjectType | 'all')}
@@ -475,7 +479,7 @@ export default function Projects() {
 
           <TabsContent value="enhanced" className="mt-4">
             <ProjectErrorBoundary context="Enhanced Project List">
-              <EnhancedProjectList
+              <ProjectList
                 projects={activeProjects.filter(p => selectedProjectType === 'all' || p.project_type === selectedProjectType)}
                 workflowStages={workflowStages}
                 loading={loading}

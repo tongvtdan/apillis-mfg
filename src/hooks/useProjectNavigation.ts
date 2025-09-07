@@ -11,7 +11,8 @@ import {
     AlertTriangle,
     Package
 } from 'lucide-react';
-import { NavigationTab } from '@/components/project/InteractiveNavigationSidebar';
+import { InteractiveNavigationSidebar } from '@/components/project/ui';
+export const NavigationTab = InteractiveNavigationSidebar;
 
 interface UseProjectNavigationProps {
     projectId: string;

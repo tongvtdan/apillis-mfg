@@ -30,10 +30,19 @@ export function useSuppliers() {
       setError(null);
 
       const { data, error: fetchError } = await supabase
-        .from('contacts')
-        .select('*')
-        .eq('type', 'supplier')
-        .eq('organization_id', profile.organization_id)
+        .from('organizations')
+        .select(`
+          *,
+          contacts:contacts!organization_id(
+            id,
+            contact_name,
+            email,
+            phone,
+            role,
+            is_primary_contact
+          )
+        `)
+        .eq('organization_type', 'supplier')
         .order('updated_at', { ascending: false });
 
       if (fetchError) {
@@ -42,25 +51,28 @@ export function useSuppliers() {
         return;
       }
 
-      const mapped: Supplier[] = (data || []).map((row: any) => ({
-        id: row.id,
-        name: row.contact_name || row.company_name,
-        company: row.company_name,
-        email: row.email ?? undefined,
-        phone: row.phone ?? undefined,
-        address: row.address ?? undefined,
-        country: row.country ?? undefined,
-        specialties: (row.ai_capabilities || []) as any,
-        rating: Number(((row.ai_risk_score ?? 50) / 10) + 2), // Convert 0-100 risk score to 2-7 rating
-        response_rate: 0,
-        is_active: row.is_active ?? true,
-        created_at: row.created_at,
-        updated_at: row.updated_at,
-        total_quotes_sent: 0,
-        total_quotes_received: 0,
-        average_turnaround_days: 0,
-        tags: [],
-      }));
+      const mapped: Supplier[] = (data || []).map((org: any) => {
+        const primaryContact = org.contacts?.find((c: any) => c.is_primary_contact) || org.contacts?.[0];
+        return {
+          id: org.id,
+          name: primaryContact?.contact_name || org.name,
+          company: org.name,
+          email: primaryContact?.email ?? undefined,
+          phone: primaryContact?.phone ?? undefined,
+          address: org.address ?? undefined,
+          country: org.country ?? undefined,
+          specialties: [] as any, // Will be populated from organization data if needed
+          rating: 4.0, // Default rating, can be enhanced later
+          response_rate: 0,
+          is_active: org.is_active ?? true,
+          created_at: org.created_at,
+          updated_at: org.updated_at,
+          total_quotes_sent: 0,
+          total_quotes_received: 0,
+          average_turnaround_days: 0,
+          tags: [],
+        };
+      });
 
       setSuppliers(mapped);
     } catch (err) {
@@ -73,41 +85,62 @@ export function useSuppliers() {
 
   const createSupplier = async (supplierData: CreateSupplierRequest): Promise<Supplier> => {
     try {
-      const cleanData: any = {
-        organization_id: profile?.organization_id,
+      // First create the organization
+      const orgData: any = {
+        name: supplierData.company || supplierData.name,
+        organization_type: 'supplier',
+        address: supplierData.address,
+        country: supplierData.country,
+        is_active: true,
+      };
+
+      const { data: orgDataResult, error: orgError } = await supabase
+        .from('organizations')
+        .insert([orgData])
+        .select('*')
+        .single();
+
+      if (orgError) {
+        console.error('Error creating supplier organization:', orgError);
+        throw orgError;
+      }
+
+      // Then create a contact for this organization
+      const contactData: any = {
+        organization_id: orgDataResult.id,
         type: 'supplier',
         company_name: supplierData.company || supplierData.name,
         contact_name: supplierData.name,
         email: supplierData.email,
         phone: supplierData.phone,
-        address: supplierData.address,
-        country: supplierData.country,
-        ai_capabilities: supplierData.specialties as any,
+        is_primary_contact: true,
         is_active: true,
       };
 
-      const { data, error } = await supabase
+      const { data: contactResult, error: contactError } = await supabase
         .from('contacts')
-        .insert([cleanData])
+        .insert([contactData])
         .select('*')
         .single();
 
-      if (error) {
-        console.error('Error creating supplier:', error);
-        throw error;
+      if (contactError) {
+        console.error('Error creating supplier contact:', contactError);
+        throw contactError;
       }
+
+      const data = { ...orgDataResult, contacts: [contactResult] };
 
       // Map to app type and add to local state
       const mapped: Supplier = {
         id: data.id,
-        name: data.contact_name || data.company_name,
-        company: data.company_name,
-        email: data.email ?? undefined,
-        phone: data.phone ?? undefined,
+        name: data.contacts?.[0]?.contact_name || data.name,
+        company: data.name,
+        email: data.contacts?.[0]?.email ?? undefined,
+        phone: data.contacts?.[0]?.phone ?? undefined,
         address: data.address ?? undefined,
         country: data.country ?? undefined,
-        specialties: (data.ai_capabilities || []) as any,
-        rating: Number(((data.ai_risk_score ?? 50) / 10) + 2),
+        specialties: [] as any,
+        rating: 4.0,
         response_rate: 0,
         is_active: data.is_active ?? true,
         created_at: data.created_at,
@@ -349,27 +382,40 @@ export function useSuppliers() {
 
   const getSupplierById = async (id: string): Promise<Supplier> => {
     const { data, error } = await supabase
-      .from('contacts') // Changed from 'suppliers' to 'contacts'
-      .select('*')
+      .from('organizations')
+      .select(`
+        *,
+        contacts:contacts!organization_id(
+          id,
+          contact_name,
+          email,
+          phone,
+          role,
+          is_primary_contact
+        )
+      `)
       .eq('id', id)
+      .eq('organization_type', 'supplier')
       .single();
 
     if (error) {
       throw error;
     }
 
+    const primaryContact = data.contacts?.find((c: any) => c.is_primary_contact) || data.contacts?.[0];
+
     return {
       id: data.id,
-      name: data.contact_name || data.company_name, // Updated field mapping
-      company: data.company_name,
-      email: data.email ?? undefined,
-      phone: data.phone ?? undefined,
+      name: primaryContact?.contact_name || data.name,
+      company: data.name,
+      email: primaryContact?.email ?? undefined,
+      phone: primaryContact?.phone ?? undefined,
       address: data.address ?? undefined,
       country: data.country ?? undefined,
-      specialties: (data.ai_capabilities || []) as any, // Updated field mapping
-      rating: Number(((data.ai_risk_score ?? 50) / 10) + 2), // Updated rating calculation
+      specialties: [] as any,
+      rating: 4.0,
       response_rate: 0,
-      is_active: data.is_active ?? true, // Updated field mapping
+      is_active: data.is_active ?? true,
       created_at: data.created_at,
       updated_at: data.updated_at,
       total_quotes_sent: 0,

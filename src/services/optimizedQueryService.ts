@@ -37,15 +37,16 @@ export const FIELD_PRESETS = {
     status,
     priority_level,
     current_stage_id,
-    customer_id,
+    customer_organization_id,
+    point_of_contacts,
     assigned_to,
     estimated_value,
     created_at,
     updated_at,
-    customer:contacts!customer_id(
+    customer_organization:organizations!customer_organization_id(
       id,
-      company_name,
-      contact_name
+      name,
+      slug
     ),
     current_stage:workflow_stages!current_stage_id(
       id,
@@ -61,7 +62,8 @@ export const FIELD_PRESETS = {
     project_id,
     title,
     description,
-    customer_id,
+    customer_organization_id,
+    point_of_contacts,
     current_stage_id,
     status,
     priority_level,
@@ -78,13 +80,19 @@ export const FIELD_PRESETS = {
     notes,
     created_at,
     updated_at,
-    customer:contacts!customer_id(
+    customer_organization:organizations!customer_organization_id(
       id,
-      company_name,
-      contact_name,
-      email,
-      phone,
-      type,
+      name,
+      slug,
+      description,
+      industry,
+      address,
+      city,
+      state,
+      country,
+      postal_code,
+      website,
+      logo_url,
       is_active
     ),
     current_stage:workflow_stages!current_stage_id(
@@ -100,7 +108,7 @@ export const FIELD_PRESETS = {
     // Full fields for comprehensive operations
     FULL: `
     *,
-    customer:contacts!customer_id(*),
+    customer_organization:organizations!customer_organization_id(*),
     current_stage:workflow_stages!current_stage_id(*),
     assigned_user:users!assigned_to(
       id,
@@ -474,9 +482,9 @@ class OptimizedQueryService {
             query = query.eq('project_type', options.projectType);
         }
 
-        // Customer filter
+        // Customer organization filter
         if (options.customerId) {
-            query = query.eq('customer_id', options.customerId);
+            query = query.eq('customer_organization_id', options.customerId);
         }
 
         // Assigned user filter

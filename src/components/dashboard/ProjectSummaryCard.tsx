@@ -126,13 +126,13 @@ export function ProjectSummaryCard({ project, showUrgencyIndicators = false }: P
 
   // Enhanced list item classes based on urgency level
   const getListItemClasses = () => {
-    if (!showUrgencyIndicators) return 'enhanced-list-item enhanced-list-item-normal';
+    if (!showUrgencyIndicators) return 'list-item list-item-normal';
 
     switch (urgency.level) {
-      case 'critical': return 'enhanced-list-item enhanced-list-item-urgent border-l-4 border-l-red-500 bg-red-50/10 dark:bg-red-950/20 shadow-md';
-      case 'high': return 'enhanced-list-item enhanced-list-item-high border-l-4 border-l-orange-500 bg-orange-50/10 dark:bg-orange-950/10';
-      case 'medium': return 'enhanced-list-item enhanced-list-item-medium border-l-4 border-l-yellow-500 bg-yellow-50/10 dark:bg-yellow-950/10';
-      default: return 'enhanced-list-item enhanced-list-item-normal';
+      case 'critical': return 'list-item list-item-urgent border-l-4 border-l-red-500 bg-red-50/10 dark:bg-red-950/20 shadow-md';
+      case 'high': return 'list-item list-item-high border-l-4 border-l-orange-500 bg-orange-50/10 dark:bg-orange-950/10';
+      case 'medium': return 'list-item list-item-medium border-l-4 border-l-yellow-500 bg-yellow-50/10 dark:bg-yellow-950/10';
+      default: return 'list-item list-item-normal';
     }
   };
 
@@ -229,8 +229,8 @@ export function ProjectSummaryCard({ project, showUrgencyIndicators = false }: P
         {/* Estimated delivery date */}
         {project.estimated_delivery_date && (
           <div className={`flex items-center gap-1 rounded-full text-xs px-2 py-0.5 ${isDeliveryOverdue
-              ? 'bg-red-100 text-red-800 dark:bg-red-900/30 dark:text-red-400'
-              : 'bg-blue-100 text-blue-800 dark:bg-blue-900/30 dark:text-blue-400'
+            ? 'bg-red-100 text-red-800 dark:bg-red-900/30 dark:text-red-400'
+            : 'bg-blue-100 text-blue-800 dark:bg-blue-900/30 dark:text-blue-400'
             }`}>
             <Truck className="h-3 w-3" />
             <span>
@@ -248,8 +248,8 @@ export function ProjectSummaryCard({ project, showUrgencyIndicators = false }: P
           >
             <div className="flex items-center gap-1">
               <AlertTriangle className={`h-4 w-4 ${urgency.level === 'critical' ? 'text-red-500' :
-                  urgency.level === 'high' ? 'text-orange-500' :
-                    'text-yellow-500'
+                urgency.level === 'high' ? 'text-orange-500' :
+                  'text-yellow-500'
                 }`} />
               <span className="sr-only">Urgency information</span>
             </div>

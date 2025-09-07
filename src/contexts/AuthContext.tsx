@@ -5,10 +5,9 @@ import { useToast } from '@/components/ui/use-toast';
 import { clearSavedAuthData } from '@/lib/auth-utils';
 import { realtimeManager } from '@/lib/realtime-manager';
 
-// Updated UserProfile interface to match the actual users table schema
+// Optimized UserProfile interface - removed redundant user_id field
 export interface UserProfile {
-  id: string;
-  user_id?: string; // Links to auth.users.id
+  id: string; // Direct link to auth.users.id (no redundant user_id field)
   organization_id: string;
   email: string;
   name: string;
@@ -64,39 +63,41 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
   const fetchProfile = async (userId: string) => {
     try {
-      // Get the user's ID from the auth session
-      const { data: { user: authUser } } = await supabase.auth.getUser();
+      // Get user and session in parallel for better performance
+      const [{ data: { user: authUser }, error: userError }, { data: { session }, error: sessionError }] =
+        await Promise.all([
+          supabase.auth.getUser(),
+          supabase.auth.getSession()
+        ]);
 
-      if (!authUser?.id) {
-        console.error('No user ID found in auth user');
+      // Validate both auth user and session exist
+      if (userError || sessionError || !authUser?.id || !session?.access_token) {
+        console.error('Authentication validation failed:', { userError, sessionError });
         setProfile(null);
         return;
       }
 
-      // Additional check: ensure we have a valid session
-      const { data: { session } } = await supabase.auth.getSession();
-      if (!session?.access_token) {
-        console.error('No valid session found');
-        setProfile(null);
-        return;
-      }
-
-      // Query user profile by id (should match auth.users.id perfectly now)
-      console.log('Searching for user with id:', authUser.id);
-      let { data, error } = await supabase
+      // Optimized query: fetch user profile with organization data in single query
+      const { data, error } = await supabase
         .from('users')
-        .select('*')
+        .select(`
+          *,
+          organizations!inner (
+            id,
+            name,
+            slug
+          )
+        `)
         .eq('id', authUser.id)
         .maybeSingle();
 
-      console.log('Database query by id result:', { data, error });
-
       if (error) {
-        console.error('Error fetching profile:', error);
+        console.error('Error fetching user profile:', error);
+        setProfile(null);
         return;
       }
 
-      // Set profile data directly since it matches the UserProfile interface
+      // Set profile data if found
       if (data) {
         console.log('Profile fetched successfully:', data);
         // Ensure the role and status are properly typed
@@ -207,10 +208,17 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
             }
           }
 
+          // Get the default organization for fallback profile
+          const { data: defaultOrg } = await supabase
+            .from('organizations')
+            .select('id')
+            .eq('slug', 'factory-pulse-vietnam')
+            .maybeSingle();
+
           // Map auth user data to profile format
           const fallbackProfile: UserProfile = {
             id: authUser.id,
-            organization_id: '',
+            organization_id: defaultOrg?.id || '',
             email: authUser.email,
             name: authUser.user_metadata?.name || authUser.email.split('@')[0],
             role: fallbackRole,
@@ -296,15 +304,46 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     details?: any
   ) => {
     try {
+      // Skip logging if we don't have required data
+      if (!user?.id) {
+        console.warn('Cannot log audit event: user ID is missing');
+        return;
+      }
+
+      // For login events, we need to get the organization_id from the user's profile
+      let organizationId = profile?.organization_id;
+
+      // If we don't have the profile yet, try to fetch it
+      if (!organizationId && user.id) {
+        try {
+          const { data: userProfile } = await supabase
+            .from('users')
+            .select('organization_id')
+            .eq('id', user.id)
+            .single();
+
+          organizationId = userProfile?.organization_id;
+        } catch (profileError) {
+          console.warn('Could not fetch user profile for activity logging:', profileError);
+          return;
+        }
+      }
+
+      // Skip logging if we still don't have organization_id
+      if (!organizationId) {
+        console.warn('Cannot log audit event: organization_id is missing');
+        return;
+      }
+
       const userAgent = navigator.userAgent;
 
       // Use activity_log table - only include fields that exist in the table
       await supabase.from('activity_log').insert({
         action: eventType,
-        user_id: user?.id || null,
-        organization_id: profile?.organization_id || null,
+        user_id: user.id,
+        organization_id: organizationId,
         entity_type: 'user',
-        entity_id: user?.id || null,
+        entity_id: user.id,
         old_values: null,
         new_values: { success, details: details || {} },
         user_agent: userAgent

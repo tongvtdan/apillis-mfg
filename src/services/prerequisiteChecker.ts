@@ -138,10 +138,10 @@ class PrerequisiteChecker {
         checks.push({
             id: 'customer_info',
             name: 'Customer Information',
-            description: 'Customer is assigned to project',
-            status: project.customer_id ? 'passed' : 'failed',
+            description: 'Customer organization is assigned to project',
+            status: project.customer_organization_id ? 'passed' : 'failed',
             required: true,
-            details: project.customer_id ? undefined : 'Customer must be assigned to the project',
+            details: project.customer_organization_id ? undefined : 'Customer organization must be assigned to the project',
             category: 'project_data'
         });
 

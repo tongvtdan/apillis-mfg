@@ -77,12 +77,12 @@ export function ProjectAttributesManager({
         }));
     }, []);
 
-    // Priority options
+    // Priority options - matching database enum values
     const priorityOptions = [
         { value: 'low', label: 'Low', icon: TrendingUp, color: 'text-green-600' },
-        { value: 'medium', label: 'Medium', icon: Star, color: 'text-yellow-600' },
+        { value: 'normal', label: 'Normal', icon: Star, color: 'text-yellow-600' },
         { value: 'high', label: 'High', icon: AlertTriangle, color: 'text-orange-600' },
-        { value: 'critical', label: 'Critical', icon: AlertCircle, color: 'text-red-600' }
+        { value: 'urgent', label: 'Urgent', icon: AlertCircle, color: 'text-red-600' }
     ];
 
     // Define status transitions with validation rules
@@ -293,7 +293,7 @@ export function ProjectAttributesManager({
                             isUpdating === 'priority_level' && "opacity-75"
                         )}>
                             <Select
-                                value={optimisticProject.priority_level || 'medium'}
+                                value={optimisticProject.priority_level || 'normal'}
                                 onValueChange={handlePriorityChange}
                                 disabled={isLoading}
                             >
