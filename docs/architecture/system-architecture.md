@@ -600,3 +600,416 @@ const usePerformanceTracking = (componentName: string) => {
 ```
 
 This architecture provides a scalable, maintainable, and performant foundation for the Factory Pulse MES system, with clear separation of concerns and modern development practices.
+
+
+```mermaid
+erDiagram
+    ORGANIZATIONS ||--o{ USERS : "has"
+    ORGANIZATIONS ||--o{ PROJECTS : "has"
+    ORGANIZATIONS ||--o{ CONTACTS : "has"
+    ORGANIZATIONS ||--o{ WORKFLOW_STAGES : "has"
+    ORGANIZATIONS ||--o{ WORKFLOW_DEFINITIONS : "has"
+    ORGANIZATIONS ||--o{ DOCUMENTS : "has"
+    ORGANIZATIONS ||--o{ MESSAGES : "has"
+    ORGANIZATIONS ||--o{ NOTIFICATIONS : "has"
+    ORGANIZATIONS ||--o{ ACTIVITY_LOG : "has"
+    ORGANIZATIONS ||--o{ APPROVALS : "has"
+    ORGANIZATIONS ||--o{ DOCUMENT_VERSIONS : "has"
+
+    WORKFLOW_STAGES ||--o{ WORKFLOW_SUB_STAGES : "contains"
+
+    WORKFLOW_DEFINITIONS ||--o{ WORKFLOW_DEFINITION_STAGES : "includes"
+    WORKFLOW_DEFINITIONS ||--o{ WORKFLOW_DEFINITION_SUB_STAGES : "includes"
+    WORKFLOW_DEFINITION_STAGES }o--|| WORKFLOW_STAGES : "references"
+    WORKFLOW_DEFINITION_SUB_STAGES }o--|| WORKFLOW_SUB_STAGES : "references"
+
+    PROJECTS }o--|| WORKFLOW_DEFINITIONS : "workflow_definition_id"
+    PROJECTS }o--|| WORKFLOW_STAGES : "current_stage_id"
+    PROJECTS ||--o{ PROJECT_SUB_STAGE_PROGRESS : "tracks"
+    PROJECT_SUB_STAGE_PROGRESS }o--|| WORKFLOW_STAGES : "for_stage"
+    PROJECT_SUB_STAGE_PROGRESS }o--|| WORKFLOW_SUB_STAGES : "for_sub_stage"
+
+    APPROVALS ||--o{ APPROVAL_HISTORY : "has"
+    APPROVALS ||--o{ APPROVAL_ATTACHMENTS : "has"
+    APPROVALS ||--o{ APPROVAL_NOTIFICATIONS : "sends"
+    APPROVALS }o--|| APPROVAL_CHAINS : "optional_chain"
+    APPROVALS }o..o{ PROJECT_SUB_STAGE_PROGRESS : "entity_type='project_sub_stage' & entity_id"
+
+    PROJECTS ||--o{ DOCUMENTS : "has"
+    DOCUMENTS ||--o{ DOCUMENT_VERSIONS : "versioned"
+    DOCUMENT_ACCESS_LOG }o--|| DOCUMENTS : "logs_access"
+
+    USERS ||--o{ PROJECT_ASSIGNMENTS : "assigned_to"
+    PROJECTS ||--o{ PROJECT_ASSIGNMENTS : "has_team"
+
+    USERS ||--o{ MESSAGES : "sends/receives"
+    PROJECTS ||--o{ MESSAGES : "context"
+
+    USERS ||--o{ NOTIFICATIONS : "receives"
+
+    USERS ||--o{ ACTIVITY_LOG : "performs"
+    PROJECTS ||--o{ ACTIVITY_LOG : "generates"
+
+    PROJECTS }o..o{ CONTACTS : "point_of_contacts[]"
+
+    ORGANIZATIONS {
+        uuid id PK
+        text name
+        text slug UK
+        text organization_type
+        boolean is_active
+        timestamptz created_at
+        timestamptz updated_at
+    }
+
+    USERS {
+        uuid id PK
+        uuid organization_id FK
+        text email UK
+        text name
+        user_role role
+        user_status status
+        uuid direct_manager_id FK
+        timestamptz last_login_at
+        jsonb preferences
+        timestamptz created_at
+        timestamptz updated_at
+    }
+
+    CONTACTS {
+        uuid id PK
+        uuid organization_id FK
+        contact_type type
+        text company_name
+        text contact_name
+        text email
+        boolean is_primary_contact
+        timestamptz created_at
+        timestamptz updated_at
+    }
+
+    PROJECTS {
+        uuid id PK
+        uuid organization_id FK
+        text project_id UK
+        text title
+        uuid customer_organization_id FK
+        uuid workflow_definition_id FK
+        uuid current_stage_id FK
+        project_status status
+        priority_level priority_level
+        uuid created_by FK
+        uuid assigned_to FK
+        uuid[] point_of_contacts
+        timestamptz stage_entered_at
+        timestamptz created_at
+        timestamptz updated_at
+    }
+
+    WORKFLOW_STAGES {
+        uuid id PK
+        uuid organization_id FK
+        text name
+        text slug
+        int stage_order
+        boolean is_active
+        int estimated_duration_days
+        timestamptz created_at
+        timestamptz updated_at
+    }
+
+    WORKFLOW_SUB_STAGES {
+        uuid id PK
+        uuid organization_id FK
+        uuid workflow_stage_id FK
+        text name
+        text slug
+        int sub_stage_order
+        boolean is_required
+        boolean requires_approval
+        jsonb metadata
+        timestamptz created_at
+        timestamptz updated_at
+    }
+
+    WORKFLOW_DEFINITIONS {
+        uuid id PK
+        uuid organization_id FK
+        text name
+        int version
+        boolean is_active
+        timestamptz created_at
+        timestamptz updated_at
+    }
+
+    WORKFLOW_DEFINITION_STAGES {
+        uuid id PK
+        uuid workflow_definition_id FK
+        uuid workflow_stage_id FK
+        boolean is_included
+        int stage_order_override
+        timestamptz created_at
+        timestamptz updated_at
+    }
+
+    WORKFLOW_DEFINITION_SUB_STAGES {
+        uuid id PK
+        uuid workflow_definition_id FK
+        uuid workflow_sub_stage_id FK
+        boolean is_included
+        int sub_stage_order_override
+        boolean requires_approval_override
+        timestamptz created_at
+        timestamptz updated_at
+    }
+
+    PROJECT_SUB_STAGE_PROGRESS {
+        uuid id PK
+        uuid organization_id FK
+        uuid project_id FK
+        uuid workflow_stage_id FK
+        uuid sub_stage_id FK
+        text status
+        timestamptz started_at
+        timestamptz completed_at
+        uuid assigned_to FK
+        jsonb metadata
+        timestamptz created_at
+        timestamptz updated_at
+    }
+
+    APPROVALS {
+        uuid id PK
+        uuid organization_id FK
+        approval_type approval_type
+        text entity_type
+        uuid entity_id
+        approval_status status
+        approval_priority priority
+        uuid requested_by FK
+        uuid current_approver_id FK
+        timestamptz created_at
+        timestamptz updated_at
+    }
+
+    APPROVAL_HISTORY {
+        uuid id PK
+        uuid approval_id FK
+        uuid organization_id FK
+        approval_status old_status
+        approval_status new_status
+        uuid action_by FK
+        timestamptz action_at
+        text comments
+    }
+
+    APPROVAL_ATTACHMENTS {
+        uuid id PK
+        uuid approval_id FK
+        uuid organization_id FK
+        uuid uploaded_by FK
+        text file_url
+        timestamptz uploaded_at
+    }
+
+    APPROVAL_NOTIFICATIONS {
+        uuid id PK
+        uuid approval_id FK
+        uuid organization_id FK
+        uuid recipient_id FK
+        timestamptz sent_at
+        timestamptz read_at
+    }
+
+    APPROVAL_CHAINS {
+        uuid id PK
+        uuid organization_id FK
+        text chain_name
+        jsonb conditions
+        jsonb steps
+        boolean is_active
+    }
+
+    DOCUMENTS {
+        uuid id PK
+        uuid organization_id FK
+        uuid project_id FK
+        text title
+        text file_path
+        int version
+        boolean is_current_version
+        uuid uploaded_by FK
+        uuid approved_by FK
+        timestamptz created_at
+        timestamptz updated_at
+    }
+
+    DOCUMENT_VERSIONS {
+        uuid id PK
+        uuid organization_id FK
+        uuid document_id FK
+        int version_number
+        text file_path
+        uuid uploaded_by FK
+        boolean is_current
+        timestamptz uploaded_at
+    }
+
+    DOCUMENT_ACCESS_LOG {
+        uuid id PK
+        uuid document_id FK
+        uuid user_id FK
+        text action
+        timestamptz accessed_at
+    }
+
+    MESSAGES {
+        uuid id PK
+        uuid organization_id FK
+        uuid project_id FK
+        uuid sender_id FK
+        uuid recipient_id FK
+        text subject
+        text content
+        timestamptz created_at
+    }
+
+    NOTIFICATIONS {
+        uuid id PK
+        uuid organization_id FK
+        uuid user_id FK
+        text type
+        text title
+        text message
+        priority_level priority
+        timestamptz created_at
+        timestamptz read_at
+    }
+
+    ACTIVITY_LOG {
+        uuid id PK
+        uuid organization_id FK
+        uuid user_id FK
+        uuid project_id FK
+        text entity_type
+        uuid entity_id
+        text action
+        timestamptz created_at
+    }
+```
+
+---
+
+```mermaid
+flowchart LR
+    %% Entities (clusters)
+    subgraph ORG_SCOPE["Organization & Identity"]
+        ORG[(organizations)]
+        USR[(users)]
+        CNT[(contacts)]
+    end
+
+    subgraph WF_CATALOG["Workflow Catalog (Reusable)"]
+        WS[(workflow_stages)]
+        WSS[(workflow_sub_stages)]
+    end
+
+    subgraph WF_TEMPLATES["Workflow Templates (Option A)"]
+        WD[(workflow_definitions)]
+        WDS[(workflow_definition_stages)]
+        WDSS[(workflow_definition_sub_stages)]
+    end
+
+    subgraph PRJ["Project Execution"]
+        P[(projects)]
+        PSSP[(project_sub_stage_progress)]
+    end
+
+    subgraph APV["Approvals"]
+        AP[(approvals)]
+        ACH[(approval_chains)]
+        AH[(approval_history)]
+        AAT[(approval_attachments)]
+        ANO[(approval_notifications)]
+    end
+
+    subgraph DOCS["Documents"]
+        D[(documents)]
+        DV[(document_versions)]
+        DAL[(document_access_log)]
+    end
+
+    subgraph COMMS["Communication"]
+        MSG[(messages)]
+        NOTI[(notifications)]
+    end
+
+    subgraph AUDIT["Audit"]
+        AL[(activity_log)]
+    end
+
+    %% Org relationships
+    ORG --> USR
+    ORG --> P
+    ORG --> WS
+    ORG --> WD
+    ORG --> D
+    ORG --> MSG
+    ORG --> NOTI
+    ORG --> AL
+
+    %% Template bindings
+    WD -->|includes| WDS -->|ref| WS
+    WD -->|includes| WDSS -->|ref| WSS
+    WS -->|catalog_of| WSS
+
+    %% Project picks a template and stage
+    P -->|workflow_definition_id| WD
+    P -->|current_stage_id| WS
+    P -->|customer_organization_id| ORG
+    P --- CNT:::dotted
+
+    %% Stage-change seeding
+    P -- "UPDATE current_stage_id" --> F1[("create_project_sub_stage_progress()")]
+    F1 -->|seed included sub-stages| PSSP
+    PSSP -->|for_stage| WS
+    PSSP -->|for_sub_stage| WSS
+
+    %% Sub-stage completion & approvals
+    PSSP -- "requires_approval?" --> AP
+    AP --> AH
+    AP --> AAT
+    AP --> ANO
+    AP --> ACH
+    AP -- "decision" --> PSSP
+
+    %% Stage change notifications
+    P -- "stage changed" --> F2[("handle_project_stage_change()")]
+    F2 --> NOTI
+
+    %% Documents versioning flow
+    D -- "INSERT" --> T1[("create_initial_document_version()")]
+    T1 --> DV
+    DV -- "is_current=true" --> T2[("update_document_on_version_change()")]
+    T2 --> D
+    DAL -- "INSERT (view/download)" --> T3[("update_document_link_access()")]
+    T3 --> D
+
+    %% Project context for docs/messages
+    P --> D
+    P --> MSG
+    USR --> MSG
+    USR --> NOTI
+
+    %% Activity logging (dotted lines)
+    classDef dotted stroke-dasharray: 5 5,stroke:#666,color:#333;
+    P -.->|logged| AL
+    D -.->|logged| AL
+    MSG -.->|logged| AL
+    AP -.->|logged| AL
+    PSSP -.->|logged| AL
+
+    %% Styling
+    classDef cluster fill:#f8f9fb,stroke:#ccd5e0,stroke-width:1px;
+    class ORG_SCOPE,WF_CATALOG,WF_TEMPLATES,PRJ,APV,DOCS,COMMS,AUDIT cluster
+```

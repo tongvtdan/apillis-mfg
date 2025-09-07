@@ -18,7 +18,7 @@ This document provides a comprehensive overview of all workflow stages and their
 
 ## Detailed Workflow Stages
 
-### Stage 1: Inquiry Received (ID: 550e8400-e29b-41d4-a716-446655440201)
+### Stage 1: Inquiry Received 
 **Exit Criteria:** RFQ reviewed, customer requirements understood, initial feasibility assessment completed
 
 **Sub-Stages:**
@@ -31,7 +31,7 @@ This document provides a comprehensive overview of all workflow stages and their
 
 ---
 
-### Stage 2: Technical Review (ID: 550e8400-e29b-41d4-a716-446655440202)
+### Stage 2: Technical Review
 **Exit Criteria:** All technical reviews completed, feasibility confirmed, requirements clarified
 
 **Sub-Stages:**
@@ -45,7 +45,7 @@ This document provides a comprehensive overview of all workflow stages and their
 
 ---
 
-### Stage 3: Supplier RFQ Sent (ID: 550e8400-e29b-41d4-a716-446655440203)
+### Stage 3: Supplier RFQ Sent 
 **Exit Criteria:** All supplier RFQs sent, responses received and evaluated
 
 **Sub-Stages:**
@@ -59,7 +59,7 @@ This document provides a comprehensive overview of all workflow stages and their
 
 ---
 
-### Stage 4: Quoted (ID: 550e8400-e29b-41d4-a716-446655440204)
+### Stage 4: Quoted 
 **Exit Criteria:** Customer quote generated, pricing approved, terms negotiated
 
 **Sub-Stages:**
@@ -73,7 +73,7 @@ This document provides a comprehensive overview of all workflow stages and their
 
 ---
 
-### Stage 5: Order Confirmed (ID: 550e8400-e29b-41d4-a716-446655440205)
+### Stage 5: Order Confirmed 
 **Exit Criteria:** Customer PO received, contract signed, production planning initiated
 
 **Sub-Stages:**
@@ -86,7 +86,7 @@ This document provides a comprehensive overview of all workflow stages and their
 
 ---
 
-### Stage 6: Procurement Planning (ID: 550e8400-e29b-41d4-a716-446655440206)
+### Stage 6: Procurement Planning 
 **Exit Criteria:** All purchase orders issued, material delivery schedule confirmed
 
 **Sub-Stages:**
@@ -100,7 +100,7 @@ This document provides a comprehensive overview of all workflow stages and their
 
 ---
 
-### Stage 7: Production (ID: 550e8400-e29b-41d4-a716-446655440207)
+### Stage 7: Production 
 **Exit Criteria:** Production completed, quality checks passed, ready for shipping
 
 **Sub-Stages:**
@@ -114,7 +114,7 @@ This document provides a comprehensive overview of all workflow stages and their
 
 ---
 
-### Stage 8: Completed (ID: 550e8400-e29b-41d4-a716-446655440208)
+### Stage 8: Completed 
 **Exit Criteria:** Order delivered, customer satisfied, project closed
 
 **Sub-Stages:**
@@ -155,8 +155,3 @@ This document provides a comprehensive overview of all workflow stages and their
 - Most sub-stages are required (cannot be skipped)
 - Only 1 sub-stage allows skipping (Customer Requirements Clarification)
 - No sub-stages have auto-advance enabled
-
-## Data Source
-Extracted from: `backups_factory_pulse_data_backup_20250906_151600.sql`
-- Workflow stages: Lines 610-618
-- Workflow sub-stages: Lines 1608-1638
