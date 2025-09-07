@@ -304,15 +304,46 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     details?: any
   ) => {
     try {
+      // Skip logging if we don't have required data
+      if (!user?.id) {
+        console.warn('Cannot log audit event: user ID is missing');
+        return;
+      }
+
+      // For login events, we need to get the organization_id from the user's profile
+      let organizationId = profile?.organization_id;
+      
+      // If we don't have the profile yet, try to fetch it
+      if (!organizationId && user.id) {
+        try {
+          const { data: userProfile } = await supabase
+            .from('users')
+            .select('organization_id')
+            .eq('id', user.id)
+            .single();
+          
+          organizationId = userProfile?.organization_id;
+        } catch (profileError) {
+          console.warn('Could not fetch user profile for activity logging:', profileError);
+          return;
+        }
+      }
+
+      // Skip logging if we still don't have organization_id
+      if (!organizationId) {
+        console.warn('Cannot log audit event: organization_id is missing');
+        return;
+      }
+
       const userAgent = navigator.userAgent;
 
       // Use activity_log table - only include fields that exist in the table
       await supabase.from('activity_log').insert({
         action: eventType,
-        user_id: user?.id || null,
-        organization_id: profile?.organization_id || null,
+        user_id: user.id,
+        organization_id: organizationId,
         entity_type: 'user',
-        entity_id: user?.id || null,
+        entity_id: user.id,
         old_values: null,
         new_values: { success, details: details || {} },
         user_agent: userAgent
