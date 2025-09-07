@@ -398,6 +398,9 @@ class ProjectService {
             throw new Error('No project data provided for transformation');
         }
 
+        console.log('🔍 TransformProjectData: Starting transformation for project:', data.id);
+        console.log('🔍 TransformProjectData: Full data object:', data);
+
         try {
             // Handle nullable fields properly with proper type checking
             const transformedProject: Project = {
@@ -433,7 +436,17 @@ class ProjectService {
 
             return transformedProject;
         } catch (error) {
-            console.error('Error transforming project data:', error);
+            console.error('❌ TransformProjectData Error Details:', {
+                error: error,
+                message: error instanceof Error ? error.message : 'Unknown error',
+                stack: error instanceof Error ? error.stack : 'No stack trace',
+                data: data ? {
+                    id: data.id,
+                    title: data.title,
+                    priority_level: data.priority_level,
+                    priority_level_type: typeof data.priority_level
+                } : 'No data'
+            });
             throw new Error(`Failed to transform project data: ${error instanceof Error ? error.message : 'Unknown error'}`);
         }
     }
@@ -984,6 +997,13 @@ class ProjectService {
     // Helper methods for data validation and transformation
     private validateString(value: any, fieldName: string): string {
         if (typeof value !== 'string' || value.trim() === '') {
+            console.error('❌ ValidateString Error:', {
+                fieldName: fieldName,
+                value: value,
+                valueType: typeof value,
+                isString: typeof value === 'string',
+                isEmpty: typeof value === 'string' ? value.trim() === '' : 'N/A'
+            });
             throw new Error(`Invalid ${fieldName}: expected non-empty string, got ${typeof value}`);
         }
         return value.trim();

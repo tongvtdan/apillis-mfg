@@ -70,7 +70,7 @@ export function useProjectsOptimized() {
                 ...project,
                 // Ensure required fields have proper defaults
                 status: project.status || 'active',
-                priority_level: project.priority_level || 'medium',
+                priority_level: project.priority_level || 'normal',
                 source: project.source || 'portal',
                 tags: project.tags || [],
                 metadata: project.metadata || {},
