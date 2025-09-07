@@ -82,7 +82,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         .from('users')
         .select(`
           *,
-          organizations:organization_id (
+          organizations!inner (
             id,
             name,
             slug

@@ -39,7 +39,7 @@ export async function getCombinedUserData(userId: string): Promise<CombinedUserD
                 .from('users')
                 .select(`
           *,
-          organizations:organization_id (
+          organizations!inner (
             id,
             name,
             slug
