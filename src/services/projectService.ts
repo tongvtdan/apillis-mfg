@@ -1000,7 +1000,7 @@ class ProjectService {
 
     private validateOptionalString(value: any): string | undefined {
         console.log('🔍 ValidateOptionalString: Input:', { value, type: typeof value });
-        
+
         if (value === null || value === undefined) {
             console.log('🔍 ValidateOptionalString: Returning undefined (null/undefined)');
             return undefined;

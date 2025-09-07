@@ -163,7 +163,7 @@ export function ProjectAttributesManager({
     // Handle priority change
     const handlePriorityChange = async (newPriority: string) => {
         console.log('🔍 HandlePriorityChange: Input:', { newPriority, type: typeof newPriority });
-        
+
         setIsLoading(true);
         setIsUpdating('priority_level');
 
