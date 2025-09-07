@@ -399,9 +399,9 @@ export function ProjectList({
                                         </SelectTrigger>
                                         <SelectContent>
                                             <SelectItem value="all">All Priorities</SelectItem>
-                                            <SelectItem value="critical">Critical</SelectItem>
+                                            <SelectItem value="urgent">Urgent</SelectItem>
                                             <SelectItem value="high">High</SelectItem>
-                                            <SelectItem value="medium">Medium</SelectItem>
+                                            <SelectItem value="normal">Normal</SelectItem>
                                             <SelectItem value="low">Low</SelectItem>
                                         </SelectContent>
                                     </Select>

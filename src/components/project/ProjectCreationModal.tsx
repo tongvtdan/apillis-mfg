@@ -408,10 +408,10 @@ export function EnhancedProjectCreationModal({
                                                             Low Priority
                                                         </div>
                                                     </SelectItem>
-                                                    <SelectItem value="medium">
+                                                    <SelectItem value="normal">
                                                         <div className="flex items-center gap-2">
                                                             <div className="w-2 h-2 rounded-full bg-yellow-500"></div>
-                                                            Medium Priority
+                                                            Normal Priority
                                                         </div>
                                                     </SelectItem>
                                                     <SelectItem value="high">
@@ -420,10 +420,10 @@ export function EnhancedProjectCreationModal({
                                                             High Priority
                                                         </div>
                                                     </SelectItem>
-                                                    <SelectItem value="critical">
+                                                    <SelectItem value="urgent">
                                                         <div className="flex items-center gap-2">
                                                             <div className="w-2 h-2 rounded-full bg-red-500"></div>
-                                                            Critical Priority
+                                                            Urgent Priority
                                                         </div>
                                                     </SelectItem>
                                                 </SelectContent>
