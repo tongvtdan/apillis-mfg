@@ -125,8 +125,10 @@ export class CustomerOrganizationServiceSimplified {
                     country: organizationData.country,
                     postal_code: organizationData.postal_code,
                     website: organizationData.website,
-                    logo_url: organizationData.logo_url
-                })
+                    logo_url: organizationData.logo_url,
+                    organization_type: 'customer',
+                    is_active: true
+                } as any)
                 .select()
                 .single();
 
@@ -154,8 +156,9 @@ export class CustomerOrganizationServiceSimplified {
                         state: primaryContactData.state,
                         country: primaryContactData.country,
                         postal_code: primaryContactData.postal_code,
-                        notes: primaryContactData.notes
-                    })
+                        notes: primaryContactData.notes,
+                        is_active: true
+                    } as any)
                     .select()
                     .single();
 
@@ -255,8 +258,9 @@ export class CustomerOrganizationServiceSimplified {
                     state: contactData.state,
                     country: contactData.country,
                     postal_code: contactData.postal_code,
-                    notes: contactData.notes
-                })
+                    notes: contactData.notes,
+                    is_active: true
+                } as any)
                 .select()
                 .single();
 
