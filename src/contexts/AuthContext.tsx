@@ -312,7 +312,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
       // For login events, we need to get the organization_id from the user's profile
       let organizationId = profile?.organization_id;
-      
+
       // If we don't have the profile yet, try to fetch it
       if (!organizationId && user.id) {
         try {
@@ -321,7 +321,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
             .select('organization_id')
             .eq('id', user.id)
             .single();
-          
+
           organizationId = userProfile?.organization_id;
         } catch (profileError) {
           console.warn('Could not fetch user profile for activity logging:', profileError);
