@@ -162,8 +162,6 @@ export function ProjectAttributesManager({
 
     // Handle priority change
     const handlePriorityChange = async (newPriority: string) => {
-        console.log('🔍 HandlePriorityChange: Input:', { newPriority, type: typeof newPriority });
-
         setIsLoading(true);
         setIsUpdating('priority_level');
 
@@ -174,8 +172,6 @@ export function ProjectAttributesManager({
             const updateData: Partial<Project> = {
                 priority_level: newPriority as ProjectPriority
             };
-
-            console.log('🔍 HandlePriorityChange: Update data:', updateData);
 
             const updatedProject = await projectService.updateProject(project.id, updateData);
             onUpdate?.(updatedProject);
