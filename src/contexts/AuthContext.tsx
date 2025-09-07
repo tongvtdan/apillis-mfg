@@ -5,10 +5,9 @@ import { useToast } from '@/components/ui/use-toast';
 import { clearSavedAuthData } from '@/lib/auth-utils';
 import { realtimeManager } from '@/lib/realtime-manager';
 
-// Updated UserProfile interface to match the actual users table schema
+// Optimized UserProfile interface - removed redundant user_id field
 export interface UserProfile {
-  id: string;
-  user_id?: string; // Links to auth.users.id
+  id: string; // Direct link to auth.users.id (no redundant user_id field)
   organization_id: string;
   email: string;
   name: string;
@@ -64,39 +63,41 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
   const fetchProfile = async (userId: string) => {
     try {
-      // Get the user's ID from the auth session
-      const { data: { user: authUser } } = await supabase.auth.getUser();
+      // Get user and session in parallel for better performance
+      const [{ data: { user: authUser }, error: userError }, { data: { session }, error: sessionError }] =
+        await Promise.all([
+          supabase.auth.getUser(),
+          supabase.auth.getSession()
+        ]);
 
-      if (!authUser?.id) {
-        console.error('No user ID found in auth user');
+      // Validate both auth user and session exist
+      if (userError || sessionError || !authUser?.id || !session?.access_token) {
+        console.error('Authentication validation failed:', { userError, sessionError });
         setProfile(null);
         return;
       }
 
-      // Additional check: ensure we have a valid session
-      const { data: { session } } = await supabase.auth.getSession();
-      if (!session?.access_token) {
-        console.error('No valid session found');
-        setProfile(null);
-        return;
-      }
-
-      // Query user profile by id (should match auth.users.id perfectly now)
-      console.log('Searching for user with id:', authUser.id);
-      let { data, error } = await supabase
+      // Optimized query: fetch user profile with organization data in single query
+      const { data, error } = await supabase
         .from('users')
-        .select('*')
+        .select(`
+          *,
+          organizations:organization_id (
+            id,
+            name,
+            slug
+          )
+        `)
         .eq('id', authUser.id)
         .maybeSingle();
 
-      console.log('Database query by id result:', { data, error });
-
       if (error) {
-        console.error('Error fetching profile:', error);
+        console.error('Error fetching user profile:', error);
+        setProfile(null);
         return;
       }
 
-      // Set profile data directly since it matches the UserProfile interface
+      // Set profile data if found
       if (data) {
         console.log('Profile fetched successfully:', data);
         // Ensure the role and status are properly typed

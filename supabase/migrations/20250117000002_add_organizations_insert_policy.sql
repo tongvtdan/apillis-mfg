@@ -47,10 +47,9 @@ CREATE TABLE IF NOT EXISTS contacts (
     updated_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
 );
 
--- Create users table if it doesn't exist
+-- Create users table if it doesn't exist (optimized)
 CREATE TABLE IF NOT EXISTS users (
-    id UUID DEFAULT gen_random_uuid() PRIMARY KEY,
-    user_id UUID,
+    id UUID DEFAULT gen_random_uuid() PRIMARY KEY, -- Links directly to auth.users.id
     organization_id UUID,
     email TEXT NOT NULL,
     name TEXT,
