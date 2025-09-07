@@ -410,7 +410,7 @@ class ProjectService {
                 customer_id: this.validateOptionalString(data.customer_id),
                 current_stage_id: this.validateOptionalString(data.current_stage_id),
                 status: this.validateString(data.status, 'status'),
-                priority_level: this.validateString(data.priority_level, 'priority_level'),
+                priority_level: this.validateOptionalString(data.priority_level),
                 source: this.validateString(data.source, 'source'),
                 assigned_to: this.validateOptionalString(data.assigned_to),
                 created_by: this.validateOptionalString(data.created_by),
@@ -647,7 +647,7 @@ class ProjectService {
                         throw new Error('Invalid project status. Must be one of: active, on_hold, delayed, cancelled, completed.');
                     }
                     if (error.message.includes('priority_level')) {
-                        throw new Error('Invalid priority level. Must be one of: low, medium, high, urgent.');
+                        throw new Error('Invalid priority level. Must be one of: low, normal, high, urgent.');
                     }
                     throw new Error('Invalid data provided. Please check your input values.');
                 }
@@ -786,7 +786,7 @@ class ProjectService {
                         throw new Error('Invalid project status. Must be one of: active, on_hold, delayed, cancelled, completed.');
                     }
                     if (error.message.includes('priority_level')) {
-                        throw new Error('Invalid priority level. Must be one of: low, medium, high, urgent.');
+                        throw new Error('Invalid priority level. Must be one of: low, normal, high, urgent.');
                     }
                     throw new Error('Invalid data provided. Please check your input values.');
                 }
