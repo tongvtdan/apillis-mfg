@@ -32,8 +32,10 @@ export class CustomerOrganizationServiceSimplified {
                         is_active
                     )
                 `)
-                .eq('contacts.type', 'customer')
-                .eq('contacts.is_active', true)
+                .eq('organization_type', 'customer' as any)
+                .eq('is_active', true as any)
+                .eq('contacts.type', 'customer' as any)
+                .eq('contacts.is_active', true as any)
                 .order('name');
 
             if (error) {
@@ -41,7 +43,7 @@ export class CustomerOrganizationServiceSimplified {
             }
 
             // Process organizations to set primary contact
-            const organizations = (data || []).map(org => ({
+            const organizations = (data || []).map((org: any) => ({
                 ...org,
                 primary_contact: org.contacts?.find((c: Contact) => c.is_primary_contact) || org.contacts?.[0] || null
             }));
@@ -74,9 +76,11 @@ export class CustomerOrganizationServiceSimplified {
                         is_active
                     )
                 `)
-                .eq('id', organizationId)
-                .eq('contacts.type', 'customer')
-                .eq('contacts.is_active', true)
+                .eq('id', organizationId as any)
+                .eq('organization_type', 'customer' as any)
+                .eq('is_active', true as any)
+                .eq('contacts.type', 'customer' as any)
+                .eq('contacts.is_active', true as any)
                 .single();
 
             if (error) {
@@ -361,8 +365,10 @@ export class CustomerOrganizationServiceSimplified {
                     )
                 `)
                 .or(`name.ilike.%${query}%,slug.ilike.%${query}%,description.ilike.%${query}%`)
-                .eq('contacts.type', 'customer')
-                .eq('contacts.is_active', true)
+                .eq('organization_type', 'customer' as any)
+                .eq('is_active', true as any)
+                .eq('contacts.type', 'customer' as any)
+                .eq('contacts.is_active', true as any)
                 .order('name');
 
             if (error) {
@@ -370,7 +376,7 @@ export class CustomerOrganizationServiceSimplified {
             }
 
             // Process organizations to set primary contact
-            const organizations = (data || []).map(org => ({
+            const organizations = (data || []).map((org: any) => ({
                 ...org,
                 primary_contact: org.contacts?.find((c: Contact) => c.is_primary_contact) || org.contacts?.[0] || null
             }));
