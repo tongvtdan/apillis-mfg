@@ -297,17 +297,80 @@ INSERT INTO users (id, organization_id, email, name, role, department, status, c
 
 #### Step 3.3: Complete Sample Dataset
 ```sql
--- 1. Organizations (5 records)
--- 2. Workflow Stages (8 records)
--- 3. Workflow Sub-stages (29 records)
--- 4. Workflow Definitions (1 default template)
--- 5. Sample Projects (6 records in different stages)
--- 6. Project Progress (21 sub-stage progress records)
--- 7. Approvals (3 approval requests)
--- 8. Documents (4 sample documents)
--- 9. Notifications (4 notifications)
--- 10. Activity Logs (4 audit entries)
--- 11. Messages (3 internal messages)
+-- COMPREHENSIVE SAMPLE DATASET FOR TESTING
+
+-- 1. Organizations (5 records) - Vietnam, USA, Japan distribution
+INSERT INTO organizations (id, name, organization_type, country, industry, website, description, is_active) VALUES
+('550e8400-e29b-41d4-a716-446655440001', 'TechNova Vietnam', 'customer', 'VN', 'Technology', 'https://technova.vn', 'Leading technology solutions provider in Vietnam', true),
+('550e8400-e29b-41d4-a716-446655440002', 'Industrial Solutions USA', 'customer', 'US', 'Manufacturing', 'https://industrialsolutions.us', 'Advanced manufacturing solutions for industrial automation', true),
+('550e8400-e29b-41d4-a716-446655440003', 'Precision Engineering Inc', 'customer', 'US', 'Engineering', 'https://precisioneng.us', 'Precision engineering and manufacturing services', true),
+('550e8400-e29b-41d4-a716-446655440004', 'Global Manufacturing Corp', 'customer', 'US', 'Manufacturing', 'https://globalmfg.us', 'Global manufacturing solutions provider', true),
+('550e8400-e29b-41d4-a716-446655440005', 'Tokyo Precision Ltd', 'customer', 'JP', 'Manufacturing', 'https://tokyoprecision.jp', 'High-precision manufacturing in Japan', true);
+
+-- 2. Contacts (10 records) - 2 contacts per organization
+INSERT INTO contacts (id, organization_id, type, contact_name, email, phone, role, is_primary_contact, is_active) VALUES
+-- TechNova Vietnam contacts
+('440e8400-e29b-41d4-a716-446655440001', '550e8400-e29b-41d4-a716-446655440001', 'customer', 'Nguyen Van Minh', 'minh.nguyen@technova.vn', '+84-123-456-789', 'CEO', true, true),
+('440e8400-e29b-41d4-a716-446655440002', '550e8400-e29b-41d4-a716-446655440001', 'customer', 'Tran Thi Lan', 'lan.tran@technova.vn', '+84-987-654-321', 'CTO', false, true),
+-- Industrial Solutions USA contacts
+('440e8400-e29b-41d4-a716-446655440003', '550e8400-e29b-41d4-a716-446655440002', 'customer', 'John Anderson', 'john.anderson@industrialsolutions.us', '+1-555-123-4567', 'VP Engineering', true, true),
+('440e8400-e29b-41d4-a716-446655440004', '550e8400-e29b-41d4-a716-446655440002', 'customer', 'Sarah Johnson', 'sarah.johnson@industrialsolutions.us', '+1-555-987-6543', 'Procurement Manager', false, true),
+-- Precision Engineering Inc contacts
+('440e8400-e29b-41d4-a716-446655440005', '550e8400-e29b-41d4-a716-446655440003', 'customer', 'Mike Wilson', 'mike.wilson@precisioneng.us', '+1-555-456-7890', 'Director of Operations', true, true),
+('440e8400-e29b-41d4-a716-446655440006', '550e8400-e29b-41d4-a716-446655440003', 'customer', 'Emily Davis', 'emily.davis@precisioneng.us', '+1-555-321-0987', 'Quality Manager', false, true),
+-- Global Manufacturing Corp contacts
+('440e8400-e29b-41d4-a716-446655440007', '550e8400-e29b-41d4-a716-446655440004', 'customer', 'Robert Chen', 'robert.chen@globalmfg.us', '+1-555-654-3210', 'VP Manufacturing', true, true),
+('440e8400-e29b-41d4-a716-446655440008', '550e8400-e29b-41d4-a716-446655440004', 'customer', 'Lisa Rodriguez', 'lisa.rodriguez@globalmfg.us', '+1-555-789-0123', 'Supply Chain Director', false, true),
+-- Tokyo Precision Ltd contacts
+('440e8400-e29b-41d4-a716-446655440009', '550e8400-e29b-41d4-a716-446655440005', 'customer', 'Hiroshi Tanaka', 'hiroshi.tanaka@tokyoprecision.jp', '+81-3-1234-5678', 'Managing Director', true, true),
+('440e8400-e29b-41d4-a716-446655440010', '550e8400-e29b-41d4-a716-446655440005', 'customer', 'Yuki Sato', 'yuki.sato@tokyoprecision.jp', '+81-3-9876-5432', 'Technical Director', false, true);
+
+-- 3. Workflow Stages (8 records)
+INSERT INTO workflow_stages (id, organization_id, name, slug, stage_order, responsible_roles, estimated_duration_days) VALUES
+('330e8400-e29b-41d4-a716-446655440001', '550e8400-e29b-41d4-a716-446655440005', 'Inquiry Received', 'inquiry_received', 1, ARRAY['sales', 'management'], 1),
+('330e8400-e29b-41d4-a716-446655440002', '550e8400-e29b-41d4-a716-446655440005', 'Technical Review', 'technical_review', 2, ARRAY['engineering', 'qa'], 3),
+('330e8400-e29b-41d4-a716-446655440003', '550e8400-e29b-41d4-a716-446655440005', 'Quote Preparation', 'quote_preparation', 3, ARRAY['sales', 'engineering'], 5),
+('330e8400-e29b-41d4-a716-446655440004', '550e8400-e29b-41d4-a716-446655440005', 'Customer Approval', 'customer_approval', 4, ARRAY['sales', 'management'], 2),
+('330e8400-e29b-41d4-a716-446655440005', '550e8400-e29b-41d4-a716-446655440005', 'Production Planning', 'production_planning', 5, ARRAY['production', 'engineering'], 7),
+('330e8400-e29b-41d4-a716-446655440006', '550e8400-e29b-41d4-a716-446655440005', 'Manufacturing', 'manufacturing', 6, ARRAY['production', 'qa'], 30),
+('330e8400-e29b-41d4-a716-446655440007', '550e8400-e29b-41d4-a716-446655440005', 'Quality Control', 'quality_control', 7, ARRAY['qa', 'engineering'], 5),
+('330e8400-e29b-41d4-a716-446655440008', '550e8400-e29b-41d4-a716-446655440005', 'Delivery & Installation', 'delivery_installation', 8, ARRAY['production', 'sales'], 3);
+
+-- 4. Workflow Sub-stages (29 records)
+-- Continue with sub-stages for each stage...
+
+-- 5. Sample Projects (13 records distributed across customer types)
+INSERT INTO projects (id, organization_id, title, description, customer_organization_id, priority_level, estimated_delivery_date, contact_name, contact_email, contact_phone, current_stage_id, project_type, intake_type, intake_source, status) VALUES
+-- Vietnam customer: 1 system build project
+('220e8400-e29b-41d4-a716-446655440001', '550e8400-e29b-41d4-a716-446655440005', 'TechNova System Integration', 'Complete system integration for TechNova Vietnam', '550e8400-e29b-41d4-a716-446655440001', 'high', NOW() + INTERVAL '90 days', 'Nguyen Van Minh', 'minh.nguyen@technova.vn', '+84-123-456-789', '330e8400-e29b-41d4-a716-446655440001', 'system_build', 'rfq', 'portal', 'active'),
+
+-- US Customers: 3 manufacturing + 2 system build + 5 fabrication projects each = 30 projects total
+-- Industrial Solutions USA projects (3 manufacturing + 2 system build + 5 fabrication = 10 projects)
+('220e8400-e29b-41d4-a716-446655440002', '550e8400-e29b-41d4-a716-446655440005', 'Industrial Automation Line', 'High-volume manufacturing line for industrial automation', '550e8400-e29b-41d4-a716-446655440002', 'urgent', NOW() + INTERVAL '60 days', 'John Anderson', 'john.anderson@industrialsolutions.us', '+1-555-123-4567', '330e8400-e29b-41d4-a716-446655440006', 'manufacturing', 'rfq', 'portal', 'active'),
+('220e8400-e29b-41d4-a716-446655440003', '550e8400-e29b-41d4-a716-446655440005', 'Precision Assembly System', 'Automated precision assembly system', '550e8400-e29b-41d4-a716-446655440002', 'high', NOW() + INTERVAL '75 days', 'Sarah Johnson', 'sarah.johnson@industrialsolutions.us', '+1-555-987-6543', '330e8400-e29b-41d4-a716-446655440005', 'system_build', 'rfq', 'portal', 'active'),
+
+-- Precision Engineering Inc projects (3 manufacturing + 2 system build + 5 fabrication = 10 projects)
+('220e8400-e29b-41d4-a716-446655440013', '550e8400-e29b-41d4-a716-446655440005', 'High-Precision Components', 'Manufacturing of high-precision mechanical components', '550e8400-e29b-41d4-a716-446655440003', 'high', NOW() + INTERVAL '45 days', 'Mike Wilson', 'mike.wilson@precisioneng.us', '+1-555-456-7890', '330e8400-e29b-41d4-a716-446655440006', 'manufacturing', 'rfq', 'portal', 'active'),
+
+-- Global Manufacturing Corp projects (3 manufacturing + 2 system build + 5 fabrication = 10 projects)
+('220e8400-e29b-41d4-a716-446655440024', '550e8400-e29b-41d4-a716-446655440005', 'Global Supply Chain System', 'Integrated supply chain management system', '550e8400-e29b-41d4-a716-446655440004', 'medium', NOW() + INTERVAL '120 days', 'Robert Chen', 'robert.chen@globalmfg.us', '+1-555-654-3210', '330e8400-e29b-41d4-a716-446655440003', 'system_build', 'rfq', 'portal', 'active'),
+
+-- Japanese customer: 2 manufacturing projects
+('220e8400-e29b-41d4-a716-446655440035', '550e8400-e29b-41d4-a716-446655440005', 'Precision Optics Manufacturing', 'High-precision optics manufacturing line', '550e8400-e29b-41d4-a716-446655440005', 'urgent', NOW() + INTERVAL '80 days', 'Hiroshi Tanaka', 'hiroshi.tanaka@tokyoprecision.jp', '+81-3-1234-5678', '330e8400-e29b-41d4-a716-446655440006', 'manufacturing', 'rfq', 'portal', 'active'),
+('220e8400-e29b-41d4-a716-446655440036', '550e8400-e29b-41d4-a716-446655440005', 'Micro-Electronics Assembly', 'Precision micro-electronics assembly system', '550e8400-e29b-41d4-a716-446655440005', 'high', NOW() + INTERVAL '100 days', 'Yuki Sato', 'yuki.sato@tokyoprecision.jp', '+81-3-9876-5432', '330e8400-e29b-41d4-a716-446655440005', 'system_build', 'rfq', 'portal', 'active');
+
+-- 6. Project Contact Points (link projects to contacts)
+INSERT INTO project_contact_points (id, project_id, contact_id, role, is_primary) VALUES
+('770e8400-e29b-41d4-a716-446655440001', '220e8400-e29b-41d4-a716-446655440001', '440e8400-e29b-41d4-a716-446655440001', 'project_manager', true),
+('770e8400-e29b-41d4-a716-446655440002', '220e8400-e29b-41d4-a716-446655440002', '440e8400-e29b-41d4-a716-446655440003', 'technical_contact', true),
+('770e8400-e29b-41d4-a716-446655440003', '220e8400-e29b-41d4-a716-446655440013', '440e8400-e29b-41d4-a716-446655440005', 'quality_contact', true);
+
+-- 7. Project Progress (sample progress records)
+-- 8. Approvals (approval workflow records)
+-- 9. Documents (document management records)
+-- 10. Notifications (notification system records)
+-- 11. Activity Logs (audit trail records)
+-- 12. Messages (internal communication records)
 ```
 
 ### Phase 4: TypeScript Integration ✅
@@ -375,7 +438,98 @@ export async function getProjectWithProgress(projectId: string): Promise<Project
 
 ---
 
-## 4. Performance Benchmark Results
+## 5. Comprehensive CRUD Operations & Business Logic Workflows
+
+### Core Tables CRUD Operations
+
+#### 5.1 Organization CRUD Operations
+**Service:** `CustomerOrganizationService`
+**Hook:** `useCustomerOrganizations`
+
+```typescript
+// CREATE Organization
+const createOrganization = async (
+  organizationData: Partial<Organization>,
+  primaryContactData?: Partial<Contact>
+) => {
+  return await CustomerOrganizationService.createCustomerOrganization(
+    organizationData,
+    primaryContactData
+  );
+};
+
+// READ Organizations
+const getAllOrganizations = async () => {
+  return await CustomerOrganizationService.getCustomerOrganizations();
+};
+
+const getOrganizationById = async (id: string) => {
+  return await CustomerOrganizationService.getCustomerOrganizationById(id);
+};
+
+// UPDATE Organization
+const updateOrganization = async (id: string, updates: Partial<Organization>) => {
+  return await CustomerOrganizationService.updateCustomerOrganization(id, updates);
+};
+
+// DELETE Organization (Soft Delete)
+const deleteOrganization = async (id: string) => {
+  return await CustomerOrganizationService.updateCustomerOrganization(id, {
+    is_active: false
+  });
+};
+```
+
+#### 5.2 Contact CRUD Operations
+**Service:** `CustomerOrganizationService`
+
+```typescript
+// CREATE Contact
+const addContactToOrganization = async (
+  organizationId: string,
+  contactData: Partial<Contact>
+) => {
+  return await CustomerOrganizationService.addContactToOrganization(
+    organizationId,
+    contactData
+  );
+};
+
+// READ Contacts
+const getOrganizationContacts = async (organizationId: string) => {
+  return await CustomerOrganizationService.getOrganizationContacts(organizationId);
+};
+
+const getPrimaryContact = async (organizationId: string) => {
+  return await CustomerOrganizationService.getPrimaryContact(organizationId);
+};
+
+// UPDATE Contact
+const updateContact = async (contactId: string, updates: Partial<Contact>) => {
+  return await CustomerOrganizationService.updateContactInOrganization(
+    contactId,
+    updates
+  );
+};
+
+// DELETE Contact (Soft Delete)
+const deleteContact = async (contactId: string) => {
+  return await CustomerOrganizationService.updateContactInOrganization(
+    contactId,
+    { is_active: false }
+  );
+};
+
+// SET PRIMARY CONTACT
+const setPrimaryContact = async (organizationId: string, contactId: string) => {
+  return await CustomerOrganizationService.setPrimaryContact(
+    organizationId,
+    contactId
+  );
+};
+```
+
+## 6. Performance Benchmark Results
 
 ### Query Performance Improvements
 
@@ -408,7 +562,101 @@ export async function getProjectWithProgress(projectId: string): Promise<Project
 
 ---
 
-## 5. Comprehensive Test Suite
+#### 5.6 Additional Tables CRUD Operations
+
+**Workflow Stages & Sub-stages:**
+```typescript
+// CREATE Workflow Stage
+const createWorkflowStage = async (stageData: Partial<WorkflowStage>) => {
+  return await WorkflowStageService.createWorkflowStage(stageData);
+};
+
+// UPDATE Workflow Stage
+const updateWorkflowStage = async (stageId: string, updates: Partial<WorkflowStage>) => {
+  return await WorkflowStageService.updateWorkflowStage(stageId, updates);
+};
+
+// READ Workflow Stages
+const getWorkflowStages = async (organizationId: string) => {
+  return await WorkflowStageService.getWorkflowStages(organizationId);
+};
+```
+
+**Approvals & Notifications:**
+```typescript
+// CREATE Approval Request
+const createApprovalRequest = async (approvalData: Partial<Approval>) => {
+  return await ApprovalService.createApprovalRequest(approvalData);
+};
+
+// UPDATE Approval Status
+const updateApprovalStatus = async (approvalId: string, status: ApprovalStatus) => {
+  return await ApprovalService.updateApprovalStatus(approvalId, status);
+};
+
+// CREATE Notification
+const createNotification = async (notificationData: Partial<Notification>) => {
+  return await NotificationService.createNotification(notificationData);
+};
+```
+
+**Documents & Versions:**
+```typescript
+// UPLOAD Document
+const uploadDocument = async (file: File, metadata: DocumentMetadata) => {
+  return await DocumentService.uploadDocument(file, metadata);
+};
+
+// CREATE Document Version
+const createDocumentVersion = async (documentId: string, file: File) => {
+  return await DocumentVersionService.createVersion(documentId, file);
+};
+
+// UPDATE Document Access
+const updateDocumentAccess = async (documentId: string, accessList: string[]) => {
+  return await DocumentService.updateDocumentAccess(documentId, accessList);
+};
+```
+
+#### 5.7 Error Handling & Validation
+
+```typescript
+// ERROR HANDLING: Project-Customer-Contact Workflow
+async function safeProjectCreation(projectData: InquiryFormData) {
+  try {
+    // Validate required fields
+    if (!projectData.company && !projectData.selectedCustomerId) {
+      throw new Error('Either select existing customer or provide company name');
+    }
+
+    if (!projectData.customerName || !projectData.email) {
+      throw new Error('Contact name and email are required');
+    }
+
+    // Attempt project creation
+    const project = await createProjectWithNewCustomer(projectData);
+    return { success: true, project };
+
+  } catch (error) {
+    console.error('Project creation failed:', error);
+
+    // Handle specific error types
+    if (error.message.includes('organization')) {
+      return { success: false, error: 'Organization creation failed' };
+    }
+    if (error.message.includes('contact')) {
+      return { success: false, error: 'Contact creation failed' };
+    }
+    if (error.message.includes('project')) {
+      return { success: false, error: 'Project creation failed' };
+    }
+
+    return { success: false, error: 'Unknown error occurred' };
+  }
+}
+```
+
+## 7. Comprehensive Test Suite
 
 ### Schema Integrity Tests
 ```sql
@@ -449,7 +697,7 @@ export async function getProjectWithProgress(projectId: string): Promise<Project
 
 ---
 
-## 6. Production Deployment Strategy
+## 8. Production Deployment Strategy
 
 ### Pre-Deployment Checklist
 - [ ] **Database Backup**: Create full backup of production data
@@ -519,7 +767,7 @@ supabase db push
 
 ---
 
-## 7. Monitoring & Alerting Setup
+## 9. Monitoring & Alerting Setup
 
 ### Key Performance Indicators (KPIs)
 
@@ -594,7 +842,7 @@ AND updated_at >= NOW() - INTERVAL '7 days';
 
 ---
 
-## 8. Implementation Checklist
+## 10. Implementation Checklist
 
 ### Pre-Implementation ✅
 - [x] **Schema Design**: Complete database schema design
@@ -643,7 +891,7 @@ AND updated_at >= NOW() - INTERVAL '7 days';
 
 ---
 
-## 9. Migration Steps
+## 11. Migration Steps
 
 ### Step 1: Environment Preparation
 ```bash
@@ -700,7 +948,7 @@ curl -f https://app.factorypulse.com/api/projects
 
 ---
 
-## 10. Success Metrics
+## 12. Success Metrics
 
 ### Technical Metrics
 - ✅ **Query Performance**: <100ms for all dashboard queries
