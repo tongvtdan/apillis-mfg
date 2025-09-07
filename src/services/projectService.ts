@@ -400,21 +400,30 @@ class ProjectService {
 
         console.log('🔍 TransformProjectData: Starting transformation for project:', data.id);
         console.log('🔍 TransformProjectData: Full data object:', data);
+        console.log('🔍 TransformProjectData: Field types check:', {
+            id: typeof data.id,
+            title: typeof data.title,
+            description: typeof data.description,
+            priority_level: typeof data.priority_level,
+            status: typeof data.status,
+            source: typeof data.source,
+            organization_id: typeof data.organization_id
+        });
 
         try {
             // Handle nullable fields properly with proper type checking
             const transformedProject: Project = {
                 // Core database fields - direct mapping with type safety
-                id: this.validateString(data.id, 'id'),
-                organization_id: this.validateString(data.organization_id, 'organization_id'),
-                project_id: this.validateString(data.project_id, 'project_id'),
-                title: this.validateString(data.title, 'title'),
+                id: (() => { console.log('🔍 Validating id:', data.id, typeof data.id); return this.validateString(data.id, 'id'); })(),
+                organization_id: (() => { console.log('🔍 Validating organization_id:', data.organization_id, typeof data.organization_id); return this.validateString(data.organization_id, 'organization_id'); })(),
+                project_id: (() => { console.log('🔍 Validating project_id:', data.project_id, typeof data.project_id); return this.validateString(data.project_id, 'project_id'); })(),
+                title: (() => { console.log('🔍 Validating title:', data.title, typeof data.title); return this.validateString(data.title, 'title'); })(),
                 description: this.validateOptionalString(data.description),
                 customer_id: this.validateOptionalString(data.customer_id),
                 current_stage_id: this.validateOptionalString(data.current_stage_id),
-                status: this.validateString(data.status, 'status'),
+                status: (() => { console.log('🔍 Validating status:', data.status, typeof data.status); return this.validateString(data.status, 'status'); })(),
                 priority_level: this.validateOptionalString(data.priority_level),
-                source: this.validateString(data.source, 'source'),
+                source: (() => { console.log('🔍 Validating source:', data.source, typeof data.source); return this.validateString(data.source, 'source'); })(),
                 assigned_to: this.validateOptionalString(data.assigned_to),
                 created_by: this.validateOptionalString(data.created_by),
                 estimated_value: this.validateOptionalNumber(data.estimated_value),
