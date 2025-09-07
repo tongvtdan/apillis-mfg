@@ -423,7 +423,7 @@ class ProjectService {
                 current_stage_id: this.validateOptionalString(data.current_stage_id),
                 status: (() => { console.log('🔍 Validating status:', data.status, typeof data.status); return this.validateString(data.status, 'status'); })(),
                 priority_level: this.validateOptionalString(data.priority_level),
-                source: (() => { console.log('🔍 Validating source:', data.source, typeof data.source); return this.validateString(data.source, 'source'); })(),
+                source: (() => { console.log('🔍 Validating source:', data.source, typeof data.source); return this.validateOptionalString(data.source); })(),
                 assigned_to: this.validateOptionalString(data.assigned_to),
                 created_by: this.validateOptionalString(data.created_by),
                 estimated_value: this.validateOptionalNumber(data.estimated_value),
