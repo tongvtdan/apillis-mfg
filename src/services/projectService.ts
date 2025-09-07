@@ -398,6 +398,13 @@ class ProjectService {
             throw new Error('No project data provided for transformation');
         }
 
+        console.log('🔍 TransformProjectData: Input data:', {
+            id: data.id,
+            priority_level: data.priority_level,
+            priority_level_type: typeof data.priority_level,
+            priority_level_value: data.priority_level
+        });
+
         try {
             // Handle nullable fields properly with proper type checking
             const transformedProject: Project = {
@@ -433,7 +440,9 @@ class ProjectService {
 
             return transformedProject;
         } catch (error) {
-            console.error('Error transforming project data:', error);
+            console.error('❌ TransformProjectData Error:', error);
+            console.error('❌ TransformProjectData Error message:', error instanceof Error ? error.message : 'Unknown error');
+            console.error('❌ TransformProjectData Error stack:', error instanceof Error ? error.stack : 'No stack trace');
             throw new Error(`Failed to transform project data: ${error instanceof Error ? error.message : 'Unknown error'}`);
         }
     }
@@ -990,14 +999,20 @@ class ProjectService {
     }
 
     private validateOptionalString(value: any): string | undefined {
+        console.log('🔍 ValidateOptionalString: Input:', { value, type: typeof value });
+        
         if (value === null || value === undefined) {
+            console.log('🔍 ValidateOptionalString: Returning undefined (null/undefined)');
             return undefined;
         }
         if (typeof value !== 'string') {
+            console.log('🔍 ValidateOptionalString: Returning undefined (not string)');
             return undefined;
         }
         const trimmed = value.trim();
-        return trimmed === '' ? undefined : trimmed;
+        const result = trimmed === '' ? undefined : trimmed;
+        console.log('🔍 ValidateOptionalString: Result:', result);
+        return result;
     }
 
     private validateOptionalNumber(value: any): number | undefined {
