@@ -60,6 +60,8 @@ CREATE TYPE notification_type AS ENUM (
     'workflow', 'approval', 'document', 'message', 'system'
 );
 
+CREATE TYPE notification_priority AS ENUM ('low', 'normal', 'high', 'urgent');
+
 -- =========================================
 -- 2. CORE ENTITIES
 -- =========================================
@@ -404,6 +406,161 @@ CREATE TABLE IF NOT EXISTS approvals (
 );
 
 -- =========================================
+-- 6. DOCUMENT MANAGEMENT SYSTEM
+-- =========================================
+
+-- Documents table (comprehensive)
+CREATE TABLE IF NOT EXISTS documents (
+    id UUID DEFAULT uuid_generate_v4() PRIMARY KEY,
+    organization_id UUID NOT NULL REFERENCES organizations(id) ON DELETE CASCADE,
+    project_id UUID REFERENCES projects(id) ON DELETE SET NULL,
+    title TEXT NOT NULL,
+    description TEXT,
+    file_name TEXT NOT NULL,
+    file_path TEXT NOT NULL,
+    file_size BIGINT,
+    mime_type TEXT,
+    category document_category DEFAULT 'other',
+    version_number INTEGER DEFAULT 1,
+    is_current_version BOOLEAN DEFAULT true,
+    storage_provider TEXT DEFAULT 'local',
+    checksum TEXT,
+    access_level TEXT DEFAULT 'organization',
+    tags TEXT[] DEFAULT ARRAY[]::TEXT[],
+    metadata JSONB DEFAULT '{}'::jsonb,
+    uploaded_by UUID REFERENCES users(id),
+    approved_by UUID REFERENCES users(id),
+    approved_at TIMESTAMPTZ,
+    created_at TIMESTAMPTZ DEFAULT NOW(),
+    updated_at TIMESTAMPTZ DEFAULT NOW()
+);
+
+-- Document versions table
+CREATE TABLE IF NOT EXISTS document_versions (
+    id UUID DEFAULT uuid_generate_v4() PRIMARY KEY,
+    organization_id UUID NOT NULL REFERENCES organizations(id) ON DELETE CASCADE,
+    document_id UUID NOT NULL REFERENCES documents(id) ON DELETE CASCADE,
+    version_number INTEGER NOT NULL,
+    file_path TEXT NOT NULL,
+    file_size BIGINT,
+    mime_type TEXT,
+    checksum TEXT,
+    uploaded_by UUID NOT NULL REFERENCES users(id),
+    uploaded_at TIMESTAMPTZ DEFAULT NOW(),
+    change_summary TEXT,
+    is_current BOOLEAN DEFAULT false,
+    metadata JSONB DEFAULT '{}'::jsonb,
+    created_at TIMESTAMPTZ DEFAULT NOW()
+);
+
+-- Document access log table
+CREATE TABLE IF NOT EXISTS document_access_log (
+    id UUID DEFAULT uuid_generate_v4() PRIMARY KEY,
+    organization_id UUID NOT NULL REFERENCES organizations(id) ON DELETE CASCADE,
+    document_id UUID NOT NULL REFERENCES documents(id) ON DELETE CASCADE,
+    user_id UUID REFERENCES users(id),
+    action TEXT NOT NULL, -- 'view', 'download', 'upload', 'delete', 'share'
+    ip_address INET,
+    user_agent TEXT,
+    accessed_at TIMESTAMPTZ DEFAULT NOW(),
+    metadata JSONB DEFAULT '{}'::jsonb
+);
+
+-- =========================================
+-- 7. COMMUNICATION AND NOTIFICATION SYSTEM
+-- =========================================
+
+-- Activity log table (comprehensive audit trail)
+CREATE TABLE IF NOT EXISTS activity_log (
+    id UUID DEFAULT uuid_generate_v4() PRIMARY KEY,
+    organization_id UUID NOT NULL REFERENCES organizations(id) ON DELETE CASCADE,
+    user_id UUID REFERENCES users(id),
+    project_id UUID REFERENCES projects(id),
+    entity_type TEXT NOT NULL, -- 'project', 'document', 'approval', 'user', etc.
+    entity_id TEXT NOT NULL,
+    action TEXT NOT NULL, -- 'create', 'update', 'delete', 'approve', etc.
+    description TEXT,
+    old_values JSONB,
+    new_values JSONB,
+    ip_address INET,
+    user_agent TEXT,
+    metadata JSONB DEFAULT '{}'::jsonb,
+    created_at TIMESTAMPTZ DEFAULT NOW()
+);
+
+-- Messages table (internal communication)
+CREATE TABLE IF NOT EXISTS messages (
+    id UUID DEFAULT uuid_generate_v4() PRIMARY KEY,
+    organization_id UUID NOT NULL REFERENCES organizations(id) ON DELETE CASCADE,
+    project_id UUID REFERENCES projects(id),
+    sender_id UUID NOT NULL REFERENCES users(id),
+    recipient_id UUID REFERENCES users(id),
+    subject TEXT NOT NULL,
+    content TEXT NOT NULL,
+    message_type TEXT,
+    priority notification_priority DEFAULT 'normal',
+    is_read BOOLEAN DEFAULT false,
+    read_at TIMESTAMPTZ,
+    parent_message_id UUID REFERENCES messages(id),
+    thread_id UUID,
+    metadata JSONB DEFAULT '{}'::jsonb,
+    created_at TIMESTAMPTZ DEFAULT NOW()
+);
+
+-- Notifications table (system notifications)
+CREATE TABLE IF NOT EXISTS notifications (
+    id UUID DEFAULT uuid_generate_v4() PRIMARY KEY,
+    organization_id UUID NOT NULL REFERENCES organizations(id) ON DELETE CASCADE,
+    user_id UUID NOT NULL REFERENCES users(id),
+    type notification_type DEFAULT 'system',
+    title TEXT NOT NULL,
+    message TEXT NOT NULL,
+    priority notification_priority DEFAULT 'normal',
+    action_url TEXT,
+    is_read BOOLEAN DEFAULT false,
+    read_at TIMESTAMPTZ,
+    expires_at TIMESTAMPTZ,
+    metadata JSONB DEFAULT '{}'::jsonb,
+    created_at TIMESTAMPTZ DEFAULT NOW()
+);
+
+-- =========================================
+-- 8. APPROVAL SYSTEM EXTENSIONS
+-- =========================================
+
+-- Approval history table
+CREATE TABLE IF NOT EXISTS approval_history (
+    id UUID DEFAULT uuid_generate_v4() PRIMARY KEY,
+    organization_id UUID NOT NULL REFERENCES organizations(id) ON DELETE CASCADE,
+    approval_id UUID NOT NULL REFERENCES approvals(id) ON DELETE CASCADE,
+    user_id UUID NOT NULL REFERENCES users(id),
+    action approval_action NOT NULL,
+    old_status approval_status,
+    new_status approval_status,
+    comments TEXT,
+    metadata JSONB DEFAULT '{}'::jsonb,
+    created_at TIMESTAMPTZ DEFAULT NOW()
+);
+
+-- Approval attachments table
+CREATE TABLE IF NOT EXISTS approval_attachments (
+    id UUID DEFAULT uuid_generate_v4() PRIMARY KEY,
+    organization_id UUID NOT NULL REFERENCES organizations(id) ON DELETE CASCADE,
+    approval_id UUID NOT NULL REFERENCES approvals(id) ON DELETE CASCADE,
+    uploaded_by UUID NOT NULL REFERENCES users(id),
+    file_name TEXT NOT NULL,
+    original_file_name TEXT,
+    file_type TEXT,
+    file_size BIGINT,
+    file_url TEXT,
+    mime_type TEXT,
+    attachment_type TEXT DEFAULT 'supporting_document',
+    description TEXT,
+    metadata JSONB DEFAULT '{}'::jsonb,
+    uploaded_at TIMESTAMPTZ DEFAULT NOW()
+);
+
+-- =========================================
 -- INDEXES FOR PERFORMANCE
 -- =========================================
 
@@ -442,6 +599,31 @@ CREATE INDEX IF NOT EXISTS idx_approvals_due ON approvals(sla_due_at);
 CREATE INDEX IF NOT EXISTS idx_approvals_current_approver ON approvals(current_approver_id);
 
 -- =========================================
+-- HELPER FUNCTIONS (MUST BE CREATED FIRST)
+-- =========================================
+
+-- Updated_at trigger function
+CREATE OR REPLACE FUNCTION update_updated_at_column()
+RETURNS TRIGGER AS $$
+BEGIN
+    NEW.updated_at = NOW();
+    RETURN NEW;
+END;
+$$ LANGUAGE plpgsql;
+
+-- Function to get current user's organization ID
+CREATE OR REPLACE FUNCTION get_current_user_org_id()
+RETURNS UUID AS $$
+BEGIN
+    RETURN (
+        SELECT organization_id
+        FROM users
+        WHERE id = auth.uid()
+    );
+END;
+$$ LANGUAGE plpgsql SECURITY DEFINER;
+
+-- =========================================
 -- ROW LEVEL SECURITY (RLS) POLICIES
 -- =========================================
 
@@ -457,6 +639,14 @@ ALTER TABLE workflow_definition_sub_stages ENABLE ROW LEVEL SECURITY;
 ALTER TABLE projects ENABLE ROW LEVEL SECURITY;
 ALTER TABLE project_sub_stage_progress ENABLE ROW LEVEL SECURITY;
 ALTER TABLE approvals ENABLE ROW LEVEL SECURITY;
+ALTER TABLE documents ENABLE ROW LEVEL SECURITY;
+ALTER TABLE document_versions ENABLE ROW LEVEL SECURITY;
+ALTER TABLE document_access_log ENABLE ROW LEVEL SECURITY;
+ALTER TABLE activity_log ENABLE ROW LEVEL SECURITY;
+ALTER TABLE messages ENABLE ROW LEVEL SECURITY;
+ALTER TABLE notifications ENABLE ROW LEVEL SECURITY;
+ALTER TABLE approval_history ENABLE ROW LEVEL SECURITY;
+ALTER TABLE approval_attachments ENABLE ROW LEVEL SECURITY;
 
 -- Organization-scoped policies (SELECT, INSERT, UPDATE, DELETE)
 CREATE POLICY "org_select_policy" ON organizations FOR SELECT USING (auth.role() = 'authenticated');
@@ -540,18 +730,79 @@ CREATE POLICY "approvals_update_policy" ON approvals FOR UPDATE USING (
     organization_id = (SELECT get_current_user_org_id())
 );
 
+-- Document policies
+CREATE POLICY "documents_select_policy" ON documents FOR SELECT USING (
+    organization_id = (SELECT get_current_user_org_id())
+);
+CREATE POLICY "documents_insert_policy" ON documents FOR INSERT WITH CHECK (
+    organization_id = (SELECT get_current_user_org_id())
+);
+CREATE POLICY "documents_update_policy" ON documents FOR UPDATE USING (
+    organization_id = (SELECT get_current_user_org_id())
+);
+
+-- Document versions policies
+CREATE POLICY "document_versions_select_policy" ON document_versions FOR SELECT USING (
+    organization_id = (SELECT get_current_user_org_id())
+);
+CREATE POLICY "document_versions_insert_policy" ON document_versions FOR INSERT WITH CHECK (
+    organization_id = (SELECT get_current_user_org_id())
+);
+
+-- Document access log policies
+CREATE POLICY "document_access_log_select_policy" ON document_access_log FOR SELECT USING (
+    organization_id = (SELECT get_current_user_org_id())
+);
+CREATE POLICY "document_access_log_insert_policy" ON document_access_log FOR INSERT WITH CHECK (
+    organization_id = (SELECT get_current_user_org_id())
+);
+
+-- Activity log policies
+CREATE POLICY "activity_log_select_policy" ON activity_log FOR SELECT USING (
+    organization_id = (SELECT get_current_user_org_id())
+);
+CREATE POLICY "activity_log_insert_policy" ON activity_log FOR INSERT WITH CHECK (
+    organization_id = (SELECT get_current_user_org_id())
+);
+
+-- Messages policies
+CREATE POLICY "messages_select_policy" ON messages FOR SELECT USING (
+    organization_id = (SELECT get_current_user_org_id())
+);
+CREATE POLICY "messages_insert_policy" ON messages FOR INSERT WITH CHECK (
+    organization_id = (SELECT get_current_user_org_id()) AND sender_id = auth.uid()
+);
+
+-- Notifications policies
+CREATE POLICY "notifications_select_policy" ON notifications FOR SELECT USING (
+    organization_id = (SELECT get_current_user_org_id()) AND user_id = auth.uid()
+);
+CREATE POLICY "notifications_insert_policy" ON notifications FOR INSERT WITH CHECK (
+    organization_id = (SELECT get_current_user_org_id())
+);
+CREATE POLICY "notifications_update_policy" ON notifications FOR UPDATE USING (
+    organization_id = (SELECT get_current_user_org_id()) AND user_id = auth.uid()
+);
+
+-- Approval history policies
+CREATE POLICY "approval_history_select_policy" ON approval_history FOR SELECT USING (
+    organization_id = (SELECT get_current_user_org_id())
+);
+CREATE POLICY "approval_history_insert_policy" ON approval_history FOR INSERT WITH CHECK (
+    organization_id = (SELECT get_current_user_org_id())
+);
+
+-- Approval attachments policies
+CREATE POLICY "approval_attachments_select_policy" ON approval_attachments FOR SELECT USING (
+    organization_id = (SELECT get_current_user_org_id())
+);
+CREATE POLICY "approval_attachments_insert_policy" ON approval_attachments FOR INSERT WITH CHECK (
+    organization_id = (SELECT get_current_user_org_id())
+);
+
 -- =========================================
 -- TRIGGERS FOR AUTOMATIC UPDATES
 -- =========================================
-
--- Updated_at trigger function
-CREATE OR REPLACE FUNCTION update_updated_at_column()
-RETURNS TRIGGER AS $$
-BEGIN
-    NEW.updated_at = NOW();
-    RETURN NEW;
-END;
-$$ LANGUAGE plpgsql;
 
 -- Apply updated_at triggers to all tables
 CREATE TRIGGER update_organizations_updated_at BEFORE UPDATE ON organizations FOR EACH ROW EXECUTE FUNCTION update_updated_at_column();
@@ -562,22 +813,9 @@ CREATE TRIGGER update_workflow_sub_stages_updated_at BEFORE UPDATE ON workflow_s
 CREATE TRIGGER update_workflow_definitions_updated_at BEFORE UPDATE ON workflow_definitions FOR EACH ROW EXECUTE FUNCTION update_updated_at_column();
 CREATE TRIGGER update_projects_updated_at BEFORE UPDATE ON projects FOR EACH ROW EXECUTE FUNCTION update_updated_at_column();
 CREATE TRIGGER update_approvals_updated_at BEFORE UPDATE ON approvals FOR EACH ROW EXECUTE FUNCTION update_updated_at_column();
-
--- =========================================
--- HELPER FUNCTIONS
--- =========================================
-
--- Function to get current user's organization ID
-CREATE OR REPLACE FUNCTION get_current_user_org_id()
-RETURNS UUID AS $$
-BEGIN
-    RETURN (
-        SELECT organization_id
-        FROM users
-        WHERE id = auth.uid()
-    );
-END;
-$$ LANGUAGE plpgsql SECURITY DEFINER;
+CREATE TRIGGER update_documents_updated_at BEFORE UPDATE ON documents FOR EACH ROW EXECUTE FUNCTION update_updated_at_column();
+CREATE TRIGGER update_document_versions_updated_at BEFORE UPDATE ON document_versions FOR EACH ROW EXECUTE FUNCTION update_updated_at_column();
+CREATE TRIGGER update_approval_history_updated_at BEFORE UPDATE ON approval_history FOR EACH ROW EXECUTE FUNCTION update_updated_at_column();
 
 -- Function to generate human-friendly project IDs
 CREATE OR REPLACE FUNCTION generate_project_id()

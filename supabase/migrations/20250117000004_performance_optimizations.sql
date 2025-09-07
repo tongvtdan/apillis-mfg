@@ -49,68 +49,71 @@ CREATE INDEX IF NOT EXISTS idx_messages_project_created ON messages(project_id, 
 -- =========================================
 
 -- Project dashboard summary (refreshed every 5 minutes)
-CREATE MATERIALIZED VIEW IF NOT EXISTS mv_project_dashboard_summary AS
-SELECT
-    p.organization_id,
-    p.status,
-    p.priority_level,
-    p.current_stage_id,
-    ws.name as current_stage_name,
-    COUNT(*) as project_count,
-    COUNT(CASE WHEN p.actual_delivery_date IS NOT NULL THEN 1 END) as completed_count,
-    AVG(EXTRACT(EPOCH FROM (p.actual_delivery_date - p.estimated_delivery_date))/86400) as avg_delivery_variance_days,
-    MIN(p.created_at) as oldest_project_date,
-    MAX(p.created_at) as newest_project_date,
-    SUM(p.estimated_value) as total_estimated_value,
-    SUM(p.actual_value) as total_actual_value
-FROM projects p
-LEFT JOIN workflow_stages ws ON p.current_stage_id = ws.id
-GROUP BY p.organization_id, p.status, p.priority_level, p.current_stage_id, ws.name;
+-- Temporarily commented out due to EXTRACT function issues
+-- CREATE MATERIALIZED VIEW IF NOT EXISTS mv_project_dashboard_summary AS
+-- SELECT
+--     p.organization_id,
+--     p.status,
+--     p.priority_level,
+--     p.current_stage_id,
+--     ws.name as current_stage_name,
+--     COUNT(*) as project_count,
+--     COUNT(CASE WHEN p.actual_delivery_date IS NOT NULL THEN 1 END) as completed_count,
+--     AVG(CASE WHEN p.actual_delivery_date IS NOT NULL AND p.estimated_delivery_date IS NOT NULL THEN EXTRACT(EPOCH FROM (p.actual_delivery_date - p.estimated_delivery_date)) / 86400 ELSE NULL END)::numeric as avg_delivery_variance_days,
+--     MIN(p.created_at) as oldest_project_date,
+--     MAX(p.created_at) as newest_project_date,
+--     SUM(p.estimated_value) as total_estimated_value,
+--     SUM(p.actual_value) as total_actual_value
+-- FROM projects p
+-- LEFT JOIN workflow_stages ws ON p.current_stage_id = ws.id
+-- GROUP BY p.organization_id, p.status, p.priority_level, p.current_stage_id, ws.name;
 
 -- Create unique index for concurrent refresh
-CREATE UNIQUE INDEX IF NOT EXISTS idx_mv_project_dashboard_org_status
-ON mv_project_dashboard_summary(organization_id, status, priority_level, current_stage_id);
+-- CREATE UNIQUE INDEX IF NOT EXISTS idx_mv_project_dashboard_org_status
+-- ON mv_project_dashboard_summary(organization_id, status, priority_level, current_stage_id);
 
 -- Workflow efficiency metrics
-CREATE MATERIALIZED VIEW IF NOT EXISTS mv_workflow_efficiency AS
-SELECT
-    p.organization_id,
-    ws.name as stage_name,
-    wss.name as sub_stage_name,
-    COUNT(pssp.id) as total_instances,
-    COUNT(CASE WHEN pssp.status = 'completed' THEN 1 END) as completed_count,
-    AVG(EXTRACT(EPOCH FROM (pssp.completed_at - pssp.started_at))/3600) as avg_completion_hours,
-    AVG(EXTRACT(EPOCH FROM (pssp.due_at - pssp.completed_at))/3600) as avg_overdue_hours,
-    MIN(pssp.started_at) as first_started,
-    MAX(pssp.completed_at) as last_completed
-FROM project_sub_stage_progress pssp
-JOIN workflow_stages ws ON pssp.workflow_stage_id = ws.id
-JOIN workflow_sub_stages wss ON pssp.sub_stage_id = wss.id
-JOIN projects p ON pssp.project_id = p.id
-GROUP BY p.organization_id, ws.name, wss.name;
+-- Temporarily commented out due to EXTRACT function issues
+-- CREATE MATERIALIZED VIEW IF NOT EXISTS mv_workflow_efficiency AS
+-- SELECT
+--     p.organization_id,
+--     ws.name as stage_name,
+--     wss.name as sub_stage_name,
+--     COUNT(pssp.id) as total_instances,
+--     COUNT(CASE WHEN pssp.status = 'completed' THEN 1 END) as completed_count,
+--     AVG(CASE WHEN pssp.completed_at IS NOT NULL AND pssp.started_at IS NOT NULL THEN EXTRACT(EPOCH FROM (pssp.completed_at - pssp.started_at)) / 3600 ELSE NULL END)::numeric as avg_completion_hours,
+--     AVG(CASE WHEN pssp.due_at IS NOT NULL AND pssp.completed_at IS NOT NULL THEN EXTRACT(EPOCH FROM (pssp.due_at - pssp.completed_at)) / 3600 ELSE NULL END)::numeric as avg_overdue_hours,
+--     MIN(pssp.started_at) as first_started,
+--     MAX(pssp.completed_at) as last_completed
+-- FROM project_sub_stage_progress pssp
+-- JOIN workflow_stages ws ON pssp.workflow_stage_id = ws.id
+-- JOIN workflow_sub_stages wss ON pssp.sub_stage_id = wss.id
+-- JOIN projects p ON pssp.project_id = p.id
+-- GROUP BY p.organization_id, ws.name, wss.name;
 
-CREATE UNIQUE INDEX IF NOT EXISTS idx_mv_workflow_efficiency_org_stage_substage
-ON mv_workflow_efficiency(organization_id, stage_name, sub_stage_name);
+-- CREATE UNIQUE INDEX IF NOT EXISTS idx_mv_workflow_efficiency_org_stage_substage
+-- ON mv_workflow_efficiency(organization_id, stage_name, sub_stage_name);
 
 -- Approval performance metrics
-CREATE MATERIALIZED VIEW IF NOT EXISTS mv_approval_performance AS
-SELECT
-    a.organization_id,
-    a.approval_type,
-    a.status,
-    a.priority,
-    COUNT(*) as approval_count,
-    AVG(EXTRACT(EPOCH FROM (a.decided_at - a.requested_at))/3600) as avg_decision_hours,
-    AVG(EXTRACT(EPOCH FROM (a.sla_due_at - a.decided_at))/3600) as avg_overdue_hours,
-    COUNT(CASE WHEN a.sla_due_at < a.decided_at THEN 1 END) as overdue_count,
-    MIN(a.requested_at) as oldest_request,
-    MAX(a.decided_at) as newest_decision
-FROM approvals a
-WHERE a.status IN ('approved', 'rejected')
-GROUP BY a.organization_id, a.approval_type, a.status, a.priority;
+-- Temporarily commented out due to EXTRACT function issues
+-- CREATE MATERIALIZED VIEW IF NOT EXISTS mv_approval_performance AS
+-- SELECT
+--     a.organization_id,
+--     a.approval_type,
+--     a.status,
+--     a.priority,
+--     COUNT(*) as approval_count,
+--     AVG(CASE WHEN a.decided_at IS NOT NULL AND a.requested_at IS NOT NULL THEN EXTRACT(EPOCH FROM (a.decided_at - a.requested_at)) / 3600 ELSE NULL END)::numeric as avg_decision_hours,
+--     AVG(CASE WHEN a.sla_due_at IS NOT NULL AND a.decided_at IS NOT NULL THEN EXTRACT(EPOCH FROM (a.sla_due_at - a.decided_at)) / 3600 ELSE NULL END)::numeric as avg_overdue_hours,
+--     COUNT(CASE WHEN a.sla_due_at < a.decided_at THEN 1 END) as overdue_count,
+--     MIN(a.requested_at) as oldest_request,
+--     MAX(a.decided_at) as newest_decision
+-- FROM approvals a
+-- WHERE a.status IN ('approved', 'rejected')
+-- GROUP BY a.organization_id, a.approval_type, a.status, a.priority;
 
-CREATE UNIQUE INDEX IF NOT EXISTS idx_mv_approval_performance_org_type_status_priority
-ON mv_approval_performance(organization_id, approval_type, status, priority);
+-- CREATE UNIQUE INDEX IF NOT EXISTS idx_mv_approval_performance_org_type_status_priority
+-- ON mv_approval_performance(organization_id, approval_type, status, priority);
 
 -- User workload summary
 CREATE MATERIALIZED VIEW IF NOT EXISTS mv_user_workload AS
@@ -197,12 +200,12 @@ SELECT
     COALESCE(progress_summary.blocked_sub_stages, 0) as blocked_sub_stages,
 
     -- Days in current stage
-    EXTRACT(EPOCH FROM (NOW() - p.stage_entered_at))/86400 as days_in_current_stage,
+    CASE WHEN p.stage_entered_at IS NOT NULL THEN EXTRACT(EPOCH FROM (NOW() - p.stage_entered_at)) / 86400 ELSE NULL END as days_in_current_stage,
 
     -- Next milestone calculation
     CASE
         WHEN p.estimated_delivery_date IS NOT NULL
-        THEN EXTRACT(EPOCH FROM (p.estimated_delivery_date - NOW()))/86400
+        THEN EXTRACT(EPOCH FROM (p.estimated_delivery_date - NOW())) / 86400
         ELSE NULL
     END as days_until_due
 
@@ -257,13 +260,13 @@ SELECT
     -- Calculated fields
     CASE
         WHEN pssp.due_at IS NOT NULL AND pssp.status NOT IN ('completed', 'skipped')
-        THEN EXTRACT(EPOCH FROM (pssp.due_at - NOW()))/3600
+        THEN CASE WHEN pssp.due_at IS NOT NULL THEN EXTRACT(EPOCH FROM (pssp.due_at - NOW())) / 3600 ELSE NULL END
         ELSE NULL
     END as hours_until_due,
 
     CASE
         WHEN pssp.started_at IS NOT NULL AND pssp.completed_at IS NOT NULL
-        THEN EXTRACT(EPOCH FROM (pssp.completed_at - pssp.started_at))/3600
+        THEN CASE WHEN pssp.completed_at IS NOT NULL AND pssp.started_at IS NOT NULL THEN EXTRACT(EPOCH FROM (pssp.completed_at - pssp.started_at)) / 3600 ELSE NULL END
         ELSE NULL
     END as actual_hours_taken,
 
@@ -302,7 +305,7 @@ SELECT
     -- Current approver info
     approver.name as current_approver_name,
     approver.email as current_approver_email,
-    approver.role as current_approver_role,
+    approver.role as approver_role,
 
     -- Entity context (dynamic based on entity_type)
     CASE
@@ -320,10 +323,10 @@ SELECT
     END as project_code,
 
     -- Time calculations
-    EXTRACT(EPOCH FROM (NOW() - a.requested_at))/3600 as hours_since_request,
+    CASE WHEN a.requested_at IS NOT NULL THEN EXTRACT(EPOCH FROM (NOW() - a.requested_at)) / 3600 ELSE NULL END as hours_since_request,
     CASE
         WHEN a.sla_due_at IS NOT NULL
-        THEN EXTRACT(EPOCH FROM (a.sla_due_at - NOW()))/3600
+        THEN CASE WHEN a.sla_due_at IS NOT NULL THEN EXTRACT(EPOCH FROM (a.sla_due_at - NOW())) / 3600 ELSE NULL END
         ELSE NULL
     END as hours_until_sla_due,
 
@@ -420,29 +423,32 @@ WHERE is_read = false;
 -- FULL-TEXT SEARCH INDEXES
 -- =========================================
 
+-- Full-text search indexes temporarily commented out due to IMMUTABLE function requirements
+-- TODO: Implement full-text search using immutable functions or triggers
+
 -- Full-text search on projects
-CREATE INDEX IF NOT EXISTS idx_projects_fts ON projects
-USING gin(to_tsvector('english',
-    coalesce(title, '') || ' ' ||
-    coalesce(description, '') || ' ' ||
-    array_to_string(tags, ' ')
-));
+-- CREATE INDEX IF NOT EXISTS idx_projects_fts ON projects
+-- USING gin(to_tsvector('english',
+--     coalesce(title, '') || ' ' ||
+--     coalesce(description, '') || ' ' ||
+--     array_to_string(tags, ' ')
+-- ));
 
 -- Full-text search on documents
-CREATE INDEX IF NOT EXISTS idx_documents_fts ON documents
-USING gin(to_tsvector('english',
-    coalesce(title, '') || ' ' ||
-    coalesce(description, '')
-));
+-- CREATE INDEX IF NOT EXISTS idx_documents_fts ON documents
+-- USING gin(to_tsvector('english',
+--     coalesce(title, '') || ' ' ||
+--     coalesce(description, '')
+-- ));
 
 -- Full-text search on organizations/contacts
-CREATE INDEX IF NOT EXISTS idx_contacts_fts ON contacts
-USING gin(to_tsvector('english',
-    coalesce(company_name, '') || ' ' ||
-    coalesce(contact_name, '') || ' ' ||
-    coalesce(email, '') || ' ' ||
-    coalesce(notes, '')
-));
+-- CREATE INDEX IF NOT EXISTS idx_contacts_fts ON contacts
+-- USING gin(to_tsvector('english',
+--     coalesce(company_name, '') || ' ' ||
+--     coalesce(contact_name, '') || ' ' ||
+--     coalesce(email, '') || ' ' ||
+--     coalesce(notes, '')
+-- ));
 
 -- =========================================
 -- QUERY OPTIMIZATION FUNCTIONS
@@ -520,7 +526,7 @@ BEGIN
             COUNT(CASE WHEN status NOT IN ('completed', 'cancelled') THEN 1 END) as active_count,
             COUNT(CASE WHEN status = 'completed' AND updated_at >= start_date THEN 1 END) as completed_count,
             COUNT(CASE WHEN estimated_delivery_date < CURRENT_DATE AND status NOT IN ('completed', 'cancelled') THEN 1 END) as overdue_count,
-            AVG(EXTRACT(EPOCH FROM (actual_delivery_date - created_at))/86400) as avg_completion_days
+            AVG(CASE WHEN actual_delivery_date IS NOT NULL AND created_at IS NOT NULL THEN EXTRACT(EPOCH FROM (actual_delivery_date - created_at)) / 86400 ELSE NULL END)::numeric as avg_completion_days
         FROM projects
         WHERE organization_id = p_org_id
         AND created_at >= start_date
@@ -530,7 +536,7 @@ BEGIN
             COUNT(*) as total_count,
             COUNT(CASE WHEN status IN ('pending', 'in_review') THEN 1 END) as pending_count,
             COUNT(CASE WHEN sla_due_at < NOW() AND status IN ('pending', 'in_review') THEN 1 END) as overdue_count,
-            AVG(EXTRACT(EPOCH FROM (decided_at - requested_at))/3600) as avg_decision_hours
+            AVG(CASE WHEN decided_at IS NOT NULL AND requested_at IS NOT NULL THEN EXTRACT(EPOCH FROM (decided_at - requested_at)) / 3600 ELSE NULL END)::numeric as avg_decision_hours
         FROM approvals
         WHERE organization_id = p_org_id
         AND requested_at >= start_date
