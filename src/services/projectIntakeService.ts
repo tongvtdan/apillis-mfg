@@ -95,9 +95,6 @@ export class ProjectIntakeService {
                 priority_level: priority, // Use correct field name
                 estimated_value: intakeData.estimated_value,
                 estimated_delivery_date: intakeData.due_date, // Map to correct field name
-                contact_name: intakeData.contact_name,
-                contact_email: intakeData.contact_email,
-                contact_phone: intakeData.contact_phone,
                 notes: intakeData.notes,
                 tags: tags,
                 intake_type: mapping.intakeType,
@@ -106,11 +103,16 @@ export class ProjectIntakeService {
                 current_stage_id: stageId,
                 // Pre-generated project ID
                 project_id: preGeneratedProjectId,
-                // Additional database fields
-                volume: intakeData.volume,
-                target_price_per_unit: intakeData.target_price_per_unit,
-                desired_delivery_date: intakeData.desired_delivery_date,
-                project_reference: intakeData.project_reference
+                // Store additional fields in metadata JSONB
+                metadata: {
+                    contact_name: intakeData.contact_name,
+                    contact_email: intakeData.contact_email,
+                    contact_phone: intakeData.contact_phone,
+                    volume: intakeData.volume,
+                    target_price_per_unit: intakeData.target_price_per_unit,
+                    desired_delivery_date: intakeData.desired_delivery_date,
+                    project_reference: intakeData.project_reference
+                }
             });
 
             console.log('✅ Project created successfully:', project.project_id);

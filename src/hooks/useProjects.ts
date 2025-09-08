@@ -871,9 +871,6 @@ export function useProjects() {
     priority?: ProjectPriority;
     estimated_value?: number;
     due_date?: string;
-    contact_name?: string;
-    contact_email?: string;
-    contact_phone?: string;
     notes?: string;
     tags?: string[];
     intake_type?: string;
@@ -881,6 +878,7 @@ export function useProjects() {
     project_type?: string;
     current_stage_id?: string;
     project_id?: string; // Pre-generated project ID
+    metadata?: Record<string, any>; // Additional metadata
   }): Promise<Project> => {
     if (!user || !profile?.organization_id) {
       throw new Error('User must be authenticated to create projects');
@@ -900,6 +898,14 @@ export function useProjects() {
       // Use pre-generated project ID or generate one
       const projectId = projectData.project_id || await generateProjectId();
       console.log('📝 Using project ID:', projectId);
+
+      console.log('📝 Inserting project data:', {
+        organization_id: profile.organization_id,
+        title: projectData.title,
+        customer_organization_id: projectData.customer_organization_id,
+        project_id: projectId,
+        current_stage_id: projectData.current_stage_id
+      });
 
       const { data, error } = await supabase
         .from('projects')
@@ -922,7 +928,9 @@ export function useProjects() {
           current_stage_id: projectData.current_stage_id,
           // Use pre-generated or generated project ID
           project_id: projectId,
-          stage_entered_at: new Date().toISOString()
+          stage_entered_at: new Date().toISOString(),
+          // Store additional metadata
+          metadata: projectData.metadata || {}
         })
         .select(`
           *,
@@ -933,6 +941,12 @@ export function useProjects() {
 
       if (error) {
         console.error('❌ Database error creating project:', error);
+        console.error('❌ Error details:', {
+          message: error.message,
+          details: error.details,
+          hint: error.hint,
+          code: error.code
+        });
         throw error;
       }
 
@@ -982,6 +996,17 @@ export function useProjects() {
       }
 
       // Create new customer
+      console.log('📝 Creating new customer with data:', {
+        organization_id: profile.organization_id,
+        type: 'customer',
+        company_name: customerData.company,
+        contact_name: customerData.name,
+        email: customerData.email,
+        phone: customerData.phone,
+        is_active: true,
+        created_by: user.id
+      });
+
       const { data: newCustomer, error } = await supabase
         .from('contacts')
         .insert({
@@ -997,7 +1022,18 @@ export function useProjects() {
         .select()
         .single();
 
-      if (error) throw error;
+      if (error) {
+        console.error('❌ Database error creating customer:', error);
+        console.error('❌ Error details:', {
+          message: error.message,
+          details: error.details,
+          hint: error.hint,
+          code: error.code
+        });
+        throw error;
+      }
+
+      console.log('✅ Customer created successfully:', newCustomer);
       return newCustomer;
     } catch (error) {
       console.error('Error creating/getting customer:', error);

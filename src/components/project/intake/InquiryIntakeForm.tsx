@@ -156,6 +156,102 @@ export function InquiryIntakeForm({ submissionType, onSuccess }: InquiryIntakeFo
     const { customers: organizations, loading: organizationsLoading, createOrganization } = useCustomerOrganizations();
     const { profile } = useAuth();
 
+    // Function to save project documents
+    const saveProjectDocuments = async (projectId: string, documents: any[], organizationId: string) => {
+        try {
+            for (const doc of documents) {
+                if (doc.file && doc.file instanceof File) {
+                    // Upload file to storage
+                    const fileName = `${projectId}/${Date.now()}_${doc.file.name}`;
+                    const { data: uploadData, error: uploadError } = await supabase.storage
+                        .from('documents')
+                        .upload(fileName, doc.file);
+
+                    if (uploadError) {
+                        console.error('Error uploading file:', uploadError);
+                        continue;
+                    }
+
+                    // Get public URL
+                    const { data: urlData } = supabase.storage
+                        .from('documents')
+                        .getPublicUrl(fileName);
+
+                    // Create document record
+                    const { data: documentData, error: docError } = await supabase
+                        .from('documents')
+                        .insert({
+                            organization_id: organizationId,
+                            project_id: projectId,
+                            title: `${doc.type} - ${doc.file.name}`,
+                            description: `Uploaded ${doc.type} document`,
+                            file_name: fileName,
+                            file_path: fileName,
+                            file_size: doc.file.size,
+                            mime_type: doc.file.type,
+                            category: doc.type.toLowerCase().replace(' ', '_'),
+                            version_number: 1,
+                            is_current_version: true,
+                            storage_provider: 'supabase',
+                            access_level: 'organization',
+                            tags: [doc.type.toLowerCase()],
+                            uploaded_by: profile?.id,
+                            metadata: {
+                                original_file_name: doc.file.name,
+                                upload_source: 'intake_form'
+                            }
+                        })
+                        .select()
+                        .single();
+
+                    if (docError) {
+                        console.error('Error creating document record:', docError);
+                        // Clean up uploaded file
+                        await supabase.storage.from('documents').remove([fileName]);
+                    } else {
+                        console.log('✅ Document saved:', documentData.title);
+                    }
+                } else if (doc.link && doc.link.trim()) {
+                    // Save link as document
+                    const { data: documentData, error: docError } = await supabase
+                        .from('documents')
+                        .insert({
+                            organization_id: organizationId,
+                            project_id: projectId,
+                            title: `${doc.type} - Link`,
+                            description: `Link to ${doc.type} document: ${doc.link}`,
+                            file_name: doc.link,
+                            file_path: doc.link,
+                            file_size: 0,
+                            mime_type: 'text/plain',
+                            category: doc.type.toLowerCase().replace(' ', '_'),
+                            version_number: 1,
+                            is_current_version: true,
+                            storage_provider: 'external',
+                            access_level: 'organization',
+                            tags: [doc.type.toLowerCase(), 'link'],
+                            uploaded_by: profile?.id,
+                            metadata: {
+                                external_link: doc.link,
+                                upload_source: 'intake_form'
+                            }
+                        })
+                        .select()
+                        .single();
+
+                    if (docError) {
+                        console.error('Error creating document link record:', docError);
+                    } else {
+                        console.log('✅ Document link saved:', documentData.title);
+                    }
+                }
+            }
+        } catch (error) {
+            console.error('Error saving project documents:', error);
+            // Don't throw error to prevent project creation from failing
+        }
+    };
+
     // Generate temporary project ID on component mount
     const generateTemporaryProjectId = useCallback(async () => {
         try {
@@ -563,6 +659,11 @@ export function InquiryIntakeForm({ submissionType, onSuccess }: InquiryIntakeFo
                     country: getCountryCode(data.country),
                     website: data.website || undefined,
                     description: 'Customer Organization'
+                }, {
+                    contact_name: data.customerName,
+                    email: data.email,
+                    phone: data.phone,
+                    role: 'primary_contact'
                 });
                 customerOrganizationId = newOrganization.id;
             }
@@ -604,6 +705,12 @@ export function InquiryIntakeForm({ submissionType, onSuccess }: InquiryIntakeFo
                 createProject,
                 tempProjectId // Pass the pre-generated project ID
             );
+
+            // Save documents if any were uploaded
+            if (data.documents && data.documents.length > 0) {
+                console.log('📄 Saving documents for project:', project.project_id);
+                await saveProjectDocuments(project.id, data.documents, profile?.organization_id || '');
+            }
 
             setIsSubmitted(true);
 
