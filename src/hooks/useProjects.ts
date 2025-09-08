@@ -1,6 +1,6 @@
 import { useState, useEffect, useCallback, useRef } from 'react';
 import { supabase } from '@/integrations/supabase/client';
-import { Project, ProjectStatus, Customer } from '@/types/project';
+import { Project, ProjectStatus, Customer, ProjectPriority } from '@/types/project';
 import {
   SupplierQuote,
   QuoteReadinessIndicator,
@@ -820,6 +820,49 @@ export function useProjects() {
     await fetchProjects(forceRefresh, filters);
   }, [fetchProjects]); // Add fetchProjects dependency
 
+  // Generate unique project ID
+  const generateProjectId = async (): Promise<string> => {
+    try {
+      console.log('🔄 Generating project ID for organization:', profile?.organization_id);
+      const now = new Date();
+      const year = now.getFullYear();
+      const month = String(now.getMonth() + 1).padStart(2, '0');
+      const day = String(now.getDate()).padStart(2, '0');
+
+      // Get the count of projects created today to generate sequence
+      const startOfDay = new Date(year, now.getMonth(), now.getDate()).toISOString();
+      const endOfDay = new Date(year, now.getMonth(), now.getDate() + 1).toISOString();
+
+      const { count, error } = await supabase
+        .from('projects')
+        .select('*', { count: 'exact', head: true })
+        .eq('organization_id', profile?.organization_id)
+        .gte('created_at', startOfDay)
+        .lt('created_at', endOfDay);
+
+      if (error) {
+        console.error('❌ Error getting project count:', error);
+        throw error;
+      }
+
+      const sequence = String((count || 0) + 1).padStart(2, '0');
+      const projectId = `P-${year}${month}${day}${sequence}`;
+      console.log('✅ Generated project ID:', projectId);
+      return projectId;
+    } catch (error) {
+      console.error('❌ Error generating project ID:', error);
+      // Fallback to random sequence
+      const now = new Date();
+      const year = now.getFullYear();
+      const month = String(now.getMonth() + 1).padStart(2, '0');
+      const day = String(now.getDate()).padStart(2, '0');
+      const sequence = String(Math.floor(Math.random() * 100)).padStart(2, '0');
+      const fallbackId = `P-${year}${month}${day}${sequence}`;
+      console.log('🔄 Using fallback project ID:', fallbackId);
+      return fallbackId;
+    }
+  };
+
   // Create new project
   const createProject = async (projectData: {
     title: string;
@@ -953,49 +996,6 @@ export function useProjects() {
     } catch (error) {
       console.error('Error creating/getting customer:', error);
       throw error;
-    }
-  };
-
-  // Generate unique project ID
-  const generateProjectId = async (): Promise<string> => {
-    try {
-      console.log('🔄 Generating project ID for organization:', profile?.organization_id);
-      const now = new Date();
-      const year = now.getFullYear();
-      const month = String(now.getMonth() + 1).padStart(2, '0');
-      const day = String(now.getDate()).padStart(2, '0');
-
-      // Get the count of projects created today to generate sequence
-      const startOfDay = new Date(year, now.getMonth(), now.getDate()).toISOString();
-      const endOfDay = new Date(year, now.getMonth(), now.getDate() + 1).toISOString();
-
-      const { count, error } = await supabase
-        .from('projects')
-        .select('*', { count: 'exact', head: true })
-        .eq('organization_id', profile?.organization_id)
-        .gte('created_at', startOfDay)
-        .lt('created_at', endOfDay);
-
-      if (error) {
-        console.error('❌ Error getting project count:', error);
-        throw error;
-      }
-
-      const sequence = String((count || 0) + 1).padStart(2, '0');
-      const projectId = `P-${year}${month}${day}${sequence}`;
-      console.log('✅ Generated project ID:', projectId);
-      return projectId;
-    } catch (error) {
-      console.error('❌ Error generating project ID:', error);
-      // Fallback to random sequence
-      const now = new Date();
-      const year = now.getFullYear();
-      const month = String(now.getMonth() + 1).padStart(2, '0');
-      const day = String(now.getDate()).padStart(2, '0');
-      const sequence = String(Math.floor(Math.random() * 100)).padStart(2, '0');
-      const fallbackId = `P-${year}${month}${day}${sequence}`;
-      console.log('🔄 Using fallback project ID:', fallbackId);
-      return fallbackId;
     }
   };
 
