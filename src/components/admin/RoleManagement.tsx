@@ -43,8 +43,10 @@ import {
 } from 'lucide-react';
 import { usePermissionsAdmin } from '@/hooks/usePermissionsAdmin';
 import { CustomRole } from '@/services/permissionService';
+import { useAuth } from '@/contexts/AuthContext';
 
 export default function RoleManagement() {
+    const { profile } = useAuth();
     const {
         roles,
         permissions,
@@ -55,6 +57,11 @@ export default function RoleManagement() {
         removeRoleFromUser,
         refreshData
     } = usePermissionsAdmin();
+
+    // Check user permissions
+    const isAdmin = profile?.role === 'admin';
+    const isManagement = profile?.role === 'management';
+    const canManageRoles = isAdmin || isManagement;
 
     const [searchQuery, setSearchQuery] = useState('');
     const [createDialogOpen, setCreateDialogOpen] = useState(false);
@@ -158,31 +165,35 @@ export default function RoleManagement() {
 
     return (
         <div className="space-y-6">
-            {/* Header */}
-            <Card>
-                <CardHeader>
-                    <div className="flex items-center justify-between">
-                        <div>
-                            <CardTitle className="flex items-center gap-2">
-                                <Key className="h-5 w-5" />
-                                Custom Role Management
-                            </CardTitle>
-                            <CardDescription>
-                                Create and manage custom roles with specific permissions for your organization.
-                            </CardDescription>
-                        </div>
-                        <div className="flex gap-2">
-                            <Button onClick={refreshData} disabled={loading}>
-                                <RefreshCw className={`h-4 w-4 mr-2 ${loading ? 'animate-spin' : ''}`} />
-                                Refresh
-                            </Button>
-                            <Dialog open={createDialogOpen} onOpenChange={setCreateDialogOpen}>
-                                <DialogTrigger asChild>
-                                    <Button>
-                                        <Plus className="h-4 w-4 mr-2" />
-                                        Create Role
-                                    </Button>
-                                </DialogTrigger>
+      {/* Header */}
+      <Card>
+        <CardHeader>
+          <div className="flex items-center justify-between">
+            <div>
+              <CardTitle className="flex items-center gap-2">
+                <Key className="h-5 w-5" />
+                {canManageRoles ? 'Custom Role Management' : 'Role Overview'}
+              </CardTitle>
+              <CardDescription>
+                {canManageRoles
+                  ? 'Create and manage custom roles with specific permissions for your organization.'
+                  : 'View available custom roles and their permissions in your organization.'
+                }
+              </CardDescription>
+            </div>
+            <div className="flex gap-2">
+              <Button onClick={refreshData} disabled={loading}>
+                <RefreshCw className={`h-4 w-4 mr-2 ${loading ? 'animate-spin' : ''}`} />
+                Refresh
+              </Button>
+              {canManageRoles && (
+                <Dialog open={createDialogOpen} onOpenChange={setCreateDialogOpen}>
+                  <DialogTrigger asChild>
+                    <Button>
+                      <Plus className="h-4 w-4 mr-2" />
+                      Create Role
+                    </Button>
+                  </DialogTrigger>
                                 <DialogContent className="modal-dialog max-w-4xl max-h-[80vh] overflow-y-auto">
                                     <DialogHeader className="modal-dialog-header">
                                         <DialogTitle className="modal-dialog-title">Create Custom Role</DialogTitle>
@@ -274,10 +285,10 @@ export default function RoleManagement() {
                                     </DialogFooter>
                                 </DialogContent>
                             </Dialog>
-                        </div>
+                        )}
                     </div>
                 </CardHeader>
-            </Card>
+              </Card>
 
             {/* Search */}
             <Card>
@@ -309,19 +320,19 @@ export default function RoleManagement() {
                                     <TableHead>Permissions</TableHead>
                                     <TableHead>Assigned Users</TableHead>
                                     <TableHead>Status</TableHead>
-                                    <TableHead>Actions</TableHead>
+                                    {canManageRoles && <TableHead>Actions</TableHead>}
                                 </TableRow>
                             </TableHeader>
                             <TableBody>
                                 {loading ? (
                                     <TableRow>
-                                        <TableCell colSpan={6} className="text-center py-8">
+                                        <TableCell colSpan={canManageRoles ? 6 : 5} className="text-center py-8">
                                             Loading roles...
                                         </TableCell>
                                     </TableRow>
                                 ) : filteredRoles.length === 0 ? (
                                     <TableRow>
-                                        <TableCell colSpan={6} className="text-center py-8">
+                                        <TableCell colSpan={canManageRoles ? 6 : 5} className="text-center py-8">
                                             {searchQuery ? 'No roles found matching your search.' : 'No custom roles created yet.'}
                                         </TableCell>
                                     </TableRow>
@@ -384,21 +395,22 @@ export default function RoleManagement() {
                                                         {role.is_active ? 'Active' : 'Inactive'}
                                                     </Badge>
                                                 </TableCell>
-                                                <TableCell>
-                                                    <div className="flex items-center gap-2">
-                                                        <Dialog open={assignDialogOpen && selectedRole?.id === role.id} onOpenChange={setAssignDialogOpen}>
-                                                            <DialogTrigger asChild>
-                                                                <Button
-                                                                    variant="ghost"
-                                                                    size="sm"
-                                                                    onClick={() => {
-                                                                        setSelectedRole(role);
-                                                                        setAssignDialogOpen(true);
-                                                                    }}
-                                                                >
-                                                                    <UserPlus className="h-4 w-4" />
-                                                                </Button>
-                                                            </DialogTrigger>
+                                                {canManageRoles && (
+                                                    <TableCell>
+                                                        <div className="flex items-center gap-2">
+                                                            <Dialog open={assignDialogOpen && selectedRole?.id === role.id} onOpenChange={setAssignDialogOpen}>
+                                                                <DialogTrigger asChild>
+                                                                    <Button
+                                                                        variant="ghost"
+                                                                        size="sm"
+                                                                        onClick={() => {
+                                                                            setSelectedRole(role);
+                                                                            setAssignDialogOpen(true);
+                                                                        }}
+                                                                    >
+                                                                        <UserPlus className="h-4 w-4" />
+                                                                    </Button>
+                                                                </DialogTrigger>
                                                             <DialogContent>
                                                                 <DialogHeader>
                                                                     <DialogTitle>Assign Role: {role.name}</DialogTitle>
@@ -442,11 +454,12 @@ export default function RoleManagement() {
                                                             </DialogContent>
                                                         </Dialog>
 
-                                                        <Button variant="ghost" size="sm">
-                                                            <Edit className="h-4 w-4" />
-                                                        </Button>
-                                                    </div>
-                                                </TableCell>
+                                                            <Button variant="ghost" size="sm">
+                                                                <Edit className="h-4 w-4" />
+                                                            </Button>
+                                                        </div>
+                                                    </TableCell>
+                                                )}
                                             </TableRow>
                                         );
                                     })
@@ -458,7 +471,7 @@ export default function RoleManagement() {
             </Card>
 
             {/* Role Assignment Management */}
-            {selectedRole && (
+            {selectedRole && canManageRoles && (
                 <Card>
                     <CardHeader>
                         <CardTitle className="flex items-center gap-2">
