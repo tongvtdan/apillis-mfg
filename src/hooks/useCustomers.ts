@@ -86,8 +86,8 @@ export function useCustomers(showArchived = false) {
         try {
             const { data, error } = await supabase
                 .from('contacts')
-                .insert([{ 
-                    ...customerData, 
+                .insert([{
+                    ...customerData,
                     type: 'customer',
                     organization_id: profile?.organization_id // Added organization_id
                 }])
