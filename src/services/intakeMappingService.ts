@@ -10,14 +10,6 @@ export interface IntakeMapping {
 }
 
 export const INTAKE_MAPPINGS: Record<string, IntakeMapping> = {
-    'RFQ': {
-        intakeType: 'rfq',
-        defaultProjectType: 'fabrication',
-        initialStageSlug: 'inquiry_received',
-        workflow: 'quote_workflow',
-        priority: 'normal',
-        description: 'Request for quotation - typically leads to fabrication projects'
-    },
     'rfq': {
         intakeType: 'rfq',
         defaultProjectType: 'fabrication',
@@ -26,14 +18,6 @@ export const INTAKE_MAPPINGS: Record<string, IntakeMapping> = {
         priority: 'normal',
         description: 'Request for quotation - typically leads to fabrication projects'
     },
-    'Purchase Order': {
-        intakeType: 'purchase_order',
-        defaultProjectType: 'manufacturing',
-        initialStageSlug: 'order_confirmed',
-        workflow: 'production_workflow',
-        priority: 'high',
-        description: 'Purchase order - typically leads to manufacturing projects'
-    },
     'po': {
         intakeType: 'purchase_order',
         defaultProjectType: 'manufacturing',
@@ -41,14 +25,6 @@ export const INTAKE_MAPPINGS: Record<string, IntakeMapping> = {
         workflow: 'production_workflow',
         priority: 'high',
         description: 'Purchase order - typically leads to manufacturing projects'
-    },
-    'Project Idea': {
-        intakeType: 'project_idea',
-        defaultProjectType: 'system_build',
-        initialStageSlug: 'technical_review',
-        workflow: 'development_workflow',
-        priority: 'low',
-        description: 'Project idea - typically leads to system build projects'
     },
     'design_idea': {
         intakeType: 'project_idea',
@@ -69,6 +45,18 @@ export const INTAKE_MAPPINGS: Record<string, IntakeMapping> = {
 };
 
 export class IntakeMappingService {
+    /**
+     * Convert display name to internal intake type value
+     */
+    static getInternalIntakeType(displayName: string): string {
+        const mapping: Record<string, string> = {
+            'RFQ': 'rfq',
+            'Purchase Order': 'po',
+            'Project Idea': 'design_idea'
+        };
+        return mapping[displayName] || displayName.toLowerCase();
+    }
+
     /**
      * Get mapping for a specific intake type
      */

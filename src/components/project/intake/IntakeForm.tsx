@@ -46,8 +46,11 @@ export function IntakeForm({ submissionType, onSuccess }: IntakeFormProps) {
     const { createProject, createOrGetCustomer } = useProjects();
     const { profile } = useAuth();
 
+    // Convert display name to internal intake type
+    const internalIntakeType = IntakeMappingService.getInternalIntakeType(submissionType);
+    
     // Get intake mapping for this submission type
-    const mapping = IntakeMappingService.getMapping(submissionType);
+    const mapping = IntakeMappingService.getMapping(internalIntakeType);
 
     // Initialize form
     const form = useForm<IntakeFormData>({
@@ -95,7 +98,7 @@ export function IntakeForm({ submissionType, onSuccess }: IntakeFormProps) {
                 contact_email: data.contactEmail || undefined,
                 contact_phone: data.contactPhone || undefined,
                 notes: data.notes,
-                intake_type: submissionType,
+                intake_type: internalIntakeType,
                 intake_source: 'portal'
             };
 

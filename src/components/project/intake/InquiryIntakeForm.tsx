@@ -162,7 +162,7 @@ export function InquiryIntakeForm({ submissionType, onSuccess }: InquiryIntakeFo
     const form = useForm<InquiryFormData>({
         resolver: zodResolver(inquiryFormSchema),
         defaultValues: {
-            intakeType: submissionType === 'RFQ' ? 'rfq' : submissionType === 'Purchase Order' ? 'po' : 'design_idea',
+            intakeType: IntakeMappingService.getInternalIntakeType(submissionType),
             volumes: [{ qty: 1000, unit: 'pcs', freq: 'per year' }],
             priority: 'normal',
             documents: [
