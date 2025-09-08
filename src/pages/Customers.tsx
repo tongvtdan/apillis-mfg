@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
@@ -12,6 +12,7 @@ import {
   BarChart3
 } from 'lucide-react';
 import { useCustomers } from '@/hooks/useCustomers';
+import { usePermissions } from '@/hooks/usePermissions';
 import { Switch } from '@/components/ui/switch';
 import { Label } from '@/components/ui/label';
 import { CustomerTable } from '@/components/customer/CustomerTable';
@@ -23,6 +24,21 @@ export default function Customers() {
   const { customers, loading } = useCustomers(showArchived);
   const [showModal, setShowModal] = useState(false);
   const [selectedCustomer, setSelectedCustomer] = useState<Customer | null>(null);
+  const [canManageCustomers, setCanManageCustomers] = useState(false);
+
+  const {
+    canManageCustomers: checkCanManageCustomers,
+    canArchiveCustomers: checkCanArchiveCustomers
+  } = usePermissions();
+
+  // Check permissions on component mount
+  useEffect(() => {
+    const checkPermissions = async () => {
+      const canManage = await checkCanManageCustomers();
+      setCanManageCustomers(canManage);
+    };
+    checkPermissions();
+  }, [checkCanManageCustomers]);
 
   // Calculate customer statistics
   const totalCustomers = customers.length;
@@ -76,14 +92,16 @@ export default function Customers() {
                 Show Archived
               </Label>
             </div>
-            <Button
-              onClick={() => setShowModal(true)}
-              variant="accent"
-              className="action-button shadow-md hover:shadow-lg"
-            >
-              <Plus className="w-4 h-4 mr-2" />
-              Add Customer
-            </Button>
+            {canManageCustomers && (
+              <Button
+                onClick={() => setShowModal(true)}
+                variant="accent"
+                className="action-button shadow-md hover:shadow-lg"
+              >
+                <Plus className="w-4 h-4 mr-2" />
+                Add Customer
+              </Button>
+            )}
           </div>
         </div>
       </div>
@@ -162,6 +180,7 @@ export default function Customers() {
               <CustomerTable
                 customers={customers}
                 onCustomerSelect={handleCustomerSelect}
+                canArchive={canManageCustomers} // Using same permission for now
               />
             </CardContent>
           </Card>

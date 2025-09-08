@@ -44,9 +44,10 @@ interface SupplierTableProps {
     suppliers: Supplier[];
     onSupplierSelect?: (supplier: Supplier) => void;
     onSupplierEdit?: (supplier: Supplier) => void;
+    canArchive?: boolean;
 }
 
-export function SupplierTable({ suppliers, onSupplierSelect, onSupplierEdit }: SupplierTableProps) {
+export function SupplierTable({ suppliers, onSupplierSelect, onSupplierEdit, canArchive = false }: SupplierTableProps) {
     const [searchQuery, setSearchQuery] = useState('');
     const [showDeleteDialog, setShowDeleteDialog] = useState(false);
     const [supplierToDelete, setSupplierToDelete] = useState<Supplier | null>(null);
@@ -281,13 +282,15 @@ export function SupplierTable({ suppliers, onSupplierSelect, onSupplierEdit }: S
                                                     <Edit className="w-4 h-4 mr-2" />
                                                     Edit
                                                 </DropdownMenuItem>
-                                                <DropdownMenuItem
-                                                    onClick={() => handleArchive(supplier)}
-                                                    className="text-orange-600"
-                                                >
-                                                    <Archive className="w-4 h-4 mr-2" />
-                                                    Archive
-                                                </DropdownMenuItem>
+                                                {canArchive && (
+                                                    <DropdownMenuItem
+                                                        onClick={() => handleArchive(supplier)}
+                                                        className="text-orange-600"
+                                                    >
+                                                        <Archive className="w-4 h-4 mr-2" />
+                                                        Archive
+                                                    </DropdownMenuItem>
+                                                )}
                                             </DropdownMenuContent>
                                         </DropdownMenu>
                                     </TableCell>

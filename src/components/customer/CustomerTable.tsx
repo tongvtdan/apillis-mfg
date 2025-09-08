@@ -40,9 +40,10 @@ import { CustomerModal } from './CustomerModal';
 interface CustomerTableProps {
     customers: Customer[];
     onCustomerSelect?: (customer: Customer) => void;
+    canArchive?: boolean;
 }
 
-export function CustomerTable({ customers, onCustomerSelect }: CustomerTableProps) {
+export function CustomerTable({ customers, onCustomerSelect, canArchive = false }: CustomerTableProps) {
     const [searchQuery, setSearchQuery] = useState('');
     const [selectedCustomer, setSelectedCustomer] = useState<Customer | null>(null);
     const [showModal, setShowModal] = useState(false);
@@ -236,13 +237,15 @@ export function CustomerTable({ customers, onCustomerSelect }: CustomerTableProp
                                                     <Edit className="w-4 h-4 mr-2" />
                                                     Edit
                                                 </DropdownMenuItem>
-                                                <DropdownMenuItem
-                                                    onClick={() => handleArchive(customer)}
-                                                    className="text-orange-600"
-                                                >
-                                                    <Archive className="w-4 h-4 mr-2" />
-                                                    Archive
-                                                </DropdownMenuItem>
+                                                {canArchive && (
+                                                    <DropdownMenuItem
+                                                        onClick={() => handleArchive(customer)}
+                                                        className="text-orange-600"
+                                                    >
+                                                        <Archive className="w-4 h-4 mr-2" />
+                                                        Archive
+                                                    </DropdownMenuItem>
+                                                )}
                                             </DropdownMenuContent>
                                         </DropdownMenu>
                                     </TableCell>

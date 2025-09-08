@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
@@ -14,6 +14,7 @@ import {
     CheckCircle
 } from 'lucide-react';
 import { useSuppliers } from '@/hooks/useSuppliers';
+import { usePermissions } from '@/hooks/usePermissions';
 import { Switch } from '@/components/ui/switch';
 import { Label } from '@/components/ui/label';
 import { SupplierTable } from '@/components/supplier/SupplierTable';
@@ -25,6 +26,20 @@ export default function Suppliers() {
     const { suppliers, loading } = useSuppliers(showArchived);
     const [showModal, setShowModal] = useState(false);
     const [selectedSupplier, setSelectedSupplier] = useState<Supplier | null>(null);
+    const [canManageSuppliers, setCanManageSuppliers] = useState(false);
+
+    const {
+        canManageSuppliers: checkCanManageSuppliers
+    } = usePermissions();
+
+    // Check permissions on component mount
+    useEffect(() => {
+        const checkPermissions = async () => {
+            const canManage = await checkCanManageSuppliers();
+            setCanManageSuppliers(canManage);
+        };
+        checkPermissions();
+    }, [checkCanManageSuppliers]);
 
     // Calculate supplier statistics
     const totalSuppliers = suppliers.length;
@@ -87,14 +102,16 @@ export default function Suppliers() {
                                 Show Archived
                             </Label>
                         </div>
-                        <Button
-                            onClick={() => setShowModal(true)}
-                            variant="accent"
-                            className="action-button shadow-md hover:shadow-lg"
-                        >
-                            <Plus className="w-4 h-4 mr-2" />
-                            Add Supplier
-                        </Button>
+                        {canManageSuppliers && (
+                            <Button
+                                onClick={() => setShowModal(true)}
+                                variant="accent"
+                                className="action-button shadow-md hover:shadow-lg"
+                            >
+                                <Plus className="w-4 h-4 mr-2" />
+                                Add Supplier
+                            </Button>
+                        )}
                     </div>
                 </div>
             </div>
@@ -180,6 +197,7 @@ export default function Suppliers() {
                                 suppliers={suppliers}
                                 onSupplierSelect={handleSupplierSelect}
                                 onSupplierEdit={handleEdit}
+                                canArchive={canManageSuppliers}
                             />
                         </CardContent>
                     </Card>
