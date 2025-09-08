@@ -102,6 +102,7 @@ export function InquiryIntakeForm({ submissionType, onSuccess }: InquiryIntakeFo
     const [pointOfContactsOpen, setPointOfContactsOpen] = useState(false);
     const [selectedContacts, setSelectedContacts] = useState<string[]>([]);
     const [isCreatingOrganization, setIsCreatingOrganization] = useState(false);
+    const [isCreatingContact, setIsCreatingContact] = useState(false);
     const [documentModes, setDocumentModes] = useState<Record<number, 'none' | 'file' | 'link'>>({});
 
     // Modal form state (separate from main form)
@@ -118,6 +119,21 @@ export function InquiryIntakeForm({ submissionType, onSuccess }: InquiryIntakeFo
         contactPostalCode: '',
         contactWebsite: '',
         contactNotes: ''
+    });
+
+    // Contact creation form state
+    const [contactFormData, setContactFormData] = useState({
+        contactName: '',
+        contactEmail: '',
+        contactPhone: '',
+        contactRole: 'general',
+        contactAddress: '',
+        contactCity: '',
+        contactState: '',
+        contactPostalCode: '',
+        contactWebsite: '',
+        contactNotes: '',
+        isPrimaryContact: false
     });
 
     // Collapsible sections state
@@ -557,20 +573,29 @@ export function InquiryIntakeForm({ submissionType, onSuccess }: InquiryIntakeFo
 
     // Auto-select primary contact when contacts are loaded
     useEffect(() => {
-        if (organizationContacts.length > 0) {
-            // Always auto-select primary contact when contacts are loaded
-            // This ensures that when organization changes, we get the new primary contact
-            const primaryContact = organizationContacts.find(contact => contact.is_primary_contact);
-            const contactToSelect = primaryContact || organizationContacts[0]; // Fallback to first contact
+        const selectedOrganizationId = form.watch('selectedCustomerId');
 
-            if (contactToSelect && !selectedContacts.includes(contactToSelect.id)) {
-                // Auto-select the primary/first contact
-                setSelectedContacts([contactToSelect.id]);
-                form.setValue('pointOfContacts', [contactToSelect.id]);
+        if (selectedOrganizationId) {
+            if (organizationContacts.length > 0) {
+                // Auto-select primary contact when contacts are available
+                const primaryContact = organizationContacts.find(contact => contact.is_primary_contact);
+                const contactToSelect = primaryContact || organizationContacts[0]; // Fallback to first contact
 
-                // Auto-fill contact information
-                form.setValue('customerName', contactToSelect.contact_name || '');
-                form.setValue('email', contactToSelect.email || '');
+                if (contactToSelect && !selectedContacts.includes(contactToSelect.id)) {
+                    // Auto-select the primary/first contact
+                    setSelectedContacts([contactToSelect.id]);
+                    form.setValue('pointOfContacts', [contactToSelect.id]);
+
+                    // Auto-fill contact information
+                    form.setValue('customerName', contactToSelect.contact_name || '');
+                    form.setValue('email', contactToSelect.email || '');
+                }
+            } else {
+                // No contacts available - show placeholders
+                setSelectedContacts([]);
+                form.setValue('pointOfContacts', []);
+                form.setValue('customerName', '');
+                form.setValue('email', '');
             }
         }
     }, [organizationContacts, selectedContacts, form]);
@@ -917,7 +942,9 @@ export function InquiryIntakeForm({ submissionType, onSuccess }: InquiryIntakeFo
                                                                 >
                                                                     {selectedContacts.length > 0
                                                                         ? `${selectedContacts.length} contact${selectedContacts.length > 1 ? 's' : ''} selected`
-                                                                        : "Select point of contacts..."
+                                                                        : organizationContacts.length === 0 && !loadingContacts
+                                                                            ? "No contacts - Add new contact"
+                                                                            : "Select point of contacts..."
                                                                     }
                                                                     <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
                                                                 </Button>
@@ -933,9 +960,21 @@ export function InquiryIntakeForm({ submissionType, onSuccess }: InquiryIntakeFo
                                                                                 Loading contacts...
                                                                             </CommandItem>
                                                                         ) : organizationContacts.length === 0 ? (
-                                                                            <CommandItem disabled>
-                                                                                No contacts found for this organization
-                                                                            </CommandItem>
+                                                                            <>
+                                                                                <CommandItem disabled>
+                                                                                    No contacts available
+                                                                                </CommandItem>
+                                                                                <CommandItem
+                                                                                    onSelect={() => {
+                                                                                        setIsCreatingContact(true);
+                                                                                        setPointOfContactsOpen(false);
+                                                                                    }}
+                                                                                    className="text-primary hover:text-primary"
+                                                                                >
+                                                                                    <Plus className="mr-2 h-4 w-4" />
+                                                                                    Add new contact
+                                                                                </CommandItem>
+                                                                            </>
                                                                         ) : (
                                                                             organizationContacts.map((contact) => (
                                                                                 <CommandItem
@@ -1020,7 +1059,11 @@ export function InquiryIntakeForm({ submissionType, onSuccess }: InquiryIntakeFo
                                             <FormItem>
                                                 <FormLabel>Organization Name *</FormLabel>
                                                 <FormControl>
-                                                    <Input placeholder="TechNova Inc." {...field} />
+                                                    <Input
+                                                        placeholder={form.watch('selectedCustomerId') ? "Auto-filled from organization" : "TechNova Inc."}
+                                                        {...field}
+                                                        readOnly={!!form.watch('selectedCustomerId')}
+                                                    />
                                                 </FormControl>
                                                 <FormMessage />
                                             </FormItem>
@@ -1030,30 +1073,59 @@ export function InquiryIntakeForm({ submissionType, onSuccess }: InquiryIntakeFo
                                     <FormField
                                         control={form.control}
                                         name="customerName"
-                                        render={({ field }) => (
-                                            <FormItem>
-                                                <FormLabel>Contact Name *</FormLabel>
-                                                <FormControl>
-                                                    <Input placeholder="Sarah Chen" {...field} />
-                                                </FormControl>
-                                                <FormMessage />
-                                            </FormItem>
-                                        )}
+                                        render={({ field }) => {
+                                            const hasContacts = organizationContacts.length > 0;
+                                            const selectedOrgId = form.watch('selectedCustomerId');
+                                            return (
+                                                <FormItem>
+                                                    <FormLabel>Contact Name *</FormLabel>
+                                                    <FormControl>
+                                                        <Input
+                                                            placeholder={
+                                                                !selectedOrgId
+                                                                    ? "Select organization first"
+                                                                    : !hasContacts
+                                                                        ? "No contacts available - add new contact"
+                                                                        : "Auto-filled from contact"
+                                                            }
+                                                            {...field}
+                                                            readOnly={hasContacts && selectedContacts.length > 0}
+                                                        />
+                                                    </FormControl>
+                                                    <FormMessage />
+                                                </FormItem>
+                                            );
+                                        }}
                                     />
                                 </div>
 
                                 <FormField
                                     control={form.control}
                                     name="email"
-                                    render={({ field }) => (
-                                        <FormItem>
-                                            <FormLabel>Email *</FormLabel>
-                                            <FormControl>
-                                                <Input type="email" placeholder="sarah.chen@technova.com" {...field} />
-                                            </FormControl>
-                                            <FormMessage />
-                                        </FormItem>
-                                    )}
+                                    render={({ field }) => {
+                                        const hasContacts = organizationContacts.length > 0;
+                                        const selectedOrgId = form.watch('selectedCustomerId');
+                                        return (
+                                            <FormItem>
+                                                <FormLabel>Email *</FormLabel>
+                                                <FormControl>
+                                                    <Input
+                                                        type="email"
+                                                        placeholder={
+                                                            !selectedOrgId
+                                                                ? "Select organization first"
+                                                                : !hasContacts
+                                                                    ? "No contacts available - add new contact"
+                                                                    : "Auto-filled from contact"
+                                                        }
+                                                        {...field}
+                                                        readOnly={hasContacts && selectedContacts.length > 0}
+                                                    />
+                                                </FormControl>
+                                                <FormMessage />
+                                            </FormItem>
+                                        );
+                                    }}
                                 />
                             </CardContent>
                         )}
@@ -1891,6 +1963,290 @@ export function InquiryIntakeForm({ submissionType, onSuccess }: InquiryIntakeFo
                                     </>
                                 ) : (
                                     'Create Organization & Contact'
+                                )}
+                            </Button>
+                        </div>
+                    </div>
+                </DialogContent>
+            </Dialog>
+
+            {/* Create Contact Dialog */}
+            <Dialog open={isCreatingContact} onOpenChange={setIsCreatingContact}>
+                <DialogOverlay className="bg-black/50" />
+                <DialogContent className="modal-dialog max-w-4xl max-h-[90vh] overflow-y-auto">
+                    <DialogHeader className="modal-dialog-header">
+                        <DialogTitle className="modal-dialog-title">Create New Contact</DialogTitle>
+                        <DialogDescription className="modal-dialog-description">
+                            Add a new contact for the selected organization.
+                        </DialogDescription>
+                    </DialogHeader>
+                    <div className="space-y-6">
+                        {/* Contact Information */}
+                        <div className="space-y-4">
+                            <h3 className="text-lg font-medium text-foreground border-b border-border pb-2">
+                                Contact Information
+                            </h3>
+                            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                <div className="space-y-2">
+                                    <Label htmlFor="contact-name">Contact Name *</Label>
+                                    <Input
+                                        id="contact-name"
+                                        placeholder="Full Name"
+                                        className="modal-form-input"
+                                        value={contactFormData.contactName}
+                                        onChange={(e) => setContactFormData(prev => ({ ...prev, contactName: e.target.value }))}
+                                    />
+                                </div>
+                                <div className="space-y-2">
+                                    <Label htmlFor="contact-email">Email *</Label>
+                                    <Input
+                                        id="contact-email"
+                                        type="email"
+                                        placeholder="email@company.com"
+                                        className="modal-form-input"
+                                        value={contactFormData.contactEmail}
+                                        onChange={(e) => setContactFormData(prev => ({ ...prev, contactEmail: e.target.value }))}
+                                    />
+                                </div>
+                                <div className="space-y-2">
+                                    <Label htmlFor="contact-phone">Phone</Label>
+                                    <Input
+                                        id="contact-phone"
+                                        placeholder="+1-555-123-4567"
+                                        className="modal-form-input"
+                                        value={contactFormData.contactPhone}
+                                        onChange={(e) => setContactFormData(prev => ({ ...prev, contactPhone: e.target.value }))}
+                                    />
+                                </div>
+                                <div className="space-y-2">
+                                    <Label htmlFor="contact-role">Role</Label>
+                                    <Select
+                                        value={contactFormData.contactRole}
+                                        onValueChange={(value) => setContactFormData(prev => ({ ...prev, contactRole: value }))}
+                                    >
+                                        <SelectTrigger className="modal-select-trigger">
+                                            <SelectValue placeholder="Select role" />
+                                        </SelectTrigger>
+                                        <SelectContent>
+                                            <SelectItem value="general">General Contact</SelectItem>
+                                            <SelectItem value="purchasing">Purchasing</SelectItem>
+                                            <SelectItem value="engineering">Engineering</SelectItem>
+                                            <SelectItem value="quality">Quality Control</SelectItem>
+                                            <SelectItem value="management">Management</SelectItem>
+                                            <SelectItem value="sales">Sales</SelectItem>
+                                        </SelectContent>
+                                    </Select>
+                                </div>
+                            </div>
+
+                            <div className="flex items-center space-x-2">
+                                <input
+                                    type="checkbox"
+                                    id="is-primary-contact"
+                                    checked={contactFormData.isPrimaryContact}
+                                    onChange={(e) => setContactFormData(prev => ({ ...prev, isPrimaryContact: e.target.checked }))}
+                                    className="rounded border-gray-300"
+                                />
+                                <Label htmlFor="is-primary-contact">Set as Primary Contact</Label>
+                            </div>
+                        </div>
+
+                        {/* Address Information */}
+                        <div className="space-y-4">
+                            <h3 className="text-lg font-medium text-foreground border-b border-border pb-2">
+                                Address Information (Optional)
+                            </h3>
+                            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                <div className="space-y-2">
+                                    <Label htmlFor="contact-address">Address</Label>
+                                    <Input
+                                        id="contact-address"
+                                        placeholder="Street Address"
+                                        className="modal-form-input"
+                                        value={contactFormData.contactAddress}
+                                        onChange={(e) => setContactFormData(prev => ({ ...prev, contactAddress: e.target.value }))}
+                                    />
+                                </div>
+                                <div className="space-y-2">
+                                    <Label htmlFor="contact-city">City</Label>
+                                    <Input
+                                        id="contact-city"
+                                        placeholder="City"
+                                        className="modal-form-input"
+                                        value={contactFormData.contactCity}
+                                        onChange={(e) => setContactFormData(prev => ({ ...prev, contactCity: e.target.value }))}
+                                    />
+                                </div>
+                                <div className="space-y-2">
+                                    <Label htmlFor="contact-state">State/Province</Label>
+                                    <Input
+                                        id="contact-state"
+                                        placeholder="State or Province"
+                                        className="modal-form-input"
+                                        value={contactFormData.contactState}
+                                        onChange={(e) => setContactFormData(prev => ({ ...prev, contactState: e.target.value }))}
+                                    />
+                                </div>
+                                <div className="space-y-2">
+                                    <Label htmlFor="contact-postal-code">Postal Code</Label>
+                                    <Input
+                                        id="contact-postal-code"
+                                        placeholder="Postal Code"
+                                        className="modal-form-input"
+                                        value={contactFormData.contactPostalCode}
+                                        onChange={(e) => setContactFormData(prev => ({ ...prev, contactPostalCode: e.target.value }))}
+                                    />
+                                </div>
+                            </div>
+                        </div>
+
+                        {/* Additional Information */}
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                            <div className="space-y-2">
+                                <Label htmlFor="contact-website">Website</Label>
+                                <Input
+                                    id="contact-website"
+                                    placeholder="Personal website or LinkedIn"
+                                    className="modal-form-input"
+                                    value={contactFormData.contactWebsite}
+                                    onChange={(e) => setContactFormData(prev => ({ ...prev, contactWebsite: e.target.value }))}
+                                />
+                            </div>
+                            <div className="space-y-2">
+                                <Label htmlFor="contact-notes">Notes</Label>
+                                <Input
+                                    id="contact-notes"
+                                    placeholder="Additional contact notes"
+                                    className="modal-form-input"
+                                    value={contactFormData.contactNotes}
+                                    onChange={(e) => setContactFormData(prev => ({ ...prev, contactNotes: e.target.value }))}
+                                />
+                            </div>
+                        </div>
+
+                        <div className="flex justify-end gap-2 pt-4 border-t border-border">
+                            <Button
+                                type="button"
+                                variant="outline"
+                                className="modal-button-secondary"
+                                onClick={() => {
+                                    setIsCreatingContact(false);
+                                    setContactFormData({
+                                        contactName: '',
+                                        contactEmail: '',
+                                        contactPhone: '',
+                                        contactRole: 'general',
+                                        contactAddress: '',
+                                        contactCity: '',
+                                        contactState: '',
+                                        contactPostalCode: '',
+                                        contactWebsite: '',
+                                        contactNotes: '',
+                                        isPrimaryContact: false
+                                    });
+                                }}
+                            >
+                                Cancel
+                            </Button>
+                            <Button
+                                type="button"
+                                className="modal-button-primary"
+                                onClick={async () => {
+                                    if (!contactFormData.contactName || !contactFormData.contactEmail) {
+                                        toast({
+                                            title: "Missing Required Information",
+                                            description: "Please fill in Contact Name and Email.",
+                                            variant: "destructive",
+                                        });
+                                        return;
+                                    }
+
+                                    const selectedOrgId = form.watch('selectedCustomerId');
+                                    if (!selectedOrgId) {
+                                        toast({
+                                            title: "No Organization Selected",
+                                            description: "Please select an organization first.",
+                                            variant: "destructive",
+                                        });
+                                        return;
+                                    }
+
+                                    try {
+                                        const { data, error } = await supabase
+                                            .from('contacts')
+                                            .insert({
+                                                organization_id: selectedOrgId as any,
+                                                contact_name: contactFormData.contactName,
+                                                email: contactFormData.contactEmail,
+                                                phone: contactFormData.contactPhone || null,
+                                                role: contactFormData.contactRole,
+                                                address: contactFormData.contactAddress || null,
+                                                city: contactFormData.contactCity || null,
+                                                state: contactFormData.contactState || null,
+                                                postal_code: contactFormData.contactPostalCode || null,
+                                                website: contactFormData.contactWebsite || null,
+                                                notes: contactFormData.contactNotes || null,
+                                                is_primary_contact: contactFormData.isPrimaryContact,
+                                                type: 'customer' as any,
+                                                is_active: true
+                                            } as any)
+                                            .select()
+                                            .single();
+
+                                        if (error) throw error;
+
+                                        // Reload contacts for the organization
+                                        const { data: contactsData, error: contactsError } = await supabase
+                                            .from('contacts')
+                                            .select('*')
+                                            .eq('organization_id', selectedOrgId as any)
+                                            .eq('type', 'customer' as any)
+                                            .eq('is_active', true as any)
+                                            .order('is_primary_contact', { ascending: false })
+                                            .order('contact_name');
+
+                                        if (!contactsError && contactsData) {
+                                            setOrganizationContacts((contactsData as any) || []);
+                                        }
+
+                                        // Close dialog and reset form
+                                        setIsCreatingContact(false);
+                                        setContactFormData({
+                                            contactName: '',
+                                            contactEmail: '',
+                                            contactPhone: '',
+                                            contactRole: 'general',
+                                            contactAddress: '',
+                                            contactCity: '',
+                                            contactState: '',
+                                            contactPostalCode: '',
+                                            contactWebsite: '',
+                                            contactNotes: '',
+                                            isPrimaryContact: false
+                                        });
+
+                                        toast({
+                                            title: "Contact Created Successfully",
+                                            description: `${contactFormData.contactName} has been added to the organization.`,
+                                        });
+                                    } catch (error) {
+                                        console.error('Error creating contact:', error);
+                                        toast({
+                                            title: "Contact Creation Failed",
+                                            description: "There was an error creating the contact. Please try again.",
+                                            variant: "destructive",
+                                        });
+                                    }
+                                }}
+                                disabled={isCreatingContact}
+                            >
+                                {isCreatingContact ? (
+                                    <>
+                                        <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                                        Creating...
+                                    </>
+                                ) : (
+                                    'Create Contact'
                                 )}
                             </Button>
                         </div>
