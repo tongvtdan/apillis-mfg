@@ -330,9 +330,40 @@ export function InquiryIntakeForm({ submissionType, onSuccess }: InquiryIntakeFo
         setCustomerSearchOpen(false);
         setCustomerSearchQuery('');
 
-        // Clear individual contact fields - they will be auto-filled when contacts are selected
+        // Clear individual contact fields - they will be auto-filled when contacts are loaded
         form.setValue('customerName', '');
         form.setValue('email', '');
+
+        // Load contacts for the selected organization
+        // This will trigger the useEffect to auto-select primary contact
+        if (organization.id) {
+            setLoadingContacts(true);
+            const loadContacts = async () => {
+                try {
+                    const { data, error } = await supabase
+                        .from('contacts')
+                        .select('*')
+                        .eq('organization_id', organization.id as any)
+                        .eq('type', 'customer' as any)
+                        .eq('is_active', true as any)
+                        .order('is_primary_contact', { ascending: false })
+                        .order('contact_name');
+
+                    if (error) {
+                        console.error('Error fetching organization contacts:', error);
+                        setOrganizationContacts([]);
+                    } else {
+                        setOrganizationContacts((data as any) || []);
+                    }
+                } catch (error) {
+                    console.error('Error fetching organization contacts:', error);
+                    setOrganizationContacts([]);
+                } finally {
+                    setLoadingContacts(false);
+                }
+            };
+            loadContacts();
+        }
     }, [form]);
 
     // Toggle section collapse state
@@ -513,24 +544,26 @@ export function InquiryIntakeForm({ submissionType, onSuccess }: InquiryIntakeFo
         }
     }, []);
 
-    // Fetch contacts when organization changes
+    // Fetch contacts when organization changes (fallback for direct organization ID changes)
     useEffect(() => {
         const selectedOrganizationId = form.watch('selectedCustomerId');
-        if (selectedOrganizationId) {
+        if (selectedOrganizationId && organizationContacts.length === 0) {
+            // Only load if we don't already have contacts (prevents duplicate calls)
             getOrganizationContacts(selectedOrganizationId);
-        } else {
+        } else if (!selectedOrganizationId) {
             setOrganizationContacts([]);
         }
-    }, [form.watch('selectedCustomerId'), getOrganizationContacts]);
+    }, [form.watch('selectedCustomerId'), getOrganizationContacts, organizationContacts.length]);
 
     // Auto-select primary contact when contacts are loaded
     useEffect(() => {
-        if (organizationContacts.length > 0 && selectedContacts.length === 0) {
-            // Find the primary contact
+        if (organizationContacts.length > 0) {
+            // Always auto-select primary contact when contacts are loaded
+            // This ensures that when organization changes, we get the new primary contact
             const primaryContact = organizationContacts.find(contact => contact.is_primary_contact);
             const contactToSelect = primaryContact || organizationContacts[0]; // Fallback to first contact
 
-            if (contactToSelect) {
+            if (contactToSelect && !selectedContacts.includes(contactToSelect.id)) {
                 // Auto-select the primary/first contact
                 setSelectedContacts([contactToSelect.id]);
                 form.setValue('pointOfContacts', [contactToSelect.id]);
@@ -540,7 +573,7 @@ export function InquiryIntakeForm({ submissionType, onSuccess }: InquiryIntakeFo
                 form.setValue('email', contactToSelect.email || '');
             }
         }
-    }, [organizationContacts, selectedContacts.length, form]);
+    }, [organizationContacts, selectedContacts, form]);
 
     // Handle file upload
     const handleFileUpload = useCallback((file: File, documentIndex: number) => {
