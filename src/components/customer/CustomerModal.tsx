@@ -12,18 +12,26 @@ import {
     SelectTrigger,
     SelectValue,
 } from '@/components/ui/select';
-import { Building2 } from 'lucide-react';
-import { Customer } from '@/types/project';
-import { useCustomers, CreateCustomerRequest } from '@/hooks/useCustomers';
+import { Badge } from '@/components/ui/badge';
+import { Command, CommandEmpty, CommandGroup, CommandInput, CommandItem, CommandList } from '@/components/ui/command';
+import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
+import { Check, ChevronsUpDown, X, Building2 } from 'lucide-react';
+import { Organization } from '@/types/project';
+import { useCustomerOrganizations } from '@/hooks/useCustomerOrganizations';
+import { cn } from '@/lib/utils';
 
 interface CustomerModalProps {
     open: boolean;
     onClose: () => void;
-    customer?: Customer | null;
+    customer?: Organization | null;
+    onSuccess?: (customer: Organization) => void;
 }
 
 interface CustomerFormData {
     company_name: string;
+    slug: string;
+    description: string;
+    industry: string;
     contact_name: string;
     email: string;
     phone: string;
@@ -64,9 +72,44 @@ const COUNTRIES = [
     'Other'
 ];
 
-export function CustomerModal({ open, onClose, customer }: CustomerModalProps) {
+const INDUSTRIES = [
+    'Technology',
+    'Manufacturing',
+    'Automotive',
+    'Aerospace',
+    'Healthcare',
+    'Pharmaceuticals',
+    'Electronics',
+    'Telecommunications',
+    'Energy',
+    'Oil & Gas',
+    'Construction',
+    'Agriculture',
+    'Food & Beverage',
+    'Textiles',
+    'Chemicals',
+    'Mining',
+    'Transportation',
+    'Logistics',
+    'Retail',
+    'Finance',
+    'Insurance',
+    'Real Estate',
+    'Education',
+    'Government',
+    'Non-Profit',
+    'Consulting',
+    'Media',
+    'Entertainment',
+    'Sports',
+    'Other'
+];
+
+export function CustomerModal({ open, onClose, customer, onSuccess }: CustomerModalProps) {
     const [loading, setLoading] = useState(false);
-    const { createCustomer, updateCustomer } = useCustomers();
+    const [industryOpen, setIndustryOpen] = useState(false);
+    const [customIndustry, setCustomIndustry] = useState('');
+    const { createOrganization } = useCustomerOrganizations();
 
     const {
         register,
@@ -79,6 +122,9 @@ export function CustomerModal({ open, onClose, customer }: CustomerModalProps) {
         mode: 'onChange',
         defaultValues: {
             company_name: '',
+            slug: '',
+            description: '',
+            industry: '',
             contact_name: '',
             email: '',
             phone: '',
@@ -93,13 +139,35 @@ export function CustomerModal({ open, onClose, customer }: CustomerModalProps) {
 
     const isEditing = !!customer;
 
+    // Helper function to generate slug from company name
+    const generateSlug = (name: string) => {
+        return name
+            .toLowerCase()
+            .replace(/[^a-z0-9\s-]/g, '')
+            .replace(/\s+/g, '-')
+            .replace(/-+/g, '-')
+            .trim();
+    };
+
+    // Watch company name to auto-generate slug
+    const companyName = watch('company_name');
+    useEffect(() => {
+        if (companyName && !isEditing) {
+            const slug = generateSlug(companyName);
+            setValue('slug', slug);
+        }
+    }, [companyName, setValue, isEditing]);
+
     useEffect(() => {
         if (customer) {
             reset({
-                company_name: customer.company_name || '',
-                contact_name: customer.contact_name || '',
-                email: customer.email || '',
-                phone: customer.phone || '',
+                company_name: customer.name || '',
+                slug: customer.slug || '',
+                description: customer.description || '',
+                industry: customer.industry || '',
+                contact_name: '', // Contact info is separate
+                email: '', // Contact info is separate
+                phone: '', // Contact info is separate
                 address: customer.address || '',
                 city: customer.city || '',
                 state: customer.state || '',
@@ -110,6 +178,9 @@ export function CustomerModal({ open, onClose, customer }: CustomerModalProps) {
         } else {
             reset({
                 company_name: '',
+                slug: '',
+                description: '',
+                industry: '',
                 contact_name: '',
                 email: '',
                 phone: '',
@@ -127,23 +198,34 @@ export function CustomerModal({ open, onClose, customer }: CustomerModalProps) {
         try {
             setLoading(true);
 
-            const customerData: CreateCustomerRequest = {
-                company_name: data.company_name.trim(),
-                contact_name: data.contact_name.trim() || undefined,
-                email: data.email.trim() || undefined,
-                phone: data.phone.trim() || undefined,
+            const organizationData = {
+                name: data.company_name.trim(),
+                slug: data.slug.trim() || undefined,
+                description: data.description.trim() || undefined,
+                industry: data.industry.trim() || undefined,
                 address: data.address.trim() || undefined,
                 city: data.city.trim() || undefined,
                 state: data.state.trim() || undefined,
                 country: data.country || undefined,
                 postal_code: data.postal_code.trim() || undefined,
-                website: data.website.trim() || undefined
+                website: data.website.trim() || undefined,
+                organization_type: 'customer' as const
+            };
+
+            const contactData = {
+                contact_name: data.contact_name.trim() || undefined,
+                email: data.email.trim() || undefined,
+                phone: data.phone.trim() || undefined,
+                is_primary_contact: true
             };
 
             if (isEditing && customer) {
-                await updateCustomer(customer.id, customerData);
+                // For now, we'll only support creating new organizations
+                // TODO: Implement update functionality
+                throw new Error('Editing organizations is not yet supported');
             } else {
-                await createCustomer(customerData);
+                const newOrganization = await createOrganization(organizationData, contactData);
+                onSuccess?.(newOrganization);
             }
 
             onClose();
@@ -173,7 +255,7 @@ export function CustomerModal({ open, onClose, customer }: CustomerModalProps) {
             description={
                 isEditing
                     ? 'Update customer information and contact details.'
-                    : 'Add a new customer to your database with their contact information.'
+                    : 'Add a new customer to your database with their contact information. A primary contact will be created automatically.'
             }
             showDescription={true}
             maxWidth="max-w-[600px]"
@@ -198,49 +280,116 @@ export function CustomerModal({ open, onClose, customer }: CustomerModalProps) {
                     </div>
 
                     <div className="space-y-2">
-                        <Label htmlFor="contact_name">Contact Name</Label>
+                        <Label htmlFor="slug">Slug</Label>
                         <Input
-                            id="contact_name"
-                            {...register('contact_name')}
-                            placeholder="John Smith"
+                            id="slug"
+                            {...register('slug')}
+                            placeholder="acme-manufacturing"
                             className="modal-form-input"
                         />
-                    </div>
-                </div>
-
-                <div className="grid grid-cols-2 gap-4">
-                    <div className="space-y-2">
-                        <Label htmlFor="email">Email</Label>
-                        <Input
-                            id="email"
-                            type="email"
-                            {...register('email', {
-                                pattern: {
-                                    value: /^[^\s@]+@[^\s@]+\.[^\s@]+$/,
-                                    message: 'Please enter a valid email address'
-                                }
-                            })}
-                            placeholder="john@acme.com"
-                            className="modal-form-input"
-                        />
-                        {errors.email && (
-                            <p className="text-sm text-destructive">{errors.email.message}</p>
-                        )}
-                    </div>
-
-                    <div className="space-y-2">
-                        <Label htmlFor="phone">Phone</Label>
-                        <Input
-                            id="phone"
-                            {...register('phone')}
-                            placeholder="+1-555-0123"
-                            className="modal-form-input"
-                        />
+                        <p className="text-xs text-muted-foreground">URL-friendly identifier (auto-generated from company name)</p>
                     </div>
                 </div>
 
                 <div className="space-y-2">
-                    <Label htmlFor="address">Address</Label>
+                    <Label htmlFor="description">Description</Label>
+                    <Textarea
+                        id="description"
+                        {...register('description')}
+                        placeholder="Brief description of the company and its business..."
+                        rows={3}
+                        className="modal-form-textarea"
+                    />
+                </div>
+
+                <div className="space-y-2">
+                    <Label>Industry</Label>
+                    <Popover open={industryOpen} onOpenChange={setIndustryOpen}>
+                        <PopoverTrigger asChild>
+                            <Button
+                                variant="outline"
+                                role="combobox"
+                                aria-expanded={industryOpen}
+                                className="w-full justify-between modal-form-input"
+                            >
+                                {watch('industry') || "Select industry..."}
+                                <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
+                            </Button>
+                        </PopoverTrigger>
+                        <PopoverContent className="w-full p-0">
+                            <Command>
+                                <CommandInput placeholder="Search industry..." />
+                                <CommandList>
+                                    <CommandEmpty>
+                                        <div className="p-2">
+                                            <Input
+                                                placeholder="Add custom industry..."
+                                                value={customIndustry}
+                                                onChange={(e) => setCustomIndustry(e.target.value)}
+                                                onKeyDown={(e) => {
+                                                    if (e.key === 'Enter' && customIndustry.trim()) {
+                                                        setValue('industry', customIndustry.trim());
+                                                        setIndustryOpen(false);
+                                                        setCustomIndustry('');
+                                                    }
+                                                }}
+                                            />
+                                        </div>
+                                    </CommandEmpty>
+                                    <CommandGroup>
+                                        {INDUSTRIES.map((industry) => (
+                                            <CommandItem
+                                                key={industry}
+                                                value={industry}
+                                                onSelect={() => {
+                                                    setValue('industry', industry);
+                                                    setIndustryOpen(false);
+                                                }}
+                                            >
+                                                <Check
+                                                    className={cn(
+                                                        "mr-2 h-4 w-4",
+                                                        watch('industry') === industry ? "opacity-100" : "opacity-0"
+                                                    )}
+                                                />
+                                                {industry}
+                                            </CommandItem>
+                                        ))}
+                                    </CommandGroup>
+                                </CommandList>
+                            </Command>
+                        </PopoverContent>
+                    </Popover>
+                    {watch('industry') && (
+                        <div className="flex items-center gap-2">
+                            <Badge variant="secondary" className="text-xs">
+                                {watch('industry')}
+                            </Badge>
+                            <Button
+                                type="button"
+                                variant="ghost"
+                                size="sm"
+                                onClick={() => setValue('industry', '')}
+                                className="h-6 w-6 p-0"
+                            >
+                                <X className="h-3 w-3" />
+                            </Button>
+                        </div>
+                    )}
+                </div>
+
+                {/* Organization Address Information */}
+                <div className="space-y-4">
+                    <h3 className="text-lg font-medium text-foreground border-b border-border pb-2">
+                        Organization Address & Website
+                    </h3>
+                    <p className="text-sm text-muted-foreground">
+                        Company address and website information for the organization.
+                    </p>
+                </div>
+
+                <div className="space-y-2">
+                    <Label htmlFor="address">Organization Address</Label>
                     <Textarea
                         id="address"
                         {...register('address')}
@@ -303,7 +452,7 @@ export function CustomerModal({ open, onClose, customer }: CustomerModalProps) {
                     </div>
 
                     <div className="space-y-2">
-                        <Label htmlFor="website">Website</Label>
+                        <Label htmlFor="website">Organization Website</Label>
                         <Input
                             id="website"
                             type="url"
@@ -311,6 +460,60 @@ export function CustomerModal({ open, onClose, customer }: CustomerModalProps) {
                             placeholder="https://acme.com"
                             className="modal-form-input"
                         />
+                    </div>
+                </div>
+
+                {/* Primary Contact Information */}
+                <div className="space-y-4">
+                    <h3 className="text-lg font-medium text-foreground border-b border-border pb-2">
+                        Primary Contact Information
+                    </h3>
+                    <p className="text-sm text-muted-foreground">
+                        This contact will be set as the main point of contact for this customer organization.
+                    </p>
+                </div>
+
+                <div className="grid grid-cols-2 gap-4">
+                    <div className="space-y-2">
+                        <Label htmlFor="contact_name">Primary Contact Name</Label>
+                        <Input
+                            id="contact_name"
+                            {...register('contact_name')}
+                            placeholder="John Smith"
+                            className="modal-form-input"
+                        />
+
+                    </div>
+
+                    <div className="space-y-2">
+                        <Label htmlFor="email">Primary Contact Email</Label>
+                        <Input
+                            id="email"
+                            type="email"
+                            {...register('email', {
+                                pattern: {
+                                    value: /^[^\s@]+@[^\s@]+\.[^\s@]+$/,
+                                    message: 'Please enter a valid email address'
+                                }
+                            })}
+                            placeholder="john@acme.com"
+                            className="modal-form-input"
+                        />
+                        {errors.email && (
+                            <p className="text-sm text-destructive">{errors.email.message}</p>
+                        )}
+
+                    </div>
+
+                    <div className="space-y-2">
+                        <Label htmlFor="phone">Primary Contact Phone</Label>
+                        <Input
+                            id="phone"
+                            {...register('phone')}
+                            placeholder="+1-555-0123"
+                            className="modal-form-input"
+                        />
+
                     </div>
                 </div>
 

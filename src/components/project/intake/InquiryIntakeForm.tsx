@@ -24,6 +24,7 @@ import { IntakeMappingService } from '@/services/intakeMappingService';
 import { Customer, Organization, Contact } from '@/types/project';
 import { cn } from '@/lib/utils';
 import { supabase } from '@/integrations/supabase/client';
+import { CustomerModal } from '@/components/customer/CustomerModal';
 
 // Volume item schema
 const volumeItemSchema = z.object({
@@ -101,27 +102,11 @@ export function InquiryIntakeForm({ submissionType, onSuccess }: InquiryIntakeFo
     const [createCustomerOpen, setCreateCustomerOpen] = useState(false);
     const [pointOfContactsOpen, setPointOfContactsOpen] = useState(false);
     const [selectedContacts, setSelectedContacts] = useState<string[]>([]);
-    const [isCreatingOrganization, setIsCreatingOrganization] = useState(false);
     const [isCreatingContact, setIsCreatingContact] = useState(false);
     const [isCreatingContactDialogOpen, setIsCreatingContactDialogOpen] = useState(false);
     const [isSubmittingContact, setIsSubmittingContact] = useState(false);
     const [documentModes, setDocumentModes] = useState<Record<number, 'none' | 'file' | 'link'>>({});
 
-    // Modal form state (separate from main form)
-    const [modalFormData, setModalFormData] = useState({
-        industry: '',
-        orgAddress: '',
-        orgCity: '',
-        orgState: '',
-        orgPostalCode: '',
-        contactRole: 'general',
-        contactAddress: '',
-        contactCity: '',
-        contactState: '',
-        contactPostalCode: '',
-        contactWebsite: '',
-        contactNotes: ''
-    });
 
     // Contact creation form state
     const [contactFormData, setContactFormData] = useState({
@@ -149,7 +134,7 @@ export function InquiryIntakeForm({ submissionType, onSuccess }: InquiryIntakeFo
 
     const { toast } = useToast();
     const { createProject } = useProjects();
-    const { customers: organizations, loading: organizationsLoading, createOrganization } = useCustomerOrganizations();
+    const { customers: organizations, loading: organizationsLoading, createOrganization, refetch } = useCustomerOrganizations();
     const { profile } = useAuth();
 
     // Function to save project documents
@@ -394,102 +379,6 @@ export function InquiryIntakeForm({ submissionType, onSuccess }: InquiryIntakeFo
             [sectionKey]: !prev[sectionKey]
         }));
     }, []);
-
-    // Handle organization creation with comprehensive primary contact
-    const handleCreateOrganization = useCallback(async () => {
-        setIsCreatingOrganization(true);
-
-        try {
-            const formData = form.getValues();
-
-            // Validate required fields
-            if (!formData.company || !formData.customerName || !formData.email) {
-                toast({
-                    title: "Missing Required Information",
-                    description: "Please fill in all required fields (Organization Name, Contact Name, Email).",
-                    variant: "destructive",
-                });
-                return;
-            }
-
-            // Create organization with comprehensive primary contact
-            const newOrganization = await createOrganization({
-                name: formData.company,
-                organization_type: 'customer',
-                country: 'US', // Default country
-                website: formData.website || undefined,
-                industry: modalFormData.industry || undefined,
-                address: modalFormData.orgAddress || undefined,
-                city: modalFormData.orgCity || undefined,
-                state: modalFormData.orgState || undefined,
-                postal_code: modalFormData.orgPostalCode || undefined,
-                description: 'Customer Organization'
-            }, {
-                contact_name: formData.customerName,
-                email: formData.email,
-                phone: formData.phone || undefined,
-                role: modalFormData.contactRole || 'general',
-                is_primary_contact: true,
-                address: modalFormData.contactAddress || undefined,
-                city: modalFormData.contactCity || undefined,
-                state: modalFormData.contactState || undefined,
-                country: 'US', // Default country
-                postal_code: modalFormData.contactPostalCode || undefined,
-                website: modalFormData.contactWebsite || undefined,
-                notes: modalFormData.contactNotes || undefined,
-                is_active: true
-            });
-
-            // Auto-select the newly created organization
-            form.setValue('selectedCustomerId', newOrganization.id);
-
-            // Auto-fill form fields
-            form.setValue('company', newOrganization.name);
-            form.setValue('website', newOrganization.website || '');
-
-            // Auto-select the primary contact
-            if (newOrganization.primary_contact) {
-                setSelectedContacts([newOrganization.primary_contact.id]);
-                form.setValue('pointOfContacts', [newOrganization.primary_contact.id]);
-                form.setValue('customerName', newOrganization.primary_contact.contact_name || '');
-                form.setValue('email', newOrganization.primary_contact.email || '');
-            }
-
-            // Clear modal form fields
-            setModalFormData({
-                industry: '',
-                orgAddress: '',
-                orgCity: '',
-                orgState: '',
-                orgPostalCode: '',
-                contactRole: 'general',
-                contactAddress: '',
-                contactCity: '',
-                contactState: '',
-                contactPostalCode: '',
-                contactWebsite: '',
-                contactNotes: ''
-            });
-
-            // Close modal and show success
-            setCreateCustomerOpen(false);
-
-            toast({
-                title: "Organization Created Successfully!",
-                description: `${newOrganization.name} has been created with primary contact ${formData.customerName}.`,
-            });
-
-        } catch (error) {
-            console.error('Error creating organization:', error);
-            toast({
-                title: "Organization Creation Failed",
-                description: "There was an error creating the organization. Please try again.",
-                variant: "destructive",
-            });
-        } finally {
-            setIsCreatingOrganization(false);
-        }
-    }, [form, createOrganization, toast]);
 
     // Filter organizations based on search query
     const filteredOrganizations = React.useMemo(() => {
@@ -1634,278 +1523,21 @@ export function InquiryIntakeForm({ submissionType, onSuccess }: InquiryIntakeFo
             </Form >
 
             {/* Create Customer Modal */}
-            <Dialog open={createCustomerOpen} onOpenChange={setCreateCustomerOpen}>
-                <DialogOverlay className="bg-black/50" />
-                <DialogContent className="modal-dialog max-w-4xl max-h-[90vh] overflow-y-auto">
-                    <DialogHeader className="modal-dialog-header">
-                        <DialogTitle className="modal-dialog-title">Create New Organization</DialogTitle>
-                        <DialogDescription className="modal-dialog-description">
-                            Add a new customer organization to the system with detailed contact information.
-                        </DialogDescription>
-                    </DialogHeader>
-                    <div className="space-y-6">
-                        {/* Organization Information */}
-                        <div className="space-y-4">
-                            <h3 className="text-lg font-medium text-foreground border-b border-border pb-2">
-                                Organization Information
-                            </h3>
-                            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                                <div className="space-y-2">
-                                    <Label htmlFor="modal-company">Organization Name *</Label>
-                                    <Input
-                                        id="modal-company"
-                                        placeholder="Organization Name"
-                                        className="modal-form-input"
-                                        value={form.watch('company') || ''}
-                                        onChange={(e) => form.setValue('company', e.target.value)}
-                                    />
-                                </div>
-                                <div className="space-y-2">
-                                    <Label htmlFor="modal-country">Country *</Label>
-                                    <Select
-                                        value={form.watch('country') || ''}
-                                        onValueChange={(value) => form.setValue('country', value)}
-                                    >
-                                        <SelectTrigger className="modal-select-trigger">
-                                            <SelectValue placeholder="Select country" />
-                                        </SelectTrigger>
-                                        <SelectContent>
-                                            <SelectItem value="US">United States</SelectItem>
-                                            <SelectItem value="VN">Vietnam</SelectItem>
-                                            <SelectItem value="JP">Japan</SelectItem>
-                                            <SelectItem value="CA">Canada</SelectItem>
-                                            <SelectItem value="MX">Mexico</SelectItem>
-                                            <SelectItem value="GB">United Kingdom</SelectItem>
-                                            <SelectItem value="DE">Germany</SelectItem>
-                                            <SelectItem value="FR">France</SelectItem>
-                                            <SelectItem value="CN">China</SelectItem>
-                                            <SelectItem value="IN">India</SelectItem>
-                                            <SelectItem value="AU">Australia</SelectItem>
-                                        </SelectContent>
-                                    </Select>
-                                </div>
-                                <div className="space-y-2">
-                                    <Label htmlFor="modal-website">Website</Label>
-                                    <Input
-                                        id="modal-website"
-                                        placeholder="https://example.com"
-                                        className="modal-form-input"
-                                        value={form.watch('website') || ''}
-                                        onChange={(e) => form.setValue('website', e.target.value)}
-                                    />
-                                </div>
-                                <div className="space-y-2 md:col-span-1">
-                                    <Label htmlFor="modal-industry">Industry</Label>
-                                    <Input
-                                        id="modal-industry"
-                                        placeholder="e.g., Manufacturing, Technology"
-                                        className="modal-form-input"
-                                        value={modalFormData.industry}
-                                        onChange={(e) => setModalFormData(prev => ({ ...prev, industry: e.target.value }))}
-                                    />
-                                </div>
-                            </div>
-
-                            {/* Organization Address Information */}
-                            <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mt-4">
-                                <div className="space-y-2">
-                                    <Label htmlFor="modal-org-address">Organization Address</Label>
-                                    <Input
-                                        id="modal-org-address"
-                                        placeholder="Street Address"
-                                        className="modal-form-input"
-                                        value={modalFormData.orgAddress}
-                                        onChange={(e) => setModalFormData(prev => ({ ...prev, orgAddress: e.target.value }))}
-                                    />
-                                </div>
-                                <div className="space-y-2">
-                                    <Label htmlFor="modal-org-city">City</Label>
-                                    <Input
-                                        id="modal-org-city"
-                                        placeholder="City"
-                                        className="modal-form-input"
-                                        value={modalFormData.orgCity}
-                                        onChange={(e) => setModalFormData(prev => ({ ...prev, orgCity: e.target.value }))}
-                                    />
-                                </div>
-                                <div className="space-y-2">
-                                    <Label htmlFor="modal-org-state">State/Province</Label>
-                                    <Input
-                                        id="modal-org-state"
-                                        placeholder="State or Province"
-                                        className="modal-form-input"
-                                        value={modalFormData.orgState}
-                                        onChange={(e) => setModalFormData(prev => ({ ...prev, orgState: e.target.value }))}
-                                    />
-                                </div>
-                                <div className="space-y-2">
-                                    <Label htmlFor="modal-org-postal-code">Postal Code</Label>
-                                    <Input
-                                        id="modal-org-postal-code"
-                                        placeholder="Postal Code"
-                                        className="modal-form-input"
-                                        value={modalFormData.orgPostalCode}
-                                        onChange={(e) => setModalFormData(prev => ({ ...prev, orgPostalCode: e.target.value }))}
-                                    />
-                                </div>
-                            </div>
-                        </div>
-
-                        {/* Primary Contact Information */}
-                        <div className="space-y-4">
-                            <h3 className="text-lg font-medium text-foreground border-b border-border pb-2">
-                                Primary Contact Information
-                            </h3>
-                            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                                <div className="space-y-2">
-                                    <Label htmlFor="modal-contact-name">Contact Name *</Label>
-                                    <Input
-                                        id="modal-contact-name"
-                                        placeholder="Full Name"
-                                        className="modal-form-input"
-                                        value={form.watch('customerName') || ''}
-                                        onChange={(e) => form.setValue('customerName', e.target.value)}
-                                    />
-                                </div>
-                                <div className="space-y-2">
-                                    <Label htmlFor="modal-contact-role">Role</Label>
-                                    <Select
-                                        value={modalFormData.contactRole}
-                                        onValueChange={(value) => setModalFormData(prev => ({ ...prev, contactRole: value }))}
-                                    >
-                                        <SelectTrigger className="modal-select-trigger">
-                                            <SelectValue placeholder="Select role" />
-                                        </SelectTrigger>
-                                        <SelectContent>
-                                            <SelectItem value="general">General Contact</SelectItem>
-                                            <SelectItem value="purchasing">Purchasing</SelectItem>
-                                            <SelectItem value="engineering">Engineering</SelectItem>
-                                            <SelectItem value="quality">Quality Control</SelectItem>
-                                            <SelectItem value="management">Management</SelectItem>
-                                            <SelectItem value="sales">Sales</SelectItem>
-                                        </SelectContent>
-                                    </Select>
-                                </div>
-                                <div className="space-y-2">
-                                    <Label htmlFor="modal-email">Email *</Label>
-                                    <Input
-                                        id="modal-email"
-                                        type="email"
-                                        placeholder="email@company.com"
-                                        className="modal-form-input"
-                                        value={form.watch('email') || ''}
-                                        onChange={(e) => form.setValue('email', e.target.value)}
-                                    />
-                                </div>
-                                <div className="space-y-2">
-                                    <Label htmlFor="modal-phone">Phone</Label>
-                                    <Input
-                                        id="modal-phone"
-                                        placeholder="+1-555-123-4567"
-                                        className="modal-form-input"
-                                        value={form.watch('phone') || ''}
-                                        onChange={(e) => form.setValue('phone', e.target.value)}
-                                    />
-                                </div>
-                            </div>
-
-                            {/* Address Information */}
-                            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                                <div className="space-y-2">
-                                    <Label htmlFor="modal-address">Address</Label>
-                                    <Input
-                                        id="modal-address"
-                                        placeholder="Street Address"
-                                        className="modal-form-input"
-                                        value={modalFormData.contactAddress}
-                                        onChange={(e) => setModalFormData(prev => ({ ...prev, contactAddress: e.target.value }))}
-                                    />
-                                </div>
-                                <div className="space-y-2">
-                                    <Label htmlFor="modal-city">City</Label>
-                                    <Input
-                                        id="modal-city"
-                                        placeholder="City"
-                                        className="modal-form-input"
-                                        value={modalFormData.contactCity}
-                                        onChange={(e) => setModalFormData(prev => ({ ...prev, contactCity: e.target.value }))}
-                                    />
-                                </div>
-                                <div className="space-y-2">
-                                    <Label htmlFor="modal-state">State/Province</Label>
-                                    <Input
-                                        id="modal-state"
-                                        placeholder="State or Province"
-                                        className="modal-form-input"
-                                        value={modalFormData.contactState}
-                                        onChange={(e) => setModalFormData(prev => ({ ...prev, contactState: e.target.value }))}
-                                    />
-                                </div>
-                                <div className="space-y-2">
-                                    <Label htmlFor="modal-postal-code">Postal Code</Label>
-                                    <Input
-                                        id="modal-postal-code"
-                                        placeholder="Postal Code"
-                                        className="modal-form-input"
-                                        value={modalFormData.contactPostalCode}
-                                        onChange={(e) => setModalFormData(prev => ({ ...prev, contactPostalCode: e.target.value }))}
-                                    />
-                                </div>
-                            </div>
-
-                            {/* Additional Contact Information */}
-                            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                                <div className="space-y-2">
-                                    <Label htmlFor="modal-contact-website">Contact Website</Label>
-                                    <Input
-                                        id="modal-contact-website"
-                                        placeholder="Personal website or LinkedIn"
-                                        className="modal-form-input"
-                                        value={modalFormData.contactWebsite}
-                                        onChange={(e) => setModalFormData(prev => ({ ...prev, contactWebsite: e.target.value }))}
-                                    />
-                                </div>
-                                <div className="space-y-2">
-                                    <Label htmlFor="modal-notes">Notes</Label>
-                                    <Input
-                                        id="modal-notes"
-                                        placeholder="Additional contact notes"
-                                        className="modal-form-input"
-                                        value={modalFormData.contactNotes}
-                                        onChange={(e) => setModalFormData(prev => ({ ...prev, contactNotes: e.target.value }))}
-                                    />
-                                </div>
-                            </div>
-                        </div>
-
-                        <div className="flex justify-end gap-2 pt-4 border-t border-border">
-                            <Button
-                                type="button"
-                                variant="outline"
-                                className="modal-button-secondary"
-                                onClick={() => setCreateCustomerOpen(false)}
-                            >
-                                Cancel
-                            </Button>
-                            <Button
-                                type="button"
-                                className="modal-button-primary"
-                                onClick={handleCreateOrganization}
-                                disabled={isCreatingOrganization}
-                            >
-                                {isCreatingOrganization ? (
-                                    <>
-                                        <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                                        Creating...
-                                    </>
-                                ) : (
-                                    'Create Organization & Contact'
-                                )}
-                            </Button>
-                        </div>
-                    </div>
-                </DialogContent>
-            </Dialog>
+            <CustomerModal
+                open={createCustomerOpen}
+                onClose={() => setCreateCustomerOpen(false)}
+                onSuccess={(customer) => {
+                    // Refresh customer organizations list
+                    refetch();
+                    // Close the modal
+                    setCreateCustomerOpen(false);
+                    // Show success message
+                    toast({
+                        title: "Customer Created Successfully!",
+                        description: `${customer.company_name} has been added to your customer database.`,
+                    });
+                }}
+            />
 
             {/* Create Contact Dialog */}
             <Dialog open={isCreatingContactDialogOpen} onOpenChange={setIsCreatingContactDialogOpen}>
