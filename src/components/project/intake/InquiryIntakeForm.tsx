@@ -36,10 +36,28 @@ const volumeItemSchema = z.object({
 const documentItemSchema = z.object({
     type: z.string().min(1, 'Document type is required'),
     file: z.instanceof(File).optional(),
-    link: z.string().url('Invalid URL').optional(),
+    link: z.string().optional(),
     uploaded: z.boolean().optional()
-}).refine(data => data.file || data.link, {
-    message: "Either a file or a link is required"
+}).refine(data => {
+    // Either file or link is required, but not both
+    const hasFile = data.file && data.file instanceof File;
+    const hasLink = data.link && data.link.trim().length > 0;
+    return hasFile || hasLink;
+}, {
+    message: "Either a file upload or a link is required"
+}).refine(data => {
+    // If link is provided, it should be a valid URL
+    if (data.link && data.link.trim().length > 0) {
+        try {
+            new URL(data.link);
+            return true;
+        } catch {
+            return false;
+        }
+    }
+    return true;
+}, {
+    message: "Link must be a valid URL"
 });
 
 // Comprehensive validation schema
@@ -105,6 +123,7 @@ export function InquiryIntakeForm({ submissionType, onSuccess }: InquiryIntakeFo
     const [selectedContacts, setSelectedContacts] = useState<string[]>([]);
     const [showCountryDropdown, setShowCountryDropdown] = useState(false);
     const [isCreatingOrganization, setIsCreatingOrganization] = useState(false);
+    const [documentModes, setDocumentModes] = useState<Record<number, 'none' | 'file' | 'link'>>({});
 
     // Modal form state (separate from main form)
     const [modalFormData, setModalFormData] = useState({
@@ -940,9 +959,18 @@ export function InquiryIntakeForm({ submissionType, onSuccess }: InquiryIntakeFo
                                     name="projectTitle"
                                     render={({ field }) => (
                                         <FormItem>
-                                            <FormLabel>Project Title *</FormLabel>
+                                            <FormLabel>Project Title * (3-100 characters)</FormLabel>
                                             <FormControl>
-                                                <Input placeholder="e.g., High-Precision Sensor Mount" {...field} />
+                                                <div className="relative">
+                                                    <Input
+                                                        placeholder="e.g., High-Precision Sensor Mount"
+                                                        {...field}
+                                                        maxLength={100}
+                                                    />
+                                                    <div className="absolute right-2 top-1/2 transform -translate-y-1/2 text-xs text-muted-foreground">
+                                                        {field.value?.length || 0}/100
+                                                    </div>
+                                                </div>
                                             </FormControl>
                                             <FormMessage />
                                         </FormItem>
@@ -954,13 +982,19 @@ export function InquiryIntakeForm({ submissionType, onSuccess }: InquiryIntakeFo
                                     name="description"
                                     render={({ field }) => (
                                         <FormItem>
-                                            <FormLabel>Description *</FormLabel>
+                                            <FormLabel>Description * (50-2000 characters)</FormLabel>
                                             <FormControl>
-                                                <Textarea
-                                                    placeholder="Describe your project requirements, specifications, and any special considerations..."
-                                                    className="min-h-[100px]"
-                                                    {...field}
-                                                />
+                                                <div className="relative">
+                                                    <Textarea
+                                                        placeholder="Describe your project requirements, specifications, and any special considerations..."
+                                                        className="min-h-[100px] pr-16"
+                                                        {...field}
+                                                        maxLength={2000}
+                                                    />
+                                                    <div className="absolute bottom-2 right-2 text-xs text-muted-foreground bg-background px-1 rounded">
+                                                        {field.value?.length || 0}/2000
+                                                    </div>
+                                                </div>
                                             </FormControl>
                                             <FormMessage />
                                         </FormItem>
@@ -996,10 +1030,7 @@ export function InquiryIntakeForm({ submissionType, onSuccess }: InquiryIntakeFo
                                                 render={({ field }) => (
                                                     <FormItem className="flex-1">
                                                         <FormLabel>Unit</FormLabel>
-                                                        <Select onValueChange={(value) => {
-                                                            field.onChange(value);
-                                                            handleCountryChange(value);
-                                                        }} value={field.value}>
+                                                        <Select onValueChange={field.onChange} value={field.value}>
                                                             <FormControl>
                                                                 <SelectTrigger>
                                                                     <SelectValue placeholder="Select unit" />
@@ -1022,10 +1053,7 @@ export function InquiryIntakeForm({ submissionType, onSuccess }: InquiryIntakeFo
                                                 render={({ field }) => (
                                                     <FormItem className="flex-1">
                                                         <FormLabel>Frequency</FormLabel>
-                                                        <Select onValueChange={(value) => {
-                                                            field.onChange(value);
-                                                            handleCountryChange(value);
-                                                        }} value={field.value}>
+                                                        <Select onValueChange={field.onChange} value={field.value}>
                                                             <FormControl>
                                                                 <SelectTrigger>
                                                                     <SelectValue placeholder="Select frequency" />
@@ -1099,10 +1127,7 @@ export function InquiryIntakeForm({ submissionType, onSuccess }: InquiryIntakeFo
                                         render={({ field }) => (
                                             <FormItem>
                                                 <FormLabel>Priority *</FormLabel>
-                                                <Select onValueChange={(value) => {
-                                                    field.onChange(value);
-                                                    handleCountryChange(value);
-                                                }} value={field.value}>
+                                                <Select onValueChange={field.onChange} value={field.value}>
                                                     <FormControl>
                                                         <SelectTrigger>
                                                             <SelectValue placeholder="Select priority" />
@@ -1110,7 +1135,7 @@ export function InquiryIntakeForm({ submissionType, onSuccess }: InquiryIntakeFo
                                                     </FormControl>
                                                     <SelectContent>
                                                         <SelectItem value="low">Low</SelectItem>
-                                                        <SelectItem value="normal">Normal</SelectItem>
+                                                        <SelectItem value="medium">Medium</SelectItem>
                                                         <SelectItem value="high">High</SelectItem>
                                                         <SelectItem value="urgent">Urgent</SelectItem>
                                                     </SelectContent>
@@ -1180,20 +1205,17 @@ export function InquiryIntakeForm({ submissionType, onSuccess }: InquiryIntakeFo
                             <CardContent className="space-y-4">
                                 {documentFields.map((field, index) => (
                                     <div key={field.id} className="space-y-2">
-                                        <FormLabel>Document {index + 1}: {field.type}</FormLabel>
-                                        <div className="flex gap-2">
+                                        <div className="flex items-center gap-2">
+                                            <FormLabel className="text-sm font-medium">Document {index + 1}:</FormLabel>
                                             <FormField
                                                 control={form.control}
                                                 name={`documents.${index}.type`}
                                                 render={({ field }) => (
                                                     <FormItem className="flex-1">
-                                                        <Select onValueChange={(value) => {
-                                                            field.onChange(value);
-                                                            handleCountryChange(value);
-                                                        }} value={field.value}>
+                                                        <Select onValueChange={field.onChange} value={field.value}>
                                                             <FormControl>
-                                                                <SelectTrigger>
-                                                                    <SelectValue placeholder="Select document type" />
+                                                                <SelectTrigger className="w-[180px]">
+                                                                    <SelectValue placeholder="Select type" />
                                                                 </SelectTrigger>
                                                             </FormControl>
                                                             <SelectContent>
@@ -1218,58 +1240,115 @@ export function InquiryIntakeForm({ submissionType, onSuccess }: InquiryIntakeFo
                                                 </Button>
                                             )}
                                         </div>
+                                        <p className="text-sm text-muted-foreground">
+                                            {form.watch(`documents.${index}.type`) === 'BOM'
+                                                ? 'Upload any file format (Excel, PDF, image, etc.) or provide a link'
+                                                : 'Upload a file or provide a link (either one is required)'
+                                            }
+                                        </p>
 
-                                        <div className="flex gap-2">
-                                            <FormField
-                                                control={form.control}
-                                                name={`documents.${index}.file`}
-                                                render={({ field }) => (
-                                                    <FormItem className="flex-1">
-                                                        <FormControl>
-                                                            <Input
-                                                                type="file"
-                                                                accept=".pdf,.dwg,.step,.stp,.zip,.rar"
-                                                                onChange={(e) => {
-                                                                    const file = e.target.files?.[0];
-                                                                    if (file) {
-                                                                        field.onChange(file);
-                                                                        form.setValue(`documents.${index}.uploaded`, true);
-                                                                    }
-                                                                }}
-                                                            />
-                                                        </FormControl>
-                                                        <FormMessage />
-                                                    </FormItem>
-                                                )}
-                                            />
-                                        </div>
+                                        <div className="space-y-3">
+                                            {/* Action Buttons */}
+                                            <div className="flex gap-2">
+                                                <Button
+                                                    type="button"
+                                                    variant="outline"
+                                                    size="sm"
+                                                    onClick={() => {
+                                                        const input = document.createElement('input');
+                                                        input.type = 'file';
+                                                        input.accept = form.watch(`documents.${index}.type`) === 'BOM' ? "*" : ".pdf,.dwg,.step,.stp,.zip,.rar";
+                                                        input.onchange = (e) => {
+                                                            const file = (e.target as HTMLInputElement).files?.[0];
+                                                            if (file) {
+                                                                form.setValue(`documents.${index}.file`, file);
+                                                                form.setValue(`documents.${index}.uploaded`, true);
+                                                                form.setValue(`documents.${index}.link`, '');
+                                                                setDocumentModes(prev => ({ ...prev, [index]: 'file' }));
+                                                            }
+                                                        };
+                                                        input.click();
+                                                    }}
+                                                    className="flex items-center gap-2"
+                                                >
+                                                    <Upload className="h-4 w-4" />
+                                                    Upload File
+                                                </Button>
+                                                <Button
+                                                    type="button"
+                                                    variant="outline"
+                                                    size="sm"
+                                                    onClick={() => {
+                                                        form.setValue(`documents.${index}.file`, undefined);
+                                                        form.setValue(`documents.${index}.link`, '');
+                                                        form.setValue(`documents.${index}.uploaded`, true);
+                                                        setDocumentModes(prev => ({ ...prev, [index]: 'link' }));
+                                                    }}
+                                                    className="flex items-center gap-2"
+                                                >
+                                                    <Link className="h-4 w-4" />
+                                                    Add Link
+                                                </Button>
+                                            </div>
 
-                                        <FormField
-                                            control={form.control}
-                                            name={`documents.${index}.link`}
-                                            render={({ field }) => (
-                                                <FormItem>
-                                                    <FormLabel>Or provide external link</FormLabel>
-                                                    <FormControl>
-                                                        <div className="flex gap-2">
-                                                            <Input placeholder="https://drive.google.com/..." {...field} />
-                                                            <Button
-                                                                type="button"
-                                                                variant="outline"
-                                                                size="sm"
-                                                                onClick={() => {
-                                                                    form.setValue(`documents.${index}.file`, undefined);
-                                                                    form.setValue(`documents.${index}.uploaded`, true);
-                                                                }}
-                                                            >
-                                                                <Link className="h-4 w-4" />
-                                                            </Button>
-                                                        </div>
-                                                    </FormControl>
-                                                    <FormMessage />
-                                                </FormItem>
+                                            {/* File Display */}
+                                            {documentModes[index] === 'file' && form.watch(`documents.${index}.file`) && (
+                                                <div className="flex items-center gap-2 p-3 bg-muted rounded-md">
+                                                    <FileText className="h-4 w-4 text-muted-foreground" />
+                                                    <span className="text-sm font-medium">
+                                                        {form.watch(`documents.${index}.file`)?.name}
+                                                    </span>
+                                                    <Button
+                                                        type="button"
+                                                        variant="ghost"
+                                                        size="sm"
+                                                        onClick={() => {
+                                                            form.setValue(`documents.${index}.file`, undefined);
+                                                            form.setValue(`documents.${index}.uploaded`, false);
+                                                            setDocumentModes(prev => ({ ...prev, [index]: 'none' }));
+                                                        }}
+                                                        className="ml-auto h-6 w-6 p-0"
+                                                    >
+                                                        <X className="h-3 w-3" />
+                                                    </Button>
+                                                </div>
                                             )}
-                                        />
+
+                                            {/* Link Input */}
+                                            {documentModes[index] === 'link' && (
+                                                <FormField
+                                                    control={form.control}
+                                                    name={`documents.${index}.link`}
+                                                    render={({ field }) => (
+                                                        <FormItem>
+                                                            <FormLabel>External Link</FormLabel>
+                                                            <FormControl>
+                                                                <div className="flex gap-2">
+                                                                    <Input
+                                                                        placeholder="https://drive.google.com/..."
+                                                                        {...field}
+                                                                    />
+                                                                    <Button
+                                                                        type="button"
+                                                                        variant="ghost"
+                                                                        size="sm"
+                                                                        onClick={() => {
+                                                                            form.setValue(`documents.${index}.link`, '');
+                                                                            form.setValue(`documents.${index}.uploaded`, false);
+                                                                            setDocumentModes(prev => ({ ...prev, [index]: 'none' }));
+                                                                        }}
+                                                                        className="h-10 w-10 p-0"
+                                                                    >
+                                                                        <X className="h-4 w-4" />
+                                                                    </Button>
+                                                                </div>
+                                                            </FormControl>
+                                                            <FormMessage />
+                                                        </FormItem>
+                                                    )}
+                                                />
+                                            )}
+                                        </div>
                                     </div>
                                 ))}
 
@@ -1317,11 +1396,17 @@ export function InquiryIntakeForm({ submissionType, onSuccess }: InquiryIntakeFo
                                     render={({ field }) => (
                                         <FormItem>
                                             <FormControl>
-                                                <Textarea
-                                                    placeholder="Any additional notes, special requirements, or considerations..."
-                                                    className="min-h-[100px]"
-                                                    {...field}
-                                                />
+                                                <div className="relative">
+                                                    <Textarea
+                                                        placeholder="Any additional notes, special requirements, or considerations..."
+                                                        className="min-h-[100px] pr-16"
+                                                        {...field}
+                                                        maxLength={1000}
+                                                    />
+                                                    <div className="absolute bottom-2 right-2 text-xs text-muted-foreground bg-background px-1 rounded">
+                                                        {field.value?.length || 0}/1000
+                                                    </div>
+                                                </div>
                                             </FormControl>
                                             <FormMessage />
                                         </FormItem>
