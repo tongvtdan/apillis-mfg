@@ -846,7 +846,7 @@ export function useProjects() {
       const { data, error } = await supabase
         .from('projects')
         .insert({
-          organization_id: organizationId,
+          organization_id: profile.organization_id,
           title: projectData.title,
           description: projectData.description,
           customer_organization_id: projectData.customer_organization_id,
@@ -909,7 +909,7 @@ export function useProjects() {
       const { data: existingCustomer } = await supabase
         .from('contacts')
         .select('*')
-        .eq('organization_id', organizationId)
+        .eq('organization_id', profile.organization_id)
         .eq('type', 'customer')
         .eq('company_name', customerData.company)
         .single();
@@ -922,7 +922,7 @@ export function useProjects() {
       const { data: newCustomer, error } = await supabase
         .from('contacts')
         .insert({
-          organization_id: organizationId,
+          organization_id: profile.organization_id,
           type: 'customer',
           company_name: customerData.company,
           contact_name: customerData.name,
