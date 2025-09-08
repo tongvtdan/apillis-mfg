@@ -116,6 +116,7 @@ export function InquiryIntakeForm({ submissionType, onSuccess }: InquiryIntakeFo
     const [isSubmitted, setIsSubmitted] = useState(false);
     const [tempProjectId, setTempProjectId] = useState<string>('');
     const [isDragOver, setIsDragOver] = useState(false);
+    const [isGeneratingId, setIsGeneratingId] = useState(true);
     const [customerSearchOpen, setCustomerSearchOpen] = useState(false);
     const [customerSearchQuery, setCustomerSearchQuery] = useState('');
     const [createCustomerOpen, setCreateCustomerOpen] = useState(false);
@@ -154,6 +155,59 @@ export function InquiryIntakeForm({ submissionType, onSuccess }: InquiryIntakeFo
     const { createProject } = useProjects();
     const { customers: organizations, loading: organizationsLoading, createOrganization } = useCustomerOrganizations();
     const { profile } = useAuth();
+
+    // Generate temporary project ID on component mount
+    const generateTemporaryProjectId = useCallback(async () => {
+        try {
+            setIsGeneratingId(true);
+            const now = new Date();
+            const year = now.getFullYear();
+            const month = String(now.getMonth() + 1).padStart(2, '0');
+            const day = String(now.getDate()).padStart(2, '0');
+
+            // Get the count of projects created today to generate sequence
+            const startOfDay = new Date(year, now.getMonth(), now.getDate()).toISOString();
+            const endOfDay = new Date(year, now.getMonth(), now.getDate() + 1).toISOString();
+
+            const { count, error } = await supabase
+                .from('projects')
+                .select('*', { count: 'exact', head: true })
+                .eq('organization_id', profile?.organization_id)
+                .gte('created_at', startOfDay)
+                .lt('created_at', endOfDay);
+
+            if (error) {
+                console.error('Error getting project count for temp ID:', error);
+                // Fallback to random sequence
+                const sequence = String(Math.floor(Math.random() * 100)).padStart(2, '0');
+                const fallbackId = `P-${year}${month}${day}${sequence}`;
+                setTempProjectId(fallbackId);
+            } else {
+                const sequence = String((count || 0) + 1).padStart(2, '0');
+                const projectId = `P-${year}${month}${day}${sequence}`;
+                setTempProjectId(projectId);
+            }
+        } catch (error) {
+            console.error('Error generating temporary project ID:', error);
+            // Fallback to timestamp-based ID
+            const now = new Date();
+            const year = now.getFullYear();
+            const month = String(now.getMonth() + 1).padStart(2, '0');
+            const day = String(now.getDate()).padStart(2, '0');
+            const timestamp = String(now.getTime()).slice(-4);
+            const fallbackId = `P-${year}${month}${day}${timestamp}`;
+            setTempProjectId(fallbackId);
+        } finally {
+            setIsGeneratingId(false);
+        }
+    }, [profile?.organization_id]);
+
+    // Generate temporary project ID when component mounts
+    useEffect(() => {
+        if (profile?.organization_id) {
+            generateTemporaryProjectId();
+        }
+    }, [profile?.organization_id, generateTemporaryProjectId]);
 
     // Get intake mapping for this submission type
     const mapping = IntakeMappingService.getMapping(IntakeMappingService.getInternalIntakeType(submissionType));
@@ -543,11 +597,12 @@ export function InquiryIntakeForm({ submissionType, onSuccess }: InquiryIntakeFo
                 project_reference: data.projectReference
             };
 
-            // Create project using intake service
+            // Create project using intake service with pre-generated project ID
             const project = await ProjectIntakeService.createProjectFromIntake(
                 intakeData,
                 profile?.organization_id || '',
-                createProject
+                createProject,
+                tempProjectId // Pass the pre-generated project ID
             );
 
             setIsSubmitted(true);
@@ -620,6 +675,32 @@ export function InquiryIntakeForm({ submissionType, onSuccess }: InquiryIntakeFo
 
     return (
         <>
+            {/* Project ID Display */}
+            <Card className="mb-6">
+                <CardContent className="p-4">
+                    <div className="flex items-center justify-between">
+                        <div>
+                            <h3 className="text-lg font-medium">Project Information</h3>
+                            <p className="text-sm text-muted-foreground">
+                                Your project will be created with the following ID
+                            </p>
+                        </div>
+                        <div className="text-right">
+                            {isGeneratingId ? (
+                                <div className="flex items-center gap-2">
+                                    <Loader2 className="h-4 w-4 animate-spin" />
+                                    <span className="text-sm text-muted-foreground">Generating ID...</span>
+                                </div>
+                            ) : (
+                                <Badge variant="outline" className="text-lg font-mono px-3 py-1">
+                                    {tempProjectId}
+                                </Badge>
+                            )}
+                        </div>
+                    </div>
+                </CardContent>
+            </Card>
+
             <Form {...form}>
                 <form onSubmit={form.handleSubmit(handleSubmit)} className="space-y-6">
                     {/* Customer Information */}
@@ -1494,11 +1575,16 @@ export function InquiryIntakeForm({ submissionType, onSuccess }: InquiryIntakeFo
 
                     {/* Submit Button */}
                     <div className="flex justify-end gap-2">
-                        <Button type="submit" disabled={isSubmitting}>
+                        <Button type="submit" disabled={isSubmitting || isGeneratingId || !tempProjectId}>
                             {isSubmitting ? (
                                 <>
                                     <Loader2 className="mr-2 h-4 w-4 animate-spin" />
                                     Submitting...
+                                </>
+                            ) : isGeneratingId ? (
+                                <>
+                                    <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                                    Preparing...
                                 </>
                             ) : (
                                 <>

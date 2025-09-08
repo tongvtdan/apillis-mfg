@@ -32,7 +32,8 @@ export class ProjectIntakeService {
     static async createProjectFromIntake(
         intakeData: ProjectIntakeData,
         organizationId: string,
-        createProjectFn: any
+        createProjectFn: any,
+        preGeneratedProjectId?: string
     ): Promise<Project> {
         try {
             console.log('🚀 Starting project creation from intake:', {
@@ -103,6 +104,8 @@ export class ProjectIntakeService {
                 intake_source: intakeData.intake_source || 'portal',
                 project_type: projectType,
                 current_stage_id: stageId,
+                // Pre-generated project ID
+                project_id: preGeneratedProjectId,
                 // Additional database fields
                 volume: intakeData.volume,
                 target_price_per_unit: intakeData.target_price_per_unit,

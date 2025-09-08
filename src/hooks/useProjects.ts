@@ -880,6 +880,7 @@ export function useProjects() {
     intake_source?: string;
     project_type?: string;
     current_stage_id?: string;
+    project_id?: string; // Pre-generated project ID
   }): Promise<Project> => {
     if (!user || !profile?.organization_id) {
       throw new Error('User must be authenticated to create projects');
@@ -892,8 +893,13 @@ export function useProjects() {
         customer_organization_id: projectData.customer_organization_id,
         current_stage_id: projectData.current_stage_id,
         intake_type: projectData.intake_type,
-        project_type: projectData.project_type
+        project_type: projectData.project_type,
+        project_id: projectData.project_id
       });
+
+      // Use pre-generated project ID or generate one
+      const projectId = projectData.project_id || await generateProjectId();
+      console.log('📝 Using project ID:', projectId);
 
       const { data, error } = await supabase
         .from('projects')
@@ -914,8 +920,8 @@ export function useProjects() {
           intake_source: projectData.intake_source || 'portal',
           project_type: projectData.project_type,
           current_stage_id: projectData.current_stage_id,
-          // Generate project ID
-          project_id: await generateProjectId(),
+          // Use pre-generated or generated project ID
+          project_id: projectId,
           stage_entered_at: new Date().toISOString()
         })
         .select(`
