@@ -35,23 +35,38 @@ export class ProjectIntakeService {
         createProjectFn: any
     ): Promise<Project> {
         try {
+            console.log('🚀 Starting project creation from intake:', {
+                intakeType: intakeData.intake_type,
+                organizationId,
+                title: intakeData.title
+            });
+
             // Get intake mapping
             const mapping = IntakeMappingService.getMapping(intakeData.intake_type);
             if (!mapping) {
                 throw new Error(`Unknown intake type: ${intakeData.intake_type}`);
             }
+            console.log('✅ Intake mapping found:', mapping);
 
             // Determine project type
             const projectType = IntakeMappingService.determineProjectType(intakeData.intake_type, intakeData);
+            console.log('✅ Project type determined:', projectType);
 
             // Get initial stage ID
             const initialStageId = await IntakeWorkflowService.getInitialStageId(intakeData.intake_type, organizationId);
+            console.log('✅ Initial stage ID:', initialStageId);
 
             // Fallback to first available stage if specific stage not found
             const stageId = initialStageId || await IntakeWorkflowService.getFirstAvailableStage(organizationId);
+            console.log('✅ Final stage ID:', stageId);
+
+            if (!stageId) {
+                throw new Error('No workflow stage found for project creation');
+            }
 
             // Get priority from mapping
             const priority = IntakeMappingService.getPriority(intakeData.intake_type);
+            console.log('✅ Priority determined:', priority);
 
             // Prepare tags
             const tags = [
@@ -59,8 +74,17 @@ export class ProjectIntakeService {
                 projectType,
                 ...(intakeData.tags || [])
             ];
+            console.log('✅ Tags prepared:', tags);
 
             // Create project with intake-specific data
+            console.log('🚀 Creating project with data:', {
+                organization_id: organizationId,
+                title: intakeData.title,
+                customer_organization_id: intakeData.customer_organization_id,
+                priority_level: priority,
+                current_stage_id: stageId
+            });
+
             const project = await createProjectFn({
                 organization_id: organizationId, // Ensure organization_id is passed
                 title: intakeData.title || `${intakeData.intake_type} from ${intakeData.contact_name || 'Customer'}`,
@@ -86,9 +110,10 @@ export class ProjectIntakeService {
                 project_reference: intakeData.project_reference
             });
 
+            console.log('✅ Project created successfully:', project.project_id);
             return project;
         } catch (error) {
-            console.error('Error creating project from intake:', error);
+            console.error('❌ Error creating project from intake:', error);
             throw error;
         }
     }

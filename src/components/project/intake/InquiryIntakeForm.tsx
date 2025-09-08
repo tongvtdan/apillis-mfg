@@ -67,7 +67,7 @@ const inquiryFormSchema = z.object({
     description: z.string().min(50, 'Description must be at least 50 characters'),
     volumes: z.array(volumeItemSchema).optional(),
     targetPricePerUnit: z.number().positive('Target price must be positive').optional(),
-    priority: z.enum(['low', 'medium', 'high', 'urgent']).optional(),
+    priority: z.enum(['low', 'normal', 'high', 'urgent']).optional(),
     desiredDeliveryDate: z.string().refine(date => new Date(date) > new Date(Date.now() + 604800000), 'Delivery date must be at least 7 days from now'),
     projectReference: z.string().optional(), // Only for PO
     selectedCustomerId: z.string().optional(), // For customer selection
@@ -561,10 +561,38 @@ export function InquiryIntakeForm({ submissionType, onSuccess }: InquiryIntakeFo
 
         } catch (error) {
             console.error('Error submitting project:', error);
+            
+            let errorMessage = "There was an error submitting your project. Please try again.";
+            
+            if (error instanceof Error) {
+                console.error('Error details:', {
+                    message: error.message,
+                    stack: error.stack,
+                    name: error.name
+                });
+                
+                // Provide more specific error messages
+                if (error.message.includes('Unknown intake type')) {
+                    errorMessage = "Invalid submission type. Please refresh the page and try again.";
+                } else if (error.message.includes('customer organization')) {
+                    errorMessage = "Failed to create customer organization. Please check your company information.";
+                } else if (error.message.includes('workflow stage')) {
+                    errorMessage = "Workflow configuration error. Please contact support.";
+                } else if (error.message.includes('duplicate key')) {
+                    errorMessage = "A project with this information already exists. Please check your data.";
+                } else if (error.message.includes('foreign key')) {
+                    errorMessage = "Invalid reference data. Please check your customer information.";
+                } else if (error.message.includes('not null')) {
+                    errorMessage = "Required fields are missing. Please check all required fields.";
+                } else {
+                    errorMessage = `Submission failed: ${error.message}`;
+                }
+            }
+            
             toast({
                 variant: "destructive",
                 title: "Submission Failed",
-                description: "There was an error submitting your project. Please try again.",
+                description: errorMessage,
             });
         } finally {
             setIsSubmitting(false);

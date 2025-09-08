@@ -24,7 +24,7 @@ const intakeFormSchema = z.object({
     contactPhone: z.string().optional(),
     projectTitle: z.string().min(3, 'Project title must be at least 3 characters'),
     description: z.string().optional(),
-    priority: z.enum(['low', 'medium', 'high', 'critical']).default('medium'),
+    priority: z.enum(['low', 'normal', 'high', 'urgent']).default('normal'),
     estimatedValue: z.string().optional(),
     dueDate: z.string().optional(),
     notes: z.string().optional(),
@@ -53,7 +53,7 @@ export function IntakeForm({ submissionType, onSuccess }: IntakeFormProps) {
     const form = useForm<IntakeFormData>({
         resolver: zodResolver(intakeFormSchema),
         defaultValues: {
-            priority: 'medium',
+            priority: 'normal',
         }
     });
 

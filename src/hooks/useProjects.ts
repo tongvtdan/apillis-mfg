@@ -850,7 +850,7 @@ export function useProjects() {
           title: projectData.title,
           description: projectData.description,
           customer_organization_id: projectData.customer_organization_id,
-          priority_level: projectData.priority || 'medium',
+          priority_level: projectData.priority || 'normal',
           estimated_value: projectData.estimated_value,
           estimated_delivery_date: projectData.due_date,
           status: 'active',
