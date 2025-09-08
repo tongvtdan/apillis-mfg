@@ -57,6 +57,7 @@ export default function Customers() {
   };
 
   const handleAddContact = (customer: CustomerOrganizationWithSummary) => {
+    console.log('handleAddContact called with customer:', customer.name);
     setSelectedCustomer(customer);
     setShowContactModal(true);
   };

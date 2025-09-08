@@ -320,7 +320,10 @@ export function CustomerTable({ customers, onCustomerSelect, onAddContact, canAr
                                                     Edit
                                                 </DropdownMenuItem>
                                                 {onAddContact && (
-                                                    <DropdownMenuItem onClick={() => onAddContact(customer)}>
+                                                    <DropdownMenuItem onClick={() => {
+                                                        console.log('Add Contact clicked for customer:', customer.name);
+                                                        onAddContact(customer);
+                                                    }}>
                                                         <Users className="w-4 h-4 mr-2" />
                                                         Add Contact
                                                     </DropdownMenuItem>
