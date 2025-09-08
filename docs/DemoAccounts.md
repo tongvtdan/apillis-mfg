@@ -177,3 +177,101 @@ SELECT feature_key, feature_name, required_role, is_enabled FROM feature_toggles
 *Enhanced Permissions:* ✅ Implemented
 *Security Level:* Enterprise-grade RBAC
 *System:* Factory Pulse Manufacturing Management Platform
+
+
+
+---
+
+[20 tools called]
+
+## 🎯 **Who Can Access Customer and Supplier Pages**
+
+Based on the current permission system implementation, here's the comprehensive access breakdown:
+
+### 📊 **Access Permissions Summary**
+
+| **Role**        | **Customer Management** | **Supplier Management** | **Access Level**             |
+| --------------- | ----------------------- | ----------------------- | ---------------------------- |
+| **Admin**       | ✅ Full Access           | ✅ Full Access           | Complete CRUD + Archive      |
+| **Management**  | ✅ Full Access           | ✅ Full Access           | Complete CRUD + Archive      |
+| **Sales**       | ✅ Full Access           | ❌ No Access             | Customer CRUD + Archive only |
+| **Procurement** | ❌ No Access             | ✅ Full Access           | Supplier CRUD + Archive only |
+| **Engineering** | ❌ No Access             | ❌ No Access             | Read-only access             |
+| **QA**          | ❌ No Access             | ❌ No Access             | Read-only access             |
+| **Production**  | ❌ No Access             | ❌ No Access             | Read-only access             |
+
+---
+
+### 🔐 **Detailed Access Analysis**
+
+#### **✅ Full Access Roles (Both Customer & Supplier)**
+- **Admin**: Complete access to all features, user management, system configuration
+- **Management**: Project oversight, analytics, team management with full CRUD capabilities
+
+#### **🎯 Specialized Access Roles**
+
+**Sales Team:**
+- ✅ **Customer Management**: Can create, read, update, delete, and archive customers
+- ❌ **Supplier Management**: No access to supplier features
+- **Reason**: Sales focus on customer relationships and RFQ intake
+
+**Procurement Team:**
+- ❌ **Customer Management**: No access to customer features  
+- ✅ **Supplier Management**: Can create, read, update, delete, and archive suppliers
+- **Reason**: Procurement handles supplier relationships and vendor management
+
+#### **👁️ Read-Only Roles**
+- **Engineering**: Technical specifications and document management
+- **QA**: Quality reviews and approval workflows  
+- **Production**: Production scheduling and capacity management
+- **Access Level**: These roles have read-only access to basic information
+
+---
+
+### 🛡️ **Permission System Details**
+
+
+#### **Permission Breakdown:**
+- **customer:create** → Add/Edit customers
+- **customer:read** → View customer data
+- **customer:update** → Modify customer info
+- **customer:archive** → Archive/unarchive customers
+- **supplier:create** → Add/Edit suppliers
+- **supplier:read** → View supplier data
+- **supplier:update** → Modify supplier info
+- **supplier:archive** → Archive/unarchive suppliers
+
+---
+
+### 🎨 **UI Behavior Based on Permissions**
+
+#### **For Sales Users:**
+- ✅ Customer page: Full access to all features
+- ✅ Can see "Add Customer" button
+- ✅ Can archive/unarchive customers
+- ❌ Supplier page: Button hidden, features disabled
+- ❌ "Add Supplier" button not visible
+
+#### **For Procurement Users:**
+- ❌ Customer page: Button hidden, features disabled
+- ✅ Supplier page: Full access to all features
+- ✅ Can see "Add Supplier" button
+- ✅ Can archive/unarchive suppliers
+
+#### **For Management/Admin:**
+- ✅ Both pages: Complete access to all features
+- ✅ All buttons and features visible
+- ✅ Can manage both customers and suppliers
+
+---
+
+## 🎉 **Summary**
+
+- **Sales** = Customer-focused access
+- **Procurement** = Supplier-focused access  
+- **Management/Admin** = Full access to both
+- **Technical roles** = Read-only access
+- **Access is role-based** with granular permissions
+- **UI adapts dynamically** based on user permissions
+
+This separation ensures that users only see and can access the features relevant to their job responsibilities! 🚀
