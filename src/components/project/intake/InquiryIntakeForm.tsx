@@ -332,55 +332,58 @@ export function InquiryIntakeForm({ submissionType, onSuccess }: InquiryIntakeFo
         name: 'documents'
     });
 
+    const getOrganizationContacts = useCallback(async (organizationId: string) => {
+        if (!organizationId) {
+            setOrganizationContacts([]);
+            return;
+        }
+
+        try {
+            setLoadingContacts(true);
+            const { data, error } = await supabase
+                .from('contacts')
+                .select('*')
+                .eq('organization_id', organizationId as any)
+                .eq('type', 'customer' as any)
+                .eq('is_active', true as any)
+                .order('is_primary_contact', { ascending: false })
+                .order('contact_name');
+
+            if (error) {
+                console.error('Error fetching organization contacts:', error);
+                setOrganizationContacts([]);
+            } else {
+                setOrganizationContacts((data as any) || []);
+            }
+        } catch (error) {
+            console.error('Error fetching organization contacts:', error);
+            setOrganizationContacts([]);
+        } finally {
+            setLoadingContacts(false);
+        }
+    }, []);
+
     // Handle organization selection and auto-fill
     const handleOrganizationSelect = useCallback((organization: Organization) => {
+        // Step 1: Update organization ID and name
         form.setValue('selectedCustomerId', organization.id);
         form.setValue('company', organization.name || '');
-
-        // Auto-fill organization-level information
         form.setValue('website', organization.website || '');
 
-        // Reset point of contacts when organization changes
+        // Step 2: Clear contact-related fields
         form.setValue('pointOfContacts', []);
+        form.setValue('customerName', '');
+        form.setValue('email', '');
         setSelectedContacts([]);
         setCustomerSearchOpen(false);
         setCustomerSearchQuery('');
 
-        // Clear individual contact fields - they will be auto-filled when contacts are loaded
-        form.setValue('customerName', '');
-        form.setValue('email', '');
-
-        // Load contacts for the selected organization
-        // This will trigger the useEffect to auto-select primary contact
+        // Step 3: Load contacts for the selected organization
         if (organization.id) {
             setLoadingContacts(true);
-            const loadContacts = async () => {
-                try {
-                    const { data, error } = await supabase
-                        .from('contacts')
-                        .select('*')
-                        .eq('organization_id', organization.id as any)
-                        .eq('type', 'customer' as any)
-                        .eq('is_active', true as any)
-                        .order('is_primary_contact', { ascending: false })
-                        .order('contact_name');
-
-                    if (error) {
-                        console.error('Error fetching organization contacts:', error);
-                        setOrganizationContacts([]);
-                    } else {
-                        setOrganizationContacts((data as any) || []);
-                    }
-                } catch (error) {
-                    console.error('Error fetching organization contacts:', error);
-                    setOrganizationContacts([]);
-                } finally {
-                    setLoadingContacts(false);
-                }
-            };
-            loadContacts();
+            getOrganizationContacts(organization.id);
         }
-    }, [form]);
+    }, [form, getOrganizationContacts]);
 
     // Toggle section collapse state
     const toggleSection = useCallback((sectionKey: string) => {
@@ -501,93 +504,38 @@ export function InquiryIntakeForm({ submissionType, onSuccess }: InquiryIntakeFo
     const [organizationContacts, setOrganizationContacts] = useState<Contact[]>([]);
     const [loadingContacts, setLoadingContacts] = useState(false);
 
-    // Handle point of contact selection
+    // Handle contact selection and auto-fill contact details
+    const handleContactSelect = useCallback((contactId: string) => {
+        const contact = organizationContacts.find(c => c.id === contactId);
+        if (contact) {
+            // Update selected contacts
+            setSelectedContacts([contactId]);
+            form.setValue('pointOfContacts', [contactId]);
+
+            // Auto-fill contact information
+            form.setValue('customerName', contact.contact_name || '');
+            form.setValue('email', contact.email || '');
+        }
+    }, [organizationContacts, form]);
+
+    // Handle contact deselection
+    const handleContactDeselect = useCallback(() => {
+        setSelectedContacts([]);
+        form.setValue('pointOfContacts', []);
+        form.setValue('customerName', '');
+        form.setValue('email', '');
+    }, [form]);
+
+    // Handle point of contact selection - simplified approach
     const handlePointOfContactToggle = useCallback((contactId: string) => {
-        setSelectedContacts(prev => {
-            const newSelected = prev.includes(contactId)
-                ? prev.filter(id => id !== contactId)
-                : [...prev, contactId];
-            form.setValue('pointOfContacts', newSelected);
-
-            // Auto-fill contact information when a contact is selected
-            if (!prev.includes(contactId)) {
-                // Contact is being added (not removed)
-                const selectedContact = organizationContacts.find(contact => contact.id === contactId);
-                if (selectedContact) {
-                    // Auto-fill the contact form fields
-                    form.setValue('customerName', selectedContact.contact_name || '');
-                    form.setValue('email', selectedContact.email || '');
-
-                    // If organization name is not set, use the contact's company name
-                    if (!form.getValues('company')) {
-                        form.setValue('company', selectedContact.company_name || '');
-                    }
-                }
-            }
-
-            return newSelected;
-        });
-    }, [form, organizationContacts]);
-
-    const getOrganizationContacts = useCallback(async (organizationId: string) => {
-        if (!organizationId) {
-            setOrganizationContacts([]);
-            return;
-        }
-
-        try {
-            setLoadingContacts(true);
-            const { data, error } = await supabase
-                .from('contacts')
-                .select('*')
-                .eq('organization_id', organizationId as any)
-                .eq('type', 'customer' as any)
-                .eq('is_active', true as any)
-                .order('is_primary_contact', { ascending: false })
-                .order('contact_name');
-
-            if (error) {
-                console.error('Error fetching organization contacts:', error);
-                setOrganizationContacts([]);
-            } else {
-                setOrganizationContacts((data as any) || []);
-            }
-        } catch (error) {
-            console.error('Error fetching organization contacts:', error);
-            setOrganizationContacts([]);
-        } finally {
-            setLoadingContacts(false);
-        }
-    }, []);
-
-    // Fetch contacts when organization changes
-    useEffect(() => {
-        const selectedOrganizationId = form.watch('selectedCustomerId');
-        if (selectedOrganizationId) {
-            getOrganizationContacts(selectedOrganizationId);
+        if (selectedContacts.includes(contactId)) {
+            // Deselect contact
+            handleContactDeselect();
         } else {
-            setOrganizationContacts([]);
+            // Select contact
+            handleContactSelect(contactId);
         }
-    }, [form.watch('selectedCustomerId'), getOrganizationContacts]);
-
-    // Auto-select primary contact when contacts are loaded
-    useEffect(() => {
-        if (organizationContacts.length > 0 && selectedContacts.length === 0) {
-            // Find the primary contact
-            const primaryContact = organizationContacts.find(contact => contact.is_primary_contact);
-            const contactToSelect = primaryContact || organizationContacts[0]; // Fallback to first contact
-
-            if (contactToSelect) {
-                // Auto-select the primary/first contact
-                setSelectedContacts([contactToSelect.id]);
-                form.setValue('pointOfContacts', [contactToSelect.id]);
-
-                // Auto-fill contact information
-                form.setValue('customerName', contactToSelect.contact_name || '');
-                form.setValue('email', contactToSelect.email || '');
-            }
-        }
-    }, [organizationContacts, selectedContacts.length, form]);
+    }, [selectedContacts, handleContactSelect, handleContactDeselect]);
 
     // Handle file upload
     const handleFileUpload = useCallback((file: File, documentIndex: number) => {
