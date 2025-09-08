@@ -843,6 +843,15 @@ export function useProjects() {
     }
 
     try {
+      console.log('🚀 Creating project with data:', {
+        organization_id: profile.organization_id,
+        title: projectData.title,
+        customer_organization_id: projectData.customer_organization_id,
+        current_stage_id: projectData.current_stage_id,
+        intake_type: projectData.intake_type,
+        project_type: projectData.project_type
+      });
+
       const { data, error } = await supabase
         .from('projects')
         .insert({
@@ -873,7 +882,12 @@ export function useProjects() {
         `)
         .single();
 
-      if (error) throw error;
+      if (error) {
+        console.error('❌ Database error creating project:', error);
+        throw error;
+      }
+
+      console.log('✅ Project created successfully:', data);
 
       // Update local state
       setProjects(prev => [data, ...prev]);
@@ -945,6 +959,7 @@ export function useProjects() {
   // Generate unique project ID
   const generateProjectId = async (): Promise<string> => {
     try {
+      console.log('🔄 Generating project ID for organization:', profile?.organization_id);
       const now = new Date();
       const year = now.getFullYear();
       const month = String(now.getMonth() + 1).padStart(2, '0');
@@ -954,24 +969,33 @@ export function useProjects() {
       const startOfDay = new Date(year, now.getMonth(), now.getDate()).toISOString();
       const endOfDay = new Date(year, now.getMonth(), now.getDate() + 1).toISOString();
 
-      const { count } = await supabase
+      const { count, error } = await supabase
         .from('projects')
         .select('*', { count: 'exact', head: true })
         .eq('organization_id', profile?.organization_id)
         .gte('created_at', startOfDay)
         .lt('created_at', endOfDay);
 
+      if (error) {
+        console.error('❌ Error getting project count:', error);
+        throw error;
+      }
+
       const sequence = String((count || 0) + 1).padStart(2, '0');
-      return `P-${year}${month}${day}${sequence}`;
+      const projectId = `P-${year}${month}${day}${sequence}`;
+      console.log('✅ Generated project ID:', projectId);
+      return projectId;
     } catch (error) {
-      console.error('Error generating project ID:', error);
+      console.error('❌ Error generating project ID:', error);
       // Fallback to random sequence
       const now = new Date();
       const year = now.getFullYear();
       const month = String(now.getMonth() + 1).padStart(2, '0');
       const day = String(now.getDate()).padStart(2, '0');
       const sequence = String(Math.floor(Math.random() * 100)).padStart(2, '0');
-      return `P-${year}${month}${day}${sequence}`;
+      const fallbackId = `P-${year}${month}${day}${sequence}`;
+      console.log('🔄 Using fallback project ID:', fallbackId);
+      return fallbackId;
     }
   };
 
