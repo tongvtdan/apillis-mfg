@@ -156,7 +156,7 @@ export function InquiryIntakeForm({ submissionType, onSuccess }: InquiryIntakeFo
     const { profile } = useAuth();
 
     // Get intake mapping for this submission type
-    const mapping = IntakeMappingService.getMapping(submissionType);
+    const mapping = IntakeMappingService.getMapping(IntakeMappingService.getInternalIntakeType(submissionType));
 
     // Initialize form
     const form = useForm<InquiryFormData>({
@@ -561,16 +561,16 @@ export function InquiryIntakeForm({ submissionType, onSuccess }: InquiryIntakeFo
 
         } catch (error) {
             console.error('Error submitting project:', error);
-            
+
             let errorMessage = "There was an error submitting your project. Please try again.";
-            
+
             if (error instanceof Error) {
                 console.error('Error details:', {
                     message: error.message,
                     stack: error.stack,
                     name: error.name
                 });
-                
+
                 // Provide more specific error messages
                 if (error.message.includes('Unknown intake type')) {
                     errorMessage = "Invalid submission type. Please refresh the page and try again.";
@@ -588,7 +588,7 @@ export function InquiryIntakeForm({ submissionType, onSuccess }: InquiryIntakeFo
                     errorMessage = `Submission failed: ${error.message}`;
                 }
             }
-            
+
             toast({
                 variant: "destructive",
                 title: "Submission Failed",

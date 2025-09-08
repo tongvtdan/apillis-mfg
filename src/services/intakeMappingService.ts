@@ -48,13 +48,13 @@ export class IntakeMappingService {
     /**
      * Convert display name to internal intake type value
      */
-    static getInternalIntakeType(displayName: string): string {
-        const mapping: Record<string, string> = {
+    static getInternalIntakeType(displayName: string): 'rfq' | 'po' | 'design_idea' | 'inquiry' {
+        const mapping: Record<string, 'rfq' | 'po' | 'design_idea' | 'inquiry'> = {
             'RFQ': 'rfq',
             'Purchase Order': 'po',
             'Project Idea': 'design_idea'
         };
-        return mapping[displayName] || displayName.toLowerCase();
+        return mapping[displayName] || 'inquiry';
     }
 
     /**
