@@ -26,6 +26,14 @@ export function useProjects() {
   const realtimeChannelRef = useRef<any>(null);
   const lastFetchTimeRef = useRef<number>(0);
 
+  // Stable refs for useEffect dependencies to prevent infinite loops
+  const userIdRef = useRef<string | undefined>();
+  const organizationIdRef = useRef<string | undefined>();
+
+  // Update refs when values change
+  userIdRef.current = user?.id;
+  organizationIdRef.current = profile?.organization_id;
+
   const fetchProjects = useCallback(async (forceRefresh = false, options?: ProjectQueryOptions) => {
     // Check if user is authenticated
     if (!user) {
@@ -375,11 +383,6 @@ export function useProjects() {
 
   // Set up real-time subscription - only for project detail pages
   useEffect(() => {
-    console.log('🔄 useProjects useEffect triggered');
-    console.log('User:', user);
-    console.log('Profile:', profile);
-    fetchProjects();
-
     // Always subscribe to real-time updates for project-related routes
     const shouldSubscribeToRealtime = window.location.pathname.includes('/projects/') ||
       window.location.pathname.includes('/project/') ||
@@ -411,14 +414,30 @@ export function useProjects() {
       // When we receive a notification, refetch projects to get the latest data
       console.log('🔔 useProjects: Received real-time update notification, refetching projects');
       lastFetchTimeRef.current = now;
-      fetchProjects(true);
+      if (userIdRef.current && organizationIdRef.current) {
+        fetchProjects(true);
+      }
     });
 
     return () => {
       console.log('🔔 useProjects: Unsubscribing from real-time manager');
       unsubscribe();
     };
-  }, [user?.id, profile?.organization_id]); // Use specific properties instead of entire objects to prevent unnecessary re-runs
+  }, []); // Empty dependency array to prevent infinite loops
+
+  // Separate useEffect for initial data loading
+  useEffect(() => {
+    // Only run if we have the required user and organization info
+    if (!userIdRef.current || !organizationIdRef.current) {
+      console.log('⚠️ useProjects: Missing user or organization info, skipping initial load');
+      return;
+    }
+
+    console.log('🔄 useProjects: Initial data load triggered');
+    console.log('User ID:', userIdRef.current);
+    console.log('Organization ID:', organizationIdRef.current);
+    fetchProjects();
+  }, []); // Empty dependency array - only run once on mount
 
   // Get project by ID
   const getProjectById = async (id: string): Promise<Project | null> => {
