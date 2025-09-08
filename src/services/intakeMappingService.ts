@@ -15,7 +15,7 @@ export const INTAKE_MAPPINGS: Record<string, IntakeMapping> = {
         defaultProjectType: 'fabrication',
         initialStageSlug: 'inquiry_received',
         workflow: 'quote_workflow',
-        priority: 'medium',
+        priority: 'normal',
         description: 'Request for quotation - typically leads to fabrication projects'
     },
     'Purchase Order': {
@@ -80,6 +80,6 @@ export class IntakeMappingService {
      */
     static getPriority(intakeType: string): ProjectPriority {
         const mapping = this.getMapping(intakeType);
-        return mapping?.priority || 'medium';
+        return mapping?.priority || 'normal';
     }
 }
