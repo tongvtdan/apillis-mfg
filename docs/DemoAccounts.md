@@ -216,6 +216,7 @@ Based on the current permission system implementation, here's the comprehensive 
 - **Reason**: Sales focus on customer relationships and RFQ intake
 
 **Procurement Team:**
+
 - ❌ **Customer Management**: No access to customer features  
 - ✅ **Supplier Management**: Can create, read, update, delete, and archive suppliers
 - **Reason**: Procurement handles supplier relationships and vendor management
