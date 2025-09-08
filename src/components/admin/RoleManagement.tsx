@@ -275,6 +275,40 @@ export default function RoleManagement() {
                                             </div>
                                         </div>
 
+            </Card>
+                                                                    <Label
+                                                                        htmlFor={`resource-${resource}`}
+                                                                        className="font-semibold capitalize cursor-pointer"
+                                                                    >
+                                                                        {resource.replace('_', ' ')}
+                                                                    </Label>
+                                                                </div>
+
+                                                                <div className="ml-6 grid grid-cols-1 md:grid-cols-2 gap-2">
+                                                                    {resourcePermissions.map(permission => (
+                                                                        <div key={permission.id} className="flex items-center space-x-2">
+                                                                            <Checkbox
+                                                                                id={permission.id}
+                                                                                checked={selectedPermissions.includes(permission.id)}
+                                                                                onCheckedChange={() => togglePermission(permission.id)}
+                                                                            />
+                                                                            <Label
+                                                                                htmlFor={permission.id}
+                                                                                className="text-sm cursor-pointer flex-1"
+                                                                            >
+                                                                                <div className="font-medium">{permission.action}</div>
+                                                                                <div className="text-xs text-base-content/70">{permission.description}</div>
+                                                                            </Label>
+                                                                        </div>
+                                                                    ))}
+                                                                </div>
+                                                            </div>
+                                                        );
+                                                    })}
+                                                </div>
+                                            </div>
+                                        </div>
+
                                         <DialogFooter>
                                             <Button variant="outline" className="modal-button-secondary" onClick={() => setCreateDialogOpen(false)}>
                                                 Cancel
