@@ -11,19 +11,19 @@ import {
   Plus,
   BarChart3
 } from 'lucide-react';
-import { useCustomers } from '@/hooks/useCustomers';
+import { useCustomerOrganizations } from '@/hooks/useCustomerOrganizations';
 import { usePermissions } from '@/hooks/usePermissions';
 import { Switch } from '@/components/ui/switch';
 import { Label } from '@/components/ui/label';
-import { CustomerTable } from '@/components/customer/CustomerTable';
+import { CustomerTable } from '@/components/customer/CustomerTableEnhanced';
 import { CustomerModal } from '@/components/customer/CustomerModal';
-import { Customer } from '@/types/project';
+import { CustomerOrganizationWithSummary } from '@/types/project';
 
 export default function Customers() {
   const [showArchived, setShowArchived] = useState(false);
-  const { customers, loading } = useCustomers(showArchived);
+  const { customers, loading } = useCustomerOrganizations(showArchived);
   const [showModal, setShowModal] = useState(false);
-  const [selectedCustomer, setSelectedCustomer] = useState<Customer | null>(null);
+  const [selectedCustomer, setSelectedCustomer] = useState<CustomerOrganizationWithSummary | null>(null);
   const [canManageCustomers, setCanManageCustomers] = useState(false);
 
   const {
@@ -45,9 +45,11 @@ export default function Customers() {
   const activeCustomers = customers.filter(c => c.is_active !== false).length;
   const archivedCustomers = customers.filter(c => c.is_active === false).length;
   const countries = [...new Set(customers.map(c => c.country).filter(Boolean))].length;
-  const companiesCount = customers.filter(c => c.company_name).length;
+  const totalProjects = customers.reduce((sum, c) => sum + c.project_summary.total_projects, 0);
+  const totalValue = customers.reduce((sum, c) => sum + c.project_summary.total_value, 0);
+  const activeProjects = customers.reduce((sum, c) => sum + c.project_summary.active_projects, 0);
 
-  const handleCustomerSelect = (customer: Customer) => {
+  const handleCustomerSelect = (customer: CustomerOrganizationWithSummary) => {
     setSelectedCustomer(customer);
     // Could navigate to customer detail page or show details panel
   };
@@ -123,26 +125,28 @@ export default function Customers() {
 
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Active Customers</CardTitle>
+            <CardTitle className="text-sm font-medium">Total Projects</CardTitle>
             <TrendingUp className="h-4 w-4 text-base-content/70" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold text-base-content">{activeCustomers}</div>
+            <div className="text-2xl font-bold text-base-content">{totalProjects}</div>
             <p className="text-xs text-base-content/70">
-              {showArchived ? 'Active customers' : 'With contact info'}
+              {activeProjects} active projects
             </p>
           </CardContent>
         </Card>
 
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Companies</CardTitle>
+            <CardTitle className="text-sm font-medium">Total Value</CardTitle>
             <Building2 className="h-4 w-4 text-base-content/70" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold text-base-content">{companiesCount}</div>
+            <div className="text-2xl font-bold text-base-content">
+              ${totalValue.toLocaleString()}
+            </div>
             <p className="text-xs text-base-content/70">
-              {totalCustomers > 0 ? Math.round((companiesCount / totalCustomers) * 100) + '% business customers' : 'N/A'}
+              Across all projects
             </p>
           </CardContent>
         </Card>
@@ -180,7 +184,7 @@ export default function Customers() {
               <CustomerTable
                 customers={customers}
                 onCustomerSelect={handleCustomerSelect}
-                canArchive={canManageCustomers} // Using same permission for now
+                canArchive={canManageCustomers}
               />
             </CardContent>
           </Card>
