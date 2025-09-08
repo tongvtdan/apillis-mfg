@@ -272,10 +272,10 @@ export default function FeatureManagement() {
                                                                     <UserPlus className="h-4 w-4" />
                                                                 </Button>
                                                             </DialogTrigger>
-                                                            <DialogContent>
-                                                                <DialogHeader>
-                                                                    <DialogTitle>Grant Feature Access: {feature.feature_name}</DialogTitle>
-                                                                    <DialogDescription>
+                                                            <DialogContent className="modal-dialog">
+                                                                <DialogHeader className="modal-dialog-header">
+                                                                    <DialogTitle className="modal-dialog-title">Grant Feature Access: {feature.feature_name}</DialogTitle>
+                                                                    <DialogDescription className="modal-dialog-description">
                                                                         Grant specific users access to this feature.
                                                                     </DialogDescription>
                                                                 </DialogHeader>
@@ -299,14 +299,14 @@ export default function FeatureManagement() {
                                                                 </div>
 
                                                                 <DialogFooter>
-                                                                    <Button variant="outline" onClick={() => {
+                                                                    <Button variant="outline" className="modal-button-secondary" onClick={() => {
                                                                         setUserAccessDialogOpen(false);
                                                                         setSelectedFeature(null);
                                                                         setSelectedUserId('');
                                                                     }}>
                                                                         Cancel
                                                                     </Button>
-                                                                    <Button onClick={handleGrantFeatureAccess} disabled={!selectedUserId}>
+                                                                    <Button className="modal-button-primary" onClick={handleGrantFeatureAccess} disabled={!selectedUserId}>
                                                                         Grant Access
                                                                     </Button>
                                                                 </DialogFooter>

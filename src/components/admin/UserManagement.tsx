@@ -295,10 +295,10 @@ export default function UserManagement() {
                                                                 <Shield className="h-4 w-4" />
                                                             </Button>
                                                         </DialogTrigger>
-                                                        <DialogContent className="max-w-4xl max-h-[80vh] overflow-y-auto">
-                                                            <DialogHeader>
-                                                                <DialogTitle>Manage Permissions: {user.name}</DialogTitle>
-                                                                <DialogDescription>
+                                                        <DialogContent className="modal-dialog max-w-4xl max-h-[80vh] overflow-y-auto">
+                                                            <DialogHeader className="modal-dialog-header">
+                                                                <DialogTitle className="modal-dialog-title">Manage Permissions: {user.name}</DialogTitle>
+                                                                <DialogDescription className="modal-dialog-description">
                                                                     View and modify permissions for this user.
                                                                 </DialogDescription>
                                                             </DialogHeader>
@@ -390,14 +390,14 @@ export default function UserManagement() {
 
             {/* Permission Action Dialog */}
             <Dialog open={!!selectedPermission} onOpenChange={(open) => !open && setSelectedPermission(null)}>
-                <DialogContent>
-                    <DialogHeader>
-                        <DialogTitle>
+                <DialogContent className="modal-dialog">
+                    <DialogHeader className="modal-dialog-header">
+                        <DialogTitle className="modal-dialog-title">
                             {permissionAction === 'grant' && 'Grant Permission'}
                             {permissionAction === 'deny' && 'Deny Permission'}
                             {permissionAction === 'revoke' && 'Revoke Permission'}
                         </DialogTitle>
-                        <DialogDescription>
+                        <DialogDescription className="modal-dialog-description">
                             {selectedPermission && (
                                 <>
                                     {permissionAction === 'grant' && `Grant ${selectedPermission.name} to ${selectedUser?.name}`}
@@ -427,17 +427,17 @@ export default function UserManagement() {
                                     placeholder="Provide a reason for this permission change..."
                                     value={permissionReason}
                                     onChange={(e) => setPermissionReason(e.target.value)}
-                                    className="mt-1"
+                                    className="modal-form-textarea mt-1"
                                 />
                             </div>
                         )}
                     </div>
 
                     <DialogFooter>
-                        <Button variant="outline" onClick={() => setSelectedPermission(null)}>
+                        <Button variant="outline" className="modal-button-secondary" onClick={() => setSelectedPermission(null)}>
                             Cancel
                         </Button>
-                        <Button onClick={handlePermissionAction}>
+                        <Button className="modal-button-primary" onClick={handlePermissionAction}>
                             {permissionAction === 'grant' && 'Grant Permission'}
                             {permissionAction === 'deny' && 'Deny Permission'}
                             {permissionAction === 'revoke' && 'Revoke Permission'}

@@ -183,10 +183,10 @@ export default function RoleManagement() {
                                         Create Role
                                     </Button>
                                 </DialogTrigger>
-                                <DialogContent className="max-w-4xl max-h-[80vh] overflow-y-auto">
-                                    <DialogHeader>
-                                        <DialogTitle>Create Custom Role</DialogTitle>
-                                        <DialogDescription>
+                                <DialogContent className="modal-dialog max-w-4xl max-h-[80vh] overflow-y-auto">
+                                    <DialogHeader className="modal-dialog-header">
+                                        <DialogTitle className="modal-dialog-title">Create Custom Role</DialogTitle>
+                                        <DialogDescription className="modal-dialog-description">
                                             Define a new role with specific permissions.
                                         </DialogDescription>
                                     </DialogHeader>
@@ -265,10 +265,10 @@ export default function RoleManagement() {
                                     </div>
 
                                     <DialogFooter>
-                                        <Button variant="outline" onClick={() => setCreateDialogOpen(false)}>
+                                        <Button variant="outline" className="modal-button-secondary" onClick={() => setCreateDialogOpen(false)}>
                                             Cancel
                                         </Button>
-                                        <Button onClick={handleCreateRole} disabled={!roleName.trim()}>
+                                        <Button className="modal-button-primary" onClick={handleCreateRole} disabled={!roleName.trim()}>
                                             Create Role
                                         </Button>
                                     </DialogFooter>
@@ -428,14 +428,14 @@ export default function RoleManagement() {
                                                                 </div>
 
                                                                 <DialogFooter>
-                                                                    <Button variant="outline" onClick={() => {
+                                                                    <Button variant="outline" className="modal-button-secondary" onClick={() => {
                                                                         setAssignDialogOpen(false);
                                                                         setSelectedRole(null);
                                                                         setSelectedUserId('');
                                                                     }}>
                                                                         Cancel
                                                                     </Button>
-                                                                    <Button onClick={handleAssignRole} disabled={!selectedUserId}>
+                                                                    <Button className="modal-button-primary" onClick={handleAssignRole} disabled={!selectedUserId}>
                                                                         Assign Role
                                                                     </Button>
                                                                 </DialogFooter>
