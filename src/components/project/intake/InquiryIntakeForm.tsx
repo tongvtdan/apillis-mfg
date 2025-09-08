@@ -1544,37 +1544,37 @@ export function InquiryIntakeForm({ submissionType, onSuccess }: InquiryIntakeFo
             <ContactModal
                 open={isCreatingContactDialogOpen}
                 onClose={() => {
-                                    setIsCreatingContactDialogOpen(false);
-                                    setContactFormData({
-                                        contactName: '',
-                                        contactEmail: '',
-                                        contactPhone: '',
-                                        contactRole: 'general',
-                                        contactAddress: '',
-                                        contactCity: '',
-                                        contactState: '',
-                                        contactPostalCode: '',
-                                        contactWebsite: '',
-                                        contactNotes: '',
-                                        isPrimaryContact: false
-                                    });
-                                }}
+                    setIsCreatingContactDialogOpen(false);
+                    setContactFormData({
+                        contactName: '',
+                        contactEmail: '',
+                        contactPhone: '',
+                        contactRole: 'general',
+                        contactAddress: '',
+                        contactCity: '',
+                        contactState: '',
+                        contactPostalCode: '',
+                        contactWebsite: '',
+                        contactNotes: '',
+                        isPrimaryContact: false
+                    });
+                }}
                 organizationId={form.watch('selectedCustomerId')}
                 onContactCreated={(contact) => {
-                                        // Reload contacts for the organization
+                    // Reload contacts for the organization
                     const reloadContacts = async () => {
-                                        const { data: contactsData, error: contactsError } = await supabase
-                                            .from('contacts')
-                                            .select('*')
-                                            .eq('organization_id', form.watch('selectedCustomerId') as any)
-                                            .eq('type', 'customer' as any)
-                                            .eq('is_active', true as any)
-                                            .order('is_primary_contact', { ascending: false })
-                                            .order('contact_name');
+                        const { data: contactsData, error: contactsError } = await supabase
+                            .from('contacts')
+                            .select('*')
+                            .eq('organization_id', form.watch('selectedCustomerId') as any)
+                            .eq('type', 'customer' as any)
+                            .eq('is_active', true as any)
+                            .order('is_primary_contact', { ascending: false })
+                            .order('contact_name');
 
-                                        if (!contactsError && contactsData) {
-                                            setOrganizationContacts((contactsData as any) || []);
-                                        }
+                        if (!contactsError && contactsData) {
+                            setOrganizationContacts((contactsData as any) || []);
+                        }
                     };
                     reloadContacts();
                 }}
