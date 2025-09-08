@@ -411,10 +411,10 @@ export default function RoleManagement() {
                                                                         <UserPlus className="h-4 w-4" />
                                                                     </Button>
                                                                 </DialogTrigger>
-                                                                <DialogContent>
-                                                                    <DialogHeader>
-                                                                        <DialogTitle>Assign Role: {role.name}</DialogTitle>
-                                                                        <DialogDescription>
+                                                                <DialogContent className="modal-dialog">
+                                                                    <DialogHeader className="modal-dialog-header">
+                                                                        <DialogTitle className="modal-dialog-title">Assign Role: {role.name}</DialogTitle>
+                                                                        <DialogDescription className="modal-dialog-description">
                                                                             Assign this role to a user.
                                                                         </DialogDescription>
                                                                     </DialogHeader>
