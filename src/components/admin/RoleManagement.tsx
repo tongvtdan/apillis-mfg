@@ -276,53 +276,6 @@ export default function RoleManagement() {
                                         </div>
 
             </Card>
-                                                                    <Label
-                                                                        htmlFor={`resource-${resource}`}
-                                                                        className="font-semibold capitalize cursor-pointer"
-                                                                    >
-                                                                        {resource.replace('_', ' ')}
-                                                                    </Label>
-                                                                </div>
-
-                                                                <div className="ml-6 grid grid-cols-1 md:grid-cols-2 gap-2">
-                                                                    {resourcePermissions.map(permission => (
-                                                                        <div key={permission.id} className="flex items-center space-x-2">
-                                                                            <Checkbox
-                                                                                id={permission.id}
-                                                                                checked={selectedPermissions.includes(permission.id)}
-                                                                                onCheckedChange={() => togglePermission(permission.id)}
-                                                                            />
-                                                                            <Label
-                                                                                htmlFor={permission.id}
-                                                                                className="text-sm cursor-pointer flex-1"
-                                                                            >
-                                                                                <div className="font-medium">{permission.action}</div>
-                                                                                <div className="text-xs text-base-content/70">{permission.description}</div>
-                                                                            </Label>
-                                                                        </div>
-                                                                    ))}
-                                                                </div>
-                                                            </div>
-                                                        );
-                                                    })}
-                                                </div>
-                                            </div>
-                                        </div>
-
-                                        <DialogFooter>
-                                            <Button variant="outline" className="modal-button-secondary" onClick={() => setCreateDialogOpen(false)}>
-                                                Cancel
-                                            </Button>
-                                            <Button className="modal-button-primary" onClick={handleCreateRole} disabled={!roleName.trim()}>
-                                                Create Role
-                                            </Button>
-                                        </DialogFooter>
-                                    </DialogContent>
-                                </Dialog>
-                            )}
-                        </div>
-                </CardHeader>
-            </Card>
 
             {/* Search */}
             <Card>
@@ -502,49 +455,51 @@ export default function RoleManagement() {
                         </Table>
                     </div>
                 </CardContent>
-            </Card>
+            </Card >
 
-            {/* Role Assignment Management */}
-            {selectedRole && canManageRoles && (
-                <Card>
-                    <CardHeader>
-                        <CardTitle className="flex items-center gap-2">
-                            <Users className="h-5 w-5" />
-                            Users with Role: {selectedRole.name}
-                        </CardTitle>
-                    </CardHeader>
-                    <CardContent>
-                        <div className="space-y-4">
-                            {getUsersWithRole(selectedRole.id).map(user => (
-                                <div key={user.userId} className="flex items-center justify-between p-4 border rounded-lg">
-                                    <div className="flex items-center gap-3">
-                                        <div className="w-10 h-10 rounded-full bg-primary text-primary-foreground flex items-center justify-center font-medium">
-                                            {user.name.charAt(0).toUpperCase()}
-                                        </div>
-                                        <div>
-                                            <div className="font-medium">{user.name}</div>
-                                            <div className="text-sm text-base-content/70">{user.email}</div>
-                                        </div>
-                                    </div>
-                                    <Button
-                                        variant="outline"
-                                        size="sm"
-                                        onClick={() => handleRemoveRole(user.userId, selectedRole.id)}
-                                    >
-                                        <UserMinus className="h-4 w-4 mr-2" />
-                                        Remove Role
-                                    </Button>
+    {/* Role Assignment Management */ }
+{
+    selectedRole && canManageRoles && (
+        <Card>
+            <CardHeader>
+                <CardTitle className="flex items-center gap-2">
+                    <Users className="h-5 w-5" />
+                    Users with Role: {selectedRole.name}
+                </CardTitle>
+            </CardHeader>
+            <CardContent>
+                <div className="space-y-4">
+                    {getUsersWithRole(selectedRole.id).map(user => (
+                        <div key={user.userId} className="flex items-center justify-between p-4 border rounded-lg">
+                            <div className="flex items-center gap-3">
+                                <div className="w-10 h-10 rounded-full bg-primary text-primary-foreground flex items-center justify-center font-medium">
+                                    {user.name.charAt(0).toUpperCase()}
                                 </div>
-                            ))}
-                            {getUsersWithRole(selectedRole.id).length === 0 && (
-                                <div className="text-center py-8 text-base-content/70">
-                                    No users are assigned to this role.
+                                <div>
+                                    <div className="font-medium">{user.name}</div>
+                                    <div className="text-sm text-base-content/70">{user.email}</div>
                                 </div>
-                            )}
+                            </div>
+                            <Button
+                                variant="outline"
+                                size="sm"
+                                onClick={() => handleRemoveRole(user.userId, selectedRole.id)}
+                            >
+                                <UserMinus className="h-4 w-4 mr-2" />
+                                Remove Role
+                            </Button>
                         </div>
-                    </CardContent>
-                </Card>
-            )}
-        </div>
+                    ))}
+                    {getUsersWithRole(selectedRole.id).length === 0 && (
+                        <div className="text-center py-8 text-base-content/70">
+                            No users are assigned to this role.
+                        </div>
+                    )}
+                </div>
+            </CardContent>
+        </Card>
+    )
+}
+        </div >
     );
 }
