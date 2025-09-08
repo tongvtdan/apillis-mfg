@@ -75,8 +75,8 @@ const inquiryFormSchema = z.object({
     company: z.string().min(2, 'Company name must be at least 2 characters'),
     email: z.string().email('Invalid email address'),
     phone: z.string().optional(),
-    country: z.string().min(2, 'Country is required'),
-    website: z.string().url('Invalid website URL').optional().or(z.literal('')),
+    country: z.string().optional(),
+    website: z.string().optional(),
     pointOfContacts: z.array(z.string()).optional(), // Array of contact IDs
     documents: z.array(documentItemSchema).min(2, 'At least two items required: Drawing and BOM'),
     notes: z.string().optional(),
@@ -90,27 +90,6 @@ interface InquiryIntakeFormProps {
     onSuccess?: (projectId: string) => void;
 }
 
-// Country code to name mapping
-const COUNTRY_NAMES: Record<string, string> = {
-    'US': 'United States',
-    'VN': 'Vietnam',
-    'JP': 'Japan',
-    'CA': 'Canada',
-    'MX': 'Mexico',
-    'GB': 'United Kingdom',
-    'DE': 'Germany',
-    'FR': 'France',
-    'CN': 'China',
-    'IN': 'India',
-    'AU': 'Australia'
-};
-
-// Helper function to get country code from display name
-const getCountryCode = (displayName: string): string => {
-    const entry = Object.entries(COUNTRY_NAMES).find(([_, name]) => name === displayName);
-    return entry ? entry[0] : displayName; // Return code if found, otherwise return as-is
-};
-
 export function InquiryIntakeForm({ submissionType, onSuccess }: InquiryIntakeFormProps) {
     const [isSubmitting, setIsSubmitting] = useState(false);
     const [isSubmitted, setIsSubmitted] = useState(false);
@@ -122,7 +101,6 @@ export function InquiryIntakeForm({ submissionType, onSuccess }: InquiryIntakeFo
     const [createCustomerOpen, setCreateCustomerOpen] = useState(false);
     const [pointOfContactsOpen, setPointOfContactsOpen] = useState(false);
     const [selectedContacts, setSelectedContacts] = useState<string[]>([]);
-    const [showCountryDropdown, setShowCountryDropdown] = useState(false);
     const [isCreatingOrganization, setIsCreatingOrganization] = useState(false);
     const [documentModes, setDocumentModes] = useState<Record<number, 'none' | 'file' | 'link'>>({});
 
@@ -190,7 +168,7 @@ export function InquiryIntakeForm({ submissionType, onSuccess }: InquiryIntakeFo
                             file_size: doc.file.size,
                             mime_type: doc.file.type,
                             category: doc.type.toLowerCase().replace(' ', '_'),
-                            version_number: 1,
+                            version: 1,
                             is_current_version: true,
                             storage_provider: 'supabase',
                             access_level: 'organization',
@@ -200,7 +178,7 @@ export function InquiryIntakeForm({ submissionType, onSuccess }: InquiryIntakeFo
                                 original_file_name: doc.file.name,
                                 upload_source: 'intake_form'
                             }
-                        })
+                        } as any)
                         .select()
                         .single();
 
@@ -208,8 +186,8 @@ export function InquiryIntakeForm({ submissionType, onSuccess }: InquiryIntakeFo
                         console.error('Error creating document record:', docError);
                         // Clean up uploaded file
                         await supabase.storage.from('documents').remove([fileName]);
-                    } else {
-                        console.log('✅ Document saved:', documentData.title);
+                    } else if (documentData) {
+                        console.log('✅ Document saved:', (documentData as any).title);
                     }
                 } else if (doc.link && doc.link.trim()) {
                     // Save link as document
@@ -225,7 +203,7 @@ export function InquiryIntakeForm({ submissionType, onSuccess }: InquiryIntakeFo
                             file_size: 0,
                             mime_type: 'text/plain',
                             category: doc.type.toLowerCase().replace(' ', '_'),
-                            version_number: 1,
+                            version: 1,
                             is_current_version: true,
                             storage_provider: 'external',
                             access_level: 'organization',
@@ -235,14 +213,14 @@ export function InquiryIntakeForm({ submissionType, onSuccess }: InquiryIntakeFo
                                 external_link: doc.link,
                                 upload_source: 'intake_form'
                             }
-                        })
+                        } as any)
                         .select()
                         .single();
 
                     if (docError) {
                         console.error('Error creating document link record:', docError);
-                    } else {
-                        console.log('✅ Document link saved:', documentData.title);
+                    } else if (documentData) {
+                        console.log('✅ Document link saved:', (documentData as any).title);
                     }
                 }
             }
@@ -265,10 +243,14 @@ export function InquiryIntakeForm({ submissionType, onSuccess }: InquiryIntakeFo
             const startOfDay = new Date(year, now.getMonth(), now.getDate()).toISOString();
             const endOfDay = new Date(year, now.getMonth(), now.getDate() + 1).toISOString();
 
+            if (!profile?.organization_id) {
+                throw new Error('User organization ID is required');
+            }
+
             const { count, error } = await supabase
                 .from('projects')
                 .select('*', { count: 'exact', head: true })
-                .eq('organization_id', profile?.organization_id)
+                .eq('organization_id', profile.organization_id as any)
                 .gte('created_at', startOfDay)
                 .lt('created_at', endOfDay);
 
@@ -340,22 +322,7 @@ export function InquiryIntakeForm({ submissionType, onSuccess }: InquiryIntakeFo
         form.setValue('company', organization.name || '');
 
         // Auto-fill organization-level information
-        const countryCode = organization.country || '';
-        const countryDisplay = countryCode ? (COUNTRY_NAMES[countryCode] || countryCode) : '';
-        form.setValue('country', countryDisplay);
         form.setValue('website', organization.website || '');
-
-        // Show country dropdown if organization doesn't have country
-        setShowCountryDropdown(!organization.country);
-
-        // Show alert if organization doesn't have country information
-        if (!organization.country) {
-            toast({
-                title: "Country Information Missing",
-                description: "This organization doesn't have country information. Please select a country below.",
-                variant: "destructive",
-            });
-        }
 
         // Reset point of contacts when organization changes
         form.setValue('pointOfContacts', []);
@@ -366,43 +333,7 @@ export function InquiryIntakeForm({ submissionType, onSuccess }: InquiryIntakeFo
         // Clear individual contact fields - they will be auto-filled when contacts are selected
         form.setValue('customerName', '');
         form.setValue('email', '');
-        form.setValue('phone', '');
-    }, [form, toast]);
-
-    // Handle country selection - update organization if needed
-    const handleCountryChange = useCallback(async (countryCode: string) => {
-        const selectedOrganizationId = form.getValues('selectedCustomerId');
-
-        if (selectedOrganizationId && countryCode) {
-            try {
-                // Update the organization with the selected country code
-                await supabase
-                    .from('organizations')
-                    .update({ country: countryCode } as any)
-                    .eq('id', selectedOrganizationId as any);
-
-                // Update the form to show the full country name
-                const countryDisplay = COUNTRY_NAMES[countryCode] || countryCode;
-                form.setValue('country', countryDisplay);
-
-                // Hide country dropdown after selection
-                setShowCountryDropdown(false);
-
-                // Show success message
-                toast({
-                    title: "Organization Updated",
-                    description: `Country information has been updated for this organization.`,
-                });
-            } catch (error) {
-                console.error('Error updating organization country:', error);
-                toast({
-                    title: "Update Failed",
-                    description: "Failed to update organization country information.",
-                    variant: "destructive",
-                });
-            }
-        }
-    }, [form, toast]);
+    }, [form]);
 
     // Toggle section collapse state
     const toggleSection = useCallback((sectionKey: string) => {
@@ -420,10 +351,10 @@ export function InquiryIntakeForm({ submissionType, onSuccess }: InquiryIntakeFo
             const formData = form.getValues();
 
             // Validate required fields
-            if (!formData.company || !formData.customerName || !formData.email || !formData.country) {
+            if (!formData.company || !formData.customerName || !formData.email) {
                 toast({
                     title: "Missing Required Information",
-                    description: "Please fill in all required fields (Organization Name, Contact Name, Email, Country).",
+                    description: "Please fill in all required fields (Organization Name, Contact Name, Email).",
                     variant: "destructive",
                 });
                 return;
@@ -433,7 +364,7 @@ export function InquiryIntakeForm({ submissionType, onSuccess }: InquiryIntakeFo
             const newOrganization = await createOrganization({
                 name: formData.company,
                 organization_type: 'customer',
-                country: getCountryCode(formData.country),
+                country: 'US', // Default country
                 website: formData.website || undefined,
                 industry: modalFormData.industry || undefined,
                 address: modalFormData.orgAddress || undefined,
@@ -450,7 +381,7 @@ export function InquiryIntakeForm({ submissionType, onSuccess }: InquiryIntakeFo
                 address: modalFormData.contactAddress || undefined,
                 city: modalFormData.contactCity || undefined,
                 state: modalFormData.contactState || undefined,
-                country: getCountryCode(formData.country),
+                country: 'US', // Default country
                 postal_code: modalFormData.contactPostalCode || undefined,
                 website: modalFormData.contactWebsite || undefined,
                 notes: modalFormData.contactNotes || undefined,
@@ -462,7 +393,6 @@ export function InquiryIntakeForm({ submissionType, onSuccess }: InquiryIntakeFo
 
             // Auto-fill form fields
             form.setValue('company', newOrganization.name);
-            form.setValue('country', formData.country);
             form.setValue('website', newOrganization.website || '');
 
             // Auto-select the primary contact
@@ -471,7 +401,6 @@ export function InquiryIntakeForm({ submissionType, onSuccess }: InquiryIntakeFo
                 form.setValue('pointOfContacts', [newOrganization.primary_contact.id]);
                 form.setValue('customerName', newOrganization.primary_contact.contact_name || '');
                 form.setValue('email', newOrganization.primary_contact.email || '');
-                form.setValue('phone', newOrganization.primary_contact.phone || '');
             }
 
             // Clear modal form fields
@@ -538,11 +467,9 @@ export function InquiryIntakeForm({ submissionType, onSuccess }: InquiryIntakeFo
                 // Contact is being added (not removed)
                 const selectedContact = organizationContacts.find(contact => contact.id === contactId);
                 if (selectedContact) {
-                    // Auto-fill the contact form fields (excluding country - use organization country only)
+                    // Auto-fill the contact form fields
                     form.setValue('customerName', selectedContact.contact_name || '');
                     form.setValue('email', selectedContact.email || '');
-                    form.setValue('phone', selectedContact.phone || '');
-                    // Note: Country is handled separately from organization data
 
                     // If organization name is not set, use the contact's company name
                     if (!form.getValues('company')) {
@@ -608,11 +535,9 @@ export function InquiryIntakeForm({ submissionType, onSuccess }: InquiryIntakeFo
                 setSelectedContacts([contactToSelect.id]);
                 form.setValue('pointOfContacts', [contactToSelect.id]);
 
-                // Auto-fill contact information (excluding country - use organization country only)
+                // Auto-fill contact information
                 form.setValue('customerName', contactToSelect.contact_name || '');
                 form.setValue('email', contactToSelect.email || '');
-                form.setValue('phone', contactToSelect.phone || '');
-                // Note: Country is handled separately from organization data
             }
         }
     }, [organizationContacts, selectedContacts.length, form]);
@@ -656,7 +581,7 @@ export function InquiryIntakeForm({ submissionType, onSuccess }: InquiryIntakeFo
                 const newOrganization = await createOrganization({
                     name: data.company,
                     organization_type: 'customer',
-                    country: getCountryCode(data.country),
+                    country: 'US', // Default country
                     website: data.website || undefined,
                     description: 'Customer Organization'
                 }, {
@@ -782,32 +707,6 @@ export function InquiryIntakeForm({ submissionType, onSuccess }: InquiryIntakeFo
 
     return (
         <>
-            {/* Project ID Display */}
-            <Card className="mb-6">
-                <CardContent className="p-4">
-                    <div className="flex items-center justify-between">
-                        <div>
-                            <h3 className="text-lg font-medium">Project Information</h3>
-                            <p className="text-sm text-muted-foreground">
-                                Your project will be created with the following ID
-                            </p>
-                        </div>
-                        <div className="text-right">
-                            {isGeneratingId ? (
-                                <div className="flex items-center gap-2">
-                                    <Loader2 className="h-4 w-4 animate-spin" />
-                                    <span className="text-sm text-muted-foreground">Generating ID...</span>
-                                </div>
-                            ) : (
-                                <Badge variant="outline" className="text-lg font-mono px-3 py-1">
-                                    {tempProjectId}
-                                </Badge>
-                            )}
-                        </div>
-                    </div>
-                </CardContent>
-            </Card>
-
             <Form {...form}>
                 <form onSubmit={form.handleSubmit(handleSubmit)} className="space-y-6">
                     {/* Customer Information */}
@@ -824,24 +723,59 @@ export function InquiryIntakeForm({ submissionType, onSuccess }: InquiryIntakeFo
                                         ) : (
                                             <ChevronDown className="h-4 w-4" />
                                         )}
-                                        Customer Organization
+                                        Customer Information
                                     </CardTitle>
                                     <CardDescription>
                                         Select an existing customer organization or create a new one for project communication
                                     </CardDescription>
+                                </div>
+                                <div className="flex items-center gap-2">
+                                    <Button
+                                        type="button"
+                                        variant="outline"
+                                        size="sm"
+                                        onClick={() => setCreateCustomerOpen(true)}
+                                        className="flex items-center gap-2"
+                                    >
+                                        <Plus className="h-4 w-4" />
+                                        New Customer
+                                    </Button>
                                 </div>
                             </div>
                         </CardHeader>
                         {!collapsedSections.customerInfo && (
                             <CardContent className="space-y-4">
                                 {/* Customer Selection and Creation */}
-                                <div className="flex gap-2">
-                                    <FormField
-                                        control={form.control}
-                                        name="selectedCustomerId"
-                                        render={({ field }) => (
-                                            <FormItem className="flex-1">
-                                                <FormLabel>Select Existing Organization (Optional)</FormLabel>
+                                <FormField
+                                    control={form.control}
+                                    name="selectedCustomerId"
+                                    render={({ field }) => {
+                                        const selectedOrg = organizations?.find(org => org.id === field.value);
+                                        return (
+                                            <FormItem>
+                                                <div className="flex items-center justify-between">
+                                                    <FormLabel>Select Existing Organization (Optional)</FormLabel>
+                                                    {selectedOrg && (
+                                                        <div className="flex gap-2">
+                                                            <Button
+                                                                type="button"
+                                                                variant="ghost"
+                                                                size="sm"
+                                                                onClick={() => {
+                                                                    // TODO: Implement company details popup
+                                                                    toast({
+                                                                        title: "Company Details",
+                                                                        description: `${selectedOrg.name} - ${selectedOrg.industry || 'No industry'} - ${selectedOrg.country || 'No country'}`,
+                                                                    });
+                                                                }}
+                                                                className="text-xs"
+                                                            >
+                                                                <Building2 className="h-3 w-3 mr-1" />
+                                                                View Details
+                                                            </Button>
+                                                        </div>
+                                                    )}
+                                                </div>
                                                 <Popover open={customerSearchOpen} onOpenChange={setCustomerSearchOpen}>
                                                     <PopoverTrigger asChild>
                                                         <FormControl>
@@ -852,7 +786,7 @@ export function InquiryIntakeForm({ submissionType, onSuccess }: InquiryIntakeFo
                                                                 className="w-full justify-between"
                                                             >
                                                                 {field.value ?
-                                                                    organizations?.find(org => org.id === field.value)?.name || "Select organization..."
+                                                                    selectedOrg?.name || "Select organization..."
                                                                     : "Select organization..."
                                                                 }
                                                                 <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
@@ -905,19 +839,9 @@ export function InquiryIntakeForm({ submissionType, onSuccess }: InquiryIntakeFo
                                                 </Popover>
                                                 <FormMessage />
                                             </FormItem>
-                                        )}
-                                    />
-                                    <div className="flex items-end">
-                                        <Button
-                                            type="button"
-                                            variant="outline"
-                                            onClick={() => setCreateCustomerOpen(true)}
-                                            className="px-3"
-                                        >
-                                            <Building2 className="h-4 w-4" />
-                                        </Button>
-                                    </div>
-                                </div>
+                                        )
+                                    }}
+                                />
 
                                 {/* Point of Contacts Selection */}
                                 {form.watch('selectedCustomerId') && (
@@ -926,7 +850,27 @@ export function InquiryIntakeForm({ submissionType, onSuccess }: InquiryIntakeFo
                                         name="pointOfContacts"
                                         render={({ field }) => (
                                             <FormItem>
-                                                <FormLabel>Point of Contacts</FormLabel>
+                                                <div className="flex items-center justify-between">
+                                                    <FormLabel>Point of Contacts</FormLabel>
+                                                    {selectedContacts.length > 0 && (
+                                                        <Button
+                                                            type="button"
+                                                            variant="ghost"
+                                                            size="sm"
+                                                            onClick={() => {
+                                                                const contacts = selectedContacts.map(id => organizationContacts.find(c => c.id === id)).filter(Boolean);
+                                                                toast({
+                                                                    title: "Contact Details",
+                                                                    description: contacts.map(c => `${c.contact_name} - ${c.email}`).join(', '),
+                                                                });
+                                                            }}
+                                                            className="text-xs"
+                                                        >
+                                                            <Building2 className="h-3 w-3 mr-1" />
+                                                            View Details
+                                                        </Button>
+                                                    )}
+                                                </div>
                                                 <Popover open={pointOfContactsOpen} onOpenChange={setPointOfContactsOpen}>
                                                     <PopoverTrigger asChild>
                                                         <FormControl>
@@ -1052,96 +996,19 @@ export function InquiryIntakeForm({ submissionType, onSuccess }: InquiryIntakeFo
                                     />
                                 </div>
 
-                                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                                    <FormField
-                                        control={form.control}
-                                        name="email"
-                                        render={({ field }) => (
-                                            <FormItem>
-                                                <FormLabel>Email *</FormLabel>
-                                                <FormControl>
-                                                    <Input type="email" placeholder="sarah.chen@technova.com" {...field} />
-                                                </FormControl>
-                                                <FormMessage />
-                                            </FormItem>
-                                        )}
-                                    />
-
-                                    <FormField
-                                        control={form.control}
-                                        name="phone"
-                                        render={({ field }) => (
-                                            <FormItem>
-                                                <FormLabel>Phone</FormLabel>
-                                                <FormControl>
-                                                    <Input placeholder="+1-555-123-4567" {...field} />
-                                                </FormControl>
-                                                <FormMessage />
-                                            </FormItem>
-                                        )}
-                                    />
-                                </div>
-
-                                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                                    <FormField
-                                        control={form.control}
-                                        name="country"
-                                        render={({ field }) => (
-                                            <FormItem>
-                                                <FormLabel>Country *</FormLabel>
-                                                <div className="flex gap-2">
-                                                    <FormControl className="flex-1">
-                                                        <Input
-                                                            placeholder="Country will auto-fill when organization is selected"
-                                                            {...field}
-                                                            readOnly={!!field.value && !showCountryDropdown}
-                                                        />
-                                                    </FormControl>
-                                                    {showCountryDropdown && (
-                                                        <Select onValueChange={(value) => {
-                                                            field.onChange(value);
-                                                            handleCountryChange(value);
-                                                        }} value="">
-                                                            <FormControl>
-                                                                <SelectTrigger className="w-[200px]">
-                                                                    <SelectValue placeholder="Select country" />
-                                                                </SelectTrigger>
-                                                            </FormControl>
-                                                            <SelectContent>
-                                                                <SelectItem value="US">United States</SelectItem>
-                                                                <SelectItem value="VN">Vietnam</SelectItem>
-                                                                <SelectItem value="JP">Japan</SelectItem>
-                                                                <SelectItem value="CA">Canada</SelectItem>
-                                                                <SelectItem value="MX">Mexico</SelectItem>
-                                                                <SelectItem value="GB">United Kingdom</SelectItem>
-                                                                <SelectItem value="DE">Germany</SelectItem>
-                                                                <SelectItem value="FR">France</SelectItem>
-                                                                <SelectItem value="CN">China</SelectItem>
-                                                                <SelectItem value="IN">India</SelectItem>
-                                                                <SelectItem value="AU">Australia</SelectItem>
-                                                            </SelectContent>
-                                                        </Select>
-                                                    )}
-                                                </div>
-                                                <FormMessage />
-                                            </FormItem>
-                                        )}
-                                    />
-
-                                    <FormField
-                                        control={form.control}
-                                        name="website"
-                                        render={({ field }) => (
-                                            <FormItem>
-                                                <FormLabel>Website</FormLabel>
-                                                <FormControl>
-                                                    <Input placeholder="https://example.com" {...field} />
-                                                </FormControl>
-                                                <FormMessage />
-                                            </FormItem>
-                                        )}
-                                    />
-                                </div>
+                                <FormField
+                                    control={form.control}
+                                    name="email"
+                                    render={({ field }) => (
+                                        <FormItem>
+                                            <FormLabel>Email *</FormLabel>
+                                            <FormControl>
+                                                <Input type="email" placeholder="sarah.chen@technova.com" {...field} />
+                                            </FormControl>
+                                            <FormMessage />
+                                        </FormItem>
+                                    )}
+                                />
                             </CardContent>
                         )}
                     </Card>
@@ -1161,9 +1028,17 @@ export function InquiryIntakeForm({ submissionType, onSuccess }: InquiryIntakeFo
                                             <ChevronDown className="h-4 w-4" />
                                         )}
                                         Project Details
+                                        {tempProjectId && (
+                                            <Badge variant="outline" className="text-xs font-mono ml-2">
+                                                {tempProjectId}
+                                            </Badge>
+                                        )}
                                     </CardTitle>
                                     <CardDescription>
                                         Provide detailed information about your manufacturing project
+                                        {isGeneratingId && (
+                                            <span className="ml-2 text-xs text-muted-foreground">(Generating ID...)</span>
+                                        )}
                                     </CardDescription>
                                 </div>
                             </div>
@@ -1701,7 +1576,7 @@ export function InquiryIntakeForm({ submissionType, onSuccess }: InquiryIntakeFo
                         </Button>
                     </div>
                 </form>
-            </Form>
+            </Form >
 
             {/* Create Customer Modal */}
             <Dialog open={createCustomerOpen} onOpenChange={setCreateCustomerOpen}>
