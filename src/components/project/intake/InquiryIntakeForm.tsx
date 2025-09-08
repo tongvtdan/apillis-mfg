@@ -982,12 +982,12 @@ export function InquiryIntakeForm({ submissionType, onSuccess }: InquiryIntakeFo
                                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                                     <FormField
                                         control={form.control}
-                                        name="customerName"
+                                        name="company"
                                         render={({ field }) => (
                                             <FormItem>
-                                                <FormLabel>Contact Name *</FormLabel>
+                                                <FormLabel>Organization Name *</FormLabel>
                                                 <FormControl>
-                                                    <Input placeholder="Sarah Chen" {...field} />
+                                                    <Input placeholder="TechNova Inc." {...field} />
                                                 </FormControl>
                                                 <FormMessage />
                                             </FormItem>
@@ -996,12 +996,12 @@ export function InquiryIntakeForm({ submissionType, onSuccess }: InquiryIntakeFo
 
                                     <FormField
                                         control={form.control}
-                                        name="company"
+                                        name="customerName"
                                         render={({ field }) => (
                                             <FormItem>
-                                                <FormLabel>Organization Name *</FormLabel>
+                                                <FormLabel>Contact Name *</FormLabel>
                                                 <FormControl>
-                                                    <Input placeholder="TechNova Inc." {...field} />
+                                                    <Input placeholder="Sarah Chen" {...field} />
                                                 </FormControl>
                                                 <FormMessage />
                                             </FormItem>
