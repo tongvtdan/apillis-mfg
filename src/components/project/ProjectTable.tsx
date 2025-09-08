@@ -167,8 +167,8 @@ export function ProjectTable({ projects, workflowStages = [], updateProjectStatu
           break;
         case 'priority':
           // Use priority_level (database field) or fallback to priority for compatibility
-          aValue = a.priority_level || a.priority || 'medium';
-          bValue = b.priority_level || b.priority || 'medium';
+          aValue = a.priority_level || a.priority || 'normal';
+          bValue = b.priority_level || b.priority || 'normal';
           break;
         default:
           aValue = a.title.toLowerCase();

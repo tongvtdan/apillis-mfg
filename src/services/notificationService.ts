@@ -6,7 +6,7 @@ type NotificationInsert = {
     title: string;
     message: string;
     type: 'approval_request' | 'approval_decision' | 'stage_transition' | 'project_update' | 'system';
-    priority: 'low' | 'medium' | 'high' | 'urgent';
+    priority: 'low' | 'normal' | 'high' | 'urgent';
     metadata?: any;
     organization_id: string;
 };
@@ -97,7 +97,7 @@ export class NotificationService {
                 title: `Approval ${decision.charAt(0).toUpperCase() + decision.slice(1)}`,
                 message: `${approverName} has ${decision} the approval for project "${projectTitle}".${comments ? ` Comment: ${comments}` : ''}`,
                 type: 'approval_decision',
-                priority: decision === 'rejected' ? 'high' : 'medium',
+                priority: decision === 'rejected' ? 'high' : 'normal',
                 metadata: {
                     project_id: projectId,
                     decision,

@@ -120,7 +120,7 @@ export function SearchFilterBar({
                             <SelectContent>
                                 <SelectItem value="all">All</SelectItem>
                                 <SelectItem value="high">High</SelectItem>
-                                <SelectItem value="medium">Medium</SelectItem>
+                                <SelectItem value="normal">Normal</SelectItem>
                                 <SelectItem value="low">Low</SelectItem>
                             </SelectContent>
                         </Select>

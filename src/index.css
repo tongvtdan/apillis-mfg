@@ -229,7 +229,7 @@
   color: white;
 }
 
-.priority-badge.medium {
+.priority-badge.normal {
   background: var(--gradient-warning);
   color: #1F2937;
 }
@@ -380,7 +380,7 @@
     color: white;
   }
 
-  .kanban-card.priority-medium {
+  .kanban-card.priority-normal {
     background: linear-gradient(135deg, #FFD740 0%, #FF8F00 100%);
     color: #1F2937;
   }

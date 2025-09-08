@@ -539,7 +539,7 @@ class ProjectService {
                 point_of_contacts: (projectData as any).point_of_contacts || null,
                 current_stage_id: projectData.current_stage_id || null,
                 status: projectData.status || 'active',
-                priority_level: projectData.priority_level || (projectData as any).priority || 'medium',
+                priority_level: projectData.priority_level || (projectData as any).priority || 'normal',
                 source: projectData.source || 'portal',
                 assigned_to: projectData.assigned_to || null,
                 created_by: projectData.created_by || null,

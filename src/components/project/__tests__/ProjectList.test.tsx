@@ -66,7 +66,7 @@ const mockProjects: Project[] = [
         title: 'Test Project 2',
         description: 'Test description 2',
         status: 'active',
-        priority_level: 'medium',
+        priority_level: 'normal',
         estimated_value: 5000,
         estimated_delivery_date: '2025-11-30',
         created_at: '2025-09-02T00:00:00Z',

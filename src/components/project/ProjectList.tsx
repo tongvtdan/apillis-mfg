@@ -188,9 +188,9 @@ export function ProjectList({
                     bValue = new Date(b.created_at || 0);
                     break;
                 case 'priority_level':
-                    const priorityOrder = { low: 1, medium: 2, high: 3, critical: 4 };
-                    aValue = priorityOrder[(a.priority_level || a.priority || 'medium') as keyof typeof priorityOrder];
-                    bValue = priorityOrder[(b.priority_level || b.priority || 'medium') as keyof typeof priorityOrder];
+                    const priorityOrder = { low: 1, normal: 2, high: 3, urgent: 4 };
+                    aValue = priorityOrder[(a.priority_level || a.priority || 'normal') as keyof typeof priorityOrder];
+                    bValue = priorityOrder[(b.priority_level || b.priority || 'normal') as keyof typeof priorityOrder];
                     break;
                 case 'estimated_value':
                     aValue = a.estimated_value || 0;
@@ -674,9 +674,9 @@ export function ProjectList({
                                         </div>
                                         <Badge
                                             variant="outline"
-                                            className={`text-xs ${getPriorityColor(project.priority_level || project.priority || 'medium')}`}
+                                            className={`text-xs ${getPriorityColor(project.priority_level || project.priority || 'normal')}`}
                                         >
-                                            {(project.priority_level || project.priority || 'medium').toUpperCase()}
+                                            {(project.priority_level || project.priority || 'normal').toUpperCase()}
                                         </Badge>
                                     </div>
                                 </div>

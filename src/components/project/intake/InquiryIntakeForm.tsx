@@ -164,7 +164,7 @@ export function InquiryIntakeForm({ submissionType, onSuccess }: InquiryIntakeFo
         defaultValues: {
             intakeType: submissionType === 'RFQ' ? 'rfq' : submissionType === 'Purchase Order' ? 'po' : 'design_idea',
             volumes: [{ qty: 1000, unit: 'pcs', freq: 'per year' }],
-            priority: 'medium',
+            priority: 'normal',
             documents: [
                 { type: 'Drawing', file: undefined, link: '', uploaded: false },
                 { type: 'BOM', file: undefined, link: '', uploaded: false }
@@ -1163,7 +1163,7 @@ export function InquiryIntakeForm({ submissionType, onSuccess }: InquiryIntakeFo
                                                     </FormControl>
                                                     <SelectContent>
                                                         <SelectItem value="low">Low</SelectItem>
-                                                        <SelectItem value="medium">Medium</SelectItem>
+                                                        <SelectItem value="normal">Normal</SelectItem>
                                                         <SelectItem value="high">High</SelectItem>
                                                         <SelectItem value="urgent">Urgent</SelectItem>
                                                     </SelectContent>

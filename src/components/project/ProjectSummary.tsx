@@ -87,7 +87,7 @@ export function EnhancedProjectSummary({
     const { progressPercentage } = progressCalculation;
 
     // Get priority with fallback
-    const priority = project.priority_level || project.priority || 'medium';
+    const priority = project.priority_level || project.priority || 'normal';
 
     // Format currency
     const formatCurrency = (amount: number | null | undefined) => {

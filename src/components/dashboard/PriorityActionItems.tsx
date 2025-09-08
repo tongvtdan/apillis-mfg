@@ -24,7 +24,7 @@ export function PriorityActionItems({ projects }: PriorityActionItemsProps) {
       } else if (project.priority_level === 'high') {
         score += 80;
         reasons.push('High priority');
-      } else if (project.priority_level === 'medium') {
+      } else if (project.priority_level === 'normal') {
         score += 40;
       } else {
         score += 20;

@@ -176,7 +176,7 @@ async function validateEnumValues(errors: string[], warnings: string[]): Promise
         if (priorityError) {
             errors.push(`Priority level enum validation failed: ${priorityError.message}`);
         } else if (projectsWithPriority) {
-            const validPriorities = ['low', 'medium', 'high', 'critical'];
+            const validPriorities = ['low', 'normal', 'high', 'urgent'];
             const invalidPriorities = projectsWithPriority
                 .map(p => p.priority_level)
                 .filter(priority => priority && !validPriorities.includes(priority));
