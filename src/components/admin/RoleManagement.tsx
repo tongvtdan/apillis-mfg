@@ -165,130 +165,130 @@ export default function RoleManagement() {
 
     return (
         <div className="space-y-6">
-      {/* Header */}
-      <Card>
-        <CardHeader>
-          <div className="flex items-center justify-between">
-            <div>
-              <CardTitle className="flex items-center gap-2">
-                <Key className="h-5 w-5" />
-                {canManageRoles ? 'Custom Role Management' : 'Role Overview'}
-              </CardTitle>
-              <CardDescription>
-                {canManageRoles
-                  ? 'Create and manage custom roles with specific permissions for your organization.'
-                  : 'View available custom roles and their permissions in your organization.'
-                }
-              </CardDescription>
-            </div>
-            <div className="flex gap-2">
-              <Button onClick={refreshData} disabled={loading}>
-                <RefreshCw className={`h-4 w-4 mr-2 ${loading ? 'animate-spin' : ''}`} />
-                Refresh
-              </Button>
-              {canManageRoles && (
-                <Dialog open={createDialogOpen} onOpenChange={setCreateDialogOpen}>
-                  <DialogTrigger asChild>
-                    <Button>
-                      <Plus className="h-4 w-4 mr-2" />
-                      Create Role
-                    </Button>
-                  </DialogTrigger>
-                                <DialogContent className="modal-dialog max-w-4xl max-h-[80vh] overflow-y-auto">
-                                    <DialogHeader className="modal-dialog-header">
-                                        <DialogTitle className="modal-dialog-title">Create Custom Role</DialogTitle>
-                                        <DialogDescription className="modal-dialog-description">
-                                            Define a new role with specific permissions.
-                                        </DialogDescription>
-                                    </DialogHeader>
-
-                                    <div className="space-y-6">
-                                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                                            <div>
-                                                <Label htmlFor="roleName">Role Name</Label>
-                                                <Input
-                                                    id="roleName"
-                                                    placeholder="e.g., Project Manager"
-                                                    value={roleName}
-                                                    onChange={(e) => setRoleName(e.target.value)}
-                                                    className="mt-1"
-                                                />
-                                            </div>
-                                            <div>
-                                                <Label htmlFor="roleDescription">Description (Optional)</Label>
-                                                <Input
-                                                    id="roleDescription"
-                                                    placeholder="Brief description of the role"
-                                                    value={roleDescription}
-                                                    onChange={(e) => setRoleDescription(e.target.value)}
-                                                    className="mt-1"
-                                                />
-                                            </div>
-                                        </div>
-
-                                        <div>
-                                            <Label>Permissions</Label>
-                                            <div className="mt-2 space-y-4 max-h-96 overflow-y-auto border rounded-lg p-4">
-                                                {Object.entries(permissionsByResource).map(([resource, resourcePermissions]) => {
-                                                    const allSelected = resourcePermissions.every(p => selectedPermissions.includes(p.id));
-                                                    const someSelected = resourcePermissions.some(p => selectedPermissions.includes(p.id));
-
-                                                    return (
-                                                        <div key={resource} className="space-y-2">
-                                                            <div className="flex items-center space-x-2">
-                                                                <Checkbox
-                                                                    id={`resource-${resource}`}
-                                                                    checked={allSelected}
-                                                                    indeterminate={someSelected && !allSelected}
-                                                                    onCheckedChange={() => toggleResourcePermissions(resourcePermissions)}
-                                                                />
-                                                                <Label
-                                                                    htmlFor={`resource-${resource}`}
-                                                                    className="font-semibold capitalize cursor-pointer"
-                                                                >
-                                                                    {resource.replace('_', ' ')}
-                                                                </Label>
-                                                            </div>
-
-                                                            <div className="ml-6 grid grid-cols-1 md:grid-cols-2 gap-2">
-                                                                {resourcePermissions.map(permission => (
-                                                                    <div key={permission.id} className="flex items-center space-x-2">
-                                                                        <Checkbox
-                                                                            id={permission.id}
-                                                                            checked={selectedPermissions.includes(permission.id)}
-                                                                            onCheckedChange={() => togglePermission(permission.id)}
-                                                                        />
-                                                                        <Label
-                                                                            htmlFor={permission.id}
-                                                                            className="text-sm cursor-pointer flex-1"
-                                                                        >
-                                                                            <div className="font-medium">{permission.action}</div>
-                                                                            <div className="text-xs text-base-content/70">{permission.description}</div>
-                                                                        </Label>
-                                                                    </div>
-                                                                ))}
-                                                            </div>
-                                                        </div>
-                                                    );
-                                                })}
-                                            </div>
-                                        </div>
-                                    </div>
-
-                                    <DialogFooter>
-                                        <Button variant="outline" className="modal-button-secondary" onClick={() => setCreateDialogOpen(false)}>
-                                            Cancel
-                                        </Button>
-                                        <Button className="modal-button-primary" onClick={handleCreateRole} disabled={!roleName.trim()}>
+            {/* Header */}
+            <Card>
+                <CardHeader>
+                    <div className="flex items-center justify-between">
+                        <div>
+                            <CardTitle className="flex items-center gap-2">
+                                <Key className="h-5 w-5" />
+                                {canManageRoles ? 'Custom Role Management' : 'Role Overview'}
+                            </CardTitle>
+                            <CardDescription>
+                                {canManageRoles
+                                    ? 'Create and manage custom roles with specific permissions for your organization.'
+                                    : 'View available custom roles and their permissions in your organization.'
+                                }
+                            </CardDescription>
+                        </div>
+                        <div className="flex gap-2">
+                            <Button onClick={refreshData} disabled={loading}>
+                                <RefreshCw className={`h-4 w-4 mr-2 ${loading ? 'animate-spin' : ''}`} />
+                                Refresh
+                            </Button>
+                            {canManageRoles && (
+                                <Dialog open={createDialogOpen} onOpenChange={setCreateDialogOpen}>
+                                    <DialogTrigger asChild>
+                                        <Button>
+                                            <Plus className="h-4 w-4 mr-2" />
                                             Create Role
                                         </Button>
-                                    </DialogFooter>
-                                </DialogContent>
-                            </Dialog>
-                        )}
-                    </div>
+                                    </DialogTrigger>
+                                    <DialogContent className="modal-dialog max-w-4xl max-h-[80vh] overflow-y-auto">
+                                        <DialogHeader className="modal-dialog-header">
+                                            <DialogTitle className="modal-dialog-title">Create Custom Role</DialogTitle>
+                                            <DialogDescription className="modal-dialog-description">
+                                                Define a new role with specific permissions.
+                                            </DialogDescription>
+                                        </DialogHeader>
+
+                                        <div className="space-y-6">
+                                            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                                <div>
+                                                    <Label htmlFor="roleName">Role Name</Label>
+                                                    <Input
+                                                        id="roleName"
+                                                        placeholder="e.g., Project Manager"
+                                                        value={roleName}
+                                                        onChange={(e) => setRoleName(e.target.value)}
+                                                        className="mt-1"
+                                                    />
+                                                </div>
+                                                <div>
+                                                    <Label htmlFor="roleDescription">Description (Optional)</Label>
+                                                    <Input
+                                                        id="roleDescription"
+                                                        placeholder="Brief description of the role"
+                                                        value={roleDescription}
+                                                        onChange={(e) => setRoleDescription(e.target.value)}
+                                                        className="mt-1"
+                                                    />
+                                                </div>
+                                            </div>
+
+                                            <div>
+                                                <Label>Permissions</Label>
+                                                <div className="mt-2 space-y-4 max-h-96 overflow-y-auto border rounded-lg p-4">
+                                                    {Object.entries(permissionsByResource).map(([resource, resourcePermissions]) => {
+                                                        const allSelected = resourcePermissions.every(p => selectedPermissions.includes(p.id));
+                                                        const someSelected = resourcePermissions.some(p => selectedPermissions.includes(p.id));
+
+                                                        return (
+                                                            <div key={resource} className="space-y-2">
+                                                                <div className="flex items-center space-x-2">
+                                                                    <Checkbox
+                                                                        id={`resource-${resource}`}
+                                                                        checked={allSelected}
+                                                                        indeterminate={someSelected && !allSelected}
+                                                                        onCheckedChange={() => toggleResourcePermissions(resourcePermissions)}
+                                                                    />
+                                                                    <Label
+                                                                        htmlFor={`resource-${resource}`}
+                                                                        className="font-semibold capitalize cursor-pointer"
+                                                                    >
+                                                                        {resource.replace('_', ' ')}
+                                                                    </Label>
+                                                                </div>
+
+                                                                <div className="ml-6 grid grid-cols-1 md:grid-cols-2 gap-2">
+                                                                    {resourcePermissions.map(permission => (
+                                                                        <div key={permission.id} className="flex items-center space-x-2">
+                                                                            <Checkbox
+                                                                                id={permission.id}
+                                                                                checked={selectedPermissions.includes(permission.id)}
+                                                                                onCheckedChange={() => togglePermission(permission.id)}
+                                                                            />
+                                                                            <Label
+                                                                                htmlFor={permission.id}
+                                                                                className="text-sm cursor-pointer flex-1"
+                                                                            >
+                                                                                <div className="font-medium">{permission.action}</div>
+                                                                                <div className="text-xs text-base-content/70">{permission.description}</div>
+                                                                            </Label>
+                                                                        </div>
+                                                                    ))}
+                                                                </div>
+                                                            </div>
+                                                        );
+                                                    })}
+                                                </div>
+                                            </div>
+                                        </div>
+
+                                        <DialogFooter>
+                                            <Button variant="outline" className="modal-button-secondary" onClick={() => setCreateDialogOpen(false)}>
+                                                Cancel
+                                            </Button>
+                                            <Button className="modal-button-primary" onClick={handleCreateRole} disabled={!roleName.trim()}>
+                                                Create Role
+                                            </Button>
+                                        </DialogFooter>
+                                    </DialogContent>
+                                </Dialog>
+                            )}
+                        </div>
                 </CardHeader>
-              </Card>
+            </Card>
 
             {/* Search */}
             <Card>
@@ -411,48 +411,48 @@ export default function RoleManagement() {
                                                                         <UserPlus className="h-4 w-4" />
                                                                     </Button>
                                                                 </DialogTrigger>
-                                                            <DialogContent>
-                                                                <DialogHeader>
-                                                                    <DialogTitle>Assign Role: {role.name}</DialogTitle>
-                                                                    <DialogDescription>
-                                                                        Assign this role to a user.
-                                                                    </DialogDescription>
-                                                                </DialogHeader>
+                                                                <DialogContent>
+                                                                    <DialogHeader>
+                                                                        <DialogTitle>Assign Role: {role.name}</DialogTitle>
+                                                                        <DialogDescription>
+                                                                            Assign this role to a user.
+                                                                        </DialogDescription>
+                                                                    </DialogHeader>
 
-                                                                <div className="space-y-4">
-                                                                    <div>
-                                                                        <Label htmlFor="userSelect">Select User</Label>
-                                                                        <Select value={selectedUserId} onValueChange={setSelectedUserId}>
-                                                                            <SelectTrigger className="mt-1">
-                                                                                <SelectValue placeholder="Choose a user..." />
-                                                                            </SelectTrigger>
-                                                                            <SelectContent>
-                                                                                {users
-                                                                                    .filter(user => !user.customRoles.some(cr => cr.id === role.id))
-                                                                                    .map(user => (
-                                                                                        <SelectItem key={user.userId} value={user.userId}>
-                                                                                            {user.name} ({user.email})
-                                                                                        </SelectItem>
-                                                                                    ))}
-                                                                            </SelectContent>
-                                                                        </Select>
+                                                                    <div className="space-y-4">
+                                                                        <div>
+                                                                            <Label htmlFor="userSelect">Select User</Label>
+                                                                            <Select value={selectedUserId} onValueChange={setSelectedUserId}>
+                                                                                <SelectTrigger className="mt-1">
+                                                                                    <SelectValue placeholder="Choose a user..." />
+                                                                                </SelectTrigger>
+                                                                                <SelectContent>
+                                                                                    {users
+                                                                                        .filter(user => !user.customRoles.some(cr => cr.id === role.id))
+                                                                                        .map(user => (
+                                                                                            <SelectItem key={user.userId} value={user.userId}>
+                                                                                                {user.name} ({user.email})
+                                                                                            </SelectItem>
+                                                                                        ))}
+                                                                                </SelectContent>
+                                                                            </Select>
+                                                                        </div>
                                                                     </div>
-                                                                </div>
 
-                                                                <DialogFooter>
-                                                                    <Button variant="outline" className="modal-button-secondary" onClick={() => {
-                                                                        setAssignDialogOpen(false);
-                                                                        setSelectedRole(null);
-                                                                        setSelectedUserId('');
-                                                                    }}>
-                                                                        Cancel
-                                                                    </Button>
-                                                                    <Button className="modal-button-primary" onClick={handleAssignRole} disabled={!selectedUserId}>
-                                                                        Assign Role
-                                                                    </Button>
-                                                                </DialogFooter>
-                                                            </DialogContent>
-                                                        </Dialog>
+                                                                    <DialogFooter>
+                                                                        <Button variant="outline" className="modal-button-secondary" onClick={() => {
+                                                                            setAssignDialogOpen(false);
+                                                                            setSelectedRole(null);
+                                                                            setSelectedUserId('');
+                                                                        }}>
+                                                                            Cancel
+                                                                        </Button>
+                                                                        <Button className="modal-button-primary" onClick={handleAssignRole} disabled={!selectedUserId}>
+                                                                            Assign Role
+                                                                        </Button>
+                                                                    </DialogFooter>
+                                                                </DialogContent>
+                                                            </Dialog>
 
                                                             <Button variant="ghost" size="sm">
                                                                 <Edit className="h-4 w-4" />
