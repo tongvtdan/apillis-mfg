@@ -18,7 +18,23 @@ export const INTAKE_MAPPINGS: Record<string, IntakeMapping> = {
         priority: 'normal',
         description: 'Request for quotation - typically leads to fabrication projects'
     },
+    'rfq': {
+        intakeType: 'rfq',
+        defaultProjectType: 'fabrication',
+        initialStageSlug: 'inquiry_received',
+        workflow: 'quote_workflow',
+        priority: 'normal',
+        description: 'Request for quotation - typically leads to fabrication projects'
+    },
     'Purchase Order': {
+        intakeType: 'purchase_order',
+        defaultProjectType: 'manufacturing',
+        initialStageSlug: 'order_confirmed',
+        workflow: 'production_workflow',
+        priority: 'high',
+        description: 'Purchase order - typically leads to manufacturing projects'
+    },
+    'po': {
         intakeType: 'purchase_order',
         defaultProjectType: 'manufacturing',
         initialStageSlug: 'order_confirmed',
@@ -33,6 +49,22 @@ export const INTAKE_MAPPINGS: Record<string, IntakeMapping> = {
         workflow: 'development_workflow',
         priority: 'low',
         description: 'Project idea - typically leads to system build projects'
+    },
+    'design_idea': {
+        intakeType: 'project_idea',
+        defaultProjectType: 'system_build',
+        initialStageSlug: 'technical_review',
+        workflow: 'development_workflow',
+        priority: 'low',
+        description: 'Project idea - typically leads to system build projects'
+    },
+    'inquiry': {
+        intakeType: 'rfq',
+        defaultProjectType: 'fabrication',
+        initialStageSlug: 'inquiry_received',
+        workflow: 'quote_workflow',
+        priority: 'normal',
+        description: 'General inquiry - typically leads to fabrication projects'
     }
 };
 
@@ -41,7 +73,15 @@ export class IntakeMappingService {
      * Get mapping for a specific intake type
      */
     static getMapping(intakeType: string): IntakeMapping | null {
-        return INTAKE_MAPPINGS[intakeType] || null;
+        console.log('🔍 Looking up intake type mapping for:', intakeType);
+        const mapping = INTAKE_MAPPINGS[intakeType] || null;
+        if (mapping) {
+            console.log('✅ Found mapping:', mapping);
+        } else {
+            console.log('❌ No mapping found for intake type:', intakeType);
+            console.log('Available mappings:', Object.keys(INTAKE_MAPPINGS));
+        }
+        return mapping;
     }
 
     /**
