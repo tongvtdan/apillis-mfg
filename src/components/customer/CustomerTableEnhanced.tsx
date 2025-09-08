@@ -44,10 +44,11 @@ import { CustomerModal } from './CustomerModal';
 interface CustomerTableProps {
     customers: CustomerOrganizationWithSummary[];
     onCustomerSelect?: (customer: CustomerOrganizationWithSummary) => void;
+    onAddContact?: (customer: CustomerOrganizationWithSummary) => void;
     canArchive?: boolean;
 }
 
-export function CustomerTable({ customers, onCustomerSelect, canArchive = false }: CustomerTableProps) {
+export function CustomerTable({ customers, onCustomerSelect, onAddContact, canArchive = false }: CustomerTableProps) {
     const [searchQuery, setSearchQuery] = useState('');
     const [selectedCustomer, setSelectedCustomer] = useState<CustomerOrganizationWithSummary | null>(null);
     const [showModal, setShowModal] = useState(false);
@@ -318,6 +319,12 @@ export function CustomerTable({ customers, onCustomerSelect, canArchive = false 
                                                     <Edit className="w-4 h-4 mr-2" />
                                                     Edit
                                                 </DropdownMenuItem>
+                                                {onAddContact && (
+                                                    <DropdownMenuItem onClick={() => onAddContact(customer)}>
+                                                        <Users className="w-4 h-4 mr-2" />
+                                                        Add Contact
+                                                    </DropdownMenuItem>
+                                                )}
                                                 {canArchive && (
                                                     <DropdownMenuItem
                                                         onClick={() => handleArchive(customer)}

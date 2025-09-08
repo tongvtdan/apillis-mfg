@@ -17,12 +17,14 @@ import { Switch } from '@/components/ui/switch';
 import { Label } from '@/components/ui/label';
 import { CustomerTable } from '@/components/customer/CustomerTableEnhanced';
 import { CustomerModal } from '@/components/customer/CustomerModal';
+import { ContactModal } from '@/components/customer/ContactModal';
 import { CustomerOrganizationWithSummary } from '@/types/project';
 
 export default function Customers() {
   const [showArchived, setShowArchived] = useState(false);
   const { customers, loading } = useCustomerOrganizations(showArchived);
   const [showModal, setShowModal] = useState(false);
+  const [showContactModal, setShowContactModal] = useState(false);
   const [selectedCustomer, setSelectedCustomer] = useState<CustomerOrganizationWithSummary | null>(null);
   const [canManageCustomers, setCanManageCustomers] = useState(false);
 
@@ -52,6 +54,17 @@ export default function Customers() {
   const handleCustomerSelect = (customer: CustomerOrganizationWithSummary) => {
     setSelectedCustomer(customer);
     // Could navigate to customer detail page or show details panel
+  };
+
+  const handleAddContact = (customer: CustomerOrganizationWithSummary) => {
+    setSelectedCustomer(customer);
+    setShowContactModal(true);
+  };
+
+  const handleContactCreated = (contact: any) => {
+    // Refresh the customers data to show updated contact count
+    // The useCustomerOrganizations hook should automatically refresh
+    console.log('Contact created:', contact);
   };
 
   if (loading) {
@@ -184,6 +197,7 @@ export default function Customers() {
               <CustomerTable
                 customers={customers}
                 onCustomerSelect={handleCustomerSelect}
+                onAddContact={handleAddContact}
                 canArchive={canManageCustomers}
               />
             </CardContent>
@@ -218,6 +232,14 @@ export default function Customers() {
       <CustomerModal
         open={showModal}
         onClose={() => setShowModal(false)}
+      />
+
+      {/* Contact Modal */}
+      <ContactModal
+        open={showContactModal}
+        onClose={() => setShowContactModal(false)}
+        organizationId={selectedCustomer?.id}
+        onContactCreated={handleContactCreated}
       />
     </div>
   );
