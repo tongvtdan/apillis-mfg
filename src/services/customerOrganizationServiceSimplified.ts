@@ -157,7 +157,8 @@ export class CustomerOrganizationServiceSimplified {
                         country: primaryContactData.country,
                         postal_code: primaryContactData.postal_code,
                         notes: primaryContactData.notes,
-                        is_active: true
+                        is_active: true,
+                        created_by: (await supabase.auth.getUser()).data.user?.id
                     } as any)
                     .select()
                     .single();

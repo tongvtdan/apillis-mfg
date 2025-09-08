@@ -491,6 +491,82 @@ export function useCustomerOrganizations(showArchived = false) {
     };
   }, [user, profile]);
 
+  const createOrganization = async (organizationData: Partial<Organization>, contactData?: Partial<any>): Promise<CustomerOrganizationWithSummary> => {
+    try {
+      // Create the organization first
+      const { data: newOrg, error: orgError } = await supabase
+        .from('organizations')
+        .insert({
+          ...organizationData,
+          organization_type: 'customer',
+          is_active: true,
+          created_by: user?.id
+        })
+        .select()
+        .single();
+
+      if (orgError) {
+        throw orgError;
+      }
+
+      // If contact data is provided, create the primary contact
+      if (contactData && newOrg) {
+        const { error: contactError } = await supabase
+          .from('contacts')
+          .insert({
+            organization_id: newOrg.id,
+            contact_name: contactData.contact_name,
+            email: contactData.email,
+            phone: contactData.phone,
+            role: contactData.role || 'general',
+            is_primary_contact: true,
+            is_active: true,
+            type: 'customer',
+            created_by: user?.id
+          });
+
+        if (contactError) {
+          console.error('Error creating contact:', contactError);
+          // Don't throw here as the organization was created successfully
+        }
+      }
+
+      // Fetch the complete organization with project summary
+      const completeOrg = await getCustomerById(newOrg.id);
+      if (completeOrg) {
+        setCustomers(prev => [completeOrg, ...prev]);
+      }
+
+      toast({
+        title: "Organization Created",
+        description: "Customer organization has been created successfully.",
+      });
+
+      return completeOrg || {
+        ...newOrg,
+        project_summary: {
+          total_projects: 0,
+          active_projects: 0,
+          completed_projects: 0,
+          cancelled_projects: 0,
+          on_hold_projects: 0,
+          total_value: 0,
+          active_value: 0,
+          completed_value: 0,
+          avg_project_value: 0
+        }
+      };
+    } catch (err) {
+      console.error('Error creating organization:', err);
+      toast({
+        variant: "destructive",
+        title: "Error",
+        description: "Failed to create customer organization",
+      });
+      throw err;
+    }
+  };
+
   return {
     customers,
     loading,
@@ -500,6 +576,7 @@ export function useCustomerOrganizations(showArchived = false) {
     searchCustomers,
     deleteCustomer,
     archiveCustomer,
-    unarchiveCustomer
+    unarchiveCustomer,
+    createOrganization
   };
 }

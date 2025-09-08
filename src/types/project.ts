@@ -57,6 +57,7 @@ export interface Organization {
   is_active: boolean;
   created_at: string;
   updated_at: string;
+  created_by?: string;
 
   // Enhanced fields for optimized schema
   tax_id?: string;
@@ -92,6 +93,7 @@ export interface Contact {
   notes?: string;
   created_at?: string; // Optional in database (has default)
   updated_at?: string;
+  created_by?: string;
 
   // Enhanced fields for optimized schema
   role?: string; // 'purchasing', 'engineering', 'quality', etc.
@@ -108,7 +110,6 @@ export interface Contact {
   ai_capabilities?: string[]; // Updated to match database type
   ai_risk_score?: number;
   ai_last_analyzed?: string;
-  created_by?: string;
 }
 
 export interface WorkflowStage {

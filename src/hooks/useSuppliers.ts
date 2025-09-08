@@ -98,6 +98,7 @@ export function useSuppliers(showArchived = false) {
         address: supplierData.address,
         country: supplierData.country,
         is_active: true,
+        created_by: user?.id
       };
 
       const { data: orgDataResult, error: orgError } = await supabase
@@ -121,6 +122,7 @@ export function useSuppliers(showArchived = false) {
         phone: supplierData.phone,
         is_primary_contact: true,
         is_active: true,
+        created_by: user?.id
       };
 
       const { data: contactResult, error: contactError } = await supabase

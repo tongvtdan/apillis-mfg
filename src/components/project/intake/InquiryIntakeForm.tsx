@@ -133,7 +133,7 @@ export function InquiryIntakeForm({ submissionType, onSuccess }: InquiryIntakeFo
 
     const { toast } = useToast();
     const { createProject } = useProjects();
-    const { organizations, loading: organizationsLoading, createOrganization } = useCustomerOrganizations();
+    const { customers: organizations, loading: organizationsLoading, createOrganization } = useCustomerOrganizations();
     const { profile } = useAuth();
 
     // Get intake mapping for this submission type
@@ -343,6 +343,7 @@ export function InquiryIntakeForm({ submissionType, onSuccess }: InquiryIntakeFo
 
     // Filter organizations based on search query
     const filteredOrganizations = React.useMemo(() => {
+        if (!organizations) return [];
         if (!customerSearchQuery) return organizations;
         return organizations.filter(organization =>
             organization.name.toLowerCase().includes(customerSearchQuery.toLowerCase()) ||
@@ -616,7 +617,7 @@ export function InquiryIntakeForm({ submissionType, onSuccess }: InquiryIntakeFo
                                                                 className="w-full justify-between"
                                                             >
                                                                 {field.value ?
-                                                                    organizations.find(org => org.id === field.value)?.name || "Select organization..."
+                                                                    organizations?.find(org => org.id === field.value)?.name || "Select organization..."
                                                                     : "Select organization..."
                                                                 }
                                                                 <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
