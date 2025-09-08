@@ -560,43 +560,34 @@ export function InquiryIntakeForm({ submissionType, onSuccess }: InquiryIntakeFo
         }
     }, []);
 
-    // Fetch contacts when organization changes (fallback for direct organization ID changes)
-    const selectedOrganizationId = form.watch('selectedCustomerId');
+    // Fetch contacts when organization changes
     useEffect(() => {
-        if (selectedOrganizationId && organizationContacts.length === 0) {
-            // Only load if we don't already have contacts (prevents duplicate calls)
+        const selectedOrganizationId = form.watch('selectedCustomerId');
+        if (selectedOrganizationId) {
             getOrganizationContacts(selectedOrganizationId);
-        } else if (!selectedOrganizationId) {
+        } else {
             setOrganizationContacts([]);
         }
-    }, [selectedOrganizationId, getOrganizationContacts, organizationContacts.length]);
+    }, [form.watch('selectedCustomerId'), getOrganizationContacts]);
 
     // Auto-select primary contact when contacts are loaded
     useEffect(() => {
-        if (selectedOrganizationId) {
-            if (organizationContacts.length > 0) {
-                // Auto-select primary contact when contacts are available
-                const primaryContact = organizationContacts.find(contact => contact.is_primary_contact);
-                const contactToSelect = primaryContact || organizationContacts[0]; // Fallback to first contact
+        if (organizationContacts.length > 0 && selectedContacts.length === 0) {
+            // Find the primary contact
+            const primaryContact = organizationContacts.find(contact => contact.is_primary_contact);
+            const contactToSelect = primaryContact || organizationContacts[0]; // Fallback to first contact
 
-                if (contactToSelect && !selectedContacts.includes(contactToSelect.id)) {
-                    // Auto-select the primary/first contact
-                    setSelectedContacts([contactToSelect.id]);
-                    form.setValue('pointOfContacts', [contactToSelect.id]);
+            if (contactToSelect) {
+                // Auto-select the primary/first contact
+                setSelectedContacts([contactToSelect.id]);
+                form.setValue('pointOfContacts', [contactToSelect.id]);
 
-                    // Auto-fill contact information
-                    form.setValue('customerName', contactToSelect.contact_name || '');
-                    form.setValue('email', contactToSelect.email || '');
-                }
-            } else {
-                // No contacts available - show placeholders
-                setSelectedContacts([]);
-                form.setValue('pointOfContacts', []);
-                form.setValue('customerName', '');
-                form.setValue('email', '');
+                // Auto-fill contact information
+                form.setValue('customerName', contactToSelect.contact_name || '');
+                form.setValue('email', contactToSelect.email || '');
             }
         }
-    }, [selectedOrganizationId, organizationContacts, selectedContacts, form]);
+    }, [organizationContacts, selectedContacts.length, form]);
 
     // Handle file upload
     const handleFileUpload = useCallback((file: File, documentIndex: number) => {
@@ -902,7 +893,7 @@ export function InquiryIntakeForm({ submissionType, onSuccess }: InquiryIntakeFo
                                     />
 
                                     {/* Point of Contacts Selection - Right Side */}
-                                    {selectedOrganizationId && (
+                                    {form.watch('selectedCustomerId') && (
                                         <FormField
                                             control={form.control}
                                             name="pointOfContacts"
@@ -1039,7 +1030,7 @@ export function InquiryIntakeForm({ submissionType, onSuccess }: InquiryIntakeFo
                                     )}
 
                                     {/* Placeholder for when no organization is selected */}
-                                    {!selectedOrganizationId && (
+                                    {!form.watch('selectedCustomerId') && (
                                         <div className="flex items-center justify-center p-8 border-2 border-dashed border-muted-foreground/25 rounded-md">
                                             <div className="text-center text-muted-foreground">
                                                 <Building2 className="h-8 w-8 mx-auto mb-2 opacity-50" />
@@ -1058,9 +1049,9 @@ export function InquiryIntakeForm({ submissionType, onSuccess }: InquiryIntakeFo
                                                 <FormLabel>Organization Name *</FormLabel>
                                                 <FormControl>
                                                     <Input
-                                                        placeholder={selectedOrganizationId ? "Auto-filled from organization" : "TechNova Inc."}
+                                                        placeholder={form.watch('selectedCustomerId') ? "Auto-filled from organization" : "TechNova Inc."}
                                                         {...field}
-                                                        readOnly={!!selectedOrganizationId}
+                                                        readOnly={!!form.watch('selectedCustomerId')}
                                                     />
                                                 </FormControl>
                                                 <FormMessage />
@@ -1079,7 +1070,7 @@ export function InquiryIntakeForm({ submissionType, onSuccess }: InquiryIntakeFo
                                                     <FormControl>
                                                         <Input
                                                             placeholder={
-                                                                !selectedOrganizationId
+                                                                !form.watch('selectedCustomerId')
                                                                     ? "Select organization first"
                                                                     : !hasContacts
                                                                         ? "No contacts available - add new contact"
@@ -1108,7 +1099,7 @@ export function InquiryIntakeForm({ submissionType, onSuccess }: InquiryIntakeFo
                                                     <Input
                                                         type="email"
                                                         placeholder={
-                                                            !selectedOrganizationId
+                                                            !form.watch('selectedCustomerId')
                                                                 ? "Select organization first"
                                                                 : !hasContacts
                                                                     ? "No contacts available - add new contact"
@@ -2157,7 +2148,7 @@ export function InquiryIntakeForm({ submissionType, onSuccess }: InquiryIntakeFo
                                         return;
                                     }
 
-                                    if (!selectedOrganizationId) {
+                                    if (!form.watch('selectedCustomerId')) {
                                         toast({
                                             title: "No Organization Selected",
                                             description: "Please select an organization first.",
@@ -2170,7 +2161,7 @@ export function InquiryIntakeForm({ submissionType, onSuccess }: InquiryIntakeFo
                                         const { data, error } = await supabase
                                             .from('contacts')
                                             .insert({
-                                                organization_id: selectedOrganizationId as any,
+                                                organization_id: form.watch('selectedCustomerId') as any,
                                                 contact_name: contactFormData.contactName,
                                                 email: contactFormData.contactEmail,
                                                 phone: contactFormData.contactPhone || null,
@@ -2194,7 +2185,7 @@ export function InquiryIntakeForm({ submissionType, onSuccess }: InquiryIntakeFo
                                         const { data: contactsData, error: contactsError } = await supabase
                                             .from('contacts')
                                             .select('*')
-                                            .eq('organization_id', selectedOrganizationId as any)
+                                            .eq('organization_id', form.watch('selectedCustomerId') as any)
                                             .eq('type', 'customer' as any)
                                             .eq('is_active', true as any)
                                             .order('is_primary_contact', { ascending: false })

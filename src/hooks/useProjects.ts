@@ -379,7 +379,7 @@ export function useProjects() {
       });
 
     return realtimeChannelRef.current;
-  }, [fetchProjects]); // Add fetchProjects dependency
+  }, []); // Empty dependency array - fetchProjects is accessed via closure
 
   // Set up real-time subscription - only for project detail pages
   useEffect(() => {
@@ -745,14 +745,14 @@ export function useProjects() {
   // Manual refetch function
   const refetch = useCallback(async (forceRefresh = false) => {
     await fetchProjects(forceRefresh);
-  }, [fetchProjects]); // Add fetchProjects dependency
+  }, []); // Empty dependency array - fetchProjects is accessed via closure
 
   // Clear cache and refetch
   const clearCacheAndRefetch = useCallback(async () => {
     console.log('🧹 Clearing cache and refetching projects');
     cacheService.clearCache();
     await fetchProjects(true);
-  }, [fetchProjects]);
+  }, []); // Empty dependency array - fetchProjects is accessed via closure
 
   // Test customer organization fetching directly
   const testCustomerOrganizationFetching = useCallback(async () => {
@@ -837,7 +837,7 @@ export function useProjects() {
     offset?: number;
   }, forceRefresh = false) => {
     await fetchProjects(forceRefresh, filters);
-  }, [fetchProjects]); // Add fetchProjects dependency
+  }, []); // Empty dependency array - fetchProjects is accessed via closure
 
   // Generate unique project ID
   const generateProjectId = async (): Promise<string> => {
