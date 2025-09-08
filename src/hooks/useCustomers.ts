@@ -30,7 +30,7 @@ export interface CustomerSearchCriteria {
     country?: string;
 }
 
-export function useCustomers() {
+export function useCustomers(showArchived = false) {
     const [customers, setCustomers] = useState<Customer[]>([]);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState<string | null>(null);
@@ -48,12 +48,18 @@ export function useCustomers() {
             setLoading(true);
             setError(null);
 
-            const { data, error: fetchError } = await supabase
+            let query = supabase
                 .from('contacts')
                 .select('*')
                 .eq('type', 'customer')
-                .eq('organization_id', profile.organization_id) // Added organization_id filter
-                .order('created_at', { ascending: false });
+                .eq('organization_id', profile.organization_id); // Added organization_id filter
+
+            // Filter by active status based on showArchived parameter
+            if (!showArchived) {
+                query = query.eq('is_active', true);
+            }
+
+            const { data, error: fetchError } = await query.order('created_at', { ascending: false });
 
             if (fetchError) {
                 console.error('Error fetching customers:', fetchError);
@@ -172,6 +178,69 @@ export function useCustomers() {
                 variant: "destructive",
                 title: "Error",
                 description: "Failed to delete customer",
+            });
+            throw err;
+        }
+    };
+
+    const archiveCustomer = async (id: string): Promise<void> => {
+        try {
+            const { error } = await supabase
+                .from('contacts')
+                .update({ is_active: false })
+                .eq('id', id)
+                .eq('type', 'customer');
+
+            if (error) {
+                throw error;
+            }
+
+            setCustomers(prev => prev.filter(customer => customer.id !== id));
+
+            toast({
+                title: "Customer Archived",
+                description: "Customer has been archived successfully.",
+            });
+        } catch (err) {
+            console.error('Error archiving customer:', err);
+            toast({
+                variant: "destructive",
+                title: "Error",
+                description: "Failed to archive customer",
+            });
+            throw err;
+        }
+    };
+
+    const unarchiveCustomer = async (id: string): Promise<Customer> => {
+        try {
+            const { data, error } = await supabase
+                .from('contacts')
+                .update({ is_active: true })
+                .eq('id', id)
+                .eq('type', 'customer')
+                .select('*')
+                .single();
+
+            if (error) {
+                throw error;
+            }
+
+            const unarchivedCustomer = { ...data, type: 'customer' as const };
+            setCustomers(prev => [unarchivedCustomer, ...prev]);
+
+            toast({
+                title: "Customer Reactivated",
+                description: "Customer has been reactivated successfully.",
+            });
+
+            return unarchivedCustomer;
+        } catch (err) {
+            console.error('Error unarchiving customer:', err);
+            toast({
+                variant: "destructive",
+                title: "Error",
+                description: "Failed to reactivate customer",
             });
             throw err;
         }
@@ -304,6 +373,8 @@ export function useCustomers() {
         createCustomer,
         updateCustomer,
         deleteCustomer,
+        archiveCustomer,
+        unarchiveCustomer,
         getCustomerById,
         searchCustomers,
         getCustomerProjects

@@ -34,7 +34,8 @@ import {
     Clock,
     CheckCircle,
     XCircle,
-    AlertTriangle
+    AlertTriangle,
+    Archive
 } from 'lucide-react';
 import { Supplier, SPECIALTY_LABELS } from '@/types/supplier';
 import { useSuppliers } from '@/hooks/useSuppliers';
@@ -50,7 +51,7 @@ export function SupplierTable({ suppliers, onSupplierSelect, onSupplierEdit }: S
     const [showDeleteDialog, setShowDeleteDialog] = useState(false);
     const [supplierToDelete, setSupplierToDelete] = useState<Supplier | null>(null);
 
-    const { deleteSupplier } = useSuppliers();
+    const { deleteSupplier, archiveSupplier } = useSuppliers();
 
     const filteredSuppliers = useMemo(() => {
         if (!searchQuery) return suppliers;
@@ -70,6 +71,14 @@ export function SupplierTable({ suppliers, onSupplierSelect, onSupplierEdit }: S
     const handleEdit = (supplier: Supplier) => {
         if (onSupplierEdit) {
             onSupplierEdit(supplier);
+        }
+    };
+
+    const handleArchive = async (supplier: Supplier) => {
+        try {
+            await archiveSupplier(supplier.id);
+        } catch (error) {
+            console.error('Error archiving supplier:', error);
         }
     };
 
@@ -273,11 +282,11 @@ export function SupplierTable({ suppliers, onSupplierSelect, onSupplierEdit }: S
                                                     Edit
                                                 </DropdownMenuItem>
                                                 <DropdownMenuItem
-                                                    onClick={() => handleDelete(supplier)}
-                                                    className="text-destructive"
+                                                    onClick={() => handleArchive(supplier)}
+                                                    className="text-orange-600"
                                                 >
-                                                    <Trash2 className="w-4 h-4 mr-2" />
-                                                    Delete
+                                                    <Archive className="w-4 h-4 mr-2" />
+                                                    Archive
                                                 </DropdownMenuItem>
                                             </DropdownMenuContent>
                                         </DropdownMenu>

@@ -14,18 +14,22 @@ import {
     CheckCircle
 } from 'lucide-react';
 import { useSuppliers } from '@/hooks/useSuppliers';
+import { Switch } from '@/components/ui/switch';
+import { Label } from '@/components/ui/label';
 import { SupplierTable } from '@/components/supplier/SupplierTable';
 import { SupplierModal } from '@/components/supplier/SupplierModal';
 import { Supplier } from '@/types/supplier';
 
 export default function Suppliers() {
-    const { suppliers, loading } = useSuppliers();
+    const [showArchived, setShowArchived] = useState(false);
+    const { suppliers, loading } = useSuppliers(showArchived);
     const [showModal, setShowModal] = useState(false);
     const [selectedSupplier, setSelectedSupplier] = useState<Supplier | null>(null);
 
     // Calculate supplier statistics
     const totalSuppliers = suppliers.length;
     const activeSuppliers = suppliers.filter(s => s.is_active).length;
+    const archivedSuppliers = suppliers.filter(s => !s.is_active).length;
     const averageRating = suppliers.length > 0
         ? suppliers.reduce((sum, s) => sum + s.rating, 0) / suppliers.length
         : 0;
@@ -72,14 +76,26 @@ export default function Suppliers() {
                         <h1 className="text-2xl font-bold text-base-content">Supplier Management</h1>
                         <p className="text-base-content/70">Manage your supplier network and performance</p>
                     </div>
-                    <Button
-                        onClick={() => setShowModal(true)}
-                        variant="accent"
-                        className="action-button shadow-md hover:shadow-lg"
-                    >
-                        <Plus className="w-4 h-4 mr-2" />
-                        Add Supplier
-                    </Button>
+                    <div className="flex items-center gap-4">
+                        <div className="flex items-center space-x-2">
+                            <Switch
+                                id="show-archived-suppliers"
+                                checked={showArchived}
+                                onCheckedChange={setShowArchived}
+                            />
+                            <Label htmlFor="show-archived-suppliers" className="text-sm">
+                                Show Archived
+                            </Label>
+                        </div>
+                        <Button
+                            onClick={() => setShowModal(true)}
+                            variant="accent"
+                            className="action-button shadow-md hover:shadow-lg"
+                        >
+                            <Plus className="w-4 h-4 mr-2" />
+                            Add Supplier
+                        </Button>
+                    </div>
                 </div>
             </div>
 
@@ -93,7 +109,7 @@ export default function Suppliers() {
                     <CardContent>
                         <div className="text-2xl font-bold text-base-content">{totalSuppliers}</div>
                         <p className="text-xs text-base-content/70">
-                            {activeSuppliers} active suppliers
+                            {showArchived ? 'Archived suppliers' : `${activeSuppliers} active suppliers`}
                         </p>
                     </CardContent>
                 </Card>

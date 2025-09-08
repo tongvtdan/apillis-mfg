@@ -12,18 +12,22 @@ import {
   BarChart3
 } from 'lucide-react';
 import { useCustomers } from '@/hooks/useCustomers';
+import { Switch } from '@/components/ui/switch';
+import { Label } from '@/components/ui/label';
 import { CustomerTable } from '@/components/customer/CustomerTable';
 import { CustomerModal } from '@/components/customer/CustomerModal';
 import { Customer } from '@/types/project';
 
 export default function Customers() {
-  const { customers, loading } = useCustomers();
+  const [showArchived, setShowArchived] = useState(false);
+  const { customers, loading } = useCustomers(showArchived);
   const [showModal, setShowModal] = useState(false);
   const [selectedCustomer, setSelectedCustomer] = useState<Customer | null>(null);
 
   // Calculate customer statistics
   const totalCustomers = customers.length;
-  const activeCustomers = customers.filter(c => c.email).length; // Customers with email are considered active
+  const activeCustomers = customers.filter(c => c.is_active !== false).length;
+  const archivedCustomers = customers.filter(c => c.is_active === false).length;
   const countries = [...new Set(customers.map(c => c.country).filter(Boolean))].length;
   const companiesCount = customers.filter(c => c.company_name).length;
 
@@ -61,14 +65,26 @@ export default function Customers() {
             <h1 className="text-2xl font-bold text-base-content">Customer Management</h1>
             <p className="text-base-content/70">Manage your customer database and relationships</p>
           </div>
-          <Button
-            onClick={() => setShowModal(true)}
-            variant="accent"
-            className="action-button shadow-md hover:shadow-lg"
-          >
-            <Plus className="w-4 h-4 mr-2" />
-            Add Customer
-          </Button>
+          <div className="flex items-center gap-4">
+            <div className="flex items-center space-x-2">
+              <Switch
+                id="show-archived"
+                checked={showArchived}
+                onCheckedChange={setShowArchived}
+              />
+              <Label htmlFor="show-archived" className="text-sm">
+                Show Archived
+              </Label>
+            </div>
+            <Button
+              onClick={() => setShowModal(true)}
+              variant="accent"
+              className="action-button shadow-md hover:shadow-lg"
+            >
+              <Plus className="w-4 h-4 mr-2" />
+              Add Customer
+            </Button>
+          </div>
         </div>
       </div>
 
@@ -82,7 +98,7 @@ export default function Customers() {
           <CardContent>
             <div className="text-2xl font-bold text-base-content">{totalCustomers}</div>
             <p className="text-xs text-base-content/70">
-              {totalCustomers > 0 ? '+' + Math.round((totalCustomers / 10) * 100) + '% from last month' : 'No customers yet'}
+              {showArchived ? 'Archived customers' : 'Total active customers'}
             </p>
           </CardContent>
         </Card>
@@ -95,7 +111,7 @@ export default function Customers() {
           <CardContent>
             <div className="text-2xl font-bold text-base-content">{activeCustomers}</div>
             <p className="text-xs text-base-content/70">
-              {totalCustomers > 0 ? Math.round((activeCustomers / totalCustomers) * 100) + '% with contact info' : 'N/A'}
+              {showArchived ? 'Active customers' : 'With contact info'}
             </p>
           </CardContent>
         </Card>
