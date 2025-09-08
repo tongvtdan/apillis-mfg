@@ -103,6 +103,8 @@ export function InquiryIntakeForm({ submissionType, onSuccess }: InquiryIntakeFo
     const [selectedContacts, setSelectedContacts] = useState<string[]>([]);
     const [isCreatingOrganization, setIsCreatingOrganization] = useState(false);
     const [isCreatingContact, setIsCreatingContact] = useState(false);
+    const [isCreatingContactDialogOpen, setIsCreatingContactDialogOpen] = useState(false);
+    const [isSubmittingContact, setIsSubmittingContact] = useState(false);
     const [documentModes, setDocumentModes] = useState<Record<number, 'none' | 'file' | 'link'>>({});
 
     // Modal form state (separate from main form)
@@ -903,7 +905,7 @@ export function InquiryIntakeForm({ submissionType, onSuccess }: InquiryIntakeFo
                                                                                 </CommandItem>
                                                                                 <CommandItem
                                                                                     onSelect={() => {
-                                                                                        setIsCreatingContact(true);
+                                                                                        setIsCreatingContactDialogOpen(true);
                                                                                         setPointOfContactsOpen(false);
                                                                                     }}
                                                                                     className="text-primary hover:text-primary"
@@ -1906,7 +1908,7 @@ export function InquiryIntakeForm({ submissionType, onSuccess }: InquiryIntakeFo
             </Dialog>
 
             {/* Create Contact Dialog */}
-            <Dialog open={isCreatingContact} onOpenChange={setIsCreatingContact}>
+            <Dialog open={isCreatingContactDialogOpen} onOpenChange={setIsCreatingContactDialogOpen}>
                 <DialogOverlay className="bg-black/50" />
                 <DialogContent className="modal-dialog max-w-4xl max-h-[90vh] overflow-y-auto">
                     <DialogHeader className="modal-dialog-header">
@@ -2065,7 +2067,7 @@ export function InquiryIntakeForm({ submissionType, onSuccess }: InquiryIntakeFo
                                 variant="outline"
                                 className="modal-button-secondary"
                                 onClick={() => {
-                                    setIsCreatingContact(false);
+                                    setIsCreatingContactDialogOpen(false);
                                     setContactFormData({
                                         contactName: '',
                                         contactEmail: '',
@@ -2105,6 +2107,7 @@ export function InquiryIntakeForm({ submissionType, onSuccess }: InquiryIntakeFo
                                         return;
                                     }
 
+                                    setIsSubmittingContact(true);
                                     try {
                                         const { data, error } = await supabase
                                             .from('contacts')
@@ -2163,6 +2166,22 @@ export function InquiryIntakeForm({ submissionType, onSuccess }: InquiryIntakeFo
                                             title: "Contact Created Successfully",
                                             description: `${contactFormData.contactName} has been added to the organization.`,
                                         });
+
+                                        // Close dialog and reset form
+                                        setIsCreatingContactDialogOpen(false);
+                                        setContactFormData({
+                                            contactName: '',
+                                            contactEmail: '',
+                                            contactPhone: '',
+                                            contactRole: '',
+                                            contactAddress: '',
+                                            contactCity: '',
+                                            contactState: '',
+                                            contactPostalCode: '',
+                                            contactWebsite: '',
+                                            contactNotes: '',
+                                            isPrimaryContact: false
+                                        });
                                     } catch (error) {
                                         console.error('Error creating contact:', error);
                                         toast({
@@ -2170,11 +2189,13 @@ export function InquiryIntakeForm({ submissionType, onSuccess }: InquiryIntakeFo
                                             description: "There was an error creating the contact. Please try again.",
                                             variant: "destructive",
                                         });
+                                    } finally {
+                                        setIsSubmittingContact(false);
                                     }
                                 }}
-                                disabled={isCreatingContact}
+                                disabled={isSubmittingContact}
                             >
-                                {isCreatingContact ? (
+                                {isSubmittingContact ? (
                                     <>
                                         <Loader2 className="mr-2 h-4 w-4 animate-spin" />
                                         Creating...
