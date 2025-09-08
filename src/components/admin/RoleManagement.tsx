@@ -399,61 +399,61 @@ export default function RoleManagement() {
                                                 {canManageRoles && (
                                                     <TableCell>
                                                         <div className="flex items-center gap-2">
-                                                                                    <Dialog open={assignDialogOpen && selectedRole?.id === role.id} onOpenChange={setAssignDialogOpen}>
-                                                                                        <DialogTrigger asChild>
-                                                                                            <Button
-                                                                                                variant="ghost"
-                                                                                                size="sm"
-                                                                                                onClick={() => {
-                                                                                                    setSelectedRole(role);
-                                                                                                    setAssignDialogOpen(true);
-                                                                                                }}
-                                                                                            >
-                                                                                                <UserPlus className="h-4 w-4" />
-                                                                                            </Button>
-                                                                                        </DialogTrigger>
-                                                                                        <DialogContent className="modal-dialog">
-                                                                                            <DialogHeader className="modal-dialog-header">
-                                                                                                <DialogTitle className="modal-dialog-title">Assign Role: {role.name}</DialogTitle>
-                                                                                                <DialogDescription className="modal-dialog-description">
-                                                                                                    Assign this role to a user.
-                                                                                                </DialogDescription>
-                                                                                            </DialogHeader>
+                                                            <Dialog open={assignDialogOpen && selectedRole?.id === role.id} onOpenChange={setAssignDialogOpen}>
+                                                                <DialogTrigger asChild>
+                                                                    <Button
+                                                                        variant="ghost"
+                                                                        size="sm"
+                                                                        onClick={() => {
+                                                                            setSelectedRole(role);
+                                                                            setAssignDialogOpen(true);
+                                                                        }}
+                                                                    >
+                                                                        <UserPlus className="h-4 w-4" />
+                                                                    </Button>
+                                                                </DialogTrigger>
+                                                                <DialogContent className="modal-dialog">
+                                                                    <DialogHeader className="modal-dialog-header">
+                                                                        <DialogTitle className="modal-dialog-title">Assign Role: {role.name}</DialogTitle>
+                                                                        <DialogDescription className="modal-dialog-description">
+                                                                            Assign this role to a user.
+                                                                        </DialogDescription>
+                                                                    </DialogHeader>
 
-                                                                                            <div className="space-y-4">
-                                                                                                <div>
-                                                                                                    <Label htmlFor="userSelect">Select User</Label>
-                                                                                                    <Select value={selectedUserId} onValueChange={setSelectedUserId}>
-                                                                                                        <SelectTrigger className="mt-1">
-                                                                                                            <SelectValue placeholder="Choose a user..." />
-                                                                                                        </SelectTrigger>
-                                                                                                        <SelectContent>
-                                                                                                            {users
-                                                                                                                .filter(user => !user.customRoles.some(cr => cr.id === role.id))
-                                                                                                                .map(user => (
-                                                                                                                    <SelectItem key={user.userId} value={user.userId}>
-                                                                                                                        {user.name} ({user.email})
-                                                                                                                    </SelectItem>
-                                                                                                                ))}
-                                                                                                        </SelectContent>
-                                                                                                    </Select>
-                                                                                                </div>
-                                                                                            </div>
+                                                                    <div className="space-y-4">
+                                                                        <div>
+                                                                            <Label htmlFor="userSelect">Select User</Label>
+                                                                            <Select value={selectedUserId} onValueChange={setSelectedUserId}>
+                                                                                <SelectTrigger className="mt-1">
+                                                                                    <SelectValue placeholder="Choose a user..." />
+                                                                                </SelectTrigger>
+                                                                                <SelectContent>
+                                                                                    {users
+                                                                                        .filter(user => !user.customRoles.some(cr => cr.id === role.id))
+                                                                                        .map(user => (
+                                                                                            <SelectItem key={user.userId} value={user.userId}>
+                                                                                                {user.name} ({user.email})
+                                                                                            </SelectItem>
+                                                                                        ))}
+                                                                                </SelectContent>
+                                                                            </Select>
+                                                                        </div>
+                                                                    </div>
 
-                                                                                            <DialogFooter>
-                                                                                                <Button variant="outline" className="modal-button-secondary" onClick={() => {
-                                                                                                    setAssignDialogOpen(false);
-                                                                                                    setSelectedRole(null);
-                                                                                                    setSelectedUserId('');
-                                                                                                }}>
-                                                                                                    Cancel
-                                                                                                </Button>
-                                                                                                <Button className="modal-button-primary" onClick={handleAssignRole} disabled={!selectedUserId}>
-                                                                                                    Assign Role
-                                                                                                </Button>
-                                                                                            </DialogFooter>
-                                                                                        </DialogContent>
-                                                                                    </Dialog>
+                                                                    <DialogFooter>
+                                                                        <Button variant="outline" className="modal-button-secondary" onClick={() => {
+                                                                            setAssignDialogOpen(false);
+                                                                            setSelectedRole(null);
+                                                                            setSelectedUserId('');
+                                                                        }}>
+                                                                            Cancel
+                                                                        </Button>
+                                                                        <Button className="modal-button-primary" onClick={handleAssignRole} disabled={!selectedUserId}>
+                                                                            Assign Role
+                                                                        </Button>
+                                                                    </DialogFooter>
+                                                                </DialogContent>
+                                                            </Dialog>
 
                                                             <Button variant="ghost" size="sm">
                                                                 <Edit className="h-4 w-4" />
@@ -474,45 +474,45 @@ export default function RoleManagement() {
             {/* Role Assignment Management */}
             {selectedRole && canManageRoles && (
                 <Card>
-                                                <CardHeader>
-                                                    <CardTitle className="flex items-center gap-2">
-                                                        <Users className="h-5 w-5" />
-                                                        Users with Role: {selectedRole.name}
-                                                    </CardTitle>
-                                                </CardHeader>
-                                                <CardContent>
-                                                    <div className="space-y-4">
-                                                        {getUsersWithRole(selectedRole.id).map(user => (
-                                                            <div key={user.userId} className="flex items-center justify-between p-4 border rounded-lg">
-                                                                <div className="flex items-center gap-3">
-                                                                    <div className="w-10 h-10 rounded-full bg-primary text-primary-foreground flex items-center justify-center font-medium">
-                                                                        {user.name.charAt(0).toUpperCase()}
-                                                                    </div>
-                                                                    <div>
-                                                                        <div className="font-medium">{user.name}</div>
-                                                                        <div className="text-sm text-base-content/70">{user.email}</div>
-                                                                    </div>
-                                                                </div>
-                                                                <Button
-                                                                    variant="outline"
-                                                                    size="sm"
-                                                                    onClick={() => handleRemoveRole(user.userId, selectedRole.id)}
-                                                                >
-                                                                    <UserMinus className="h-4 w-4 mr-2" />
-                                                                    Remove Role
-                                                                </Button>
-                                                            </div>
-                                                        ))}
-                                                        {getUsersWithRole(selectedRole.id).length === 0 && (
-                                                            <div className="text-center py-8 text-base-content/70">
-                                                                No users are assigned to this role.
-                                                            </div>
-                                                        )}
-                                                    </div>
-                                                </CardContent>
-                                            </Card>
-                                        )
-                                    }
+                    <CardHeader>
+                        <CardTitle className="flex items-center gap-2">
+                            <Users className="h-5 w-5" />
+                            Users with Role: {selectedRole.name}
+                        </CardTitle>
+                    </CardHeader>
+                    <CardContent>
+                        <div className="space-y-4">
+                            {getUsersWithRole(selectedRole.id).map(user => (
+                                <div key={user.userId} className="flex items-center justify-between p-4 border rounded-lg">
+                                    <div className="flex items-center gap-3">
+                                        <div className="w-10 h-10 rounded-full bg-primary text-primary-foreground flex items-center justify-center font-medium">
+                                            {user.name.charAt(0).toUpperCase()}
+                                        </div>
+                                        <div>
+                                            <div className="font-medium">{user.name}</div>
+                                            <div className="text-sm text-base-content/70">{user.email}</div>
+                                        </div>
+                                    </div>
+                                    <Button
+                                        variant="outline"
+                                        size="sm"
+                                        onClick={() => handleRemoveRole(user.userId, selectedRole.id)}
+                                    >
+                                        <UserMinus className="h-4 w-4 mr-2" />
+                                        Remove Role
+                                    </Button>
                                 </div>
-                            );
+                            ))}
+                            {getUsersWithRole(selectedRole.id).length === 0 && (
+                                <div className="text-center py-8 text-base-content/70">
+                                    No users are assigned to this role.
+                                </div>
+                            )}
+                        </div>
+                    </CardContent>
+                </Card>
+            )
+            }
+        </div>
+    );
 }
