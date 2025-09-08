@@ -61,8 +61,7 @@ export function useCustomerOrganizations(showArchived = false) {
             is_active
           )
         `)
-        .eq('organization_type', 'customer')
-        .eq('organization_id', profile.organization_id);
+        .eq('organization_type', 'customer');
 
       // Filter by active status based on showArchived parameter
       if (!showArchived) {
@@ -230,8 +229,7 @@ export function useCustomerOrganizations(showArchived = false) {
             is_active
           )
         `)
-        .eq('organization_type', 'customer')
-        .eq('organization_id', profile?.organization_id);
+        .eq('organization_type', 'customer');
 
       if (criteria.name) {
         query = query.ilike('name', `%${criteria.name}%`);
@@ -305,6 +303,153 @@ export function useCustomerOrganizations(showArchived = false) {
     }
   };
 
+  const deleteCustomer = async (id: string): Promise<void> => {
+    try {
+      const { error } = await supabase
+        .from('organizations')
+        .delete()
+        .eq('id', id)
+        .eq('organization_type', 'customer');
+
+      if (error) {
+        throw error;
+      }
+
+      setCustomers(prev => prev.filter(customer => customer.id !== id));
+
+      toast({
+        title: "Customer Deleted",
+        description: "Customer organization has been removed successfully.",
+      });
+    } catch (err) {
+      console.error('Error deleting customer:', err);
+      toast({
+        variant: "destructive",
+        title: "Error",
+        description: "Failed to delete customer organization",
+      });
+      throw err;
+    }
+  };
+
+  const archiveCustomer = async (id: string): Promise<void> => {
+    try {
+      const { error } = await supabase
+        .from('organizations')
+        .update({ is_active: false })
+        .eq('id', id)
+        .eq('organization_type', 'customer');
+
+      if (error) {
+        throw error;
+      }
+
+      setCustomers(prev => prev.filter(customer => customer.id !== id));
+
+      toast({
+        title: "Customer Archived",
+        description: "Customer organization has been archived successfully.",
+      });
+    } catch (err) {
+      console.error('Error archiving customer:', err);
+      toast({
+        variant: "destructive",
+        title: "Error",
+        description: "Failed to archive customer organization",
+      });
+      throw err;
+    }
+  };
+
+  const unarchiveCustomer = async (id: string): Promise<CustomerOrganizationWithSummary> => {
+    try {
+      const { data, error } = await supabase
+        .from('organizations')
+        .update({ is_active: true })
+        .eq('id', id)
+        .eq('organization_type', 'customer')
+        .select(`
+          *,
+          contacts:contacts!organization_id(
+            id,
+            contact_name,
+            email,
+            phone,
+            role,
+            is_primary_contact,
+            is_active
+          )
+        `)
+        .single();
+
+      if (error) {
+        throw error;
+      }
+
+      // Get project summary for this customer
+      const { data: projects, error: projectsError } = await supabase
+        .from('projects')
+        .select(`
+          id,
+          status,
+          estimated_value,
+          actual_value,
+          created_at,
+          updated_at
+        `)
+        .eq('customer_organization_id', data.id)
+        .eq('organization_id', profile?.organization_id);
+
+      if (projectsError) {
+        console.error(`Error fetching projects for organization ${data.id}:`, projectsError);
+      }
+
+      const projectSummary: CustomerProjectSummary = {
+        total_projects: projects?.length || 0,
+        active_projects: projects?.filter(p => p.status === 'active').length || 0,
+        completed_projects: projects?.filter(p => p.status === 'completed').length || 0,
+        cancelled_projects: projects?.filter(p => p.status === 'cancelled').length || 0,
+        on_hold_projects: projects?.filter(p => p.status === 'on_hold').length || 0,
+        total_value: projects?.reduce((sum, p) => sum + (p.estimated_value || 0), 0) || 0,
+        active_value: projects?.filter(p => p.status === 'active').reduce((sum, p) => sum + (p.estimated_value || 0), 0) || 0,
+        completed_value: projects?.filter(p => p.status === 'completed').reduce((sum, p) => sum + (p.actual_value || p.estimated_value || 0), 0) || 0,
+        avg_project_value: projects?.length ? projects.reduce((sum, p) => sum + (p.estimated_value || 0), 0) / projects.length : 0,
+        latest_project_date: projects?.length ? projects.sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime())[0].created_at : undefined
+      };
+
+      const primaryContact = data.contacts?.find(c => c.is_primary_contact) || data.contacts?.[0];
+
+      const unarchivedCustomer: CustomerOrganizationWithSummary = {
+        ...data,
+        project_summary: projectSummary,
+        primary_contact: primaryContact ? {
+          id: primaryContact.id,
+          contact_name: primaryContact.contact_name,
+          email: primaryContact.email,
+          phone: primaryContact.phone,
+          role: primaryContact.role
+        } : undefined
+      };
+
+      setCustomers(prev => [unarchivedCustomer, ...prev]);
+
+      toast({
+        title: "Customer Reactivated",
+        description: "Customer organization has been reactivated successfully.",
+      });
+
+      return unarchivedCustomer;
+    } catch (err) {
+      console.error('Error unarchiving customer:', err);
+      toast({
+        variant: "destructive",
+        title: "Error",
+        description: "Failed to reactivate customer organization",
+      });
+      throw err;
+    }
+  };
+
   // Set up real-time subscription
   useEffect(() => {
     fetchCustomerOrganizations();
@@ -352,6 +497,9 @@ export function useCustomerOrganizations(showArchived = false) {
     error,
     refetch: fetchCustomerOrganizations,
     getCustomerById,
-    searchCustomers
+    searchCustomers,
+    deleteCustomer,
+    archiveCustomer,
+    unarchiveCustomer
   };
 }
