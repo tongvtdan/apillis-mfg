@@ -232,7 +232,7 @@ export function useProjects() {
           if (error.message.includes('organization_id')) {
             throw new Error('The specified organization does not exist. Please select a valid organization.');
           }
-          throw new Error('One or more referenced records do not exist. Please check your data.');
+          throw new Error('One or more referenced records do not exist. Please check your data. (Foreign key constraint violation)');
         }
 
         if (error.code === '23514') { // Check constraint violation
@@ -249,6 +249,7 @@ export function useProjects() {
           throw new Error('Required fields are missing. Please provide all required information.');
         }
 
+        // Generic error handling
         throw new Error(`Database error: ${error.message}`);
       }
 

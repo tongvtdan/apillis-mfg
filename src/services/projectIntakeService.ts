@@ -119,6 +119,7 @@ export class ProjectIntakeService {
             return project;
         } catch (error) {
             console.error('❌ Error creating project from intake:', error);
+            // Make sure the error is properly propagated
             if (error instanceof Error) {
                 throw new Error(`Failed to create project from intake: ${error.message}`);
             } else {

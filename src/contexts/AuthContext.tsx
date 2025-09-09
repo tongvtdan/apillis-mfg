@@ -123,7 +123,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
             const { data: orgData } = await supabase
               .from('organizations')
               .select('id')
-              .eq('slug', 'factory-pulse-vietnam')
+              .eq('slug', 'apillis')  // Changed from 'factory-pulse-vietnam' to 'apillis'
               .maybeSingle();
 
             if (orgData) {
@@ -212,7 +212,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
           const { data: defaultOrg } = await supabase
             .from('organizations')
             .select('id')
-            .eq('slug', 'factory-pulse-vietnam')
+            .eq('slug', 'apillis')  // Changed from 'factory-pulse-vietnam' to 'apillis'
             .maybeSingle();
 
           // Map auth user data to profile format
@@ -251,7 +251,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       let { data: organization } = await supabase
         .from('organizations')
         .select('id')
-        .eq('slug', 'factory-pulse-vietnam')
+        .eq('slug', 'apillis')  // Changed from 'factory-pulse-vietnam' to 'apillis'
         .maybeSingle();
 
       // If no organization exists, create a default one
@@ -259,9 +259,9 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         const { data: newOrg, error: orgError } = await supabase
           .from('organizations')
           .insert({
-            name: 'Factory Pulse Vietnam Co., Ltd.',
-            slug: 'factory-pulse-vietnam',
-            domain: 'factorypulse.vn',
+            name: 'Apillis',
+            slug: 'apillis',
+            domain: 'apillis.com',
             is_active: true
           })
           .select('id')
