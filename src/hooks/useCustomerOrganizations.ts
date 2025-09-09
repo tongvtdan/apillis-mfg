@@ -4,6 +4,18 @@ import { Organization, Project } from '@/types/project';
 import { useAuth } from '@/contexts/AuthContext';
 import { useToast } from '@/hooks/use-toast';
 
+// Helper function to safely access project data
+const safeProjectData = (projects: any[] | null | undefined) => {
+  if (!projects || !Array.isArray(projects)) return [];
+  return projects.filter(p => p && typeof p === 'object' && 'id' in p);
+};
+
+// Helper function to safely access organization data
+const safeOrgData = (org: any) => {
+  if (!org || typeof org !== 'object' || !('id' in org)) return null;
+  return org;
+};
+
 export interface CustomerProjectSummary {
   total_projects: number;
   active_projects: number;
@@ -61,11 +73,11 @@ export function useCustomerOrganizations(showArchived = false) {
             is_active
           )
         `)
-        .eq('organization_type', 'customer');
+        .eq('organization_type', 'customer' as any);
 
       // Filter by active status based on showArchived parameter
       if (!showArchived) {
-        orgQuery = orgQuery.eq('is_active', true);
+        orgQuery = orgQuery.eq('is_active', true as any);
       }
 
       const { data: organizations, error: orgError } = await orgQuery.order('name');
@@ -79,6 +91,9 @@ export function useCustomerOrganizations(showArchived = false) {
       // Get project summaries for each customer organization
       const customersWithSummaries = await Promise.all(
         (organizations || []).map(async (org) => {
+          const safeOrg = safeOrgData(org);
+          if (!safeOrg) return null;
+
           // Get projects for this customer organization
           const { data: projects, error: projectsError } = await supabase
             .from('projects')
@@ -90,32 +105,34 @@ export function useCustomerOrganizations(showArchived = false) {
               created_at,
               updated_at
             `)
-            .eq('customer_organization_id', org.id)
-            .eq('organization_id', profile.organization_id);
+            .eq('customer_organization_id', safeOrg.id as any)
+            .eq('organization_id', profile.organization_id as any);
 
           if (projectsError) {
-            console.error(`Error fetching projects for organization ${org.id}:`, projectsError);
+            console.error(`Error fetching projects for organization ${safeOrg.id}:`, projectsError);
           }
+
+          const projectsData = safeProjectData(projects);
 
           // Calculate project summary
           const projectSummary: CustomerProjectSummary = {
-            total_projects: projects?.length || 0,
-            active_projects: projects?.filter(p => p.status === 'active').length || 0,
-            completed_projects: projects?.filter(p => p.status === 'completed').length || 0,
-            cancelled_projects: projects?.filter(p => p.status === 'cancelled').length || 0,
-            on_hold_projects: projects?.filter(p => p.status === 'on_hold').length || 0,
-            total_value: projects?.reduce((sum, p) => sum + (p.estimated_value || 0), 0) || 0,
-            active_value: projects?.filter(p => p.status === 'active').reduce((sum, p) => sum + (p.estimated_value || 0), 0) || 0,
-            completed_value: projects?.filter(p => p.status === 'completed').reduce((sum, p) => sum + (p.actual_value || p.estimated_value || 0), 0) || 0,
-            avg_project_value: projects?.length ? projects.reduce((sum, p) => sum + (p.estimated_value || 0), 0) / projects.length : 0,
-            latest_project_date: projects?.length ? projects.sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime())[0].created_at : undefined
+            total_projects: projectsData.length,
+            active_projects: projectsData.filter(p => p?.status === 'active').length,
+            completed_projects: projectsData.filter(p => p?.status === 'completed').length,
+            cancelled_projects: projectsData.filter(p => p?.status === 'cancelled').length,
+            on_hold_projects: projectsData.filter(p => p?.status === 'on_hold').length,
+            total_value: projectsData.reduce((sum, p) => sum + (p?.estimated_value || 0), 0),
+            active_value: projectsData.filter(p => p?.status === 'active').reduce((sum, p) => sum + (p?.estimated_value || 0), 0),
+            completed_value: projectsData.filter(p => p?.status === 'completed').reduce((sum, p) => sum + (p?.actual_value || p?.estimated_value || 0), 0),
+            avg_project_value: projectsData.length ? projectsData.reduce((sum, p) => sum + (p?.estimated_value || 0), 0) / projectsData.length : 0,
+            latest_project_date: projectsData.length ? projectsData.sort((a, b) => new Date(b?.created_at || 0).getTime() - new Date(a?.created_at || 0).getTime())[0]?.created_at : undefined
           };
 
           // Find primary contact
-          const primaryContact = org.contacts?.find(c => c.is_primary_contact) || org.contacts?.[0];
+          const primaryContact = safeOrg.contacts?.find(c => c?.is_primary_contact) || safeOrg.contacts?.[0];
 
           return {
-            ...org,
+            ...safeOrg,
             project_summary: projectSummary,
             primary_contact: primaryContact ? {
               id: primaryContact.id,
@@ -128,7 +145,10 @@ export function useCustomerOrganizations(showArchived = false) {
         })
       );
 
-      setCustomers(customersWithSummaries);
+      // Filter out null values
+      const validCustomers = customersWithSummaries.filter(customer => customer !== null) as CustomerOrganizationWithSummary[];
+
+      setCustomers(validCustomers);
     } catch (err) {
       console.error('Error in fetchCustomerOrganizations:', err);
       setError('Failed to fetch customer organizations');
@@ -153,15 +173,16 @@ export function useCustomerOrganizations(showArchived = false) {
             is_active
           )
         `)
-        .eq('id', id)
-        .eq('organization_type', 'customer')
+        .eq('id', id as any)
+        .eq('organization_type', 'customer' as any)
         .single();
 
       if (error) {
         throw error;
       }
 
-      if (!data) return null;
+      const safeData = safeOrgData(data);
+      if (!safeData) return null;
 
       // Get project summary for this customer
       const { data: projects, error: projectsError } = await supabase
@@ -174,30 +195,32 @@ export function useCustomerOrganizations(showArchived = false) {
           created_at,
           updated_at
         `)
-        .eq('customer_organization_id', data.id)
-        .eq('organization_id', profile?.organization_id);
+        .eq('customer_organization_id', safeData.id as any)
+        .eq('organization_id', profile?.organization_id as any);
 
       if (projectsError) {
-        console.error(`Error fetching projects for organization ${data.id}:`, projectsError);
+        console.error(`Error fetching projects for organization ${safeData.id}:`, projectsError);
       }
 
+      const projectsData = safeProjectData(projects);
+
       const projectSummary: CustomerProjectSummary = {
-        total_projects: projects?.length || 0,
-        active_projects: projects?.filter(p => p.status === 'active').length || 0,
-        completed_projects: projects?.filter(p => p.status === 'completed').length || 0,
-        cancelled_projects: projects?.filter(p => p.status === 'cancelled').length || 0,
-        on_hold_projects: projects?.filter(p => p.status === 'on_hold').length || 0,
-        total_value: projects?.reduce((sum, p) => sum + (p.estimated_value || 0), 0) || 0,
-        active_value: projects?.filter(p => p.status === 'active').reduce((sum, p) => sum + (p.estimated_value || 0), 0) || 0,
-        completed_value: projects?.filter(p => p.status === 'completed').reduce((sum, p) => sum + (p.actual_value || p.estimated_value || 0), 0) || 0,
-        avg_project_value: projects?.length ? projects.reduce((sum, p) => sum + (p.estimated_value || 0), 0) / projects.length : 0,
-        latest_project_date: projects?.length ? projects.sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime())[0].created_at : undefined
+        total_projects: projectsData.length,
+        active_projects: projectsData.filter(p => p?.status === 'active').length,
+        completed_projects: projectsData.filter(p => p?.status === 'completed').length,
+        cancelled_projects: projectsData.filter(p => p?.status === 'cancelled').length,
+        on_hold_projects: projectsData.filter(p => p?.status === 'on_hold').length,
+        total_value: projectsData.reduce((sum, p) => sum + (p?.estimated_value || 0), 0),
+        active_value: projectsData.filter(p => p?.status === 'active').reduce((sum, p) => sum + (p?.estimated_value || 0), 0),
+        completed_value: projectsData.filter(p => p?.status === 'completed').reduce((sum, p) => sum + (p?.actual_value || p?.estimated_value || 0), 0),
+        avg_project_value: projectsData.length ? projectsData.reduce((sum, p) => sum + (p?.estimated_value || 0), 0) / projectsData.length : 0,
+        latest_project_date: projectsData.length ? projectsData.sort((a, b) => new Date(b?.created_at || 0).getTime() - new Date(a?.created_at || 0).getTime())[0]?.created_at : undefined
       };
 
-      const primaryContact = data.contacts?.find(c => c.is_primary_contact) || data.contacts?.[0];
+      const primaryContact = safeData.contacts?.find(c => c?.is_primary_contact) || safeData.contacts?.[0];
 
       return {
-        ...data,
+        ...safeData,
         project_summary: projectSummary,
         primary_contact: primaryContact ? {
           id: primaryContact.id,
@@ -229,7 +252,7 @@ export function useCustomerOrganizations(showArchived = false) {
             is_active
           )
         `)
-        .eq('organization_type', 'customer');
+        .eq('organization_type', 'customer' as any);
 
       if (criteria.name) {
         query = query.ilike('name', `%${criteria.name}%`);
@@ -250,6 +273,9 @@ export function useCustomerOrganizations(showArchived = false) {
       // Get project summaries for each organization
       const customersWithSummaries = await Promise.all(
         (organizations || []).map(async (org) => {
+          const safeOrg = safeOrgData(org);
+          if (!safeOrg) return null;
+
           const { data: projects, error: projectsError } = await supabase
             .from('projects')
             .select(`
@@ -260,30 +286,32 @@ export function useCustomerOrganizations(showArchived = false) {
               created_at,
               updated_at
             `)
-            .eq('customer_organization_id', org.id)
-            .eq('organization_id', profile?.organization_id);
+            .eq('customer_organization_id', safeOrg.id as any)
+            .eq('organization_id', profile?.organization_id as any);
 
           if (projectsError) {
-            console.error(`Error fetching projects for organization ${org.id}:`, projectsError);
+            console.error(`Error fetching projects for organization ${safeOrg.id}:`, projectsError);
           }
 
+          const projectsData = safeProjectData(projects);
+
           const projectSummary: CustomerProjectSummary = {
-            total_projects: projects?.length || 0,
-            active_projects: projects?.filter(p => p.status === 'active').length || 0,
-            completed_projects: projects?.filter(p => p.status === 'completed').length || 0,
-            cancelled_projects: projects?.filter(p => p.status === 'cancelled').length || 0,
-            on_hold_projects: projects?.filter(p => p.status === 'on_hold').length || 0,
-            total_value: projects?.reduce((sum, p) => sum + (p.estimated_value || 0), 0) || 0,
-            active_value: projects?.filter(p => p.status === 'active').reduce((sum, p) => sum + (p.estimated_value || 0), 0) || 0,
-            completed_value: projects?.filter(p => p.status === 'completed').reduce((sum, p) => sum + (p.actual_value || p.estimated_value || 0), 0) || 0,
-            avg_project_value: projects?.length ? projects.reduce((sum, p) => sum + (p.estimated_value || 0), 0) / projects.length : 0,
-            latest_project_date: projects?.length ? projects.sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime())[0].created_at : undefined
+            total_projects: projectsData.length,
+            active_projects: projectsData.filter(p => p?.status === 'active').length,
+            completed_projects: projectsData.filter(p => p?.status === 'completed').length,
+            cancelled_projects: projectsData.filter(p => p?.status === 'cancelled').length,
+            on_hold_projects: projectsData.filter(p => p?.status === 'on_hold').length,
+            total_value: projectsData.reduce((sum, p) => sum + (p?.estimated_value || 0), 0),
+            active_value: projectsData.filter(p => p?.status === 'active').reduce((sum, p) => sum + (p?.estimated_value || 0), 0),
+            completed_value: projectsData.filter(p => p?.status === 'completed').reduce((sum, p) => sum + (p?.actual_value || p?.estimated_value || 0), 0),
+            avg_project_value: projectsData.length ? projectsData.reduce((sum, p) => sum + (p?.estimated_value || 0), 0) / projectsData.length : 0,
+            latest_project_date: projectsData.length ? projectsData.sort((a, b) => new Date(b?.created_at || 0).getTime() - new Date(a?.created_at || 0).getTime())[0]?.created_at : undefined
           };
 
-          const primaryContact = org.contacts?.find(c => c.is_primary_contact) || org.contacts?.[0];
+          const primaryContact = safeOrg.contacts?.find(c => c?.is_primary_contact) || safeOrg.contacts?.[0];
 
           return {
-            ...org,
+            ...safeOrg,
             project_summary: projectSummary,
             primary_contact: primaryContact ? {
               id: primaryContact.id,
@@ -296,7 +324,8 @@ export function useCustomerOrganizations(showArchived = false) {
         })
       );
 
-      return customersWithSummaries;
+      // Filter out null values
+      return customersWithSummaries.filter(customer => customer !== null) as CustomerOrganizationWithSummary[];
     } catch (err) {
       console.error('Error searching customers:', err);
       return [];
@@ -308,8 +337,8 @@ export function useCustomerOrganizations(showArchived = false) {
       const { error } = await supabase
         .from('organizations')
         .delete()
-        .eq('id', id)
-        .eq('organization_type', 'customer');
+        .eq('id', id as any)
+        .eq('organization_type', 'customer' as any);
 
       if (error) {
         throw error;
@@ -336,9 +365,9 @@ export function useCustomerOrganizations(showArchived = false) {
     try {
       const { error } = await supabase
         .from('organizations')
-        .update({ is_active: false })
-        .eq('id', id)
-        .eq('organization_type', 'customer');
+        .update({ is_active: false } as any)
+        .eq('id', id as any)
+        .eq('organization_type', 'customer' as any);
 
       if (error) {
         throw error;
@@ -365,9 +394,9 @@ export function useCustomerOrganizations(showArchived = false) {
     try {
       const { data, error } = await supabase
         .from('organizations')
-        .update({ is_active: true })
-        .eq('id', id)
-        .eq('organization_type', 'customer')
+        .update({ is_active: true } as any)
+        .eq('id', id as any)
+        .eq('organization_type', 'customer' as any)
         .select(`
           *,
           contacts:contacts!organization_id(
@@ -386,6 +415,11 @@ export function useCustomerOrganizations(showArchived = false) {
         throw error;
       }
 
+      const safeData = safeOrgData(data);
+      if (!safeData) {
+        throw new Error('No valid data returned from unarchive operation');
+      }
+
       // Get project summary for this customer
       const { data: projects, error: projectsError } = await supabase
         .from('projects')
@@ -397,30 +431,32 @@ export function useCustomerOrganizations(showArchived = false) {
           created_at,
           updated_at
         `)
-        .eq('customer_organization_id', data.id)
-        .eq('organization_id', profile?.organization_id);
+        .eq('customer_organization_id', safeData.id as any)
+        .eq('organization_id', profile?.organization_id as any);
 
       if (projectsError) {
-        console.error(`Error fetching projects for organization ${data.id}:`, projectsError);
+        console.error(`Error fetching projects for organization ${safeData.id}:`, projectsError);
       }
 
+      const projectsData = safeProjectData(projects);
+
       const projectSummary: CustomerProjectSummary = {
-        total_projects: projects?.length || 0,
-        active_projects: projects?.filter(p => p.status === 'active').length || 0,
-        completed_projects: projects?.filter(p => p.status === 'completed').length || 0,
-        cancelled_projects: projects?.filter(p => p.status === 'cancelled').length || 0,
-        on_hold_projects: projects?.filter(p => p.status === 'on_hold').length || 0,
-        total_value: projects?.reduce((sum, p) => sum + (p.estimated_value || 0), 0) || 0,
-        active_value: projects?.filter(p => p.status === 'active').reduce((sum, p) => sum + (p.estimated_value || 0), 0) || 0,
-        completed_value: projects?.filter(p => p.status === 'completed').reduce((sum, p) => sum + (p.actual_value || p.estimated_value || 0), 0) || 0,
-        avg_project_value: projects?.length ? projects.reduce((sum, p) => sum + (p.estimated_value || 0), 0) / projects.length : 0,
-        latest_project_date: projects?.length ? projects.sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime())[0].created_at : undefined
+        total_projects: projectsData.length,
+        active_projects: projectsData.filter(p => p?.status === 'active').length,
+        completed_projects: projectsData.filter(p => p?.status === 'completed').length,
+        cancelled_projects: projectsData.filter(p => p?.status === 'cancelled').length,
+        on_hold_projects: projectsData.filter(p => p?.status === 'on_hold').length,
+        total_value: projectsData.reduce((sum, p) => sum + (p?.estimated_value || 0), 0),
+        active_value: projectsData.filter(p => p?.status === 'active').reduce((sum, p) => sum + (p?.estimated_value || 0), 0),
+        completed_value: projectsData.filter(p => p?.status === 'completed').reduce((sum, p) => sum + (p?.actual_value || p?.estimated_value || 0), 0),
+        avg_project_value: projectsData.length ? projectsData.reduce((sum, p) => sum + (p?.estimated_value || 0), 0) / projectsData.length : 0,
+        latest_project_date: projectsData.length ? projectsData.sort((a, b) => new Date(b?.created_at || 0).getTime() - new Date(a?.created_at || 0).getTime())[0]?.created_at : undefined
       };
 
-      const primaryContact = data.contacts?.find(c => c.is_primary_contact) || data.contacts?.[0];
+      const primaryContact = safeData.contacts?.find(c => c?.is_primary_contact) || safeData.contacts?.[0];
 
       const unarchivedCustomer: CustomerOrganizationWithSummary = {
-        ...data,
+        ...safeData,
         project_summary: projectSummary,
         primary_contact: primaryContact ? {
           id: primaryContact.id,
@@ -498,10 +534,10 @@ export function useCustomerOrganizations(showArchived = false) {
         .from('organizations')
         .insert({
           ...organizationData,
-          organization_type: 'customer',
-          is_active: true,
+          organization_type: 'customer' as any,
+          is_active: true as any,
           created_by: user?.id
-        })
+        } as any)
         .select()
         .single();
 
@@ -509,12 +545,17 @@ export function useCustomerOrganizations(showArchived = false) {
         throw orgError;
       }
 
+      const safeNewOrg = safeOrgData(newOrg);
+      if (!safeNewOrg) {
+        throw new Error('No valid organization data returned');
+      }
+
       // If contact data is provided, create the primary contact
-      if (contactData && newOrg) {
+      if (contactData && safeNewOrg) {
         const { error: contactError } = await supabase
           .from('contacts')
           .insert({
-            organization_id: newOrg.id,
+            organization_id: safeNewOrg.id,
             contact_name: contactData.contact_name,
             email: contactData.email,
             phone: contactData.phone,
@@ -524,7 +565,7 @@ export function useCustomerOrganizations(showArchived = false) {
             is_active: true,
             type: 'customer',
             created_by: user?.id
-          });
+          } as any);
 
         if (contactError) {
           console.error('Error creating contact:', contactError);
@@ -533,7 +574,7 @@ export function useCustomerOrganizations(showArchived = false) {
       }
 
       // Fetch the complete organization with project summary
-      const completeOrg = await getCustomerById(newOrg.id);
+      const completeOrg = await getCustomerById(safeNewOrg.id);
       if (completeOrg) {
         setCustomers(prev => [completeOrg, ...prev]);
       }
@@ -544,7 +585,7 @@ export function useCustomerOrganizations(showArchived = false) {
       });
 
       return completeOrg || {
-        ...newOrg,
+        ...safeNewOrg,
         project_summary: {
           total_projects: 0,
           active_projects: 0,
