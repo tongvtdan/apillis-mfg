@@ -97,7 +97,6 @@ export function ProjectList({
                 project.title?.toLowerCase().includes(searchLower) ||
                 project.description?.toLowerCase().includes(searchLower) ||
                 project.customer_organization?.name?.toLowerCase().includes(searchLower) ||
-                project.customer?.company_name?.toLowerCase().includes(searchLower) ||
                 project.customer?.contact_name?.toLowerCase().includes(searchLower) ||
                 project.contact_name?.toLowerCase().includes(searchLower) ||
                 project.notes?.toLowerCase().includes(searchLower) ||

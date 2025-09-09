@@ -248,7 +248,6 @@ export class CustomerOrganizationServiceSimplified {
                 .insert({
                     organization_id: organizationId,
                     type: 'customer',
-                    company_name: contactData.company_name,
                     contact_name: contactData.contact_name,
                     email: contactData.email,
                     phone: contactData.phone,

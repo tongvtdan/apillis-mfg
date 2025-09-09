@@ -1001,37 +1001,60 @@ export function useProjects() {
     }
 
     try {
-      // First, try to find existing customer
-      const { data: existingCustomer } = await supabase
-        .from('contacts')
+      // First, try to find existing customer organization
+      const { data: existingOrg } = await supabase
+        .from('organizations')
         .select('*')
-        .eq('organization_id', profile.organization_id)
-        .eq('type', 'customer')
-        .eq('company_name', customerData.company)
+        .eq('organization_type', 'customer')
+        .eq('is_active', true)
+        .eq('name', customerData.company)
         .single();
 
-      if (existingCustomer) {
-        return existingCustomer;
+      if (existingOrg) {
+        // Find a contact for this organization
+        const { data: existingContact } = await supabase
+          .from('contacts')
+          .select('*')
+          .eq('organization_id', existingOrg.id)
+          .eq('type', 'customer')
+          .eq('is_active', true)
+          .single();
+
+        if (existingContact) {
+          return existingContact;
+        }
       }
 
-      // Create new customer
-      console.log('📝 Creating new customer with data:', {
-        organization_id: profile.organization_id,
-        type: 'customer',
-        company_name: customerData.company,
-        contact_name: customerData.name,
-        email: customerData.email,
-        phone: customerData.phone,
+      // Create new customer organization and contact
+      console.log('📝 Creating new customer organization with data:', {
+        name: customerData.company,
+        organization_type: 'customer',
         is_active: true,
         created_by: user.id
       });
 
+      // Create organization first
+      const { data: newOrg, error: orgError } = await supabase
+        .from('organizations')
+        .insert({
+          name: customerData.company,
+          organization_type: 'customer',
+          is_active: true,
+          created_by: user.id
+        })
+        .select()
+        .single();
+
+      if (orgError) {
+        throw orgError;
+      }
+
+      // Create contact for the organization
       const { data: newCustomer, error } = await supabase
         .from('contacts')
         .insert({
-          organization_id: profile.organization_id,
+          organization_id: newOrg.id,
           type: 'customer',
-          company_name: customerData.company,
           contact_name: customerData.name,
           email: customerData.email,
           phone: customerData.phone,

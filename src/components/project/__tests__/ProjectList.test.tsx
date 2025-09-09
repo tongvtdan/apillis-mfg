@@ -44,7 +44,6 @@ const mockProjects: Project[] = [
             id: 'cust-1',
             organization_id: 'org-1',
             type: 'customer',
-            company_name: 'Test Company 1',
             contact_name: 'John Doe',
             email: 'john@test.com',
             is_active: true
@@ -74,7 +73,6 @@ const mockProjects: Project[] = [
             id: 'cust-2',
             organization_id: 'org-1',
             type: 'customer',
-            company_name: 'Test Company 2',
             contact_name: 'Jane Smith',
             email: 'jane@test.com',
             is_active: true

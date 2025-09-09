@@ -216,7 +216,6 @@ export function CustomerModal({ open, onClose, customer, onSuccess }: CustomerMo
                 contact_name: data.contact_name.trim() || undefined,
                 email: data.email.trim() || undefined,
                 phone: data.phone.trim() || undefined,
-                company_name: data.company_name.trim(), // Add company name to contact
                 is_primary_contact: true
             };
 

@@ -559,7 +559,6 @@ export function useCustomerOrganizations(showArchived = false) {
             contact_name: contactData.contact_name,
             email: contactData.email,
             phone: contactData.phone,
-            company_name: contactData.company_name, // Add company name to contact
             role: contactData.role || 'general',
             is_primary_contact: true,
             is_active: true,

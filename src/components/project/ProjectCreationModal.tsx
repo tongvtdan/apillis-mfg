@@ -146,11 +146,17 @@ export function EnhancedProjectCreationModal({
         try {
             const { data, error } = await supabase
                 .from('contacts')
-                .select('id, company_name, contact_name, email, phone')
+                .select(`
+                    id, 
+                    contact_name, 
+                    email, 
+                    phone,
+                    organizations!organization_id(name)
+                `)
                 .eq('organization_id', profile.organization_id)
                 .eq('type', 'customer')
                 .eq('is_active', true)
-                .order('company_name');
+                .order('organizations(name)');
 
             if (error) throw error;
             setExistingCustomers(data || []);

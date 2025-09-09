@@ -174,7 +174,6 @@ export function AddProjectAction({
                     .insert({
                         organization_id: profile.organization_id,
                         type: 'customer',
-                        company_name: data.company_name!,
                         contact_name: data.contact_name!,
                         email: data.contact_email || null,
                         phone: data.contact_phone || null,

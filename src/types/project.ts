@@ -76,7 +76,6 @@ export interface Contact {
   id: string;
   organization_id: string;
   type: 'customer' | 'supplier' | 'partner' | 'internal'; // Updated to match database enum
-  company_name: string;
   contact_name?: string;
   email?: string;
   phone?: string;

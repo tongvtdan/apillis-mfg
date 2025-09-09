@@ -84,7 +84,7 @@ async function validateForeignKeyRelationships(errors: string[], warnings: strin
             .select(`
         id,
         customer_id,
-        contacts!projects_customer_id_fkey(id, company_name)
+        contacts!projects_customer_id_fkey(id, contact_name)
       `)
             .limit(1);
 

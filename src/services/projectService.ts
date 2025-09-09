@@ -185,7 +185,7 @@ class ProjectService {
                         updated_at,
                         customer_organization:organizations!customer_organization_id(
                             id,
-                            company_name,
+                            name,
                             contact_name,
                             email,
                             phone,
@@ -332,7 +332,7 @@ class ProjectService {
                         updated_at,
                         customer_organization:organizations!customer_organization_id(
                             id,
-                            company_name,
+                            name,
                             contact_name,
                             email,
                             phone,
@@ -449,7 +449,7 @@ class ProjectService {
                 // Make organization_id optional to handle missing data gracefully
                 organization_id: this.validateOptionalString(data.organization_id) || '',
                 type: data.type as 'customer' | 'supplier',
-                company_name: this.validateString(data.company_name, 'contact.company_name'),
+                // company_name removed - get from organization via organization_id
                 contact_name: this.validateOptionalString(data.contact_name),
                 email: this.validateOptionalString(data.email),
                 phone: this.validateOptionalString(data.phone),
@@ -482,7 +482,7 @@ class ProjectService {
                     id: data.id,
                     organization_id: data.organization_id || '',
                     type: data.type || 'customer',
-                    company_name: data.company_name || 'Unknown Company',
+                    // company_name removed - get from organization via organization_id
                     is_active: Boolean(data.is_active),
                     created_at: data.created_at || new Date().toISOString(),
                     updated_at: data.updated_at || new Date().toISOString()
