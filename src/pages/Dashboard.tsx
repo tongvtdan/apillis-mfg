@@ -240,7 +240,7 @@ export default function Dashboard() {
           {/* Approvals Dashboard */}
           <div className="mb-8">
             <h2 className="text-xl font-semibold text-foreground flex items-center gap-2 mb-4">
-              <Bell className="h-6 w-6 text-primary" />
+              <AlertTriangle className="h-6 w-6 text-primary" />
               Approvals
             </h2>
             <ApprovalDashboard />
