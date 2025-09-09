@@ -266,6 +266,332 @@ CREATE TYPE "public"."user_status" AS ENUM (
 ALTER TYPE "public"."user_status" OWNER TO "postgres";
 
 
+CREATE OR REPLACE FUNCTION "public"."delete_all_inactive_organizations"() RETURNS TABLE("organization_name" "text", "organization_slug" "text", "deleted_table" "text", "deleted_count" bigint, "status" "text")
+    LANGUAGE "plpgsql"
+    AS $$
+DECLARE
+    org_record RECORD;
+    deleted_count BIGINT;
+    total_organizations_deleted INTEGER := 0;
+    total_records_deleted BIGINT := 0;
+BEGIN
+    -- Log the start of deletion
+    RAISE NOTICE 'Starting deletion of all inactive organizations...';
+    
+    -- Loop through all inactive organizations
+    FOR org_record IN 
+        SELECT id, name, slug 
+        FROM organizations 
+        WHERE is_active = FALSE
+        ORDER BY created_at ASC
+    LOOP
+        RAISE NOTICE 'Processing organization: % (%)', org_record.name, org_record.slug;
+        
+        -- =========================================
+        -- HANDLE SPECIAL CASES FIRST
+        -- =========================================
+        
+        -- Update projects that have this organization as customer_organization_id
+        UPDATE projects 
+        SET customer_organization_id = NULL, updated_at = NOW()
+        WHERE customer_organization_id = org_record.id;
+        
+        GET DIAGNOSTICS deleted_count = ROW_COUNT;
+        total_records_deleted := total_records_deleted + deleted_count;
+        RETURN QUERY SELECT org_record.name, org_record.slug, 'projects (customer refs)'::TEXT, deleted_count, 'Updated'::TEXT;
+        
+        -- Update users who have direct_manager_id pointing to users in this org
+        UPDATE users 
+        SET direct_manager_id = NULL, updated_at = NOW()
+        WHERE direct_manager_id IN (
+            SELECT id FROM users WHERE organization_id = org_record.id
+        );
+        
+        GET DIAGNOSTICS deleted_count = ROW_COUNT;
+        total_records_deleted := total_records_deleted + deleted_count;
+        RETURN QUERY SELECT org_record.name, org_record.slug, 'users (manager refs)'::TEXT, deleted_count, 'Updated'::TEXT;
+        
+        -- Update users who have this org's users in their direct_reports array
+        UPDATE users 
+        SET direct_reports = array_remove(direct_reports, user_id), updated_at = NOW()
+        FROM (
+            SELECT id as user_id FROM users WHERE organization_id = org_record.id
+        ) org_users
+        WHERE user_id = ANY(direct_reports);
+        
+        GET DIAGNOSTICS deleted_count = ROW_COUNT;
+        total_records_deleted := total_records_deleted + deleted_count;
+        RETURN QUERY SELECT org_record.name, org_record.slug, 'users (reports refs)'::TEXT, deleted_count, 'Updated'::TEXT;
+        
+        -- =========================================
+        -- DELETE RELATED DATA FOR THIS ORGANIZATION
+        -- =========================================
+        
+        -- Delete review_checklist_items (via reviews)
+        DELETE FROM review_checklist_items 
+        WHERE review_id IN (
+            SELECT id FROM reviews WHERE organization_id = org_record.id
+        );
+        
+        GET DIAGNOSTICS deleted_count = ROW_COUNT;
+        total_records_deleted := total_records_deleted + deleted_count;
+        RETURN QUERY SELECT org_record.name, org_record.slug, 'review_checklist_items'::TEXT, deleted_count, 'Deleted'::TEXT;
+        
+        -- Delete reviews
+        DELETE FROM reviews WHERE organization_id = org_record.id;
+        
+        GET DIAGNOSTICS deleted_count = ROW_COUNT;
+        total_records_deleted := total_records_deleted + deleted_count;
+        RETURN QUERY SELECT org_record.name, org_record.slug, 'reviews'::TEXT, deleted_count, 'Deleted'::TEXT;
+        
+        -- Delete permission_audit_log
+        DELETE FROM permission_audit_log WHERE organization_id = org_record.id;
+        
+        GET DIAGNOSTICS deleted_count = ROW_COUNT;
+        total_records_deleted := total_records_deleted + deleted_count;
+        RETURN QUERY SELECT org_record.name, org_record.slug, 'permission_audit_log'::TEXT, deleted_count, 'Deleted'::TEXT;
+        
+        -- Delete user_feature_access (via feature_toggles)
+        DELETE FROM user_feature_access 
+        WHERE feature_toggle_id IN (
+            SELECT id FROM feature_toggles WHERE organization_id = org_record.id
+        );
+        
+        GET DIAGNOSTICS deleted_count = ROW_COUNT;
+        total_records_deleted := total_records_deleted + deleted_count;
+        RETURN QUERY SELECT org_record.name, org_record.slug, 'user_feature_access'::TEXT, deleted_count, 'Deleted'::TEXT;
+        
+        -- Delete feature_toggles
+        DELETE FROM feature_toggles WHERE organization_id = org_record.id;
+        
+        GET DIAGNOSTICS deleted_count = ROW_COUNT;
+        total_records_deleted := total_records_deleted + deleted_count;
+        RETURN QUERY SELECT org_record.name, org_record.slug, 'feature_toggles'::TEXT, deleted_count, 'Deleted'::TEXT;
+        
+        -- Delete user_custom_roles (via custom_roles)
+        DELETE FROM user_custom_roles 
+        WHERE custom_role_id IN (
+            SELECT id FROM custom_roles WHERE organization_id = org_record.id
+        );
+        
+        GET DIAGNOSTICS deleted_count = ROW_COUNT;
+        total_records_deleted := total_records_deleted + deleted_count;
+        RETURN QUERY SELECT org_record.name, org_record.slug, 'user_custom_roles'::TEXT, deleted_count, 'Deleted'::TEXT;
+        
+        -- Delete role_permissions (via custom_roles)
+        DELETE FROM role_permissions 
+        WHERE custom_role_id IN (
+            SELECT id FROM custom_roles WHERE organization_id = org_record.id
+        );
+        
+        GET DIAGNOSTICS deleted_count = ROW_COUNT;
+        total_records_deleted := total_records_deleted + deleted_count;
+        RETURN QUERY SELECT org_record.name, org_record.slug, 'role_permissions'::TEXT, deleted_count, 'Deleted'::TEXT;
+        
+        -- Delete custom_roles
+        DELETE FROM custom_roles WHERE organization_id = org_record.id;
+        
+        GET DIAGNOSTICS deleted_count = ROW_COUNT;
+        total_records_deleted := total_records_deleted + deleted_count;
+        RETURN QUERY SELECT org_record.name, org_record.slug, 'custom_roles'::TEXT, deleted_count, 'Deleted'::TEXT;
+        
+        -- Delete user_permissions (via users)
+        DELETE FROM user_permissions 
+        WHERE user_id IN (
+            SELECT id FROM users WHERE organization_id = org_record.id
+        );
+        
+        GET DIAGNOSTICS deleted_count = ROW_COUNT;
+        total_records_deleted := total_records_deleted + deleted_count;
+        RETURN QUERY SELECT org_record.name, org_record.slug, 'user_permissions'::TEXT, deleted_count, 'Deleted'::TEXT;
+        
+        -- Delete approval_attachments (via approvals)
+        DELETE FROM approval_attachments 
+        WHERE approval_id IN (
+            SELECT id FROM approvals WHERE organization_id = org_record.id
+        );
+        
+        GET DIAGNOSTICS deleted_count = ROW_COUNT;
+        total_records_deleted := total_records_deleted + deleted_count;
+        RETURN QUERY SELECT org_record.name, org_record.slug, 'approval_attachments'::TEXT, deleted_count, 'Deleted'::TEXT;
+        
+        -- Delete approval_history (via approvals)
+        DELETE FROM approval_history 
+        WHERE approval_id IN (
+            SELECT id FROM approvals WHERE organization_id = org_record.id
+        );
+        
+        GET DIAGNOSTICS deleted_count = ROW_COUNT;
+        total_records_deleted := total_records_deleted + deleted_count;
+        RETURN QUERY SELECT org_record.name, org_record.slug, 'approval_history'::TEXT, deleted_count, 'Deleted'::TEXT;
+        
+        -- Delete approvals
+        DELETE FROM approvals WHERE organization_id = org_record.id;
+        
+        GET DIAGNOSTICS deleted_count = ROW_COUNT;
+        total_records_deleted := total_records_deleted + deleted_count;
+        RETURN QUERY SELECT org_record.name, org_record.slug, 'approvals'::TEXT, deleted_count, 'Deleted'::TEXT;
+        
+        -- Delete document_access_log (via documents)
+        DELETE FROM document_access_log 
+        WHERE document_id IN (
+            SELECT id FROM documents WHERE organization_id = org_record.id
+        );
+        
+        GET DIAGNOSTICS deleted_count = ROW_COUNT;
+        total_records_deleted := total_records_deleted + deleted_count;
+        RETURN QUERY SELECT org_record.name, org_record.slug, 'document_access_log'::TEXT, deleted_count, 'Deleted'::TEXT;
+        
+        -- Delete document_versions (via documents)
+        DELETE FROM document_versions 
+        WHERE document_id IN (
+            SELECT id FROM documents WHERE organization_id = org_record.id
+        );
+        
+        GET DIAGNOSTICS deleted_count = ROW_COUNT;
+        total_records_deleted := total_records_deleted + deleted_count;
+        RETURN QUERY SELECT org_record.name, org_record.slug, 'document_versions'::TEXT, deleted_count, 'Deleted'::TEXT;
+        
+        -- Delete documents
+        DELETE FROM documents WHERE organization_id = org_record.id;
+        
+        GET DIAGNOSTICS deleted_count = ROW_COUNT;
+        total_records_deleted := total_records_deleted + deleted_count;
+        RETURN QUERY SELECT org_record.name, org_record.slug, 'documents'::TEXT, deleted_count, 'Deleted'::TEXT;
+        
+        -- Delete project_sub_stage_progress (via projects)
+        DELETE FROM project_sub_stage_progress 
+        WHERE project_id IN (
+            SELECT id FROM projects WHERE organization_id = org_record.id
+        );
+        
+        GET DIAGNOSTICS deleted_count = ROW_COUNT;
+        total_records_deleted := total_records_deleted + deleted_count;
+        RETURN QUERY SELECT org_record.name, org_record.slug, 'project_sub_stage_progress'::TEXT, deleted_count, 'Deleted'::TEXT;
+        
+        -- Delete projects
+        DELETE FROM projects WHERE organization_id = org_record.id;
+        
+        GET DIAGNOSTICS deleted_count = ROW_COUNT;
+        total_records_deleted := total_records_deleted + deleted_count;
+        RETURN QUERY SELECT org_record.name, org_record.slug, 'projects'::TEXT, deleted_count, 'Deleted'::TEXT;
+        
+        -- Delete workflow_definition_sub_stages (via workflow_definitions)
+        DELETE FROM workflow_definition_sub_stages 
+        WHERE workflow_definition_id IN (
+            SELECT id FROM workflow_definitions WHERE organization_id = org_record.id
+        );
+        
+        GET DIAGNOSTICS deleted_count = ROW_COUNT;
+        total_records_deleted := total_records_deleted + deleted_count;
+        RETURN QUERY SELECT org_record.name, org_record.slug, 'workflow_definition_sub_stages'::TEXT, deleted_count, 'Deleted'::TEXT;
+        
+        -- Delete workflow_definition_stages (via workflow_definitions)
+        DELETE FROM workflow_definition_stages 
+        WHERE workflow_definition_id IN (
+            SELECT id FROM workflow_definitions WHERE organization_id = org_record.id
+        );
+        
+        GET DIAGNOSTICS deleted_count = ROW_COUNT;
+        total_records_deleted := total_records_deleted + deleted_count;
+        RETURN QUERY SELECT org_record.name, org_record.slug, 'workflow_definition_stages'::TEXT, deleted_count, 'Deleted'::TEXT;
+        
+        -- Delete workflow_definitions
+        DELETE FROM workflow_definitions WHERE organization_id = org_record.id;
+        
+        GET DIAGNOSTICS deleted_count = ROW_COUNT;
+        total_records_deleted := total_records_deleted + deleted_count;
+        RETURN QUERY SELECT org_record.name, org_record.slug, 'workflow_definitions'::TEXT, deleted_count, 'Deleted'::TEXT;
+        
+        -- Delete workflow_sub_stages (via workflow_stages)
+        DELETE FROM workflow_sub_stages 
+        WHERE workflow_stage_id IN (
+            SELECT id FROM workflow_stages WHERE organization_id = org_record.id
+        );
+        
+        GET DIAGNOSTICS deleted_count = ROW_COUNT;
+        total_records_deleted := total_records_deleted + deleted_count;
+        RETURN QUERY SELECT org_record.name, org_record.slug, 'workflow_sub_stages'::TEXT, deleted_count, 'Deleted'::TEXT;
+        
+        -- Delete workflow_stages
+        DELETE FROM workflow_stages WHERE organization_id = org_record.id;
+        
+        GET DIAGNOSTICS deleted_count = ROW_COUNT;
+        total_records_deleted := total_records_deleted + deleted_count;
+        RETURN QUERY SELECT org_record.name, org_record.slug, 'workflow_stages'::TEXT, deleted_count, 'Deleted'::TEXT;
+        
+        -- Delete notifications
+        DELETE FROM notifications WHERE organization_id = org_record.id;
+        
+        GET DIAGNOSTICS deleted_count = ROW_COUNT;
+        total_records_deleted := total_records_deleted + deleted_count;
+        RETURN QUERY SELECT org_record.name, org_record.slug, 'notifications'::TEXT, deleted_count, 'Deleted'::TEXT;
+        
+        -- Delete messages
+        DELETE FROM messages WHERE organization_id = org_record.id;
+        
+        GET DIAGNOSTICS deleted_count = ROW_COUNT;
+        total_records_deleted := total_records_deleted + deleted_count;
+        RETURN QUERY SELECT org_record.name, org_record.slug, 'messages'::TEXT, deleted_count, 'Deleted'::TEXT;
+        
+        -- Delete activity_log
+        DELETE FROM activity_log WHERE organization_id = org_record.id;
+        
+        GET DIAGNOSTICS deleted_count = ROW_COUNT;
+        total_records_deleted := total_records_deleted + deleted_count;
+        RETURN QUERY SELECT org_record.name, org_record.slug, 'activity_log'::TEXT, deleted_count, 'Deleted'::TEXT;
+        
+        -- Delete contacts
+        DELETE FROM contacts WHERE organization_id = org_record.id;
+        
+        GET DIAGNOSTICS deleted_count = ROW_COUNT;
+        total_records_deleted := total_records_deleted + deleted_count;
+        RETURN QUERY SELECT org_record.name, org_record.slug, 'contacts'::TEXT, deleted_count, 'Deleted'::TEXT;
+        
+        -- Delete users
+        DELETE FROM users WHERE organization_id = org_record.id;
+        
+        GET DIAGNOSTICS deleted_count = ROW_COUNT;
+        total_records_deleted := total_records_deleted + deleted_count;
+        RETURN QUERY SELECT org_record.name, org_record.slug, 'users'::TEXT, deleted_count, 'Deleted'::TEXT;
+        
+        -- Delete the organization itself
+        DELETE FROM organizations WHERE id = org_record.id;
+        
+        GET DIAGNOSTICS deleted_count = ROW_COUNT;
+        total_records_deleted := total_records_deleted + deleted_count;
+        RETURN QUERY SELECT org_record.name, org_record.slug, 'organizations'::TEXT, deleted_count, 'Deleted'::TEXT;
+        
+        total_organizations_deleted := total_organizations_deleted + 1;
+        
+        RAISE NOTICE 'Successfully deleted organization: % (%)', org_record.name, org_record.slug;
+        
+    END LOOP;
+    
+    -- Log completion
+    RAISE NOTICE 'Successfully deleted % inactive organizations', total_organizations_deleted;
+    RAISE NOTICE 'Total records deleted: %', total_records_deleted;
+    
+    -- Return summary
+    RETURN QUERY SELECT 
+        'SUMMARY'::TEXT, 
+        'SUMMARY'::TEXT, 
+        'SUMMARY'::TEXT, 
+        total_records_deleted, 
+        FORMAT('Deleted % inactive organizations successfully', total_organizations_deleted)::TEXT;
+    
+EXCEPTION
+    WHEN OTHERS THEN
+        -- Log error and rollback
+        RAISE NOTICE 'Error deleting inactive organizations: %', SQLERRM;
+        RETURN QUERY SELECT 'ERROR'::TEXT, 'ERROR'::TEXT, 'ERROR'::TEXT, 0::BIGINT, SQLERRM::TEXT;
+END;
+$$;
+
+
+ALTER FUNCTION "public"."delete_all_inactive_organizations"() OWNER TO "postgres";
+
+
 CREATE OR REPLACE FUNCTION "public"."dev_get_contacts_by_org"("org_name" "text") RETURNS TABLE("contact_name" "text", "email" "text", "role" "text", "type" "text")
     LANGUAGE "sql"
     AS $$
@@ -1476,7 +1802,6 @@ CREATE TABLE IF NOT EXISTS "public"."contacts" (
     "id" "uuid" DEFAULT "gen_random_uuid"() NOT NULL,
     "organization_id" "uuid",
     "type" "text" DEFAULT 'customer'::"text",
-    "company_name" "text",
     "contact_name" "text",
     "email" "text",
     "phone" "text",
@@ -3938,6 +4263,12 @@ GRANT ALL ON FUNCTION "public"."gtrgm_out"("public"."gtrgm") TO "service_role";
 
 
 
+
+
+
+GRANT ALL ON FUNCTION "public"."delete_all_inactive_organizations"() TO "anon";
+GRANT ALL ON FUNCTION "public"."delete_all_inactive_organizations"() TO "authenticated";
+GRANT ALL ON FUNCTION "public"."delete_all_inactive_organizations"() TO "service_role";
 
 
 

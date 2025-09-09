@@ -848,24 +848,9 @@ export function useProjects() {
       const month = String(now.getMonth() + 1).padStart(2, '0');
       const day = String(now.getDate()).padStart(2, '0');
 
-      // Get the count of projects created today to generate sequence
-      const startOfDay = new Date(year, now.getMonth(), now.getDate()).toISOString();
-      const endOfDay = new Date(year, now.getMonth(), now.getDate() + 1).toISOString();
-
-      const { count, error } = await supabase
-        .from('projects')
-        .select('*', { count: 'exact', head: true })
-        .eq('organization_id', profile?.organization_id)
-        .gte('created_at', startOfDay)
-        .lt('created_at', endOfDay);
-
-      if (error) {
-        console.error('❌ Error getting project count:', error);
-        throw error;
-      }
-
-      const sequence = String((count || 0) + 1).padStart(2, '0');
-      const projectId = `P-${year}${month}${day}${sequence}`;
+      // Use timestamp-based approach for better uniqueness
+      const timestamp = Date.now().toString().slice(-6); // Last 6 digits of timestamp
+      const projectId = `P-${year}${month}${day}${timestamp}`;
       console.log('✅ Generated project ID:', projectId);
       return projectId;
     } catch (error) {
@@ -875,7 +860,7 @@ export function useProjects() {
       const year = now.getFullYear();
       const month = String(now.getMonth() + 1).padStart(2, '0');
       const day = String(now.getDate()).padStart(2, '0');
-      const sequence = String(Math.floor(Math.random() * 100)).padStart(2, '0');
+      const sequence = String(Math.floor(Math.random() * 10000)).padStart(4, '0');
       const fallbackId = `P-${year}${month}${day}${sequence}`;
       console.log('🔄 Using fallback project ID:', fallbackId);
       return fallbackId;
@@ -904,6 +889,35 @@ export function useProjects() {
     }
 
     try {
+      // Verify user's organization ID in database matches profile
+      const { data: userData, error: userError } = await supabase
+        .from('users')
+        .select('organization_id')
+        .eq('id', user.id)
+        .single();
+
+      if (userError) {
+        console.error('❌ Error fetching user data:', userError);
+        throw new Error('Failed to verify user organization');
+      }
+
+      console.log('🔍 User organization verification:', {
+        profile_org_id: profile.organization_id,
+        database_org_id: userData?.organization_id,
+        user_id: user.id,
+        user_email: user.email
+      });
+
+      if (userData?.organization_id !== profile.organization_id) {
+        console.error('❌ Organization ID mismatch:', {
+          profile_org_id: profile.organization_id,
+          database_org_id: userData?.organization_id,
+          user_id: user.id
+        });
+        // For now, let's use the profile organization ID and continue
+        console.warn('⚠️ Using profile organization ID instead of database value');
+      }
+
       console.log('🚀 Creating project with data:', {
         organization_id: profile.organization_id,
         title: projectData.title,
@@ -911,7 +925,9 @@ export function useProjects() {
         current_stage_id: projectData.current_stage_id,
         intake_type: projectData.intake_type,
         project_type: projectData.project_type,
-        project_id: projectData.project_id
+        project_id: projectData.project_id,
+        user_id: user.id,
+        user_email: user.email
       });
 
       // Use pre-generated project ID or generate one
@@ -923,7 +939,10 @@ export function useProjects() {
         title: projectData.title,
         customer_organization_id: projectData.customer_organization_id,
         project_id: projectId,
-        current_stage_id: projectData.current_stage_id
+        current_stage_id: projectData.current_stage_id,
+        created_by: user.id,
+        priority_level: (projectData.priority || 'normal') as 'low' | 'normal' | 'high' | 'urgent',
+        status: 'draft' as 'draft' | 'inquiry' | 'reviewing' | 'quoted' | 'confirmed' | 'procurement' | 'production' | 'completed' | 'cancelled'
       });
 
       const { data, error } = await supabase
@@ -933,10 +952,10 @@ export function useProjects() {
           title: projectData.title,
           description: projectData.description,
           customer_organization_id: projectData.customer_organization_id,
-          priority_level: projectData.priority || 'normal',
+          priority_level: (projectData.priority || 'normal') as 'low' | 'normal' | 'high' | 'urgent',
           estimated_value: projectData.estimated_value,
           estimated_delivery_date: projectData.due_date,
-          status: 'active',
+          status: 'draft' as 'draft' | 'inquiry' | 'reviewing' | 'quoted' | 'confirmed' | 'procurement' | 'production' | 'completed' | 'cancelled',
           source: 'manual',
           created_by: user.id,
           tags: projectData.tags || [],
@@ -965,6 +984,27 @@ export function useProjects() {
           details: error.details,
           hint: error.hint,
           code: error.code
+        });
+        console.error('❌ Insert data that failed:', {
+          organization_id: profile.organization_id,
+          title: projectData.title,
+          description: projectData.description,
+          customer_organization_id: projectData.customer_organization_id,
+          priority_level: (projectData.priority || 'normal') as 'low' | 'normal' | 'high' | 'urgent',
+          estimated_value: projectData.estimated_value,
+          estimated_delivery_date: projectData.due_date,
+          status: 'draft' as 'draft' | 'inquiry' | 'reviewing' | 'quoted' | 'confirmed' | 'procurement' | 'production' | 'completed' | 'cancelled',
+          source: 'manual',
+          created_by: user.id,
+          tags: projectData.tags || [],
+          notes: projectData.notes,
+          intake_type: projectData.intake_type,
+          intake_source: projectData.intake_source || 'portal',
+          project_type: projectData.project_type,
+          current_stage_id: projectData.current_stage_id,
+          project_id: projectId,
+          stage_entered_at: new Date().toISOString(),
+          metadata: projectData.metadata || {}
         });
         throw error;
       }
