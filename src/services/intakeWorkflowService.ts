@@ -8,6 +8,7 @@ export class IntakeWorkflowService {
     static async getInitialStageId(intakeType: string, organizationId: string): Promise<string | null> {
         try {
             const stageSlug = IntakeMappingService.getInitialStageSlug(intakeType);
+            console.log('🔍 Looking up stage with slug:', stageSlug, 'for organization:', organizationId);
 
             const { data, error } = await supabase
                 .from('workflow_stages')
@@ -22,6 +23,7 @@ export class IntakeWorkflowService {
                 return null;
             }
 
+            console.log('✅ Found stage ID:', data?.id);
             return data?.id || null;
         } catch (error) {
             console.error('Error getting initial stage:', error);
@@ -34,6 +36,8 @@ export class IntakeWorkflowService {
      */
     static async getFirstAvailableStage(organizationId: string): Promise<string | null> {
         try {
+            console.log('🔍 Looking up first available stage for organization:', organizationId);
+
             const { data, error } = await supabase
                 .from('workflow_stages')
                 .select('id')
@@ -48,6 +52,7 @@ export class IntakeWorkflowService {
                 return null;
             }
 
+            console.log('✅ Found first stage ID:', data?.id);
             return data?.id || null;
         } catch (error) {
             console.error('Error getting first stage:', error);

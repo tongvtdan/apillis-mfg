@@ -1006,7 +1006,7 @@ export function useProjects() {
           stage_entered_at: new Date().toISOString(),
           metadata: projectData.metadata || {}
         });
-        throw error;
+        throw new Error(`Database error: ${error.message}`);
       }
 
       console.log('✅ Project created successfully:', data);
@@ -1025,6 +1025,11 @@ export function useProjects() {
       return data as Project;
     } catch (error) {
       console.error('Error creating project:', error);
+      toast({
+        title: "Project Creation Failed",
+        description: error instanceof Error ? error.message : "An unknown error occurred",
+        variant: "destructive",
+      });
       throw error;
     }
   };

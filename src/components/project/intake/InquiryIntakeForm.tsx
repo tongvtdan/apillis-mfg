@@ -481,30 +481,18 @@ export function InquiryIntakeForm({ submissionType, onSuccess }: InquiryIntakeFo
                     stack: error.stack,
                     name: error.name
                 });
-
-                // Provide more specific error messages
-                if (error.message.includes('Unknown intake type')) {
-                    errorMessage = "Invalid submission type. Please refresh the page and try again.";
-                } else if (error.message.includes('customer organization')) {
-                    errorMessage = "Failed to create customer organization. Please check your company information.";
-                } else if (error.message.includes('workflow stage')) {
-                    errorMessage = "Workflow configuration error. Please contact support.";
-                } else if (error.message.includes('duplicate key')) {
-                    errorMessage = "A project with this information already exists. Please check your data.";
-                } else if (error.message.includes('foreign key')) {
-                    errorMessage = "Invalid reference data. Please check your customer information.";
-                } else if (error.message.includes('not null')) {
-                    errorMessage = "Required fields are missing. Please check all required fields.";
-                } else {
-                    errorMessage = `Submission failed: ${error.message}`;
-                }
+                errorMessage = error.message;
             }
 
             toast({
-                variant: "destructive",
-                title: "Submission Failed",
+                title: "Project Submission Failed",
                 description: errorMessage,
+                variant: "destructive",
             });
+
+            // Reset submission state to allow retry
+            setIsSubmitting(false);
+            setIsSubmitted(false);
         } finally {
             setIsSubmitting(false);
         }

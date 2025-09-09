@@ -45,7 +45,7 @@ export class ProjectIntakeService {
             // Get intake mapping
             const mapping = IntakeMappingService.getMapping(intakeData.intake_type);
             if (!mapping) {
-                throw new Error(`Unknown intake type: ${intakeData.intake_type}`);
+                throw new Error(`No mapping found for intake type: ${intakeData.intake_type}`);
             }
             console.log('✅ Intake mapping found:', mapping);
 
@@ -115,11 +115,15 @@ export class ProjectIntakeService {
                 }
             });
 
-            console.log('✅ Project created successfully:', project.project_id);
+            console.log('✅ Project created successfully:', project);
             return project;
         } catch (error) {
             console.error('❌ Error creating project from intake:', error);
-            throw error;
+            if (error instanceof Error) {
+                throw new Error(`Failed to create project from intake: ${error.message}`);
+            } else {
+                throw new Error('Failed to create project from intake: Unknown error occurred');
+            }
         }
     }
 
