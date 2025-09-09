@@ -15,8 +15,6 @@ import { DashboardDebugger } from "@/components/dashboard/DashboardDebugger";
 import { ApprovalDashboard } from "@/components/approval/ApprovalDashboard";
 import {
   TrendingUp,
-  Users,
-  Bell,
   FolderOpen,
   AlertTriangle,
   Bug,
@@ -144,30 +142,15 @@ export default function Dashboard() {
   // Enhanced overview data with real data and important alerts - only Projects section
   const overviewData = [];
 
-  // Sample notification count - in real app this would come from a notifications service
-  const notificationCount = 3;
-
   return (
     <div className="space-y-6">
-      {/* Header with user info and notifications */}
+      {/* Header with title and debug toggle */}
       <div className="bg-background border-b px-4 sm:px-6 py-4">
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
           <div>
             <h1 className="text-2xl font-bold text-foreground">Factory Pulse</h1>
           </div>
-          <div className="flex flex-col sm:flex-row items-start sm:items-center gap-4">
-            <div className="flex items-center gap-2 text-sm text-muted-foreground">
-              <Bell className="h-4 w-4" />
-              <span>{notificationCount} Notifications</span>
-            </div>
-            <div className="flex items-center gap-2 text-sm text-muted-foreground">
-              <Users className="h-4 w-4" />
-              <span>{profile?.name || 'User'} ({profile?.role || 'Unknown'})</span>
-            </div>
-            <div className="hidden lg:flex items-center gap-4 text-sm text-muted-foreground">
-              <span>🌐 Projects Overview</span>
-              {/* Other sections are accessible through the sidebar menu */}
-            </div>
+          <div className="flex items-center gap-4">
             <button
               onClick={() => setDebugMode(!debugMode)}
               className="text-sm flex items-center gap-1 text-muted-foreground hover:text-foreground"
