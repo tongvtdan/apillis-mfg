@@ -1,6 +1,6 @@
 import { useState, useEffect, useCallback, useRef } from 'react';
 import { supabase } from '@/integrations/supabase/client';
-import { Project, ProjectStatus, Customer } from '@/types/project';
+import { Project, ProjectStatus, Customer, ProjectPriority } from '@/types/project';
 import {
   SupplierQuote,
   QuoteReadinessIndicator,
@@ -25,6 +25,14 @@ export function useProjects() {
   const { toast } = useToast();
   const realtimeChannelRef = useRef<any>(null);
   const lastFetchTimeRef = useRef<number>(0);
+
+  // Stable refs for useEffect dependencies to prevent infinite loops
+  const userIdRef = useRef<string | undefined>();
+  const organizationIdRef = useRef<string | undefined>();
+
+  // Update refs when values change
+  userIdRef.current = user?.id;
+  organizationIdRef.current = profile?.organization_id;
 
   const fetchProjects = useCallback(async (forceRefresh = false, options?: ProjectQueryOptions) => {
     // Check if user is authenticated
@@ -371,15 +379,10 @@ export function useProjects() {
       });
 
     return realtimeChannelRef.current;
-  }, [fetchProjects]); // Add fetchProjects dependency
+  }, []); // Empty dependency array - fetchProjects is accessed via closure
 
   // Set up real-time subscription - only for project detail pages
   useEffect(() => {
-    console.log('🔄 useProjects useEffect triggered');
-    console.log('User:', user);
-    console.log('Profile:', profile);
-    fetchProjects();
-
     // Always subscribe to real-time updates for project-related routes
     const shouldSubscribeToRealtime = window.location.pathname.includes('/projects/') ||
       window.location.pathname.includes('/project/') ||
@@ -411,14 +414,30 @@ export function useProjects() {
       // When we receive a notification, refetch projects to get the latest data
       console.log('🔔 useProjects: Received real-time update notification, refetching projects');
       lastFetchTimeRef.current = now;
-      fetchProjects(true);
+      if (userIdRef.current && organizationIdRef.current) {
+        fetchProjects(true);
+      }
     });
 
     return () => {
       console.log('🔔 useProjects: Unsubscribing from real-time manager');
       unsubscribe();
     };
-  }, [user?.id, profile?.organization_id]); // Use specific properties instead of entire objects to prevent unnecessary re-runs
+  }, []); // Empty dependency array to prevent infinite loops
+
+  // Separate useEffect for initial data loading
+  useEffect(() => {
+    // Only run if we have the required user and organization info
+    if (!userIdRef.current || !organizationIdRef.current) {
+      console.log('⚠️ useProjects: Missing user or organization info, skipping initial load');
+      return;
+    }
+
+    console.log('🔄 useProjects: Initial data load triggered');
+    console.log('User ID:', userIdRef.current);
+    console.log('Organization ID:', organizationIdRef.current);
+    fetchProjects();
+  }, []); // Empty dependency array - only run once on mount
 
   // Get project by ID
   const getProjectById = async (id: string): Promise<Project | null> => {
@@ -726,14 +745,14 @@ export function useProjects() {
   // Manual refetch function
   const refetch = useCallback(async (forceRefresh = false) => {
     await fetchProjects(forceRefresh);
-  }, [fetchProjects]); // Add fetchProjects dependency
+  }, []); // Empty dependency array - fetchProjects is accessed via closure
 
   // Clear cache and refetch
   const clearCacheAndRefetch = useCallback(async () => {
     console.log('🧹 Clearing cache and refetching projects');
     cacheService.clearCache();
     await fetchProjects(true);
-  }, [fetchProjects]);
+  }, []); // Empty dependency array - fetchProjects is accessed via closure
 
   // Test customer organization fetching directly
   const testCustomerOrganizationFetching = useCallback(async () => {
@@ -818,7 +837,50 @@ export function useProjects() {
     offset?: number;
   }, forceRefresh = false) => {
     await fetchProjects(forceRefresh, filters);
-  }, [fetchProjects]); // Add fetchProjects dependency
+  }, []); // Empty dependency array - fetchProjects is accessed via closure
+
+  // Generate unique project ID
+  const generateProjectId = async (): Promise<string> => {
+    try {
+      console.log('🔄 Generating project ID for organization:', profile?.organization_id);
+      const now = new Date();
+      const year = now.getFullYear();
+      const month = String(now.getMonth() + 1).padStart(2, '0');
+      const day = String(now.getDate()).padStart(2, '0');
+
+      // Get the count of projects created today to generate sequence
+      const startOfDay = new Date(year, now.getMonth(), now.getDate()).toISOString();
+      const endOfDay = new Date(year, now.getMonth(), now.getDate() + 1).toISOString();
+
+      const { count, error } = await supabase
+        .from('projects')
+        .select('*', { count: 'exact', head: true })
+        .eq('organization_id', profile?.organization_id)
+        .gte('created_at', startOfDay)
+        .lt('created_at', endOfDay);
+
+      if (error) {
+        console.error('❌ Error getting project count:', error);
+        throw error;
+      }
+
+      const sequence = String((count || 0) + 1).padStart(2, '0');
+      const projectId = `P-${year}${month}${day}${sequence}`;
+      console.log('✅ Generated project ID:', projectId);
+      return projectId;
+    } catch (error) {
+      console.error('❌ Error generating project ID:', error);
+      // Fallback to random sequence
+      const now = new Date();
+      const year = now.getFullYear();
+      const month = String(now.getMonth() + 1).padStart(2, '0');
+      const day = String(now.getDate()).padStart(2, '0');
+      const sequence = String(Math.floor(Math.random() * 100)).padStart(2, '0');
+      const fallbackId = `P-${year}${month}${day}${sequence}`;
+      console.log('🔄 Using fallback project ID:', fallbackId);
+      return fallbackId;
+    }
+  };
 
   // Create new project
   const createProject = async (projectData: {
@@ -828,29 +890,50 @@ export function useProjects() {
     priority?: ProjectPriority;
     estimated_value?: number;
     due_date?: string;
-    contact_name?: string;
-    contact_email?: string;
-    contact_phone?: string;
     notes?: string;
     tags?: string[];
     intake_type?: string;
     intake_source?: string;
     project_type?: string;
     current_stage_id?: string;
+    project_id?: string; // Pre-generated project ID
+    metadata?: Record<string, any>; // Additional metadata
   }): Promise<Project> => {
     if (!user || !profile?.organization_id) {
       throw new Error('User must be authenticated to create projects');
     }
 
     try {
+      console.log('🚀 Creating project with data:', {
+        organization_id: profile.organization_id,
+        title: projectData.title,
+        customer_organization_id: projectData.customer_organization_id,
+        current_stage_id: projectData.current_stage_id,
+        intake_type: projectData.intake_type,
+        project_type: projectData.project_type,
+        project_id: projectData.project_id
+      });
+
+      // Use pre-generated project ID or generate one
+      const projectId = projectData.project_id || await generateProjectId();
+      console.log('📝 Using project ID:', projectId);
+
+      console.log('📝 Inserting project data:', {
+        organization_id: profile.organization_id,
+        title: projectData.title,
+        customer_organization_id: projectData.customer_organization_id,
+        project_id: projectId,
+        current_stage_id: projectData.current_stage_id
+      });
+
       const { data, error } = await supabase
         .from('projects')
         .insert({
-          organization_id: organizationId,
+          organization_id: profile.organization_id,
           title: projectData.title,
           description: projectData.description,
           customer_organization_id: projectData.customer_organization_id,
-          priority_level: projectData.priority || 'medium',
+          priority_level: projectData.priority || 'normal',
           estimated_value: projectData.estimated_value,
           estimated_delivery_date: projectData.due_date,
           status: 'active',
@@ -862,9 +945,11 @@ export function useProjects() {
           intake_source: projectData.intake_source || 'portal',
           project_type: projectData.project_type,
           current_stage_id: projectData.current_stage_id,
-          // Generate project ID
-          project_id: await generateProjectId(),
-          stage_entered_at: new Date().toISOString()
+          // Use pre-generated or generated project ID
+          project_id: projectId,
+          stage_entered_at: new Date().toISOString(),
+          // Store additional metadata
+          metadata: projectData.metadata || {}
         })
         .select(`
           *,
@@ -873,7 +958,18 @@ export function useProjects() {
         `)
         .single();
 
-      if (error) throw error;
+      if (error) {
+        console.error('❌ Database error creating project:', error);
+        console.error('❌ Error details:', {
+          message: error.message,
+          details: error.details,
+          hint: error.hint,
+          code: error.code
+        });
+        throw error;
+      }
+
+      console.log('✅ Project created successfully:', data);
 
       // Update local state
       setProjects(prev => [data, ...prev]);
@@ -905,26 +1001,60 @@ export function useProjects() {
     }
 
     try {
-      // First, try to find existing customer
-      const { data: existingCustomer } = await supabase
-        .from('contacts')
+      // First, try to find existing customer organization
+      const { data: existingOrg } = await supabase
+        .from('organizations')
         .select('*')
-        .eq('organization_id', organizationId)
-        .eq('type', 'customer')
-        .eq('company_name', customerData.company)
+        .eq('organization_type', 'customer')
+        .eq('is_active', true)
+        .eq('name', customerData.company)
         .single();
 
-      if (existingCustomer) {
-        return existingCustomer;
+      if (existingOrg) {
+        // Find a contact for this organization
+        const { data: existingContact } = await supabase
+          .from('contacts')
+          .select('*')
+          .eq('organization_id', existingOrg.id)
+          .eq('type', 'customer')
+          .eq('is_active', true)
+          .single();
+
+        if (existingContact) {
+          return existingContact;
+        }
       }
 
-      // Create new customer
+      // Create new customer organization and contact
+      console.log('📝 Creating new customer organization with data:', {
+        name: customerData.company,
+        organization_type: 'customer',
+        is_active: true,
+        created_by: user.id
+      });
+
+      // Create organization first
+      const { data: newOrg, error: orgError } = await supabase
+        .from('organizations')
+        .insert({
+          name: customerData.company,
+          organization_type: 'customer',
+          is_active: true,
+          created_by: user.id
+        })
+        .select()
+        .single();
+
+      if (orgError) {
+        throw orgError;
+      }
+
+      // Create contact for the organization
       const { data: newCustomer, error } = await supabase
         .from('contacts')
         .insert({
-          organization_id: organizationId,
+          organization_id: newOrg.id,
           type: 'customer',
-          company_name: customerData.company,
           contact_name: customerData.name,
           email: customerData.email,
           phone: customerData.phone,
@@ -934,44 +1064,22 @@ export function useProjects() {
         .select()
         .single();
 
-      if (error) throw error;
+      if (error) {
+        console.error('❌ Database error creating customer:', error);
+        console.error('❌ Error details:', {
+          message: error.message,
+          details: error.details,
+          hint: error.hint,
+          code: error.code
+        });
+        throw error;
+      }
+
+      console.log('✅ Customer created successfully:', newCustomer);
       return newCustomer;
     } catch (error) {
       console.error('Error creating/getting customer:', error);
       throw error;
-    }
-  };
-
-  // Generate unique project ID
-  const generateProjectId = async (): Promise<string> => {
-    try {
-      const now = new Date();
-      const year = now.getFullYear();
-      const month = String(now.getMonth() + 1).padStart(2, '0');
-      const day = String(now.getDate()).padStart(2, '0');
-
-      // Get the count of projects created today to generate sequence
-      const startOfDay = new Date(year, now.getMonth(), now.getDate()).toISOString();
-      const endOfDay = new Date(year, now.getMonth(), now.getDate() + 1).toISOString();
-
-      const { count } = await supabase
-        .from('projects')
-        .select('*', { count: 'exact', head: true })
-        .eq('organization_id', profile?.organization_id)
-        .gte('created_at', startOfDay)
-        .lt('created_at', endOfDay);
-
-      const sequence = String((count || 0) + 1).padStart(2, '0');
-      return `P-${year}${month}${day}${sequence}`;
-    } catch (error) {
-      console.error('Error generating project ID:', error);
-      // Fallback to random sequence
-      const now = new Date();
-      const year = now.getFullYear();
-      const month = String(now.getMonth() + 1).padStart(2, '0');
-      const day = String(now.getDate()).padStart(2, '0');
-      const sequence = String(Math.floor(Math.random() * 100)).padStart(2, '0');
-      return `P-${year}${month}${day}${sequence}`;
     }
   };
 

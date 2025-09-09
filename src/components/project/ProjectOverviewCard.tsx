@@ -203,10 +203,10 @@ export function ProjectOverviewCard({
         const colors = {
             urgent: 'bg-red-100 text-red-800 border-red-200',
             high: 'bg-orange-100 text-orange-800 border-orange-200',
-            medium: 'bg-yellow-100 text-yellow-800 border-yellow-200',
+            normal: 'bg-yellow-100 text-yellow-800 border-yellow-200',
             low: 'bg-green-100 text-green-800 border-green-200'
         };
-        return colors[priority] || colors.medium;
+        return colors[priority] || colors.normal;
     };
 
     // Health score color
@@ -239,7 +239,6 @@ export function ProjectOverviewCard({
     // Get customer display name
     const getCustomerDisplayName = (): string => {
         if (project.customer_organization?.name) return project.customer_organization.name;
-        if (project.customer?.company_name) return project.customer.company_name;
         if (project.customer?.contact_name) return project.customer.contact_name;
         return 'N/A';
     };
@@ -257,8 +256,8 @@ export function ProjectOverviewCard({
                             <CardTitle className="text-xl font-bold truncate">
                                 {project.project_id}
                             </CardTitle>
-                            <Badge className={cn("text-xs", getPriorityColor(project.priority_level || 'medium'))}>
-                                {(project.priority_level || 'medium').charAt(0).toUpperCase() + (project.priority_level || 'medium').slice(1)}
+                            <Badge className={cn("text-xs", getPriorityColor(project.priority_level || 'normal'))}>
+                                {(project.priority_level || 'normal').charAt(0).toUpperCase() + (project.priority_level || 'normal').slice(1)}
                             </Badge>
                             {realTimeStatus === 'connected' && (
                                 <TooltipProvider>

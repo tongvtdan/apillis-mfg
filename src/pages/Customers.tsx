@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
@@ -11,25 +11,60 @@ import {
   Plus,
   BarChart3
 } from 'lucide-react';
-import { useCustomers } from '@/hooks/useCustomers';
-import { CustomerTable } from '@/components/customer/CustomerTable';
+import { useCustomerOrganizations } from '@/hooks/useCustomerOrganizations';
+import { usePermissions } from '@/hooks/usePermissions';
+import { Switch } from '@/components/ui/switch';
+import { Label } from '@/components/ui/label';
+import { CustomerTable } from '@/components/customer/CustomerTableEnhanced';
 import { CustomerModal } from '@/components/customer/CustomerModal';
-import { Customer } from '@/types/project';
+import { ContactModal } from '@/components/customer/ContactModal';
+import { CustomerOrganizationWithSummary } from '@/types/project';
 
 export default function Customers() {
-  const { customers, loading } = useCustomers();
+  const [showArchived, setShowArchived] = useState(false);
+  const { customers, loading } = useCustomerOrganizations(showArchived);
   const [showModal, setShowModal] = useState(false);
-  const [selectedCustomer, setSelectedCustomer] = useState<Customer | null>(null);
+  const [showContactModal, setShowContactModal] = useState(false);
+  const [selectedCustomer, setSelectedCustomer] = useState<CustomerOrganizationWithSummary | null>(null);
+  const [canManageCustomers, setCanManageCustomers] = useState(false);
+
+  const {
+    canManageCustomers: checkCanManageCustomers,
+    canArchiveCustomers: checkCanArchiveCustomers
+  } = usePermissions();
+
+  // Check permissions on component mount
+  useEffect(() => {
+    const checkPermissions = async () => {
+      const canManage = await checkCanManageCustomers();
+      setCanManageCustomers(canManage);
+    };
+    checkPermissions();
+  }, [checkCanManageCustomers]);
 
   // Calculate customer statistics
   const totalCustomers = customers.length;
-  const activeCustomers = customers.filter(c => c.email).length; // Customers with email are considered active
+  const activeCustomers = customers.filter(c => c.is_active !== false).length;
+  const archivedCustomers = customers.filter(c => c.is_active === false).length;
   const countries = [...new Set(customers.map(c => c.country).filter(Boolean))].length;
-  const companiesCount = customers.filter(c => c.company_name).length;
+  const totalProjects = customers.reduce((sum, c) => sum + c.project_summary.total_projects, 0);
+  const totalValue = customers.reduce((sum, c) => sum + c.project_summary.total_value, 0);
+  const activeProjects = customers.reduce((sum, c) => sum + c.project_summary.active_projects, 0);
 
-  const handleCustomerSelect = (customer: Customer) => {
+  const handleCustomerSelect = (customer: CustomerOrganizationWithSummary) => {
     setSelectedCustomer(customer);
     // Could navigate to customer detail page or show details panel
+  };
+
+  const handleAddContact = (customer: CustomerOrganizationWithSummary) => {
+    setSelectedCustomer(customer);
+    setShowContactModal(true);
+  };
+
+  const handleContactCreated = (contact: any) => {
+    // Refresh the customers data to show updated contact count
+    // The useCustomerOrganizations hook should automatically refresh
+    console.log('Contact created:', contact);
   };
 
   if (loading) {
@@ -61,14 +96,28 @@ export default function Customers() {
             <h1 className="text-2xl font-bold text-base-content">Customer Management</h1>
             <p className="text-base-content/70">Manage your customer database and relationships</p>
           </div>
-          <Button
-            onClick={() => setShowModal(true)}
-            variant="accent"
-            className="action-button shadow-md hover:shadow-lg"
-          >
-            <Plus className="w-4 h-4 mr-2" />
-            Add Customer
-          </Button>
+          <div className="flex items-center gap-4">
+            <div className="flex items-center space-x-2">
+              <Switch
+                id="show-archived"
+                checked={showArchived}
+                onCheckedChange={setShowArchived}
+              />
+              <Label htmlFor="show-archived" className="text-sm">
+                Show Archived
+              </Label>
+            </div>
+            {canManageCustomers && (
+              <Button
+                onClick={() => setShowModal(true)}
+                variant="accent"
+                className="action-button shadow-md hover:shadow-lg"
+              >
+                <Plus className="w-4 h-4 mr-2" />
+                Add Customer
+              </Button>
+            )}
+          </div>
         </div>
       </div>
 
@@ -82,33 +131,35 @@ export default function Customers() {
           <CardContent>
             <div className="text-2xl font-bold text-base-content">{totalCustomers}</div>
             <p className="text-xs text-base-content/70">
-              {totalCustomers > 0 ? '+' + Math.round((totalCustomers / 10) * 100) + '% from last month' : 'No customers yet'}
+              {showArchived ? 'Archived customers' : 'Total active customers'}
             </p>
           </CardContent>
         </Card>
 
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Active Customers</CardTitle>
+            <CardTitle className="text-sm font-medium">Total Projects</CardTitle>
             <TrendingUp className="h-4 w-4 text-base-content/70" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold text-base-content">{activeCustomers}</div>
+            <div className="text-2xl font-bold text-base-content">{totalProjects}</div>
             <p className="text-xs text-base-content/70">
-              {totalCustomers > 0 ? Math.round((activeCustomers / totalCustomers) * 100) + '% with contact info' : 'N/A'}
+              {activeProjects} active projects
             </p>
           </CardContent>
         </Card>
 
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Companies</CardTitle>
+            <CardTitle className="text-sm font-medium">Total Value</CardTitle>
             <Building2 className="h-4 w-4 text-base-content/70" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold text-base-content">{companiesCount}</div>
+            <div className="text-2xl font-bold text-base-content">
+              ${totalValue.toLocaleString()}
+            </div>
             <p className="text-xs text-base-content/70">
-              {totalCustomers > 0 ? Math.round((companiesCount / totalCustomers) * 100) + '% business customers' : 'N/A'}
+              Across all projects
             </p>
           </CardContent>
         </Card>
@@ -146,6 +197,8 @@ export default function Customers() {
               <CustomerTable
                 customers={customers}
                 onCustomerSelect={handleCustomerSelect}
+                onAddContact={handleAddContact}
+                canArchive={canManageCustomers}
               />
             </CardContent>
           </Card>
@@ -179,6 +232,14 @@ export default function Customers() {
       <CustomerModal
         open={showModal}
         onClose={() => setShowModal(false)}
+      />
+
+      {/* Contact Modal */}
+      <ContactModal
+        open={showContactModal}
+        onClose={() => setShowContactModal(false)}
+        organizationId={selectedCustomer?.id}
+        onContactCreated={handleContactCreated}
       />
     </div>
   );

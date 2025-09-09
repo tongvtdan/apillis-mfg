@@ -11,7 +11,7 @@ import {
 import { useAuth } from '@/contexts/AuthContext';
 import { useToast } from '@/hooks/use-toast';
 
-export function useSuppliers() {
+export function useSuppliers(showArchived = false) {
   const [suppliers, setSuppliers] = useState<Supplier[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -29,7 +29,7 @@ export function useSuppliers() {
       setLoading(true);
       setError(null);
 
-      const { data, error: fetchError } = await supabase
+      let query = supabase
         .from('organizations')
         .select(`
           *,
@@ -42,8 +42,14 @@ export function useSuppliers() {
             is_primary_contact
           )
         `)
-        .eq('organization_type', 'supplier')
-        .order('updated_at', { ascending: false });
+        .eq('organization_type', 'supplier');
+
+      // Filter by active status based on showArchived parameter
+      if (!showArchived) {
+        query = query.eq('is_active', true);
+      }
+
+      const { data, error: fetchError } = await query.order('updated_at', { ascending: false });
 
       if (fetchError) {
         console.error('Error fetching suppliers:', fetchError);
@@ -92,6 +98,7 @@ export function useSuppliers() {
         address: supplierData.address,
         country: supplierData.country,
         is_active: true,
+        created_by: user?.id
       };
 
       const { data: orgDataResult, error: orgError } = await supabase
@@ -115,6 +122,7 @@ export function useSuppliers() {
         phone: supplierData.phone,
         is_primary_contact: true,
         is_active: true,
+        created_by: user?.id
       };
 
       const { data: contactResult, error: contactError } = await supabase
@@ -260,6 +268,129 @@ export function useSuppliers() {
         description: "Failed to delete supplier",
       });
       return false;
+    }
+  };
+
+  const archiveSupplier = async (supplierId: string): Promise<boolean> => {
+    try {
+      // Archive the organization
+      const { error: orgError } = await supabase
+        .from('organizations')
+        .update({ is_active: false })
+        .eq('id', supplierId);
+
+      if (orgError) {
+        console.error('Error archiving supplier organization:', orgError);
+        throw orgError;
+      }
+
+      // Also archive all associated contacts
+      const { error: contactError } = await supabase
+        .from('contacts')
+        .update({ is_active: false })
+        .eq('organization_id', supplierId)
+        .eq('type', 'supplier');
+
+      if (contactError) {
+        console.error('Error archiving supplier contacts:', contactError);
+        throw contactError;
+      }
+
+      // Update local state
+      setSuppliers(prev => prev.filter(supplier => supplier.id !== supplierId));
+
+      toast({
+        title: "Supplier Archived",
+        description: "Supplier has been archived successfully",
+      });
+
+      return true;
+    } catch (err) {
+      console.error('Error in archiveSupplier:', err);
+      toast({
+        variant: "destructive",
+        title: "Error",
+        description: "Failed to archive supplier",
+      });
+      return false;
+    }
+  };
+
+  const unarchiveSupplier = async (supplierId: string): Promise<Supplier> => {
+    try {
+      // Unarchive the organization
+      const { data: orgData, error: orgError } = await supabase
+        .from('organizations')
+        .update({ is_active: true })
+        .eq('id', supplierId)
+        .select(`
+          *,
+          contacts:contacts!organization_id(
+            id,
+            contact_name,
+            email,
+            phone,
+            role,
+            is_primary_contact
+          )
+        `)
+        .single();
+
+      if (orgError) {
+        console.error('Error unarchiving supplier organization:', orgError);
+        throw orgError;
+      }
+
+      // Also unarchive all associated contacts
+      const { error: contactError } = await supabase
+        .from('contacts')
+        .update({ is_active: true })
+        .eq('organization_id', supplierId)
+        .eq('type', 'supplier');
+
+      if (contactError) {
+        console.error('Error unarchiving supplier contacts:', contactError);
+        throw contactError;
+      }
+
+      // Map to Supplier type and add to local state
+      const primaryContact = orgData.contacts?.find((c: any) => c.is_primary_contact) || orgData.contacts?.[0];
+      const unarchivedSupplier: Supplier = {
+        id: orgData.id,
+        name: primaryContact?.contact_name || orgData.name,
+        company: orgData.name,
+        email: primaryContact?.email ?? undefined,
+        phone: primaryContact?.phone ?? undefined,
+        address: orgData.address ?? undefined,
+        country: orgData.country ?? undefined,
+        specialties: [] as any,
+        rating: 4.0,
+        response_rate: 0,
+        is_active: true,
+        created_at: orgData.created_at,
+        updated_at: orgData.updated_at,
+        total_quotes_sent: 0,
+        total_quotes_received: 0,
+        average_turnaround_days: 0,
+        tags: [],
+      };
+
+      setSuppliers(prev => [unarchivedSupplier, ...prev]);
+
+      toast({
+        title: "Supplier Reactivated",
+        description: "Supplier has been reactivated successfully",
+      });
+
+      return unarchivedSupplier;
+    } catch (err) {
+      console.error('Error in unarchiveSupplier:', err);
+      toast({
+        variant: "destructive",
+        title: "Error",
+        description: "Failed to reactivate supplier",
+      });
+      throw err;
     }
   };
 
@@ -465,6 +596,8 @@ export function useSuppliers() {
     createSupplier,
     updateSupplier,
     deleteSupplier,
+    archiveSupplier,
+    unarchiveSupplier,
     deactivateSupplier,
     getSupplierById,
 

@@ -27,7 +27,7 @@ const projectEditSchema = z.object({
         .max(1000, 'Description must be less than 1000 characters')
         .optional(),
     project_type: z.enum(['system_build', 'fabrication', 'manufacturing']),
-    priority_level: z.enum(['low', 'medium', 'high', 'critical']),
+    priority_level: z.enum(['low', 'normal', 'high', 'urgent']),
     status: z.enum(['active', 'on_hold', 'cancelled', 'completed']),
 
     // Customer Information
@@ -80,7 +80,7 @@ export function EditProjectAction({
             title: project.title || '',
             description: project.description || '',
             project_type: project.project_type || 'fabrication',
-            priority_level: project.priority_level || 'medium',
+            priority_level: project.priority_level || 'normal',
             status: project.status || 'active',
             customer_organization_id: project.customer_organization_id || '',
             estimated_value: project.estimated_value?.toString() || '',
@@ -211,7 +211,7 @@ export function EditProjectAction({
                 title: project.title || '',
                 description: project.description || '',
                 project_type: project.project_type || 'fabrication',
-                priority_level: project.priority_level || 'medium',
+                priority_level: project.priority_level || 'normal',
                 status: project.status || 'active',
                 customer_organization_id: project.customer_organization_id || '',
                 estimated_value: project.estimated_value?.toString() || '',

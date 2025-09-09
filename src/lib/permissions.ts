@@ -1,4 +1,5 @@
 import { UserRole, Permission, ROLE_PERMISSIONS, PermissionCheckResult } from '../types/auth';
+import { supabase } from '@/integrations/supabase/client';
 
 /**
  * Check if a user role has permission to perform an action on a resource
@@ -144,4 +145,153 @@ export function isEqualOrHigherRole(role1: UserRole, role2: UserRole): boolean {
 export function getEqualOrHigherRoles(role: UserRole): UserRole[] {
     const targetLevel = getRoleHierarchyLevel(role);
     return Object.values(UserRole).filter(r => getRoleHierarchyLevel(r) >= targetLevel);
+}
+
+/**
+ * ENHANCED PERMISSION SYSTEM FUNCTIONS
+ * These functions integrate with the new database-backed permission system
+ */
+
+/**
+ * Check if a user has enhanced permission (database-backed)
+ */
+export async function hasEnhancedPermission(
+    userId: string,
+    resource: string,
+    action: string
+): Promise<PermissionCheckResult> {
+    try {
+        const { data, error } = await supabase.rpc('has_user_permission_enhanced', {
+            p_user_id: userId,
+            p_resource: resource,
+            p_action: action
+        });
+
+        if (error) {
+            console.error('Error checking enhanced permission:', error);
+            return {
+                allowed: false,
+                reason: 'Error checking permission',
+                requiredPermissions: [`${resource}:${action}`]
+            };
+        }
+
+        return {
+            allowed: data,
+            reason: data ? undefined : `Enhanced permission check failed for ${resource}:${action}`,
+            requiredPermissions: data ? undefined : [`${resource}:${action}`]
+        };
+    } catch (error) {
+        console.error('Error in hasEnhancedPermission:', error);
+        return {
+            allowed: false,
+            reason: 'Permission check failed',
+            requiredPermissions: [`${resource}:${action}`]
+        };
+    }
+}
+
+/**
+ * Check if a user has access to a feature
+ */
+export async function hasFeatureAccess(
+    userId: string,
+    featureKey: string
+): Promise<boolean> {
+    try {
+        const { data, error } = await supabase.rpc('has_user_feature_access', {
+            p_user_id: userId,
+            p_feature_key: featureKey
+        });
+
+        if (error) {
+            console.error('Error checking feature access:', error);
+            return false;
+        }
+
+        return data;
+    } catch (error) {
+        console.error('Error in hasFeatureAccess:', error);
+        return false;
+    }
+}
+
+/**
+ * Get user's effective permissions (combines role + custom + overrides)
+ */
+export async function getUserEffectivePermissions(userId: string): Promise<{
+    baseRole: UserRole;
+    customRoles: string[];
+    grantedPermissions: string[];
+    deniedPermissions: string[];
+    featureAccess: Record<string, boolean>;
+}> {
+    try {
+        // Get user profile
+        const { data: user, error: userError } = await supabase
+            .from('users')
+            .select('role, custom_permissions_cache')
+            .eq('id', userId)
+            .single();
+
+        if (userError || !user) {
+            return {
+                baseRole: 'sales' as UserRole,
+                customRoles: [],
+                grantedPermissions: [],
+                deniedPermissions: [],
+                featureAccess: {}
+            };
+        }
+
+        // Parse cached permissions if available
+        if (user.custom_permissions_cache) {
+            const cache = user.custom_permissions_cache as any;
+            return {
+                baseRole: user.role as UserRole,
+                customRoles: cache.custom_roles?.map((cr: any) => cr.name) || [],
+                grantedPermissions: cache.user_overrides
+                    ?.filter((ov: any) => ov.type === 'grant')
+                    ?.map((ov: any) => ov.permission) || [],
+                deniedPermissions: cache.user_overrides
+                    ?.filter((ov: any) => ov.type === 'deny')
+                    ?.map((ov: any) => ov.permission) || [],
+                featureAccess: cache.feature_access?.reduce((acc: any, fa: any) => {
+                    acc[fa.feature_key] = fa.has_access;
+                    return acc;
+                }, {}) || {}
+            };
+        }
+
+        // Fallback to basic role permissions
+        return {
+            baseRole: user.role as UserRole,
+            customRoles: [],
+            grantedPermissions: [],
+            deniedPermissions: [],
+            featureAccess: {}
+        };
+    } catch (error) {
+        console.error('Error getting user effective permissions:', error);
+        return {
+            baseRole: 'sales' as UserRole,
+            customRoles: [],
+            grantedPermissions: [],
+            deniedPermissions: [],
+            featureAccess: {}
+        };
+    }
+}
+
+/**
+ * Refresh user's permission cache
+ */
+export async function refreshUserPermissionCache(userId: string): Promise<void> {
+    try {
+        await supabase.rpc('refresh_user_permissions_cache', {
+            p_user_id: userId
+        });
+    } catch (error) {
+        console.error('Error refreshing permission cache:', error);
+    }
 }

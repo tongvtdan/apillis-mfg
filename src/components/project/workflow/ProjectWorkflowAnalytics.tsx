@@ -63,7 +63,7 @@ export function ProjectWorkflowAnalytics({ projects }: ProjectWorkflowAnalyticsP
         const priorityDistribution = [
             { name: 'Urgent', count: projects.filter(p => (p.priority_level || p.priority) === 'urgent').length, color: '#EF4444' },
             { name: 'High', count: projects.filter(p => (p.priority_level || p.priority) === 'high').length, color: '#F97316' },
-            { name: 'Medium', count: projects.filter(p => (p.priority_level || p.priority) === 'medium').length, color: '#F59E0B' },
+            { name: 'Normal', count: projects.filter(p => (p.priority_level || p.priority) === 'normal').length, color: '#F59E0B' },
             { name: 'Low', count: projects.filter(p => (p.priority_level || p.priority) === 'low').length, color: '#10B981' }
         ];
 

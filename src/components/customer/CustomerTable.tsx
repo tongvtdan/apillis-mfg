@@ -30,7 +30,8 @@ import {
     Search,
     Plus,
     Users,
-    AlertTriangle
+    AlertTriangle,
+    Archive
 } from 'lucide-react';
 import { Customer } from '@/types/project';
 import { useCustomers } from '@/hooks/useCustomers';
@@ -39,16 +40,17 @@ import { CustomerModal } from './CustomerModal';
 interface CustomerTableProps {
     customers: Customer[];
     onCustomerSelect?: (customer: Customer) => void;
+    canArchive?: boolean;
 }
 
-export function CustomerTable({ customers, onCustomerSelect }: CustomerTableProps) {
+export function CustomerTable({ customers, onCustomerSelect, canArchive = false }: CustomerTableProps) {
     const [searchQuery, setSearchQuery] = useState('');
     const [selectedCustomer, setSelectedCustomer] = useState<Customer | null>(null);
     const [showModal, setShowModal] = useState(false);
     const [showDeleteDialog, setShowDeleteDialog] = useState(false);
     const [customerToDelete, setCustomerToDelete] = useState<Customer | null>(null);
 
-    const { deleteCustomer, getCustomerProjects } = useCustomers();
+    const { deleteCustomer, archiveCustomer, getCustomerProjects } = useCustomers();
 
     const filteredCustomers = useMemo(() => {
         if (!searchQuery) return customers;
@@ -65,6 +67,14 @@ export function CustomerTable({ customers, onCustomerSelect }: CustomerTableProp
     const handleEdit = (customer: Customer) => {
         setSelectedCustomer(customer);
         setShowModal(true);
+    };
+
+    const handleArchive = async (customer: Customer) => {
+        try {
+            await archiveCustomer(customer.id);
+        } catch (error) {
+            console.error('Error archiving customer:', error);
+        }
     };
 
     const handleDelete = (customer: Customer) => {
@@ -227,13 +237,15 @@ export function CustomerTable({ customers, onCustomerSelect }: CustomerTableProp
                                                     <Edit className="w-4 h-4 mr-2" />
                                                     Edit
                                                 </DropdownMenuItem>
-                                                <DropdownMenuItem
-                                                    onClick={() => handleDelete(customer)}
-                                                    className="text-destructive"
-                                                >
-                                                    <Trash2 className="w-4 h-4 mr-2" />
-                                                    Delete
-                                                </DropdownMenuItem>
+                                                {canArchive && (
+                                                    <DropdownMenuItem
+                                                        onClick={() => handleArchive(customer)}
+                                                        className="text-orange-600"
+                                                    >
+                                                        <Archive className="w-4 h-4 mr-2" />
+                                                        Archive
+                                                    </DropdownMenuItem>
+                                                )}
                                             </DropdownMenuContent>
                                         </DropdownMenu>
                                     </TableCell>

@@ -32,26 +32,42 @@ export class ProjectIntakeService {
     static async createProjectFromIntake(
         intakeData: ProjectIntakeData,
         organizationId: string,
-        createProjectFn: any
+        createProjectFn: any,
+        preGeneratedProjectId?: string
     ): Promise<Project> {
         try {
+            console.log('🚀 Starting project creation from intake:', {
+                intakeType: intakeData.intake_type,
+                organizationId,
+                title: intakeData.title
+            });
+
             // Get intake mapping
             const mapping = IntakeMappingService.getMapping(intakeData.intake_type);
             if (!mapping) {
                 throw new Error(`Unknown intake type: ${intakeData.intake_type}`);
             }
+            console.log('✅ Intake mapping found:', mapping);
 
             // Determine project type
             const projectType = IntakeMappingService.determineProjectType(intakeData.intake_type, intakeData);
+            console.log('✅ Project type determined:', projectType);
 
             // Get initial stage ID
             const initialStageId = await IntakeWorkflowService.getInitialStageId(intakeData.intake_type, organizationId);
+            console.log('✅ Initial stage ID:', initialStageId);
 
             // Fallback to first available stage if specific stage not found
             const stageId = initialStageId || await IntakeWorkflowService.getFirstAvailableStage(organizationId);
+            console.log('✅ Final stage ID:', stageId);
+
+            if (!stageId) {
+                throw new Error('No workflow stage found for project creation');
+            }
 
             // Get priority from mapping
             const priority = IntakeMappingService.getPriority(intakeData.intake_type);
+            console.log('✅ Priority determined:', priority);
 
             // Prepare tags
             const tags = [
@@ -59,8 +75,17 @@ export class ProjectIntakeService {
                 projectType,
                 ...(intakeData.tags || [])
             ];
+            console.log('✅ Tags prepared:', tags);
 
             // Create project with intake-specific data
+            console.log('🚀 Creating project with data:', {
+                organization_id: organizationId,
+                title: intakeData.title,
+                customer_organization_id: intakeData.customer_organization_id,
+                priority_level: priority,
+                current_stage_id: stageId
+            });
+
             const project = await createProjectFn({
                 organization_id: organizationId, // Ensure organization_id is passed
                 title: intakeData.title || `${intakeData.intake_type} from ${intakeData.contact_name || 'Customer'}`,
@@ -70,25 +95,30 @@ export class ProjectIntakeService {
                 priority_level: priority, // Use correct field name
                 estimated_value: intakeData.estimated_value,
                 estimated_delivery_date: intakeData.due_date, // Map to correct field name
-                contact_name: intakeData.contact_name,
-                contact_email: intakeData.contact_email,
-                contact_phone: intakeData.contact_phone,
                 notes: intakeData.notes,
                 tags: tags,
                 intake_type: mapping.intakeType,
                 intake_source: intakeData.intake_source || 'portal',
                 project_type: projectType,
                 current_stage_id: stageId,
-                // Additional database fields
-                volume: intakeData.volume,
-                target_price_per_unit: intakeData.target_price_per_unit,
-                desired_delivery_date: intakeData.desired_delivery_date,
-                project_reference: intakeData.project_reference
+                // Pre-generated project ID
+                project_id: preGeneratedProjectId,
+                // Store additional fields in metadata JSONB
+                metadata: {
+                    contact_name: intakeData.contact_name,
+                    contact_email: intakeData.contact_email,
+                    contact_phone: intakeData.contact_phone,
+                    volume: intakeData.volume,
+                    target_price_per_unit: intakeData.target_price_per_unit,
+                    desired_delivery_date: intakeData.desired_delivery_date,
+                    project_reference: intakeData.project_reference
+                }
             });
 
+            console.log('✅ Project created successfully:', project.project_id);
             return project;
         } catch (error) {
-            console.error('Error creating project from intake:', error);
+            console.error('❌ Error creating project from intake:', error);
             throw error;
         }
     }

@@ -152,7 +152,7 @@ export function ProjectSummaryCard({ project, showUrgencyIndicators = false }: P
     switch (priority) {
       case 'urgent': return 'priority-indicator priority-indicator-urgent';
       case 'high': return 'priority-indicator priority-indicator-high';
-      case 'medium': return 'priority-indicator priority-indicator-medium';
+      case 'normal': return 'priority-indicator priority-indicator-normal';
       case 'low': return 'priority-indicator priority-indicator-low';
       default: return 'priority-indicator';
     }

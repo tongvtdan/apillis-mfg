@@ -1,6 +1,6 @@
 import React from 'react';
 
-export type ListItemPriority = 'urgent' | 'high' | 'medium' | 'normal' | 'active';
+export type ListItemPriority = 'urgent' | 'high' | 'normal' | 'low' | 'active';
 
 interface ListItemProps {
     priority?: ListItemPriority;

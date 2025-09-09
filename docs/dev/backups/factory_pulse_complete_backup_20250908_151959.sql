@@ -610,6 +610,135 @@ COMMENT ON FUNCTION "public"."get_dashboard_summary"() IS 'Returns dashboard sum
 
 
 
+CREATE OR REPLACE FUNCTION "public"."get_dashboard_summary_test"("org_id" "uuid") RETURNS json
+    LANGUAGE "plpgsql"
+    AS $$
+DECLARE
+    result JSON;
+BEGIN
+    -- Build the dashboard summary for the specified organization
+    WITH project_stats AS (
+        SELECT
+            COUNT(*) as total_projects,
+            COUNT(CASE WHEN status = 'inquiry' THEN 1 END) as inquiry_count,
+            COUNT(CASE WHEN status = 'reviewing' THEN 1 END) as reviewing_count,
+            COUNT(CASE WHEN status = 'quoted' THEN 1 END) as quoted_count,
+            COUNT(CASE WHEN status = 'confirmed' THEN 1 END) as confirmed_count,
+            COUNT(CASE WHEN status = 'procurement' THEN 1 END) as procurement_count,
+            COUNT(CASE WHEN status = 'production' THEN 1 END) as production_count,
+            COUNT(CASE WHEN status = 'completed' THEN 1 END) as completed_count,
+            COUNT(CASE WHEN status = 'cancelled' THEN 1 END) as cancelled_count,
+            COUNT(CASE WHEN priority_level = 'low' THEN 1 END) as low_priority_count,
+            COUNT(CASE WHEN priority_level = 'normal' THEN 1 END) as normal_priority_count,
+            COUNT(CASE WHEN priority_level = 'high' THEN 1 END) as high_priority_count,
+            COUNT(CASE WHEN priority_level = 'urgent' THEN 1 END) as urgent_priority_count,
+            COUNT(CASE WHEN project_type = 'system_build' THEN 1 END) as system_build_count,
+            COUNT(CASE WHEN project_type = 'fabrication' THEN 1 END) as fabrication_count,
+            COUNT(CASE WHEN project_type = 'manufacturing' THEN 1 END) as manufacturing_count
+        FROM projects
+        WHERE organization_id = org_id
+    ),
+    stage_stats AS (
+        SELECT
+            ws.name as stage_name,
+            COUNT(p.id) as stage_count
+        FROM projects p
+        LEFT JOIN workflow_stages ws ON p.current_stage_id = ws.id
+        WHERE p.organization_id = org_id
+        GROUP BY ws.name
+    ),
+    recent_projects AS (
+        SELECT
+            p.id,
+            p.organization_id,
+            p.project_id,
+            p.title,
+            p.status,
+            p.priority_level,
+            p.project_type,
+            p.created_at,
+            p.estimated_delivery_date,
+            CASE 
+                WHEN p.stage_entered_at IS NOT NULL 
+                THEN EXTRACT(EPOCH FROM (NOW() - p.stage_entered_at)) / 86400 
+                ELSE NULL 
+            END as days_in_stage,
+            ws.name as current_stage_name,
+            cust_org.name as customer_name
+        FROM projects p
+        LEFT JOIN workflow_stages ws ON p.current_stage_id = ws.id
+        LEFT JOIN organizations cust_org ON p.customer_organization_id = cust_org.id
+        WHERE p.organization_id = org_id
+        ORDER BY p.created_at DESC
+        LIMIT 10
+    )
+    SELECT json_build_object(
+        'projects', json_build_object(
+            'total', ps.total_projects,
+            'by_status', json_build_object(
+                'inquiry', ps.inquiry_count,
+                'reviewing', ps.reviewing_count,
+                'quoted', ps.quoted_count,
+                'confirmed', ps.confirmed_count,
+                'procurement', ps.procurement_count,
+                'production', ps.production_count,
+                'completed', ps.completed_count,
+                'cancelled', ps.cancelled_count
+            ),
+            'by_type', json_build_object(
+                'system_build', ps.system_build_count,
+                'fabrication', ps.fabrication_count,
+                'manufacturing', ps.manufacturing_count
+            ),
+            'by_priority', json_build_object(
+                'low', ps.low_priority_count,
+                'normal', ps.normal_priority_count,
+                'high', ps.high_priority_count,
+                'urgent', ps.urgent_priority_count
+            ),
+            'by_stage', (
+                SELECT json_object_agg(
+                    COALESCE(stage_name, 'no_stage'), 
+                    stage_count
+                )
+                FROM stage_stats
+            )
+        ),
+        'recent_projects', (
+            SELECT json_agg(
+                json_build_object(
+                    'id', rp.id,
+                    'organization_id', rp.organization_id,
+                    'project_id', rp.project_id,
+                    'title', rp.title,
+                    'status', rp.status,
+                    'priority_level', rp.priority_level,
+                    'project_type', rp.project_type,
+                    'created_at', rp.created_at,
+                    'customer_name', rp.customer_name,
+                    'estimated_delivery_date', rp.estimated_delivery_date,
+                    'days_in_stage', rp.days_in_stage,
+                    'current_stage', rp.current_stage_name
+                )
+            )
+            FROM recent_projects rp
+        ),
+        'generated_at', extract(epoch from now()),
+        'debug', json_build_object(
+            'organization_id', org_id,
+            'query_timestamp', now()
+        )
+    ) INTO result
+    FROM project_stats ps;
+
+    RETURN result;
+END;
+$$;
+
+
+ALTER FUNCTION "public"."get_dashboard_summary_test"("org_id" "uuid") OWNER TO "postgres";
+
+
 CREATE OR REPLACE FUNCTION "public"."get_project_progress_summary"("p_project_id" "uuid") RETURNS TABLE("total_sub_stages" bigint, "completed_sub_stages" bigint, "in_progress_sub_stages" bigint, "blocked_sub_stages" bigint, "overdue_sub_stages" bigint, "next_due_date" timestamp with time zone, "estimated_completion_date" "date")
     LANGUAGE "plpgsql"
     AS $$
@@ -748,6 +877,68 @@ $$;
 ALTER FUNCTION "public"."get_users_by_organization"("p_org_id" "uuid") OWNER TO "postgres";
 
 
+CREATE OR REPLACE FUNCTION "public"."has_user_feature_access"("p_user_id" "uuid", "p_feature_key" "text") RETURNS boolean
+    LANGUAGE "plpgsql" SECURITY DEFINER
+    AS $$
+DECLARE
+    user_role user_role;
+    feature_enabled BOOLEAN;
+    required_role user_role;
+    required_permissions TEXT[];
+    has_required_role BOOLEAN;
+    has_required_permissions BOOLEAN;
+BEGIN
+    -- Check if feature is enabled for organization
+    SELECT ft.is_enabled, ft.required_role, ft.required_permissions
+    INTO feature_enabled, required_role, required_permissions
+    FROM feature_toggles ft
+    JOIN users u ON ft.organization_id = u.organization_id
+    WHERE u.id = p_user_id AND ft.feature_key = p_feature_key;
+
+    -- If feature is disabled, return false
+    IF NOT feature_enabled THEN
+        RETURN false;
+    END IF;
+
+    -- Check user-specific override
+    SELECT ufa.has_access
+    INTO feature_enabled
+    FROM user_feature_access ufa
+    JOIN feature_toggles ft ON ufa.feature_toggle_id = ft.id
+    WHERE ufa.user_id = p_user_id AND ft.feature_key = p_feature_key;
+
+    -- If user has specific override, use it
+    IF feature_enabled IS NOT NULL THEN
+        RETURN feature_enabled;
+    END IF;
+
+    -- Get user role
+    SELECT role INTO user_role
+    FROM users
+    WHERE id = p_user_id;
+
+    -- Check role hierarchy
+    CASE
+        WHEN user_role = 'admin' THEN RETURN true;
+        WHEN user_role = 'management' AND required_role IN ('management', 'sales', 'procurement', 'engineering', 'qa', 'production') THEN RETURN true;
+        WHEN user_role = 'sales' AND required_role IN ('sales', 'procurement', 'engineering', 'qa', 'production') THEN RETURN true;
+        WHEN user_role = 'procurement' AND required_role IN ('procurement', 'engineering', 'qa', 'production') THEN RETURN true;
+        WHEN user_role = 'engineering' AND required_role IN ('engineering', 'qa', 'production') THEN RETURN true;
+        WHEN user_role = 'qa' AND required_role IN ('qa', 'production') THEN RETURN true;
+        WHEN user_role = 'production' AND required_role = 'production' THEN RETURN true;
+        ELSE RETURN false;
+    END CASE;
+END;
+$$;
+
+
+ALTER FUNCTION "public"."has_user_feature_access"("p_user_id" "uuid", "p_feature_key" "text") OWNER TO "postgres";
+
+
+COMMENT ON FUNCTION "public"."has_user_feature_access"("p_user_id" "uuid", "p_feature_key" "text") IS 'Check if user has access to a specific feature';
+
+
+
 CREATE OR REPLACE FUNCTION "public"."has_user_permission"("p_user_id" "uuid", "p_permission" "text") RETURNS boolean
     LANGUAGE "plpgsql" SECURITY DEFINER
     AS $$
@@ -791,16 +982,180 @@ $$;
 ALTER FUNCTION "public"."has_user_permission"("p_user_id" "uuid", "p_permission" "text") OWNER TO "postgres";
 
 
+CREATE OR REPLACE FUNCTION "public"."has_user_permission_enhanced"("p_user_id" "uuid", "p_resource" "text", "p_action" "text") RETURNS boolean
+    LANGUAGE "plpgsql" SECURITY DEFINER
+    AS $$
+DECLARE
+    user_role user_role;
+    permission_name TEXT;
+    has_permission BOOLEAN := false;
+    has_deny BOOLEAN := false;
+BEGIN
+    -- Build permission name
+    permission_name := p_resource || ':' || p_action;
+
+    -- Get user's base role
+    SELECT role INTO user_role
+    FROM users
+    WHERE id = p_user_id;
+
+    -- Check for explicit deny (takes precedence)
+    SELECT EXISTS(
+        SELECT 1 FROM user_permissions up
+        JOIN permissions p ON up.permission_id = p.id
+        WHERE up.user_id = p_user_id
+        AND p.name = permission_name
+        AND up.permission_type = 'deny'
+        AND (up.expires_at IS NULL OR up.expires_at > NOW())
+    ) INTO has_deny;
+
+    -- If explicitly denied, return false
+    IF has_deny THEN
+        RETURN false;
+    END IF;
+
+    -- Check for explicit grant
+    SELECT EXISTS(
+        SELECT 1 FROM user_permissions up
+        JOIN permissions p ON up.permission_id = p.id
+        WHERE up.user_id = p_user_id
+        AND p.name = permission_name
+        AND up.permission_type = 'grant'
+        AND (up.expires_at IS NULL OR up.expires_at > NOW())
+    ) INTO has_permission;
+
+    -- If explicitly granted, return true
+    IF has_permission THEN
+        RETURN true;
+    END IF;
+
+    -- Check custom roles
+    SELECT EXISTS(
+        SELECT 1 FROM user_custom_roles ucr
+        JOIN role_permissions rp ON ucr.custom_role_id = rp.custom_role_id
+        JOIN permissions p ON rp.permission_id = p.id
+        WHERE ucr.user_id = p_user_id
+        AND p.name = permission_name
+        AND (ucr.expires_at IS NULL OR ucr.expires_at > NOW())
+    ) INTO has_permission;
+
+    -- If found in custom roles, return true
+    IF has_permission THEN
+        RETURN true;
+    END IF;
+
+    -- Fall back to role-based permissions (original logic)
+    CASE user_role
+        WHEN 'admin' THEN RETURN true;
+        WHEN 'management' THEN
+            RETURN permission_name IN (
+                'rfq:read', 'rfq:create', 'rfq:update', 'rfq:assign', 'rfq:delete',
+                'customer:read', 'customer:create', 'customer:update',
+                'supplier:read', 'supplier:create', 'supplier:update',
+                'dashboard:read', 'analytics:read', 'analytics:export',
+                'users:read', 'users:create', 'users:update', 'users:delete',
+                'workflow:read', 'workflow:create', 'workflow:update', 'workflow:delete',
+                'approvals:read', 'approvals:update'
+            );
+        WHEN 'procurement' THEN
+            RETURN permission_name IN (
+                'rfq:read', 'rfq:create', 'rfq:update', 'rfq:assign', 'rfq:delete',
+                'supplier:read', 'supplier:create', 'supplier:update',
+                'dashboard:read', 'workflow:read', 'workflow:update',
+                'approvals:read', 'approvals:update'
+            );
+        WHEN 'sales' THEN
+            RETURN permission_name IN (
+                'rfq:read', 'rfq:create', 'rfq:update', 'rfq:assign', 'rfq:delete',
+                'customer:read', 'customer:create', 'customer:update',
+                'dashboard:read', 'workflow:read', 'workflow:update'
+            );
+        WHEN 'engineering' THEN
+            RETURN permission_name IN (
+                'rfq:read', 'rfq:update', 'rfq:review',
+                'technical_specs:read', 'technical_specs:create', 'technical_specs:update',
+                'dashboard:read', 'documents:read', 'documents:create', 'documents:update',
+                'workflow:read', 'workflow:update'
+            );
+        WHEN 'qa' THEN
+            RETURN permission_name IN (
+                'rfq:read', 'rfq:review', 'rfq:approve', 'rfq:reject',
+                'quality_specs:read', 'quality_specs:create', 'quality_specs:update',
+                'dashboard:read', 'audit:read', 'audit:create',
+                'workflow:read', 'workflow:update'
+            );
+        WHEN 'production' THEN
+            RETURN permission_name IN (
+                'rfq:read', 'rfq:update', 'rfq:schedule',
+                'production_schedule:read', 'production_schedule:create', 'production_schedule:update',
+                'dashboard:read', 'capacity:read', 'capacity:update',
+                'workflow:read', 'workflow:update'
+            );
+        ELSE RETURN false;
+    END CASE;
+END;
+$$;
+
+
+ALTER FUNCTION "public"."has_user_permission_enhanced"("p_user_id" "uuid", "p_resource" "text", "p_action" "text") OWNER TO "postgres";
+
+
+COMMENT ON FUNCTION "public"."has_user_permission_enhanced"("p_user_id" "uuid", "p_resource" "text", "p_action" "text") IS 'Enhanced permission checking function with custom roles and overrides';
+
+
+
+CREATE OR REPLACE FUNCTION "public"."log_permission_change"("p_user_id" "uuid", "p_target_user_id" "uuid", "p_action_type" "text", "p_entity_type" "text", "p_entity_id" "uuid", "p_old_values" "jsonb" DEFAULT NULL::"jsonb", "p_new_values" "jsonb" DEFAULT NULL::"jsonb", "p_reason" "text" DEFAULT NULL::"text") RETURNS "void"
+    LANGUAGE "plpgsql" SECURITY DEFINER
+    AS $$
+DECLARE
+    org_id UUID;
+BEGIN
+    -- Get organization ID
+    SELECT organization_id INTO org_id
+    FROM users
+    WHERE id = p_user_id;
+
+    -- Insert audit log
+    INSERT INTO permission_audit_log (
+        organization_id,
+        user_id,
+        target_user_id,
+        action_type,
+        entity_type,
+        entity_id,
+        old_values,
+        new_values,
+        reason
+    ) VALUES (
+        org_id,
+        p_user_id,
+        p_target_user_id,
+        p_action_type,
+        p_entity_type,
+        p_entity_id,
+        p_old_values,
+        p_new_values,
+        p_reason
+    );
+END;
+$$;
+
+
+ALTER FUNCTION "public"."log_permission_change"("p_user_id" "uuid", "p_target_user_id" "uuid", "p_action_type" "text", "p_entity_type" "text", "p_entity_id" "uuid", "p_old_values" "jsonb", "p_new_values" "jsonb", "p_reason" "text") OWNER TO "postgres";
+
+
+COMMENT ON FUNCTION "public"."log_permission_change"("p_user_id" "uuid", "p_target_user_id" "uuid", "p_action_type" "text", "p_entity_type" "text", "p_entity_id" "uuid", "p_old_values" "jsonb", "p_new_values" "jsonb", "p_reason" "text") IS 'Log permission changes for audit purposes';
+
+
+
 CREATE OR REPLACE FUNCTION "public"."refresh_dashboard_materialized_views"() RETURNS "void"
     LANGUAGE "plpgsql"
     AS $$
 BEGIN
-    REFRESH MATERIALIZED VIEW CONCURRENTLY mv_project_dashboard_summary;
-    REFRESH MATERIALIZED VIEW CONCURRENTLY mv_workflow_efficiency;
-    REFRESH MATERIALIZED VIEW CONCURRENTLY mv_approval_performance;
+    -- Only refresh the materialized view that actually exists
     REFRESH MATERIALIZED VIEW CONCURRENTLY mv_user_workload;
-
-    -- Log the refresh
+    
+    -- Log the refresh (with proper organization_id)
     INSERT INTO activity_log (
         organization_id,
         user_id,
@@ -810,20 +1165,15 @@ BEGIN
         description,
         metadata
     ) VALUES (
-        NULL,
+        '550e8400-e29b-41d4-a716-446655440000', -- Use a valid organization_id
         NULL,
         'system',
         gen_random_uuid(),
         'refresh_materialized_views',
-        'Refreshed all dashboard materialized views',
+        'Refreshed dashboard materialized views',
         jsonb_build_object(
             'refreshed_at', NOW(),
-            'views_refreshed', ARRAY[
-                'mv_project_dashboard_summary',
-                'mv_workflow_efficiency',
-                'mv_approval_performance',
-                'mv_user_workload'
-            ]
+            'views_refreshed', ARRAY['mv_user_workload']
         )
     );
 END;
@@ -831,6 +1181,126 @@ $$;
 
 
 ALTER FUNCTION "public"."refresh_dashboard_materialized_views"() OWNER TO "postgres";
+
+
+CREATE OR REPLACE FUNCTION "public"."refresh_permissions_cache_trigger"() RETURNS "trigger"
+    LANGUAGE "plpgsql"
+    AS $$
+BEGIN
+    -- Refresh cache for affected users
+    IF TG_OP = 'DELETE' THEN
+        -- Handle user_permissions changes
+        IF TG_TABLE_NAME = 'user_permissions' THEN
+            PERFORM refresh_user_permissions_cache(OLD.user_id);
+        END IF;
+
+        -- Handle user_custom_roles changes
+        IF TG_TABLE_NAME = 'user_custom_roles' THEN
+            PERFORM refresh_user_permissions_cache(OLD.user_id);
+        END IF;
+
+        -- Handle user_feature_access changes
+        IF TG_TABLE_NAME = 'user_feature_access' THEN
+            PERFORM refresh_user_permissions_cache(OLD.user_id);
+        END IF;
+    ELSE
+        -- Handle inserts and updates
+        IF TG_TABLE_NAME = 'user_permissions' THEN
+            PERFORM refresh_user_permissions_cache(NEW.user_id);
+        END IF;
+
+        IF TG_TABLE_NAME = 'user_custom_roles' THEN
+            PERFORM refresh_user_permissions_cache(NEW.user_id);
+        END IF;
+
+        IF TG_TABLE_NAME = 'user_feature_access' THEN
+            PERFORM refresh_user_permissions_cache(NEW.user_id);
+        END IF;
+    END IF;
+
+    RETURN COALESCE(NEW, OLD);
+END;
+$$;
+
+
+ALTER FUNCTION "public"."refresh_permissions_cache_trigger"() OWNER TO "postgres";
+
+
+CREATE OR REPLACE FUNCTION "public"."refresh_user_permissions_cache"("p_user_id" "uuid") RETURNS "void"
+    LANGUAGE "plpgsql" SECURITY DEFINER
+    AS $$
+DECLARE
+    permissions_data JSONB;
+BEGIN
+    -- Build comprehensive permissions object
+    SELECT jsonb_build_object(
+        'base_role', u.role,
+        'custom_roles', COALESCE(
+            jsonb_agg(DISTINCT jsonb_build_object(
+                'id', cr.id,
+                'name', cr.name,
+                'permissions', (
+                    SELECT jsonb_agg(p.name)
+                    FROM role_permissions rp
+                    JOIN permissions p ON rp.permission_id = p.id
+                    WHERE rp.custom_role_id = cr.id
+                )
+            )) FILTER (WHERE cr.id IS NOT NULL), '[]'::jsonb
+        ),
+        'user_overrides', COALESCE(
+            jsonb_agg(jsonb_build_object(
+                'permission', p.name,
+                'type', up.permission_type,
+                'expires_at', up.expires_at
+            )) FILTER (WHERE p.id IS NOT NULL), '[]'::jsonb
+        ),
+        'feature_access', COALESCE(
+            jsonb_agg(jsonb_build_object(
+                'feature_key', ft.feature_key,
+                'has_access', COALESCE(ufa.has_access, ft.is_enabled)
+            )) FILTER (WHERE ft.id IS NOT NULL), '[]'::jsonb
+        ),
+        'last_updated', NOW()
+    ) INTO permissions_data
+    FROM users u
+    LEFT JOIN user_custom_roles ucr ON u.id = ucr.user_id
+        AND (ucr.expires_at IS NULL OR ucr.expires_at > NOW())
+    LEFT JOIN custom_roles cr ON ucr.custom_role_id = cr.id AND cr.is_active = true
+    LEFT JOIN user_permissions up ON u.id = up.user_id
+        AND (up.expires_at IS NULL OR up.expires_at > NOW())
+    LEFT JOIN permissions p ON up.permission_id = p.id
+    LEFT JOIN user_feature_access ufa ON u.id = ufa.user_id
+    LEFT JOIN feature_toggles ft ON ufa.feature_toggle_id = ft.id AND ft.is_enabled = true
+    WHERE u.id = p_user_id
+    GROUP BY u.id, u.role;
+
+    -- Update cache
+    UPDATE users
+    SET custom_permissions_cache = permissions_data,
+        last_permission_update = NOW()
+    WHERE id = p_user_id;
+END;
+$$;
+
+
+ALTER FUNCTION "public"."refresh_user_permissions_cache"("p_user_id" "uuid") OWNER TO "postgres";
+
+
+COMMENT ON FUNCTION "public"."refresh_user_permissions_cache"("p_user_id" "uuid") IS 'Refresh the cached permissions for a user';
+
+
+
+CREATE OR REPLACE FUNCTION "public"."set_created_by"() RETURNS "trigger"
+    LANGUAGE "plpgsql" SECURITY DEFINER
+    AS $$
+BEGIN
+  NEW.created_by = auth.uid();
+  RETURN NEW;
+END;
+$$;
+
+
+ALTER FUNCTION "public"."set_created_by"() OWNER TO "postgres";
 
 
 CREATE OR REPLACE FUNCTION "public"."update_updated_at_column"() RETURNS "trigger"
@@ -1024,11 +1494,36 @@ CREATE TABLE IF NOT EXISTS "public"."contacts" (
     "is_primary_contact" boolean DEFAULT false,
     "notes" "text",
     "created_at" timestamp with time zone DEFAULT "now"(),
-    "updated_at" timestamp with time zone DEFAULT "now"()
+    "updated_at" timestamp with time zone DEFAULT "now"(),
+    "created_by" "uuid"
 );
 
 
 ALTER TABLE "public"."contacts" OWNER TO "postgres";
+
+
+COMMENT ON COLUMN "public"."contacts"."created_by" IS 'User ID of the person who created this contact';
+
+
+
+CREATE TABLE IF NOT EXISTS "public"."custom_roles" (
+    "id" "uuid" DEFAULT "extensions"."uuid_generate_v4"() NOT NULL,
+    "organization_id" "uuid" NOT NULL,
+    "name" "text" NOT NULL,
+    "description" "text",
+    "is_system" boolean DEFAULT false,
+    "is_active" boolean DEFAULT true,
+    "created_by" "uuid",
+    "created_at" timestamp with time zone DEFAULT "now"(),
+    "updated_at" timestamp with time zone DEFAULT "now"()
+);
+
+
+ALTER TABLE "public"."custom_roles" OWNER TO "postgres";
+
+
+COMMENT ON TABLE "public"."custom_roles" IS 'Custom roles that can be assigned to users beyond basic user roles';
+
 
 
 CREATE TABLE IF NOT EXISTS "public"."document_access_log" (
@@ -1095,6 +1590,29 @@ CREATE TABLE IF NOT EXISTS "public"."documents" (
 
 
 ALTER TABLE "public"."documents" OWNER TO "postgres";
+
+
+CREATE TABLE IF NOT EXISTS "public"."feature_toggles" (
+    "id" "uuid" DEFAULT "extensions"."uuid_generate_v4"() NOT NULL,
+    "organization_id" "uuid" NOT NULL,
+    "feature_name" "text" NOT NULL,
+    "feature_key" "text" NOT NULL,
+    "description" "text",
+    "is_enabled" boolean DEFAULT true,
+    "required_role" "public"."user_role",
+    "required_permissions" "text"[],
+    "config" "jsonb" DEFAULT '{}'::"jsonb",
+    "created_by" "uuid",
+    "created_at" timestamp with time zone DEFAULT "now"(),
+    "updated_at" timestamp with time zone DEFAULT "now"()
+);
+
+
+ALTER TABLE "public"."feature_toggles" OWNER TO "postgres";
+
+
+COMMENT ON TABLE "public"."feature_toggles" IS 'Feature flags to enable/disable specific application features';
+
 
 
 CREATE TABLE IF NOT EXISTS "public"."messages" (
@@ -1196,7 +1714,10 @@ CREATE TABLE IF NOT EXISTS "public"."users" (
     "last_login_at" timestamp with time zone,
     "preferences" "jsonb",
     "created_at" timestamp with time zone DEFAULT "now"(),
-    "updated_at" timestamp with time zone DEFAULT "now"()
+    "updated_at" timestamp with time zone DEFAULT "now"(),
+    "permission_override" boolean DEFAULT false,
+    "custom_permissions_cache" "jsonb" DEFAULT '{}'::"jsonb",
+    "last_permission_update" timestamp with time zone DEFAULT "now"()
 );
 
 
@@ -1279,11 +1800,60 @@ CREATE TABLE IF NOT EXISTS "public"."organizations" (
     "organization_type" "text" DEFAULT 'customer'::"text",
     "is_active" boolean DEFAULT true,
     "created_at" timestamp with time zone DEFAULT "now"(),
-    "updated_at" timestamp with time zone DEFAULT "now"()
+    "updated_at" timestamp with time zone DEFAULT "now"(),
+    "created_by" "uuid"
 );
 
 
 ALTER TABLE "public"."organizations" OWNER TO "postgres";
+
+
+COMMENT ON COLUMN "public"."organizations"."created_by" IS 'User ID of the person who created this organization';
+
+
+
+CREATE TABLE IF NOT EXISTS "public"."permission_audit_log" (
+    "id" "uuid" DEFAULT "extensions"."uuid_generate_v4"() NOT NULL,
+    "organization_id" "uuid" NOT NULL,
+    "user_id" "uuid",
+    "target_user_id" "uuid",
+    "action_type" "text" NOT NULL,
+    "entity_type" "text" NOT NULL,
+    "entity_id" "uuid",
+    "old_values" "jsonb",
+    "new_values" "jsonb",
+    "reason" "text",
+    "ip_address" "inet",
+    "user_agent" "text",
+    "created_at" timestamp with time zone DEFAULT "now"()
+);
+
+
+ALTER TABLE "public"."permission_audit_log" OWNER TO "postgres";
+
+
+COMMENT ON TABLE "public"."permission_audit_log" IS 'Audit trail for all permission-related changes';
+
+
+
+CREATE TABLE IF NOT EXISTS "public"."permissions" (
+    "id" "uuid" DEFAULT "extensions"."uuid_generate_v4"() NOT NULL,
+    "name" "text" NOT NULL,
+    "resource" "text" NOT NULL,
+    "action" "text" NOT NULL,
+    "description" "text",
+    "category" "text" DEFAULT 'general'::"text",
+    "is_system" boolean DEFAULT false,
+    "created_at" timestamp with time zone DEFAULT "now"(),
+    "updated_at" timestamp with time zone DEFAULT "now"()
+);
+
+
+ALTER TABLE "public"."permissions" OWNER TO "postgres";
+
+
+COMMENT ON TABLE "public"."permissions" IS 'System-wide permissions catalog defining all available permissions';
+
 
 
 CREATE TABLE IF NOT EXISTS "public"."review_checklist_items" (
@@ -1333,6 +1903,77 @@ ALTER TABLE "public"."reviews" OWNER TO "postgres";
 
 
 COMMENT ON TABLE "public"."reviews" IS 'Reviews table with proper foreign key constraints for Supabase joins';
+
+
+
+CREATE TABLE IF NOT EXISTS "public"."role_permissions" (
+    "id" "uuid" DEFAULT "extensions"."uuid_generate_v4"() NOT NULL,
+    "custom_role_id" "uuid" NOT NULL,
+    "permission_id" "uuid" NOT NULL,
+    "granted_by" "uuid",
+    "granted_at" timestamp with time zone DEFAULT "now"()
+);
+
+
+ALTER TABLE "public"."role_permissions" OWNER TO "postgres";
+
+
+COMMENT ON TABLE "public"."role_permissions" IS 'Junction table linking custom roles to specific permissions';
+
+
+
+CREATE TABLE IF NOT EXISTS "public"."user_custom_roles" (
+    "id" "uuid" DEFAULT "extensions"."uuid_generate_v4"() NOT NULL,
+    "user_id" "uuid" NOT NULL,
+    "custom_role_id" "uuid" NOT NULL,
+    "assigned_by" "uuid",
+    "assigned_at" timestamp with time zone DEFAULT "now"(),
+    "expires_at" timestamp with time zone
+);
+
+
+ALTER TABLE "public"."user_custom_roles" OWNER TO "postgres";
+
+
+COMMENT ON TABLE "public"."user_custom_roles" IS 'Junction table for user-custom role assignments';
+
+
+
+CREATE TABLE IF NOT EXISTS "public"."user_feature_access" (
+    "id" "uuid" DEFAULT "extensions"."uuid_generate_v4"() NOT NULL,
+    "user_id" "uuid" NOT NULL,
+    "feature_toggle_id" "uuid" NOT NULL,
+    "has_access" boolean DEFAULT true,
+    "granted_by" "uuid",
+    "granted_at" timestamp with time zone DEFAULT "now"(),
+    "expires_at" timestamp with time zone
+);
+
+
+ALTER TABLE "public"."user_feature_access" OWNER TO "postgres";
+
+
+COMMENT ON TABLE "public"."user_feature_access" IS 'User-specific feature access overrides';
+
+
+
+CREATE TABLE IF NOT EXISTS "public"."user_permissions" (
+    "id" "uuid" DEFAULT "extensions"."uuid_generate_v4"() NOT NULL,
+    "user_id" "uuid" NOT NULL,
+    "permission_id" "uuid" NOT NULL,
+    "permission_type" "text" NOT NULL,
+    "granted_by" "uuid",
+    "granted_at" timestamp with time zone DEFAULT "now"(),
+    "expires_at" timestamp with time zone,
+    "reason" "text",
+    CONSTRAINT "user_permissions_permission_type_check" CHECK (("permission_type" = ANY (ARRAY['grant'::"text", 'deny'::"text"])))
+);
+
+
+ALTER TABLE "public"."user_permissions" OWNER TO "postgres";
+
+
+COMMENT ON TABLE "public"."user_permissions" IS 'User-specific permission overrides (grants or denials)';
 
 
 
@@ -1735,6 +2376,16 @@ ALTER TABLE ONLY "public"."contacts"
 
 
 
+ALTER TABLE ONLY "public"."custom_roles"
+    ADD CONSTRAINT "custom_roles_organization_id_name_key" UNIQUE ("organization_id", "name");
+
+
+
+ALTER TABLE ONLY "public"."custom_roles"
+    ADD CONSTRAINT "custom_roles_pkey" PRIMARY KEY ("id");
+
+
+
 ALTER TABLE ONLY "public"."document_access_log"
     ADD CONSTRAINT "document_access_log_pkey" PRIMARY KEY ("id");
 
@@ -1750,6 +2401,21 @@ ALTER TABLE ONLY "public"."documents"
 
 
 
+ALTER TABLE ONLY "public"."feature_toggles"
+    ADD CONSTRAINT "feature_toggles_feature_key_key" UNIQUE ("feature_key");
+
+
+
+ALTER TABLE ONLY "public"."feature_toggles"
+    ADD CONSTRAINT "feature_toggles_organization_id_feature_key_key" UNIQUE ("organization_id", "feature_key");
+
+
+
+ALTER TABLE ONLY "public"."feature_toggles"
+    ADD CONSTRAINT "feature_toggles_pkey" PRIMARY KEY ("id");
+
+
+
 ALTER TABLE ONLY "public"."messages"
     ADD CONSTRAINT "messages_pkey" PRIMARY KEY ("id");
 
@@ -1762,6 +2428,26 @@ ALTER TABLE ONLY "public"."notifications"
 
 ALTER TABLE ONLY "public"."organizations"
     ADD CONSTRAINT "organizations_pkey" PRIMARY KEY ("id");
+
+
+
+ALTER TABLE ONLY "public"."permission_audit_log"
+    ADD CONSTRAINT "permission_audit_log_pkey" PRIMARY KEY ("id");
+
+
+
+ALTER TABLE ONLY "public"."permissions"
+    ADD CONSTRAINT "permissions_name_key" UNIQUE ("name");
+
+
+
+ALTER TABLE ONLY "public"."permissions"
+    ADD CONSTRAINT "permissions_pkey" PRIMARY KEY ("id");
+
+
+
+ALTER TABLE ONLY "public"."permissions"
+    ADD CONSTRAINT "permissions_resource_action_key" UNIQUE ("resource", "action");
 
 
 
@@ -1792,6 +2478,46 @@ ALTER TABLE ONLY "public"."review_checklist_items"
 
 ALTER TABLE ONLY "public"."reviews"
     ADD CONSTRAINT "reviews_pkey" PRIMARY KEY ("id");
+
+
+
+ALTER TABLE ONLY "public"."role_permissions"
+    ADD CONSTRAINT "role_permissions_custom_role_id_permission_id_key" UNIQUE ("custom_role_id", "permission_id");
+
+
+
+ALTER TABLE ONLY "public"."role_permissions"
+    ADD CONSTRAINT "role_permissions_pkey" PRIMARY KEY ("id");
+
+
+
+ALTER TABLE ONLY "public"."user_custom_roles"
+    ADD CONSTRAINT "user_custom_roles_pkey" PRIMARY KEY ("id");
+
+
+
+ALTER TABLE ONLY "public"."user_custom_roles"
+    ADD CONSTRAINT "user_custom_roles_user_id_custom_role_id_key" UNIQUE ("user_id", "custom_role_id");
+
+
+
+ALTER TABLE ONLY "public"."user_feature_access"
+    ADD CONSTRAINT "user_feature_access_pkey" PRIMARY KEY ("id");
+
+
+
+ALTER TABLE ONLY "public"."user_feature_access"
+    ADD CONSTRAINT "user_feature_access_user_id_feature_toggle_id_key" UNIQUE ("user_id", "feature_toggle_id");
+
+
+
+ALTER TABLE ONLY "public"."user_permissions"
+    ADD CONSTRAINT "user_permissions_pkey" PRIMARY KEY ("id");
+
+
+
+ALTER TABLE ONLY "public"."user_permissions"
+    ADD CONSTRAINT "user_permissions_user_id_permission_id_key" UNIQUE ("user_id", "permission_id");
 
 
 
@@ -1906,11 +2632,19 @@ CREATE INDEX "idx_approvals_type_status" ON "public"."approvals" USING "btree" (
 
 
 
+CREATE INDEX "idx_contacts_created_by" ON "public"."contacts" USING "btree" ("created_by");
+
+
+
 CREATE INDEX "idx_contacts_email" ON "public"."contacts" USING "btree" ("email");
 
 
 
 CREATE INDEX "idx_contacts_org_type" ON "public"."contacts" USING "btree" ("organization_id", "type");
+
+
+
+CREATE INDEX "idx_custom_roles_org_active" ON "public"."custom_roles" USING "btree" ("organization_id", "is_active");
 
 
 
@@ -1927,6 +2661,10 @@ CREATE INDEX "idx_documents_org_project" ON "public"."documents" USING "btree" (
 
 
 CREATE INDEX "idx_documents_uploaded_at" ON "public"."documents" USING "btree" ("uploaded_by", "created_at" DESC);
+
+
+
+CREATE INDEX "idx_feature_toggles_org_key" ON "public"."feature_toggles" USING "btree" ("organization_id", "feature_key");
 
 
 
@@ -1954,7 +2692,19 @@ CREATE INDEX "idx_organizations_active" ON "public"."organizations" USING "btree
 
 
 
+CREATE INDEX "idx_organizations_created_by" ON "public"."organizations" USING "btree" ("created_by");
+
+
+
 CREATE INDEX "idx_organizations_slug" ON "public"."organizations" USING "btree" ("slug");
+
+
+
+CREATE INDEX "idx_permission_audit_org_timestamp" ON "public"."permission_audit_log" USING "btree" ("organization_id", "created_at" DESC);
+
+
+
+CREATE INDEX "idx_permissions_resource_action" ON "public"."permissions" USING "btree" ("resource", "action");
 
 
 
@@ -2058,6 +2808,30 @@ CREATE INDEX "idx_reviews_status" ON "public"."reviews" USING "btree" ("status")
 
 
 
+CREATE INDEX "idx_role_permissions_role" ON "public"."role_permissions" USING "btree" ("custom_role_id");
+
+
+
+CREATE INDEX "idx_user_custom_roles_expires" ON "public"."user_custom_roles" USING "btree" ("expires_at") WHERE ("expires_at" IS NOT NULL);
+
+
+
+CREATE INDEX "idx_user_custom_roles_user" ON "public"."user_custom_roles" USING "btree" ("user_id");
+
+
+
+CREATE INDEX "idx_user_feature_access_user" ON "public"."user_feature_access" USING "btree" ("user_id");
+
+
+
+CREATE INDEX "idx_user_permissions_expires" ON "public"."user_permissions" USING "btree" ("expires_at") WHERE ("expires_at" IS NOT NULL);
+
+
+
+CREATE INDEX "idx_user_permissions_user" ON "public"."user_permissions" USING "btree" ("user_id");
+
+
+
 CREATE INDEX "idx_users_email" ON "public"."users" USING "btree" ("email");
 
 
@@ -2082,6 +2856,26 @@ CREATE INDEX "idx_workflow_sub_stages_stage_order" ON "public"."workflow_sub_sta
 
 
 
+CREATE OR REPLACE TRIGGER "refresh_user_custom_roles_cache_on_change" AFTER INSERT OR DELETE OR UPDATE ON "public"."user_custom_roles" FOR EACH ROW EXECUTE FUNCTION "public"."refresh_permissions_cache_trigger"();
+
+
+
+CREATE OR REPLACE TRIGGER "refresh_user_feature_access_cache_on_change" AFTER INSERT OR DELETE OR UPDATE ON "public"."user_feature_access" FOR EACH ROW EXECUTE FUNCTION "public"."refresh_permissions_cache_trigger"();
+
+
+
+CREATE OR REPLACE TRIGGER "refresh_user_permissions_cache_on_change" AFTER INSERT OR DELETE OR UPDATE ON "public"."user_permissions" FOR EACH ROW EXECUTE FUNCTION "public"."refresh_permissions_cache_trigger"();
+
+
+
+CREATE OR REPLACE TRIGGER "set_contacts_created_by" BEFORE INSERT ON "public"."contacts" FOR EACH ROW EXECUTE FUNCTION "public"."set_created_by"();
+
+
+
+CREATE OR REPLACE TRIGGER "set_organizations_created_by" BEFORE INSERT ON "public"."organizations" FOR EACH ROW EXECUTE FUNCTION "public"."set_created_by"();
+
+
+
 CREATE OR REPLACE TRIGGER "update_approval_history_updated_at" BEFORE UPDATE ON "public"."approval_history" FOR EACH ROW EXECUTE FUNCTION "public"."update_updated_at_column"();
 
 
@@ -2094,6 +2888,10 @@ CREATE OR REPLACE TRIGGER "update_contacts_updated_at" BEFORE UPDATE ON "public"
 
 
 
+CREATE OR REPLACE TRIGGER "update_custom_roles_updated_at" BEFORE UPDATE ON "public"."custom_roles" FOR EACH ROW EXECUTE FUNCTION "public"."update_updated_at_column"();
+
+
+
 CREATE OR REPLACE TRIGGER "update_document_versions_updated_at" BEFORE UPDATE ON "public"."document_versions" FOR EACH ROW EXECUTE FUNCTION "public"."update_updated_at_column"();
 
 
@@ -2102,7 +2900,15 @@ CREATE OR REPLACE TRIGGER "update_documents_updated_at" BEFORE UPDATE ON "public
 
 
 
+CREATE OR REPLACE TRIGGER "update_feature_toggles_updated_at" BEFORE UPDATE ON "public"."feature_toggles" FOR EACH ROW EXECUTE FUNCTION "public"."update_updated_at_column"();
+
+
+
 CREATE OR REPLACE TRIGGER "update_organizations_updated_at" BEFORE UPDATE ON "public"."organizations" FOR EACH ROW EXECUTE FUNCTION "public"."update_updated_at_column"();
+
+
+
+CREATE OR REPLACE TRIGGER "update_permissions_updated_at" BEFORE UPDATE ON "public"."permissions" FOR EACH ROW EXECUTE FUNCTION "public"."update_updated_at_column"();
 
 
 
@@ -2226,7 +3032,22 @@ ALTER TABLE ONLY "public"."approvals"
 
 
 ALTER TABLE ONLY "public"."contacts"
+    ADD CONSTRAINT "contacts_created_by_fkey" FOREIGN KEY ("created_by") REFERENCES "auth"."users"("id");
+
+
+
+ALTER TABLE ONLY "public"."contacts"
     ADD CONSTRAINT "contacts_organization_id_fkey" FOREIGN KEY ("organization_id") REFERENCES "public"."organizations"("id");
+
+
+
+ALTER TABLE ONLY "public"."custom_roles"
+    ADD CONSTRAINT "custom_roles_created_by_fkey" FOREIGN KEY ("created_by") REFERENCES "public"."users"("id");
+
+
+
+ALTER TABLE ONLY "public"."custom_roles"
+    ADD CONSTRAINT "custom_roles_organization_id_fkey" FOREIGN KEY ("organization_id") REFERENCES "public"."organizations"("id") ON DELETE CASCADE;
 
 
 
@@ -2280,6 +3101,16 @@ ALTER TABLE ONLY "public"."documents"
 
 
 
+ALTER TABLE ONLY "public"."feature_toggles"
+    ADD CONSTRAINT "feature_toggles_created_by_fkey" FOREIGN KEY ("created_by") REFERENCES "public"."users"("id");
+
+
+
+ALTER TABLE ONLY "public"."feature_toggles"
+    ADD CONSTRAINT "feature_toggles_organization_id_fkey" FOREIGN KEY ("organization_id") REFERENCES "public"."organizations"("id") ON DELETE CASCADE;
+
+
+
 ALTER TABLE ONLY "public"."messages"
     ADD CONSTRAINT "messages_organization_id_fkey" FOREIGN KEY ("organization_id") REFERENCES "public"."organizations"("id") ON DELETE CASCADE;
 
@@ -2312,6 +3143,26 @@ ALTER TABLE ONLY "public"."notifications"
 
 ALTER TABLE ONLY "public"."notifications"
     ADD CONSTRAINT "notifications_user_id_fkey" FOREIGN KEY ("user_id") REFERENCES "public"."users"("id");
+
+
+
+ALTER TABLE ONLY "public"."organizations"
+    ADD CONSTRAINT "organizations_created_by_fkey" FOREIGN KEY ("created_by") REFERENCES "auth"."users"("id");
+
+
+
+ALTER TABLE ONLY "public"."permission_audit_log"
+    ADD CONSTRAINT "permission_audit_log_organization_id_fkey" FOREIGN KEY ("organization_id") REFERENCES "public"."organizations"("id") ON DELETE CASCADE;
+
+
+
+ALTER TABLE ONLY "public"."permission_audit_log"
+    ADD CONSTRAINT "permission_audit_log_target_user_id_fkey" FOREIGN KEY ("target_user_id") REFERENCES "public"."users"("id");
+
+
+
+ALTER TABLE ONLY "public"."permission_audit_log"
+    ADD CONSTRAINT "permission_audit_log_user_id_fkey" FOREIGN KEY ("user_id") REFERENCES "public"."users"("id");
 
 
 
@@ -2395,6 +3246,66 @@ ALTER TABLE ONLY "public"."reviews"
 
 
 
+ALTER TABLE ONLY "public"."role_permissions"
+    ADD CONSTRAINT "role_permissions_custom_role_id_fkey" FOREIGN KEY ("custom_role_id") REFERENCES "public"."custom_roles"("id") ON DELETE CASCADE;
+
+
+
+ALTER TABLE ONLY "public"."role_permissions"
+    ADD CONSTRAINT "role_permissions_granted_by_fkey" FOREIGN KEY ("granted_by") REFERENCES "public"."users"("id");
+
+
+
+ALTER TABLE ONLY "public"."role_permissions"
+    ADD CONSTRAINT "role_permissions_permission_id_fkey" FOREIGN KEY ("permission_id") REFERENCES "public"."permissions"("id") ON DELETE CASCADE;
+
+
+
+ALTER TABLE ONLY "public"."user_custom_roles"
+    ADD CONSTRAINT "user_custom_roles_assigned_by_fkey" FOREIGN KEY ("assigned_by") REFERENCES "public"."users"("id");
+
+
+
+ALTER TABLE ONLY "public"."user_custom_roles"
+    ADD CONSTRAINT "user_custom_roles_custom_role_id_fkey" FOREIGN KEY ("custom_role_id") REFERENCES "public"."custom_roles"("id") ON DELETE CASCADE;
+
+
+
+ALTER TABLE ONLY "public"."user_custom_roles"
+    ADD CONSTRAINT "user_custom_roles_user_id_fkey" FOREIGN KEY ("user_id") REFERENCES "public"."users"("id") ON DELETE CASCADE;
+
+
+
+ALTER TABLE ONLY "public"."user_feature_access"
+    ADD CONSTRAINT "user_feature_access_feature_toggle_id_fkey" FOREIGN KEY ("feature_toggle_id") REFERENCES "public"."feature_toggles"("id") ON DELETE CASCADE;
+
+
+
+ALTER TABLE ONLY "public"."user_feature_access"
+    ADD CONSTRAINT "user_feature_access_granted_by_fkey" FOREIGN KEY ("granted_by") REFERENCES "public"."users"("id");
+
+
+
+ALTER TABLE ONLY "public"."user_feature_access"
+    ADD CONSTRAINT "user_feature_access_user_id_fkey" FOREIGN KEY ("user_id") REFERENCES "public"."users"("id") ON DELETE CASCADE;
+
+
+
+ALTER TABLE ONLY "public"."user_permissions"
+    ADD CONSTRAINT "user_permissions_granted_by_fkey" FOREIGN KEY ("granted_by") REFERENCES "public"."users"("id");
+
+
+
+ALTER TABLE ONLY "public"."user_permissions"
+    ADD CONSTRAINT "user_permissions_permission_id_fkey" FOREIGN KEY ("permission_id") REFERENCES "public"."permissions"("id") ON DELETE CASCADE;
+
+
+
+ALTER TABLE ONLY "public"."user_permissions"
+    ADD CONSTRAINT "user_permissions_user_id_fkey" FOREIGN KEY ("user_id") REFERENCES "public"."users"("id") ON DELETE CASCADE;
+
+
+
 ALTER TABLE ONLY "public"."users"
     ADD CONSTRAINT "users_organization_id_fkey" FOREIGN KEY ("organization_id") REFERENCES "public"."organizations"("id") ON DELETE CASCADE;
 
@@ -2445,11 +3356,11 @@ ALTER TABLE ONLY "public"."workflow_sub_stages"
 
 
 
-CREATE POLICY "Users can insert contacts" ON "public"."contacts" FOR INSERT WITH CHECK (("auth"."role"() = 'authenticated'::"text"));
+CREATE POLICY "Users can insert contacts" ON "public"."contacts" FOR INSERT WITH CHECK ((("auth"."role"() = 'authenticated'::"text") AND ("created_by" = "auth"."uid"())));
 
 
 
-CREATE POLICY "Users can insert organizations" ON "public"."organizations" FOR INSERT WITH CHECK (("auth"."role"() = 'authenticated'::"text"));
+CREATE POLICY "Users can insert organizations" ON "public"."organizations" FOR INSERT WITH CHECK ((("auth"."role"() = 'authenticated'::"text") AND ("created_by" = "auth"."uid"())));
 
 
 
@@ -2469,11 +3380,16 @@ CREATE POLICY "Users can update users" ON "public"."users" FOR UPDATE USING (("a
 
 
 
-CREATE POLICY "Users can view all contacts" ON "public"."contacts" FOR SELECT USING (true);
+CREATE POLICY "Users can view contacts" ON "public"."contacts" FOR SELECT USING ((("auth"."role"() = 'authenticated'::"text") AND (("created_by" = "auth"."uid"()) OR (EXISTS ( SELECT 1
+   FROM ("public"."organizations" "o"
+     JOIN "public"."users" "u" ON (("u"."organization_id" = "o"."id")))
+  WHERE (("o"."id" = "contacts"."organization_id") AND ("u"."id" = "auth"."uid"()) AND ("u"."role" = ANY (ARRAY['admin'::"text", 'management'::"text"]))))))));
 
 
 
-CREATE POLICY "Users can view all organizations" ON "public"."organizations" FOR SELECT USING (true);
+CREATE POLICY "Users can view organizations" ON "public"."organizations" FOR SELECT USING ((("auth"."role"() = 'authenticated'::"text") AND (("created_by" = "auth"."uid"()) OR (EXISTS ( SELECT 1
+   FROM "public"."users"
+  WHERE (("users"."id" = "auth"."uid"()) AND ("users"."role" = ANY (ARRAY['admin'::"text", 'management'::"text"]))))))));
 
 
 
@@ -2529,6 +3445,13 @@ CREATE POLICY "contacts_update_policy" ON "public"."contacts" FOR UPDATE USING (
 
 
 
+ALTER TABLE "public"."custom_roles" ENABLE ROW LEVEL SECURITY;
+
+
+CREATE POLICY "custom_roles_org_policy" ON "public"."custom_roles" USING (("organization_id" = ( SELECT "public"."get_current_user_org_id"() AS "get_current_user_org_id")));
+
+
+
 CREATE POLICY "document_access_log_insert_policy" ON "public"."document_access_log" FOR INSERT WITH CHECK (("organization_id" = ( SELECT "public"."get_current_user_org_id"() AS "get_current_user_org_id")));
 
 
@@ -2554,6 +3477,13 @@ CREATE POLICY "documents_select_policy" ON "public"."documents" FOR SELECT USING
 
 
 CREATE POLICY "documents_update_policy" ON "public"."documents" FOR UPDATE USING (("organization_id" = ( SELECT "public"."get_current_user_org_id"() AS "get_current_user_org_id")));
+
+
+
+ALTER TABLE "public"."feature_toggles" ENABLE ROW LEVEL SECURITY;
+
+
+CREATE POLICY "feature_toggles_org_policy" ON "public"."feature_toggles" USING (("organization_id" = ( SELECT "public"."get_current_user_org_id"() AS "get_current_user_org_id")));
 
 
 
@@ -2600,6 +3530,22 @@ CREATE POLICY "organizations_select_policy" ON "public"."organizations" FOR SELE
 
 
 
+ALTER TABLE "public"."permission_audit_log" ENABLE ROW LEVEL SECURITY;
+
+
+CREATE POLICY "permission_audit_org_policy" ON "public"."permission_audit_log" USING (("organization_id" = ( SELECT "public"."get_current_user_org_id"() AS "get_current_user_org_id")));
+
+
+
+ALTER TABLE "public"."permissions" ENABLE ROW LEVEL SECURITY;
+
+
+CREATE POLICY "permissions_admin_policy" ON "public"."permissions" USING ((EXISTS ( SELECT 1
+   FROM "public"."users" "u"
+  WHERE (("u"."id" = "auth"."uid"()) AND ("u"."role" = ANY (ARRAY['admin'::"text", 'management'::"text"]))))));
+
+
+
 CREATE POLICY "progress_insert_policy" ON "public"."project_sub_stage_progress" FOR INSERT WITH CHECK (("organization_id" = ( SELECT "public"."get_current_user_org_id"() AS "get_current_user_org_id")));
 
 
@@ -2619,7 +3565,7 @@ CREATE POLICY "projects_insert_policy" ON "public"."projects" FOR INSERT WITH CH
 
 
 
-CREATE POLICY "projects_select_policy" ON "public"."projects" FOR SELECT TO "authenticated" USING (true);
+CREATE POLICY "projects_select_policy" ON "public"."projects" FOR SELECT USING (("organization_id" = ( SELECT "public"."get_current_user_org_id"() AS "get_current_user_org_id")));
 
 
 
@@ -2670,6 +3616,42 @@ CREATE POLICY "reviews_select_policy" ON "public"."reviews" FOR SELECT USING (("
 
 
 CREATE POLICY "reviews_update_policy" ON "public"."reviews" FOR UPDATE USING (("organization_id" = ( SELECT "public"."get_current_user_org_id"() AS "get_current_user_org_id")));
+
+
+
+ALTER TABLE "public"."role_permissions" ENABLE ROW LEVEL SECURITY;
+
+
+CREATE POLICY "role_permissions_org_policy" ON "public"."role_permissions" USING ((EXISTS ( SELECT 1
+   FROM "public"."custom_roles" "cr"
+  WHERE (("cr"."id" = "role_permissions"."custom_role_id") AND ("cr"."organization_id" = ( SELECT "public"."get_current_user_org_id"() AS "get_current_user_org_id"))))));
+
+
+
+ALTER TABLE "public"."user_custom_roles" ENABLE ROW LEVEL SECURITY;
+
+
+CREATE POLICY "user_custom_roles_org_policy" ON "public"."user_custom_roles" USING ((EXISTS ( SELECT 1
+   FROM "public"."users" "u"
+  WHERE (("u"."id" = "user_custom_roles"."user_id") AND ("u"."organization_id" = ( SELECT "public"."get_current_user_org_id"() AS "get_current_user_org_id"))))));
+
+
+
+ALTER TABLE "public"."user_feature_access" ENABLE ROW LEVEL SECURITY;
+
+
+CREATE POLICY "user_feature_access_org_policy" ON "public"."user_feature_access" USING ((EXISTS ( SELECT 1
+   FROM "public"."users" "u"
+  WHERE (("u"."id" = "user_feature_access"."user_id") AND ("u"."organization_id" = ( SELECT "public"."get_current_user_org_id"() AS "get_current_user_org_id"))))));
+
+
+
+ALTER TABLE "public"."user_permissions" ENABLE ROW LEVEL SECURITY;
+
+
+CREATE POLICY "user_permissions_org_policy" ON "public"."user_permissions" USING ((EXISTS ( SELECT 1
+   FROM "public"."users" "u"
+  WHERE (("u"."id" = "user_permissions"."user_id") AND ("u"."organization_id" = ( SELECT "public"."get_current_user_org_id"() AS "get_current_user_org_id"))))));
 
 
 
@@ -3007,6 +3989,12 @@ GRANT ALL ON FUNCTION "public"."get_dashboard_summary"() TO "service_role";
 
 
 
+GRANT ALL ON FUNCTION "public"."get_dashboard_summary_test"("org_id" "uuid") TO "anon";
+GRANT ALL ON FUNCTION "public"."get_dashboard_summary_test"("org_id" "uuid") TO "authenticated";
+GRANT ALL ON FUNCTION "public"."get_dashboard_summary_test"("org_id" "uuid") TO "service_role";
+
+
+
 GRANT ALL ON FUNCTION "public"."get_project_progress_summary"("p_project_id" "uuid") TO "anon";
 GRANT ALL ON FUNCTION "public"."get_project_progress_summary"("p_project_id" "uuid") TO "authenticated";
 GRANT ALL ON FUNCTION "public"."get_project_progress_summary"("p_project_id" "uuid") TO "service_role";
@@ -3122,15 +4110,51 @@ GRANT ALL ON FUNCTION "public"."gtrgm_union"("internal", "internal") TO "service
 
 
 
+GRANT ALL ON FUNCTION "public"."has_user_feature_access"("p_user_id" "uuid", "p_feature_key" "text") TO "anon";
+GRANT ALL ON FUNCTION "public"."has_user_feature_access"("p_user_id" "uuid", "p_feature_key" "text") TO "authenticated";
+GRANT ALL ON FUNCTION "public"."has_user_feature_access"("p_user_id" "uuid", "p_feature_key" "text") TO "service_role";
+
+
+
 GRANT ALL ON FUNCTION "public"."has_user_permission"("p_user_id" "uuid", "p_permission" "text") TO "anon";
 GRANT ALL ON FUNCTION "public"."has_user_permission"("p_user_id" "uuid", "p_permission" "text") TO "authenticated";
 GRANT ALL ON FUNCTION "public"."has_user_permission"("p_user_id" "uuid", "p_permission" "text") TO "service_role";
 
 
 
+GRANT ALL ON FUNCTION "public"."has_user_permission_enhanced"("p_user_id" "uuid", "p_resource" "text", "p_action" "text") TO "anon";
+GRANT ALL ON FUNCTION "public"."has_user_permission_enhanced"("p_user_id" "uuid", "p_resource" "text", "p_action" "text") TO "authenticated";
+GRANT ALL ON FUNCTION "public"."has_user_permission_enhanced"("p_user_id" "uuid", "p_resource" "text", "p_action" "text") TO "service_role";
+
+
+
+GRANT ALL ON FUNCTION "public"."log_permission_change"("p_user_id" "uuid", "p_target_user_id" "uuid", "p_action_type" "text", "p_entity_type" "text", "p_entity_id" "uuid", "p_old_values" "jsonb", "p_new_values" "jsonb", "p_reason" "text") TO "anon";
+GRANT ALL ON FUNCTION "public"."log_permission_change"("p_user_id" "uuid", "p_target_user_id" "uuid", "p_action_type" "text", "p_entity_type" "text", "p_entity_id" "uuid", "p_old_values" "jsonb", "p_new_values" "jsonb", "p_reason" "text") TO "authenticated";
+GRANT ALL ON FUNCTION "public"."log_permission_change"("p_user_id" "uuid", "p_target_user_id" "uuid", "p_action_type" "text", "p_entity_type" "text", "p_entity_id" "uuid", "p_old_values" "jsonb", "p_new_values" "jsonb", "p_reason" "text") TO "service_role";
+
+
+
 GRANT ALL ON FUNCTION "public"."refresh_dashboard_materialized_views"() TO "anon";
 GRANT ALL ON FUNCTION "public"."refresh_dashboard_materialized_views"() TO "authenticated";
 GRANT ALL ON FUNCTION "public"."refresh_dashboard_materialized_views"() TO "service_role";
+
+
+
+GRANT ALL ON FUNCTION "public"."refresh_permissions_cache_trigger"() TO "anon";
+GRANT ALL ON FUNCTION "public"."refresh_permissions_cache_trigger"() TO "authenticated";
+GRANT ALL ON FUNCTION "public"."refresh_permissions_cache_trigger"() TO "service_role";
+
+
+
+GRANT ALL ON FUNCTION "public"."refresh_user_permissions_cache"("p_user_id" "uuid") TO "anon";
+GRANT ALL ON FUNCTION "public"."refresh_user_permissions_cache"("p_user_id" "uuid") TO "authenticated";
+GRANT ALL ON FUNCTION "public"."refresh_user_permissions_cache"("p_user_id" "uuid") TO "service_role";
+
+
+
+GRANT ALL ON FUNCTION "public"."set_created_by"() TO "anon";
+GRANT ALL ON FUNCTION "public"."set_created_by"() TO "authenticated";
+GRANT ALL ON FUNCTION "public"."set_created_by"() TO "service_role";
 
 
 
@@ -3303,6 +4327,12 @@ GRANT ALL ON TABLE "public"."contacts" TO "service_role";
 
 
 
+GRANT ALL ON TABLE "public"."custom_roles" TO "anon";
+GRANT ALL ON TABLE "public"."custom_roles" TO "authenticated";
+GRANT ALL ON TABLE "public"."custom_roles" TO "service_role";
+
+
+
 GRANT ALL ON TABLE "public"."document_access_log" TO "anon";
 GRANT ALL ON TABLE "public"."document_access_log" TO "authenticated";
 GRANT ALL ON TABLE "public"."document_access_log" TO "service_role";
@@ -3318,6 +4348,12 @@ GRANT ALL ON TABLE "public"."document_versions" TO "service_role";
 GRANT ALL ON TABLE "public"."documents" TO "anon";
 GRANT ALL ON TABLE "public"."documents" TO "authenticated";
 GRANT ALL ON TABLE "public"."documents" TO "service_role";
+
+
+
+GRANT ALL ON TABLE "public"."feature_toggles" TO "anon";
+GRANT ALL ON TABLE "public"."feature_toggles" TO "authenticated";
+GRANT ALL ON TABLE "public"."feature_toggles" TO "service_role";
 
 
 
@@ -3363,6 +4399,18 @@ GRANT ALL ON TABLE "public"."organizations" TO "service_role";
 
 
 
+GRANT ALL ON TABLE "public"."permission_audit_log" TO "anon";
+GRANT ALL ON TABLE "public"."permission_audit_log" TO "authenticated";
+GRANT ALL ON TABLE "public"."permission_audit_log" TO "service_role";
+
+
+
+GRANT ALL ON TABLE "public"."permissions" TO "anon";
+GRANT ALL ON TABLE "public"."permissions" TO "authenticated";
+GRANT ALL ON TABLE "public"."permissions" TO "service_role";
+
+
+
 GRANT ALL ON TABLE "public"."review_checklist_items" TO "anon";
 GRANT ALL ON TABLE "public"."review_checklist_items" TO "authenticated";
 GRANT ALL ON TABLE "public"."review_checklist_items" TO "service_role";
@@ -3372,6 +4420,30 @@ GRANT ALL ON TABLE "public"."review_checklist_items" TO "service_role";
 GRANT ALL ON TABLE "public"."reviews" TO "anon";
 GRANT ALL ON TABLE "public"."reviews" TO "authenticated";
 GRANT ALL ON TABLE "public"."reviews" TO "service_role";
+
+
+
+GRANT ALL ON TABLE "public"."role_permissions" TO "anon";
+GRANT ALL ON TABLE "public"."role_permissions" TO "authenticated";
+GRANT ALL ON TABLE "public"."role_permissions" TO "service_role";
+
+
+
+GRANT ALL ON TABLE "public"."user_custom_roles" TO "anon";
+GRANT ALL ON TABLE "public"."user_custom_roles" TO "authenticated";
+GRANT ALL ON TABLE "public"."user_custom_roles" TO "service_role";
+
+
+
+GRANT ALL ON TABLE "public"."user_feature_access" TO "anon";
+GRANT ALL ON TABLE "public"."user_feature_access" TO "authenticated";
+GRANT ALL ON TABLE "public"."user_feature_access" TO "service_role";
+
+
+
+GRANT ALL ON TABLE "public"."user_permissions" TO "anon";
+GRANT ALL ON TABLE "public"."user_permissions" TO "authenticated";
+GRANT ALL ON TABLE "public"."user_permissions" TO "service_role";
 
 
 

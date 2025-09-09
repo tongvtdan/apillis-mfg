@@ -14,6 +14,32 @@ export type IntakeSource = 'portal' | 'email' | 'api' | 'phone' | 'walk_in';
 // Use Contact interface with type='customer' instead
 export type Customer = Contact & { type: 'customer' };
 
+// Project summary for customer organizations
+export interface CustomerProjectSummary {
+  total_projects: number;
+  active_projects: number;
+  completed_projects: number;
+  cancelled_projects: number;
+  on_hold_projects: number;
+  total_value: number;
+  active_value: number;
+  completed_value: number;
+  avg_project_value: number;
+  latest_project_date?: string;
+}
+
+// Customer organization with project summary
+export interface CustomerOrganizationWithSummary extends Organization {
+  project_summary: CustomerProjectSummary;
+  primary_contact?: {
+    id: string;
+    contact_name?: string;
+    email?: string;
+    phone?: string;
+    role?: string;
+  };
+}
+
 export interface Organization {
   id: string;
   name: string;
@@ -31,6 +57,7 @@ export interface Organization {
   is_active: boolean;
   created_at: string;
   updated_at: string;
+  created_by?: string;
 
   // Enhanced fields for optimized schema
   tax_id?: string;
@@ -49,7 +76,6 @@ export interface Contact {
   id: string;
   organization_id: string;
   type: 'customer' | 'supplier' | 'partner' | 'internal'; // Updated to match database enum
-  company_name: string;
   contact_name?: string;
   email?: string;
   phone?: string;
@@ -66,6 +92,7 @@ export interface Contact {
   notes?: string;
   created_at?: string; // Optional in database (has default)
   updated_at?: string;
+  created_by?: string;
 
   // Enhanced fields for optimized schema
   role?: string; // 'purchasing', 'engineering', 'quality', etc.
@@ -82,7 +109,6 @@ export interface Contact {
   ai_capabilities?: string[]; // Updated to match database type
   ai_risk_score?: number;
   ai_last_analyzed?: string;
-  created_by?: string;
 }
 
 export interface WorkflowStage {

@@ -141,7 +141,7 @@ export class ProjectServiceSimplified {
                     point_of_contacts: projectData.point_of_contacts || [],
                     current_stage_id: projectData.current_stage_id || null,
                     status: projectData.status || 'active',
-                    priority_level: projectData.priority_level || 'medium',
+                    priority_level: projectData.priority_level || 'normal',
                     source: projectData.source || 'manual',
                     assigned_to: projectData.assigned_to || null,
                     estimated_value: projectData.estimated_value || null,

@@ -468,7 +468,8 @@ export default function Projects() {
             <div className="flex items-center">
               <Button
                 onClick={() => navigate("/projects/new")}
-                variant="outline"
+                variant="accent"
+                className="action-button shadow-md hover:shadow-lg"
                 disabled={isRetrying}
               >
                 <Plus className="mr-2 h-4 w-4" />

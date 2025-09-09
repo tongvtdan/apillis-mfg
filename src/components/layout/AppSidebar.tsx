@@ -44,8 +44,12 @@ const settingsItems = [{
 }];
 
 const adminItems = [{
-  title: "Admin",
+  title: "User Management",
   url: "/users",
+  icon: Users
+}, {
+  title: "Permissions",
+  url: "/permissions",
   icon: Shield
 }];
 

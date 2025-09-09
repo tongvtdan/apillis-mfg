@@ -11,19 +11,13 @@ import { ProjectStageChart } from "@/components/dashboard/ProjectStageChart";
 import { Card, CardContent } from "@/components/ui/card";
 import { useDashboardData } from '@/hooks/useDashboardData';
 import { useAuth } from "@/contexts/AuthContext";
-import { DashboardDebugger } from "@/components/dashboard/DashboardDebugger";
 import { ApprovalDashboard } from "@/components/approval/ApprovalDashboard";
 import {
   TrendingUp,
-  Users,
-  Bell,
-  FolderOpen,
   AlertTriangle,
-  Bug,
   BarChart3,
   Workflow
 } from "lucide-react";
-import { supabase } from "@/integrations/supabase/client";
 import { workflowStageService } from "@/services/workflowStageService";
 import { Button } from "@/components/ui/button";
 
@@ -35,8 +29,6 @@ export default function Dashboard() {
   const { data: dashboardData, isLoading: dashboardLoading } = useDashboardData();
   const { profile, user } = useAuth();
   const navigate = useNavigate();
-  const [debugMode, setDebugMode] = useState(false);
-  const [directProjects, setDirectProjects] = useState([]);
   const [workflowStages, setWorkflowStages] = useState([]);
   const [chartView, setChartView] = useState<'type' | 'stage'>('stage'); // New state for chart view toggle
 
@@ -49,36 +41,6 @@ export default function Dashboard() {
   const projectsByStage = dashboardData?.projects?.by_stage || {};
   const loading = dashboardLoading;
 
-  useEffect(() => {
-    // Debug logging
-    console.log("Dashboard Data:", dashboardData);
-    console.log("Auth Context User:", user);
-    console.log("Auth Context Profile:", profile);
-
-    // Attempt to directly query projects for debugging
-    const fetchProjects = async () => {
-      if (profile?.organization_id) {
-        try {
-          const { data, error } = await supabase
-            .from('projects')
-            .select('*')
-            .eq('organization_id', profile.organization_id)
-            .limit(10);
-
-          if (error) {
-            console.error("Direct projects query error:", error);
-          } else {
-            console.log("Direct projects query result:", data);
-            setDirectProjects(data || []);
-          }
-        } catch (err) {
-          console.error("Failed to fetch projects directly:", err);
-        }
-      }
-    };
-
-    fetchProjects();
-  }, [dashboardData, profile, user]);
 
   // Fetch workflow stages
   useEffect(() => {
@@ -144,48 +106,18 @@ export default function Dashboard() {
   // Enhanced overview data with real data and important alerts - only Projects section
   const overviewData = [];
 
-  // Sample notification count - in real app this would come from a notifications service
-  const notificationCount = 3;
-
   return (
     <div className="space-y-6">
-      {/* Header with user info and notifications */}
+      {/* Header with title */}
       <div className="bg-background border-b px-4 sm:px-6 py-4">
-        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+        <div className="flex items-center justify-between">
           <div>
             <h1 className="text-2xl font-bold text-foreground">Factory Pulse</h1>
-          </div>
-          <div className="flex flex-col sm:flex-row items-start sm:items-center gap-4">
-            <div className="flex items-center gap-2 text-sm text-muted-foreground">
-              <Bell className="h-4 w-4" />
-              <span>{notificationCount} Notifications</span>
-            </div>
-            <div className="flex items-center gap-2 text-sm text-muted-foreground">
-              <Users className="h-4 w-4" />
-              <span>{profile?.name || 'User'} ({profile?.role || 'Unknown'})</span>
-            </div>
-            <div className="hidden lg:flex items-center gap-4 text-sm text-muted-foreground">
-              <span>🌐 Projects Overview</span>
-              {/* Other sections are accessible through the sidebar menu */}
-            </div>
-            <button
-              onClick={() => setDebugMode(!debugMode)}
-              className="text-sm flex items-center gap-1 text-muted-foreground hover:text-foreground"
-            >
-              <Bug className="h-4 w-4" />
-              <span>{debugMode ? 'Hide Debug' : 'Debug'}</span>
-            </button>
           </div>
         </div>
       </div>
 
       <div className="px-4 sm:px-6">
-        {/* Debugging Info */}
-        {debugMode && (
-          <div className="mb-6">
-            <DashboardDebugger />
-          </div>
-        )}
 
         {/* Search and Filter Bar - focused on projects */}
         <SearchFilterBar
@@ -257,7 +189,7 @@ export default function Dashboard() {
           {/* Approvals Dashboard */}
           <div className="mb-8">
             <h2 className="text-xl font-semibold text-foreground flex items-center gap-2 mb-4">
-              <Bell className="h-6 w-6 text-primary" />
+              <AlertTriangle className="h-6 w-6 text-primary" />
               Approvals
             </h2>
             <ApprovalDashboard />
@@ -283,45 +215,6 @@ export default function Dashboard() {
             <RecentActivities />
           </div>
         </div>
-
-        {/* Debug Section - Direct Projects Query Result */}
-        {debugMode && directProjects.length > 0 && (
-          <div className="mt-8 bg-yellow-50 p-4 rounded-lg border border-yellow-200">
-            <h3 className="text-lg font-semibold text-yellow-800 mb-2">Direct Projects Query Result ({directProjects.length})</h3>
-            <div className="overflow-x-auto">
-              <table className="min-w-full divide-y divide-yellow-200">
-                <thead>
-                  <tr>
-                    <th className="px-4 py-2 text-left text-yellow-700">ID</th>
-                    <th className="px-4 py-2 text-left text-yellow-700">Project ID</th>
-                    <th className="px-4 py-2 text-left text-yellow-700">Title</th>
-                    <th className="px-4 py-2 text-left text-yellow-700">Organization ID</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {directProjects.map((project: any) => (
-                    <tr key={project.id} className="border-t border-yellow-100">
-                      <td className="px-4 py-2 text-yellow-800">{project.id}</td>
-                      <td className="px-4 py-2 text-yellow-800">{project.project_id}</td>
-                      <td className="px-4 py-2 text-yellow-800">{project.title}</td>
-                      <td className="px-4 py-2 text-yellow-800">{project.organization_id}</td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
-            </div>
-          </div>
-        )}
-
-        {/* Debug Info for Dashboard Data */}
-        {debugMode && dashboardData?.debug && (
-          <div className="mt-4 bg-blue-50 p-4 rounded-lg border border-blue-200">
-            <h3 className="text-lg font-semibold text-blue-800 mb-2">Dashboard Function Debug Info</h3>
-            <pre className="text-xs overflow-auto max-h-96 bg-blue-100 p-2 rounded">
-              {JSON.stringify(dashboardData.debug, null, 2)}
-            </pre>
-          </div>
-        )}
       </div>
     </div>
   );

@@ -12,6 +12,7 @@ import Dashboard from "./pages/Dashboard";
 
 
 import AdminUsers from "./pages/AdminUsers";
+import AdminPermissions from "./pages/AdminPermissions";
 import NotFound from "./pages/NotFound";
 import Auth from "./pages/Auth";
 import Vendors from "./pages/Vendors";
@@ -130,6 +131,11 @@ const App = () => {
             <Route path="/users" element={
               <ProtectedRoute requiredRoles={['management', 'admin']}>
                 <AppLayout><AdminUsers /></AppLayout>
+              </ProtectedRoute>
+            } />
+            <Route path="/permissions" element={
+              <ProtectedRoute requiredRoles={['management', 'admin']}>
+                <AppLayout><AdminPermissions /></AppLayout>
               </ProtectedRoute>
             } />
             <Route path="/settings" element={

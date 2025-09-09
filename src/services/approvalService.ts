@@ -73,7 +73,7 @@ export class ApprovalService {
                         review_type: `stage_approval_${role.toLowerCase()}`,
                         status: 'pending',
                         organization_id: organizationId,
-                        priority: 'medium',
+                        priority: 'normal',
                         due_date: this.calculateDueDate(3), // 3 days default
                         metadata: {
                             stage_id: stageId,
@@ -143,7 +143,7 @@ export class ApprovalService {
                         review_type: `stage_approval_${user.role.toLowerCase()}`,
                         status: 'pending',
                         organization_id: organizationId,
-                        priority: 'medium',
+                        priority: 'normal',
                         due_date: this.calculateDueDate(3), // 3 days default
                         metadata: {
                             stage_id: stageId,

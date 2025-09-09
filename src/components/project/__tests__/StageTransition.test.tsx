@@ -66,7 +66,7 @@ const mockProject: Project = {
     customer_id: 'customer-1',
     current_stage_id: 'stage-1',
     status: 'active',
-    priority_level: 'medium',
+    priority_level: 'normal',
     created_at: '2025-01-01T00:00:00Z',
     updated_at: '2025-01-01T00:00:00Z',
     organization_id: 'org-1'

@@ -27,7 +27,7 @@ const projectCreationSchema = z.object({
         .max(1000, 'Description must be less than 1000 characters')
         .optional(),
     project_type: z.enum(['system_build', 'fabrication', 'manufacturing']),
-    priority_level: z.enum(['low', 'medium', 'high', 'critical']).default('medium'),
+    priority_level: z.enum(['low', 'normal', 'high', 'urgent']).default('normal'),
 
     // Customer Information
     customer_type: z.enum(['existing_org', 'new']),
@@ -88,7 +88,7 @@ export function EnhancedProjectCreationModal({
     const form = useForm<ProjectCreationFormData>({
         resolver: zodResolver(projectCreationSchema),
         defaultValues: {
-            priority_level: 'medium',
+            priority_level: 'normal',
             customer_type: 'existing_org',
             project_type: 'fabrication'
         }
@@ -146,11 +146,17 @@ export function EnhancedProjectCreationModal({
         try {
             const { data, error } = await supabase
                 .from('contacts')
-                .select('id, company_name, contact_name, email, phone')
+                .select(`
+                    id, 
+                    contact_name, 
+                    email, 
+                    phone,
+                    organizations!organization_id(name)
+                `)
                 .eq('organization_id', profile.organization_id)
                 .eq('type', 'customer')
                 .eq('is_active', true)
-                .order('company_name');
+                .order('organizations(name)');
 
             if (error) throw error;
             setExistingCustomers(data || []);
