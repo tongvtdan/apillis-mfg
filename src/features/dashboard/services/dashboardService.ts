@@ -17,73 +17,19 @@ import {
 export class DashboardService {
 
     /**
-     * Get dashboard layout for user/organization
+     * Get dashboard layout for user/organization (in-memory only)
      */
     static async getDashboardLayout(organizationId: string, userId: string): Promise<DashboardLayout | null> {
-
-        try {
-            // Check if dashboard_layouts table exists
-            let { data: userLayout, error: userError } = await supabase
-                .from('dashboard_layouts')
-                .select('*')
-                .eq('organization_id', organizationId)
-                .eq('created_by', userId)
-                .eq('is_default', false)
-                .single();
-
-            if (userLayout && !userError) {
-                return this.transformLayoutData(userLayout);
-            }
-
-            // If no user layout, get organization default
-            const { data: defaultLayout, error: defaultError } = await supabase
-                .from('dashboard_layouts')
-                .select('*')
-                .eq('organization_id', organizationId)
-                .eq('is_default', true)
-                .single();
-
-            if (defaultLayout && !defaultError) {
-                return this.transformLayoutData(defaultLayout);
-            }
-
-            // If dashboard_layouts table doesn't exist or no layouts found, create default layout in memory
-            console.warn('⚠️ Dashboard layouts table not found or empty, creating default layout in memory');
-            return this.createDefaultLayoutInMemory(organizationId, userId);
-
-        } catch (error) {
-            console.error('❌ Failed to get dashboard layout:', error);
-            // Fallback to in-memory default layout
-            return this.createDefaultLayoutInMemory(organizationId, userId);
-        }
+        // Always return the default in-memory layout
+        return this.createDefaultLayoutInMemory(organizationId, userId);
     }
 
     /**
-     * Save dashboard layout
+     * Save dashboard layout (not supported - layouts are in-memory only)
      */
     static async saveDashboardLayout(layout: DashboardLayout, userId: string): Promise<void> {
-
-        try {
-            const layoutData = {
-                ...layout,
-                updated_at: new Date().toISOString()
-            };
-
-            const { error } = await supabase
-                .from('dashboard_layouts')
-                .upsert(layoutData, {
-                    onConflict: 'id'
-                });
-
-            if (error) {
-                console.warn('⚠️ Failed to save layout to database:', error);
-                // Don't throw error, just log warning - layout will work in memory
-            }
-
-        } catch (error) {
-            console.warn('⚠️ Dashboard layouts table not available, layout saved in memory only:', error);
-            // Don't throw error, just log warning
-        }
+        console.log('ℹ️ Dashboard layouts are in-memory only and cannot be saved');
+        // No-op - layouts are not persisted
     }
 
     /**
@@ -104,6 +50,7 @@ export class DashboardService {
                 },
                 dataSource: 'manufacturing_metrics',
                 refreshInterval: 60,
+                isVisible: true,
                 createdBy: userId
             },
             {
@@ -118,6 +65,7 @@ export class DashboardService {
                 },
                 dataSource: 'project_stats',
                 refreshInterval: 300,
+                isVisible: true,
                 createdBy: userId
             },
             {
@@ -133,6 +81,7 @@ export class DashboardService {
                 },
                 dataSource: 'projects',
                 refreshInterval: 300,
+                isVisible: true,
                 createdBy: userId
             },
             {
@@ -142,11 +91,12 @@ export class DashboardService {
                 size: 'medium',
                 position: { x: 0, y: 8, w: 6, h: 4 },
                 config: {
-                    limit: 10,
+                    limit: 5,
                     showIcons: true
                 },
                 dataSource: 'activity_log',
                 refreshInterval: 60,
+                isVisible: true,
                 createdBy: userId
             },
             {
@@ -162,6 +112,7 @@ export class DashboardService {
                 },
                 dataSource: 'projects',
                 refreshInterval: 300,
+                isVisible: true,
                 createdBy: userId
             }
         ];
@@ -180,168 +131,6 @@ export class DashboardService {
         };
     }
 
-    /**
-     * Create default dashboard layout (database version)
-     */
-    private static async createDefaultLayout(organizationId: string, userId: string): Promise<DashboardLayout> {
-
-        const defaultWidgets: DashboardWidget[] = [
-            {
-                id: 'metrics-overview',
-                type: 'metrics',
-                title: 'Key Metrics',
-                size: 'large',
-                position: { x: 0, y: 0, w: 12, h: 4 },
-                config: {
-                    layout: 'grid',
-                    showTrends: true,
-                    showIcons: true
-                },
-                dataSource: 'manufacturing_metrics',
-                refreshInterval: 60,
-                createdBy: userId
-            },
-            {
-                id: 'quick-stats',
-                type: 'quick-stats',
-                title: 'Quick Stats',
-                size: 'small',
-                position: { x: 0, y: 4, w: 3, h: 4 },
-                config: {
-                    showPriority: true,
-                    showOverdue: true
-                },
-                dataSource: 'project_stats',
-                refreshInterval: 300,
-                createdBy: userId
-            },
-            {
-                id: 'project-overview',
-                type: 'project-overview',
-                title: 'Project Overview',
-                size: 'large',
-                position: { x: 3, y: 4, w: 9, h: 6 },
-                config: {
-                    showProgress: true,
-                    showPriority: true,
-                    limit: 6
-                },
-                dataSource: 'projects',
-                refreshInterval: 300,
-                createdBy: userId
-            },
-            {
-                id: 'recent-activities',
-                type: 'recent-activities',
-                title: 'Recent Activities',
-                size: 'medium',
-                position: { x: 0, y: 8, w: 6, h: 4 },
-                config: {
-                    limit: 10,
-                    showIcons: true
-                },
-                dataSource: 'activity_log',
-                refreshInterval: 60,
-                createdBy: userId
-            },
-            {
-                id: 'project-kanban',
-                type: 'kanban',
-                title: 'Project Status',
-                size: 'medium',
-                position: { x: 6, y: 8, w: 6, h: 4 },
-                config: {
-                    showSwimlanes: false,
-                    showFilters: true,
-                    allowDragDrop: true
-                },
-                dataSource: 'projects',
-                refreshInterval: 300,
-                createdBy: userId
-            },
-            {
-                id: 'revenue-chart',
-                type: 'chart',
-                title: 'Revenue Trends',
-                size: 'medium',
-                position: { x: 0, y: 12, w: 6, h: 4 },
-                config: {
-                    chartType: 'line',
-                    showLegend: true,
-                    showGrid: true,
-                    animation: true
-                },
-                dataSource: 'revenue_analytics',
-                refreshInterval: 3600,
-                createdBy: userId
-            },
-            {
-                id: 'customer-satisfaction',
-                type: 'gauge',
-                title: 'Customer Satisfaction',
-                size: 'small',
-                position: { x: 6, y: 12, w: 3, h: 4 },
-                config: {
-                    min: 0,
-                    max: 5,
-                    thresholds: [2, 3, 4]
-                },
-                dataSource: 'customer_satisfaction',
-                refreshInterval: 3600,
-                createdBy: userId
-            },
-            {
-                id: 'supplier-performance',
-                type: 'table',
-                title: 'Top Suppliers',
-                size: 'small',
-                position: { x: 9, y: 12, w: 3, h: 4 },
-                config: {
-                    columns: ['name', 'performance', 'onTimeDelivery'],
-                    sortBy: 'performance',
-                    limit: 5
-                },
-                dataSource: 'supplier_performance',
-                refreshInterval: 3600,
-                createdBy: userId
-            }
-        ];
-
-        const defaultLayout: DashboardLayout = {
-            id: `default-${organizationId}`,
-            name: 'Manufacturing Dashboard',
-            description: 'Default manufacturing operations dashboard',
-            widgets: defaultWidgets,
-            isDefault: true,
-            isPublic: false,
-            organizationId,
-            createdBy: userId,
-            createdAt: new Date().toISOString(),
-            updatedAt: new Date().toISOString()
-        };
-
-        await this.saveDashboardLayout(defaultLayout, userId);
-        return defaultLayout;
-    }
-
-    /**
-     * Transform layout data from database format
-     */
-    private static transformLayoutData(data: any): DashboardLayout {
-        return {
-            id: data.id,
-            name: data.name,
-            description: data.description,
-            widgets: data.widgets || [],
-            backgroundColor: data.background_color,
-            isDefault: data.is_default || false,
-            isPublic: data.is_public || false,
-            organizationId: data.organization_id,
-            createdBy: data.created_by,
-            createdAt: data.created_at,
-            updatedAt: data.updated_at
-        };
-    }
 
     /**
      * Get manufacturing metrics
@@ -362,7 +151,27 @@ export class DashboardService {
             const previousMetrics = await this.calculateMetricsForPeriod(organizationId, previousTimeRange);
 
             return {
-                ...currentMetrics,
+                totalProjects: currentMetrics.totalProjects || 0,
+                activeProjects: currentMetrics.activeProjects || 0,
+                completedProjects: currentMetrics.completedProjects || 0,
+                onTimeDelivery: currentMetrics.onTimeDelivery || 0,
+                qualityIncidents: currentMetrics.qualityIncidents || 0,
+                totalRevenue: currentMetrics.totalRevenue || 0,
+                averageOrderValue: currentMetrics.averageOrderValue || 0,
+                profitMargin: currentMetrics.profitMargin || 0,
+                outstandingInvoices: currentMetrics.outstandingInvoices || 0,
+                totalCustomers: currentMetrics.totalCustomers || 0,
+                activeCustomers: currentMetrics.activeCustomers || 0,
+                customerSatisfaction: currentMetrics.customerSatisfaction || 0,
+                newCustomersThisMonth: currentMetrics.newCustomersThisMonth || 0,
+                totalSuppliers: currentMetrics.totalSuppliers || 0,
+                activeSuppliers: currentMetrics.activeSuppliers || 0,
+                supplierPerformance: currentMetrics.supplierPerformance || 0,
+                openRFQs: currentMetrics.openRFQs || 0,
+                utilizationRate: currentMetrics.utilizationRate || 0,
+                capacityUtilization: currentMetrics.capacityUtilization || 0,
+                leadTime: currentMetrics.leadTime || 0,
+                inventoryTurnover: currentMetrics.inventoryTurnover || 0,
                 periodStart: timeRange.start,
                 periodEnd: timeRange.end,
                 previousPeriodMetrics: previousMetrics
@@ -386,8 +195,8 @@ export class DashboardService {
             // Projects metrics - handle potential date range issues
             let projectsQuery = supabase
                 .from('projects')
-                .select('id, status, total_value, created_at, completed_at')
-                .eq('organization_id', organizationId);
+                .select('id, status, estimated_value, actual_value, created_at, actual_delivery_date')
+                .eq('organization_id', organizationId as any);
 
             // Only add date filters if we have valid dates
             if (timeRange.start && timeRange.end) {
@@ -400,6 +209,7 @@ export class DashboardService {
 
             if (projectsError) {
                 console.warn('⚠️ Projects query failed:', projectsError);
+                return this.getEmptyMetrics();
             }
 
             // Customer organizations metrics - using organizations table with organization_type = 'customer'
@@ -408,8 +218,8 @@ export class DashboardService {
                 const { data: customers, error: customersError } = await supabase
                     .from('organizations')
                     .select('id, organization_type, is_active, credit_limit')
-                    .eq('organization_id', organizationId)
-                    .eq('organization_type', 'customer');
+                    .eq('id', organizationId as any)
+                    .eq('organization_type', 'customer' as any);
 
                 if (customersError) {
                     console.warn('⚠️ Customer organizations query failed:', customersError);
@@ -426,8 +236,8 @@ export class DashboardService {
                 const { data: suppliers, error: suppliersError } = await supabase
                     .from('organizations')
                     .select('id, organization_type, is_active')
-                    .eq('organization_id', organizationId)
-                    .eq('organization_type', 'supplier');
+                    .eq('id', organizationId as any)
+                    .eq('organization_type', 'supplier' as any);
 
                 if (suppliersError) {
                     console.warn('⚠️ Supplier organizations query failed:', suppliersError);
@@ -439,21 +249,21 @@ export class DashboardService {
             }
 
             // Calculate metrics
-            const projectsData = projects || [];
+            const projectsData = (projects as any[]) || [];
 
             const totalProjects = projectsData.length;
-            const activeProjects = projectsData.filter(p => p.status === 'in_progress').length;
-            const completedProjects = projectsData.filter(p => p.status === 'completed').length;
-            const totalRevenue = projectsData.reduce((sum, p) => sum + (p.total_value || 0), 0);
+            const activeProjects = projectsData.filter((p: any) => p.status === 'inquiry' || p.status === 'reviewing' || p.status === 'quoted' || p.status === 'confirmed' || p.status === 'procurement' || p.status === 'production').length;
+            const completedProjects = projectsData.filter((p: any) => p.status === 'completed').length;
+            const totalRevenue = projectsData.reduce((sum: number, p: any) => sum + (p.actual_value || p.estimated_value || 0), 0);
             const averageOrderValue = totalProjects > 0 ? totalRevenue / totalProjects : 0;
 
             // On-time delivery calculation (simplified)
-            const completedWithDates = projectsData.filter(p => p.completed_at && p.created_at);
-            const onTimeDeliveries = completedWithDates.filter(p => {
+            const completedWithDates = projectsData.filter((p: any) => p.actual_delivery_date && p.created_at);
+            const onTimeDeliveries = completedWithDates.filter((p: any) => {
                 // Simplified: assume projects should be completed within 30 days
                 const created = new Date(p.created_at);
-                const completed = new Date(p.completed_at!);
-                const daysDiff = (completed.getTime() - created.getTime()) / (1000 * 60 * 60 * 24);
+                const delivered = new Date(p.actual_delivery_date!);
+                const daysDiff = (delivered.getTime() - created.getTime()) / (1000 * 60 * 60 * 24);
                 return daysDiff <= 30;
             }).length;
             const onTimeDelivery = completedWithDates.length > 0 ? (onTimeDeliveries / completedWithDates.length) * 100 : 0;
@@ -611,7 +421,7 @@ export class DashboardService {
                     due_date,
                     tags
                 `)
-                .eq('organization_id', organizationId);
+                .eq('organization_id', organizationId as any);
 
             // Apply filters if provided
             if (filters?.status) {
@@ -627,10 +437,11 @@ export class DashboardService {
                 .limit(100);
 
             if (error) {
-                throw new Error(`Failed to fetch kanban data: ${error.message}`);
+                console.warn('⚠️ Kanban data query failed:', error);
+                return [];
             }
 
-            return (data || []).map(project => ({
+            return ((data as any[]) || []).map((project: any) => ({
                 id: project.id,
                 title: project.title,
                 description: project.description,
@@ -693,17 +504,22 @@ export class DashboardService {
      */
     private static async getRevenueChartData(organizationId: string, timeRange: { start: string; end: string }) {
 
-        const { data } = await supabase
+        const { data, error } = await supabase
             .from('projects')
-            .select('total_value, created_at')
-            .eq('organization_id', organizationId)
+            .select('estimated_value, actual_value, created_at')
+            .eq('organization_id', organizationId as any)
             .gte('created_at', timeRange.start)
             .lte('created_at', timeRange.end)
-            .not('total_value', 'is', null);
+            .not('estimated_value', 'is', null);
 
-        const revenueByMonth = (data || []).reduce((acc, project) => {
+        if (error) {
+            console.warn('⚠️ Revenue chart query failed:', error);
+            return { labels: [], datasets: [] };
+        }
+
+        const revenueByMonth = ((data as any[]) || []).reduce((acc: Record<string, number>, project: any) => {
             const month = new Date(project.created_at).toISOString().slice(0, 7); // YYYY-MM
-            acc[month] = (acc[month] || 0) + (project.total_value || 0);
+            acc[month] = (acc[month] || 0) + (project.actual_value || project.estimated_value || 0);
             return acc;
         }, {} as Record<string, number>);
 
@@ -727,14 +543,19 @@ export class DashboardService {
      */
     private static async getProjectStatusChartData(organizationId: string, timeRange: { start: string; end: string }) {
 
-        const { data } = await supabase
+        const { data, error } = await supabase
             .from('projects')
             .select('status')
-            .eq('organization_id', organizationId)
+            .eq('organization_id', organizationId as any)
             .gte('created_at', timeRange.start)
             .lte('created_at', timeRange.end);
 
-        const statusCounts = (data || []).reduce((acc, project) => {
+        if (error) {
+            console.warn('⚠️ Project status chart query failed:', error);
+            return { labels: [], datasets: [] };
+        }
+
+        const statusCounts = ((data as any[]) || []).reduce((acc: Record<string, number>, project: any) => {
             acc[project.status] = (acc[project.status] || 0) + 1;
             return acc;
         }, {} as Record<string, number>);
@@ -769,27 +590,11 @@ export class DashboardService {
     }
 
     /**
-     * Update widget configuration
+     * Update widget configuration (not supported - widgets are in-memory only)
      */
     static async updateWidget(widgetId: string, updates: Partial<DashboardWidget>): Promise<void> {
-
-        try {
-            const { error } = await supabase
-                .from('dashboard_widgets')
-                .update({
-                    ...updates,
-                    updated_at: new Date().toISOString()
-                })
-                .eq('id', widgetId);
-
-            if (error) {
-                throw new Error(`Failed to update widget: ${error.message}`);
-            }
-
-        } catch (error) {
-            console.error('❌ Failed to update widget:', error);
-            throw new Error(`Failed to update widget: ${error instanceof Error ? error.message : 'Unknown error'}`);
-        }
+        console.log('ℹ️ Widget updates are in-memory only and cannot be persisted');
+        // No-op - widgets are not persisted
     }
 
     /**

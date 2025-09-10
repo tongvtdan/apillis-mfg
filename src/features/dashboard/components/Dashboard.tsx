@@ -37,13 +37,15 @@ import {
 import { DashboardService } from '../services/dashboardService';
 
 // Import widget components
-import { MetricsWidget } from './widgets/MetricsWidget';
-import { ChartWidget } from './widgets/ChartWidget';
-import { KanbanWidget } from './widgets/KanbanWidget';
-import { TimelineWidget } from './widgets/TimelineWidget';
-import { ProjectOverviewWidget } from './widgets/ProjectOverviewWidget';
-import { QuickStatsWidget } from './widgets/QuickStatsWidget';
-import { RecentActivitiesWidget } from './widgets/RecentActivitiesWidget';
+import {
+    MetricsWidget,
+    ChartWidget,
+    KanbanWidget,
+    TimelineWidget,
+    ProjectOverviewWidget,
+    QuickStatsWidget,
+    RecentActivitiesWidget
+} from './widgets';
 
 interface DashboardProps {
     layout?: DashboardLayout;
@@ -107,6 +109,7 @@ export function Dashboard({ layout: initialLayout, onLayoutChange, className }: 
             await DashboardService.saveDashboardLayout(layout, user.id);
             onLayoutChange?.(layout);
             setEditMode(false);
+            // Note: Layout changes are in-memory only and will reset on page refresh
         } catch (error) {
             console.error('Failed to save layout:', error);
         }
@@ -355,7 +358,7 @@ export function Dashboard({ layout: initialLayout, onLayoutChange, className }: 
             {/* Dashboard Widgets Grid */}
             <div className="grid grid-cols-12 gap-6">
                 {layout.widgets
-                    .filter(widget => widget.isVisible)
+                    .filter(widget => widget.isVisible !== false)
                     .sort((a, b) => {
                         // Sort by position (top-left to bottom-right)
                         if (a.position.y !== b.position.y) {
@@ -388,7 +391,7 @@ export function Dashboard({ layout: initialLayout, onLayoutChange, className }: 
                 <div className="fixed bottom-4 right-4 bg-background border rounded-lg p-4 shadow-lg">
                     <div className="flex items-center space-x-2 text-sm text-muted-foreground">
                         <Settings className="h-4 w-4" />
-                        <span>Edit mode active - drag widgets to reposition</span>
+                        <span>Edit mode active - changes are temporary</span>
                     </div>
                 </div>
             )}

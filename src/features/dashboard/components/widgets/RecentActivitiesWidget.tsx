@@ -1,5 +1,6 @@
 import React from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Badge } from '@/components/ui/badge';
 import { useCurrentActivityLog } from '@/core/activity-log/useActivityLog';
 import { useNavigate } from 'react-router-dom';
 import { formatDistanceToNow } from "date-fns";
@@ -166,7 +167,23 @@ export function RecentActivitiesWidget({ widget, metrics, timeRange, isEditMode,
                 };
             }
         })
-        .filter(activity => activity.title && activity.description); // Filter out activities with missing data
+        .filter(activity => activity.title && activity.description) // Filter out activities with missing data
+        .sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime()) // Sort by most recent first
+        .reduce((unique: Activity[], activity) => {
+            // Deduplicate activities with the same content (title + description + entity_type)
+            // This prevents showing multiple identical activities (e.g., multiple updates to the same project)
+            const contentKey = `${activity.title}-${activity.description}-${activity.entity_type}`;
+            const exists = unique.some(existing =>
+                `${existing.title}-${existing.description}-${existing.entity_type}` === contentKey
+            );
+
+            if (!exists) {
+                unique.push(activity);
+            }
+
+            return unique;
+        }, [])
+        .slice(0, 5); // Limit to maximum 5 activities
 
     const getActivityIcon = (entityType: string, action: string) => {
         // Special handling for action types
@@ -270,7 +287,7 @@ export function RecentActivitiesWidget({ widget, metrics, timeRange, isEditMode,
                     <FileText className="h-5 w-5" />
                     <span>{widget.title}</span>
                     <Badge variant="outline" className="ml-auto">
-                        {mappedActivities.length}
+                        {mappedActivities.length}/5
                     </Badge>
                 </CardTitle>
             </CardHeader>
