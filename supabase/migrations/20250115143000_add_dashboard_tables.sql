@@ -13,7 +13,6 @@ CREATE TABLE IF NOT EXISTS dashboard_layouts (
     description TEXT,
     widgets JSONB DEFAULT '[]'::jsonb,
     background_color TEXT,
-    theme TEXT DEFAULT 'auto' CHECK (theme IN ('light', 'dark', 'auto')),
     is_default BOOLEAN DEFAULT false,
     is_public BOOLEAN DEFAULT false,
     organization_id UUID NOT NULL REFERENCES organizations(id) ON DELETE CASCADE,

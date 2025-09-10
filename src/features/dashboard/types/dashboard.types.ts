@@ -70,7 +70,6 @@ export const dashboardLayoutSchema = z.object({
   description: z.string().optional(),
   widgets: z.array(dashboardWidgetSchema),
   backgroundColor: z.string().optional(),
-  theme: z.enum(['light', 'dark', 'auto']).default('auto'),
   isDefault: z.boolean().default(false),
   isPublic: z.boolean().default(false),
   organizationId: z.string(),
