@@ -316,12 +316,12 @@ export class DashboardService {
             console.error('❌ Error calculating metrics for period:', error);
             // Return partial metrics with zeros for failed calculations
             return {
-                totalProjects,
-                activeProjects,
-                completedProjects,
+                totalProjects: 0,
+                activeProjects: 0,
+                completedProjects: 0,
                 onTimeDelivery: 0,
-                totalRevenue,
-                averageOrderValue: totalProjects > 0 ? totalRevenue / totalProjects : 0,
+                totalRevenue: 0,
+                averageOrderValue: 0,
                 totalCustomers: 0, // Failed to get customers
                 activeCustomers: 0,
                 totalSuppliers: 0, // Failed to get suppliers
@@ -329,7 +329,7 @@ export class DashboardService {
                 // Default values for other metrics
                 qualityIncidents: 0,
                 profitMargin: 25,
-                outstandingInvoices: totalRevenue * 0.1,
+                outstandingInvoices: 0,
                 customerSatisfaction: 4.2,
                 newCustomersThisMonth: 0,
                 supplierPerformance: 85,

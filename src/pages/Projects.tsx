@@ -136,8 +136,7 @@ export default function Projects() {
     handleError,
     clearError,
     retry,
-    hasError,
-    error: pageError,
+    errorState,
     isRetrying
   } = useErrorHandling({
     context: 'Projects Page',
@@ -146,6 +145,9 @@ export default function Projects() {
       console.error('Projects page error:', error);
     }
   });
+
+  const hasError = errorState.hasError;
+  const pageError = errorState.error;
 
   // Get initial stage from URL params or localStorage
   const getInitialStage = (): string | null => {
@@ -394,7 +396,10 @@ export default function Projects() {
         </div>
         <DatabaseErrorHandler
           error={new Error(error)}
-          onRetry={() => retry(refetch)}
+          onRetry={() => {
+            retry();
+            refetch();
+          }}
           context="Projects Page"
           showConnectionStatus={true}
         />
@@ -411,7 +416,10 @@ export default function Projects() {
           <p className="text-muted-foreground">Manage all your projects and their workflow stages</p>
         </div>
         <OfflineState
-          onRetry={() => retry(refetch)}
+          onRetry={() => {
+            retry();
+            refetch();
+          }}
           onRefresh={() => window.location.reload()}
           showCachedData={projects.length > 0}
           cachedDataCount={projects.length}
@@ -430,7 +438,10 @@ export default function Projects() {
         </div>
         <DatabaseErrorHandler
           error={pageError}
-          onRetry={() => retry(refetch)}
+          onRetry={() => {
+            retry();
+            refetch();
+          }}
           context="Projects Page"
           showConnectionStatus={true}
         />
@@ -451,7 +462,10 @@ export default function Projects() {
         {projects.length === 0 && !loading && !hasError && !isRetrying && (
           <GracefulDegradation
             level="minimal"
-            onUpgrade={() => retry(refetch)}
+            onUpgrade={() => {
+              retry();
+              refetch();
+            }}
             features={{
               available: ['View cached data', 'Navigate to other pages'],
               unavailable: ['Load projects', 'Create new projects', 'Update project status']
@@ -535,7 +549,7 @@ export default function Projects() {
                   const newProject = await createProject({
                     title: projectData.title,
                     description: projectData.description,
-                    customer_id: projectData.customer_id,
+                    customer_organization_id: projectData.customer_id,
                     priority: projectData.priority_level,
                     estimated_value: projectData.estimated_value,
                     due_date: projectData.estimated_delivery_date,
