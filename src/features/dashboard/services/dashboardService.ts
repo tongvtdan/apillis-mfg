@@ -405,38 +405,40 @@ export class DashboardService {
                 console.warn('⚠️ Projects query failed:', projectsError);
             }
 
-            // Customers metrics - handle missing table gracefully
+            // Customer organizations metrics - using organizations table with organization_type = 'customer'
             let customersData = [];
             try {
                 const { data: customers, error: customersError } = await supabase
-                    .from('customers')
-                    .select('id, status, annual_revenue')
-                    .eq('organization_id', organizationId);
+                    .from('organizations')
+                    .select('id, organization_type, is_active, credit_limit')
+                    .eq('organization_id', organizationId)
+                    .eq('organization_type', 'customer');
 
                 if (customersError) {
-                    console.warn('⚠️ Customers table not found or query failed:', customersError);
+                    console.warn('⚠️ Customer organizations query failed:', customersError);
                 } else {
                     customersData = customers || [];
                 }
             } catch (error) {
-                console.warn('⚠️ Customers table not available:', error);
+                console.warn('⚠️ Customer organizations query not available:', error);
             }
 
-            // Suppliers metrics - handle missing table gracefully
+            // Supplier organizations metrics - using organizations table with organization_type = 'supplier'
             let suppliersData = [];
             try {
                 const { data: suppliers, error: suppliersError } = await supabase
-                    .from('suppliers')
-                    .select('id, status')
-                    .eq('organization_id', organizationId);
+                    .from('organizations')
+                    .select('id, organization_type, is_active')
+                    .eq('organization_id', organizationId)
+                    .eq('organization_type', 'supplier');
 
                 if (suppliersError) {
-                    console.warn('⚠️ Suppliers table not found or query failed:', suppliersError);
+                    console.warn('⚠️ Supplier organizations query failed:', suppliersError);
                 } else {
                     suppliersData = suppliers || [];
                 }
             } catch (error) {
-                console.warn('⚠️ Suppliers table not available:', error);
+                console.warn('⚠️ Supplier organizations query not available:', error);
             }
 
             // Calculate metrics
@@ -460,10 +462,10 @@ export class DashboardService {
             const onTimeDelivery = completedWithDates.length > 0 ? (onTimeDeliveries / completedWithDates.length) * 100 : 0;
 
             const totalCustomers = customersData.length;
-            const activeCustomers = customersData.filter(c => c.status === 'active').length;
+            const activeCustomers = customersData.filter(c => c.is_active === true).length;
 
             const totalSuppliers = suppliersData.length;
-            const activeSuppliers = suppliersData.filter(s => s.status === 'active').length;
+            const activeSuppliers = suppliersData.filter(s => s.is_active === true).length;
 
             return {
                 totalProjects,
