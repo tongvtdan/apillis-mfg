@@ -44,6 +44,8 @@ import { ProjectReviewForm, ReviewConfiguration, ReviewList, ReviewAssignmentMod
 import { useUserDisplayName } from "@/hooks/useUsers";
 import { useAuth } from "@/core/auth";
 import { ApprovalProvider } from "@/core/approvals/ApprovalProvider";
+import { DocumentProvider } from "@/core/documents/DocumentProvider";
+import { WorkflowProvider } from "@/core/workflow/WorkflowProvider";
 import { ProjectDetailHeader } from "@/components/project/ProjectDetailHeader";
 import { ProjectSummaryCard } from "@/components/project/ProjectSummaryCard";
 import { VisualTimelineProgression } from "@/components/project/ui";
@@ -395,375 +397,379 @@ export default function ProjectDetail() {
 
   return (
     <ApprovalProvider>
-      <ProjectAutoAdvance project={smoothProject} />
-      <div className="min-h-screen bg-background">
-        {/* Enhanced Header Section */}
-        <ProjectDetailHeader
-          project={smoothProject}
-          workflowStages={workflowStages as any}
-          onBack={() => navigate('/projects')}
-          onEdit={() => console.log('Edit project')}
-          onShare={() => console.log('Share project')}
-        />
+      <DocumentProvider>
+        <WorkflowProvider>
+          <ProjectAutoAdvance project={smoothProject} />
+          <div className="min-h-screen bg-background">
+            {/* Enhanced Header Section */}
+            <ProjectDetailHeader
+              project={smoothProject}
+              workflowStages={workflowStages as any}
+              onBack={() => navigate('/projects')}
+              onEdit={() => console.log('Edit project')}
+              onShare={() => console.log('Share project')}
+            />
 
-        {/* Enhanced Interactive Navigation */}
-        {smoothProject && (
-          <ResponsiveNavigationWrapper
-            activeTab={activeTab}
-            onTabChange={handleTabChange}
-            tabs={navigationTabs}
-            projectId={smoothProject.id}
-            projectTitle={smoothProject.title}
-            onBack={() => navigate('/projects')}
-          >
-            <div className="p-6">
-              <TabTransition activeTab={activeTab} isLoading={isTabLoading(activeTab)}>
-                <TabContentWrapper
-                  tabId="overview"
-                  activeTab={activeTab}
-                  isLoading={isTabLoading('overview')}
-                  hasError={hasTabError('overview')}
-                >
-                  <div className="space-y-6">
-                    {/* Enhanced Project Management Section */}
-                    <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-                      {/* Inline Project Editor */}
-                      <InlineProjectEditor
-                        project={smoothProject}
-                        onUpdate={handleProjectUpdate}
-                      />
+            {/* Enhanced Interactive Navigation */}
+            {smoothProject && (
+              <ResponsiveNavigationWrapper
+                activeTab={activeTab}
+                onTabChange={handleTabChange}
+                tabs={navigationTabs}
+                projectId={smoothProject.id}
+                projectTitle={smoothProject.title}
+                onBack={() => navigate('/projects')}
+              >
+                <div className="p-6">
+                  <TabTransition activeTab={activeTab} isLoading={isTabLoading(activeTab)}>
+                    <TabContentWrapper
+                      tabId="overview"
+                      activeTab={activeTab}
+                      isLoading={isTabLoading('overview')}
+                      hasError={hasTabError('overview')}
+                    >
+                      <div className="space-y-6">
+                        {/* Enhanced Project Management Section */}
+                        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                          {/* Inline Project Editor */}
+                          <InlineProjectEditor
+                            project={smoothProject}
+                            onUpdate={handleProjectUpdate}
+                          />
 
-                      {/* Project Attributes Manager */}
-                      <ProjectAttributesManager
-                        project={smoothProject}
-                        workflowStages={workflowStages as any}
-                        onUpdate={handleProjectUpdate}
-                      />
-                    </div>
+                          {/* Project Attributes Manager */}
+                          <ProjectAttributesManager
+                            project={smoothProject}
+                            workflowStages={workflowStages as any}
+                            onUpdate={handleProjectUpdate}
+                          />
+                        </div>
 
-                    {/* Actions Needed for Current Stage */}
-                    <ProjectSummaryCard
-                      project={smoothProject}
-                      workflowStages={workflowStages as any}
-                      onEdit={() => console.log('Edit project')}
-                      onViewDetails={() => console.log('View details')}
-                    />
+                        {/* Actions Needed for Current Stage */}
+                        <ProjectSummaryCard
+                          project={smoothProject}
+                          workflowStages={workflowStages as any}
+                          onEdit={() => console.log('Edit project')}
+                          onViewDetails={() => console.log('View details')}
+                        />
 
-                    {/* Activity & Comments Section */}
-                    <Card>
-                      <CardHeader>
-                        <CardTitle className="text-sm font-semibold text-muted-foreground uppercase tracking-wide">
-                          ACTIVITY & COMMENTS
-                        </CardTitle>
-                      </CardHeader>
-                      <CardContent>
-                        {messagesLoading ? (
-                          <div className="flex items-center justify-center py-4">
-                            <Loader2 className="h-4 w-4 animate-spin mr-2" />
-                            <span className="text-sm text-muted-foreground">Loading messages...</span>
-                          </div>
-                        ) : messages.length > 0 ? (
-                          <div className="space-y-4">
-                            {messages.slice(0, 5).map((message) => (
-                              <div key={message.id} className="text-sm">
-                                <div className="font-medium">
-                                  📅 {message.created_at ? format(new Date(message.created_at), 'MMM dd, HH:mm') : 'N/A'} – {message.sender_type || 'N/A'}
-                                </div>
-                                <div className="text-muted-foreground ml-4 mt-1">
-                                  {message.content || 'N/A'}
-                                </div>
+                        {/* Activity & Comments Section */}
+                        <Card>
+                          <CardHeader>
+                            <CardTitle className="text-sm font-semibold text-muted-foreground uppercase tracking-wide">
+                              ACTIVITY & COMMENTS
+                            </CardTitle>
+                          </CardHeader>
+                          <CardContent>
+                            {messagesLoading ? (
+                              <div className="flex items-center justify-center py-4">
+                                <Loader2 className="h-4 w-4 animate-spin mr-2" />
+                                <span className="text-sm text-muted-foreground">Loading messages...</span>
                               </div>
-                            ))}
-                          </div>
-                        ) : (
-                          <div className="text-center py-4 text-sm text-muted-foreground">
-                            No activity or comments yet
-                          </div>
-                        )}
-                      </CardContent>
-                    </Card>
-                  </div>
-                </TabContentWrapper>
+                            ) : messages.length > 0 ? (
+                              <div className="space-y-4">
+                                {messages.slice(0, 5).map((message) => (
+                                  <div key={message.id} className="text-sm">
+                                    <div className="font-medium">
+                                      📅 {message.created_at ? format(new Date(message.created_at), 'MMM dd, HH:mm') : 'N/A'} – {message.sender_type || 'N/A'}
+                                    </div>
+                                    <div className="text-muted-foreground ml-4 mt-1">
+                                      {message.content || 'N/A'}
+                                    </div>
+                                  </div>
+                                ))}
+                              </div>
+                            ) : (
+                              <div className="text-center py-4 text-sm text-muted-foreground">
+                                No activity or comments yet
+                              </div>
+                            )}
+                          </CardContent>
+                        </Card>
+                      </div>
+                    </TabContentWrapper>
 
-                <TabContentWrapper
-                  tabId="documents"
-                  activeTab={activeTab}
-                  isLoading={isTabLoading('documents')}
-                  hasError={hasTabError('documents')}
-                >
-                  <DocumentManager projectId={id || ''} />
-                </TabContentWrapper>
+                    <TabContentWrapper
+                      tabId="documents"
+                      activeTab={activeTab}
+                      isLoading={isTabLoading('documents')}
+                      hasError={hasTabError('documents')}
+                    >
+                      <DocumentManager projectId={id || ''} />
+                    </TabContentWrapper>
 
-                <TabContentWrapper
-                  tabId="timeline"
-                  activeTab={activeTab}
-                  isLoading={isTabLoading('timeline')}
-                  hasError={hasTabError('timeline')}
-                >
-                  <div className="space-y-6">
-                    {/* Visual Timeline Progression */}
-                    <VisualTimelineProgression
-                      project={smoothProject}
-                      workflowStages={workflowStages as any}
-                    />
-                  </div>
-                </TabContentWrapper>
+                    <TabContentWrapper
+                      tabId="timeline"
+                      activeTab={activeTab}
+                      isLoading={isTabLoading('timeline')}
+                      hasError={hasTabError('timeline')}
+                    >
+                      <div className="space-y-6">
+                        {/* Visual Timeline Progression */}
+                        <VisualTimelineProgression
+                          project={smoothProject}
+                          workflowStages={workflowStages as any}
+                        />
+                      </div>
+                    </TabContentWrapper>
 
-                <TabContentWrapper
-                  tabId="reviews"
-                  activeTab={activeTab}
-                  isLoading={isTabLoading('reviews')}
-                  hasError={hasTabError('reviews')}
-                >
-                  <div className="space-y-6">
-                    <Card>
-                      <CardHeader>
-                        <div className="flex items-center justify-between">
-                          <CardTitle className="text-sm font-semibold text-muted-foreground uppercase tracking-wide">
-                            INTERNAL REVIEWS
-                          </CardTitle>
-                          <div className="flex space-x-2">
-                            <Button
-                              variant="outline"
-                              size="sm"
-                              onClick={() => setShowAssignmentModal(true)}
-                            >
-                              <Users className="w-4 h-4 mr-2" />
-                              Assign
-                            </Button>
-                            <Button
-                              variant="outline"
-                              size="sm"
-                              onClick={() => setShowReviewConfig(true)}
-                            >
-                              <Settings className="w-4 h-4 mr-2" />
-                              Configure
-                            </Button>
-                          </div>
-                        </div>
-                      </CardHeader>
-                      <CardContent>
-                        {reviewsLoading ? (
-                          <div className="flex items-center justify-center py-8">
-                            <Loader2 className="h-6 w-6 animate-spin mr-2" />
-                            <span className="text-muted-foreground">Loading reviews...</span>
-                          </div>
-                        ) : (
-                          <div className="space-y-4">
-                            {/* Quick Add Review Buttons */}
-                            <div className="flex gap-2">
-                              {(['Engineering', 'QA', 'Production'] as Department[]).map((department) => {
-                                const existingReview = reviews.find(r => r.department === department);
-                                return (
-                                  <Button
-                                    key={department}
-                                    variant={existingReview ? "outline" : "default"}
-                                    size="sm"
-                                    onClick={() => {
-                                      setSelectedDepartment(department);
-                                      setShowReviewModal(true);
-                                    }}
-                                  >
-                                    <Plus className="w-4 h-4 mr-2" />
-                                    {existingReview ? `Update ${department}` : `Add ${department}`}
-                                  </Button>
-                                );
-                              })}
-                            </div>
-
-                            {/* Review List */}
-                            <ReviewList
-                              reviews={reviews}
-                              onEditReview={() => { }} // No direct edit from here, handled by inline editor
-                              onViewReview={() => { }} // No direct view from here, handled by inline editor
-                            />
-                          </div>
-                        )}
-                      </CardContent>
-                    </Card>
-                  </div>
-                </TabContentWrapper>
-
-                <TabContentWrapper
-                  tabId="supplier"
-                  activeTab={activeTab}
-                  isLoading={isTabLoading('supplier')}
-                  hasError={hasTabError('supplier')}
-                >
-                  <div className="space-y-6">
-                    <Card>
-                      <CardHeader>
-                        <CardTitle className="text-sm font-semibold text-muted-foreground uppercase tracking-wide">
-                          SUPPLIER MANAGEMENT
-                        </CardTitle>
-                      </CardHeader>
-                      <CardContent>
-                        <div className="text-center py-12">
-                          <Send className="w-12 h-12 mx-auto text-muted-foreground mb-4" />
-                          <h3 className="text-lg font-medium mb-2">Supplier Management</h3>
-                          <p className="text-muted-foreground">
-                            Supplier RFQ and management features coming soon
-                          </p>
-                        </div>
-                      </CardContent>
-                    </Card>
-                  </div>
-                </TabContentWrapper>
-
-                <TabContentWrapper
-                  tabId="communication"
-                  activeTab={activeTab}
-                  isLoading={isTabLoading('communication')}
-                  hasError={hasTabError('communication')}
-                >
-                  <ProjectCommunication
-                    projectId={smoothProject.id}
-                    projectTitle={smoothProject.title}
-                  />
-                </TabContentWrapper>
-
-                <TabContentWrapper
-                  tabId="analytics"
-                  activeTab={activeTab}
-                  isLoading={isTabLoading('analytics')}
-                  hasError={hasTabError('analytics')}
-                >
-                  <div className="space-y-6">
-                    <Card>
-                      <CardHeader>
-                        <CardTitle className="text-sm font-semibold text-muted-foreground uppercase tracking-wide">
-                          ACTIVITY & COMMENTS
-                        </CardTitle>
-                      </CardHeader>
-                      <CardContent>
-                        <div className="space-y-6">
-                          {/* Add Comment Section */}
-                          <div className="border rounded-lg p-4 bg-muted/30">
-                            <div className="space-y-3">
-                              <Label htmlFor="comment">Add Comment</Label>
-                              <Textarea
-                                id="comment"
-                                placeholder="Share updates, ask questions, or provide feedback..."
-                                className="min-h-[80px]"
-                              />
-                              <div className="flex justify-end">
-                                <Button>
-                                  <MessageSquare className="w-4 h-4 mr-2" />
-                                  Add Comment
+                    <TabContentWrapper
+                      tabId="reviews"
+                      activeTab={activeTab}
+                      isLoading={isTabLoading('reviews')}
+                      hasError={hasTabError('reviews')}
+                    >
+                      <div className="space-y-6">
+                        <Card>
+                          <CardHeader>
+                            <div className="flex items-center justify-between">
+                              <CardTitle className="text-sm font-semibold text-muted-foreground uppercase tracking-wide">
+                                INTERNAL REVIEWS
+                              </CardTitle>
+                              <div className="flex space-x-2">
+                                <Button
+                                  variant="outline"
+                                  size="sm"
+                                  onClick={() => setShowAssignmentModal(true)}
+                                >
+                                  <Users className="w-4 h-4 mr-2" />
+                                  Assign
+                                </Button>
+                                <Button
+                                  variant="outline"
+                                  size="sm"
+                                  onClick={() => setShowReviewConfig(true)}
+                                >
+                                  <Settings className="w-4 h-4 mr-2" />
+                                  Configure
                                 </Button>
                               </div>
                             </div>
-                          </div>
-
-                          {/* Activity Timeline */}
-                          {messagesLoading ? (
-                            <div className="flex items-center justify-center py-8">
-                              <Loader2 className="h-6 w-6 animate-spin mr-2" />
-                              <span className="text-muted-foreground">Loading messages...</span>
-                            </div>
-                          ) : messages.length > 0 ? (
-                            <div className="space-y-4">
-                              {messages.map((message) => (
-                                <div key={message.id} className="border-l-2 border-muted pl-4">
-                                  <div className="flex items-center justify-between">
-                                    <p className="text-sm font-medium text-foreground">
-                                      📅 {message.created_at ? format(new Date(message.created_at), 'MMM dd, HH:mm') : 'N/A'} – {message.sender_type || 'N/A'}
-                                    </p>
-                                  </div>
-                                  <p className="text-sm text-muted-foreground mt-1">
-                                    {message.content || 'N/A'}
-                                  </p>
+                          </CardHeader>
+                          <CardContent>
+                            {reviewsLoading ? (
+                              <div className="flex items-center justify-center py-8">
+                                <Loader2 className="h-6 w-6 animate-spin mr-2" />
+                                <span className="text-muted-foreground">Loading reviews...</span>
+                              </div>
+                            ) : (
+                              <div className="space-y-4">
+                                {/* Quick Add Review Buttons */}
+                                <div className="flex gap-2">
+                                  {(['Engineering', 'QA', 'Production'] as Department[]).map((department) => {
+                                    const existingReview = reviews.find(r => r.department === department);
+                                    return (
+                                      <Button
+                                        key={department}
+                                        variant={existingReview ? "outline" : "default"}
+                                        size="sm"
+                                        onClick={() => {
+                                          setSelectedDepartment(department);
+                                          setShowReviewModal(true);
+                                        }}
+                                      >
+                                        <Plus className="w-4 h-4 mr-2" />
+                                        {existingReview ? `Update ${department}` : `Add ${department}`}
+                                      </Button>
+                                    );
+                                  })}
                                 </div>
-                              ))}
-                            </div>
-                          ) : (
-                            <div className="text-center py-8">
-                              <MessageSquare className="w-12 h-12 mx-auto text-muted-foreground mb-4" />
-                              <h3 className="text-lg font-medium mb-2">No Activity</h3>
+
+                                {/* Review List */}
+                                <ReviewList
+                                  reviews={reviews}
+                                  onEditReview={() => { }} // No direct edit from here, handled by inline editor
+                                  onViewReview={() => { }} // No direct view from here, handled by inline editor
+                                />
+                              </div>
+                            )}
+                          </CardContent>
+                        </Card>
+                      </div>
+                    </TabContentWrapper>
+
+                    <TabContentWrapper
+                      tabId="supplier"
+                      activeTab={activeTab}
+                      isLoading={isTabLoading('supplier')}
+                      hasError={hasTabError('supplier')}
+                    >
+                      <div className="space-y-6">
+                        <Card>
+                          <CardHeader>
+                            <CardTitle className="text-sm font-semibold text-muted-foreground uppercase tracking-wide">
+                              SUPPLIER MANAGEMENT
+                            </CardTitle>
+                          </CardHeader>
+                          <CardContent>
+                            <div className="text-center py-12">
+                              <Send className="w-12 h-12 mx-auto text-muted-foreground mb-4" />
+                              <h3 className="text-lg font-medium mb-2">Supplier Management</h3>
                               <p className="text-muted-foreground">
-                                No messages or activity for this project yet
+                                Supplier RFQ and management features coming soon
                               </p>
                             </div>
-                          )}
-                        </div>
-                      </CardContent>
-                    </Card>
-                  </div>
-                </TabContentWrapper>
+                          </CardContent>
+                        </Card>
+                      </div>
+                    </TabContentWrapper>
 
-                <TabContentWrapper
-                  tabId="settings"
-                  activeTab={activeTab}
-                  isLoading={isTabLoading('settings')}
-                  hasError={hasTabError('settings')}
-                >
-                  <div className="space-y-6">
-                    <Card>
-                      <CardHeader>
-                        <CardTitle className="flex items-center">
-                          <Settings className="w-5 h-5 mr-2" />
-                          Project Settings
-                        </CardTitle>
-                      </CardHeader>
-                      <CardContent>
-                        <div className="text-center py-12">
-                          <Settings className="w-12 h-12 mx-auto text-muted-foreground mb-4" />
-                          <h3 className="text-lg font-medium mb-2">Settings Coming Soon</h3>
-                          <p className="text-muted-foreground">
-                            Project settings and configuration will be available here
-                          </p>
-                        </div>
-                      </CardContent>
-                    </Card>
-                  </div>
-                </TabContentWrapper>
-              </TabTransition>
-            </div>
-          </ResponsiveNavigationWrapper>
-        )}
+                    <TabContentWrapper
+                      tabId="communication"
+                      activeTab={activeTab}
+                      isLoading={isTabLoading('communication')}
+                      hasError={hasTabError('communication')}
+                    >
+                      <ProjectCommunication
+                        projectId={smoothProject.id}
+                        projectTitle={smoothProject.title}
+                      />
+                    </TabContentWrapper>
 
-        {/* Review Modal */}
-        {showReviewModal && selectedDepartment && (
-          <ProjectReviewForm
-            isOpen={showReviewModal}
-            onClose={() => {
-              setShowReviewModal(false);
-              setSelectedDepartment(null);
-            }}
-            projectId={smoothProject.id}
-            department={selectedDepartment}
-            existingReview={reviews.find(r => r.department === selectedDepartment)}
-            onSubmit={handleReviewSubmit}
-            onCancel={() => {
-              setShowReviewModal(false);
-              setSelectedDepartment(null);
-            }}
-          />
-        )}
+                    <TabContentWrapper
+                      tabId="analytics"
+                      activeTab={activeTab}
+                      isLoading={isTabLoading('analytics')}
+                      hasError={hasTabError('analytics')}
+                    >
+                      <div className="space-y-6">
+                        <Card>
+                          <CardHeader>
+                            <CardTitle className="text-sm font-semibold text-muted-foreground uppercase tracking-wide">
+                              ACTIVITY & COMMENTS
+                            </CardTitle>
+                          </CardHeader>
+                          <CardContent>
+                            <div className="space-y-6">
+                              {/* Add Comment Section */}
+                              <div className="border rounded-lg p-4 bg-muted/30">
+                                <div className="space-y-3">
+                                  <Label htmlFor="comment">Add Comment</Label>
+                                  <Textarea
+                                    id="comment"
+                                    placeholder="Share updates, ask questions, or provide feedback..."
+                                    className="min-h-[80px]"
+                                  />
+                                  <div className="flex justify-end">
+                                    <Button>
+                                      <MessageSquare className="w-4 h-4 mr-2" />
+                                      Add Comment
+                                    </Button>
+                                  </div>
+                                </div>
+                              </div>
 
-        {showReviewConfig && (
-          <ReviewConfiguration
-            isOpen={showReviewConfig}
-            projectId={smoothProject.id}
-            onClose={() => setShowReviewConfig(false)}
-            onSave={async (config) => {
-              // TODO: Implement configuration saving
-              console.log('Saving review configuration:', config);
-            }}
-          />
-        )}
+                              {/* Activity Timeline */}
+                              {messagesLoading ? (
+                                <div className="flex items-center justify-center py-8">
+                                  <Loader2 className="h-6 w-6 animate-spin mr-2" />
+                                  <span className="text-muted-foreground">Loading messages...</span>
+                                </div>
+                              ) : messages.length > 0 ? (
+                                <div className="space-y-4">
+                                  {messages.map((message) => (
+                                    <div key={message.id} className="border-l-2 border-muted pl-4">
+                                      <div className="flex items-center justify-between">
+                                        <p className="text-sm font-medium text-foreground">
+                                          📅 {message.created_at ? format(new Date(message.created_at), 'MMM dd, HH:mm') : 'N/A'} – {message.sender_type || 'N/A'}
+                                        </p>
+                                      </div>
+                                      <p className="text-sm text-muted-foreground mt-1">
+                                        {message.content || 'N/A'}
+                                      </p>
+                                    </div>
+                                  ))}
+                                </div>
+                              ) : (
+                                <div className="text-center py-8">
+                                  <MessageSquare className="w-12 h-12 mx-auto text-muted-foreground mb-4" />
+                                  <h3 className="text-lg font-medium mb-2">No Activity</h3>
+                                  <p className="text-muted-foreground">
+                                    No messages or activity for this project yet
+                                  </p>
+                                </div>
+                              )}
+                            </div>
+                          </CardContent>
+                        </Card>
+                      </div>
+                    </TabContentWrapper>
 
-        {showAssignmentModal && selectedReview && (
-          <ReviewAssignmentModal
-            projectId={smoothProject.id}
-            onClose={() => setShowAssignmentModal(false)}
-            onSave={async (assignments) => {
-              // TODO: Implement assignment saving
-              console.log('Saving review assignments:', assignments);
-            }}
-          />
-        )}
-      </div>
+                    <TabContentWrapper
+                      tabId="settings"
+                      activeTab={activeTab}
+                      isLoading={isTabLoading('settings')}
+                      hasError={hasTabError('settings')}
+                    >
+                      <div className="space-y-6">
+                        <Card>
+                          <CardHeader>
+                            <CardTitle className="flex items-center">
+                              <Settings className="w-5 h-5 mr-2" />
+                              Project Settings
+                            </CardTitle>
+                          </CardHeader>
+                          <CardContent>
+                            <div className="text-center py-12">
+                              <Settings className="w-12 h-12 mx-auto text-muted-foreground mb-4" />
+                              <h3 className="text-lg font-medium mb-2">Settings Coming Soon</h3>
+                              <p className="text-muted-foreground">
+                                Project settings and configuration will be available here
+                              </p>
+                            </div>
+                          </CardContent>
+                        </Card>
+                      </div>
+                    </TabContentWrapper>
+                  </TabTransition>
+                </div>
+              </ResponsiveNavigationWrapper>
+            )}
+
+            {/* Review Modal */}
+            {showReviewModal && selectedDepartment && (
+              <ProjectReviewForm
+                isOpen={showReviewModal}
+                onClose={() => {
+                  setShowReviewModal(false);
+                  setSelectedDepartment(null);
+                }}
+                projectId={smoothProject.id}
+                department={selectedDepartment}
+                existingReview={reviews.find(r => r.department === selectedDepartment)}
+                onSubmit={handleReviewSubmit}
+                onCancel={() => {
+                  setShowReviewModal(false);
+                  setSelectedDepartment(null);
+                }}
+              />
+            )}
+
+            {showReviewConfig && (
+              <ReviewConfiguration
+                isOpen={showReviewConfig}
+                projectId={smoothProject.id}
+                onClose={() => setShowReviewConfig(false)}
+                onSave={async (config) => {
+                  // TODO: Implement configuration saving
+                  console.log('Saving review configuration:', config);
+                }}
+              />
+            )}
+
+            {showAssignmentModal && selectedReview && (
+              <ReviewAssignmentModal
+                projectId={smoothProject.id}
+                onClose={() => setShowAssignmentModal(false)}
+                onSave={async (assignments) => {
+                  // TODO: Implement assignment saving
+                  console.log('Saving review assignments:', assignments);
+                }}
+              />
+            )}
+          </div>
+        </WorkflowProvider>
+      </DocumentProvider>
     </ApprovalProvider>
   );
 }
