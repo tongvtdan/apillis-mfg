@@ -227,7 +227,7 @@ export class DashboardService {
             try {
                 const { data: customers, error: customersError } = await supabase
                     .from('organizations')
-                    .select('id, organization_type, is_active, credit_limit')
+                    .select('id, organization_type, is_active')
                     .eq('organization_type', 'customer' as any);
 
                 if (customersError) {
