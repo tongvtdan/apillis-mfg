@@ -41,6 +41,9 @@ import { MetricsWidget } from './widgets/MetricsWidget';
 import { ChartWidget } from './widgets/ChartWidget';
 import { KanbanWidget } from './widgets/KanbanWidget';
 import { TimelineWidget } from './widgets/TimelineWidget';
+import { ProjectOverviewWidget } from './widgets/ProjectOverviewWidget';
+import { QuickStatsWidget } from './widgets/QuickStatsWidget';
+import { RecentActivitiesWidget } from './widgets/RecentActivitiesWidget';
 
 interface DashboardProps {
     layout?: DashboardLayout;
@@ -144,6 +147,12 @@ export function Dashboard({ layout: initialLayout, onLayoutChange, className }: 
                 return <KanbanWidget {...widgetProps} />;
             case 'timeline':
                 return <TimelineWidget {...widgetProps} />;
+            case 'project-overview':
+                return <ProjectOverviewWidget {...widgetProps} />;
+            case 'quick-stats':
+                return <QuickStatsWidget {...widgetProps} />;
+            case 'recent-activities':
+                return <RecentActivitiesWidget {...widgetProps} />;
             default:
                 return (
                     <Card className="h-full">

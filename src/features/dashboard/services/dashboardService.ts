@@ -105,11 +105,54 @@ export class DashboardService {
                 createdBy: userId
             },
             {
+                id: 'quick-stats',
+                type: 'quick-stats',
+                title: 'Quick Stats',
+                size: 'small',
+                position: { x: 0, y: 4, w: 3, h: 4 },
+                config: {
+                    showPriority: true,
+                    showOverdue: true
+                },
+                dataSource: 'project_stats',
+                refreshInterval: 300,
+                createdBy: userId
+            },
+            {
+                id: 'project-overview',
+                type: 'project-overview',
+                title: 'Project Overview',
+                size: 'large',
+                position: { x: 3, y: 4, w: 9, h: 6 },
+                config: {
+                    showProgress: true,
+                    showPriority: true,
+                    limit: 6
+                },
+                dataSource: 'projects',
+                refreshInterval: 300,
+                createdBy: userId
+            },
+            {
+                id: 'recent-activities',
+                type: 'recent-activities',
+                title: 'Recent Activities',
+                size: 'medium',
+                position: { x: 0, y: 8, w: 6, h: 4 },
+                config: {
+                    limit: 10,
+                    showIcons: true
+                },
+                dataSource: 'activity_log',
+                refreshInterval: 60,
+                createdBy: userId
+            },
+            {
                 id: 'project-kanban',
                 type: 'kanban',
                 title: 'Project Status',
-                size: 'large',
-                position: { x: 0, y: 4, w: 8, h: 6 },
+                size: 'medium',
+                position: { x: 6, y: 8, w: 6, h: 4 },
                 config: {
                     showSwimlanes: false,
                     showFilters: true,
@@ -124,7 +167,7 @@ export class DashboardService {
                 type: 'chart',
                 title: 'Revenue Trends',
                 size: 'medium',
-                position: { x: 8, y: 4, w: 4, h: 6 },
+                position: { x: 0, y: 12, w: 6, h: 4 },
                 config: {
                     chartType: 'line',
                     showLegend: true,
@@ -136,25 +179,11 @@ export class DashboardService {
                 createdBy: userId
             },
             {
-                id: 'recent-activity',
-                type: 'timeline',
-                title: 'Recent Activity',
-                size: 'medium',
-                position: { x: 0, y: 10, w: 6, h: 4 },
-                config: {
-                    layout: 'vertical',
-                    showIcons: true
-                },
-                dataSource: 'activity_log',
-                refreshInterval: 60,
-                createdBy: userId
-            },
-            {
                 id: 'customer-satisfaction',
                 type: 'gauge',
                 title: 'Customer Satisfaction',
                 size: 'small',
-                position: { x: 6, y: 10, w: 3, h: 4 },
+                position: { x: 6, y: 12, w: 3, h: 4 },
                 config: {
                     min: 0,
                     max: 5,
@@ -169,7 +198,7 @@ export class DashboardService {
                 type: 'table',
                 title: 'Top Suppliers',
                 size: 'small',
-                position: { x: 9, y: 10, w: 3, h: 4 },
+                position: { x: 9, y: 12, w: 3, h: 4 },
                 config: {
                     columns: ['name', 'performance', 'onTimeDelivery'],
                     sortBy: 'performance',

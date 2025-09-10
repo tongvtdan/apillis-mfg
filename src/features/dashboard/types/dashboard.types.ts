@@ -11,6 +11,9 @@ export type WidgetType =
   | 'heatmap'
   | 'gauge'
   | 'table'
+  | 'project-overview'
+  | 'quick-stats'
+  | 'recent-activities'
   | 'custom';
 
 export type WidgetSize = 'small' | 'medium' | 'large' | 'xlarge';
@@ -40,7 +43,7 @@ export type TimeRange =
 // Dashboard widget configuration
 export const dashboardWidgetSchema = z.object({
   id: z.string(),
-  type: z.enum(['kanban', 'metrics', 'chart', 'timeline', 'list', 'calendar', 'heatmap', 'gauge', 'table', 'custom']),
+  type: z.enum(['kanban', 'metrics', 'chart', 'timeline', 'list', 'calendar', 'heatmap', 'gauge', 'table', 'project-overview', 'quick-stats', 'recent-activities', 'custom']),
   title: z.string(),
   description: z.string().optional(),
   size: z.enum(['small', 'medium', 'large', 'xlarge']),
