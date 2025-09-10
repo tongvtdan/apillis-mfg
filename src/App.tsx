@@ -34,6 +34,7 @@ import EngineeringReviewTest from "./pages/EngineeringReviewTest";
 import CostingEngineTest from "./pages/CostingEngineTest";
 import SupplierManagementTest from "./pages/SupplierManagementTest";
 import CustomerManagementTest from "./pages/CustomerManagementTest";
+import DashboardTest from "./pages/DashboardTest";
 
 import { applyAdaptiveTheme } from "@/lib/theme";
 import "@/styles/smooth-transitions.css";
@@ -197,6 +198,11 @@ const App = () => {
             <Route path="/customer-management-test" element={
               <ProtectedRoute>
                 <AppLayout><CustomerManagementTest /></AppLayout>
+              </ProtectedRoute>
+            } />
+            <Route path="/dashboard-test" element={
+              <ProtectedRoute>
+                <AppLayout><DashboardTest /></AppLayout>
               </ProtectedRoute>
             } />
 
