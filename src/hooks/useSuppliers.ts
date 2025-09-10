@@ -9,7 +9,7 @@ import {
   SupplierSearchCriteria
 } from '@/types/supplier';
 import { useAuth } from '@/core/auth';
-import { useToast } from '@/hooks/use-toast';
+import { useToast } from '@/shared/hooks/use-toast';
 
 export function useSuppliers(showArchived = false) {
   const [suppliers, setSuppliers] = useState<Supplier[]>([]);

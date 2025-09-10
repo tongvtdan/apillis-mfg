@@ -4,7 +4,7 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { CheckCircle, AlertCircle, ChevronRight, Play, Pause } from "lucide-react";
 import { ProjectStatus, Project, ProjectType, WorkflowStage } from "@/types/project";
-import { useProjects } from "@/hooks/useProjects";
+import { useProjectManagement } from "@/features/project-management/hooks";
 import { motion, AnimatePresence } from 'framer-motion';
 import { ProjectCardWrapper } from '../ui';
 import { workflowStageService } from '@/services/workflowStageService';
@@ -30,7 +30,7 @@ export function WorkflowFlowchart({
     updateProjectStatusOptimistic: externalUpdateFn,
     refetch: externalRefetch
 }: WorkflowFlowchartProps) {
-    const { projects: hookProjects, updateProjectStatusOptimistic: hookUpdateFn } = useProjects();
+    const { projects: hookProjects, updateProjectStatusOptimistic: hookUpdateFn } = useProjectManagement();
     const [validationErrors, setValidationErrors] = useState<Record<string, string[]>>({});
     const [workflowStages, setWorkflowStages] = useState<WorkflowStage[]>([]);
     const [stagesLoading, setStagesLoading] = useState(true);

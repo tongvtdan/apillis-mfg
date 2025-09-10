@@ -17,7 +17,7 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { Project, ProjectStatus, PROJECT_STAGES, WorkflowStage } from "@/types/project";
-import { useProjects } from "@/hooks/useProjects";
+import { useProjectManagement } from "@/features/project-management/hooks";
 import { ExternalLink, User, ArrowUpDown, ArrowUp, ArrowDown } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { AnimatedTableRow } from "./ui";
@@ -52,7 +52,7 @@ const priorityVariants = {
 } as const;
 
 export function ProjectTable({ projects, workflowStages = [], updateProjectStatusOptimistic: externalUpdateFn, refetch: externalRefetch }: ProjectTableProps) {
-  const { updateProjectStatusOptimistic: hookUpdateFn, refetch: hookRefetch } = useProjects();
+  const { updateProjectStatusOptimistic: hookUpdateFn, refetch: hookRefetch } = useProjectManagement();
   const navigate = useNavigate();
   const [updatingProjects, setUpdatingProjects] = useState<Set<string>>(new Set());
   const [sortField, setSortField] = useState<'name' | 'stage' | 'priority'>('name');

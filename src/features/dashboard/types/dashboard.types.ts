@@ -53,7 +53,7 @@ export const dashboardWidgetSchema = z.object({
     w: z.number(),
     h: z.number()
   }),
-  config: z.record(z.any()), // Widget-specific configuration
+  config: z.record(z.string(), z.any()), // Widget-specific configuration
   dataSource: z.string(), // Data source identifier
   refreshInterval: z.number().optional(), // Auto-refresh in seconds
   isVisible: z.boolean().default(true),
@@ -93,9 +93,8 @@ export const kanbanBoardSchema = z.object({
   swimlanes: z.array(z.object({
     id: z.string(),
     title: z.string(),
-    filter: z.record(z.any())
+    filter: z.record(z.string(), z.any())
   })).optional(),
-  filters: z.record(z.any()).optional(),
   groupBy: z.string().optional(),
   sortBy: z.string().optional(),
   dataSource: z.string(),
@@ -115,7 +114,7 @@ export const kanbanCardSchema = z.object({
   assignee: z.string().optional(),
   dueDate: z.string().optional(),
   tags: z.array(z.string()),
-  metadata: z.record(z.any()),
+  metadata: z.record(z.string(), z.any()),
   createdAt: z.string(),
   updatedAt: z.string(),
   createdBy: z.string(),
@@ -147,7 +146,7 @@ export const chartWidgetSchema = z.object({
   xAxis: z.string(),
   yAxis: z.array(z.string()),
   groupBy: z.string().optional(),
-  filters: z.record(z.any()).optional(),
+  filters: z.record(z.string(), z.any()).optional(),
   timeRange: z.enum(['today', 'yesterday', 'last_7_days', 'last_30_days', 'last_90_days', 'last_year', 'custom']),
   customTimeRange: z.object({
     start: z.string(),
@@ -167,11 +166,11 @@ export const timelineWidgetSchema = z.object({
   titleField: z.string(),
   descriptionField: z.string().optional(),
   groupBy: z.string().optional(),
-  filters: z.record(z.any()).optional(),
+  filters: z.record(z.string(), z.any()).optional(),
   timeRange: z.enum(['today', 'yesterday', 'last_7_days', 'last_30_days', 'last_90_days', 'last_year', 'custom']),
   layout: z.enum(['vertical', 'horizontal']),
   showIcons: z.boolean().default(true),
-  colors: z.record(z.string()).optional()
+  colors: z.record(z.string(), z.string()).optional()
 });
 
 // Manufacturing-specific dashboard data

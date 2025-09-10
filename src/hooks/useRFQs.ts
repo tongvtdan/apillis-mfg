@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { RFQ, RFQStatus } from '@/types/rfq';
 import { useAuth } from '@/core/auth';
-import { useToast } from '@/hooks/use-toast';
+import { useToast } from '@/shared/hooks/use-toast';
 
 export function useRFQs() {
   const [rfqs, setRFQs] = useState<RFQ[]>([]);

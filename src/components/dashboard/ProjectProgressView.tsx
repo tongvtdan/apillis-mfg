@@ -1,9 +1,9 @@
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { ProjectOverviewCard } from "./ProjectOverviewCard";
-import { useProjects } from "@/hooks/useProjects";
+import { useProjectManagement } from "@/features/project-management/hooks";
 
 export function ProjectProgressView() {
-  const { projects, loading } = useProjects();
+  const { projects, loading } = useProjectManagement();
 
   // Show active projects (not completed) - limit to 6 for dashboard overview
   const activeProjects = projects.filter(p => p.current_stage !== 'shipped_closed').slice(0, 6);

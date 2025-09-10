@@ -38,7 +38,7 @@ import { DocumentManager } from "@/components/project/documents";
 import { useCurrentDocuments } from "@/core/documents/useDocument";
 
 import { useProjectReviews } from "@/hooks/useProjectReviews";
-import { useProjects } from "@/hooks/useProjects";
+import { useProjectManagement } from "@/features/project-management/hooks";
 import { useWorkflowAutoAdvance } from "@/core/workflow/useWorkflowAutoAdvance";
 import { ProjectReviewForm, ReviewConfiguration, ReviewList, ReviewAssignmentModal } from "@/components/project/workflow";
 import { useUserDisplayName } from "@/hooks/useUsers";
@@ -123,7 +123,7 @@ export default function ProjectDetail() {
   const [dataSource, setDataSource] = useState<'supabase' | 'mock' | 'unknown'>('unknown');
 
   // Use the projects hook to get real-time updates - SINGLE DATA SOURCE
-  const { projects, loading: projectsLoading, error: projectsError, fetchProjects, ensureProjectSubscription } = useProjects();
+  const { projects, loading: projectsLoading, error: projectsError, fetchProjects, ensureProjectSubscription } = useProjectManagement();
 
   // Review state management
   const [showReviewModal, setShowReviewModal] = useState(false);

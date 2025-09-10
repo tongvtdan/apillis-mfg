@@ -14,9 +14,9 @@ import {
 import type { Project, WorkflowStage } from "@/types/project";
 import { projectService } from "@/services/projectService";
 import { workflowStageService } from "@/services/workflowStageService";
-import { useProjects } from "@/hooks/useProjects";
+import { useProjectManagement } from "@/features/project-management/hooks";
 import { useAuth } from "@/core/auth";
-import { useToast } from "@/hooks/use-toast";
+import { useToast } from "@/shared/hooks/use-toast";
 
 // Import our new components
 import { ProjectDetailHeader } from "./ProjectDetailHeader";
@@ -58,7 +58,7 @@ export function EnhancedProjectDetail() {
         };
         fetchStages();
     }, []);
-    const { projects } = useProjects();
+    const { projects } = useProjectManagement();
 
     // Load project data
     useEffect(() => {

@@ -7,7 +7,7 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Plus } from "lucide-react";
-import { useProjects } from "@/hooks/useProjects";
+import { useProjectManagement } from "@/features/project-management/hooks";
 import { ProjectType, PROJECT_TYPE_LABELS, Project, WorkflowStage } from "@/types/project";
 
 import { useSearchParams, useNavigate } from "react-router-dom";
@@ -23,14 +23,14 @@ import { ProjectCalendar } from "@/components/project/ProjectCalendar";
 import { ProjectList } from "@/components/project/ProjectList";
 import { AnimatedProjectCard } from "@/components/project/ui";
 import { workflowStageService } from "@/services/workflowStageService";
-import { useToast } from "@/hooks/use-toast";
+import { useToast } from "@/shared/hooks/use-toast";
 
 // This component displays the projects management interface
 // It uses the authenticated user's data from the AuthContext to fetch and manage projects
 // The user profile data is fetched from the public.users table and connected to the auth.users table
 // through the user ID which is consistent between both tables after the migration
 export default function Projects() {
-  const { projects, loading, error, updateProjectStage, updateProjectStatusOptimistic, refetch, getBottleneckAnalysis, createProject } = useProjects();
+  const { projects, loading, error, updateProjectStage, updateProjectStatusOptimistic, refetch, getBottleneckAnalysis, createProject } = useProjectManagement();
   const [searchParams, setSearchParams] = useSearchParams();
   const navigate = useNavigate();
   const { toast } = useToast();

@@ -1,7 +1,7 @@
 import { useState, useMemo, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { Card, CardContent } from "@/components/ui/card";
-import { useDashboardData } from '@/hooks/useDashboardData';
+import { useDashboardData } from '@/features/dashboard/hooks/useDashboardData';
 import { useAuth } from "@/core/auth";
 import { ApprovalProvider } from "@/core/approvals/ApprovalProvider";
 import { ActivityLogProvider } from "@/core/activity-log/ActivityLogProvider";
