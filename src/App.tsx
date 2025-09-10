@@ -39,15 +39,6 @@ import DashboardTest from "./pages/DashboardTest";
 import { applyAdaptiveTheme } from "@/lib/theme";
 import "@/styles/smooth-transitions.css";
 
-// Temporary debug - remove this later
-console.log('🔍 Environment Variables Debug:');
-console.log('VITE_SUPABASE_URL:', import.meta.env.VITE_SUPABASE_URL);
-console.log('VITE_SUPABASE_ANON_KEY:', import.meta.env.VITE_SUPABASE_ANON_KEY);
-console.log('SUPABASE_URL (fallback):', import.meta.env.SUPABASE_URL);
-console.log('All VITE_ variables:', Object.keys(import.meta.env).filter(key => key.startsWith('VITE_')));
-console.log('NODE_ENV:', import.meta.env.NODE_ENV);
-console.log('MODE:', import.meta.env.MODE);
-console.log('BASE_URL:', import.meta.env.BASE_URL);
 
 // Session Manager Component to initialize session management
 function SessionManagerWrapper({ children }: { children: React.ReactNode }) {
