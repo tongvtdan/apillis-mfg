@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { Customer } from '@/types/project';
-import { useAuth } from '@/contexts/AuthContext';
+import { useAuth } from '@/core/auth';
 import { useToast } from '@/hooks/use-toast';
 
 export interface CreateCustomerRequest {

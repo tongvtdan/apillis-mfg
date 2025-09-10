@@ -1,4 +1,4 @@
-import { useAuth } from '@/contexts/AuthContext';
+import { useAuth } from '@/core/auth';
 import { Navigate, useLocation, useNavigate } from 'react-router-dom';
 import { Loader2, Shield, AlertTriangle, Mail, Users } from 'lucide-react';
 import { useRoleBasedNavigation } from '@/hooks/useRoleBasedNavigation';

@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { SupplierQuote, SupplierQuoteStatus, SendRFQRequest, AcceptQuoteRequest, UpdateSupplierQuoteRequest } from '@/types/supplier';
-import { useAuth } from '@/contexts/AuthContext';
+import { useAuth } from '@/core/auth';
 import { useToast } from '@/hooks/use-toast';
 
 interface QuoteFilters {

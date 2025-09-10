@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { supabase } from '@/integrations/supabase/client';
-import { useAuth } from '@/contexts/AuthContext';
+import { useAuth } from '@/core/auth';
 import { useToast } from '@/hooks/use-toast';
 
 // Types for reviews system
@@ -53,7 +53,7 @@ export function useReviews(projectId: string) {
           .select('*')
           .eq('project_id', projectId)
           .order('created_at', { ascending: false }),
-        
+
         supabase
           .from('review_checklist_items')
           .select('*')

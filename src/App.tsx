@@ -3,7 +3,7 @@ import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { Routes, Route } from "react-router-dom";
 import { AppLayout } from "@/components/layout/AppLayout";
-import { AuthProvider } from "@/contexts/AuthContext";
+import { AuthProvider } from "@/core/auth";
 import { ProtectedRoute } from "@/components/auth/ProtectedRoute";
 import { useSessionManager } from "@/hooks/useSessionManager";
 import { useEffect } from "react";

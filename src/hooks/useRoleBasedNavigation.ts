@@ -1,5 +1,5 @@
 import { useMemo } from 'react';
-import { useAuth } from '@/contexts/AuthContext';
+import { useAuth } from '@/core/auth';
 import { hasPermission, hasResourceAccess } from '@/lib/permissions';
 import { UserRole } from '@/types/auth';
 import { ROLE_DEFAULT_ROUTES } from '@/lib/auth-constants';

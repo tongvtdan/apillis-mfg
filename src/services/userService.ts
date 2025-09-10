@@ -1,5 +1,5 @@
 import { supabase } from '@/integrations/supabase/client';
-import { UserProfile } from '@/contexts/AuthContext';
+import { UserProfile } from '@/core/auth';
 
 export interface UserLookup {
     id: string;

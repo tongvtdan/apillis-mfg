@@ -3,7 +3,7 @@ import { Project, WorkflowStage } from '@/types/project';
 import { workflowStageService } from '@/services/workflowStageService';
 import { prerequisiteChecker, PrerequisiteResult } from '@/services/prerequisiteChecker';
 import { stageHistoryService } from '@/services/stageHistoryService';
-import { useAuth } from '@/contexts/AuthContext';
+import { useAuth } from '@/core/auth';
 import { useToast } from '@/hooks/use-toast';
 
 export interface StageTransitionState {

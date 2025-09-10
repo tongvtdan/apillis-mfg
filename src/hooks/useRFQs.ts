@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { RFQ, RFQStatus } from '@/types/rfq';
-import { useAuth } from '@/contexts/AuthContext';
+import { useAuth } from '@/core/auth';
 import { useToast } from '@/hooks/use-toast';
 
 export function useRFQs() {
@@ -21,7 +21,7 @@ export function useRFQs() {
     try {
       setLoading(true);
       setError(null);
-      
+
       const { data, error: fetchError } = await supabase
         .from('rfqs')
         .select('*')
@@ -59,7 +59,7 @@ export function useRFQs() {
 
       const { error } = await supabase
         .from('rfqs')
-        .update({ 
+        .update({
           status: newStatus,
           updated_at: new Date().toISOString()
         })
@@ -78,7 +78,7 @@ export function useRFQs() {
       const formatStatusName = (status: RFQStatus) => {
         const statusMap = {
           inquiry: "New Inquiry",
-          review: "Under Review", 
+          review: "Under Review",
           quote: "Quotation",
           production: "Production",
           completed: "Completed",
@@ -91,7 +91,7 @@ export function useRFQs() {
         title: "Status Updated",
         description: `From ${formatStatusName(oldStatus)} to ${formatStatusName(newStatus)}`,
       });
-      
+
       return true;
     } catch (err) {
       console.error('Error updating RFQ status:', err);
@@ -110,10 +110,10 @@ export function useRFQs() {
     if (!currentRFQ) return false;
 
     const oldStatus = currentRFQ.status;
-    
+
     // Optimistically update local state immediately
-    setRFQs(prev => prev.map(rfq => 
-      rfq.id === rfqId 
+    setRFQs(prev => prev.map(rfq =>
+      rfq.id === rfqId
         ? { ...rfq, status: newStatus, updated_at: new Date().toISOString() }
         : rfq
     ));
@@ -121,7 +121,7 @@ export function useRFQs() {
     try {
       const { error } = await supabase
         .from('rfqs')
-        .update({ 
+        .update({
           status: newStatus,
           updated_at: new Date().toISOString()
         })
@@ -129,12 +129,12 @@ export function useRFQs() {
 
       if (error) {
         // Revert optimistic update on error
-        setRFQs(prev => prev.map(rfq => 
-          rfq.id === rfqId 
+        setRFQs(prev => prev.map(rfq =>
+          rfq.id === rfqId
             ? { ...rfq, status: oldStatus, updated_at: new Date().toISOString() }
             : rfq
         ));
-        
+
         toast({
           variant: "destructive",
           title: "Error",
@@ -147,7 +147,7 @@ export function useRFQs() {
       const formatStatusName = (status: RFQStatus) => {
         const statusMap = {
           inquiry: "New Inquiry",
-          review: "Under Review", 
+          review: "Under Review",
           quote: "Quotation",
           production: "Production",
           completed: "Completed",
@@ -160,18 +160,18 @@ export function useRFQs() {
         title: "Status Updated",
         description: `From ${formatStatusName(oldStatus)} to ${formatStatusName(newStatus)}`,
       });
-      
+
       return true;
     } catch (err) {
       console.error('Error updating RFQ status:', err);
-      
+
       // Revert optimistic update on error
-      setRFQs(prev => prev.map(rfq => 
-        rfq.id === rfqId 
+      setRFQs(prev => prev.map(rfq =>
+        rfq.id === rfqId
           ? { ...rfq, status: oldStatus, updated_at: new Date().toISOString() }
           : rfq
       ));
-      
+
       toast({
         variant: "destructive",
         title: "Error",
@@ -196,13 +196,13 @@ export function useRFQs() {
         },
         (payload) => {
           console.log('RFQ change received:', payload);
-          
+
           if (payload.eventType === 'INSERT') {
             setRFQs(prev => [payload.new as RFQ, ...prev]);
           } else if (payload.eventType === 'UPDATE') {
-            setRFQs(prev => prev.map(rfq => 
-              rfq.id === (payload.new as RFQ).id 
-                ? payload.new as RFQ 
+            setRFQs(prev => prev.map(rfq =>
+              rfq.id === (payload.new as RFQ).id
+                ? payload.new as RFQ
                 : rfq
             ));
           } else if (payload.eventType === 'DELETE') {

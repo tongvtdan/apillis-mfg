@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { useAuth } from '@/contexts/AuthContext';
+import { useAuth } from '@/core/auth';
 import { useSessionManager } from '@/hooks/useSessionManager';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';

@@ -42,7 +42,7 @@ import { useProjects } from "@/hooks/useProjects";
 import { useWorkflowAutoAdvance } from "@/hooks/useWorkflowAutoAdvance";
 import { ProjectReviewForm, ReviewConfiguration, ReviewList, ReviewAssignmentModal } from "@/components/project/workflow";
 import { useUserDisplayName } from "@/hooks/useUsers";
-import { useAuth } from "@/contexts/AuthContext";
+import { useAuth } from "@/core/auth";
 import { ProjectDetailHeader } from "@/components/project/ProjectDetailHeader";
 import { ProjectSummaryCard } from "@/components/project/ProjectSummaryCard";
 import { VisualTimelineProgression } from "@/components/project/ui";

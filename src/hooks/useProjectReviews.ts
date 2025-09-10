@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { InternalReview, RFQRisk, RFQClarification, Department, ReviewSubmission } from '@/types/review';
-import { useAuth } from '@/contexts/AuthContext';
+import { useAuth } from '@/core/auth';
 import { useToast } from '@/hooks/use-toast';
 
 // Define the database review type based on the actual schema

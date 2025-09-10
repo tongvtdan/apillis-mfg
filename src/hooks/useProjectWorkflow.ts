@@ -3,7 +3,7 @@ import { Project, WorkflowStage, ProjectStatus, ProjectWorkflowState } from '@/t
 import { projectWorkflowService } from '@/services/projectWorkflowService';
 import { projectService } from '@/services/projectService';
 import { workflowStageService } from '@/services/workflowStageService';
-import { useAuth } from '@/contexts/AuthContext';
+import { useAuth } from '@/core/auth';
 import { useToast } from '@/hooks/use-toast';
 import { supabase } from '@/integrations/supabase/client';
 

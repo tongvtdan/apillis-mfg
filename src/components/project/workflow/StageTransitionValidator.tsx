@@ -23,7 +23,7 @@ import { workflowStageService } from "@/services/workflowStageService";
 import { prerequisiteChecker, PrerequisiteResult } from "@/services/prerequisiteChecker";
 import { stageHistoryService } from "@/services/stageHistoryService";
 import { usePermissions } from "@/hooks/usePermissions";
-import { useAuth } from "@/contexts/AuthContext";
+import { useAuth } from "@/core/auth";
 import { useApprovals } from "@/hooks/useApprovals";
 import { ApprovalStatusWidget } from "@/components/approval/ApprovalStatusWidget";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";

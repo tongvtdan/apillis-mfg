@@ -1,7 +1,7 @@
 import { useState, useEffect, useCallback, useRef } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { Project, ProjectStatus } from '@/types/project';
-import { useAuth } from '@/contexts/AuthContext';
+import { useAuth } from '@/core/auth';
 import { useToast } from '@/hooks/use-toast';
 import { WorkflowValidator, WorkflowValidationResult } from '@/lib/workflow-validator';
 import { cacheService } from '@/services/cacheService';

@@ -1,4 +1,4 @@
-import { useAuth } from '@/contexts/AuthContext';
+import { useAuth } from '@/core/auth';
 import { hasPermission, hasResourceAccess, getResourceActions, hasEnhancedPermission, hasFeatureAccess, getUserEffectivePermissions, refreshUserPermissionCache } from '@/lib/permissions';
 import { UserRole } from '@/types/auth';
 

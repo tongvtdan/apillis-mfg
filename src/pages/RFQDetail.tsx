@@ -7,7 +7,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { useRFQs } from '@/hooks/useRFQs';
 import { useReviews } from '@/hooks/useReviews';
 import { usePermissions } from '@/hooks/usePermissions';
-import { useAuth } from '@/contexts/AuthContext';
+import { useAuth } from '@/core/auth';
 import { ReviewForm } from '@/components/review/ReviewForm';
 import { ReviewStatusPanel } from '@/components/review/ReviewStatusPanel';
 import { ClarificationModal } from '@/components/review/ClarificationModal';

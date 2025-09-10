@@ -10,7 +10,7 @@ import { ProjectTypeChart } from "@/components/dashboard/ProjectTypeChart";
 import { ProjectStageChart } from "@/components/dashboard/ProjectStageChart";
 import { Card, CardContent } from "@/components/ui/card";
 import { useDashboardData } from '@/hooks/useDashboardData';
-import { useAuth } from "@/contexts/AuthContext";
+import { useAuth } from "@/core/auth";
 import { ApprovalDashboard } from "@/components/approval/ApprovalDashboard";
 import {
   TrendingUp,

@@ -15,7 +15,7 @@ import type { Project, WorkflowStage } from "@/types/project";
 import { projectService } from "@/services/projectService";
 import { useWorkflowStages } from "@/hooks/useWorkflowStages";
 import { useProjects } from "@/hooks/useProjects";
-import { useAuth } from "@/contexts/AuthContext";
+import { useAuth } from "@/core/auth";
 import { useToast } from "@/hooks/use-toast";
 
 // Import our new components

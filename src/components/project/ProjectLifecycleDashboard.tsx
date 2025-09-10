@@ -23,7 +23,7 @@ import {
 import { Project, WorkflowStage } from '@/types/project';
 import { projectWorkflowService } from '@/services/projectWorkflowService';
 import { useProjects } from '@/hooks/useProjects';
-import { useAuth } from '@/contexts/AuthContext';
+import { useAuth } from '@/core/auth';
 import { useToast } from '@/hooks/use-toast';
 import { ProjectWorkflowOrchestrator } from './ProjectWorkflowOrchestrator';
 import { ProjectCreationModal } from './ProjectCreationModal';

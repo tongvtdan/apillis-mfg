@@ -1,5 +1,5 @@
 import { useEffect, useCallback, useRef } from 'react';
-import { useAuth } from '@/contexts/AuthContext';
+import { useAuth } from '@/core/auth';
 import { supabase } from '@/integrations/supabase/client';
 import { AUTH_CONFIG } from '@/lib/auth-constants';
 import { useToast } from '@/components/ui/use-toast';

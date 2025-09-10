@@ -14,7 +14,7 @@ import { Calendar, Building2, User, DollarSign, AlertCircle, CheckCircle2, Loade
 import { ProjectType, ProjectPriority, PROJECT_TYPE_LABELS, PROJECT_TYPE_DESCRIPTIONS } from '@/types/project';
 import { useToast } from '@/hooks/use-toast';
 import { supabase } from '@/integrations/supabase/client';
-import { useAuth } from '@/contexts/AuthContext';
+import { useAuth } from '@/core/auth';
 import { Project } from '@/types/project';
 
 // Enhanced validation schema for project editing

@@ -8,7 +8,7 @@ import {
   AnalyticsMetrics,
   ProjectWorkflowAnalytics
 } from '@/types/supplier';
-import { useAuth } from '@/contexts/AuthContext';
+import { useAuth } from '@/core/auth';
 import { useToast } from '@/hooks/use-toast';
 import { WorkflowValidator, WorkflowValidationResult } from '@/lib/workflow-validator';
 import { cacheService } from '@/services/cacheService';

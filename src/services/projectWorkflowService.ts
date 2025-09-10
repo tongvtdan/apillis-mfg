@@ -2,7 +2,7 @@ import { Project, WorkflowStage, ProjectStatus, ProjectSubStageProgress } from '
 import { projectService } from './projectService';
 import { workflowStageService } from './workflowStageService';
 import { supabase } from '@/integrations/supabase/client';
-import { useAuth } from '@/contexts/AuthContext';
+import { useAuth } from '@/core/auth';
 
 export interface WorkflowEvent {
     eventType: 'stage_changed' | 'status_changed' | 'document_uploaded' | 'review_completed' | 'communication_sent';

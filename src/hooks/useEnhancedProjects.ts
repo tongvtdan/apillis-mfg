@@ -1,6 +1,6 @@
 import { useState, useEffect, useCallback, useRef } from 'react';
 import { Project } from '@/types/project';
-import { useAuth } from '@/contexts/AuthContext';
+import { useAuth } from '@/core/auth';
 import { useToast } from '@/hooks/use-toast';
 import { optimizedQueryService, QueryOptions, QueryConfig } from '@/services/optimizedQueryService';
 import { enhancedRealtimeManager } from '@/lib/enhanced-realtime-manager';

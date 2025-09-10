@@ -8,7 +8,7 @@ import {
   UpdateSupplierRequest,
   SupplierSearchCriteria
 } from '@/types/supplier';
-import { useAuth } from '@/contexts/AuthContext';
+import { useAuth } from '@/core/auth';
 import { useToast } from '@/hooks/use-toast';
 
 export function useSuppliers(showArchived = false) {
