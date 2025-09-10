@@ -28,6 +28,9 @@ import CreateProject from "./pages/CreateProject";
 import Settings from "./pages/Settings";
 import Profile from "./pages/Profile";
 import Approvals from "./pages/Approvals";
+import CoreTest from "./pages/CoreTest";
+import IntakeTest from "./pages/IntakeTest";
+import EngineeringReviewTest from "./pages/EngineeringReviewTest";
 
 import { applyAdaptiveTheme } from "@/lib/theme";
 import "@/styles/smooth-transitions.css";
@@ -161,6 +164,21 @@ const App = () => {
             <Route path="/projects/new" element={
               <ProtectedRoute>
                 <AppLayout><CreateProject /></AppLayout>
+              </ProtectedRoute>
+            } />
+            <Route path="/core-test" element={
+              <ProtectedRoute requiredRoles={['admin']}>
+                <AppLayout><CoreTest /></AppLayout>
+              </ProtectedRoute>
+            } />
+            <Route path="/intake-test" element={
+              <ProtectedRoute>
+                <AppLayout><IntakeTest /></AppLayout>
+              </ProtectedRoute>
+            } />
+            <Route path="/engineering-review-test" element={
+              <ProtectedRoute>
+                <AppLayout><EngineeringReviewTest /></AppLayout>
               </ProtectedRoute>
             } />
 
