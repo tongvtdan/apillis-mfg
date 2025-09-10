@@ -1,10 +1,11 @@
 import React from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
-import { Progress } from '@/components/ui/progress';
-import { FileText, CheckCircle, Clock, AlertTriangle, TrendingUp } from 'lucide-react';
+import { PieChart, BarChart3 } from 'lucide-react';
 import { DashboardWidget, ManufacturingMetrics, TimeRange } from '../../types/dashboard.types';
 import { useProjects } from '@/hooks/useProjects';
+import { PROJECT_TYPE_LABELS, PROJECT_STAGES, LEGACY_TO_STAGE_NAME } from '@/types/project';
+import { Bar, BarChart, CartesianGrid, Cell, Legend, Pie, PieChart as RechartsPieChart, Tooltip, XAxis, YAxis, ResponsiveContainer } from 'recharts';
 
 interface ProjectOverviewWidgetProps {
     widget: DashboardWidget;
@@ -14,64 +15,112 @@ interface ProjectOverviewWidgetProps {
     onUpdate: (updates: Partial<DashboardWidget>) => void;
 }
 
-const workflowSteps = [
-    { id: 'inquiry_received', label: 'Intake' },
-    { id: 'technical_review', label: 'Review' },
-    { id: 'supplier_rfq_sent', label: 'Supplier RFQ' },
-    { id: 'quoted', label: 'Quoted' },
-    { id: 'order_confirmed', label: 'Order Confirmed' },
-    { id: 'procurement_planning', label: 'Procurement' },
-    { id: 'in_production', label: 'Production' },
-    { id: 'shipped_closed', label: 'Delivered' }
-];
-
-const priorityColors = {
-    high: "destructive",
-    medium: "secondary",
-    low: "outline"
-} as const;
 
 export function ProjectOverviewWidget({ widget, metrics, timeRange, isEditMode, onUpdate }: ProjectOverviewWidgetProps) {
     const { projects, loading } = useProjects();
 
-    // Show active projects (not completed) - limit to 6 for dashboard overview
-    const activeProjects = projects.filter(p => p.current_stage !== 'shipped_closed').slice(0, 6);
+    // Aggregate project data for charts
+    const projectStats = React.useMemo(() => {
+        const stats = {
+            totalProjects: projects.length,
+            activeProjects: 0,
+            completedProjects: 0,
+            byType: {
+                system_build: 0,
+                fabrication: 0,
+                manufacturing: 0,
+                unspecified: 0
+            },
+            byStage: {} as Record<string, number>
+        };
+
+        // Initialize stage counts
+        PROJECT_STAGES.forEach(stage => {
+            stats.byStage[stage.name] = 0;
+        });
+
+        projects.forEach(project => {
+            // Count by status
+            if (project.status === 'completed' || project.current_stage === 'shipped_closed') {
+                stats.completedProjects++;
+            } else {
+                stats.activeProjects++;
+            }
+
+            // Count by project type
+            const projectType = project.project_type || 'unspecified';
+            if (stats.byType[projectType as keyof typeof stats.byType] !== undefined) {
+                stats.byType[projectType as keyof typeof stats.byType]++;
+            } else {
+                stats.byType.unspecified++;
+            }
+
+            // Count by stage
+            let stageName = 'Inquiry Received'; // default
+            if (project.current_stage) {
+                if (typeof project.current_stage === 'object' && project.current_stage?.name) {
+                    stageName = project.current_stage.name;
+                } else if (typeof project.current_stage === 'string') {
+                    // Map legacy stage ID to name
+                    stageName = LEGACY_TO_STAGE_NAME[project.current_stage as keyof typeof LEGACY_TO_STAGE_NAME] || project.current_stage;
+                }
+            }
+            stats.byStage[stageName] = (stats.byStage[stageName] || 0) + 1;
+        });
+
+        return stats;
+    }, [projects]);
+
+    // Prepare chart data
+    const typeChartData = Object.entries(projectStats.byType).map(([type, count]) => ({
+        name: PROJECT_TYPE_LABELS[type as keyof typeof PROJECT_TYPE_LABELS] || type,
+        value: count,
+        type: type
+    })).filter(item => item.value > 0);
+
+    const stageChartData = Object.entries(projectStats.byStage).map(([stage, count]) => ({
+        name: stage,
+        value: count
+    })).filter(item => item.value > 0);
+
+    const typeColors = ['#3b82f6', '#10b981', '#8b5cf6', '#f59e0b'];
 
     if (loading) {
         return (
             <Card className="h-full">
                 <CardHeader>
                     <CardTitle className="flex items-center space-x-2">
-                        <FileText className="h-5 w-5" />
+                        <PieChart className="h-5 w-5" />
                         <span>{widget.title}</span>
                     </CardTitle>
                 </CardHeader>
                 <CardContent>
-                    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-                        {[1, 2, 3, 4, 5, 6].map((i) => (
-                            <div key={i} className="animate-pulse">
-                                <div className="bg-muted rounded-lg h-48"></div>
-                            </div>
-                        ))}
+                    <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                        <div className="animate-pulse">
+                            <div className="bg-muted rounded-lg h-64"></div>
+                        </div>
+                        <div className="animate-pulse">
+                            <div className="bg-muted rounded-lg h-64"></div>
+                        </div>
                     </div>
                 </CardContent>
             </Card>
         );
     }
 
-    if (activeProjects.length === 0) {
+    if (projects.length === 0) {
         return (
             <Card className="h-full">
                 <CardHeader>
                     <CardTitle className="flex items-center space-x-2">
-                        <FileText className="h-5 w-5" />
+                        <PieChart className="h-5 w-5" />
                         <span>{widget.title}</span>
                     </CardTitle>
                 </CardHeader>
                 <CardContent>
                     <div className="text-center py-8">
-                        <FileText className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
-                        <p className="text-muted-foreground">No active projects found</p>
+                        <PieChart className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
+                        <p className="text-muted-foreground">No projects found</p>
                     </div>
                 </CardContent>
             </Card>
@@ -82,99 +131,128 @@ export function ProjectOverviewWidget({ widget, metrics, timeRange, isEditMode, 
         <Card className="h-full">
             <CardHeader>
                 <CardTitle className="flex items-center space-x-2">
-                    <FileText className="h-5 w-5" />
+                    <PieChart className="h-5 w-5" />
                     <span>{widget.title}</span>
                     <Badge variant="outline" className="ml-auto">
-                        {activeProjects.length} Active
+                        {projectStats.totalProjects} Total Projects
                     </Badge>
                 </CardTitle>
             </CardHeader>
             <CardContent>
-                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-                    {activeProjects.map((project) => (
-                        <ProjectCard key={project.id} project={project} />
-                    ))}
+                <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                    {/* Project Types Chart */}
+                    <Card>
+                        <CardHeader className="pb-3">
+                            <CardTitle className="text-base flex items-center space-x-2">
+                                <BarChart3 className="h-4 w-4" />
+                                <span>Projects by Type</span>
+                            </CardTitle>
+                        </CardHeader>
+                        <CardContent>
+                            {typeChartData.length > 0 ? (
+                                <ResponsiveContainer width="100%" height={200}>
+                                    <BarChart data={typeChartData} margin={{ top: 10, right: 10, left: 10, bottom: 10 }}>
+                                        <CartesianGrid strokeDasharray="3 3" opacity={0.3} />
+                                        <XAxis
+                                            dataKey="name"
+                                            axisLine={false}
+                                            tickLine={false}
+                                            tick={{ fontSize: 12 }}
+                                            angle={-45}
+                                            textAnchor="end"
+                                            height={60}
+                                        />
+                                        <YAxis axisLine={false} tickLine={false} tick={{ fontSize: 12 }} />
+                                        <Tooltip
+                                            contentStyle={{
+                                                backgroundColor: 'hsl(var(--background))',
+                                                border: '1px solid hsl(var(--border))',
+                                                borderRadius: '6px'
+                                            }}
+                                        />
+                                        <Bar dataKey="value" radius={[4, 4, 0, 0]}>
+                                            {typeChartData.map((entry, index) => (
+                                                <Cell key={`cell-${index}`} fill={typeColors[index % typeColors.length]} />
+                                            ))}
+                                        </Bar>
+                                    </BarChart>
+                                </ResponsiveContainer>
+                            ) : (
+                                <div className="text-center py-8 text-muted-foreground">
+                                    <p className="text-sm">No project type data available</p>
+                                </div>
+                            )}
+                        </CardContent>
+                    </Card>
+
+                    {/* Project Stages Chart */}
+                    <Card>
+                        <CardHeader className="pb-3">
+                            <CardTitle className="text-base flex items-center space-x-2">
+                                <PieChart className="h-4 w-4" />
+                                <span>Projects by Stage</span>
+                            </CardTitle>
+                        </CardHeader>
+                        <CardContent>
+                            {stageChartData.length > 0 ? (
+                                <ResponsiveContainer width="100%" height={200}>
+                                    <RechartsPieChart>
+                                        <Pie
+                                            data={stageChartData}
+                                            cx="50%"
+                                            cy="50%"
+                                            outerRadius={70}
+                                            fill="#8884d8"
+                                            dataKey="value"
+                                            label={({ name, percent }) => `${name} ${(percent * 100).toFixed(0)}%`}
+                                            labelLine={false}
+                                        >
+                                            {stageChartData.map((entry, index) => (
+                                                <Cell key={`cell-${index}`} fill={typeColors[index % typeColors.length]} />
+                                            ))}
+                                        </Pie>
+                                        <Tooltip
+                                            contentStyle={{
+                                                backgroundColor: 'hsl(var(--background))',
+                                                border: '1px solid hsl(var(--border))',
+                                                borderRadius: '6px'
+                                            }}
+                                        />
+                                        <Legend wrapperStyle={{ fontSize: '12px' }} />
+                                    </RechartsPieChart>
+                                </ResponsiveContainer>
+                            ) : (
+                                <div className="text-center py-8 text-muted-foreground">
+                                    <p className="text-sm">No stage data available</p>
+                                </div>
+                            )}
+                        </CardContent>
+                    </Card>
                 </div>
-            </CardContent>
-        </Card>
-    );
-}
 
-function ProjectCard({ project }: { project: any }) {
-    const currentStepIndex = workflowSteps.findIndex(step => step.id === project.status);
-    const statusLabel = project.status.charAt(0).toUpperCase() + project.status.slice(1);
-
-    return (
-        <Card className="h-full hover:shadow-md transition-shadow cursor-pointer">
-            <CardContent className="p-4">
-                <div className="flex justify-between items-start mb-4">
-                    <div className="flex items-center space-x-2 flex-1 min-w-0">
-                        <div className="p-1.5 bg-primary/10 rounded-lg flex-shrink-0">
-                            <FileText className="h-4 w-4 text-primary" />
-                        </div>
-                        <div className="min-w-0 flex-1">
-                            <h4 className="font-medium text-sm truncate">{project.title}</h4>
-                            <p className="text-xs text-muted-foreground truncate">
-                                {project.project_id}
-                            </p>
-                        </div>
+                {/* Summary Stats */}
+                <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mt-6 pt-6 border-t">
+                    <div className="text-center">
+                        <div className="text-2xl font-bold text-blue-600">{projectStats.totalProjects}</div>
+                        <div className="text-xs text-muted-foreground">Total Projects</div>
                     </div>
-                    <Badge
-                        variant={priorityColors[project.priority as keyof typeof priorityColors] || 'outline'}
-                        className="text-xs ml-2 flex-shrink-0"
-                    >
-                        {project.priority}
-                    </Badge>
-                </div>
-
-                {/* Vertical Progress Steps */}
-                <div className="space-y-2">
-                    {workflowSteps.map((step, index) => {
-                        const isCompleted = index < currentStepIndex;
-                        const isCurrent = index === currentStepIndex;
-                        const isUpcoming = index > currentStepIndex;
-
-                        return (
-                            <div key={step.id} className="flex items-center space-x-3">
-                                <div
-                                    className={`w-6 h-6 rounded-full flex items-center justify-center text-xs font-medium flex-shrink-0
-                                        ${isCompleted ? 'bg-primary text-primary-foreground' : ''}
-                                        ${isCurrent ? 'bg-primary text-primary-foreground' : ''}
-                                        ${isUpcoming ? 'bg-muted text-muted-foreground' : ''}
-                                    `}
-                                >
-                                    {isCompleted ? (
-                                        <CheckCircle className="w-3 h-3" />
-                                    ) : (
-                                        <span>{index + 1}</span>
-                                    )}
-                                </div>
-                                <div className="flex-1 min-w-0">
-                                    <div className={`text-sm ${isCurrent ? 'font-medium text-foreground' : 'text-muted-foreground'}`}>
-                                        {step.label}
-                                    </div>
-                                </div>
-                                {isCurrent && (
-                                    <div className="w-2 h-2 bg-primary rounded-full flex-shrink-0"></div>
-                                )}
-                            </div>
-                        );
-                    })}
-                </div>
-
-                {/* Footer */}
-                <div className="mt-4 pt-3 border-t flex justify-between text-xs text-muted-foreground">
-                    <span>
-                        {project.due_date
-                            ? `Lead Time: ${Math.ceil((new Date(project.due_date).getTime() - new Date(project.created_at).getTime()) / (1000 * 60 * 60 * 24))} days`
-                            : 'Due Date: TBD'
-                        }
-                    </span>
-                    {project.estimated_value && (
-                        <span>${project.estimated_value.toLocaleString()}</span>
-                    )}
+                    <div className="text-center">
+                        <div className="text-2xl font-bold text-green-600">{projectStats.activeProjects}</div>
+                        <div className="text-xs text-muted-foreground">Active Projects</div>
+                    </div>
+                    <div className="text-center">
+                        <div className="text-2xl font-bold text-purple-600">{projectStats.completedProjects}</div>
+                        <div className="text-xs text-muted-foreground">Completed</div>
+                    </div>
+                    <div className="text-center">
+                        <div className="text-2xl font-bold text-orange-600">
+                            {projectStats.totalProjects > 0 ? Math.round((projectStats.completedProjects / projectStats.totalProjects) * 100) : 0}%
+                        </div>
+                        <div className="text-xs text-muted-foreground">Completion Rate</div>
+                    </div>
                 </div>
             </CardContent>
         </Card>
     );
 }
+

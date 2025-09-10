@@ -40,8 +40,8 @@ import {
 } from "lucide-react";
 import { format, formatDistanceToNow } from "date-fns";
 import { cn } from "@/lib/utils";
-import { useToast } from "@/hooks/use-toast";
-import { useSupplierQuotes } from "@/hooks/useSupplierQuotes";
+import { useToast } from "@/shared/hooks/use-toast";
+import { useSupplierQuotes } from "@/features/supplier-management/hooks";
 import {
   SupplierQuote,
   SupplierQuoteStatus,

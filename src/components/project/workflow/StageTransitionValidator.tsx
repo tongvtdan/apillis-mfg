@@ -22,7 +22,7 @@ import { Project, WorkflowStage } from "@/types/project";
 import { workflowStageService } from "@/services/workflowStageService";
 import { prerequisiteChecker, PrerequisiteResult } from "@/services/prerequisiteChecker";
 import { stageHistoryService } from "@/services/stageHistoryService";
-import { usePermissions } from "@/hooks/usePermissions";
+import { usePermissions } from "@/core/auth/hooks";
 import { useAuth } from "@/core/auth";
 import { useCurrentApprovals } from "@/core/approvals/useApproval";
 import { ApprovalStatusWidget } from "@/components/approval/ApprovalStatusWidget";

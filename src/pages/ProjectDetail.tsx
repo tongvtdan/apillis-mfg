@@ -33,15 +33,15 @@ import { Department, ReviewSubmission, InternalReview } from "@/types/review";
 import { projectService } from "@/services/projectService";
 import ProjectCommunication from "@/components/project/ProjectCommunication";
 import { WorkflowStepper } from "@/components/project/workflow";
-import { useProjectMessages } from "@/hooks/useMessages";
+import { useProjectMessages, useCreateMessage } from "@/features/communication/hooks";
 import { DocumentManager } from "@/components/project/documents";
 import { useCurrentDocuments } from "@/core/documents/useDocument";
 
-import { useProjectReviews } from "@/hooks/useProjectReviews";
+import { useProjectReviews } from "@/features/engineering-review/hooks";
 import { useProjectManagement } from "@/features/project-management/hooks";
 import { useWorkflowAutoAdvance } from "@/core/workflow/useWorkflowAutoAdvance";
 import { ProjectReviewForm, ReviewConfiguration, ReviewList, ReviewAssignmentModal } from "@/components/project/workflow";
-import { useUserDisplayName } from "@/hooks/useUsers";
+import { useUserDisplayName } from "@/features/customer-management/hooks";
 import { useAuth } from "@/core/auth";
 import { ApprovalProvider } from "@/core/approvals/ApprovalProvider";
 import { DocumentProvider } from "@/core/documents/DocumentProvider";
@@ -51,8 +51,8 @@ import { ProjectSummaryCard } from "@/components/project/ProjectSummaryCard";
 import { VisualTimelineProgression } from "@/components/project/ui";
 import { workflowStageService } from "@/services/workflowStageService";
 import { ResponsiveNavigationWrapper, TabTransition, TabContentWrapper } from "@/components/project/ui";
-import { useProjectNavigation } from "@/hooks/useProjectNavigation";
-import { useSmoothProjectUpdates } from "@/hooks/useSmoothProjectUpdates";
+import { useProjectNavigation } from "@/features/project-management/hooks";
+import { useSmoothProjectUpdates } from "@/features/project-management/hooks";
 
 // Import new enhanced components
 import { InlineProjectEditor } from "@/components/project/InlineProjectEditor";

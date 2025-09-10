@@ -28,9 +28,8 @@ import { format, formatDistanceToNow, differenceInDays, parseISO } from "date-fn
 import type { Project, WorkflowStage, ProjectPriority } from "@/types/project";
 import { ProjectOverviewCard } from "./ProjectOverviewCard";
 import { WorkflowStepper } from "./workflow";
-import { useUserDisplayName } from "@/hooks/useUsers";
-import { useOwnerDisplayName } from "@/hooks/useOwnerDisplayName";
-import { useToast } from "@/hooks/use-toast";
+import { useUserDisplayName, useOwnerDisplayName } from "@/features/customer-management/hooks";
+import { useToast } from "@/shared/hooks/use-toast";
 import { EditProjectModal } from "./EditProjectModal";
 import {
     Tooltip,

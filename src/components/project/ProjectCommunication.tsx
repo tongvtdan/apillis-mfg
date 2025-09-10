@@ -22,7 +22,7 @@ import {
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { format } from "date-fns";
-import { useProjectMessages, useCreateMessage } from "@/hooks/useMessages";
+import { useProjectMessages, useCreateMessage } from "@/features/communication/hooks";
 import { useAuth } from "@/core/auth";
 
 interface ProjectCommunicationProps {

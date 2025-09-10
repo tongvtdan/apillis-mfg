@@ -13,11 +13,11 @@ import { ProjectType, PROJECT_TYPE_LABELS, Project, WorkflowStage } from "@/type
 import { useSearchParams, useNavigate } from "react-router-dom";
 import { CheckCircle2, Clock, AlertCircle, Calendar } from "lucide-react";
 // Removed useWorkflowSubStages - sub-stages functionality temporarily disabled
-import { useProjectSubStageProgress } from "@/hooks/useProjectSubStageProgress";
+import { useProjectSubStageProgress } from "@/features/project-management/hooks";
 import { ProjectErrorBoundary } from "@/components/error/ProjectErrorBoundary";
 import { DatabaseErrorHandler } from "@/components/error/DatabaseErrorHandler";
 import { LoadingFallback, OfflineState, GracefulDegradation } from "@/components/error/FallbackMechanisms";
-import { useErrorHandling } from "@/hooks/useErrorHandling";
+import { useErrorHandling } from "@/shared/hooks";
 import { ProjectWorkflowAnalytics } from "@/components/project/workflow";
 import { ProjectCalendar } from "@/components/project/ProjectCalendar";
 import { ProjectList } from "@/components/project/ProjectList";

@@ -11,7 +11,7 @@ import {
     Phone,
     MapPin,
 } from "lucide-react";
-import { useToast } from "@/hooks/use-toast";
+import { useToast } from "@/shared/hooks/use-toast";
 import { Supplier, SupplierSpecialty } from "@/types/supplier";
 
 interface SupplierModalProps {

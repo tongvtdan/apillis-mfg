@@ -5,7 +5,7 @@ import { Routes, Route } from "react-router-dom";
 import { AppLayout } from "@/components/layout/AppLayout";
 import { AuthProvider } from "@/core/auth";
 import { ProtectedRoute } from "@/components/auth/ProtectedRoute";
-import { useSessionManager } from "@/hooks/useSessionManager";
+import { useSessionManager } from "@/core/auth/hooks";
 import { useEffect } from "react";
 import Index from "./pages/Index";
 import Dashboard from "./pages/Dashboard";

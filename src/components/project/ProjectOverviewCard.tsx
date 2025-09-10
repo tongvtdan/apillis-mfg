@@ -26,7 +26,7 @@ import { cn } from "@/lib/utils";
 import { format, formatDistanceToNow, differenceInDays, parseISO } from "date-fns";
 import type { Project, WorkflowStage, ProjectPriority } from "@/types/project";
 // Removed useWorkflowSubStages - sub-stages functionality temporarily disabled
-import { useUserDisplayName } from "@/hooks/useUsers";
+import { useUserDisplayName } from "@/features/customer-management/hooks";
 import {
     Tooltip,
     TooltipContent,

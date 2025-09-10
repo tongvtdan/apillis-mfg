@@ -23,7 +23,7 @@ import { useNavigate } from "react-router-dom";
 import { AnimatedTableRow } from "./ui";
 import { WorkflowValidator } from "@/lib/workflow-validator";
 import { ProjectErrorBoundary } from "@/components/error/ProjectErrorBoundary";
-import { useErrorHandling } from "@/hooks/useErrorHandling";
+import { useErrorHandling } from "@/shared/hooks";
 import { DataUnavailable, LoadingFallback } from "@/components/error/FallbackMechanisms";
 
 interface ProjectTableProps {

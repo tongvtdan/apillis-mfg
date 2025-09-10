@@ -5,7 +5,7 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { AlertCircle, Play, Eye, ChevronRight, CheckCircle, Clock, XCircle, Calendar, DollarSign, Clock as ClockIcon, User, Building2, ExternalLink } from "lucide-react";
 import { Project, ProjectStatus } from "@/types/project";
-import { useUserDisplayName } from "@/hooks/useUsers";
+import { useUserDisplayName } from "@/features/customer-management/hooks";
 import { useNavigate } from "react-router-dom";
 import { WorkflowValidator } from "@/lib/workflow-validator";
 import {
