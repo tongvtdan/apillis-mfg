@@ -12,7 +12,7 @@ import {
     customerSchema,
     contactSchema,
     customerInteractionSchema
-} from '../types/customer-management.types';
+} from '../types/customer.types';
 
 export class CustomerManagementService {
 

@@ -88,7 +88,7 @@ export interface DocumentContextType {
     refreshStats: () => Promise<void>;
 }
 
-const DocumentContext = createContext<DocumentContextType | undefined>(undefined);
+export const DocumentContext = createContext<DocumentContextType | undefined>(undefined);
 
 export function DocumentProvider({ children }: { children: React.ReactNode }) {
     const [documents, setDocuments] = useState<ProjectDocument[]>([]);

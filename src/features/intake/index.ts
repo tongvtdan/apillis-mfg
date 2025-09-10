@@ -9,7 +9,11 @@ export type {
     VolumeItem,
     DocumentItem,
     CustomerSearchResult,
-    ContactSearchResult,
+    ContactSearchResult
+} from './types/intake.types';
+
+// Constants (export as values, not types)
+export {
     SUBMISSION_TYPE_CONFIG
 } from './types/intake.types';
 

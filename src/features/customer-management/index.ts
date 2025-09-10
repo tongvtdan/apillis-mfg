@@ -10,18 +10,22 @@ export type {
     CustomerSearchResult,
     CustomerMetrics,
     CustomerHealthScore,
-    CUSTOMER_STATUS_CONFIG,
-    CUSTOMER_TYPE_CONFIG,
-    CUSTOMER_TIER_CONFIG,
-    CONTACT_RELATIONSHIP_CONFIG,
     CustomerStatus,
     CustomerType,
     CustomerTier,
     CustomerLifecycleStage
-} from './types/customer-management.types';
+} from './types/customer.types';
+
+// Constants (export as values, not types)
+export {
+    CUSTOMER_STATUS_CONFIG,
+    CUSTOMER_TYPE_CONFIG,
+    CUSTOMER_TIER_CONFIG,
+    CONTACT_RELATIONSHIP_CONFIG
+} from './types/customer.types';
 
 // Services
 export { CustomerManagementService } from './services/customerManagementService';
 
 // Validation
-export { customerSchema, contactSchema, customerInteractionSchema } from './types/customer-management.types';
+export { customerSchema, contactSchema, customerInteractionSchema } from './types/customer.types';

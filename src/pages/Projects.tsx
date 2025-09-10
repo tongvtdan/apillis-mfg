@@ -12,7 +12,7 @@ import { ProjectType, PROJECT_TYPE_LABELS, Project, WorkflowStage } from "@/type
 
 import { useSearchParams, useNavigate } from "react-router-dom";
 import { CheckCircle2, Clock, AlertCircle, Calendar } from "lucide-react";
-import { useWorkflowSubStages } from "@/hooks/useWorkflowSubStages";
+// Removed useWorkflowSubStages - sub-stages functionality temporarily disabled
 import { useProjectSubStageProgress } from "@/hooks/useProjectSubStageProgress";
 import { ProjectErrorBoundary } from "@/components/error/ProjectErrorBoundary";
 import { DatabaseErrorHandler } from "@/components/error/DatabaseErrorHandler";
@@ -184,11 +184,9 @@ export default function Projects() {
     }
   }, [selectedProjectType, setSearchParams]);
 
-  // Fetch sub-stages for the selected stage
-  const { subStages, loading: subStagesLoading } = useWorkflowSubStages({
-    stageId: selectedStage,
-    enabled: !!selectedStage
-  });
+  // Fetch sub-stages for the selected stage (temporarily disabled)
+  const subStages: any[] = [];
+  const subStagesLoading = false;
 
   // Load workflow stages from database
   React.useEffect(() => {

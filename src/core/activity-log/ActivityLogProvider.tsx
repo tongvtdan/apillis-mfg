@@ -103,7 +103,7 @@ export interface ActivityLogContextType {
     archiveOldEntries: (daysOld: number) => Promise<number>;
 }
 
-const ActivityLogContext = createContext<ActivityLogContextType | undefined>(undefined);
+export const ActivityLogContext = createContext<ActivityLogContextType | undefined>(undefined);
 
 export function ActivityLogProvider({ children }: { children: React.ReactNode }) {
     const [entries, setEntries] = useState<ActivityLogEntry[]>([]);

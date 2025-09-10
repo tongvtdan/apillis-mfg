@@ -7,8 +7,9 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Progress } from '@/components/ui/progress';
 import { Badge } from '@/components/ui/badge';
 import { Upload, X, FileText, AlertCircle, CheckCircle, Trash2 } from 'lucide-react';
-import { useDocuments, type DocumentMetadata } from '@/hooks/useDocuments';
-import { useWorkflowStages } from '@/hooks/useWorkflowStages';
+import { useCurrentDocuments } from '@/core/documents/useDocument';
+import { workflowStageService } from '@/services/workflowStageService';
+import type { DocumentMetadata } from '@/types/project';
 import { validateFileUploads } from '@/lib/validation/project-schemas';
 import { toast } from 'sonner';
 
@@ -53,8 +54,20 @@ export const DocumentUploadZone: React.FC<DocumentUploadZoneProps> = ({
     currentStageId,
     onClose
 }) => {
-    const { uploadDocument } = useDocuments(projectId);
-    const { data: workflowStages } = useWorkflowStages();
+    const { documents } = useCurrentDocuments();
+    const [workflowStages, setWorkflowStages] = useState([]);
+
+    React.useEffect(() => {
+        const fetchStages = async () => {
+            try {
+                const stages = await workflowStageService.getWorkflowStages();
+                setWorkflowStages(stages);
+            } catch (error) {
+                console.error('Error fetching workflow stages:', error);
+            }
+        };
+        fetchStages();
+    }, []);
     const fileInputRef = useRef<HTMLInputElement>(null);
 
     const [files, setFiles] = useState<FileWithMetadata[]>([]);

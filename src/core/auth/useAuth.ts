@@ -1,19 +1,12 @@
-import { useContext } from 'react';
-import { AuthContext, AuthContextType } from './AuthProvider';
+import { AuthContextType } from './AuthProvider';
+import { useAuth as useAuthProvider } from './AuthProvider';
 
 /**
  * Custom hook to access authentication context
  * Provides type-safe access to auth state and methods
+ * Re-exports the useAuth hook from AuthProvider for consistency
  */
-export function useAuth(): AuthContextType {
-    const context = useContext(AuthContext);
-
-    if (context === undefined) {
-        throw new Error('useAuth must be used within an AuthProvider');
-    }
-
-    return context;
-}
+export const useAuth = useAuthProvider;
 
 /**
  * Hook to get current user information

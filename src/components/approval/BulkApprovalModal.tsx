@@ -11,7 +11,7 @@ import { Badge } from '@/components/ui/badge';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
 import { Separator } from '@/components/ui/separator';
-import { useApprovals } from '@/hooks/useApprovals';
+import { useCurrentApprovals } from '@/core/approvals/useApproval';
 import { supabase } from '@/integrations/supabase/client';
 import {
     CheckCircle,

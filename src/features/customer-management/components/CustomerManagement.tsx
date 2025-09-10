@@ -44,7 +44,7 @@ import {
     customerSchema,
     contactSchema,
     customerInteractionSchema
-} from '../types/customer-management.types';
+} from '../types/customer.types';
 import { CustomerManagementService } from '../services/customerManagementService';
 
 interface CustomerManagementProps {

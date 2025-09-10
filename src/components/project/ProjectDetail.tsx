@@ -13,7 +13,7 @@ import {
 } from "lucide-react";
 import type { Project, WorkflowStage } from "@/types/project";
 import { projectService } from "@/services/projectService";
-import { useWorkflowStages } from "@/hooks/useWorkflowStages";
+import { workflowStageService } from "@/services/workflowStageService";
 import { useProjects } from "@/hooks/useProjects";
 import { useAuth } from "@/core/auth";
 import { useToast } from "@/hooks/use-toast";
@@ -42,7 +42,22 @@ export function EnhancedProjectDetail() {
     const [activeTab, setActiveTab] = useState('overview');
 
     // Hooks for data
-    const { data: workflowStages = [], isLoading: stagesLoading } = useWorkflowStages();
+    const [workflowStages, setWorkflowStages] = useState<WorkflowStage[]>([]);
+    const [stagesLoading, setStagesLoading] = useState(true);
+
+    React.useEffect(() => {
+        const fetchStages = async () => {
+            try {
+                const stages = await workflowStageService.getWorkflowStages();
+                setWorkflowStages(stages);
+            } catch (error) {
+                console.error('Error fetching workflow stages:', error);
+            } finally {
+                setStagesLoading(false);
+            }
+        };
+        fetchStages();
+    }, []);
     const { projects } = useProjects();
 
     // Load project data

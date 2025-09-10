@@ -15,7 +15,7 @@ import {
     Info
 } from "lucide-react";
 import { Project, WorkflowStage } from "@/types/project";
-import { useWorkflowStages } from "@/hooks/useWorkflowStages";
+import { workflowStageService } from "@/services/workflowStageService";
 import {
     Tooltip,
     TooltipContent,
@@ -49,7 +49,22 @@ export function StageProgression({
     showDetails = true,
     compact = false
 }: EnhancedStageProgressionProps) {
-    const { data: workflowStages = [], isLoading } = useWorkflowStages();
+    const [workflowStages, setWorkflowStages] = useState<WorkflowStage[]>([]);
+    const [isLoading, setIsLoading] = useState(true);
+
+    React.useEffect(() => {
+        const fetchStages = async () => {
+            try {
+                const stages = await workflowStageService.getWorkflowStages();
+                setWorkflowStages(stages);
+            } catch (error) {
+                console.error('Error fetching workflow stages:', error);
+            } finally {
+                setIsLoading(false);
+            }
+        };
+        fetchStages();
+    }, []);
     const [hoveredStage, setHoveredStage] = useState<string | null>(null);
 
     // Calculate stage statuses

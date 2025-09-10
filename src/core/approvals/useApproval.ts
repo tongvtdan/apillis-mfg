@@ -1,19 +1,12 @@
-import { useContext } from 'react';
-import { ApprovalContext, ApprovalContextType } from './ApprovalProvider';
+import { ApprovalContextType } from './ApprovalProvider';
+import { useApproval as useApprovalProvider } from './ApprovalProvider';
 
 /**
  * Custom hook to access approval context
  * Provides type-safe access to approval state and methods
+ * Re-exports the useApproval hook from ApprovalProvider for consistency
  */
-export function useApproval(): ApprovalContextType {
-    const context = useContext(ApprovalContext);
-
-    if (context === undefined) {
-        throw new Error('useApproval must be used within an ApprovalProvider');
-    }
-
-    return context;
-}
+export const useApproval = useApprovalProvider;
 
 /**
  * Hook to get current approval state

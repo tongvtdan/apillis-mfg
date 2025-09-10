@@ -19,7 +19,11 @@ export type {
     WidgetType,
     WidgetSize,
     WidgetPosition,
-    ChartType,
+    ChartType
+} from './types/dashboard.types';
+
+// Constants (export as values, not types)
+export {
     DASHBOARD_THEMES,
     WIDGET_DEFAULTS
 } from './types/dashboard.types';

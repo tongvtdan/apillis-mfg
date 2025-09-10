@@ -60,7 +60,7 @@ export interface WorkflowContextType {
     refreshWorkflowState: (projectId: string) => Promise<void>;
 }
 
-const WorkflowContext = createContext<WorkflowContextType | undefined>(undefined);
+export const WorkflowContext = createContext<WorkflowContextType | undefined>(undefined);
 
 export function WorkflowProvider({ children }: { children: React.ReactNode }) {
     const [currentProjectId, setCurrentProjectId] = useState<string | null>(null);

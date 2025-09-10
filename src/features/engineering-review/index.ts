@@ -6,7 +6,11 @@ export type {
     EngineeringReviewData,
     EngineeringRisk,
     EngineeringDepartment,
-    ReviewSubmissionResult,
+    ReviewSubmissionResult
+} from './types/engineering-review.types';
+
+// Constants (export as values, not types)
+export {
     DEPARTMENT_CONFIG,
     TECHNICAL_FEASIBILITY_RATINGS,
     COMPLEXITY_LEVELS,

@@ -33,7 +33,7 @@ export interface ApprovalContextType {
     bulkReject: (approvalIds: string[], reason: string, comments?: string) => Promise<boolean>;
 }
 
-const ApprovalContext = createContext<ApprovalContextType | undefined>(undefined);
+export const ApprovalContext = createContext<ApprovalContextType | undefined>(undefined);
 
 export function ApprovalProvider({ children }: { children: React.ReactNode }) {
     const [approvals, setApprovals] = useState<Approval[]>([]);

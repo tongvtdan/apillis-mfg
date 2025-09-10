@@ -9,11 +9,15 @@ export type {
     ScenarioComparison,
     CostBreakdown,
     PricingRecommendation,
-    COSTING_CONFIG,
     CostCategory,
     CostType,
     MarginType,
     PricingStrategy
+} from './types/costing-engine.types';
+
+// Constants (export as values, not types)
+export {
+    COSTING_CONFIG
 } from './types/costing-engine.types';
 
 // Services

@@ -1,7 +1,7 @@
 // Types for the new centralized approval system
 // This replaces the makeshift use of reviews table for approvals
 
-import { User } from '@/types/auth';
+import { UserProfile } from '@/core/auth';
 
 export type ApprovalType =
     | 'stage_transition'           // Workflow stage transitions
@@ -104,9 +104,9 @@ export interface Approval {
     created_by?: string;
 
     // Computed/joined fields
-    requester?: User;
-    current_approver?: User;
-    decided_by_user?: User;
+    requester?: UserProfile;
+    current_approver?: UserProfile;
+    decided_by_user?: UserProfile;
     entity?: any; // The actual entity being approved
 }
 
@@ -130,7 +130,7 @@ export interface ApprovalHistory {
     created_at: string;
 
     // Computed/joined fields
-    action_by_user?: User;
+    action_by_user?: UserProfile;
 }
 
 export interface ApprovalAttachment {
@@ -156,7 +156,7 @@ export interface ApprovalAttachment {
     created_at: string;
 
     // Computed/joined fields
-    uploaded_by_user?: User;
+    uploaded_by_user?: UserProfile;
 }
 
 export interface ApprovalNotification {
@@ -187,7 +187,7 @@ export interface ApprovalNotification {
     created_at: string;
 
     // Computed/joined fields
-    recipient?: User;
+    recipient?: UserProfile;
 }
 
 export interface ApprovalDelegation {
@@ -204,8 +204,8 @@ export interface ApprovalDelegation {
     updated_at: string;
 
     // Computed/joined fields
-    delegator?: User;
-    delegate?: User;
+    delegator?: UserProfile;
+    delegate?: UserProfile;
 }
 
 export interface ApprovalDelegationMapping {

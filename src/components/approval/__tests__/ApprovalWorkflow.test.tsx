@@ -74,7 +74,7 @@ vi.mock('@/hooks/useApprovals', () => ({
     })
 }));
 
-vi.mock('@/contexts/AuthContext', () => ({
+vi.mock('@/core/auth', () => ({
     AuthProvider: ({ children }: { children: React.ReactNode }) => <div>{children}</div>,
     useAuth: () => ({
         user: {

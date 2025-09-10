@@ -6,7 +6,7 @@ import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { vi } from 'vitest';
 
 // Mock the auth context
-vi.mock('@/contexts/AuthContext', () => ({
+vi.mock('@/core/auth', () => ({
     useAuth: () => ({
         user: {
             id: 'user-1',

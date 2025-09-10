@@ -1,19 +1,12 @@
-import { useContext } from 'react';
-import { WorkflowContext, WorkflowContextType } from './WorkflowProvider';
+import { WorkflowContextType } from './WorkflowProvider';
+import { useWorkflow as useWorkflowProvider } from './WorkflowProvider';
 
 /**
  * Custom hook to access workflow context
  * Provides type-safe access to workflow state and methods
+ * Re-exports the useWorkflow hook from WorkflowProvider for consistency
  */
-export function useWorkflow(): WorkflowContextType {
-    const context = useContext(WorkflowContext);
-
-    if (context === undefined) {
-        throw new Error('useWorkflow must be used within a WorkflowProvider');
-    }
-
-    return context;
-}
+export const useWorkflow = useWorkflowProvider;
 
 /**
  * Hook to get current project workflow state

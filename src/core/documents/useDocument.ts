@@ -1,19 +1,12 @@
-import { useContext } from 'react';
-import { DocumentContext, DocumentContextType } from './DocumentProvider';
+import { DocumentContextType } from './DocumentProvider';
+import { useDocument as useDocumentProvider } from './DocumentProvider';
 
 /**
  * Custom hook to access document context
  * Provides type-safe access to document state and methods
+ * Re-exports the useDocument hook from DocumentProvider for consistency
  */
-export function useDocument(): DocumentContextType {
-    const context = useContext(DocumentContext);
-
-    if (context === undefined) {
-        throw new Error('useDocument must be used within a DocumentProvider');
-    }
-
-    return context;
-}
+export const useDocument = useDocumentProvider;
 
 /**
  * Hook to get current document state

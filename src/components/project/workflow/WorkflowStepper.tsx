@@ -25,7 +25,7 @@ import { WorkflowBypassDialog } from './WorkflowBypassDialog';
 import { StageTransitionValidator } from './StageTransitionValidator';
 import { usePermissions } from '@/hooks/usePermissions';
 import { WorkflowBypassRequest } from '@/lib/workflow-validator';
-import { useWorkflowAutoAdvance } from '@/hooks/useWorkflowAutoAdvance';
+import { useWorkflowAutoAdvance } from '@/core/workflow/useWorkflowAutoAdvance';
 import { useStageTransition } from '@/hooks/useStageTransition';
 import { projectService } from '@/services/projectService';
 import { workflowStageService } from '@/services/workflowStageService';

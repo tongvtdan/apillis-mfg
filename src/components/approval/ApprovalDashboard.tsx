@@ -4,7 +4,7 @@ import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Checkbox } from '@/components/ui/checkbox';
-import { useApprovals } from '@/hooks/useApprovals';
+import { useCurrentApprovals } from '@/core/approvals/useApproval';
 import { useCentralizedApprovals } from '@/hooks/useCentralizedApprovals';
 import { ApprovalModal } from './ApprovalModal';
 import { ApprovalHistoryList } from './ApprovalHistoryList';
@@ -27,7 +27,8 @@ import {
 import { formatDistanceToNow } from 'date-fns';
 
 export function ApprovalDashboard() {
-    const { pendingApprovals, approvalHistory, loading } = useApprovals();
+    const { pendingApprovals, loading } = useCurrentApprovals();
+    const approvalHistory: any[] = []; // TODO: Implement approval history fetching
     const { pendingApprovals: centralizedPendingApprovals, loading: centralizedLoading } = useCentralizedApprovals();
     const [activeEntityType, setActiveEntityType] = useState('all'); // 'all', 'project', 'document', 'rfq'
 

@@ -9,15 +9,19 @@ export type {
     SupplierSearchFilters,
     SupplierSearchResult,
     SupplierPerformance,
-    QUALIFICATION_CRITERIA,
-    SUPPLIER_STATUS_CONFIG,
-    SUPPLIER_TYPE_CONFIG,
-    QUALIFICATION_STATUS_CONFIG,
-    RFQ_STATUS_CONFIG,
     SupplierStatus,
     SupplierType,
     QualificationStatus,
     RFQWorkflowState
+} from './types/supplier-management.types';
+
+// Constants (export as values, not types)
+export {
+    QUALIFICATION_CRITERIA,
+    SUPPLIER_STATUS_CONFIG,
+    SUPPLIER_TYPE_CONFIG,
+    QUALIFICATION_STATUS_CONFIG,
+    RFQ_STATUS_CONFIG
 } from './types/supplier-management.types';
 
 // Services

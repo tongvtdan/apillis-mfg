@@ -35,18 +35,18 @@ import ProjectCommunication from "@/components/project/ProjectCommunication";
 import { WorkflowStepper } from "@/components/project/workflow";
 import { useProjectMessages } from "@/hooks/useMessages";
 import { DocumentManager } from "@/components/project/documents";
-import { useDocuments } from "@/hooks/useDocuments";
+import { useCurrentDocuments } from "@/core/documents/useDocument";
 
 import { useProjectReviews } from "@/hooks/useProjectReviews";
 import { useProjects } from "@/hooks/useProjects";
-import { useWorkflowAutoAdvance } from "@/hooks/useWorkflowAutoAdvance";
+import { useWorkflowAutoAdvance } from "@/core/workflow/useWorkflowAutoAdvance";
 import { ProjectReviewForm, ReviewConfiguration, ReviewList, ReviewAssignmentModal } from "@/components/project/workflow";
 import { useUserDisplayName } from "@/hooks/useUsers";
 import { useAuth } from "@/core/auth";
 import { ProjectDetailHeader } from "@/components/project/ProjectDetailHeader";
 import { ProjectSummaryCard } from "@/components/project/ProjectSummaryCard";
 import { VisualTimelineProgression } from "@/components/project/ui";
-import { useWorkflowStages } from "@/hooks/useWorkflowStages";
+import { workflowStageService } from "@/services/workflowStageService";
 import { ResponsiveNavigationWrapper, TabTransition, TabContentWrapper } from "@/components/project/ui";
 import { useProjectNavigation } from "@/hooks/useProjectNavigation";
 import { useSmoothProjectUpdates } from "@/hooks/useSmoothProjectUpdates";
@@ -80,7 +80,7 @@ export default function ProjectDetail() {
 
   const { reviews, loading: reviewsLoading, submitReview } = useProjectReviews(id || '');
 
-  const { data: documents = [], isLoading: documentsLoading } = useDocuments(id || '');
+  const { documents, loading: documentsLoading } = useCurrentDocuments();
 
   // Calculate documents that might need attention (recent uploads, pending approval, etc.)
   const documentsPendingApproval = useMemo(() => {
@@ -130,7 +130,22 @@ export default function ProjectDetail() {
   const [selectedReview, setSelectedReview] = useState<InternalReview | null>(null);
 
   // Get workflow stages
-  const { data: workflowStages = [], isLoading: stagesLoading } = useWorkflowStages();
+  const [workflowStages, setWorkflowStages] = useState([]);
+  const [stagesLoading, setStagesLoading] = useState(true);
+
+  useEffect(() => {
+    const fetchStages = async () => {
+      try {
+        const stages = await workflowStageService.getWorkflowStages();
+        setWorkflowStages(stages);
+      } catch (error) {
+        console.error('Error fetching workflow stages:', error);
+      } finally {
+        setStagesLoading(false);
+      }
+    };
+    fetchStages();
+  }, []);
 
   // Get the project from the projects array - SINGLE DATA SOURCE
   const project = projects.find(p => p.id === id) || null;
