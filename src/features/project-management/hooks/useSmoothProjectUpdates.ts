@@ -31,6 +31,14 @@ export function useSmoothProjectUpdates({
     const debounceTimeoutRef = useRef<NodeJS.Timeout>();
     const { toast } = useToast();
 
+    // Update project state when initialProject changes
+    useEffect(() => {
+        if (initialProject && Object.keys(initialProject).length > 0) {
+            console.log('🔄 useSmoothProjectUpdates: Updating project state with initialProject:', initialProject);
+            setProject(initialProject);
+        }
+    }, [initialProject]);
+
     // Update project with debouncing
     const updateProject = useCallback(async (updates: Partial<Project>): Promise<Project> => {
         setIsUpdating(true);

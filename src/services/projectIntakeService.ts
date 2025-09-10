@@ -92,9 +92,9 @@ export class ProjectIntakeService {
                 description: intakeData.description,
                 customer_organization_id: intakeData.customer_organization_id,
                 point_of_contacts: intakeData.point_of_contacts || [],
-                priority_level: priority, // Use correct field name
+                priority: priority, // Use correct field name for useProjectCreation
                 estimated_value: intakeData.estimated_value,
-                estimated_delivery_date: intakeData.due_date, // Map to correct field name
+                due_date: intakeData.due_date, // Map to correct field name
                 notes: intakeData.notes,
                 tags: tags,
                 intake_type: mapping.intakeType,

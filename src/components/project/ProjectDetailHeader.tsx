@@ -84,9 +84,17 @@ export function ProjectDetailHeader({
             ? Math.round((currentStageIndex / (workflowStages.length - 1)) * 100)
             : 0;
 
-        const stageEnteredAt = project.stage_entered_at ? parseISO(project.stage_entered_at) : parseISO(project.created_at);
+        const stageEnteredAt = project.stage_entered_at
+            ? parseISO(project.stage_entered_at)
+            : project.created_at
+                ? parseISO(project.created_at)
+                : new Date(); // Fallback to current date if both are undefined
+
         const daysInStage = differenceInDays(new Date(), stageEnteredAt);
-        const totalDuration = differenceInDays(new Date(), parseISO(project.created_at));
+
+        const totalDuration = project.created_at
+            ? differenceInDays(new Date(), parseISO(project.created_at))
+            : 0; // If no created_at, duration is 0
 
         // Calculate health score
         let healthScore = 100;
@@ -160,8 +168,16 @@ export function ProjectDetailHeader({
     const assigneeId = project.assigned_to || project.assignee_id;
     const assigneeDisplayName = useUserDisplayName(assigneeId);
 
-    // Get owner display name using created_by field with fallback to contact lookup
-    const ownerDisplayName = useOwnerDisplayName(project.created_by);
+    // Get owner display name using assigned_to field (current owner) with fallback to created_by (creator)
+    const ownerDisplayName = useOwnerDisplayName(project.assigned_to || project.created_by);
+
+    // Debug logging for owner fields
+    console.log('🔍 ProjectDetailHeader: Owner fields debug:', {
+        projectId: project.id,
+        assigned_to: project.assigned_to,
+        created_by: project.created_by,
+        ownerDisplayName: ownerDisplayName
+    });
 
     // Quick actions configuration
     const quickActions: QuickAction[] = [
@@ -320,8 +336,8 @@ export function ProjectDetailHeader({
                                         {(project.priority_level || 'normal').charAt(0).toUpperCase() + (project.priority_level || 'normal').slice(1)} Priority
                                     </Badge>
 
-                                    <Badge className={cn("text-xs", getStatusColor(project.status))}>
-                                        {project.status.charAt(0).toUpperCase() + project.status.slice(1)}
+                                    <Badge className={cn("text-xs", getStatusColor(project.status || 'active'))}>
+                                        {project.status ? project.status.charAt(0).toUpperCase() + project.status.slice(1) : 'Active'}
                                     </Badge>
 
                                     {/* Current Stage Badge */}
@@ -342,7 +358,7 @@ export function ProjectDetailHeader({
 
                                 <div className="flex items-center space-x-1">
                                     <Calendar className="w-4 h-4" />
-                                    <span>Created: {format(parseISO(project.created_at), 'MMM dd, yyyy')}</span>
+                                    <span>Created: {project.created_at ? format(parseISO(project.created_at), 'MMM dd, yyyy') : 'Unknown'}</span>
                                 </div>
 
                                 <Separator orientation="vertical" className="h-4" />

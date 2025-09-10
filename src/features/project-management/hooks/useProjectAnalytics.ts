@@ -27,10 +27,10 @@ export function useProjectAnalytics() {
                 .from('projects')
                 .select(`
           *,
-          customer_organization:organizations(*),
+          customer_organization:organizations!customer_organization_id(*),
           current_stage:workflow_stages(*)
         `)
-                .eq('organization_id', profile.organization_id); // Add organization filter
+                .eq('organization_id', profile.organization_id as any);
 
             if (allProjectsError) {
                 console.error('❌ Error fetching all projects:', allProjectsError);
@@ -39,19 +39,19 @@ export function useProjectAnalytics() {
 
             console.log('📊 Database status:');
             console.log(`  - Total projects found: ${allProjects?.length || 0}`);
-            console.log(`  - Available project IDs:`, allProjects?.map(p => p.id) || []);
-            console.log(`  - Sample project IDs:`, allProjects?.map(p => p.project_id) || []);
+            console.log(`  - Available project IDs:`, allProjects?.map(p => 'id' in p ? p.id : null).filter(Boolean) || []);
+            console.log(`  - Sample project IDs:`, allProjects?.map(p => 'project_id' in p ? p.project_id : null).filter(Boolean) || []);
 
             // Try to fetch with exact ID first
             let { data, error } = await supabase
                 .from('projects')
                 .select(`
           *,
-          customer_organization:organizations(*),
+          customer_organization:organizations!customer_organization_id(*),
           current_stage:workflow_stages(*)
         `)
-                .eq('id', id)
-                .eq('organization_id', profile.organization_id) // Add organization filter
+                .eq('id', id as any)
+                .eq('organization_id', profile.organization_id as any)
                 .single();
 
             if (error) {
@@ -64,8 +64,8 @@ export function useProjectAnalytics() {
             customer:contacts(*),
             current_stage:workflow_stages(*)
           `)
-                    .eq('project_id', id)
-                    .eq('organization_id', profile.organization_id) // Add organization filter
+                    .eq('project_id', id as any)
+                    .eq('organization_id', profile.organization_id as any)
                     .single();
 
                 if (altError) {
@@ -74,7 +74,7 @@ export function useProjectAnalytics() {
                     return null;
                 }
 
-                data = altData;
+                data = altData as any;
                 error = altError;
             }
 
@@ -88,8 +88,8 @@ export function useProjectAnalytics() {
                 return null;
             }
 
-            console.log('✅ Successfully fetched project:', data.project_id);
-            return data as Project;
+            console.log('✅ Successfully fetched project:', 'project_id' in data ? data.project_id : 'Unknown');
+            return data as unknown as Project;
         } catch (err) {
             console.error('❌ Unexpected error in getProjectById:', err);
             return null;
@@ -123,7 +123,7 @@ export function useProjectAnalytics() {
             const { data: projects, error: projectsError } = await supabase
                 .from('projects')
                 .select('id, project_id, title, customer_organization_id')
-                .eq('organization_id', profile?.organization_id)
+                .eq('organization_id', profile?.organization_id as any)
                 .limit(5);
 
             if (projectsError) {
@@ -135,7 +135,7 @@ export function useProjectAnalytics() {
 
             // Get customer organization IDs
             const customerOrgIds = [...new Set(projects
-                .map(p => p.customer_organization_id)
+                .map(p => 'customer_organization_id' in p ? p.customer_organization_id : null)
                 .filter(id => id)
             )];
 
@@ -157,7 +157,7 @@ export function useProjectAnalytics() {
 
                 if (!orgError && orgs) {
                     // Create lookup map
-                    const orgMap = orgs.reduce((acc, org) => {
+                    const orgMap = orgs.reduce((acc: any, org: any) => {
                         acc[org.id] = org;
                         return acc;
                     }, {});
@@ -166,9 +166,9 @@ export function useProjectAnalytics() {
 
                     // Test mapping
                     projects.forEach(project => {
-                        const customerOrg = project.customer_organization_id ?
+                        const customerOrg = ('customer_organization_id' in project && project.customer_organization_id) ?
                             orgMap[project.customer_organization_id] || null : null;
-                        console.log(`📝 Project ${project.project_id}: customer_organization_id=${project.customer_organization_id}, customerOrg=`, customerOrg);
+                        console.log(`📝 Project ${'project_id' in project ? project.project_id : 'Unknown'}: customer_organization_id=${'customer_organization_id' in project ? project.customer_organization_id : 'N/A'}, customerOrg=`, customerOrg);
                     });
                 }
             }

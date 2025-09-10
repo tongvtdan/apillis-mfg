@@ -10,6 +10,11 @@ import { useEffect } from "react";
 import Index from "./pages/Index";
 import Dashboard from "./pages/Dashboard";
 
+// Import providers
+import { DocumentProvider } from "@/core/documents/DocumentProvider";
+import { WorkflowProvider } from "@/core/workflow/WorkflowProvider";
+import { ApprovalProvider } from "@/core/approvals/ApprovalProvider";
+
 
 import AdminUsers from "./pages/AdminUsers";
 import AdminPermissions from "./pages/AdminPermissions";
@@ -113,7 +118,13 @@ const App = () => {
             } />
             <Route path="/project/:id" element={
               <ProtectedRoute>
-                <ProjectDetail />
+                <WorkflowProvider>
+                  <ApprovalProvider>
+                    <DocumentProvider>
+                      <ProjectDetail />
+                    </DocumentProvider>
+                  </ApprovalProvider>
+                </WorkflowProvider>
               </ProtectedRoute>
             } />
             <Route path="/production" element={

@@ -36,7 +36,7 @@ export function useProjectCreation() {
         }
 
         let sequenceNumber = 1;
-        if (data && data.length > 0) {
+        if (data && data.length > 0 && data[0] && 'project_id' in data[0]) {
             const lastProjectId = data[0].project_id;
             const lastSequence = parseInt(lastProjectId.slice(-3));
             sequenceNumber = lastSequence + 1;
@@ -74,7 +74,7 @@ export function useProjectCreation() {
             const { data: userData, error: userError } = await supabase
                 .from('users')
                 .select('organization_id')
-                .eq('id', user.id)
+                .eq('id', user.id as any)
                 .single();
 
             if (userError) {
@@ -84,15 +84,15 @@ export function useProjectCreation() {
 
             console.log('🔍 User organization verification:', {
                 profile_org_id: profile.organization_id,
-                database_org_id: userData?.organization_id,
+                database_org_id: userData && 'organization_id' in userData ? userData.organization_id : null,
                 user_id: user.id,
                 user_email: user.email
             });
 
-            if (userData?.organization_id !== profile.organization_id) {
+            if (userData && 'organization_id' in userData && userData.organization_id !== profile.organization_id) {
                 console.error('❌ Organization ID mismatch:', {
                     profile_org_id: profile.organization_id,
-                    database_org_id: userData?.organization_id,
+                    database_org_id: userData.organization_id,
                     user_id: user.id
                 });
                 // For now, let's use the profile organization ID and continue
@@ -129,31 +129,29 @@ export function useProjectCreation() {
             const { data, error } = await supabase
                 .from('projects')
                 .insert({
-                    organization_id: profile.organization_id, // Ensure organization_id is passed
+                    organization_id: profile.organization_id,
                     title: projectData.title,
-                    description: projectData.description,
-                    customer_organization_id: projectData.customer_organization_id,
+                    description: projectData.description || null,
+                    customer_organization_id: projectData.customer_organization_id || null,
                     priority_level: (projectData.priority || 'normal') as 'low' | 'normal' | 'high' | 'urgent',
-                    estimated_value: projectData.estimated_value,
-                    estimated_delivery_date: projectData.due_date,
+                    estimated_value: projectData.estimated_value || null,
+                    estimated_delivery_date: projectData.due_date || null,
                     status: 'draft' as 'draft' | 'inquiry' | 'reviewing' | 'quoted' | 'confirmed' | 'procurement' | 'production' | 'completed' | 'cancelled',
                     source: 'manual',
                     created_by: user.id,
                     tags: projectData.tags || [],
-                    notes: projectData.notes,
-                    intake_type: projectData.intake_type,
+                    notes: projectData.notes || null,
+                    intake_type: projectData.intake_type || null,
                     intake_source: projectData.intake_source || 'portal',
-                    project_type: projectData.project_type,
-                    current_stage_id: projectData.current_stage_id,
-                    // Use pre-generated or generated project ID
+                    project_type: projectData.project_type || null,
+                    current_stage_id: projectData.current_stage_id || null,
                     project_id: projectId,
                     stage_entered_at: new Date().toISOString(),
-                    // Store additional metadata
                     metadata: projectData.metadata || {}
-                })
+                } as any)
                 .select(`
           *,
-          customer_organization:organizations(*),
+          customer_organization:organizations!customer_organization_id(*),
           current_stage:workflow_stages(*)
         `)
                 .single();
@@ -237,12 +235,14 @@ export function useProjectCreation() {
 
             console.log('✅ Project created successfully:', data);
 
-            toast({
-                title: "Project Created",
-                description: `Project ${data.project_id} has been created successfully.`,
-            });
+            if (data && 'project_id' in data) {
+                toast({
+                    title: "Project Created",
+                    description: `Project ${data.project_id} has been created successfully.`,
+                });
+            }
 
-            return data as Project;
+            return data as unknown as Project;
         } catch (error) {
             console.error('Error creating project:', error);
             const errorMessage = error instanceof Error ? error.message : "An unknown error occurred";
@@ -274,19 +274,19 @@ export function useProjectCreation() {
             const { data: existingOrg } = await supabase
                 .from('organizations')
                 .select('*')
-                .eq('organization_type', 'customer')
-                .eq('is_active', true)
-                .eq('name', customerData.company)
+                .eq('organization_type', 'customer' as any)
+                .eq('is_active', true as any)
+                .eq('name', customerData.company as any)
                 .single();
 
-            if (existingOrg) {
+            if (existingOrg && 'id' in existingOrg) {
                 // Find a contact for this organization
                 const { data: existingContact } = await supabase
                     .from('contacts')
                     .select('*')
-                    .eq('organization_id', existingOrg.id)
-                    .eq('type', 'customer')
-                    .eq('is_active', true)
+                    .eq('organization_id', existingOrg.id as any)
+                    .eq('type', 'customer' as any)
+                    .eq('is_active', true as any)
                     .single();
 
                 if (existingContact) {
@@ -310,7 +310,7 @@ export function useProjectCreation() {
                     organization_type: 'customer',
                     is_active: true,
                     created_by: user.id
-                })
+                } as any)
                 .select()
                 .single();
 
@@ -322,14 +322,14 @@ export function useProjectCreation() {
             const { data: newCustomer, error } = await supabase
                 .from('contacts')
                 .insert({
-                    organization_id: newOrg.id,
+                    organization_id: newOrg && 'id' in newOrg ? newOrg.id : null,
                     type: 'customer',
                     contact_name: customerData.name,
-                    email: customerData.email,
-                    phone: customerData.phone,
+                    email: customerData.email || null,
+                    phone: customerData.phone || null,
                     is_active: true,
                     created_by: user.id
-                })
+                } as any)
                 .select()
                 .single();
 

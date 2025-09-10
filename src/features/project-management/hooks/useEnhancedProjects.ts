@@ -80,7 +80,7 @@ export function useEnhancedProjects(
         }
     });
 
-    const realtimeChannelRef = useRef<any>();
+    const realtimeChannelRef = useRef<any>(null);
     const metricsRef = useRef({ queryTime: 0, cacheHit: false, realtimeUpdates: 0 });
 
     // Fetch projects with enhanced features
@@ -120,15 +120,15 @@ export function useEnhancedProjects(
                 .from('projects')
                 .select(`
                     *,
-                    customer_organization:organizations(*),
+                    customer_organization:organizations!customer_organization_id(*),
                     current_stage:workflow_stages(*)
                 `)
-                .eq('organization_id', profile.organization_id)
+                .eq('organization_id', profile.organization_id as any)
                 .order('created_at', { ascending: false });
 
             if (error) throw error;
 
-            const projects = data || [];
+            const projects = (data || []) as unknown as Project[];
             const queryTime = Date.now() - startTime;
 
             // Update metrics

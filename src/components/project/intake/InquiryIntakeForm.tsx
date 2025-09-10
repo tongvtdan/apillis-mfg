@@ -7,8 +7,9 @@ import { Badge } from '@/components/ui/badge';
 import { Form } from '@/components/ui/form';
 import { CheckCircle2, Loader2 } from 'lucide-react';
 import { useToast } from '@/shared/hooks/use-toast';
-import { useProjects } from '@/hooks/useProjects';
+import { useProjectManagement } from '@/features/project-management/hooks';
 import { useCustomerOrganizations } from '@/features/customer-management/hooks/useCustomerOrganizations';
+import { useCustomers } from '@/features/customer-management/hooks/useCustomers';
 import { useAuth } from '@/core/auth';
 import { ProjectIntakeService, ProjectIntakeData } from '@/services/projectIntakeService';
 import { IntakeMappingService } from '@/services/intakeMappingService';
@@ -71,8 +72,9 @@ export function InquiryIntakeForm({ submissionType, onSuccess }: InquiryIntakeFo
     });
 
     const { toast } = useToast();
-    const { createProject } = useProjects();
-    const { customers: organizations, loading: organizationsLoading, createOrganization, refetch } = useCustomerOrganizations();
+    const { createProject } = useProjectManagement();
+    const { customers: organizations, loading: organizationsLoading, refetch } = useCustomerOrganizations();
+    const { createCustomer } = useCustomers();
     const { profile } = useAuth();
 
     // Function to save project documents
@@ -402,19 +404,16 @@ export function InquiryIntakeForm({ submissionType, onSuccess }: InquiryIntakeFo
 
             // If no organization is selected, create a new one
             if (!customerOrganizationId && data.company) {
-                const newOrganization = await createOrganization({
-                    name: data.company,
-                    organization_type: 'customer',
-                    country: 'US', // Default country
-                    website: data.website || undefined,
-                    description: 'Customer Organization'
-                }, {
+                const newCustomer = await createCustomer({
+                    company_name: data.company,
                     contact_name: data.customerName,
                     email: data.email,
                     phone: data.phone,
-                    role: 'primary_contact'
+                    country: 'US', // Default country
+                    website: data.website || undefined,
+                    notes: 'Customer Organization created from inquiry intake'
                 });
-                customerOrganizationId = newOrganization.id;
+                customerOrganizationId = newCustomer.organization_id;
             }
 
             if (!customerOrganizationId) {

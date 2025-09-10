@@ -105,7 +105,7 @@ export default function AuditLog() {
     const getUserName = (userId: string | null) => {
         if (!userId) return 'System';
         const user = users.find(u => u.userId === userId);
-        return user ? user.name : `User ${userId.slice(0, 8)}`;
+        return user ? user.name : 'Unknown User';
     };
 
     const formatDate = (dateString: string) => {

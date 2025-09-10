@@ -234,7 +234,7 @@ export function EnhancedProjectCreationModal({
                 .insert(projectData)
                 .select(`
           *,
-          customer_organization:organizations(*),
+          customer_organization:organizations!customer_organization_id(*),
           current_stage:workflow_stages(*)
         `)
                 .single();

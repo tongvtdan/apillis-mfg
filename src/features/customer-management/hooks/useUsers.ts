@@ -51,7 +51,7 @@ export function useUserDisplayName(userId: string | null | undefined): string {
     const { user, loading } = useUser(userId);
 
     if (loading) return 'Loading...';
-    if (!user) return userId || 'Unknown User';
+    if (!user) return 'Unknown User'; // Return user-friendly message instead of UUID
 
-    return user.name || user.email || userId || 'Unknown User';
+    return user.display_name || user.id || 'Unknown User';
 }
