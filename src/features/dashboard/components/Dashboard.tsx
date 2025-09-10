@@ -22,7 +22,7 @@ import {
     Filter,
     Calendar,
     Download,
-    Refresh,
+    RefreshCw,
     Grid,
     List,
     PieChart
@@ -221,7 +221,7 @@ export function Dashboard({ layout: initialLayout, onLayoutChange, className }: 
                             onClick={loadDashboard}
                             disabled={isLoading}
                         >
-                            <Refresh className="h-4 w-4 mr-1" />
+                            <RefreshCw className="h-4 w-4 mr-1" />
                             Refresh
                         </Button>
 

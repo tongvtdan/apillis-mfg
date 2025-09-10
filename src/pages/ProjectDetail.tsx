@@ -43,6 +43,7 @@ import { useWorkflowAutoAdvance } from "@/core/workflow/useWorkflowAutoAdvance";
 import { ProjectReviewForm, ReviewConfiguration, ReviewList, ReviewAssignmentModal } from "@/components/project/workflow";
 import { useUserDisplayName } from "@/hooks/useUsers";
 import { useAuth } from "@/core/auth";
+import { ApprovalProvider } from "@/core/approvals/ApprovalProvider";
 import { ProjectDetailHeader } from "@/components/project/ProjectDetailHeader";
 import { ProjectSummaryCard } from "@/components/project/ProjectSummaryCard";
 import { VisualTimelineProgression } from "@/components/project/ui";
@@ -393,7 +394,7 @@ export default function ProjectDetail() {
   };
 
   return (
-    <>
+    <ApprovalProvider>
       <ProjectAutoAdvance project={smoothProject} />
       <div className="min-h-screen bg-background">
         {/* Enhanced Header Section */}
@@ -763,7 +764,7 @@ export default function ProjectDetail() {
           />
         )}
       </div>
-    </>
+    </ApprovalProvider>
   );
 }
 

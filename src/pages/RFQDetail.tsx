@@ -8,6 +8,7 @@ import { useRFQs } from '@/hooks/useRFQs';
 import { useReviews } from '@/hooks/useReviews';
 import { usePermissions } from '@/hooks/usePermissions';
 import { useAuth } from '@/core/auth';
+import { ApprovalProvider } from '@/core/approvals/ApprovalProvider';
 import { ReviewForm } from '@/components/review/ReviewForm';
 import { ReviewStatusPanel } from '@/components/review/ReviewStatusPanel';
 import { ClarificationModal } from '@/components/review/ClarificationModal';
@@ -89,260 +90,262 @@ export function RFQDetail() {
   };
 
   return (
-    <div className="container mx-auto p-6 space-y-6">
-      {/* Header */}
-      <div className="flex items-start justify-between">
-        <div>
-          <h1 className="text-3xl font-bold">{rfq.rfq_number}</h1>
-          <p className="text-xl text-muted-foreground mt-1">{rfq.project_name}</p>
+    <ApprovalProvider>
+      <div className="container mx-auto p-6 space-y-6">
+        {/* Header */}
+        <div className="flex items-start justify-between">
+          <div>
+            <h1 className="text-3xl font-bold">{rfq.rfq_number}</h1>
+            <p className="text-xl text-muted-foreground mt-1">{rfq.project_name}</p>
+          </div>
+          <div className="flex gap-2">
+            <Badge className={PRIORITY_COLORS[rfq.priority]}>
+              {rfq.priority} priority
+            </Badge>
+            <Badge variant="outline" className="status-review">
+              {rfq.status}
+            </Badge>
+          </div>
         </div>
-        <div className="flex gap-2">
-          <Badge className={PRIORITY_COLORS[rfq.priority]}>
-            {rfq.priority} priority
-          </Badge>
-          <Badge variant="outline" className="status-review">
-            {rfq.status}
-          </Badge>
-        </div>
-      </div>
 
-      <Tabs defaultValue="overview" className="space-y-4">
-        <TabsList>
-          <TabsTrigger value="overview">Overview</TabsTrigger>
-          <TabsTrigger value="reviews">Internal Reviews</TabsTrigger>
-          <TabsTrigger value="approvals">Approvals</TabsTrigger>
-          <TabsTrigger value="documents">Documents</TabsTrigger>
-          <TabsTrigger value="activity">Activity Log</TabsTrigger>
-        </TabsList>
+        <Tabs defaultValue="overview" className="space-y-4">
+          <TabsList>
+            <TabsTrigger value="overview">Overview</TabsTrigger>
+            <TabsTrigger value="reviews">Internal Reviews</TabsTrigger>
+            <TabsTrigger value="approvals">Approvals</TabsTrigger>
+            <TabsTrigger value="documents">Documents</TabsTrigger>
+            <TabsTrigger value="activity">Activity Log</TabsTrigger>
+          </TabsList>
 
-        <TabsContent value="overview" className="space-y-6">
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-            {/* Basic Information */}
-            <Card>
-              <CardHeader>
-                <CardTitle className="flex items-center gap-2">
-                  <FileText className="w-5 h-5" />
-                  RFQ Information
-                </CardTitle>
-              </CardHeader>
-              <CardContent className="space-y-4">
-                <div className="grid grid-cols-2 gap-4">
-                  <div>
-                    <span className="text-sm font-medium text-muted-foreground">Company</span>
-                    <div className="flex items-center gap-2 mt-1">
-                      <Building2 className="w-4 h-4 text-muted-foreground" />
-                      <span>{rfq.company_name}</span>
+          <TabsContent value="overview" className="space-y-6">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+              {/* Basic Information */}
+              <Card>
+                <CardHeader>
+                  <CardTitle className="flex items-center gap-2">
+                    <FileText className="w-5 h-5" />
+                    RFQ Information
+                  </CardTitle>
+                </CardHeader>
+                <CardContent className="space-y-4">
+                  <div className="grid grid-cols-2 gap-4">
+                    <div>
+                      <span className="text-sm font-medium text-muted-foreground">Company</span>
+                      <div className="flex items-center gap-2 mt-1">
+                        <Building2 className="w-4 h-4 text-muted-foreground" />
+                        <span>{rfq.company_name}</span>
+                      </div>
+                    </div>
+                    <div>
+                      <span className="text-sm font-medium text-muted-foreground">Created</span>
+                      <div className="flex items-center gap-2 mt-1">
+                        <Calendar className="w-4 h-4 text-muted-foreground" />
+                        <span>{format(new Date(rfq.created_at), 'MMM dd, yyyy')}</span>
+                      </div>
                     </div>
                   </div>
-                  <div>
-                    <span className="text-sm font-medium text-muted-foreground">Created</span>
-                    <div className="flex items-center gap-2 mt-1">
-                      <Calendar className="w-4 h-4 text-muted-foreground" />
-                      <span>{format(new Date(rfq.created_at), 'MMM dd, yyyy')}</span>
+
+                  {rfq.estimated_value && (
+                    <div>
+                      <span className="text-sm font-medium text-muted-foreground">Estimated Value</span>
+                      <div className="flex items-center gap-2 mt-1">
+                        <DollarSign className="w-4 h-4 text-muted-foreground" />
+                        <span>${rfq.estimated_value.toLocaleString()}</span>
+                      </div>
                     </div>
-                  </div>
+                  )}
+
+                  {rfq.due_date && (
+                    <div>
+                      <span className="text-sm font-medium text-muted-foreground">Due Date</span>
+                      <div className="flex items-center gap-2 mt-1">
+                        <Calendar className="w-4 h-4 text-muted-foreground" />
+                        <span>{format(new Date(rfq.due_date), 'MMM dd, yyyy')}</span>
+                      </div>
+                    </div>
+                  )}
+
+                  {rfq.description && (
+                    <div>
+                      <span className="text-sm font-medium text-muted-foreground">Description</span>
+                      <p className="mt-1 text-sm">{rfq.description}</p>
+                    </div>
+                  )}
+                </CardContent>
+              </Card>
+
+              {/* Contact Information */}
+              <Card>
+                <CardHeader>
+                  <CardTitle className="flex items-center gap-2">
+                    <User className="w-5 h-5" />
+                    Contact Information
+                  </CardTitle>
+                </CardHeader>
+                <CardContent className="space-y-4">
+                  {rfq.contact_name && (
+                    <div>
+                      <span className="text-sm font-medium text-muted-foreground">Contact Name</span>
+                      <div className="flex items-center gap-2 mt-1">
+                        <User className="w-4 h-4 text-muted-foreground" />
+                        <span>{rfq.contact_name}</span>
+                      </div>
+                    </div>
+                  )}
+
+                  {rfq.contact_email && (
+                    <div>
+                      <span className="text-sm font-medium text-muted-foreground">Email</span>
+                      <div className="flex items-center gap-2 mt-1">
+                        <Mail className="w-4 h-4 text-muted-foreground" />
+                        <a
+                          href={`mailto:${rfq.contact_email}`}
+                          className="text-primary hover:underline"
+                        >
+                          {rfq.contact_email}
+                        </a>
+                      </div>
+                    </div>
+                  )}
+
+                  {rfq.contact_phone && (
+                    <div>
+                      <span className="text-sm font-medium text-muted-foreground">Phone</span>
+                      <div className="flex items-center gap-2 mt-1">
+                        <Phone className="w-4 h-4 text-muted-foreground" />
+                        <a
+                          href={`tel:${rfq.contact_phone}`}
+                          className="text-primary hover:underline"
+                        >
+                          {rfq.contact_phone}
+                        </a>
+                      </div>
+                    </div>
+                  )}
+                </CardContent>
+              </Card>
+            </div>
+
+            {/* Notes */}
+            {rfq.notes && (
+              <Card>
+                <CardHeader>
+                  <CardTitle>Additional Notes</CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <p className="text-sm">{rfq.notes}</p>
+                </CardContent>
+              </Card>
+            )}
+          </TabsContent>
+
+          <TabsContent value="reviews" className="space-y-6">
+            {reviewsLoading ? (
+              <div className="text-center py-8">Loading review data...</div>
+            ) : (
+              <>
+                {/* Review Actions */}
+                <div className="flex gap-2">
+                  {(['Engineering', 'QA', 'Production'] as Department[]).map(department => {
+                    if (!canShowReviewForm(department)) return null;
+
+                    const existingReview = getExistingReview(department);
+                    return (
+                      <Button
+                        key={department}
+                        variant={existingReview ? "outline" : "default"}
+                        onClick={() => setShowReviewForm(department)}
+                      >
+                        {existingReview ? `Update ${department} Review` : `Submit ${department} Review`}
+                      </Button>
+                    );
+                  })}
+
+                  {canReviewRFQ() && (
+                    <ClarificationModal onSubmit={submitClarification} />
+                  )}
                 </div>
 
-                {rfq.estimated_value && (
-                  <div>
-                    <span className="text-sm font-medium text-muted-foreground">Estimated Value</span>
-                    <div className="flex items-center gap-2 mt-1">
-                      <DollarSign className="w-4 h-4 text-muted-foreground" />
-                      <span>${rfq.estimated_value.toLocaleString()}</span>
-                    </div>
-                  </div>
+                {/* Review Form */}
+                {showReviewForm && (
+                  <ReviewForm
+                    rfqId={rfq.id}
+                    department={showReviewForm}
+                    existingReview={getExistingReview(showReviewForm)}
+                    onSubmit={(submission) => submitReview(showReviewForm, submission)}
+                    onCancel={() => setShowReviewForm(null)}
+                  />
                 )}
 
-                {rfq.due_date && (
-                  <div>
-                    <span className="text-sm font-medium text-muted-foreground">Due Date</span>
-                    <div className="flex items-center gap-2 mt-1">
-                      <Calendar className="w-4 h-4 text-muted-foreground" />
-                      <span>{format(new Date(rfq.due_date), 'MMM dd, yyyy')}</span>
-                    </div>
-                  </div>
-                )}
+                {/* Review Status Panel */}
+                <ReviewStatusPanel
+                  rfq={rfq}
+                  reviews={reviews}
+                  risks={risks}
+                  clarifications={clarifications}
+                  canAssignReviewers={canManageUsers()}
+                />
+              </>
+            )}
+          </TabsContent>
 
-                {rfq.description && (
-                  <div>
-                    <span className="text-sm font-medium text-muted-foreground">Description</span>
-                    <p className="mt-1 text-sm">{rfq.description}</p>
-                  </div>
-                )}
-              </CardContent>
-            </Card>
+          <TabsContent value="approvals" className="space-y-6">
+            <div className="flex justify-between items-center mb-4">
+              <h3 className="text-lg font-semibold">RFQ Approvals</h3>
+              <Button
+                onClick={() => setShowApprovalPanel(true)}
+                variant="outline"
+              >
+                <Shield className="w-4 h-4 mr-2" />
+                Request Approval
+              </Button>
+            </div>
 
-            {/* Contact Information */}
+            {showApprovalPanel && rfq && authProfile && (
+              <RFQApproval
+                rfq={rfq}
+                projectId={rfq.project_id || "TEMP_PROJECT_ID"} // Use actual project ID from RFQ
+                organizationId={authProfile.organization_id}
+                onApprovalUpdate={() => {
+                  setShowApprovalPanel(false);
+                  // Refresh data as needed
+                }}
+              />
+            )}
+
             <Card>
               <CardHeader>
-                <CardTitle className="flex items-center gap-2">
-                  <User className="w-5 h-5" />
-                  Contact Information
-                </CardTitle>
-              </CardHeader>
-              <CardContent className="space-y-4">
-                {rfq.contact_name && (
-                  <div>
-                    <span className="text-sm font-medium text-muted-foreground">Contact Name</span>
-                    <div className="flex items-center gap-2 mt-1">
-                      <User className="w-4 h-4 text-muted-foreground" />
-                      <span>{rfq.contact_name}</span>
-                    </div>
-                  </div>
-                )}
-
-                {rfq.contact_email && (
-                  <div>
-                    <span className="text-sm font-medium text-muted-foreground">Email</span>
-                    <div className="flex items-center gap-2 mt-1">
-                      <Mail className="w-4 h-4 text-muted-foreground" />
-                      <a
-                        href={`mailto:${rfq.contact_email}`}
-                        className="text-primary hover:underline"
-                      >
-                        {rfq.contact_email}
-                      </a>
-                    </div>
-                  </div>
-                )}
-
-                {rfq.contact_phone && (
-                  <div>
-                    <span className="text-sm font-medium text-muted-foreground">Phone</span>
-                    <div className="flex items-center gap-2 mt-1">
-                      <Phone className="w-4 h-4 text-muted-foreground" />
-                      <a
-                        href={`tel:${rfq.contact_phone}`}
-                        className="text-primary hover:underline"
-                      >
-                        {rfq.contact_phone}
-                      </a>
-                    </div>
-                  </div>
-                )}
-              </CardContent>
-            </Card>
-          </div>
-
-          {/* Notes */}
-          {rfq.notes && (
-            <Card>
-              <CardHeader>
-                <CardTitle>Additional Notes</CardTitle>
+                <CardTitle>Approval History</CardTitle>
               </CardHeader>
               <CardContent>
-                <p className="text-sm">{rfq.notes}</p>
+                <p className="text-muted-foreground">Approval history will be displayed here.</p>
               </CardContent>
             </Card>
-          )}
-        </TabsContent>
+          </TabsContent>
 
-        <TabsContent value="reviews" className="space-y-6">
-          {reviewsLoading ? (
-            <div className="text-center py-8">Loading review data...</div>
-          ) : (
-            <>
-              {/* Review Actions */}
-              <div className="flex gap-2">
-                {(['Engineering', 'QA', 'Production'] as Department[]).map(department => {
-                  if (!canShowReviewForm(department)) return null;
+          <TabsContent value="documents">
+            <Card>
+              <CardHeader>
+                <CardTitle>Attachments & Documents</CardTitle>
+              </CardHeader>
+              <CardContent>
+                <p className="text-muted-foreground">Document management coming soon...</p>
+              </CardContent>
+            </Card>
+          </TabsContent>
 
-                  const existingReview = getExistingReview(department);
-                  return (
-                    <Button
-                      key={department}
-                      variant={existingReview ? "outline" : "default"}
-                      onClick={() => setShowReviewForm(department)}
-                    >
-                      {existingReview ? `Update ${department} Review` : `Submit ${department} Review`}
-                    </Button>
-                  );
-                })}
-
-                {canReviewRFQ() && (
-                  <ClarificationModal onSubmit={submitClarification} />
-                )}
-              </div>
-
-              {/* Review Form */}
-              {showReviewForm && (
-                <ReviewForm
-                  rfqId={rfq.id}
-                  department={showReviewForm}
-                  existingReview={getExistingReview(showReviewForm)}
-                  onSubmit={(submission) => submitReview(showReviewForm, submission)}
-                  onCancel={() => setShowReviewForm(null)}
-                />
-              )}
-
-              {/* Review Status Panel */}
-              <ReviewStatusPanel
-                rfq={rfq}
-                reviews={reviews}
-                risks={risks}
-                clarifications={clarifications}
-                canAssignReviewers={canManageUsers()}
-              />
-            </>
-          )}
-        </TabsContent>
-
-        <TabsContent value="approvals" className="space-y-6">
-          <div className="flex justify-between items-center mb-4">
-            <h3 className="text-lg font-semibold">RFQ Approvals</h3>
-            <Button
-              onClick={() => setShowApprovalPanel(true)}
-              variant="outline"
-            >
-              <Shield className="w-4 h-4 mr-2" />
-              Request Approval
-            </Button>
-          </div>
-
-          {showApprovalPanel && rfq && authProfile && (
-            <RFQApproval
-              rfq={rfq}
-              projectId={rfq.project_id || "TEMP_PROJECT_ID"} // Use actual project ID from RFQ
-              organizationId={authProfile.organization_id}
-              onApprovalUpdate={() => {
-                setShowApprovalPanel(false);
-                // Refresh data as needed
-              }}
-            />
-          )}
-
-          <Card>
-            <CardHeader>
-              <CardTitle>Approval History</CardTitle>
-            </CardHeader>
-            <CardContent>
-              <p className="text-muted-foreground">Approval history will be displayed here.</p>
-            </CardContent>
-          </Card>
-        </TabsContent>
-
-        <TabsContent value="documents">
-          <Card>
-            <CardHeader>
-              <CardTitle>Attachments & Documents</CardTitle>
-            </CardHeader>
-            <CardContent>
-              <p className="text-muted-foreground">Document management coming soon...</p>
-            </CardContent>
-          </Card>
-        </TabsContent>
-
-        <TabsContent value="activity">
-          <Card>
-            <CardHeader>
-              <CardTitle>Activity Log</CardTitle>
-            </CardHeader>
-            <CardContent>
-              <p className="text-muted-foreground">Activity log coming soon...</p>
-            </CardContent>
-          </Card>
-        </TabsContent>
-      </Tabs>
-    </div>
+          <TabsContent value="activity">
+            <Card>
+              <CardHeader>
+                <CardTitle>Activity Log</CardTitle>
+              </CardHeader>
+              <CardContent>
+                <p className="text-muted-foreground">Activity log coming soon...</p>
+              </CardContent>
+            </Card>
+          </TabsContent>
+        </Tabs>
+      </div>
+    </ApprovalProvider>
   );
 }
