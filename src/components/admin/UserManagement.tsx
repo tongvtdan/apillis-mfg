@@ -40,7 +40,7 @@ import {
     UserPlus,
     RefreshCw
 } from 'lucide-react';
-import { usePermissionsAdmin } from '@/hooks/usePermissionsAdmin';
+import { usePermissionsAdmin } from '@/core/auth/hooks/usePermissionsAdmin';
 import { Permission } from '@/services/permissionService';
 
 export default function UserManagement() {

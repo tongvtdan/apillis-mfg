@@ -1,9 +1,9 @@
 import { useAuth } from '@/core/auth';
 import { Navigate, useLocation, useNavigate } from 'react-router-dom';
 import { Loader2, Shield, AlertTriangle, Mail, Users } from 'lucide-react';
-import { useRoleBasedNavigation } from '@/hooks/useRoleBasedNavigation';
-import { useAuditLogger } from '@/hooks/useAuditLogger';
-import { useSessionManager } from '@/hooks/useSessionManager';
+import { useRoleBasedNavigation } from '@/core/auth/hooks/useRoleBasedNavigation';
+import { useAuditLogger } from '@/core/activity-log/hooks/useAuditLogger';
+import { useSessionManager } from '@/core/auth/hooks/useSessionManager';
 import { useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';

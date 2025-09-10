@@ -38,7 +38,7 @@ import {
     BarChart3
 } from 'lucide-react';
 import { CustomerOrganizationWithSummary } from '@/types/project';
-import { useCustomerOrganizations } from '@/hooks/useCustomerOrganizations';
+import { useCustomerOrganizations } from '@/features/customer-management/hooks/useCustomerOrganizations';
 import { CustomerModal } from './CustomerModal';
 
 interface CustomerTableProps {

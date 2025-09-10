@@ -2,7 +2,7 @@ import React, { createContext, useContext, useState, useEffect, useCallback } fr
 import { Project, WorkflowStage, ProjectStatus, ProjectSubStageProgress } from '@/types/project';
 import { projectWorkflowService } from '@/services/projectWorkflowService';
 import { useAuth } from '@/core/auth';
-import { useToast } from '@/hooks/use-toast';
+import { useToast } from '@/shared/hooks/use-toast';
 
 export interface WorkflowEvent {
     eventType: 'stage_changed' | 'status_changed' | 'document_uploaded' | 'review_completed' | 'communication_sent';

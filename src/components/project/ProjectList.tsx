@@ -24,9 +24,9 @@ import {
 } from 'lucide-react';
 import { Project, ProjectStatus, ProjectPriority, WorkflowStage } from '@/types/project';
 import { ProjectTable } from './ProjectTable';
-import { useUserDisplayName } from '@/hooks/useUsers';
+import { useUserDisplayName } from '@/features/customer-management/hooks/useUsers';
 import { useNavigate } from 'react-router-dom';
-import { useToast } from '@/hooks/use-toast';
+import { useToast } from '@/shared/hooks/use-toast';
 
 interface EnhancedProjectListProps {
     projects: Project[];

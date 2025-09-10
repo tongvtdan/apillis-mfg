@@ -19,6 +19,7 @@ interface ProjectOverviewWidgetProps {
 export function ProjectOverviewWidget({ widget, metrics, timeRange, isEditMode, onUpdate }: ProjectOverviewWidgetProps) {
     const { projects, loading } = useProjects();
 
+
     // Aggregate project data for charts
     const projectStats = React.useMemo(() => {
         const stats = {
@@ -39,13 +40,29 @@ export function ProjectOverviewWidget({ widget, metrics, timeRange, isEditMode, 
             stats.byStage[stage.name] = 0;
         });
 
-        projects.forEach(project => {
-            // Count by status
-            if (project.status === 'completed' || project.current_stage === 'shipped_closed') {
+        if (!projects || !Array.isArray(projects)) {
+            console.warn('⚠️ Projects array is invalid:', projects);
+            return stats;
+        }
+
+        projects.forEach((project: any) => {
+            if (!project) return; // Skip if project is null/undefined
+
+            // Count by status - use same logic as dashboard service
+            const isCompleted = project.status === 'completed' || project.current_stage === 'shipped_closed';
+            const isActive = project.status === 'inquiry' ||
+                project.status === 'reviewing' ||
+                project.status === 'quoted' ||
+                project.status === 'confirmed' ||
+                project.status === 'procurement' ||
+                project.status === 'production';
+
+            if (isCompleted) {
                 stats.completedProjects++;
-            } else {
+            } else if (isActive) {
                 stats.activeProjects++;
             }
+            // Note: Projects in 'draft' or 'cancelled' status are not counted as active
 
             // Count by project type
             const projectType = project.project_type || 'unspecified';
@@ -57,15 +74,43 @@ export function ProjectOverviewWidget({ widget, metrics, timeRange, isEditMode, 
 
             // Count by stage
             let stageName = 'Inquiry Received'; // default
+
+            // Handle different possible current_stage formats
             if (project.current_stage) {
                 if (typeof project.current_stage === 'object' && project.current_stage?.name) {
+                    // New workflow stage format
                     stageName = project.current_stage.name;
+                } else if (Array.isArray(project.current_stage) && project.current_stage.length > 0 && project.current_stage[0]?.name) {
+                    // Array format (sometimes Supabase returns arrays)
+                    stageName = project.current_stage[0].name;
                 } else if (typeof project.current_stage === 'string') {
-                    // Map legacy stage ID to name
+                    // Legacy stage ID format
                     stageName = LEGACY_TO_STAGE_NAME[project.current_stage as keyof typeof LEGACY_TO_STAGE_NAME] || project.current_stage;
                 }
+            } else {
+                // Fallback: try to infer from status field if available
+                if (project.status) {
+                    const statusMapping: Record<string, string> = {
+                        'draft': 'Inquiry Received',
+                        'inquiry': 'Inquiry Received',
+                        'reviewing': 'Technical Review',
+                        'quoted': 'Quoted',
+                        'confirmed': 'Order Confirmed',
+                        'procurement': 'Procurement Planning',
+                        'production': 'In Production',
+                        'completed': 'Shipped & Closed'
+                    };
+                    stageName = statusMapping[project.status] || 'Inquiry Received';
+                }
             }
+
+            // Safety check for stageName
+            if (!stageName || typeof stageName !== 'string') {
+                stageName = 'Inquiry Received';
+            }
+
             stats.byStage[stageName] = (stats.byStage[stageName] || 0) + 1;
+
         });
 
         return stats;

@@ -14,7 +14,7 @@ import {
     UserPlus,
     UserCheck
 } from 'lucide-react';
-import { useCentralizedApprovals } from '@/hooks/useCentralizedApprovals';
+import { useApproval } from '@/core/approvals/useApproval';
 import { ApprovalStatusWidget } from './ApprovalStatusWidget';
 import { ApproverAssignmentModal } from './ApproverAssignmentModal';
 import { ApprovalHistoryList } from './ApprovalHistoryList';
@@ -33,7 +33,7 @@ export function DocumentApproval({
     organizationId,
     onApprovalUpdate
 }: DocumentApprovalProps) {
-    const { createApproval, submitApprovalDecision, getEntityApprovalHistory } = useCentralizedApprovals();
+    const { requestApproval, submitDecision, getEntityApprovalHistory } = useApproval();
     const [showAssignmentModal, setShowAssignmentModal] = useState(false);
     const [decisionComments, setDecisionComments] = useState('');
     const [isSubmitting, setIsSubmitting] = useState(false);

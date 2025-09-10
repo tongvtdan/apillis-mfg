@@ -1,7 +1,7 @@
 import React, { useMemo, forwardRef } from 'react';
 import { Project } from '@/types/project';
 import { AnimatedProjectCard } from './AnimatedProjectCard';
-import { useProjectUpdate } from '@/hooks/useProjectUpdate';
+import { useProjectUpdate } from '@/features/project-management/hooks/useProjectUpdate';
 
 interface ProjectCardWrapperProps {
     project: Project;

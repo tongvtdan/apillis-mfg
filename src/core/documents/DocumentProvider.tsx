@@ -3,7 +3,7 @@ import { ProjectDocument } from '@/types/project';
 import { documentActionsService } from '@/services/documentActions';
 import { documentVersionService } from '@/services/documentVersionService';
 import { useAuth } from '@/core/auth';
-import { useToast } from '@/hooks/use-toast';
+import { useToast } from '@/shared/hooks/use-toast';
 import { supabase } from '@/integrations/supabase/client';
 
 export interface DocumentFilter {

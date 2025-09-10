@@ -41,7 +41,7 @@ import {
     UserPlus,
     UserMinus
 } from 'lucide-react';
-import { usePermissionsAdmin } from '@/hooks/usePermissionsAdmin';
+import { usePermissionsAdmin } from '@/core/auth/hooks/usePermissionsAdmin';
 import { CustomRole } from '@/services/permissionService';
 import { useAuth } from '@/core/auth';
 

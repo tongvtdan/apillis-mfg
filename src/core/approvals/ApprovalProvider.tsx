@@ -2,7 +2,7 @@ import React, { createContext, useContext, useState, useEffect, useCallback } fr
 import { Approval, ApprovalFilter, ApprovalCreateData, ApprovalStats, ApprovalHistory } from '@/types/approval';
 import { centralizedApprovalService } from '@/services/centralizedApprovalService';
 import { useAuth } from '@/core/auth';
-import { useToast } from '@/hooks/use-toast';
+import { useToast } from '@/shared/hooks/use-toast';
 
 export interface ApprovalContextType {
     // State

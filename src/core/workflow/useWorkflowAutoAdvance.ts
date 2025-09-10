@@ -2,8 +2,8 @@ import { useCallback, useEffect, useState, useRef } from 'react';
 import { Project, ProjectStatus } from '@/types/project';
 import { WorkflowValidator } from '@/lib/workflow-validator';
 import { useProjects } from '@/hooks/useProjects';
-import { useProjectReviews } from '@/hooks/useProjectReviews';
-import { useToast } from '@/hooks/use-toast';
+import { useProjectReviews } from '@/features/engineering-review/hooks/useProjectReviews';
+import { useToast } from '@/shared/hooks/use-toast';
 
 export function useWorkflowAutoAdvance(project: Project) {
     const [isChecking, setIsChecking] = useState(false);

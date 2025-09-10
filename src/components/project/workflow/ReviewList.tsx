@@ -16,7 +16,7 @@ import {
 } from 'lucide-react';
 import { InternalReview, Department, ReviewStatus, STATUS_COLORS } from '@/types/review';
 import { format } from 'date-fns';
-import { useUserDisplayName } from '@/hooks/useUsers';
+import { useUserDisplayName } from '@/features/customer-management/hooks/useUsers';
 
 interface ReviewListProps {
     reviews: InternalReview[];
