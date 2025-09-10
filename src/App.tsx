@@ -31,6 +31,9 @@ import Approvals from "./pages/Approvals";
 import CoreTest from "./pages/CoreTest";
 import IntakeTest from "./pages/IntakeTest";
 import EngineeringReviewTest from "./pages/EngineeringReviewTest";
+import CostingEngineTest from "./pages/CostingEngineTest";
+import SupplierManagementTest from "./pages/SupplierManagementTest";
+import CustomerManagementTest from "./pages/CustomerManagementTest";
 
 import { applyAdaptiveTheme } from "@/lib/theme";
 import "@/styles/smooth-transitions.css";
@@ -179,6 +182,21 @@ const App = () => {
             <Route path="/engineering-review-test" element={
               <ProtectedRoute>
                 <AppLayout><EngineeringReviewTest /></AppLayout>
+              </ProtectedRoute>
+            } />
+            <Route path="/costing-engine-test" element={
+              <ProtectedRoute>
+                <AppLayout><CostingEngineTest /></AppLayout>
+              </ProtectedRoute>
+            } />
+            <Route path="/supplier-management-test" element={
+              <ProtectedRoute>
+                <AppLayout><SupplierManagementTest /></AppLayout>
+              </ProtectedRoute>
+            } />
+            <Route path="/customer-management-test" element={
+              <ProtectedRoute>
+                <AppLayout><CustomerManagementTest /></AppLayout>
               </ProtectedRoute>
             } />
 

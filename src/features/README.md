@@ -91,11 +91,12 @@ Feature Components → Feature Hooks → Feature Services → Core Modules → D
 
 ## 📊 Current Features Status
 
-| Feature             | Status           | Priority | Dependencies              |
-| ------------------- | ---------------- | -------- | ------------------------- |
-| Intake              | ✅ In Development | Critical | Auth, Workflow, Documents |
-| Engineering Review  | 🔄 Planned        | High     | Approvals, Documents      |
-| Costing Engine      | 🔄 Planned        | High     | Auth, Workflow            |
-| Supplier Management | 🔄 Planned        | Medium   | Auth, Workflow            |
-| Dashboard           | 🔄 Planned        | Medium   | All Core Modules          |
-| Reporting           | 🔄 Planned        | Low      | Auth, Activity Log        |
+| Feature             | Status      | Priority | Dependencies              |
+| ------------------- | ----------- | -------- | ------------------------- |
+| Intake              | ✅ Completed | Critical | Auth, Workflow, Documents |
+| Engineering Review  | ✅ Completed | High     | Approvals, Documents      |
+| Costing Engine      | ✅ Completed | High     | Auth, Workflow            |
+| Supplier Management | ✅ Completed | Medium   | Auth, Workflow            |
+| Customer Management | ✅ Completed | High     | Auth, Workflow            |
+| Dashboard           | 🔄 Planned   | Medium   | All Core Modules          |
+| Reporting           | 🔄 Planned   | Low      | Auth, Activity Log        |
