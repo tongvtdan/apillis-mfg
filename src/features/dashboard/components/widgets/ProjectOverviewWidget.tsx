@@ -5,7 +5,9 @@ import { PieChart, BarChart3 } from 'lucide-react';
 import { DashboardWidget, ManufacturingMetrics, TimeRange } from '../../types/dashboard.types';
 import { useProjects } from '@/hooks/useProjects';
 import { PROJECT_TYPE_LABELS, PROJECT_STAGES, LEGACY_TO_STAGE_NAME } from '@/types/project';
+import { workflowStageService } from '@/services/workflowStageService';
 import { Bar, BarChart, CartesianGrid, Cell, Legend, Pie, PieChart as RechartsPieChart, Tooltip, XAxis, YAxis, ResponsiveContainer } from 'recharts';
+import { useNavigate } from 'react-router-dom';
 
 interface ProjectOverviewWidgetProps {
     widget: DashboardWidget;
@@ -18,7 +20,21 @@ interface ProjectOverviewWidgetProps {
 
 export function ProjectOverviewWidget({ widget, metrics, timeRange, isEditMode, onUpdate }: ProjectOverviewWidgetProps) {
     const { projects, loading } = useProjects();
+    const navigate = useNavigate();
+    const [workflowStages, setWorkflowStages] = React.useState<any[]>([]);
 
+    // Fetch workflow stages
+    React.useEffect(() => {
+        const loadWorkflowStages = async () => {
+            try {
+                const stages = await workflowStageService.getWorkflowStages(true);
+                setWorkflowStages(stages);
+            } catch (error) {
+                console.error('Failed to load workflow stages:', error);
+            }
+        };
+        loadWorkflowStages();
+    }, []);
 
     // Aggregate project data for charts
     const projectStats = React.useMemo(() => {
@@ -123,12 +139,33 @@ export function ProjectOverviewWidget({ widget, metrics, timeRange, isEditMode, 
         type: type
     })).filter(item => item.value > 0);
 
-    const stageChartData = Object.entries(projectStats.byStage).map(([stage, count]) => ({
-        name: stage,
-        value: count
-    })).filter(item => item.value > 0);
+    const stageChartData = Object.entries(projectStats.byStage).map(([stage, count]) => {
+        // Find the stage ID from the actual workflow stages
+        const workflowStage = workflowStages.find(ws => ws.name === stage);
+        const stageId = workflowStage ? workflowStage.id : null;
+
+        return {
+            name: stage,
+            value: count,
+            stage: stage,
+            stageId: stageId || stage
+        };
+    }).filter(item => item.value > 0);
 
     const typeColors = ['#3b82f6', '#10b981', '#8b5cf6', '#f59e0b'];
+
+    // Click handlers for charts
+    const handleTypeChartClick = (data: any) => {
+        if (data && data.type) {
+            navigate(`/projects?type=${data.type}`);
+        }
+    };
+
+    const handleStageChartClick = (data: any) => {
+        if (data && data.stageId) {
+            navigate(`/projects?stage=${data.stageId}`);
+        }
+    };
 
     if (loading) {
         return (
@@ -215,9 +252,13 @@ export function ProjectOverviewWidget({ widget, metrics, timeRange, isEditMode, 
                                                 borderRadius: '6px'
                                             }}
                                         />
-                                        <Bar dataKey="value" radius={[4, 4, 0, 0]}>
+                                        <Bar dataKey="value" radius={[4, 4, 0, 0]} onClick={handleTypeChartClick} cursor="pointer">
                                             {typeChartData.map((entry, index) => (
-                                                <Cell key={`cell-${index}`} fill={typeColors[index % typeColors.length]} />
+                                                <Cell
+                                                    key={`cell-${index}`}
+                                                    fill={typeColors[index % typeColors.length]}
+                                                    onClick={() => handleTypeChartClick(entry)}
+                                                />
                                             ))}
                                         </Bar>
                                     </BarChart>
@@ -251,9 +292,15 @@ export function ProjectOverviewWidget({ widget, metrics, timeRange, isEditMode, 
                                             dataKey="value"
                                             label={({ name, percent }) => `${name} ${(percent * 100).toFixed(0)}%`}
                                             labelLine={false}
+                                            onClick={handleStageChartClick}
+                                            cursor="pointer"
                                         >
                                             {stageChartData.map((entry, index) => (
-                                                <Cell key={`cell-${index}`} fill={typeColors[index % typeColors.length]} />
+                                                <Cell
+                                                    key={`cell-${index}`}
+                                                    fill={typeColors[index % typeColors.length]}
+                                                    onClick={() => handleStageChartClick(entry)}
+                                                />
                                             ))}
                                         </Pie>
                                         <Tooltip

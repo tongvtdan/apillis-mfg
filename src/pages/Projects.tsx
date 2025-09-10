@@ -147,11 +147,18 @@ export default function Projects() {
     }
   });
 
-  const [selectedStage, setSelectedStage] = React.useState<string | null>(() => {
-    // Try to restore from localStorage, default to first stage if none found
+  // Get initial stage from URL params or localStorage
+  const getInitialStage = (): string | null => {
+    const stageParam = searchParams.get('stage');
+    if (stageParam) {
+      return stageParam;
+    }
+    // Try to restore from localStorage, default to null if none found
     const saved = localStorage.getItem('projects-selected-stage');
     return saved || null;
-  });
+  };
+
+  const [selectedStage, setSelectedStage] = React.useState<string | null>(getInitialStage);
 
   // Get project type from URL params or default to 'all'
   const getInitialProjectType = (): ProjectType | 'all' => {
@@ -183,6 +190,23 @@ export default function Projects() {
       });
     }
   }, [selectedProjectType, setSearchParams]);
+
+  // Update URL when selected stage changes
+  React.useEffect(() => {
+    if (!selectedStage) {
+      setSearchParams(prev => {
+        const newParams = new URLSearchParams(prev);
+        newParams.delete('stage');
+        return newParams;
+      });
+    } else {
+      setSearchParams(prev => {
+        const newParams = new URLSearchParams(prev);
+        newParams.set('stage', selectedStage);
+        return newParams;
+      });
+    }
+  }, [selectedStage, setSearchParams]);
 
   // Fetch sub-stages for the selected stage (temporarily disabled)
   const subStages: any[] = [];
@@ -300,7 +324,25 @@ export default function Projects() {
     console.log('Available workflow stage IDs:', workflowStages.map(s => s.id));
     console.log('Projects with current_stage_id:', projects.filter(p => p.current_stage_id).map(p => ({ id: p.id, current_stage_id: p.current_stage_id, title: p.title })));
 
-    let filtered = projects.filter(p => p.current_stage_id === selectedStage);
+    // Convert stage name to stage ID if needed
+    let stageIdToFilter = selectedStage;
+
+    // Check if selectedStage is a stage name (not a UUID)
+    const isStageName = !selectedStage.match(/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i);
+
+    if (isStageName && workflowStages.length > 0) {
+      // Find the stage ID by name
+      const stage = workflowStages.find(s => s.name === selectedStage);
+      if (stage) {
+        stageIdToFilter = stage.id;
+        console.log('Converted stage name to ID:', selectedStage, '->', stageIdToFilter);
+      } else {
+        console.log('Stage not found:', selectedStage);
+        return [];
+      }
+    }
+
+    let filtered = projects.filter(p => p.current_stage_id === stageIdToFilter);
     console.log('Projects filtered by stage:', filtered.length);
 
     // Apply project type filter
