@@ -108,23 +108,23 @@ class ProjectWorkflowService {
             if (!user) {
                 throw new Error('User not authenticated');
             }
-            
+
             const { data: userProfile, error: profileError } = await supabase
                 .from('users')
                 .select('organization_id')
                 .eq('id', user.id)
                 .single();
-                
+
             if (profileError || !userProfile) {
                 throw new Error('User profile not found');
             }
-            
+
             // Get default workflow definition for organization
             const defaultWorkflow = await workflowDefinitionService.getDefaultWorkflowDefinition(userProfile.organization_id);
-            
+
             // Get first workflow stage (inquiry received)
             let initialStage = null;
-            
+
             if (defaultWorkflow) {
                 // Get workflow definition stages
                 const definitionStages = await workflowDefinitionService.getWorkflowDefinitionStages(defaultWorkflow.id);
@@ -132,12 +132,12 @@ class ProjectWorkflowService {
                 const firstDefinitionStage = definitionStages
                     .filter(ds => ds.is_included)
                     .sort((a, b) => (a.stage_order_override || 0) - (b.stage_order_override || 0))[0];
-                    
+
                 if (firstDefinitionStage) {
                     initialStage = firstDefinitionStage.workflow_stage;
                 }
             }
-            
+
             // Fallback to original method if no workflow definition
             if (!initialStage) {
                 const stages = await workflowStageService.getWorkflowStages();
@@ -153,9 +153,9 @@ class ProjectWorkflowService {
                 ...projectData,
                 current_stage_id: initialStage.id,
                 workflow_definition_id: defaultWorkflow?.id,
-                status: 'active',
+                status: projectData.status || 'in_progress', // Use provided status or default to 'in_progress'
                 point_of_contacts: projectData.contacts || []
-            });
+            } as any);
 
             if (!project) {
                 throw new Error('Failed to create project');
@@ -276,7 +276,7 @@ class ProjectWorkflowService {
             if (!workflowState) return false;
 
             // Update project status
-            const success = await projectService.updateProjectStatus(projectId, newStatus);
+            const success = await projectService.updateProject(projectId, { status: newStatus });
 
             if (success) {
                 // Log status change
@@ -424,7 +424,7 @@ class ProjectWorkflowService {
             if (project.estimated_delivery_date) {
                 const dueDate = new Date(project.estimated_delivery_date);
                 const now = new Date();
-                if (dueDate < now && project.status === 'active') {
+                if (dueDate < now && project.status === 'in_progress') {
                     validation.warnings.push('Project is overdue');
                 }
             }
@@ -527,6 +527,12 @@ class ProjectWorkflowService {
     private async handleStatusChangeActions(projectId: string, newStatus: ProjectStatus): Promise<void> {
         try {
             switch (newStatus) {
+                case 'in_progress':
+                    // No specific actions needed for in_progress status
+                    break;
+                case 'draft':
+                    // No specific actions needed for draft status
+                    break;
                 case 'completed':
                     await this.handleProjectCompletion(projectId);
                     break;

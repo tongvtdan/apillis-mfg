@@ -23,6 +23,7 @@ export interface ProjectIntakeData {
     target_price_per_unit?: number;
     desired_delivery_date?: string;
     project_reference?: string;
+    status?: 'draft' | 'in_progress'; // Updated status field
 }
 
 export class ProjectIntakeService {
@@ -58,8 +59,14 @@ export class ProjectIntakeService {
             console.log('✅ Initial stage ID:', initialStageId);
 
             // Fallback to first available stage if specific stage not found
-            const stageId = initialStageId || await IntakeWorkflowService.getFirstAvailableStage(organizationId);
+            let stageId = initialStageId || await IntakeWorkflowService.getFirstAvailableStage(organizationId);
             console.log('✅ Final stage ID:', stageId);
+
+            // Override stageId for 'in_progress' projects to always use inquiry_received stage
+            if (intakeData.status === 'in_progress') {
+                stageId = '880e8400-e29b-41d4-a716-446655440001'; // inquiry_received stage
+                console.log('🔄 Overriding stage ID for in_progress project to inquiry_received:', stageId);
+            }
 
             if (!stageId) {
                 throw new Error('No workflow stage found for project creation');
@@ -101,6 +108,7 @@ export class ProjectIntakeService {
                 intake_source: intakeData.intake_source || 'portal',
                 project_type: projectType,
                 current_stage_id: stageId,
+                status: intakeData.status, // Pass the status if provided
                 // Pre-generated project ID
                 project_id: preGeneratedProjectId,
                 // Store additional fields in metadata JSONB
