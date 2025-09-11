@@ -1,6 +1,7 @@
 import { Project, WorkflowStage, ProjectStatus, ProjectSubStageProgress } from '@/types/project';
 import { projectService } from './projectService';
 import { workflowStageService } from './workflowStageService';
+import { workflowDefinitionService } from './workflowDefinitionService';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/core/auth';
 
@@ -102,18 +103,56 @@ class ProjectWorkflowService {
         contacts?: string[];
     }): Promise<Project | null> {
         try {
+            // Get the user's organization
+            const { data: { user } } = await supabase.auth.getUser();
+            if (!user) {
+                throw new Error('User not authenticated');
+            }
+            
+            const { data: userProfile, error: profileError } = await supabase
+                .from('users')
+                .select('organization_id')
+                .eq('id', user.id)
+                .single();
+                
+            if (profileError || !userProfile) {
+                throw new Error('User profile not found');
+            }
+            
+            // Get default workflow definition for organization
+            const defaultWorkflow = await workflowDefinitionService.getDefaultWorkflowDefinition(userProfile.organization_id);
+            
             // Get first workflow stage (inquiry received)
-            const stages = await workflowStageService.getWorkflowStages();
-            const initialStage = stages.find(s => s.stage_order === 1);
+            let initialStage = null;
+            
+            if (defaultWorkflow) {
+                // Get workflow definition stages
+                const definitionStages = await workflowDefinitionService.getWorkflowDefinitionStages(defaultWorkflow.id);
+                // Find the first stage based on order
+                const firstDefinitionStage = definitionStages
+                    .filter(ds => ds.is_included)
+                    .sort((a, b) => (a.stage_order_override || 0) - (b.stage_order_override || 0))[0];
+                    
+                if (firstDefinitionStage) {
+                    initialStage = firstDefinitionStage.workflow_stage;
+                }
+            }
+            
+            // Fallback to original method if no workflow definition
+            if (!initialStage) {
+                const stages = await workflowStageService.getWorkflowStages();
+                initialStage = stages.find(s => s.stage_order === 1);
+            }
 
             if (!initialStage) {
                 throw new Error('No initial workflow stage found');
             }
 
-            // Create project with initial stage
+            // Create project with initial stage and workflow definition
             const project = await projectService.createProject({
                 ...projectData,
                 current_stage_id: initialStage.id,
+                workflow_definition_id: defaultWorkflow?.id,
                 status: 'active',
                 point_of_contacts: projectData.contacts || []
             });
@@ -133,7 +172,8 @@ class ProjectWorkflowService {
                 data: {
                     from_stage: null,
                     to_stage: initialStage.id,
-                    reason: 'Project creation'
+                    reason: 'Project creation',
+                    workflow_definition_id: defaultWorkflow?.id
                 },
                 timestamp: new Date().toISOString()
             });

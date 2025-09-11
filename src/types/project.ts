@@ -184,6 +184,7 @@ export interface Project {
   customer_organization_id: string; // Required - references organizations table
   point_of_contacts: string[]; // Array of contact IDs, first is primary contact
   current_stage_id?: string;
+  workflow_definition_id?: string;
   status: ProjectStatus;
   priority_level?: ProjectPriority;
   priority_score?: number; // Added from database schema
