@@ -257,7 +257,7 @@ describe('WorkflowDefinitionService', () => {
         { workflow_stage_id: 'stage-1' },
         { workflow_stage_id: 'stage-2' }
       ];
-      
+
       mockSupabase.select.mockResolvedValueOnce({ data: mockExistingLinks, error: null });
       mockSupabase.insert.mockResolvedValueOnce({ error: null });
       mockSupabase.delete.mockResolvedValueOnce({ error: null });
