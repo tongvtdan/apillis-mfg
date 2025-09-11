@@ -36,7 +36,7 @@ The solution will leverage the existing database schema with these key tables:
 - `workflow_definition_stages`: Stage overrides for specific workflow definitions
 - `workflow_definition_sub_stages`: Sub-stage overrides for specific workflow definitions
 - `project_sub_stage_progress`: Per-project tracking of sub-stage completion
-- `projects`: Projects with references to current workflow stage
+- `projects`: Projects with references to current workflow stage and workflow definition
 
 ### 3.3 Workflow Definitions
 The Factory Pulse system includes a powerful workflow definition system that allows for versioned, reusable workflow templates. These templates can be applied to projects and provide overrides for stages and sub-stages. For this implementation, we will create a default workflow definition for the Apillis organization that encompasses all the standard workflow stages.
@@ -50,6 +50,9 @@ This system allows organizations to create standardized workflow templates that 
 
 ### 3.4 Workflow Stage Definitions
 Based on the Factory Pulse blueprint, the following workflow stages will be implemented for the Apillis organization:
+
+### 3.5 Project Interface Enhancement
+The existing Project interface in the TypeScript types will be enhanced to include the workflow_definition_id field to properly reference workflow definitions. This field already exists in the database schema but needs to be added to the TypeScript interface for proper type safety and IDE support.
 
 | Stage Order | Stage Name | Slug | Description |
 |-------------|------------|------|-------------|
@@ -577,6 +580,9 @@ WHERE NOT EXISTS (
 #### 4.1.3 Service Layer Improvements
 Update the `WorkflowStageService` to ensure it properly fetches stages for the authenticated user's organization:
 
+#### 4.1.5 Project Service Enhancement
+Update the `ProjectService` to properly handle workflow definitions when creating and updating projects:
+
 ```typescript
 // In workflowStageService.ts
 async getWorkflowStages(forceRefresh = false): Promise<WorkflowStage[]> {
@@ -644,6 +650,93 @@ async getWorkflowStages(forceRefresh = false): Promise<WorkflowStage[]> {
 
 #### 4.1.4 Project Creation Fix
 Update the project creation logic to ensure it properly initializes workflow stages:
+
+#### 4.1.5 Project Service Enhancement
+Update the `ProjectService` to properly handle workflow definitions when creating and updating projects:
+
+```typescript
+// In projectService.ts
+async createProject(projectData: {
+    title: string;
+    description?: string;
+    customer_organization_id: string;
+    priority_level?: string;
+    estimated_value?: number;
+    project_type?: string;
+    intake_type?: string;
+    intake_source?: string;
+    current_stage_id: string;
+    workflow_definition_id?: string;
+    status?: ProjectStatus;
+    point_of_contacts?: string[];
+    tags?: string[];
+    notes?: string;
+    metadata?: Record<string, any>;
+}): Promise<Project | null> {
+    try {
+        // Generate project ID if not provided
+        const projectId = projectData.project_id || await this.generateProjectId();
+        
+        // Get current user
+        const { data: userData, error: userError } = await supabase.auth.getUser();
+        if (userError) throw userError;
+        
+        const userId = userData.user?.id;
+        if (!userId) throw new Error('User not authenticated');
+        
+        // Get user's organization
+        const { data: userProfile, error: profileError } = await supabase
+            .from('users')
+            .select('organization_id')
+            .eq('id', userId)
+            .single();
+        
+        if (profileError) throw profileError;
+        if (!userProfile?.organization_id) throw new Error('User organization not found');
+        
+        // Prepare project data
+        const projectPayload = {
+            organization_id: userProfile.organization_id,
+            project_id: projectId,
+            title: projectData.title,
+            description: projectData.description,
+            customer_organization_id: projectData.customer_organization_id,
+            priority_level: projectData.priority_level,
+            estimated_value: projectData.estimated_value,
+            project_type: projectData.project_type,
+            intake_type: projectData.intake_type,
+            intake_source: projectData.intake_source,
+            current_stage_id: projectData.current_stage_id,
+            workflow_definition_id: projectData.workflow_definition_id,
+            status: projectData.status || 'active',
+            point_of_contacts: projectData.point_of_contacts || [],
+            tags: projectData.tags || [],
+            notes: projectData.notes,
+            metadata: projectData.metadata || {},
+            created_by: userId,
+            stage_entered_at: new Date().toISOString()
+        };
+        
+        // Create project
+        const { data, error } = await supabase
+            .from('projects')
+            .insert(projectPayload)
+            .select(`
+                *,
+                customer_organization:organizations!customer_organization_id(*),
+                current_stage:workflow_stages!current_stage_id(*)
+            `)
+            .single();
+        
+        if (error) throw error;
+        
+        return data || null;
+    } catch (error) {
+        console.error('Error creating project:', error);
+        return null;
+    }
+}
+```
 
 ```typescript
 // In projectWorkflowService.ts
@@ -1118,6 +1211,8 @@ Customers will have no access to workflow management features. All workflow data
 - Test default workflow definition assignment to projects
 - Test workflow definition override functionality
 - Test versioning of workflow definitions
+- Test project creation with workflow definitions
+- Test project updates with workflow definition changes
 
 ### 6.2 Integration Tests
 - End-to-end project creation through all workflow stages
@@ -1238,6 +1333,18 @@ Service layer changes can be rolled back by redeploying the previous version aft
 
 ## 13. Documentation and Training
 
+### 13.1 TypeScript Interface Updates
+
+The TypeScript interfaces will be updated to include workflow definition references:
+
+1. **Project Interface**: Add `workflow_definition_id` field to properly type the relationship between projects and workflow definitions
+
+2. **WorkflowStage Interface**: Ensure it properly represents the database schema with all fields
+
+3. **WorkflowSubStage Interface**: Ensure it properly represents the database schema with all fields
+
+These updates will ensure type safety and better IDE support when working with workflow definitions.
+
 ### 13.1 Internal Documentation
 - Workflow API documentation
 - Database schema documentation
@@ -1265,6 +1372,13 @@ Service layer changes can be rolled back by redeploying the previous version aft
 This design document provides a comprehensive plan to improve the Factory Pulse workflow system, focusing exclusively on Apillis internal operations. By implementing these changes, we will establish a robust workflow foundation that enables proper project progression through all stages while maintaining strict separation between internal operations and customer data. The implementation is structured in three phases over three weeks, ensuring minimal disruption to ongoing operations while delivering significant improvements to the workflow management capabilities.
 
 The workflow definition system provides a powerful template mechanism that allows organizations to create standardized, versioned workflow templates. These templates can be applied consistently across projects while still providing flexibility for customization through stage and sub-stage overrides. This approach ensures both consistency and adaptability in workflow management.
+
+The integration plan includes:
+- Creation of a dedicated WorkflowDefinitionService for managing workflow templates
+- Enhancement of project creation to properly assign workflow definitions
+- Updates to TypeScript interfaces for proper type safety
+- Comprehensive testing strategy covering all workflow definition functionality
+- Future enhancements for advanced workflow customization
 
 ```
 
