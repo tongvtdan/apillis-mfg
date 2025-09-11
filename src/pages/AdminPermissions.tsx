@@ -21,6 +21,7 @@ import RoleManagement from '@/components/admin/RoleManagement';
 import FeatureManagement from '@/components/admin/FeatureManagement';
 import AuditLog from '@/components/admin/AuditLog';
 import MyRolesViewer from '@/components/admin/MyRolesViewer';
+import { WorkflowDefinitionManagement } from '@/components/admin/WorkflowDefinitionManagement';
 
 export default function AdminPermissions() {
     const { profile, user } = useAuth();
@@ -126,7 +127,7 @@ export default function AdminPermissions() {
 
             {/* Main Tabs */}
             <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-6">
-                <TabsList className={`grid w-full ${canManageUsers ? 'grid-cols-2 lg:grid-cols-5' : 'grid-cols-1'}`}>
+                <TabsList className={`grid w-full ${canManageUsers ? 'grid-cols-2 lg:grid-cols-6' : 'grid-cols-1'}`}>
                     <TabsTrigger value="my-roles" className="flex items-center gap-2">
                         <Shield className="h-4 w-4" />
                         <span className="hidden sm:inline">My Roles</span>
@@ -149,6 +150,10 @@ export default function AdminPermissions() {
                             <TabsTrigger value="audit" className="flex items-center gap-2">
                                 <FileText className="h-4 w-4" />
                                 <span className="hidden sm:inline">Audit</span>
+                            </TabsTrigger>
+                            <TabsTrigger value="workflow-definitions" className="flex items-center gap-2">
+                                <Settings className="h-4 w-4" />
+                                <span className="hidden sm:inline">Workflows</span>
                             </TabsTrigger>
                         </>
                     )}
@@ -174,6 +179,9 @@ export default function AdminPermissions() {
 
                         <TabsContent value="audit" className="space-y-6">
                             <AuditLog />
+                        </TabsContent>
+                        <TabsContent value="workflow-definitions" className="space-y-6">
+                            <WorkflowDefinitionManagement />
                         </TabsContent>
                     </>
                 )}

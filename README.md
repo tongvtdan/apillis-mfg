@@ -12,6 +12,7 @@
 - **Document Management** - File upload, version control, and categorization
 - **Dashboard & Analytics** - Real-time project statistics and progress tracking
 - **Approval System** - Configurable approval workflows with role-based permissions
+- **Workflow Definitions** - Versioned, reusable workflow templates ([docs](docs/workflow-definitions.md))
 - **Real-time Updates** - Live data synchronization across all components
 - **Multi-tenant Architecture** - Organization-based data isolation
 
@@ -134,6 +135,8 @@ npm run test:coverage # Generate coverage reports
 src/
 ├── components/     # Reusable UI components
 │   ├── admin/      # Admin-specific components
+│   │   ├── WorkflowDefinitionManagement.tsx  # Workflow definition management
+│   │   └── ...
 │   ├── approval/   # Approval workflow components
 │   ├── dashboard/  # Dashboard components
 │   ├── project/   # Project management components
@@ -179,6 +182,7 @@ The application uses a layered service architecture for clean separation of conc
 - **Real-time Updates** - Live synchronization across all users
 - **Document Management** - File upload, version control, and categorization
 - **Role-based Access** - Granular permissions for different user roles
+- **Workflow Definitions** - Versioned, reusable workflow templates
 - **Simplified Contact Model** - Array-based contact management with primary contact logic
 - **Organization-based Customers** - Stable customer relationships via organizations
 

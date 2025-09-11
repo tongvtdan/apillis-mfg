@@ -120,6 +120,42 @@ describe('WorkflowDefinitionService', () => {
     });
   });
 
+  describe('getWorkflowDefinitionSubStages', () => {
+    it('should fetch workflow definition sub-stages with overrides', async () => {
+      const mockSubStages = [
+        {
+          id: 'def-substage-1',
+          workflow_definition_id: 'def-1',
+          workflow_sub_stage_id: 'substage-1',
+          is_included: true,
+          sub_stage_order_override: 1,
+          workflow_sub_stage: {
+            id: 'substage-1',
+            organization_id: 'org-1',
+            workflow_stage_id: 'stage-1',
+            name: 'Test SubStage',
+            slug: 'test-substage',
+            sub_stage_order: 1,
+            is_active: true,
+            created_at: new Date().toISOString(),
+            updated_at: new Date().toISOString(),
+          }
+        }
+      ];
+
+      mockSupabase.select.mockResolvedValueOnce({ data: mockSubStages, error: null });
+
+      const result = await workflowDefinitionService.getWorkflowDefinitionSubStages('def-1');
+
+      expect(result).toEqual(mockSubStages);
+      expect(mockSupabase.from).toHaveBeenCalledWith('workflow_definition_sub_stages');
+      expect(mockSupabase.select).toHaveBeenCalled();
+      expect(mockSupabase.eq).toHaveBeenCalledWith('workflow_definition_id', 'def-1');
+      expect(mockSupabase.eq).toHaveBeenCalledWith('is_included', true);
+      expect(mockSupabase.order).toHaveBeenCalledWith('sub_stage_order_override');
+    });
+  });
+
   describe('createWorkflowDefinition', () => {
     it('should create a new workflow definition', async () => {
       const definitionData = {
@@ -182,6 +218,57 @@ describe('WorkflowDefinitionService', () => {
       expect(result[0].stage_order).toBe(2);
       expect(result[0].responsible_roles).toEqual(['admin']);
       expect(result[0].estimated_duration_days).toBe(5);
+    });
+  });
+
+  describe('updateWorkflowDefinition', () => {
+    it('should update an existing workflow definition', async () => {
+      const mockDefinition: WorkflowDefinition = {
+        id: 'def-1',
+        organization_id: 'org-1',
+        name: 'Updated Workflow',
+        version: 2,
+        description: 'Updated description',
+        is_active: false,
+        created_by: 'user-1',
+        created_at: new Date().toISOString(),
+        updated_at: new Date().toISOString(),
+      };
+
+      mockSupabase.select.mockResolvedValueOnce({ data: mockDefinition, error: null });
+
+      const result = await workflowDefinitionService.updateWorkflowDefinition('def-1', {
+        name: 'Updated Workflow',
+        version: 2,
+        description: 'Updated description',
+        is_active: false
+      });
+
+      expect(result).toEqual(mockDefinition);
+      expect(mockSupabase.from).toHaveBeenCalledWith('workflow_definitions');
+      expect(mockSupabase.update).toHaveBeenCalled();
+      expect(mockSupabase.eq).toHaveBeenCalledWith('id', 'def-1');
+    });
+  });
+
+  describe('linkStagesToDefinition', () => {
+    it('should link workflow stages to a workflow definition', async () => {
+      const mockExistingLinks = [
+        { workflow_stage_id: 'stage-1' },
+        { workflow_stage_id: 'stage-2' }
+      ];
+      
+      mockSupabase.select.mockResolvedValueOnce({ data: mockExistingLinks, error: null });
+      mockSupabase.insert.mockResolvedValueOnce({ error: null });
+      mockSupabase.delete.mockResolvedValueOnce({ error: null });
+
+      const result = await workflowDefinitionService.linkStagesToDefinition('def-1', ['stage-2', 'stage-3']);
+
+      expect(result).toBe(true);
+      expect(mockSupabase.from).toHaveBeenCalledWith('workflow_definition_stages');
+      expect(mockSupabase.select).toHaveBeenCalled();
+      expect(mockSupabase.insert).toHaveBeenCalled();
+      expect(mockSupabase.delete).toHaveBeenCalled();
     });
   });
 });
