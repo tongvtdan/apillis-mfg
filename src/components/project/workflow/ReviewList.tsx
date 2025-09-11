@@ -16,7 +16,7 @@ import {
 } from 'lucide-react';
 import { InternalReview, Department, ReviewStatus, STATUS_COLORS } from '@/types/review';
 import { format } from 'date-fns';
-import { useUserDisplayName } from '@/hooks/useUsers';
+import { useUserDisplayName } from '@/features/customer-management/hooks/useUsers';
 
 interface ReviewListProps {
     reviews: InternalReview[];
@@ -25,7 +25,12 @@ interface ReviewListProps {
 }
 
 // Helper component to display reviewer name
-function ReviewerDisplay({ reviewerId }: { reviewerId: string }) {
+function ReviewerDisplay({ reviewerId, reviewer }: { reviewerId: string; reviewer?: { name: string; email: string; role: string } }) {
+    // Use the reviewer data if available (from database join), otherwise fall back to hook
+    if (reviewer?.name) {
+        return <>{reviewer.name}</>;
+    }
+
     const displayName = useUserDisplayName(reviewerId);
     return <>{displayName}</>;
 }
@@ -99,7 +104,7 @@ export function ReviewList({ reviews, onEditReview, onViewReview }: ReviewListPr
                                     <CardTitle className="text-base">{review.department} Review</CardTitle>
                                     <div className="flex items-center gap-2 text-sm text-muted-foreground">
                                         <User className="w-4 h-4" />
-                                        <ReviewerDisplay reviewerId={review.reviewer_id} />
+                                        <ReviewerDisplay reviewerId={review.reviewer_id} reviewer={review.reviewer} />
                                         {review.submitted_at && (
                                             <>
                                                 <span>•</span>
@@ -185,11 +190,3 @@ export function ReviewList({ reviews, onEditReview, onViewReview }: ReviewListPr
     );
 }
 
-// Helper component to display reviewer name
-function ReviewerName({ reviewerId, displayName }: { reviewerId?: string; displayName: string }) {
-    if (!reviewerId) {
-        return <span>Unassigned</span>;
-    }
-
-    return <span>{displayName}</span>;
-}

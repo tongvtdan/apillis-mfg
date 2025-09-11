@@ -519,6 +519,8 @@ class ProjectService {
     // Method to create a new project
     async createProject(projectData: Partial<Project>): Promise<Project> {
         try {
+            // Use the statically imported supabase client to maintain authentication context
+            // Import it here to ensure we're using the same instance as other parts of the application
             const { supabase } = await import('@/integrations/supabase/client');
 
             // Validate required fields
@@ -655,6 +657,11 @@ class ProjectService {
 
                 if (error.code === '23502') { // Not null constraint violation
                     throw new Error('Required fields are missing. Please provide all required information.');
+                }
+
+                // Handle RLS policy violations
+                if (error.code === '42501') { // Insufficient privilege
+                    throw new Error('You do not have permission to create projects. Please ensure you are logged in and have the necessary permissions.');
                 }
 
                 throw new Error(`Failed to create project: ${error.message} (Code: ${error.code})`);

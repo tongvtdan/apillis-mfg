@@ -2,7 +2,7 @@ import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { render, screen, fireEvent, waitFor } from '@testing-library/react';
 import { StageTransitionValidator } from '../StageTransitionValidator';
 import { Project, WorkflowStage } from '@/types/project';
-import { AuthContext } from '@/contexts/AuthContext';
+import { AuthContext } from '@/core/auth';
 
 // Mock the services
 vi.mock('@/services/workflowStageService', () => ({

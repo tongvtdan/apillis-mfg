@@ -13,10 +13,10 @@ import {
 } from "lucide-react";
 import type { Project, WorkflowStage } from "@/types/project";
 import { projectService } from "@/services/projectService";
-import { useWorkflowStages } from "@/hooks/useWorkflowStages";
-import { useProjects } from "@/hooks/useProjects";
-import { useAuth } from "@/contexts/AuthContext";
-import { useToast } from "@/hooks/use-toast";
+import { workflowStageService } from "@/services/workflowStageService";
+import { useProjectManagement } from "@/features/project-management/hooks";
+import { useAuth } from "@/core/auth";
+import { useToast } from "@/shared/hooks/use-toast";
 
 // Import our new components
 import { ProjectDetailHeader } from "./ProjectDetailHeader";
@@ -42,8 +42,23 @@ export function EnhancedProjectDetail() {
     const [activeTab, setActiveTab] = useState('overview');
 
     // Hooks for data
-    const { data: workflowStages = [], isLoading: stagesLoading } = useWorkflowStages();
-    const { projects } = useProjects();
+    const [workflowStages, setWorkflowStages] = useState<WorkflowStage[]>([]);
+    const [stagesLoading, setStagesLoading] = useState(true);
+
+    React.useEffect(() => {
+        const fetchStages = async () => {
+            try {
+                const stages = await workflowStageService.getWorkflowStages();
+                setWorkflowStages(stages);
+            } catch (error) {
+                console.error('Error fetching workflow stages:', error);
+            } finally {
+                setStagesLoading(false);
+            }
+        };
+        fetchStages();
+    }, []);
+    const { projects } = useProjectManagement();
 
     // Load project data
     useEffect(() => {

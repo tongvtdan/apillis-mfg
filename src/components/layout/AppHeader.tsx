@@ -12,7 +12,7 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { Badge } from "@/components/ui/badge";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
-import { useAuth } from "@/contexts/AuthContext";
+import { useAuth } from "@/core/auth";
 import { SessionStatus } from "@/components/auth/SessionStatus";
 import { Link } from "react-router-dom";
 

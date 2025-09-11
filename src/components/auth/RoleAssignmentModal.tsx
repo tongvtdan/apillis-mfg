@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { useAuth } from '@/contexts/AuthContext';
+import { useAuth } from '@/core/auth';
 import { useAuditLogger } from '@/hooks/useAuditLogger';
 import { supabase } from '@/integrations/supabase/client';
 import { Button } from '@/components/ui/button';
@@ -12,7 +12,7 @@ import { Alert, AlertDescription } from '@/components/ui/alert';
 import { Loader2, UserCog, AlertCircle } from 'lucide-react';
 import { useToast } from '@/components/ui/use-toast';
 import { ROLE_DESCRIPTIONS } from '@/lib/auth-constants';
-import { UserProfile } from '@/contexts/AuthContext';
+import { UserProfile } from '@/core/auth';
 
 interface RoleAssignmentModalProps {
     isOpen: boolean;

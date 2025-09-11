@@ -38,7 +38,7 @@ import {
     Archive
 } from 'lucide-react';
 import { Supplier, SPECIALTY_LABELS } from '@/types/supplier';
-import { useSuppliers } from '@/hooks/useSuppliers';
+import { useSuppliers } from '@/features/supplier-management/hooks/useSuppliers';
 
 interface SupplierTableProps {
     suppliers: Supplier[];

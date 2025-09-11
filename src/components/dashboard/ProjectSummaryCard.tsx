@@ -10,7 +10,7 @@ import {
   Truck
 } from "lucide-react";
 import { Project } from "@/types/project";
-import { useUserDisplayName } from "@/hooks/useUsers";
+import { useUserDisplayName } from "@/features/customer-management/hooks";
 import { format, isBefore, parseISO } from "date-fns";
 import { PRIORITY_COLORS } from "@/types/project";
 

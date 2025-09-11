@@ -6,10 +6,11 @@ import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Form } from '@/components/ui/form';
 import { CheckCircle2, Loader2 } from 'lucide-react';
-import { useToast } from '@/hooks/use-toast';
-import { useProjects } from '@/hooks/useProjects';
-import { useCustomerOrganizations } from '@/hooks/useCustomerOrganizations';
-import { useAuth } from '@/contexts/AuthContext';
+import { useToast } from '@/shared/hooks/use-toast';
+import { useProjectManagement } from '@/features/project-management/hooks';
+import { useCustomerOrganizations } from '@/features/customer-management/hooks/useCustomerOrganizations';
+import { useCustomers } from '@/features/customer-management/hooks/useCustomers';
+import { useAuth } from '@/core/auth';
 import { ProjectIntakeService, ProjectIntakeData } from '@/services/projectIntakeService';
 import { IntakeMappingService } from '@/services/intakeMappingService';
 import { Organization, Contact } from '@/types/project';
@@ -71,8 +72,9 @@ export function InquiryIntakeForm({ submissionType, onSuccess }: InquiryIntakeFo
     });
 
     const { toast } = useToast();
-    const { createProject } = useProjects();
-    const { customers: organizations, loading: organizationsLoading, createOrganization, refetch } = useCustomerOrganizations();
+    const { createProject } = useProjectManagement();
+    const { customers: organizations, loading: organizationsLoading, refetch } = useCustomerOrganizations();
+    const { createCustomer } = useCustomers();
     const { profile } = useAuth();
 
     // Function to save project documents
@@ -402,19 +404,16 @@ export function InquiryIntakeForm({ submissionType, onSuccess }: InquiryIntakeFo
 
             // If no organization is selected, create a new one
             if (!customerOrganizationId && data.company) {
-                const newOrganization = await createOrganization({
-                    name: data.company,
-                    organization_type: 'customer',
-                    country: 'US', // Default country
-                    website: data.website || undefined,
-                    description: 'Customer Organization'
-                }, {
+                const newCustomer = await createCustomer({
+                    company_name: data.company,
                     contact_name: data.customerName,
                     email: data.email,
                     phone: data.phone,
-                    role: 'primary_contact'
+                    country: 'US', // Default country
+                    website: data.website || undefined,
+                    notes: 'Customer Organization created from inquiry intake'
                 });
-                customerOrganizationId = newOrganization.id;
+                customerOrganizationId = newCustomer.organization_id;
             }
 
             if (!customerOrganizationId) {
@@ -481,30 +480,18 @@ export function InquiryIntakeForm({ submissionType, onSuccess }: InquiryIntakeFo
                     stack: error.stack,
                     name: error.name
                 });
-
-                // Provide more specific error messages
-                if (error.message.includes('Unknown intake type')) {
-                    errorMessage = "Invalid submission type. Please refresh the page and try again.";
-                } else if (error.message.includes('customer organization')) {
-                    errorMessage = "Failed to create customer organization. Please check your company information.";
-                } else if (error.message.includes('workflow stage')) {
-                    errorMessage = "Workflow configuration error. Please contact support.";
-                } else if (error.message.includes('duplicate key')) {
-                    errorMessage = "A project with this information already exists. Please check your data.";
-                } else if (error.message.includes('foreign key')) {
-                    errorMessage = "Invalid reference data. Please check your customer information.";
-                } else if (error.message.includes('not null')) {
-                    errorMessage = "Required fields are missing. Please check all required fields.";
-                } else {
-                    errorMessage = `Submission failed: ${error.message}`;
-                }
+                errorMessage = error.message;
             }
 
             toast({
-                variant: "destructive",
-                title: "Submission Failed",
+                title: "Project Submission Failed",
                 description: errorMessage,
+                variant: "destructive",
             });
+
+            // Reset submission state to allow retry
+            setIsSubmitting(false);
+            setIsSubmitted(false);
         } finally {
             setIsSubmitting(false);
         }

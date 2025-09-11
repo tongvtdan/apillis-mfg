@@ -25,8 +25,8 @@ import {
 import { cn } from "@/lib/utils";
 import { format, formatDistanceToNow, differenceInDays, parseISO } from "date-fns";
 import type { Project, WorkflowStage, ProjectPriority } from "@/types/project";
-import { useWorkflowSubStages } from "@/hooks/useWorkflowSubStages";
-import { useUserDisplayName } from "@/hooks/useUsers";
+// Removed useWorkflowSubStages - sub-stages functionality temporarily disabled
+import { useUserDisplayName } from "@/features/customer-management/hooks";
 import {
     Tooltip,
     TooltipContent,
@@ -79,10 +79,9 @@ export function ProjectOverviewCard({
     const [alerts, setAlerts] = useState<ProjectAlert[]>([]);
 
     // Get sub-stages for current stage
-    const { subStages, loading: subStagesLoading } = useWorkflowSubStages({
-        stageId: project.current_stage_id || '',
-        enabled: !!project.current_stage_id
-    });
+    // Sub-stages functionality temporarily disabled
+    const subStages: any[] = [];
+    const subStagesLoading = false;
 
     // Calculate project metrics
     const metrics = useMemo((): ProjectMetrics => {

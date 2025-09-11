@@ -19,14 +19,14 @@ import {
   TooltipProvider,
   TooltipTrigger
 } from "@/components/ui/tooltip";
-import { useProjectUpdate } from "@/hooks/useProjectUpdate";
-import { useToast } from "@/hooks/use-toast";
+import { useProjectUpdate } from "@/features/project-management/hooks";
+import { useToast } from "@/shared/hooks/use-toast";
 import { WorkflowBypassDialog } from './WorkflowBypassDialog';
 import { StageTransitionValidator } from './StageTransitionValidator';
-import { usePermissions } from '@/hooks/usePermissions';
+import { usePermissions } from '@/core/auth/hooks';
 import { WorkflowBypassRequest } from '@/lib/workflow-validator';
-import { useWorkflowAutoAdvance } from '@/hooks/useWorkflowAutoAdvance';
-import { useStageTransition } from '@/hooks/useStageTransition';
+import { useWorkflowAutoAdvance } from '@/core/workflow/useWorkflowAutoAdvance';
+import { useStageTransition } from '@/features/project-management/hooks';
 import { projectService } from '@/services/projectService';
 import { workflowStageService } from '@/services/workflowStageService';
 import { DocumentRequirementIndicator } from './DocumentRequirementIndicator';

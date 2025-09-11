@@ -45,7 +45,7 @@ export class ProjectIntakeService {
             // Get intake mapping
             const mapping = IntakeMappingService.getMapping(intakeData.intake_type);
             if (!mapping) {
-                throw new Error(`Unknown intake type: ${intakeData.intake_type}`);
+                throw new Error(`No mapping found for intake type: ${intakeData.intake_type}`);
             }
             console.log('✅ Intake mapping found:', mapping);
 
@@ -92,9 +92,9 @@ export class ProjectIntakeService {
                 description: intakeData.description,
                 customer_organization_id: intakeData.customer_organization_id,
                 point_of_contacts: intakeData.point_of_contacts || [],
-                priority_level: priority, // Use correct field name
+                priority: priority, // Use correct field name for useProjectCreation
                 estimated_value: intakeData.estimated_value,
-                estimated_delivery_date: intakeData.due_date, // Map to correct field name
+                due_date: intakeData.due_date, // Map to correct field name
                 notes: intakeData.notes,
                 tags: tags,
                 intake_type: mapping.intakeType,
@@ -115,11 +115,16 @@ export class ProjectIntakeService {
                 }
             });
 
-            console.log('✅ Project created successfully:', project.project_id);
+            console.log('✅ Project created successfully:', project);
             return project;
         } catch (error) {
             console.error('❌ Error creating project from intake:', error);
-            throw error;
+            // Make sure the error is properly propagated
+            if (error instanceof Error) {
+                throw new Error(`Failed to create project from intake: ${error.message}`);
+            } else {
+                throw new Error('Failed to create project from intake: Unknown error occurred');
+            }
         }
     }
 

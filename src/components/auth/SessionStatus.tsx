@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
-import { useAuth } from '@/contexts/AuthContext';
-import { useSessionManager } from '@/hooks/useSessionManager';
+import { useAuth } from '@/core/auth';
+import { useSessionManager } from '@/core/auth/hooks/useSessionManager';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';

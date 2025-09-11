@@ -29,7 +29,7 @@ import {
     Link
 } from 'lucide-react';
 import { format } from 'date-fns';
-import { useDocuments } from '@/hooks/useDocuments';
+import { useCurrentDocuments } from '@/core/documents/useDocument';
 import { DocumentUploadZone } from './DocumentUploadZone';
 import { DocumentGrid } from './DocumentGrid';
 import { DocumentList } from './DocumentList';
@@ -40,7 +40,7 @@ import { DocumentVersionHistory } from './DocumentVersionHistory';
 import { DocumentEditModal } from './DocumentEditModal';
 import { DocumentLinkModal } from './DocumentLinkModal';
 import { documentActionsService } from '@/services/documentActions';
-import type { ProjectDocument } from '@/hooks/useDocuments';
+import type { ProjectDocument } from '@/types/project';
 import type { DocumentEditData } from '@/services/documentActions';
 
 interface DocumentManagerProps {
@@ -65,7 +65,7 @@ export interface DocumentFiltersState {
 }
 
 export const DocumentManager: React.FC<DocumentManagerProps> = ({ projectId, currentStageId }) => {
-    const { data: documents = [], isLoading, refetch, forceRefresh } = useDocuments(projectId);
+    const { documents, loading: isLoading } = useCurrentDocuments();
 
     // View state
     const [viewMode, setViewMode] = useState<ViewMode>('grid');

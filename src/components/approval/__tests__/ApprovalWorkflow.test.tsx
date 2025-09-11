@@ -1,7 +1,7 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { render, screen, fireEvent, waitFor } from '@testing-library/react';
 import { BrowserRouter } from 'react-router-dom';
-import { AuthProvider } from '@/contexts/AuthContext';
+import { AuthProvider } from '@/core/auth';
 import { ApprovalDashboard } from '../ApprovalDashboard';
 import { ApprovalStatusWidget } from '../ApprovalStatusWidget';
 
@@ -74,7 +74,7 @@ vi.mock('@/hooks/useApprovals', () => ({
     })
 }));
 
-vi.mock('@/contexts/AuthContext', () => ({
+vi.mock('@/core/auth', () => ({
     AuthProvider: ({ children }: { children: React.ReactNode }) => <div>{children}</div>,
     useAuth: () => ({
         user: {

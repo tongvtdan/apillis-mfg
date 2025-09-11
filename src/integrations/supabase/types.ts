@@ -479,52 +479,91 @@ export type Database = {
       }
       organizations: {
         Row: {
+          address: string | null
+          city: string | null
+          country: string | null
           created_at: string | null
+          credit_limit: number | null
+          default_currency: string | null
           description: string | null
           domain: string | null
           id: string
           industry: string | null
           is_active: boolean | null
           logo_url: string | null
+          metadata: Json | null
           name: string
+          organization_type: Database["public"]["Enums"]["organization_type"] | null
+          payment_terms: string | null
+          postal_code: string | null
           settings: Json | null
           slug: string
+          state: string | null
           subscription_plan:
           | Database["public"]["Enums"]["subscription_plan"]
           | null
+          tax_id: string | null
+          timezone: string | null
           updated_at: string | null
+          website: string | null
         }
         Insert: {
+          address?: string | null
+          city?: string | null
+          country?: string | null
           created_at?: string | null
+          credit_limit?: number | null
+          default_currency?: string | null
           description?: string | null
           domain?: string | null
           id?: string
           industry?: string | null
           is_active?: boolean | null
           logo_url?: string | null
+          metadata?: Json | null
           name: string
+          organization_type?: Database["public"]["Enums"]["organization_type"] | null
+          payment_terms?: string | null
+          postal_code?: string | null
           settings?: Json | null
           slug: string
+          state?: string | null
           subscription_plan?:
           | Database["public"]["Enums"]["subscription_plan"]
           | null
+          tax_id?: string | null
+          timezone?: string | null
           updated_at?: string | null
+          website?: string | null
         }
         Update: {
+          address?: string | null
+          city?: string | null
+          country?: string | null
           created_at?: string | null
+          credit_limit?: number | null
+          default_currency?: string | null
           description?: string | null
           domain?: string | null
           id?: string
           industry?: string | null
           is_active?: boolean | null
           logo_url?: string | null
+          metadata?: Json | null
           name?: string
+          organization_type?: Database["public"]["Enums"]["organization_type"] | null
+          payment_terms?: string | null
+          postal_code?: string | null
           settings?: Json | null
           slug?: string
+          state?: string | null
           subscription_plan?:
           | Database["public"]["Enums"]["subscription_plan"]
           | null
+          tax_id?: string | null
+          timezone?: string | null
           updated_at?: string | null
+          website?: string | null
         }
         Relationships: []
       }
@@ -1219,10 +1258,83 @@ export type Database = {
       }
     }
     Enums: {
+      approval_action:
+      | "request"
+      | "assign"
+      | "reassign"
+      | "approve"
+      | "reject"
+      | "comment"
+      | "escalate"
+      | "cancel"
+      approval_priority: "low" | "normal" | "high" | "urgent" | "critical"
+      approval_status:
+      | "pending"
+      | "in_review"
+      | "approved"
+      | "rejected"
+      | "cancelled"
+      | "expired"
+      | "delegated"
+      | "auto_approved"
+      | "escalated"
+      approval_type:
+      | "technical_review"
+      | "quote_approval"
+      | "po_approval"
+      | "supplier_selection"
+      | "quality_review"
+      | "shipment_release"
+      | "final_signoff"
+      | "engineering_change"
+      | "cost_approval"
+      | "budget_approval"
+      | "contract_approval"
+      | "safety_review"
       contact_type: "customer" | "supplier" | "partner" | "internal"
+      document_category:
+      | "inquiry"
+      | "rfq"
+      | "design_spec"
+      | "drawing"
+      | "bom"
+      | "supplier_rfq"
+      | "supplier_quote"
+      | "costing"
+      | "customer_quote"
+      | "po"
+      | "contract"
+      | "work_order"
+      | "work_instruction"
+      | "qa_report"
+      | "test_result"
+      | "packing_list"
+      | "shipping_doc"
+      | "delivery_confirmation"
+      | "invoice"
+      | "other"
       intake_type: "rfq" | "purchase_order" | "project_idea" | "direct_request"
-      priority_level: "low" | "medium" | "high" | "critical"
-      project_status: "active" | "completed" | "cancelled" | "on_hold"
+      notification_priority: "low" | "normal" | "high" | "urgent"
+      notification_type: "workflow" | "approval" | "document" | "message" | "system"
+      organization_type: "internal" | "customer" | "supplier" | "partner"
+      priority_level: "low" | "normal" | "high" | "urgent"
+      project_status:
+      | "draft"
+      | "inquiry"
+      | "reviewing"
+      | "quoted"
+      | "confirmed"
+      | "procurement"
+      | "production"
+      | "completed"
+      | "cancelled"
+      sub_stage_status:
+      | "pending"
+      | "in_progress"
+      | "in_review"
+      | "blocked"
+      | "skipped"
+      | "completed"
       subscription_plan: "starter" | "growth" | "enterprise"
       user_role:
       | "admin"
@@ -1232,9 +1344,10 @@ export type Database = {
       | "qa"
       | "production"
       | "procurement"
-      | "supplier"
-      | "customer"
-      user_status: "active" | "inactive" | "pending" | "suspended"
+      | "logistics"
+      | "finance"
+      | "auditor"
+      user_status: "active" | "invited" | "suspended" | "disabled"
     }
     CompositeTypes: {
       [_ in never]: never

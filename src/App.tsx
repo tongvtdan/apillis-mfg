@@ -3,12 +3,17 @@ import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { Routes, Route } from "react-router-dom";
 import { AppLayout } from "@/components/layout/AppLayout";
-import { AuthProvider } from "@/contexts/AuthContext";
+import { AuthProvider } from "@/core/auth";
 import { ProtectedRoute } from "@/components/auth/ProtectedRoute";
-import { useSessionManager } from "@/hooks/useSessionManager";
+import { useSessionManager } from "@/core/auth/hooks";
 import { useEffect } from "react";
 import Index from "./pages/Index";
 import Dashboard from "./pages/Dashboard";
+
+// Import providers
+import { DocumentProvider } from "@/core/documents/DocumentProvider";
+import { WorkflowProvider } from "@/core/workflow/WorkflowProvider";
+import { ApprovalProvider } from "@/core/approvals/ApprovalProvider";
 
 
 import AdminUsers from "./pages/AdminUsers";
@@ -28,19 +33,17 @@ import CreateProject from "./pages/CreateProject";
 import Settings from "./pages/Settings";
 import Profile from "./pages/Profile";
 import Approvals from "./pages/Approvals";
+import CoreTest from "./pages/CoreTest";
+import IntakeTest from "./pages/IntakeTest";
+import EngineeringReviewTest from "./pages/EngineeringReviewTest";
+import CostingEngineTest from "./pages/CostingEngineTest";
+import SupplierManagementTest from "./pages/SupplierManagementTest";
+import CustomerManagementTest from "./pages/CustomerManagementTest";
+import DashboardTest from "./pages/DashboardTest";
 
 import { applyAdaptiveTheme } from "@/lib/theme";
 import "@/styles/smooth-transitions.css";
 
-// Temporary debug - remove this later
-console.log('🔍 Environment Variables Debug:');
-console.log('VITE_SUPABASE_URL:', import.meta.env.VITE_SUPABASE_URL);
-console.log('VITE_SUPABASE_ANON_KEY:', import.meta.env.VITE_SUPABASE_ANON_KEY);
-console.log('SUPABASE_URL (fallback):', import.meta.env.SUPABASE_URL);
-console.log('All VITE_ variables:', Object.keys(import.meta.env).filter(key => key.startsWith('VITE_')));
-console.log('NODE_ENV:', import.meta.env.NODE_ENV);
-console.log('MODE:', import.meta.env.MODE);
-console.log('BASE_URL:', import.meta.env.BASE_URL);
 
 // Session Manager Component to initialize session management
 function SessionManagerWrapper({ children }: { children: React.ReactNode }) {
@@ -115,7 +118,13 @@ const App = () => {
             } />
             <Route path="/project/:id" element={
               <ProtectedRoute>
-                <ProjectDetail />
+                <WorkflowProvider>
+                  <ApprovalProvider>
+                    <DocumentProvider>
+                      <ProjectDetail />
+                    </DocumentProvider>
+                  </ApprovalProvider>
+                </WorkflowProvider>
               </ProtectedRoute>
             } />
             <Route path="/production" element={
@@ -161,6 +170,41 @@ const App = () => {
             <Route path="/projects/new" element={
               <ProtectedRoute>
                 <AppLayout><CreateProject /></AppLayout>
+              </ProtectedRoute>
+            } />
+            <Route path="/core-test" element={
+              <ProtectedRoute requiredRoles={['admin']}>
+                <AppLayout><CoreTest /></AppLayout>
+              </ProtectedRoute>
+            } />
+            <Route path="/intake-test" element={
+              <ProtectedRoute>
+                <AppLayout><IntakeTest /></AppLayout>
+              </ProtectedRoute>
+            } />
+            <Route path="/engineering-review-test" element={
+              <ProtectedRoute>
+                <AppLayout><EngineeringReviewTest /></AppLayout>
+              </ProtectedRoute>
+            } />
+            <Route path="/costing-engine-test" element={
+              <ProtectedRoute>
+                <AppLayout><CostingEngineTest /></AppLayout>
+              </ProtectedRoute>
+            } />
+            <Route path="/supplier-management-test" element={
+              <ProtectedRoute>
+                <AppLayout><SupplierManagementTest /></AppLayout>
+              </ProtectedRoute>
+            } />
+            <Route path="/customer-management-test" element={
+              <ProtectedRoute>
+                <AppLayout><CustomerManagementTest /></AppLayout>
+              </ProtectedRoute>
+            } />
+            <Route path="/dashboard-test" element={
+              <ProtectedRoute>
+                <AppLayout><DashboardTest /></AppLayout>
               </ProtectedRoute>
             } />
 

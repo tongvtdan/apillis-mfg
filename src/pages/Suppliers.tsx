@@ -13,8 +13,8 @@ import {
     Clock,
     CheckCircle
 } from 'lucide-react';
-import { useSuppliers } from '@/hooks/useSuppliers';
-import { usePermissions } from '@/hooks/usePermissions';
+import { useSuppliers } from '@/features/supplier-management/hooks/useSuppliers';
+import { usePermissions } from '@/core/auth/hooks/usePermissions';
 import { Switch } from '@/components/ui/switch';
 import { Label } from '@/components/ui/label';
 import { SupplierTable } from '@/components/supplier/SupplierTable';

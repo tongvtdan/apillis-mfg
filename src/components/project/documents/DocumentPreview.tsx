@@ -24,7 +24,7 @@ import { format } from 'date-fns';
 import { supabase } from '@/integrations/supabase/client';
 import { documentActionsService } from '@/services/documentActions';
 import type { ProjectDocument } from '@/hooks/useDocuments';
-import { useUserDisplayName } from '@/hooks/useUsers';
+import { useUserDisplayName } from '@/features/customer-management/hooks/useUsers';
 import { toast } from 'sonner';
 
 interface DocumentPreviewProps {

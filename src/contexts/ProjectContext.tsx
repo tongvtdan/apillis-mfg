@@ -2,7 +2,7 @@ import React, { createContext, useContext, useReducer, useEffect, useCallback } 
 import { Project, WorkflowStage, ProjectStatus, Contact, ProjectDocument, ProjectActivity } from '@/types/project';
 import { projectWorkflowService } from '@/services/projectWorkflowService';
 import { projectService } from '@/services/projectService';
-import { useAuth } from '@/contexts/AuthContext';
+import { useAuth } from '@/core/auth';
 import { useToast } from '@/hooks/use-toast';
 import { supabase } from '@/integrations/supabase/client';
 

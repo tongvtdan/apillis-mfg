@@ -15,7 +15,7 @@ import { Calendar, Building2, User, DollarSign, AlertCircle, CheckCircle2, Loade
 import { ProjectType, ProjectPriority, PROJECT_TYPE_LABELS, PROJECT_TYPE_DESCRIPTIONS } from '@/types/project';
 import { useCustomerOrganizations } from '@/hooks/useCustomerOrganizations';
 import { supabase } from '@/integrations/supabase/client';
-import { useAuth } from '@/contexts/AuthContext';
+import { useAuth } from '@/core/auth';
 
 // Enhanced validation schema for project creation
 const projectCreationSchema = z.object({
@@ -234,7 +234,7 @@ export function EnhancedProjectCreationModal({
                 .insert(projectData)
                 .select(`
           *,
-          customer_organization:organizations(*),
+          customer_organization:organizations!customer_organization_id(*),
           current_stage:workflow_stages(*)
         `)
                 .single();

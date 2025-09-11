@@ -10,7 +10,7 @@ import { Label } from '@/components/ui/label';
 import { Badge } from '@/components/ui/badge';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
-import { useApprovals } from '@/hooks/useApprovals';
+import { useCurrentApprovals } from '@/core/approvals/useApproval';
 import { supabase } from '@/integrations/supabase/client';
 import {
     CheckCircle,
@@ -45,7 +45,7 @@ export function ApprovalModal({ approvalId, isOpen, onClose }: ApprovalModalProp
     const [projectDetails, setProjectDetails] = useState<any>(null);
     const [loading, setLoading] = useState(true);
     const [submitting, setSubmitting] = useState(false);
-    const { submitApproval } = useApprovals();
+    const { submitDecision } = useCurrentApprovals();
 
     const form = useForm<ApprovalFormData>({
         resolver: zodResolver(approvalSchema),

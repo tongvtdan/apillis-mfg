@@ -17,7 +17,7 @@ import {
     X,
     Info
 } from 'lucide-react';
-import { useAuth } from '@/contexts/AuthContext';
+import { useAuth } from '@/core/auth';
 
 interface Permission {
     id: string;

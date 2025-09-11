@@ -27,7 +27,7 @@ import {
 import { cn } from "@/lib/utils";
 import type { Project, ProjectStatus, WorkflowStage } from "@/types/project";
 import { projectService } from "@/services/projectService";
-import { useToast } from "@/hooks/use-toast";
+import { useToast } from "@/shared/hooks/use-toast";
 
 interface ProjectStatusManagerProps {
     project: Project;

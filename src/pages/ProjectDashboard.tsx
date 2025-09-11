@@ -20,7 +20,7 @@ import {
 import { ProjectProvider, useProject } from '@/contexts/ProjectContext';
 import { ProjectLifecycleDashboard } from '@/components/project/ProjectLifecycleDashboard';
 import { ProjectWorkflowOrchestrator } from '@/components/project/ProjectWorkflowOrchestrator';
-import { useAuth } from '@/contexts/AuthContext';
+import { useAuth } from '@/core/auth';
 import { useToast } from '@/hooks/use-toast';
 
 function ProjectDashboardContent() {

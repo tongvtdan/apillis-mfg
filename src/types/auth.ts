@@ -71,18 +71,7 @@ export interface Permission {
     actions: string[];
 }
 
-// Authentication context interface
-export interface AuthContextType {
-    user: User | null;
-    loading: boolean;
-    error: string | null;
-    signIn: (email: string, password: string) => Promise<void>;
-    signInWithGoogle: () => Promise<void>;
-    signUp: (email: string, password: string, displayName: string) => Promise<void>;
-    signOut: () => Promise<void>;
-    resetPassword: (email: string) => Promise<void>;
-    updateProfile: (data: Partial<User>) => Promise<void>;
-}
+// Note: AuthContextType is now defined in @/core/auth/AuthProvider.tsx
 
 // User session interface
 export interface UserSession {

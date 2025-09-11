@@ -28,7 +28,7 @@ import {
     Shield,
     Key
 } from 'lucide-react';
-import { usePermissionsAdmin } from '@/hooks/usePermissionsAdmin';
+import { usePermissionsAdmin } from '@/core/auth/hooks/usePermissionsAdmin';
 import { format } from 'date-fns';
 
 export default function AuditLog() {
@@ -105,7 +105,7 @@ export default function AuditLog() {
     const getUserName = (userId: string | null) => {
         if (!userId) return 'System';
         const user = users.find(u => u.userId === userId);
-        return user ? user.name : `User ${userId.slice(0, 8)}`;
+        return user ? user.name : 'Unknown User';
     };
 
     const formatDate = (dateString: string) => {

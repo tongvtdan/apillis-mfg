@@ -1,5 +1,5 @@
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { useProjects } from "@/hooks/useProjects";
+import { useProjectManagement } from "@/features/project-management/hooks";
 import { useNavigate } from "react-router-dom";
 import { formatDistanceToNow, format } from "date-fns";
 import { Clock, AlertCircle, FileText, Users, CheckCircle, Calendar } from "lucide-react";
@@ -17,7 +17,7 @@ interface Task {
 }
 
 export function PendingTasks() {
-  const { projects, loading } = useProjects();
+  const { projects, loading } = useProjectManagement();
   const navigate = useNavigate();
 
   // Generate pending tasks from projects data

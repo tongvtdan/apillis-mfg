@@ -1,4 +1,4 @@
-import { useState, useEffect, memo, useMemo } from "react";
+import { useState, useEffect, memo, useMemo, useRef } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -33,23 +33,23 @@ import { Department, ReviewSubmission, InternalReview } from "@/types/review";
 import { projectService } from "@/services/projectService";
 import ProjectCommunication from "@/components/project/ProjectCommunication";
 import { WorkflowStepper } from "@/components/project/workflow";
-import { useProjectMessages } from "@/hooks/useMessages";
+import { useProjectMessages, useCreateMessage } from "@/features/communication/hooks";
 import { DocumentManager } from "@/components/project/documents";
-import { useDocuments } from "@/hooks/useDocuments";
+import { useCurrentDocuments } from "@/core/documents/useDocument";
 
-import { useProjectReviews } from "@/hooks/useProjectReviews";
-import { useProjects } from "@/hooks/useProjects";
-import { useWorkflowAutoAdvance } from "@/hooks/useWorkflowAutoAdvance";
+import { useProjectReviews } from "@/features/engineering-review/hooks";
+import { useProjectManagement } from "@/features/project-management/hooks";
+import { useWorkflowAutoAdvance } from "@/core/workflow/useWorkflowAutoAdvance";
 import { ProjectReviewForm, ReviewConfiguration, ReviewList, ReviewAssignmentModal } from "@/components/project/workflow";
-import { useUserDisplayName } from "@/hooks/useUsers";
-import { useAuth } from "@/contexts/AuthContext";
+import { useUserDisplayName } from "@/features/customer-management/hooks";
+import { useAuth } from "@/core/auth";
 import { ProjectDetailHeader } from "@/components/project/ProjectDetailHeader";
 import { ProjectSummaryCard } from "@/components/project/ProjectSummaryCard";
 import { VisualTimelineProgression } from "@/components/project/ui";
-import { useWorkflowStages } from "@/hooks/useWorkflowStages";
+import { workflowStageService } from "@/services/workflowStageService";
 import { ResponsiveNavigationWrapper, TabTransition, TabContentWrapper } from "@/components/project/ui";
-import { useProjectNavigation } from "@/hooks/useProjectNavigation";
-import { useSmoothProjectUpdates } from "@/hooks/useSmoothProjectUpdates";
+import { useProjectNavigation } from "@/features/project-management/hooks";
+import { useSmoothProjectUpdates } from "@/features/project-management/hooks";
 
 // Import new enhanced components
 import { InlineProjectEditor } from "@/components/project/InlineProjectEditor";
@@ -80,7 +80,7 @@ export default function ProjectDetail() {
 
   const { reviews, loading: reviewsLoading, submitReview } = useProjectReviews(id || '');
 
-  const { data: documents = [], isLoading: documentsLoading } = useDocuments(id || '');
+  const { documents, loading: documentsLoading } = useCurrentDocuments();
 
   // Calculate documents that might need attention (recent uploads, pending approval, etc.)
   const documentsPendingApproval = useMemo(() => {
@@ -98,10 +98,12 @@ export default function ProjectDetail() {
   const {
     activeTab,
     navigationTabs,
-    handleTabChange,
-    getBreadcrumbs,
-    isTabLoading,
-    hasTabError,
+    setActiveTab,
+    setTabLoading,
+    setTabError,
+    clearTabStates,
+    getTabStats,
+    lastVisitedTabs
   } = useProjectNavigation({
     projectId: id || 'temp',
     documentsCount: documents.length,
@@ -114,13 +116,38 @@ export default function ProjectDetail() {
     activeSupplierRfqsCount: 0, // Removed supplier RFQ section
   });
 
+  // Helper functions for tab state
+  const isTabLoading = (tabId: string) => {
+    // For now, return false as we don't have tab-specific loading states
+    return false;
+  };
+
+  const hasTabError = (tabId: string) => {
+    // For now, return false as we don't have tab-specific error states
+    return false;
+  };
+
+  const handleTabChange = (tabId: string) => {
+    setActiveTab(tabId);
+  };
+
+  const getBreadcrumbs = () => {
+    return [
+      { label: 'Projects', href: '/projects' },
+      { label: smoothProject?.title || 'Project', href: `/project/${id}` }
+    ];
+  };
+
   const [showSupplierModal, setShowSupplierModal] = useState(false);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [dataSource, setDataSource] = useState<'supabase' | 'mock' | 'unknown'>('unknown');
+  const [specificProject, setSpecificProject] = useState<Project | null>(null);
+  const [specificProjectLoading, setSpecificProjectLoading] = useState(true);
+  const fetchedProjectIdRef = useRef<string | null>(null);
 
   // Use the projects hook to get real-time updates - SINGLE DATA SOURCE
-  const { projects, loading: projectsLoading, error: projectsError, fetchProjects, ensureProjectSubscription } = useProjects();
+  const { projects, loading: projectsLoading, error: projectsError, fetchProjects, ensureProjectSubscription, getProjectById } = useProjectManagement();
 
   // Review state management
   const [showReviewModal, setShowReviewModal] = useState(false);
@@ -130,10 +157,89 @@ export default function ProjectDetail() {
   const [selectedReview, setSelectedReview] = useState<InternalReview | null>(null);
 
   // Get workflow stages
-  const { data: workflowStages = [], isLoading: stagesLoading } = useWorkflowStages();
+  const [workflowStages, setWorkflowStages] = useState([]);
+  const [stagesLoading, setStagesLoading] = useState(true);
 
-  // Get the project from the projects array - SINGLE DATA SOURCE
-  const project = projects.find(p => p.id === id) || null;
+  // Fetch specific project by ID
+  useEffect(() => {
+    const fetchSpecificProject = async () => {
+      if (!id) return;
+
+      // Prevent fetching if we already fetched this project
+      if (fetchedProjectIdRef.current === id) {
+        console.log('🔍 ProjectDetail: Project already fetched, skipping fetch');
+        return;
+      }
+
+      console.log('🔍 ProjectDetail: Fetching specific project with ID:', id);
+      setSpecificProjectLoading(true);
+      fetchedProjectIdRef.current = id;
+
+      try {
+        const project = await getProjectById(id);
+        console.log('📊 ProjectDetail: Specific project fetched:', project);
+        setSpecificProject(project);
+
+        if (project) {
+          setDataSource('supabase');
+          setError(null);
+        } else {
+          setError('Project not found');
+          setDataSource('unknown');
+        }
+      } catch (err) {
+        console.error('❌ ProjectDetail: Error fetching specific project:', err);
+        setError(err instanceof Error ? err.message : 'Failed to fetch project');
+        setDataSource('unknown');
+        fetchedProjectIdRef.current = null; // Reset on error
+      } finally {
+        setSpecificProjectLoading(false);
+        setLoading(false);
+      }
+    };
+
+    fetchSpecificProject();
+  }, [id]); // Only depend on id
+
+  useEffect(() => {
+    const fetchStages = async () => {
+      try {
+        const stages = await workflowStageService.getWorkflowStages();
+        setWorkflowStages(stages);
+      } catch (error) {
+        console.error('Error fetching workflow stages:', error);
+      } finally {
+        setStagesLoading(false);
+      }
+    };
+    fetchStages();
+  }, []);
+
+  // Get the project from specific fetch or fallback to projects array
+  const project = specificProject || projects.find(p => p.id === id) || null;
+
+  // Debug logging for project data
+  console.log('🔍 ProjectDetail: Project data debug:', {
+    id,
+    specificProject: specificProject ? {
+      id: specificProject.id,
+      title: specificProject.title,
+      assigned_to: specificProject.assigned_to,
+      created_by: specificProject.created_by
+    } : null,
+    projectsFromArray: projects.find(p => p.id === id) ? {
+      id: projects.find(p => p.id === id)?.id,
+      title: projects.find(p => p.id === id)?.title,
+      assigned_to: projects.find(p => p.id === id)?.assigned_to,
+      created_by: projects.find(p => p.id === id)?.created_by
+    } : null,
+    finalProject: project ? {
+      id: project.id,
+      title: project.title,
+      assigned_to: project.assigned_to,
+      created_by: project.created_by
+    } : null
+  });
 
   // Use smooth project updates hook for better UX
   const {
@@ -150,6 +256,13 @@ export default function ProjectDetail() {
     },
     debounceMs: 500, // Increased debounce for better stability
     enableOptimisticUpdates: true
+  });
+
+  // Debug logging for smoothProject
+  console.log('🔍 ProjectDetail: SmoothProject debug:', {
+    smoothProject: smoothProject ? { id: smoothProject.id, title: smoothProject.title } : null,
+    isUpdating: isProjectUpdating,
+    hasProjectData: smoothProject && Object.keys(smoothProject).length > 0
   });
 
   // Get user display names for project assignee and reviewers
@@ -218,7 +331,7 @@ export default function ProjectDetail() {
   }, [project?.current_stage_id, project?.status, project?.updated_at, projects.length]);
 
   // Loading state - check both projects loading and individual project loading
-  const isLoading = loading || projectsLoading || !project;
+  const isLoading = loading || projectsLoading || specificProjectLoading || !project;
 
   if (isLoading) {
     return (

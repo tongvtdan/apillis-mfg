@@ -1,5 +1,5 @@
 import { supabase } from '@/integrations/supabase/client';
-import { UserProfile } from '@/contexts/AuthContext';
+import { UserProfile } from '@/core/auth';
 
 export interface UserLookup {
     id: string;
@@ -12,8 +12,11 @@ class UserService {
     private userCache = new Map<string, UserLookup>();
 
     async getUserById(userId: string): Promise<UserLookup | null> {
+        console.log('🔍 UserService: Fetching user with ID:', userId);
+
         // Check cache first
         if (this.userCache.has(userId)) {
+            console.log('📦 UserService: Found user in cache:', this.userCache.get(userId));
             return this.userCache.get(userId)!;
         }
 
@@ -24,8 +27,10 @@ class UserService {
                 .eq('id', userId)
                 .maybeSingle();
 
+            console.log('🔍 UserService: Database query result:', { data, error });
+
             if (error) {
-                console.error('Error fetching user:', error);
+                console.error('❌ UserService: Error fetching user:', error);
                 return null;
             }
 
@@ -37,14 +42,16 @@ class UserService {
                     department: data.department
                 };
 
+                console.log('✅ UserService: User found and cached:', userLookup);
                 // Cache the result
                 this.userCache.set(userId, userLookup);
                 return userLookup;
             }
 
+            console.log('⚠️ UserService: No user found for ID:', userId);
             return null;
         } catch (error) {
-            console.error('Error fetching user:', error);
+            console.error('❌ UserService: Exception fetching user:', error);
             return null;
         }
     }

@@ -8,7 +8,7 @@ import { ExternalLink, User } from "lucide-react";
 import { Project, ProjectStatus, ProjectStage, PROJECT_STAGES, WorkflowStage } from "@/types/project";
 import { workflowStageService } from '@/services/workflowStageService';
 import { useState, useEffect } from 'react';
-import { useUserDisplayName, useUsers } from "@/hooks/useUsers";
+import { useUserDisplayName, useUsers } from "@/features/customer-management/hooks";
 
 interface AnimatedTableRowProps {
     project: Project;

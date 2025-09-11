@@ -1,9 +1,9 @@
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Progress } from "@/components/ui/progress";
-import { useProjects } from "@/hooks/useProjects";
+import { useProjectManagement } from "@/features/project-management/hooks";
 
 export function MonthlyProgress() {
-  const { projects, loading } = useProjects();
+  const { projects, loading } = useProjectManagement();
 
   // Calculate progress data from real projects
   const totalProjects = projects.length;

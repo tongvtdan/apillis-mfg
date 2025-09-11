@@ -11,8 +11,8 @@ import {
   Plus,
   BarChart3
 } from 'lucide-react';
-import { useCustomerOrganizations } from '@/hooks/useCustomerOrganizations';
-import { usePermissions } from '@/hooks/usePermissions';
+import { useCustomerOrganizations } from '@/features/customer-management/hooks/useCustomerOrganizations';
+import { usePermissions } from '@/core/auth/hooks/usePermissions';
 import { Switch } from '@/components/ui/switch';
 import { Label } from '@/components/ui/label';
 import { CustomerTable } from '@/components/customer/CustomerTableEnhanced';

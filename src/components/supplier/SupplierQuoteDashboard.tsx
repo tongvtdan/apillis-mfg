@@ -3,7 +3,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Progress } from "@/components/ui/progress";
-import { 
+import {
   Table,
   TableBody,
   TableCell,
@@ -25,12 +25,12 @@ import {
   LineElement,
 } from 'chart.js';
 import { Bar, Doughnut, Line } from 'react-chartjs-2';
-import { 
-  TrendingUp, 
-  TrendingDown, 
-  Clock, 
-  Star, 
-  Award, 
+import {
+  TrendingUp,
+  TrendingDown,
+  Clock,
+  Star,
+  Award,
   Target,
   Users,
   DollarSign,
@@ -42,9 +42,9 @@ import {
 } from "lucide-react";
 import { format, subDays, eachDayOfInterval } from "date-fns";
 import { cn } from "@/lib/utils";
-import { useSuppliers } from "@/hooks/useSuppliers";
-import { useSupplierQuotes } from "@/hooks/useSupplierQuotes";
-import { 
+import { useSuppliers } from "@/features/supplier-management/hooks";
+import { useSupplierQuotes } from "@/features/supplier-management/hooks";
+import {
   SupplierAnalytics,
   SupplierPerformanceMetrics,
   Supplier
@@ -162,7 +162,7 @@ export function SupplierQuoteDashboard({ className }: SupplierQuoteDashboardProp
 
   // Calculate KPIs
   const totalSuppliers = suppliers.filter(s => s.is_active).length;
-  const averageResponseRate = supplierAnalytics.length > 0 
+  const averageResponseRate = supplierAnalytics.length > 0
     ? supplierAnalytics.reduce((sum, s) => sum + s.response_rate_percent, 0) / supplierAnalytics.length
     : 0;
   const averageResponseTime = supplierAnalytics.length > 0
@@ -275,7 +275,7 @@ export function SupplierQuoteDashboard({ className }: SupplierQuoteDashboardProp
           icon={<Users className="h-4 w-4" />}
           trend="up"
         />
-        
+
         <KPICard
           title="Avg Response Rate"
           value={`${averageResponseRate.toFixed(1)}%`}
@@ -285,7 +285,7 @@ export function SupplierQuoteDashboard({ className }: SupplierQuoteDashboardProp
           trend="up"
           target={75}
         />
-        
+
         <KPICard
           title="Avg Response Time"
           value={`${(averageResponseTime / 24).toFixed(1)}d`}
@@ -294,7 +294,7 @@ export function SupplierQuoteDashboard({ className }: SupplierQuoteDashboardProp
           icon={<Clock className="h-4 w-4" />}
           trend="up"
         />
-        
+
         <KPICard
           title="Active Quotes"
           value={activeQuotes}
@@ -313,7 +313,7 @@ export function SupplierQuoteDashboard({ className }: SupplierQuoteDashboardProp
             <TabsTrigger value="performance">Performance</TabsTrigger>
             <TabsTrigger value="rankings">Rankings</TabsTrigger>
           </TabsList>
-          
+
           <div className="flex items-center space-x-2">
             <Button
               variant={timeRange === '7d' ? 'default' : 'outline'}
@@ -552,9 +552,9 @@ export function SupplierQuoteDashboard({ className }: SupplierQuoteDashboardProp
                           <TableCell>
                             <div>
                               <span className="font-medium">{analytics.response_rate_percent.toFixed(0)}%</span>
-                              <Progress 
-                                value={analytics.response_rate_percent} 
-                                className="h-1 mt-1" 
+                              <Progress
+                                value={analytics.response_rate_percent}
+                                className="h-1 mt-1"
                               />
                             </div>
                           </TableCell>

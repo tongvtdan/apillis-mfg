@@ -1,5 +1,5 @@
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { useActivityLogs } from '@/hooks/useActivityLogs';
+import { useCurrentActivityLog } from '@/core/activity-log/useActivityLog';
 import { useNavigate } from 'react-router-dom';
 import { formatDistanceToNow } from "date-fns";
 import {
@@ -33,19 +33,19 @@ interface Activity {
 }
 
 export function RecentActivities() {
-  const { activities, loading, error } = useActivityLogs(10);
+  const { entries, loading, error } = useCurrentActivityLog();
   const navigate = useNavigate();
 
-  // Debug log activities
+  // Debug log entries
   useEffect(() => {
-    if (activities.length > 0) {
-      console.log('Activities loaded:', activities);
-      console.log('Sample activity structure:', activities[0]);
+    if (entries.length > 0) {
+      console.log('Activities loaded:', entries);
+      console.log('Sample entry structure:', entries[0]);
     }
-  }, [activities]);
+  }, [entries]);
 
-  // Map activities to a more user-friendly format
-  const mappedActivities = activities
+  // Map entries to a more user-friendly format
+  const mappedActivities = entries
     .map(activity => {
       try {
         let type: 'project' | 'user' | 'contact' | 'document' | 'review' = 'project';
@@ -240,7 +240,7 @@ export function RecentActivities() {
         </CardHeader>
         <CardContent>
           <div className="text-center py-4 text-red-500">
-            Error loading activities: {error}
+            Error loading entries: {error}
           </div>
         </CardContent>
       </Card>

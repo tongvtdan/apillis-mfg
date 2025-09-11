@@ -17,7 +17,7 @@ import { Command, CommandEmpty, CommandGroup, CommandInput, CommandItem, Command
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { Check, ChevronsUpDown, X, Building2 } from 'lucide-react';
 import { Organization } from '@/types/project';
-import { useCustomerOrganizations } from '@/hooks/useCustomerOrganizations';
+import { useCustomerOrganizations } from '@/features/customer-management/hooks/useCustomerOrganizations';
 import { cn } from '@/lib/utils';
 
 interface CustomerModalProps {

@@ -6,7 +6,7 @@
 set -e
 
 # Configuration
-BACKUP_DIR="/Volumes/Work/Projects/Apillis/Apillis-MFG/source/docs/dev/backups"
+BACKUP_DIR="/Volumes/Work/Projects/Apillis/Apillis-MFG/factory-pulse/docs/dev/backups"
 TIMESTAMP=$(date +"%Y%m%d_%H%M%S")
 PROJECT_NAME="factory_pulse"
 

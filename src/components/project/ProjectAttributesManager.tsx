@@ -29,7 +29,7 @@ import {
 import { cn } from "@/lib/utils";
 import type { Project, ProjectStatus, ProjectPriority, WorkflowStage } from "@/types/project";
 import { projectService } from "@/services/projectService";
-import { useToast } from "@/hooks/use-toast";
+import { useToast } from "@/shared/hooks/use-toast";
 
 interface ProjectAttributesManagerProps {
     project: Project;

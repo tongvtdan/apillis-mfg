@@ -26,7 +26,7 @@ import {
     Plus,
     Clock
 } from 'lucide-react';
-import { useDocuments } from '@/hooks/useDocuments';
+import { useCurrentDocuments } from '@/core/documents/useDocument';
 import { validateDocumentLink } from '@/integrations/google-services';
 import { toast } from 'sonner';
 import type { DocumentLinkData } from '@/integrations/google-services';
@@ -72,7 +72,8 @@ export const DocumentLinkModal: React.FC<DocumentLinkModalProps> = ({
     onClose,
     onSuccess,
 }) => {
-    const { addDocumentLink } = useDocuments(projectId);
+    const { documents } = useCurrentDocuments();
+    // TODO: Implement addDocumentLink functionality
 
     const [activeTab, setActiveTab] = useState<'url' | 'browse'>('url');
     const [isLoading, setIsLoading] = useState(false);

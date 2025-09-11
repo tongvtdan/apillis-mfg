@@ -27,9 +27,9 @@ import {
 } from "lucide-react";
 import { format } from "date-fns";
 import { cn } from "@/lib/utils";
-import { useToast } from "@/hooks/use-toast";
-import { useSuppliers } from "@/hooks/useSuppliers";
-import { useSupplierQuotes } from "@/hooks/useSupplierQuotes";
+import { useToast } from "@/shared/hooks/use-toast";
+import { useSuppliers } from "@/features/supplier-management/hooks";
+import { useSupplierQuotes } from "@/features/supplier-management/hooks";
 import {
   Supplier,
   SupplierSpecialty,

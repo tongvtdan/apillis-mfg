@@ -38,7 +38,7 @@ import {
     Eye,
     EyeOff
 } from 'lucide-react';
-import { usePermissionsAdmin } from '@/hooks/usePermissionsAdmin';
+import { usePermissionsAdmin } from '@/core/auth/hooks/usePermissionsAdmin';
 import { FeatureToggle } from '@/services/permissionService';
 
 export default function FeatureManagement() {

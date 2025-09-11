@@ -20,7 +20,7 @@ import { Project, PROJECT_STAGES, PRIORITY_COLORS, WorkflowStage } from "@/types
 import { workflowStageService } from '@/services/workflowStageService';
 import { useState, useEffect, useMemo } from 'react';
 import { useNavigate } from "react-router-dom";
-import { useUserDisplayName } from "@/hooks/useUsers";
+import { useUserDisplayName } from "@/features/customer-management/hooks";
 
 interface EnhancedProjectSummaryProps {
     project: Project;
