@@ -267,7 +267,7 @@ export function EnhancedProjectDetail() {
 
                     {/* Reviews Tab */}
                     <TabsContent value="reviews">
-                        <ReviewList projectId={project.id} />
+                        <ReviewList projectId={project.id} project={project} />
                     </TabsContent>
 
                     {/* Analytics Tab */}

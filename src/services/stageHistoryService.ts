@@ -9,6 +9,7 @@ export interface StageTransitionData {
     reason?: string;
     bypassRequired?: boolean;
     bypassReason?: string;
+    estimatedDuration?: number;
 }
 
 class StageHistoryService {
@@ -23,6 +24,7 @@ class StageHistoryService {
         reason: string;
         bypassRequired?: boolean;
         bypassReason?: string;
+        estimatedDuration?: number;
     }): Promise<void> {
         try {
             // Get project details for organization
@@ -55,6 +57,7 @@ class StageHistoryService {
                     reason: params.reason,
                     bypass_required: params.bypassRequired,
                     bypass_reason: params.bypassReason,
+                    estimated_duration_days: params.estimatedDuration,
                     timestamp: new Date().toISOString()
                 }
             };

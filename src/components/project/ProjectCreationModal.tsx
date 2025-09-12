@@ -11,11 +11,13 @@ import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Separator } from '@/components/ui/separator';
-import { Calendar, Building2, User, DollarSign, AlertCircle, CheckCircle2, Loader2 } from 'lucide-react';
-import { ProjectType, ProjectPriority, PROJECT_TYPE_LABELS, PROJECT_TYPE_DESCRIPTIONS } from '@/types/project';
+import { Calendar, Building2, User, DollarSign, AlertCircle, CheckCircle2, Loader2, Settings } from 'lucide-react';
+import { ProjectType, ProjectPriority, PROJECT_TYPE_LABELS, PROJECT_TYPE_DESCRIPTIONS, WorkflowDefinition } from '@/types/project';
 import { useCustomerOrganizations } from '@/hooks/useCustomerOrganizations';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/core/auth';
+import { workflowDefinitionService } from '@/services/workflowDefinitionService';
+import { projectWorkflowService } from '@/services/projectWorkflowService';
 
 // Enhanced validation schema for project creation
 const projectCreationSchema = z.object({
@@ -49,6 +51,7 @@ const projectCreationSchema = z.object({
     // Additional Information
     tags: z.string().optional(),
     notes: z.string().max(500, 'Notes must be less than 500 characters').optional(),
+    workflow_definition_id: z.string().optional(),
 }).refine(data => {
     // If customer_type is 'existing_org', existing_customer_organization_id is required
     if (data.customer_type === 'existing_org') {
@@ -83,6 +86,8 @@ export function EnhancedProjectCreationModal({
     const [generatedProjectId, setGeneratedProjectId] = useState<string>('');
     const [existingCustomers, setExistingCustomers] = useState<any[]>([]);
     const [loadingCustomers, setLoadingCustomers] = useState(false);
+    const [workflowDefinitions, setWorkflowDefinitions] = useState<WorkflowDefinition[]>([]);
+    const [loadingWorkflowDefinitions, setLoadingWorkflowDefinitions] = useState(false);
     const { organizations: customerOrganizations, loading: loadingOrganizations } = useCustomerOrganizations();
 
     const form = useForm<ProjectCreationFormData>({
@@ -101,8 +106,36 @@ export function EnhancedProjectCreationModal({
         if (open) {
             generateProjectId();
             loadExistingCustomers();
+            loadWorkflowDefinitions();
         }
     }, [open]);
+
+    // Load workflow definitions
+    const loadWorkflowDefinitions = async () => {
+        if (!profile?.organization_id) return;
+
+        setLoadingWorkflowDefinitions(true);
+        try {
+            const { data, error } = await supabase
+                .from('workflow_definitions')
+                .select('*')
+                .eq('organization_id', profile.organization_id)
+                .eq('is_active', true)
+                .order('name');
+
+            if (error) throw error;
+            setWorkflowDefinitions(data || []);
+        } catch (error) {
+            console.error('Error loading workflow definitions:', error);
+            toast({
+                variant: "destructive",
+                title: "Error",
+                description: "Failed to load workflow definitions.",
+            });
+        } finally {
+            setLoadingWorkflowDefinitions(false);
+        }
+    };
 
     // Generate unique project ID
     const generateProjectId = async () => {
@@ -208,42 +241,27 @@ export function EnhancedProjectCreationModal({
                 customerId = newCustomer.id;
             }
 
-            // Create project
+            // Create project using workflow service
             const projectData = {
-                organization_id: profile.organization_id,
-                project_id: generatedProjectId,
                 title: data.title,
                 description: data.description || null,
-                project_type: data.project_type,
-                priority_level: data.priority_level,
                 customer_organization_id: customerOrganizationId,
+                priority_level: data.priority_level,
                 estimated_value: data.estimated_value || null,
-                estimated_delivery_date: data.estimated_delivery_date || null,
-                status: 'active' as const,
-                source: 'manual',
-                created_by: user.id,
-                tags: data.tags ? data.tags.split(',').map(tag => tag.trim()).filter(Boolean) : [],
-                notes: data.notes || null,
-                // Set to first workflow stage (will be handled by database trigger or application logic)
-                current_stage_id: null, // Will be set by the system
-                stage_entered_at: new Date().toISOString()
+                project_type: data.project_type,
+                intake_type: 'project_idea',
+                intake_source: 'manual',
+                initial_documents: [],
+                contacts: []
             };
 
-            const { data: newProject, error: projectError } = await supabase
-                .from('projects')
-                .insert(projectData)
-                .select(`
-          *,
-          customer_organization:organizations!customer_organization_id(*),
-          current_stage:workflow_stages(*)
-        `)
-                .single();
+            const newProject = await projectWorkflowService.createProjectWithWorkflow(projectData);
 
-            if (projectError) throw projectError;
+            if (!newProject) throw new Error('Failed to create project');
 
             toast({
                 title: "Project Created",
-                description: `Project ${generatedProjectId} has been created successfully.`,
+                description: `Project ${newProject.project_id} has been created successfully.`,
             });
 
             // Reset form and close modal
@@ -451,6 +469,65 @@ export function EnhancedProjectCreationModal({
                                                     {...field}
                                                 />
                                             </FormControl>
+                                            <FormMessage />
+                                        </FormItem>
+                                    )}
+                                />
+                            </div>
+                        </CardContent>
+                    </Card>
+
+                    {/* Workflow Definition */}
+                    <Card>
+                        <CardHeader>
+                            <CardTitle className="flex items-center gap-2">
+                                <Settings className="h-5 w-5" />
+                                Workflow Definition
+                            </CardTitle>
+                            <CardDescription>
+                                Select a workflow template for this project
+                            </CardDescription>
+                        </CardHeader>
+                        <CardContent className="space-y-4">
+                            <div className="grid grid-cols-1 gap-4">
+                                <FormField
+                                    control={form.control}
+                                    name="workflow_definition_id"
+                                    render={({ field }) => (
+                                        <FormItem>
+                                            <FormLabel>Workflow Template</FormLabel>
+                                            <Select onValueChange={field.onChange} value={field.value || ''}>
+                                                <FormControl>
+                                                    <SelectTrigger>
+                                                        <SelectValue placeholder="Select a workflow template" />
+                                                    </SelectTrigger>
+                                                </FormControl>
+                                                <SelectContent>
+                                                    {loadingWorkflowDefinitions ? (
+                                                        <SelectItem value="loading" disabled>
+                                                            <div className="flex items-center gap-2">
+                                                                <Loader2 className="h-4 w-4 animate-spin" />
+                                                                Loading workflow templates...
+                                                            </div>
+                                                        </SelectItem>
+                                                    ) : workflowDefinitions.length === 0 ? (
+                                                        <SelectItem value="none" disabled>
+                                                            No workflow templates found
+                                                        </SelectItem>
+                                                    ) : (
+                                                        workflowDefinitions.map(definition => (
+                                                            <SelectItem key={definition.id} value={definition.id}>
+                                                                <div>
+                                                                    <div className="font-medium">{definition.name}</div>
+                                                                    <div className="text-xs text-muted-foreground">
+                                                                        Version {definition.version}
+                                                                    </div>
+                                                                </div>
+                                                            </SelectItem>
+                                                        ))
+                                                    )}
+                                                </SelectContent>
+                                            </Select>
                                             <FormMessage />
                                         </FormItem>
                                     )}

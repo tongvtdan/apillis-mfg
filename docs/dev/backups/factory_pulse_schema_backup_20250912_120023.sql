@@ -3685,19 +3685,11 @@ CREATE POLICY "Users can insert contacts" ON "public"."contacts" FOR INSERT WITH
 
 
 
-CREATE POLICY "Users can insert organizations" ON "public"."organizations" FOR INSERT WITH CHECK ((("auth"."role"() = 'authenticated'::"text") AND ("created_by" = "auth"."uid"())));
-
-
-
 CREATE POLICY "Users can insert users" ON "public"."users" FOR INSERT WITH CHECK (("auth"."role"() = 'authenticated'::"text"));
 
 
 
 CREATE POLICY "Users can update contacts" ON "public"."contacts" FOR UPDATE USING (("auth"."role"() = 'authenticated'::"text"));
-
-
-
-CREATE POLICY "Users can update their organization" ON "public"."organizations" FOR UPDATE USING (("auth"."role"() = 'authenticated'::"text"));
 
 
 
@@ -3709,12 +3701,6 @@ CREATE POLICY "Users can view contacts" ON "public"."contacts" FOR SELECT USING 
    FROM ("public"."organizations" "o"
      JOIN "public"."users" "u" ON (("u"."organization_id" = "o"."id")))
   WHERE (("o"."id" = "contacts"."organization_id") AND ("u"."id" = "auth"."uid"()) AND ("u"."role" = ANY (ARRAY['admin'::"text", 'management'::"text"]))))))));
-
-
-
-CREATE POLICY "Users can view organizations" ON "public"."organizations" FOR SELECT USING ((("auth"."role"() = 'authenticated'::"text") AND (("created_by" = "auth"."uid"()) OR (EXISTS ( SELECT 1
-   FROM "public"."users"
-  WHERE (("users"."id" = "auth"."uid"()) AND ("users"."role" = ANY (ARRAY['admin'::"text", 'management'::"text"]))))))));
 
 
 
@@ -3832,26 +3818,7 @@ CREATE POLICY "notifications_update_policy" ON "public"."notifications" FOR UPDA
 
 
 
-CREATE POLICY "org_delete_policy" ON "public"."organizations" FOR DELETE USING (("auth"."role"() = 'authenticated'::"text"));
-
-
-
-CREATE POLICY "org_insert_policy" ON "public"."organizations" FOR INSERT WITH CHECK (("auth"."role"() = 'authenticated'::"text"));
-
-
-
-CREATE POLICY "org_select_policy" ON "public"."organizations" FOR SELECT USING (("auth"."role"() = 'authenticated'::"text"));
-
-
-
-CREATE POLICY "org_update_policy" ON "public"."organizations" FOR UPDATE USING (("auth"."role"() = 'authenticated'::"text"));
-
-
-
-ALTER TABLE "public"."organizations" ENABLE ROW LEVEL SECURITY;
-
-
-CREATE POLICY "organizations_select_policy" ON "public"."organizations" FOR SELECT TO "authenticated" USING (true);
+CREATE POLICY "organizations_access" ON "public"."organizations" USING (true);
 
 
 

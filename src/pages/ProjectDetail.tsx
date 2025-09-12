@@ -40,7 +40,7 @@ import { useCurrentDocuments } from "@/core/documents/useDocument";
 import { useProjectReviews } from "@/features/engineering-review/hooks";
 import { useProjectManagement } from "@/features/project-management/hooks";
 import { useWorkflowAutoAdvance } from "@/core/workflow/useWorkflowAutoAdvance";
-import { ProjectReviewForm, ReviewConfiguration, ReviewList, ReviewAssignmentModal } from "@/components/project/workflow";
+import { ProjectReviewForm, ReviewConfiguration, ReviewList, ReviewAssignmentModal, StageReview } from "@/components/project/workflow";
 import { useUserDisplayName } from "@/features/customer-management/hooks";
 import { useAuth } from "@/core/auth";
 import { ProjectDetailHeader } from "@/components/project/ProjectDetailHeader";
@@ -612,73 +612,19 @@ export default function ProjectDetail() {
                   isLoading={isTabLoading('reviews')}
                   hasError={hasTabError('reviews')}
                 >
-                  <div className="space-y-6">
-                    <Card>
-                      <CardHeader>
-                        <div className="flex items-center justify-between">
-                          <CardTitle className="text-sm font-semibold text-muted-foreground uppercase tracking-wide">
-                            INTERNAL REVIEWS
-                          </CardTitle>
-                          <div className="flex space-x-2">
-                            <Button
-                              variant="outline"
-                              size="sm"
-                              onClick={() => setShowAssignmentModal(true)}
-                            >
-                              <Users className="w-4 h-4 mr-2" />
-                              Assign
-                            </Button>
-                            <Button
-                              variant="outline"
-                              size="sm"
-                              onClick={() => setShowReviewConfig(true)}
-                            >
-                              <Settings className="w-4 h-4 mr-2" />
-                              Configure
-                            </Button>
-                          </div>
-                        </div>
-                      </CardHeader>
-                      <CardContent>
-                        {reviewsLoading ? (
-                          <div className="flex items-center justify-center py-8">
-                            <Loader2 className="h-6 w-6 animate-spin mr-2" />
-                            <span className="text-muted-foreground">Loading reviews...</span>
-                          </div>
-                        ) : (
-                          <div className="space-y-4">
-                            {/* Quick Add Review Buttons */}
-                            <div className="flex gap-2">
-                              {(['Engineering', 'QA', 'Production'] as Department[]).map((department) => {
-                                const existingReview = reviews.find(r => r.department === department);
-                                return (
-                                  <Button
-                                    key={department}
-                                    variant={existingReview ? "outline" : "default"}
-                                    size="sm"
-                                    onClick={() => {
-                                      setSelectedDepartment(department);
-                                      setShowReviewModal(true);
-                                    }}
-                                  >
-                                    <Plus className="w-4 h-4 mr-2" />
-                                    {existingReview ? `Update ${department}` : `Add ${department}`}
-                                  </Button>
-                                );
-                              })}
-                            </div>
-
-                            {/* Review List */}
-                            <ReviewList
-                              reviews={reviews}
-                              onEditReview={() => { }} // No direct edit from here, handled by inline editor
-                              onViewReview={() => { }} // No direct view from here, handled by inline editor
-                            />
-                          </div>
-                        )}
-                      </CardContent>
-                    </Card>
-                  </div>
+                  <StageReview
+                    projectId={smoothProject.id}
+                    project={smoothProject}
+                    reviews={reviews}
+                    onEditReview={() => { }} // No direct edit from here, handled by inline editor
+                    onViewReview={() => { }} // No direct view from here, handled by inline editor
+                    onAddReview={(department) => {
+                      setSelectedDepartment(department);
+                      setShowReviewModal(true);
+                    }}
+                    onAssignReview={() => setShowAssignmentModal(true)}
+                    onConfigureReview={() => setShowReviewConfig(true)}
+                  />
                 </TabContentWrapper>
 
                 <TabContentWrapper

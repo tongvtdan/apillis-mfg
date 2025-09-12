@@ -1,6 +1,7 @@
 import { Project, WorkflowStage, ProjectStatus, ProjectSubStageProgress } from '@/types/project';
 import { projectService } from './projectService';
 import { workflowStageService } from './workflowStageService';
+import { workflowDefinitionService } from './workflowDefinitionService';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/core/auth';
 
@@ -102,21 +103,59 @@ class ProjectWorkflowService {
         contacts?: string[];
     }): Promise<Project | null> {
         try {
+            // Get the user's organization
+            const { data: { user } } = await supabase.auth.getUser();
+            if (!user) {
+                throw new Error('User not authenticated');
+            }
+
+            const { data: userProfile, error: profileError } = await supabase
+                .from('users')
+                .select('organization_id')
+                .eq('id', user.id)
+                .single();
+
+            if (profileError || !userProfile) {
+                throw new Error('User profile not found');
+            }
+
+            // Get default workflow definition for organization
+            const defaultWorkflow = await workflowDefinitionService.getDefaultWorkflowDefinition(userProfile.organization_id);
+
             // Get first workflow stage (inquiry received)
-            const stages = await workflowStageService.getWorkflowStages();
-            const initialStage = stages.find(s => s.stage_order === 1);
+            let initialStage = null;
+
+            if (defaultWorkflow) {
+                // Get workflow definition stages
+                const definitionStages = await workflowDefinitionService.getWorkflowDefinitionStages(defaultWorkflow.id);
+                // Find the first stage based on order
+                const firstDefinitionStage = definitionStages
+                    .filter(ds => ds.is_included)
+                    .sort((a, b) => (a.stage_order_override || 0) - (b.stage_order_override || 0))[0];
+
+                if (firstDefinitionStage) {
+                    initialStage = firstDefinitionStage.workflow_stage;
+                }
+            }
+
+            // Fallback to original method if no workflow definition
+            if (!initialStage) {
+                const stages = await workflowStageService.getWorkflowStages();
+                initialStage = stages.find(s => s.stage_order === 1);
+            }
 
             if (!initialStage) {
                 throw new Error('No initial workflow stage found');
             }
 
-            // Create project with initial stage
+            // Create project with initial stage and workflow definition
             const project = await projectService.createProject({
                 ...projectData,
                 current_stage_id: initialStage.id,
-                status: 'active',
+                workflow_definition_id: defaultWorkflow?.id,
+                status: projectData.status || 'in_progress', // Use provided status or default to 'in_progress'
                 point_of_contacts: projectData.contacts || []
-            });
+            } as any);
 
             if (!project) {
                 throw new Error('Failed to create project');
@@ -133,7 +172,8 @@ class ProjectWorkflowService {
                 data: {
                     from_stage: null,
                     to_stage: initialStage.id,
-                    reason: 'Project creation'
+                    reason: 'Project creation',
+                    workflow_definition_id: defaultWorkflow?.id
                 },
                 timestamp: new Date().toISOString()
             });
@@ -160,6 +200,7 @@ class ProjectWorkflowService {
         bypassValidation?: boolean;
         reason?: string;
         force?: boolean;
+        estimatedDuration?: number;
     }): Promise<{ success: boolean; message: string; project?: Project }> {
         try {
             const workflowState = await this.getProjectWorkflowState(projectId);
@@ -205,7 +246,8 @@ class ProjectWorkflowService {
                     from_stage: currentStage?.id,
                     to_stage: targetStageId,
                     reason: options?.reason || 'Stage advancement',
-                    bypassed_validation: options?.bypassValidation
+                    bypassed_validation: options?.bypassValidation,
+                    estimated_duration_days: options?.estimatedDuration
                 },
                 timestamp: new Date().toISOString()
             });
@@ -236,7 +278,7 @@ class ProjectWorkflowService {
             if (!workflowState) return false;
 
             // Update project status
-            const success = await projectService.updateProjectStatus(projectId, newStatus);
+            const success = await projectService.updateProject(projectId, { status: newStatus });
 
             if (success) {
                 // Log status change
@@ -384,7 +426,7 @@ class ProjectWorkflowService {
             if (project.estimated_delivery_date) {
                 const dueDate = new Date(project.estimated_delivery_date);
                 const now = new Date();
-                if (dueDate < now && project.status === 'active') {
+                if (dueDate < now && project.status === 'in_progress') {
                     validation.warnings.push('Project is overdue');
                 }
             }
@@ -487,6 +529,12 @@ class ProjectWorkflowService {
     private async handleStatusChangeActions(projectId: string, newStatus: ProjectStatus): Promise<void> {
         try {
             switch (newStatus) {
+                case 'in_progress':
+                    // No specific actions needed for in_progress status
+                    break;
+                case 'draft':
+                    // No specific actions needed for draft status
+                    break;
                 case 'completed':
                     await this.handleProjectCompletion(projectId);
                     break;
@@ -593,6 +641,32 @@ class ProjectWorkflowService {
             console.log(`Project ${projectId} hold handled`);
         } catch (error) {
             console.error('Error handling project hold:', error);
+        }
+    }
+
+    /**
+     * Update sub-stage assignment
+     */
+    async updateSubStageAssignment(projectId: string, subStageId: string, userId: string): Promise<{ error?: string }> {
+        try {
+            const { error } = await supabase
+                .from('project_sub_stage_progress')
+                .update({
+                    assigned_to: userId,
+                    updated_at: new Date().toISOString()
+                })
+                .eq('project_id', projectId)
+                .eq('sub_stage_id', subStageId);
+
+            if (error) throw error;
+
+            // Clear cache
+            this.workflowCache.delete(projectId);
+
+            return {};
+        } catch (error) {
+            console.error('Error updating sub-stage assignment:', error);
+            return { error: error instanceof Error ? error.message : 'Unknown error' };
         }
     }
 

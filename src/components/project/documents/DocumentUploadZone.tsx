@@ -7,7 +7,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Progress } from '@/components/ui/progress';
 import { Badge } from '@/components/ui/badge';
 import { Upload, X, FileText, AlertCircle, CheckCircle, Trash2 } from 'lucide-react';
-import { useCurrentDocuments } from '@/core/documents/useDocument';
+import { useCurrentDocuments, useDocumentManagement } from '@/core/documents/useDocument';
 import { workflowStageService } from '@/services/workflowStageService';
 import type { DocumentMetadata } from '@/types/project';
 import { validateFileUploads } from '@/lib/validation/project-schemas';
@@ -55,6 +55,13 @@ export const DocumentUploadZone: React.FC<DocumentUploadZoneProps> = ({
     onClose
 }) => {
     const { documents } = useCurrentDocuments();
+    const { createDocument } = useDocumentManagement();
+
+    // Debug logging for component initialization
+    console.log('🔧 DocumentUploadZone initialized');
+    console.log('📚 Documents from context:', documents?.length || 0);
+    console.log('⚙️ createDocument function:', typeof createDocument);
+
     const [workflowStages, setWorkflowStages] = useState([]);
 
     React.useEffect(() => {
@@ -131,7 +138,7 @@ export const DocumentUploadZone: React.FC<DocumentUploadZoneProps> = ({
             file,
             id: generateFileId(),
             metadata: {
-                document_type: defaultMetadata.document_type || 'other',
+                category: defaultMetadata.document_type || 'other',
                 access_level: defaultMetadata.access_level || 'internal',
                 tags: [...(defaultMetadata.tags || [])],
                 description: ''
@@ -192,14 +199,27 @@ export const DocumentUploadZone: React.FC<DocumentUploadZoneProps> = ({
 
     // Upload all files
     const handleUploadAll = useCallback(async () => {
-        if (files.length === 0) return;
+        console.log('🎯 handleUploadAll called');
+        console.log('📊 Files to upload:', files.length);
+        console.log('🔗 createDocument available?', !!createDocument);
 
+        if (files.length === 0) {
+            console.log('⚠️ No files to upload');
+            return;
+        }
+
+        console.log('🚀 Starting upload process for', files.length, 'files');
         setIsUploading(true);
 
         try {
             // Upload files sequentially to avoid overwhelming the server
+            console.log('📋 Processing files:', files.map(f => ({ name: f.file.name, status: f.status })));
             for (const fileItem of files) {
-                if (fileItem.status === 'completed') continue;
+                console.log(`🔄 Processing file: ${fileItem.file.name} (status: ${fileItem.status})`);
+                if (fileItem.status === 'completed') {
+                    console.log(`⏭️ Skipping completed file: ${fileItem.file.name}`);
+                    continue;
+                }
 
                 // Update status to uploading
                 setFiles(prev => prev.map(f =>
@@ -219,14 +239,27 @@ export const DocumentUploadZone: React.FC<DocumentUploadZoneProps> = ({
                     }, 200);
 
                     // Upload with timeout handling
-                    const uploadPromise = uploadDocument(fileItem.file, fileItem.metadata);
+                    console.log('📄 Calling createDocument for:', {
+                        fileName: fileItem.file.name,
+                        fileSize: fileItem.file.size,
+                        fileType: fileItem.file.type,
+                        metadata: fileItem.metadata,
+                        projectId
+                    });
+
+                    console.log('🔍 createDocument function:', typeof createDocument);
+                    console.log('🔍 createDocument is function?', typeof createDocument === 'function');
+
+                    const uploadPromise = createDocument(fileItem.file, fileItem.metadata, projectId);
+                    console.log('✅ createDocument called with projectId:', projectId);
 
                     // Add timeout to the upload promise
                     const timeoutPromise = new Promise((_, reject) => {
                         setTimeout(() => reject(new Error('Upload timeout - please try again')), 60000);
                     });
 
-                    await Promise.race([uploadPromise, timeoutPromise]);
+                    const result = await Promise.race([uploadPromise, timeoutPromise]);
+                    console.log('🎉 Upload promise resolved with result:', result);
 
                     clearInterval(progressInterval);
 
@@ -239,6 +272,14 @@ export const DocumentUploadZone: React.FC<DocumentUploadZoneProps> = ({
 
                 } catch (error) {
                     const errorMessage = error instanceof Error ? error.message : 'Upload failed';
+
+                    console.error(`❌ Upload failed for ${fileItem.file.name}:`, {
+                        error: errorMessage,
+                        fileName: fileItem.file.name,
+                        fileSize: fileItem.file.size,
+                        fileType: fileItem.file.type,
+                        metadata: fileItem.metadata
+                    });
 
                     setFiles(prev => prev.map(f =>
                         f.id === fileItem.id
@@ -269,7 +310,7 @@ export const DocumentUploadZone: React.FC<DocumentUploadZoneProps> = ({
         } finally {
             setIsUploading(false);
         }
-    }, [files, uploadDocument, onClose]);
+    }, [files, createDocument, onClose]);
 
     const pendingFiles = files.filter(f => f.status === 'pending');
     const completedFiles = files.filter(f => f.status === 'completed');

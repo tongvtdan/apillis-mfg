@@ -540,7 +540,7 @@ class ProjectService {
                 customer_organization_id: (projectData as any).customer_organization_id || projectData.customer_id || null,
                 point_of_contacts: (projectData as any).point_of_contacts || null,
                 current_stage_id: projectData.current_stage_id || null,
-                status: projectData.status || 'active',
+                status: projectData.status || 'in_progress',
                 priority_level: projectData.priority_level || (projectData as any).priority || 'normal',
                 source: projectData.source || 'portal',
                 assigned_to: projectData.assigned_to || null,
@@ -559,6 +559,13 @@ class ProjectService {
                 desired_delivery_date: (projectData as any).desired_delivery_date || null,
                 project_reference: (projectData as any).project_reference || null
             };
+
+            // Ensure that when status is 'in_progress' and no current_stage_id is set, 
+            // we default to inquiry_received stage
+            if (insertData.status === 'in_progress' && !insertData.current_stage_id) {
+                // Set current_stage_id to inquiry_received stage (id = 880e8400-e29b-41d4-a716-446655440001)
+                insertData.current_stage_id = '880e8400-e29b-41d4-a716-446655440001';
+            }
 
             const { data, error } = await supabase
                 .from('projects')
@@ -700,6 +707,9 @@ class ProjectService {
             if (updates.stage_entered_at !== undefined) updateData.stage_entered_at = updates.stage_entered_at;
             if (updates.project_type !== undefined) updateData.project_type = updates.project_type;
             if (updates.notes !== undefined) updateData.notes = updates.notes;
+
+            // Note: We don't automatically set current_stage_id for 'in_progress' status on updates
+            // This automatic assignment only applies to new project creation (in createProject method)
 
             // Always update the updated_at timestamp
             updateData.updated_at = new Date().toISOString();

@@ -7,12 +7,12 @@ This document provides a comprehensive overview of all workflow stages and their
 
 | Stage Order | Stage Name           | Slug                 | Description                                                           | Color   | Responsible Roles              | Estimated Duration (Days) | Status |
 | ----------- | -------------------- | -------------------- | --------------------------------------------------------------------- | ------- | ------------------------------ | ------------------------- | ------ |
-| 1           | Inquiry Received     | inquiry_received     | Customer RFQ submitted and initial review completed                   | #3B82F6 | sales, procurement             | 20                        | Active |
-| 2           | Technical Review     | technical_review     | Engineering, QA, and Production teams review technical requirements   | #F59E0B | engineering, qa, production    | 10                        | Active |
+| 1           | Inquiry Received     | inquiry_received     | Customer RFQ submitted and initial review completed                   | #3B82F6 | sales, procurement             | 1                         | Active |
+| 2           | Technical Review     | technical_review     | Engineering, QA, and Production teams review technical requirements   | #F59E0B | engineering, qa, production    | 2                         | Active |
 | 3           | Supplier RFQ Sent    | supplier_rfq_sent    | RFQs sent to qualified suppliers for component pricing and lead times | #F97316 | procurement                    | 5                         | Active |
-| 4           | Quoted               | quoted               | Customer quote generated and sent based on supplier responses         | #10B981 | sales, procurement             | 5                         | Active |
-| 5           | Order Confirmed      | order_confirmed      | Customer accepted quote and order confirmed                           | #6366F1 | sales, procurement, production | 5                         | Active |
-| 6           | Procurement Planning | procurement_planning | BOM finalized, purchase orders issued, material planning completed    | #8B5CF6 | procurement, production        | 5                         | Active |
+| 4           | Quoted               | quoted               | Customer quote generated and sent based on supplier responses         | #10B981 | sales, procurement             | 2                         | Active |
+| 5           | Order Confirmed      | order_confirmed      | Customer accepted quote and order confirmed                           | #6366F1 | sales, procurement, production | 3                         | Active |
+| 6           | Procurement Planning | procurement_planning | BOM finalized, purchase orders issued, material planning completed    | #8B5CF6 | procurement, production        | 2                         | Active |
 | 7           | Production           | production           | Manufacturing process initiated and quality control implemented       | #84CC16 | production, qa                 | 4                         | Active |
 | 8           | Completed            | completed            | Order fulfilled and delivered to customer                             | #6B7280 | sales, production              | 3                         | Active |
 

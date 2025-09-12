@@ -70,6 +70,7 @@ export function ProjectList({
         dateRange: 'all'
     });
 
+
     // Sort state
     const [sortField, setSortField] = useState<SortField>('created_at');
     const [sortDirection, setSortDirection] = useState<SortDirection>('desc');
@@ -97,7 +98,7 @@ export function ProjectList({
                 project.title?.toLowerCase().includes(searchLower) ||
                 project.description?.toLowerCase().includes(searchLower) ||
                 project.customer_organization?.name?.toLowerCase().includes(searchLower) ||
-                project.customer?.contact_name?.toLowerCase().includes(searchLower) ||
+                project.primary_contact?.contact_name?.toLowerCase().includes(searchLower) ||
                 project.contact_name?.toLowerCase().includes(searchLower) ||
                 project.notes?.toLowerCase().includes(searchLower) ||
                 project.tags?.some(tag => tag.toLowerCase().includes(searchLower))
@@ -116,9 +117,29 @@ export function ProjectList({
             );
         }
 
-        // Status filter
+        // Status filter - map to current_stage_id
         if (filters.status !== 'all') {
-            filtered = filtered.filter(project => project.status === filters.status);
+            if (filters.status === 'draft') {
+                // Show only draft projects
+                filtered = filtered.filter(project => project.status === 'draft');
+            } else {
+                // Map status name to stage ID and filter by current_stage_id
+                const stageMapping: Record<string, string> = {
+                    'inquiry_received': '880e8400-e29b-41d4-a716-446655440001',
+                    'technical_review': '990e8400-e29b-41d4-a716-446655440002',
+                    'supplier_rfq_sent': 'aa0e8400-e29b-41d4-a716-446655440003',
+                    'quoted': 'bb0e8400-e29b-41d4-a716-446655440004',
+                    'order_confirmed': 'cc0e8400-e29b-41d4-a716-446655440005',
+                    'procurement_planning': 'dd0e8400-e29b-41d4-a716-446655440006',
+                    'in_production': 'ee0e8400-e29b-41d4-a716-446655440007',
+                    'shipped_closed': 'ff0e8400-e29b-41d4-a716-446655440008'
+                };
+
+                const stageId = stageMapping[filters.status];
+                if (stageId) {
+                    filtered = filtered.filter(project => project.current_stage_id === stageId);
+                }
+            }
         }
 
         // Assignee filter
@@ -415,10 +436,15 @@ export function ProjectList({
                                         </SelectTrigger>
                                         <SelectContent>
                                             <SelectItem value="all">All Statuses</SelectItem>
-                                            <SelectItem value="active">Active</SelectItem>
-                                            <SelectItem value="on_hold">On Hold</SelectItem>
-                                            <SelectItem value="completed">Completed</SelectItem>
-                                            <SelectItem value="cancelled">Cancelled</SelectItem>
+                                            <SelectItem value="draft">Draft</SelectItem>
+                                            <SelectItem value="inquiry_received">Inquiry Received</SelectItem>
+                                            <SelectItem value="technical_review">Technical Review</SelectItem>
+                                            <SelectItem value="supplier_rfq_sent">Supplier RFQ Sent</SelectItem>
+                                            <SelectItem value="quoted">Quoted</SelectItem>
+                                            <SelectItem value="order_confirmed">Order Confirmed</SelectItem>
+                                            <SelectItem value="procurement_planning">Procurement Planning</SelectItem>
+                                            <SelectItem value="in_production">In Production</SelectItem>
+                                            <SelectItem value="shipped_closed">Shipped & Closed</SelectItem>
                                         </SelectContent>
                                     </Select>
                                 </div>
@@ -663,10 +689,9 @@ export function ProjectList({
                                                         {project.customer_organization.name}
                                                     </p>
                                                 )}
-                                                {project.contact_points && project.contact_points.length > 0 && (
+                                                {project.primary_contact && (
                                                     <p className="text-xs text-muted-foreground">
-                                                        Contact: {project.contact_points.find(cp => cp.is_primary)?.contact?.contact_name ||
-                                                            project.contact_points[0]?.contact?.contact_name || 'N/A'}
+                                                        Contact: {project.primary_contact.contact_name || 'N/A'}
                                                     </p>
                                                 )}
                                             </div>

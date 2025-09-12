@@ -1,63 +1,47 @@
-# Development Files Directory
+# Development Tools and Resources
 
-This directory contains all development support files and resources that are not part of the main application code.
+This directory contains various development tools, tests, and debugging utilities for the Factory Pulse project.
 
 ## Directory Structure
 
-### `backups/`
-Database backup files and backup documentation
-- SQL dump files for schema and data restoration
-- Backup summary reports with timestamps
-- Restore instructions and metadata
+- [debug/](file:///Volumes/Work/Projects/Apillis/Apillis-MFG/factory-pulse/docs/dev/debug/) - Debugging scripts and utilities
+- [tests/](file:///Volumes/Work/Projects/Apillis/Apillis-MFG/factory-pulse/docs/dev/tests/) - Test files and testing utilities
+- [tools/](file:///Volumes/Work/Projects/Apillis/Apillis-MFG/factory-pulse/docs/dev/tools/) - Development tools, fix scripts, and utilities
+- [scripts/](file:///Volumes/Work/Projects/Apillis/Apillis-MFG/factory-pulse/docs/dev/scripts/) - Development scripts
+- [backups/](file:///Volumes/Work/Projects/Apillis/Apillis-MFG/factory-pulse/docs/dev/backups/) - Database backup files and scripts
+- [data/](file:///Volumes/Work/Projects/Apillis/Apillis-MFG/factory-pulse/docs/dev/data/) - Sample data files
+- [docs/](file:///Volumes/Work/Projects/Apillis/Apillis-MFG/factory-pulse/docs/dev/docs/) - Development documentation
+- [temp/](file:///Volumes/Work/Projects/Apillis/Apillis-MFG/factory-pulse/docs/dev/temp/) - Temporary files (not tracked in git)
 
-### `data/`
-Sample data files and seed data documentation
-- Database seed data files
-- Data import instructions
-- Sample data structure documentation
+## File Organization Policy
 
-### `docs/`
-Development documentation and guides
-- API documentation
-- Development tool guides
-- Troubleshooting guides
-- Development best practices
+As of September 2025, all debug, test, and fix files should be organized as follows:
 
-### `scripts/`
-Development utility scripts
-- Build scripts
-- Deployment helpers
-- Database management scripts
-- Development automation tools
+- Debug files → [docs/dev/debug/](file:///Volumes/Work/Projects/Apillis/Apillis-MFG/factory-pulse/docs/dev/debug/)
+- Test files → [docs/dev/tests/](file:///Volumes/Work/Projects/Apillis/Apillis-MFG/factory-pulse/docs/dev/tests/)
+- Fix files → [docs/dev/tools/](file:///Volumes/Work/Projects/Apillis/Apillis-MFG/factory-pulse/docs/dev/tools/)
+- Setup files → [docs/dev/tools/](file:///Volumes/Work/Projects/Apillis/Apillis-MFG/factory-pulse/docs/dev/tools/)
+- Development scripts → [docs/dev/scripts/](file:///Volumes/Work/Projects/Apillis/Apillis-MFG/factory-pulse/docs/dev/scripts/)
 
-### `tests/`
-Test files and testing infrastructure
-- Unit tests
-- Integration tests
-- End-to-end tests
-- Test utilities and mocks
-- Test configuration files
+This organization helps keep the project root clean and makes it easier to find development resources.
 
-### `debug/`
-Debug logs and troubleshooting files
-- Error logs
-- Debug output files
-- Performance profiling results
-- Issue reproduction scripts
+## Recent Cleanup (September 12, 2025)
 
-### `temp/`
-Temporary files and work-in-progress
-- Experimental code
-- Work-in-progress features
-- Temporary data files
-- Development artifacts
+The following files were moved from the project root to this organized structure:
 
-### `tools/`
-Development tools and utilities
-- Linters and formatters
-- Development scripts
-- Build tools
-- Code quality tools
+### Debug Files
+- [debug_document_saving.js](file:///Volumes/Work/Projects/Apillis/Apillis-MFG/factory-pulse/docs/dev/debug/debug_document_saving.js) → [docs/dev/debug/](file:///Volumes/Work/Projects/Apillis/Apillis-MFG/factory-pulse/docs/dev/debug/)
+- [debug_documents_table.sql](file:///Volumes/Work/Projects/Apillis/Apillis-MFG/factory-pulse/docs/dev/debug/debug_documents_table.sql) → [docs/dev/debug/](file:///Volumes/Work/Projects/Apillis/Apillis-MFG/factory-pulse/docs/dev/debug/)
+
+### Test Files
+- [test_debug_utilities.js](file:///Volumes/Work/Projects/Apillis/Apillis-MFG/factory-pulse/docs/dev/tests/test_debug_utilities.js) → [docs/dev/tests/](file:///Volumes/Work/Projects/Apillis/Apillis-MFG/factory-pulse/docs/dev/tests/)
+- [test_document_preview.js](file:///Volumes/Work/Projects/Apillis/Apillis-MFG/factory-pulse/docs/dev/tests/test_document_preview.js) → [docs/dev/tests/](file:///Volumes/Work/Projects/Apillis/Apillis-MFG/factory-pulse/docs/dev/tests/)
+- [test_pdf_preview_fix.js](file:///Volumes/Work/Projects/Apillis/Apillis-MFG/factory-pulse/docs/dev/tests/test_pdf_preview_fix.js) → [docs/dev/tests/](file:///Volumes/Work/Projects/Apillis/Apillis-MFG/factory-pulse/docs/dev/tests/)
+- [test_upload_fix.js](file:///Volumes/Work/Projects/Apillis/Apillis-MFG/factory-pulse/docs/dev/tests/test_upload_fix.js) → [docs/dev/tests/](file:///Volumes/Work/Projects/Apillis/Apillis-MFG/factory-pulse/docs/dev/tests/)
+
+### Fix and Setup Files
+- [fix_storage_provider.sql](file:///Volumes/Work/Projects/Apillis/Apillis-MFG/factory-pulse/docs/dev/tools/fix_storage_provider.sql) → [docs/dev/tools/](file:///Volumes/Work/Projects/Apillis/Apillis-MFG/factory-pulse/docs/dev/tools/)
+- [setup_storage_bucket.js](file:///Volumes/Work/Projects/Apillis/Apillis-MFG/factory-pulse/docs/dev/tools/setup_storage_bucket.js) → [docs/dev/tools/](file:///Volumes/Work/Projects/Apillis/Apillis-MFG/factory-pulse/docs/dev/tools/)
 
 ## Guidelines
 

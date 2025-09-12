@@ -1,0 +1,425 @@
+# Document Saving Fix Patch
+
+This patch file shows the recommended changes to improve the document saving functionality
+in the InquiryIntakeForm component.
+
+## Issues Addressed
+
+1. Better error handling and reporting
+2. Validation of required context data
+3. Improved cleanup on errors
+4. More detailed logging
+
+## Changes to src/components/project/intake/InquiryIntakeForm.tsx
+
+```diff
+--- a/src/components/project/intake/InquiryIntakeForm.tsx
++++ b/src/components/project/intake/InquiryIntakeForm.tsx
+@@ -66,7 +66,7 @@
+     // Function to save project documents
+     const saveProjectDocuments = async (projectId: string, documents: any[], organizationId: string) => {
+         try {
+-            for (const doc of documents) {
++            for (const [index, doc] of documents.entries()) {
+                 if (doc.file && doc.file instanceof File) {
+                     // Upload file to storage
+                     const fileName = `${projectId}/${Date.now()}_${doc.file.name}`;
+@@ -75,14 +75,26 @@
+                         .from('documents')
+                         .upload(fileName, doc.file);
+ 
++                    console.log(`📄 Uploading document ${index + 1}:`, {
++                        fileName,
++                        fileSize: doc.file.size,
++                        fileType: doc.file.type
++                    });
++
+                     if (uploadError) {
+                         console.error('Error uploading file:', uploadError);
++                        console.error(`❌ Failed to upload document ${index + 1}:`, {
++                            fileName: doc.file.name,
++                            error: uploadError.message
++                        });
+                         continue;
+                     }
+ 
+                     // Get public URL
+                     const { data: urlData } = supabase.storage
+                         .from('documents')
+                         .getPublicUrl(fileName);
++                    console.log(`✅ Document ${index + 1} uploaded successfully:`, fileName);
+ 
+                     // Create document record
+                     const { data: documentData, error: docError } = await supabase
+@@ -93,11 +105,25 @@
+                         } as any)
+                         .select()
+                         .single();
++                    
++                    console.log(`💾 Creating document record for document ${index + 1}:`, {
++                        title: `${doc.type} - ${doc.file.name}`,
++                        fileName,
++                        projectId,
++                        organizationId
++                    });
+ 
+                     if (docError) {
+                         console.error('Error creating document record:', docError);
++                        console.error(`❌ Failed to create document record for document ${index + 1}:`, {
++                            fileName: doc.file.name,
++                            error: docError.message
++                        });
+                         // Clean up uploaded file
+-                        await supabase.storage.from('documents').remove([fileName]);
++                        const { error: cleanupError } = await supabase.storage.from('documents').remove([fileName]);
++                        if (cleanupError) {
++                            console.error('Error cleaning up uploaded file:', cleanupError);
++                        }
+                     } else if (documentData) {
+                         console.log('✅ Document saved:', (documentData as any).title);
+                     }
+@@ -112,6 +138,13 @@
+                         } as any)
+                         .select()
+                         .single();
++                    
++                    console.log(`💾 Creating link document record for document ${index + 1}:`, {
++                        title: `${doc.type} - Link`,
++                        link: doc.link,
++                        projectId,
++                        organizationId
++                    });
+ 
+                     if (docError) {
+                         console.error('Error creating document link record:', docError);
+@@ -124,12 +157,34 @@
+             }
+         } catch (error) {
+             console.error('Error saving project documents:', error);
++            console.error('💥 Unexpected error in saveProjectDocuments:', {
++                error: error instanceof Error ? error.message : 'Unknown error',
++                stack: error instanceof Error ? error.stack : undefined
++            });
+             // Don't throw error to prevent project creation from failing
+         }
+     };
+ 
+     // Generate temporary project ID on component mount
+     const generateTemporaryProjectId = useCallback(async () => {
++        // Validate required context data
++        if (!profile?.organization_id) {
++            console.error('❌ User organization ID is required but not available');
++            toast({
++                title: "Configuration Error",
++                description: "User organization ID is not available. Please contact support.",
++                variant: "destructive",
++            });
++            // Fallback to a default organization ID for testing
++            // In production, this should be handled properly
++            const fallbackOrgId = '00000000-0000-0000-0000-000000000000';
++            console.log('🔧 Using fallback organization ID for debugging:', fallbackOrgId);
++            // Note: This is for debugging only and should be removed in production
++        }
++
+         try {
+             setIsGeneratingId(true);
+             const now = new Date();
+@@ -450,6 +504,19 @@
+             // Save documents if any were uploaded
+             if (data.documents && data.documents.length > 0) {
+                 console.log('📄 Saving documents for project:', project.project_id);
++                
++                // Validate required context data before saving documents
++                const orgId = profile?.organization_id || '';
++                if (!orgId) {
++                    console.error('❌ Organization ID not available for document saving');
++                    toast({
++                        title: "Document Save Error",
++                        description: "Organization ID is not available. Documents will not be saved.",
++                        variant: "destructive",
++                    });
++                } else {
++                    await saveProjectDocuments(project.id, data.documents, orgId);
++                }
+             }
+ 
+             setIsSubmitted(true);
+@@ -553,6 +620,19 @@
+             // Save documents if any were uploaded
+             if (data.documents && data.documents.length > 0) {
+                 console.log('📄 Saving documents for project:', project.project_id);
++                
++                // Validate required context data before saving documents
++                const orgId = profile?.organization_id || '';
++                if (!orgId) {
++                    console.error('❌ Organization ID not available for document saving');
++                    toast({
++                        title: "Document Save Error",
++                        description: "Organization ID is not available. Documents will not be saved.",
++                        variant: "destructive",
++                    });
++                } else {
++                    await saveProjectDocuments(project.id, data.documents, orgId);
++                }
+             }
+ 
+             setIsSubmitted(true);
+```
+
+## Key Improvements
+
+1. **Better Error Reporting**: More detailed error messages with context
+2. **Validation**: Check for required data before attempting operations
+3. **Improved Logging**: Detailed logs for each step of the process
+4. **Cleanup**: Better error handling for file cleanup operations
+5. **User Feedback**: Toast notifications for configuration errors
+
+## How to Apply the Patch
+
+1. Navigate to the project directory:
+   ```bash
+   cd /Volumes/Work/Projects/Apillis/Apillis-MFG/factory-pulse
+   ```
+
+2. Apply the patch:
+   ```bash
+   patch -p1 < docs/document-saving-fix.patch
+   ```
+
+   Or manually apply the changes shown in the diff to the file.
+
+## Additional Improvements for DocumentProvider.tsx
+
+```diff
+--- a/src/core/documents/DocumentProvider.tsx
++++ b/src/core/documents/DocumentProvider.tsx
+@@ -158,7 +158,7 @@
+     // Create a new document
+     const createDocument = useCallback(async (file: File, metadata?: any): Promise<ProjectDocument | null> => {
+         if (!projectId || !profile?.organization_id) {
+-            toast({
++            console.error('❌ Document creation failed: Missing project or organization context', {
++                projectId,
++                organizationId: profile?.organization_id,
++                userId: user?.id
++            });
++            toast({
+                 variant: "destructive",
+                 title: "Error",
+                 description: "Project context not available"
+             });
+             return null;
+         }
+
+         try {
+             setLoading(true);
++            
++            console.log('📄 Starting document creation:', {
++                fileName: file.name,
++                fileSize: file.size,
++                fileType: file.type,
++                projectId,
++                organizationId: profile.organization_id
++            });
+
+             // Upload file to storage
+             const fileName = `${Date.now()}_${file.name}`;
+             const filePath = `${profile.organization_id}/${projectId}/${fileName}`;
+
++            console.log('☁️ Uploading to storage:', {
++                filePath,
++                fileName,
++                fileSize: file.size
++            });
+
+             const { data: uploadData, error: uploadError } = await supabase.storage
+                 .from('documents')
+                 .upload(filePath, file);
+
+             if (uploadError) {
++                console.error('❌ Storage upload failed:', {
++                    error: uploadError.message,
++                    filePath,
++                    fileName
++                });
+                 throw new Error(`Failed to upload file: ${uploadError.message}`);
+             }
+
++            console.log('✅ Storage upload successful:', uploadData);
+
+             // Create document record
++            console.log('💾 Creating database record:', {
++                filePath,
++                fileName,
++                organizationId: profile.organization_id,
++                projectId,
++                userId: user?.id
++            });
++
+             const { data: doc, error: docError } = await supabase
+                 .from('documents')
+                 .insert({
+@@ -203,7 +203,7 @@
+                 .single();
+
+             if (docError) {
++                console.error('❌ Database insert failed:', {
++                    error: docError.message,
++                    documentData: {
++                        organization_id: profile.organization_id,
++                        project_id: projectId,
++                        title: file.name,
++                        file_name: fileName,
++                        file_path: filePath
++                    }
++                });
+                 // Clean up uploaded file if database insert fails
+-                await supabase.storage.from('documents').remove([filePath]);
++                const { error: cleanupError } = await supabase.storage.from('documents').remove([filePath]);
++                if (cleanupError) {
++                    console.error('❌ Failed to cleanup uploaded file:', cleanupError);
++                } else {
++                    console.log('🧹 Successfully cleaned up uploaded file');
++                }
+                 throw new Error(`Failed to create document record: ${docError.message}`);
+             }
+
++            console.log('✅ Document record created successfully:', {
++                documentId: doc.id,
++                title: doc.title
++            });
+
+             // Refresh documents
+             await loadDocuments(projectId);
+
+             toast({
+                 title: "Document Uploaded",
+                 description: `${file.name} has been uploaded successfully`
+             });
+
+             return doc;
+         } catch (error) {
++            console.error('💥 Document creation failed:', {
++                error: error instanceof Error ? error.message : 'Unknown error',
++                stack: error instanceof Error ? error.stack : undefined,
++                fileName: file.name,
++                fileSize: file.size
++            });
+             toast({
+                 variant: "destructive",
+                 title: "Upload Failed",
+                 description: error instanceof Error ? error.message : "Unknown error occurred"
+             });
+             return null;
+         } finally {
+             setLoading(false);
+         }
+     }, [projectId, profile?.organization_id, user?.id, loadDocuments, toast]);
+```
+
+## Additional Improvements for DocumentUploader.tsx
+
+```diff
+--- a/src/core/documents/DocumentUploader.tsx
++++ b/src/core/documents/DocumentUploader.tsx
+@@ -100,7 +100,7 @@
+     const handleUpload = async (file: File) => {
+         if (!projectId) {
+-            onUploadError?.('Project ID is required');
++            console.error('❌ Document upload failed: Project ID is required');
++            onUploadError?.('Project ID is required');
+             return;
+         }
+
+         try {
++            console.log('📄 Starting document upload:', {
++                fileName: file.name,
++                fileSize: file.size,
++                fileType: file.type,
++                projectId
++            });
++
+             const result = await createDocument(file, {
+                 category: 'general',
+                 accessLevel: 'private'
+             });
+
+             if (result) {
++                console.log('✅ Document upload successful:', {
++                    documentId: result.id,
++                    fileName: result.title
++                });
+                 onUploadSuccess?.(result);
+             } else {
++                console.error('❌ Document upload failed: No result returned');
+                 onUploadError?.('Failed to upload document');
+             }
+         } catch (error) {
++            console.error('💥 Document upload error:', {
++                error: error instanceof Error ? error.message : 'Unknown error',
++                fileName: file.name
++            });
+             onUploadError?.(error instanceof Error ? error.message : 'Upload failed');
+         }
+     };
+```
+
+## Testing the Changes
+
+After applying the patch:
+
+1. Open the browser console
+2. Submit a project with documents
+3. Observe the detailed logs in the console
+4. Check for any error messages
+5. Verify that documents are saved correctly
+
+## Debug Tools Integration
+
+The patch works seamlessly with the debug tools:
+
+1. **Use the Node.js script** to test the upload process:
+   ```bash
+   node debug_document_saving.js --verbose
+   ```
+
+2. **Run the SQL script** to check database integrity:
+   ```sql
+   \i debug_documents_table.sql
+   ```
+
+3. **Use the React debug component** for in-app testing:
+   ```tsx
+   <DocumentDebugPanel projectId="your-project-id" />
+   ```
+
+4. **Monitor logs** with the TypeScript utilities:
+   ```typescript
+   import { DocumentDebugLogger } from '@/utils/documentDebugUtils';
+   const logger = new DocumentDebugLogger(true);
+   ```
+
+## Performance Considerations
+
+The enhanced logging may impact performance in production. Consider:
+
+1. **Conditional logging** based on environment:
+   ```typescript
+   const isDebugMode = process.env.NODE_ENV === 'development';
+   if (isDebugMode) {
+       console.log('Debug info:', data);
+   }
+   ```
+
+2. **Log levels** for different environments:
+   ```typescript
+   const LOG_LEVEL = process.env.LOG_LEVEL || 'error';
+   if (LOG_LEVEL === 'debug') {
+       console.log('Debug info:', data);
+   }
+   ```
+
+3. **Async logging** to avoid blocking the UI:
+   ```typescript
+   setTimeout(() => console.log('Debug info:', data), 0);
+   ```

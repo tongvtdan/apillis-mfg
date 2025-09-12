@@ -61,6 +61,7 @@ export function useProjectCreation() {
         current_stage_id?: string;
         project_id?: string; // Pre-generated project ID
         metadata?: Record<string, any>; // Additional metadata
+        status?: 'draft' | 'inquiry' | 'reviewing' | 'quoted' | 'confirmed' | 'procurement' | 'production' | 'completed' | 'cancelled'; // Status parameter
     }): Promise<Project> => {
         if (!user || !profile?.organization_id) {
             throw new Error('User must be authenticated to create projects');
@@ -115,6 +116,10 @@ export function useProjectCreation() {
             const projectId = projectData.project_id || await generateProjectId();
             console.log('📝 Using project ID:', projectId);
 
+            // Determine project status - default to 'inquiry' unless explicitly set to 'draft'
+            const projectStatus = projectData.status || 'inquiry';
+            console.log('📝 Using project status:', projectStatus);
+
             console.log('📝 Inserting project data:', {
                 organization_id: profile.organization_id,
                 title: projectData.title,
@@ -123,7 +128,7 @@ export function useProjectCreation() {
                 current_stage_id: projectData.current_stage_id,
                 created_by: user.id,
                 priority_level: (projectData.priority || 'normal') as 'low' | 'normal' | 'high' | 'urgent',
-                status: 'draft' as 'draft' | 'inquiry' | 'reviewing' | 'quoted' | 'confirmed' | 'procurement' | 'production' | 'completed' | 'cancelled'
+                status: projectStatus as 'draft' | 'inquiry' | 'reviewing' | 'quoted' | 'confirmed' | 'procurement' | 'production' | 'completed' | 'cancelled'
             });
 
             const { data, error } = await supabase
@@ -136,7 +141,7 @@ export function useProjectCreation() {
                     priority_level: (projectData.priority || 'normal') as 'low' | 'normal' | 'high' | 'urgent',
                     estimated_value: projectData.estimated_value || null,
                     estimated_delivery_date: projectData.due_date || null,
-                    status: 'draft' as 'draft' | 'inquiry' | 'reviewing' | 'quoted' | 'confirmed' | 'procurement' | 'production' | 'completed' | 'cancelled',
+                    status: projectStatus as 'draft' | 'inquiry' | 'reviewing' | 'quoted' | 'confirmed' | 'procurement' | 'production' | 'completed' | 'cancelled',
                     source: 'manual',
                     created_by: user.id,
                     tags: projectData.tags || [],
@@ -172,7 +177,7 @@ export function useProjectCreation() {
                     priority_level: (projectData.priority || 'normal') as 'low' | 'normal' | 'high' | 'urgent',
                     estimated_value: projectData.estimated_value,
                     estimated_delivery_date: projectData.due_date,
-                    status: 'draft' as 'draft' | 'inquiry' | 'reviewing' | 'quoted' | 'confirmed' | 'procurement' | 'production' | 'completed' | 'cancelled',
+                    status: projectStatus as 'draft' | 'inquiry' | 'reviewing' | 'quoted' | 'confirmed' | 'procurement' | 'production' | 'completed' | 'cancelled',
                     source: 'manual',
                     created_by: user.id,
                     tags: projectData.tags || [],

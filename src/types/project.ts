@@ -3,7 +3,7 @@ export type ProjectStage = 'inquiry_received' | 'technical_review' | 'supplier_r
 
 // Dynamic stage type based on database workflow_stages
 export type WorkflowStageId = string; // UUID from workflow_stages table
-export type ProjectStatus = 'active' | 'on_hold' | 'cancelled' | 'completed';
+export type ProjectStatus = 'draft' | 'in_progress' | 'active' | 'on_hold' | 'cancelled' | 'completed';
 export type ProjectPriority = 'low' | 'normal' | 'high' | 'urgent';
 export type ProjectType = 'system_build' | 'fabrication' | 'manufacturing';
 export type ProjectSource = 'manual' | 'portal' | 'email' | 'api' | 'import' | 'migration';
@@ -184,6 +184,7 @@ export interface Project {
   customer_organization_id: string; // Required - references organizations table
   point_of_contacts: string[]; // Array of contact IDs, first is primary contact
   current_stage_id?: string;
+  workflow_definition_id?: string;
   status: ProjectStatus;
   priority_level?: ProjectPriority;
   priority_score?: number; // Added from database schema

@@ -22,7 +22,7 @@ import {
 import { useProjectUpdate } from "@/features/project-management/hooks";
 import { useToast } from "@/shared/hooks/use-toast";
 import { WorkflowBypassDialog } from './WorkflowBypassDialog';
-import { StageTransitionValidator } from './StageTransitionValidator';
+import { StageTransitionDialog } from './StageTransitionDialog';
 import { usePermissions } from '@/core/auth/hooks';
 import { WorkflowBypassRequest } from '@/lib/workflow-validator';
 import { useWorkflowAutoAdvance } from '@/core/workflow/useWorkflowAutoAdvance';
@@ -410,7 +410,7 @@ export const WorkflowStepper = React.memo(({ project }: WorkflowStepperProps) =>
     });
   }, [project]);
 
-  const handleValidationConfirm = useCallback(async (bypassRequired: boolean, reason?: string) => {
+  const handleValidationConfirm = useCallback(async (bypassRequired: boolean, reason?: string, estimatedDuration?: number) => {
     if (!validationDialog.targetStage) return;
 
     try {
@@ -428,7 +428,8 @@ export const WorkflowStepper = React.memo(({ project }: WorkflowStepperProps) =>
           validationDialog.targetStage,
           updateProjectStage,
           {
-            reason: reason || 'Normal stage transition'
+            reason: reason || 'Normal stage transition',
+            estimatedDuration
           }
         );
 
@@ -809,9 +810,9 @@ export const WorkflowStepper = React.memo(({ project }: WorkflowStepperProps) =>
         </CardContent>
       </Card>
 
-      {/* Stage Transition Validator */}
+      {/* Stage Transition Dialog */}
       {validationDialog.targetStage && (
-        <StageTransitionValidator
+        <StageTransitionDialog
           project={project}
           targetStage={validationDialog.targetStage}
           isOpen={validationDialog.isOpen}

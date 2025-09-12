@@ -17,6 +17,7 @@ export interface StageTransitionOptions {
     bypassValidation?: boolean;
     bypassReason?: string;
     reason?: string;
+    estimatedDuration?: number;
 }
 
 export function useStageTransition() {

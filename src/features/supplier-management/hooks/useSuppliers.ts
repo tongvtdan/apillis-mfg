@@ -60,28 +60,39 @@ export function useSuppliers(showArchived = false) {
             // Transform the data to match Supplier interface
             const transformedSuppliers = (data || []).map(org => ({
                 id: org.id,
-                company_name: org.name,
-                contact_name: org.contacts?.[0]?.contact_name || '',
+                name: org.contacts?.[0]?.contact_name || org.name || 'Unnamed Supplier',
+                company: org.name,
                 email: org.contacts?.[0]?.email || '',
                 phone: org.contacts?.[0]?.phone || '',
                 address: org.address || '',
+                country: org.country || '',
+                specialties: org.capabilities || [],
+                rating: org.performance_rating || 0,
+                response_rate: 0, // Default value, would need to be calculated from actual data
+                is_active: org.is_active,
+                created_at: org.created_at,
+                updated_at: org.updated_at,
+                created_by: org.created_by,
+                updated_by: org.updated_by,
+                // Enhanced tracking fields
+                last_contact_date: org.last_evaluation_date,
+                total_quotes_sent: 0,
+                total_quotes_received: 0,
+                average_turnaround_days: 0,
+                notes: org.notes || '',
+                tags: org.certifications || [],
+                // Additional fields for compatibility with existing code
+                company_name: org.name,
+                contact_name: org.contacts?.[0]?.contact_name || '',
                 city: org.city || '',
                 state: org.state || '',
-                country: org.country || '',
                 postal_code: org.postal_code || '',
                 website: org.website || '',
                 tax_id: org.tax_id || '',
                 payment_terms: org.payment_terms || '',
                 credit_limit: org.credit_limit || 0,
-                notes: org.notes || '',
-                is_active: org.is_active,
-                created_at: org.created_at,
-                updated_at: org.updated_at,
-                // Additional fields for compatibility
                 organization_id: org.id,
                 organization_type: org.organization_type,
-                created_by: org.created_by,
-                // Supplier-specific fields
                 capabilities: org.capabilities || [],
                 certifications: org.certifications || [],
                 performance_rating: org.performance_rating || 0,
@@ -111,23 +122,14 @@ export function useSuppliers(showArchived = false) {
             const { data: orgData, error: orgError } = await supabase
                 .from('organizations')
                 .insert({
-                    name: supplierData.company_name,
+                    name: supplierData.company || supplierData.name,
                     organization_type: 'supplier',
                     address: supplierData.address,
-                    city: supplierData.city,
-                    state: supplierData.state,
                     country: supplierData.country,
-                    postal_code: supplierData.postal_code,
-                    website: supplierData.website,
-                    tax_id: supplierData.tax_id,
-                    payment_terms: supplierData.payment_terms,
-                    credit_limit: supplierData.credit_limit,
                     notes: supplierData.notes,
-                    capabilities: supplierData.capabilities,
-                    certifications: supplierData.certifications,
-                    performance_rating: supplierData.performance_rating,
-                    last_evaluation_date: supplierData.last_evaluation_date,
-                    preferred_contact_method: supplierData.preferred_contact_method,
+                    capabilities: supplierData.specialties,
+                    certifications: supplierData.tags,
+                    performance_rating: supplierData.rating || 0,
                     is_active: true,
                     created_by: user.id
                 })
@@ -144,7 +146,7 @@ export function useSuppliers(showArchived = false) {
                 .insert({
                     organization_id: orgData.id,
                     type: 'supplier',
-                    contact_name: supplierData.contact_name,
+                    contact_name: supplierData.name,
                     email: supplierData.email,
                     phone: supplierData.phone,
                     is_primary_contact: true,
@@ -160,26 +162,39 @@ export function useSuppliers(showArchived = false) {
 
             const newSupplier: Supplier = {
                 id: orgData.id,
-                company_name: orgData.name,
-                contact_name: contactData.contact_name,
+                name: contactData.contact_name || orgData.name || 'Unnamed Supplier',
+                company: orgData.name,
                 email: contactData.email,
                 phone: contactData.phone,
                 address: orgData.address,
+                country: orgData.country,
+                specialties: orgData.capabilities || [],
+                rating: orgData.performance_rating || 0,
+                response_rate: 0,
+                is_active: orgData.is_active,
+                created_at: orgData.created_at,
+                updated_at: orgData.updated_at,
+                created_by: orgData.created_by,
+                updated_by: orgData.updated_by,
+                // Enhanced tracking fields
+                last_contact_date: orgData.last_evaluation_date,
+                total_quotes_sent: 0,
+                total_quotes_received: 0,
+                average_turnaround_days: 0,
+                notes: orgData.notes || '',
+                tags: orgData.certifications || [],
+                // Additional fields for compatibility
+                company_name: orgData.name,
+                contact_name: contactData.contact_name,
                 city: orgData.city,
                 state: orgData.state,
-                country: orgData.country,
                 postal_code: orgData.postal_code,
                 website: orgData.website,
                 tax_id: orgData.tax_id,
                 payment_terms: orgData.payment_terms,
                 credit_limit: orgData.credit_limit,
-                notes: orgData.notes,
-                is_active: orgData.is_active,
-                created_at: orgData.created_at,
-                updated_at: orgData.updated_at,
                 organization_id: orgData.id,
                 organization_type: orgData.organization_type,
-                created_by: orgData.created_by,
                 capabilities: orgData.capabilities,
                 certifications: orgData.certifications,
                 performance_rating: orgData.performance_rating,
@@ -223,22 +238,13 @@ export function useSuppliers(showArchived = false) {
             const { data: orgData, error: orgError } = await supabase
                 .from('organizations')
                 .update({
-                    name: updates.company_name,
+                    name: updates.company || updates.name,
                     address: updates.address,
-                    city: updates.city,
-                    state: updates.state,
                     country: updates.country,
-                    postal_code: updates.postal_code,
-                    website: updates.website,
-                    tax_id: updates.tax_id,
-                    payment_terms: updates.payment_terms,
-                    credit_limit: updates.credit_limit,
                     notes: updates.notes,
-                    capabilities: updates.capabilities,
-                    certifications: updates.certifications,
-                    performance_rating: updates.performance_rating,
-                    last_evaluation_date: updates.last_evaluation_date,
-                    preferred_contact_method: updates.preferred_contact_method,
+                    capabilities: updates.specialties,
+                    certifications: updates.tags,
+                    performance_rating: updates.rating,
                     updated_at: new Date().toISOString()
                 })
                 .eq('id', supplierId)
@@ -250,11 +256,11 @@ export function useSuppliers(showArchived = false) {
             }
 
             // Update primary contact if contact info is provided
-            if (updates.contact_name || updates.email || updates.phone) {
+            if (updates.name || updates.email || updates.phone) {
                 const { error: contactError } = await supabase
                     .from('contacts')
                     .update({
-                        contact_name: updates.contact_name,
+                        contact_name: updates.name,
                         email: updates.email,
                         phone: updates.phone,
                         updated_at: new Date().toISOString()
@@ -290,26 +296,39 @@ export function useSuppliers(showArchived = false) {
 
             const transformedSupplier: Supplier = {
                 id: updatedSupplier.id,
-                company_name: updatedSupplier.name,
-                contact_name: updatedSupplier.contacts?.[0]?.contact_name || '',
+                name: updatedSupplier.contacts?.[0]?.contact_name || updatedSupplier.name || 'Unnamed Supplier',
+                company: updatedSupplier.name,
                 email: updatedSupplier.contacts?.[0]?.email || '',
                 phone: updatedSupplier.contacts?.[0]?.phone || '',
                 address: updatedSupplier.address,
+                country: updatedSupplier.country,
+                specialties: updatedSupplier.capabilities || [],
+                rating: updatedSupplier.performance_rating || 0,
+                response_rate: 0,
+                is_active: updatedSupplier.is_active,
+                created_at: updatedSupplier.created_at,
+                updated_at: updatedSupplier.updated_at,
+                created_by: updatedSupplier.created_by,
+                updated_by: updatedSupplier.updated_by,
+                // Enhanced tracking fields
+                last_contact_date: updatedSupplier.last_evaluation_date,
+                total_quotes_sent: 0,
+                total_quotes_received: 0,
+                average_turnaround_days: 0,
+                notes: updatedSupplier.notes || '',
+                tags: updatedSupplier.certifications || [],
+                // Additional fields for compatibility
+                company_name: updatedSupplier.name,
+                contact_name: updatedSupplier.contacts?.[0]?.contact_name || '',
                 city: updatedSupplier.city,
                 state: updatedSupplier.state,
-                country: updatedSupplier.country,
                 postal_code: updatedSupplier.postal_code,
                 website: updatedSupplier.website,
                 tax_id: updatedSupplier.tax_id,
                 payment_terms: updatedSupplier.payment_terms,
                 credit_limit: updatedSupplier.credit_limit,
-                notes: updatedSupplier.notes,
-                is_active: updatedSupplier.is_active,
-                created_at: updatedSupplier.created_at,
-                updated_at: updatedSupplier.updated_at,
                 organization_id: updatedSupplier.id,
                 organization_type: updatedSupplier.organization_type,
-                created_by: updatedSupplier.created_by,
                 capabilities: updatedSupplier.capabilities,
                 certifications: updatedSupplier.certifications,
                 performance_rating: updatedSupplier.performance_rating,
@@ -387,6 +406,49 @@ export function useSuppliers(showArchived = false) {
         }
     };
 
+    const archiveSupplier = async (supplierId: string): Promise<void> => {
+        if (!user || !profile?.organization_id) {
+            throw new Error('User must be authenticated to archive suppliers');
+        }
+
+        try {
+            setLoading(true);
+            setError(null);
+
+            // Archive by setting is_active to false
+            const { error } = await supabase
+                .from('organizations')
+                .update({
+                    is_active: false,
+                    updated_at: new Date().toISOString()
+                })
+                .eq('id', supplierId);
+
+            if (error) {
+                throw error;
+            }
+
+            setSuppliers(prev => prev.filter(supplier => supplier.id !== supplierId));
+
+            toast({
+                title: "Supplier Archived",
+                description: "Supplier has been archived successfully.",
+            });
+        } catch (error) {
+            console.error('Error archiving supplier:', error);
+            const errorMessage = error instanceof Error ? error.message : "An unknown error occurred";
+            setError(errorMessage);
+            toast({
+                title: "Supplier Archive Failed",
+                description: errorMessage,
+                variant: "destructive",
+            });
+            throw error;
+        } finally {
+            setLoading(false);
+        }
+    };
+
     const searchSuppliers = async (criteria: SupplierSearchCriteria): Promise<Supplier[]> => {
         if (!user || !profile?.organization_id) {
             return [];
@@ -412,16 +474,16 @@ export function useSuppliers(showArchived = false) {
                 .eq('organization_type', 'supplier')
                 .eq('is_active', true);
 
-            if (criteria.company_name) {
-                query = query.ilike('name', `%${criteria.company_name}%`);
+            if (criteria.name) {
+                query = query.ilike('name', `%${criteria.name}%`);
             }
 
             if (criteria.country) {
                 query = query.ilike('country', `%${criteria.country}%`);
             }
 
-            if (criteria.capabilities && criteria.capabilities.length > 0) {
-                query = query.contains('capabilities', criteria.capabilities);
+            if (criteria.specialties && criteria.specialties.length > 0) {
+                query = query.contains('capabilities', criteria.specialties);
             }
 
             const { data, error: fetchError } = await query.order('name', { ascending: true });
@@ -433,26 +495,39 @@ export function useSuppliers(showArchived = false) {
             // Transform the data to match Supplier interface
             const transformedSuppliers = (data || []).map(org => ({
                 id: org.id,
-                company_name: org.name,
-                contact_name: org.contacts?.[0]?.contact_name || '',
+                name: org.contacts?.[0]?.contact_name || org.name || 'Unnamed Supplier',
+                company: org.name,
                 email: org.contacts?.[0]?.email || '',
                 phone: org.contacts?.[0]?.phone || '',
                 address: org.address || '',
+                country: org.country || '',
+                specialties: org.capabilities || [],
+                rating: org.performance_rating || 0,
+                response_rate: 0,
+                is_active: org.is_active,
+                created_at: org.created_at,
+                updated_at: org.updated_at,
+                created_by: org.created_by,
+                updated_by: org.updated_by,
+                // Enhanced tracking fields
+                last_contact_date: org.last_evaluation_date,
+                total_quotes_sent: 0,
+                total_quotes_received: 0,
+                average_turnaround_days: 0,
+                notes: org.notes || '',
+                tags: org.certifications || [],
+                // Additional fields for compatibility
+                company_name: org.name,
+                contact_name: org.contacts?.[0]?.contact_name || '',
                 city: org.city || '',
                 state: org.state || '',
-                country: org.country || '',
                 postal_code: org.postal_code || '',
                 website: org.website || '',
                 tax_id: org.tax_id || '',
                 payment_terms: org.payment_terms || '',
                 credit_limit: org.credit_limit || 0,
-                notes: org.notes || '',
-                is_active: org.is_active,
-                created_at: org.created_at,
-                updated_at: org.updated_at,
                 organization_id: org.id,
                 organization_type: org.organization_type,
-                created_by: org.created_by,
                 capabilities: org.capabilities,
                 certifications: org.certifications,
                 performance_rating: org.performance_rating,
@@ -532,6 +607,7 @@ export function useSuppliers(showArchived = false) {
         createSupplier,
         updateSupplier,
         deleteSupplier,
+        archiveSupplier,
         searchSuppliers,
         getSupplierPerformanceMetrics,
         getSupplierAnalytics

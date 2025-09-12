@@ -420,7 +420,7 @@ export function InquiryIntakeForm({ submissionType, onSuccess }: InquiryIntakeFo
                 throw new Error('Failed to create or select customer organization');
             }
 
-            // Prepare intake data
+            // Prepare intake data with explicit 'in_progress' status
             const intakeData: ProjectIntakeData = {
                 title: data.projectTitle,
                 description: data.description,
@@ -439,6 +439,8 @@ export function InquiryIntakeForm({ submissionType, onSuccess }: InquiryIntakeFo
                 tags: data.intakeType === 'po' ? [data.projectReference].filter(Boolean) : undefined,
                 intake_type: data.intakeType,
                 intake_source: 'portal',
+                status: 'in_progress', // Explicitly set status to 'in_progress' for submissions
+                current_stage_id: '880e8400-e29b-41d4-a716-446655440001', // Set to inquiry_received stage
                 // Additional fields for database
                 volume: data.volumes ? JSON.stringify(data.volumes) : undefined,
                 target_price_per_unit: data.targetPricePerUnit,
@@ -485,6 +487,109 @@ export function InquiryIntakeForm({ submissionType, onSuccess }: InquiryIntakeFo
 
             toast({
                 title: "Project Submission Failed",
+                description: errorMessage,
+                variant: "destructive",
+            });
+
+            // Reset submission state to allow retry
+            setIsSubmitting(false);
+            setIsSubmitted(false);
+        } finally {
+            setIsSubmitting(false);
+        }
+    };
+
+    // Handle save as draft
+    const handleSaveAsDraft = async (data: InquiryFormData) => {
+        setIsSubmitting(true);
+
+        try {
+            let customerOrganizationId = data.selectedCustomerId;
+
+            // If no organization is selected, create a new one
+            if (!customerOrganizationId && data.company) {
+                const newCustomer = await createCustomer({
+                    company_name: data.company,
+                    contact_name: data.customerName,
+                    email: data.email,
+                    phone: data.phone,
+                    country: 'US', // Default country
+                    website: data.website || undefined,
+                    notes: 'Customer Organization created from inquiry intake'
+                });
+                customerOrganizationId = newCustomer.organization_id;
+            }
+
+            if (!customerOrganizationId) {
+                throw new Error('Failed to create or select customer organization');
+            }
+
+            // Prepare intake data with draft status
+            const intakeData: ProjectIntakeData = {
+                title: data.projectTitle,
+                description: data.description,
+                customer_organization_id: customerOrganizationId,
+                point_of_contacts: data.pointOfContacts && data.pointOfContacts.length > 0
+                    ? data.pointOfContacts
+                    : [], // Use selected contacts or empty array
+                priority: data.priority,
+                estimated_value: data.targetPricePerUnit && data.volumes ?
+                    data.targetPricePerUnit * data.volumes.reduce((sum, v) => sum + v.qty, 0) : data.targetPricePerUnit,
+                due_date: data.desiredDeliveryDate,
+                contact_name: data.customerName, // From form input
+                contact_email: data.email, // From form input
+                contact_phone: data.phone, // From form input
+                notes: data.notes,
+                tags: data.intakeType === 'po' ? [data.projectReference].filter(Boolean) : undefined,
+                intake_type: data.intakeType,
+                intake_source: 'portal',
+                status: 'draft', // Explicitly set status to 'draft' for draft submissions
+                // Additional fields for database
+                volume: data.volumes ? JSON.stringify(data.volumes) : undefined,
+                target_price_per_unit: data.targetPricePerUnit,
+                desired_delivery_date: data.desiredDeliveryDate,
+                project_reference: data.projectReference
+            };
+
+            // Create project using intake service with pre-generated project ID and draft status
+            const project = await ProjectIntakeService.createProjectFromIntake(
+                intakeData,
+                profile?.organization_id || '',
+                createProject,
+                tempProjectId // Pass the pre-generated project ID
+            );
+
+            // Save documents if any were uploaded
+            if (data.documents && data.documents.length > 0) {
+                console.log('📄 Saving documents for project:', project.project_id);
+                await saveProjectDocuments(project.id, data.documents, profile?.organization_id || '');
+            }
+
+            setIsSubmitted(true);
+
+            toast({
+                title: "Project Saved as Draft!",
+                description: `Your ${submissionType.toLowerCase()} has been saved as draft with ID: ${project.project_id}`,
+            });
+
+            onSuccess?.(project.project_id);
+
+        } catch (error) {
+            console.error('Error saving project as draft:', error);
+
+            let errorMessage = "There was an error saving your project as draft. Please try again.";
+
+            if (error instanceof Error) {
+                console.error('Error details:', {
+                    message: error.message,
+                    stack: error.stack,
+                    name: error.name
+                });
+                errorMessage = error.message;
+            }
+
+            toast({
+                title: "Save as Draft Failed",
                 description: errorMessage,
                 variant: "destructive",
             });
@@ -584,7 +689,33 @@ export function InquiryIntakeForm({ submissionType, onSuccess }: InquiryIntakeFo
 
                     {/* Submit Button */}
                     <div className="flex justify-end gap-2">
-                        <Button type="submit" disabled={isSubmitting || isGeneratingId || !tempProjectId}>
+                        <Button
+                            type="button"
+                            variant="outline"
+                            onClick={form.handleSubmit(handleSaveAsDraft)}
+                            disabled={isSubmitting || isGeneratingId || !tempProjectId}
+                        >
+                            {isSubmitting ? (
+                                <>
+                                    <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                                    Saving...
+                                </>
+                            ) : isGeneratingId ? (
+                                <>
+                                    <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                                    Preparing...
+                                </>
+                            ) : (
+                                <>
+                                    Save as Draft
+                                </>
+                            )}
+                        </Button>
+                        <Button
+                            type="button" // Changed from submit to button to handle custom submission
+                            onClick={form.handleSubmit(handleSubmit)}
+                            disabled={isSubmitting || isGeneratingId || !tempProjectId}
+                        >
                             {isSubmitting ? (
                                 <>
                                     <Loader2 className="mr-2 h-4 w-4 animate-spin" />
