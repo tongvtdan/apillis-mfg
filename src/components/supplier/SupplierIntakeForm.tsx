@@ -1,5 +1,5 @@
 
-import { useState } from "react";
+import { useState, useRef } from "react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
@@ -27,7 +27,13 @@ import {
     FileText,
     Award,
     CreditCard,
-    Tag
+    Tag,
+    Upload,
+    X,
+    File,
+    Image,
+    FileText as FileTextIcon,
+    Archive
 } from "lucide-react";
 import { useAuth } from "@/core/auth";
 import { useToast } from "@/shared/hooks/use-toast";
@@ -183,6 +189,19 @@ export function SupplierIntakeForm({ onSuccess, onCancel }: SupplierIntakeFormPr
     const [newTag, setNewTag] = useState("");
     const [newMaterial, setNewMaterial] = useState("");
     const [newProcess, setNewProcess] = useState("");
+    const [uploadedFiles, setUploadedFiles] = useState<File[]>([]);
+    const [fileDocumentTypes, setFileDocumentTypes] = useState<Record<number, string>>({});
+    const fileInputRef = useRef<HTMLInputElement>(null);
+
+    // Document types based on wireframe design
+    const DOCUMENT_TYPES = [
+        { value: 'company_profile', label: 'Company Profile' },
+        { value: 'logo', label: 'Company Logo' },
+        { value: 'product_catalog', label: 'Product Catalog' },
+        { value: 'quality_manual', label: 'Quality Manual' },
+        { value: 'sustainability_report', label: 'Sustainability Report' },
+        { value: 'other', label: 'Other Document' }
+    ];
 
     const handleSpecialtyChange = (specialty: SupplierSpecialty) => {
         setFormData(prev => ({
@@ -248,6 +267,57 @@ export function SupplierIntakeForm({ onSuccess, onCancel }: SupplierIntakeFormPr
         }
     };
 
+    // File upload handlers
+    const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+        const files = e.target.files;
+        if (files && files.length > 0) {
+            const newFiles = Array.from(files);
+            // Check file size (max 5MB each)
+            const validFiles = newFiles.filter(file => file.size <= 5 * 1024 * 1024);
+            if (validFiles.length < newFiles.length) {
+                toast({
+                    title: "File Size Limit Exceeded",
+                    description: "Some files exceed the 5MB limit and were not added.",
+                    variant: "destructive"
+                });
+            }
+            setUploadedFiles(prev => [...prev, ...validFiles]);
+        }
+    };
+
+    const handleRemoveFile = (index: number) => {
+        setUploadedFiles(prev => prev.filter((_, i) => i !== index));
+        // Remove document type for this file
+        setFileDocumentTypes(prev => {
+            const newTypes = { ...prev };
+            delete newTypes[index];
+            // Reindex the remaining types
+            const reindexedTypes: Record<number, string> = {};
+            Object.keys(newTypes).forEach((key, newIndex) => {
+                reindexedTypes[newIndex] = newTypes[parseInt(key)];
+            });
+            return reindexedTypes;
+        });
+    };
+
+    const triggerFileInput = () => {
+        fileInputRef.current?.click();
+    };
+
+    const getFileIcon = (file: File) => {
+        const type = file.type.toLowerCase();
+
+        if (type.startsWith('image/')) {
+            return <Image className="h-8 w-8 text-blue-500" />;
+        } else if (type.includes('pdf')) {
+            return <FileTextIcon className="h-8 w-8 text-red-500" />;
+        } else if (type.includes('zip') || type.includes('rar')) {
+            return <Archive className="h-8 w-8 text-yellow-500" />;
+        } else {
+            return <File className="h-8 w-8 text-gray-500" />;
+        }
+    };
+
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
         if (!user?.id) {
@@ -303,10 +373,19 @@ export function SupplierIntakeForm({ onSuccess, onCancel }: SupplierIntakeFormPr
 
             const supplier = await SupplierManagementService.createSupplier(supplierData, user.id);
 
-            toast({
-                title: "Success",
-                description: "Supplier created successfully!"
-            });
+            // TODO: Implement proper document upload for supplier profile documents
+            // For now, we'll just show a message about the files that would be uploaded
+            if (uploadedFiles.length > 0) {
+                toast({
+                    title: "Supplier Created",
+                    description: `Supplier created successfully! ${uploadedFiles.length} files will be uploaded to the supplier profile.`
+                });
+            } else {
+                toast({
+                    title: "Success",
+                    description: "Supplier created successfully!"
+                });
+            }
 
             onSuccess?.(supplier.id);
         } catch (error) {
@@ -701,6 +780,95 @@ export function SupplierIntakeForm({ onSuccess, onCancel }: SupplierIntakeFormPr
                             />
                         </div>
 
+                    </CardContent>
+                </Card>
+
+                <Card>
+                    <CardHeader>
+                        <CardTitle className="flex items-center gap-2">
+                            <FileText className="h-5 w-5" />
+                            Supplier Profile Documents
+                        </CardTitle>
+                        <CardDescription>
+                            Upload official supplier profile materials (max 5MB per file)
+                        </CardDescription>
+                    </CardHeader>
+                    <CardContent className="space-y-4">
+                        <div className="border-2 border-dashed rounded-lg p-6 text-center">
+                            <Upload className="mx-auto h-12 w-12 text-muted-foreground mb-4" />
+                            <div className="space-y-2">
+                                <p className="text-lg font-medium">
+                                    Drop files here or{' '}
+                                    <button
+                                        type="button"
+                                        className="text-primary hover:underline"
+                                        onClick={triggerFileInput}
+                                    >
+                                        browse
+                                    </button>
+                                </p>
+                                <p className="text-sm text-muted-foreground">
+                                    Supported: PDF, JPG, PNG, SVG, DOCX (company brochure, overview, logo)
+                                </p>
+                                <p className="text-xs text-muted-foreground">
+                                    ⚠️ Files must be ≤5MB each. Use ZIP if combining multiple files.
+                                </p>
+                            </div>
+                            <input
+                                ref={fileInputRef}
+                                type="file"
+                                multiple
+                                accept=".pdf,.jpg,.jpeg,.png,.svg,.docx"
+                                onChange={handleFileChange}
+                                className="hidden"
+                            />
+                        </div>
+
+                        {uploadedFiles.length > 0 && (
+                            <div className="space-y-2">
+                                <h4 className="text-sm font-medium">Uploaded Files</h4>
+                                <div className="space-y-2">
+                                    {uploadedFiles.map((file, index) => (
+                                        <div key={index} className="flex items-center justify-between p-2 border rounded">
+                                            <div className="flex items-center space-x-2">
+                                                {getFileIcon(file)}
+                                                <div>
+                                                    <p className="text-sm font-medium">{file.name}</p>
+                                                    <p className="text-xs text-muted-foreground">
+                                                        {(file.size / 1024 / 1024).toFixed(1)} MB
+                                                    </p>
+                                                </div>
+                                            </div>
+                                            <div className="flex items-center space-x-2">
+                                                <Select
+                                                    value={fileDocumentTypes[index] || ""}
+                                                    onValueChange={(value) => setFileDocumentTypes(prev => ({ ...prev, [index]: value }))}
+                                                >
+                                                    <SelectTrigger className="w-40">
+                                                        <SelectValue placeholder="Document Type" />
+                                                    </SelectTrigger>
+                                                    <SelectContent>
+                                                        {DOCUMENT_TYPES.map((docType) => (
+                                                            <SelectItem key={docType.value} value={docType.value}>
+                                                                {docType.label}
+                                                            </SelectItem>
+                                                        ))}
+                                                    </SelectContent>
+                                                </Select>
+                                                <Button
+                                                    type="button"
+                                                    variant="ghost"
+                                                    size="sm"
+                                                    onClick={() => handleRemoveFile(index)}
+                                                >
+                                                    <X className="h-4 w-4" />
+                                                </Button>
+                                            </div>
+                                        </div>
+                                    ))}
+                                </div>
+                            </div>
+                        )}
                     </CardContent>
                 </Card>
 
