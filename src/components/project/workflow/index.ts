@@ -22,3 +22,4 @@ export { ProjectWorkflowAnalytics } from './ProjectWorkflowAnalytics';
 export { ReviewAssignmentModal } from './ReviewAssignmentModal';
 export { ReviewConfiguration } from './ReviewConfiguration';
 export { ReviewList } from './ReviewList';
+export { StageReview } from './StageReview';
