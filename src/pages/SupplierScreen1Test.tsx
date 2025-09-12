@@ -25,11 +25,11 @@ export default function SupplierScreen1Test() {
                         <div>
                             <h3 className="font-semibold text-lg">Design Compliance</h3>
                             <p className="text-muted-foreground">
-                                The SupplierList component has been implemented to match exactly the text-based Figma specification 
+                                The SupplierList component has been implemented to match exactly the text-based Figma specification
                                 from Screen 1 in the requirements document.
                             </p>
                         </div>
-                        
+
                         <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mt-4">
                             <div className="space-y-2">
                                 <h4 className="font-semibold text-blue-700">✅ Implemented Features</h4>
@@ -55,7 +55,7 @@ export default function SupplierScreen1Test() {
                                 </ul>
                             </div>
                         </div>
-                        
+
                         <div className="bg-blue-50 p-4 rounded-lg mt-4">
                             <div className="flex items-start space-x-3">
                                 <div className="text-blue-600 mt-0.5">ℹ️</div>
