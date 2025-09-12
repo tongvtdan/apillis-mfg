@@ -82,14 +82,14 @@ export function StageTransitionDialog({
                 setCurrentStage(currentStageData);
             }
 
-            // Simplified validation - just check if we can proceed based on permissions
+            // Check if user has bypass permissions
             const hasBypassPermission = checkPermission('workflow', 'bypass').allowed;
             
             const validation: ValidationResult = {
                 isValid: true, // Always valid in simplified version
                 canProceed: true, // Always can proceed
                 requiresApproval: false, // No approval requirements in simplified version
-                requiresBypass: false, // Will be set based on permissions
+                requiresBypass: hasBypassPermission, // Show bypass option if user has permission
                 errors: [],
                 warnings: []
             };
@@ -233,7 +233,7 @@ export function StageTransitionDialog({
                     </Card>
 
                     {/* Bypass Section */}
-                    {requiresBypass && (
+                    {(requiresBypass || checkPermission('workflow', 'bypass').allowed) && (
                         <Card className="mb-6">
                             <CardHeader>
                                 <CardTitle className="text-lg flex items-center gap-2">
@@ -243,7 +243,7 @@ export function StageTransitionDialog({
                             </CardHeader>
                             <CardContent>
                                 <p className="text-sm text-muted-foreground mb-3">
-                                    This transition requires manager approval. 
+                                    As a manager, you can bypass standard validation requirements. 
                                     Please provide a reason for the bypass.
                                 </p>
                                 <textarea
