@@ -51,7 +51,7 @@ function ReviewerDisplay({ reviewerId, reviewer }: { reviewerId: string; reviewe
 export function ReviewList({ projectId, project, reviews, onEditReview, onViewReview }: ReviewListProps & { reviews: InternalReview[] }) {
     // Collect all unique reviewer IDs for reference (no longer using useUsers)
     const reviewerIds = reviews ? [...new Set(reviews.map(review => review.reviewer_id).filter(Boolean))] : [];
-    
+
     // Prerequisite validation state
     const [validation, setValidation] = useState<any>(null);
     const [isLoading, setIsLoading] = useState(false);
@@ -66,24 +66,24 @@ export function ReviewList({ projectId, project, reviews, onEditReview, onViewRe
 
     const validatePrerequisites = async () => {
         if (!project) return;
-        
+
         try {
             setIsLoading(true);
             setError(null);
-            
+
             // Get next possible stage for validation
             const nextStage = await getNextStage();
             if (!nextStage) {
                 setValidation(null);
                 return;
             }
-            
+
             // Perform prerequisite checks
             const result = await prerequisiteChecker.checkPrerequisites(
                 project,
                 nextStage
             );
-            
+
             setValidation(result);
         } catch (err) {
             console.error('Error validating prerequisites:', err);
@@ -95,15 +95,15 @@ export function ReviewList({ projectId, project, reviews, onEditReview, onViewRe
 
     const getNextStage = async (): Promise<WorkflowStage | null> => {
         if (!project?.current_stage_id) return null;
-        
+
         try {
             // Get all workflow stages
             const stages = await workflowStageService.getWorkflowStages();
-            
+
             // Find current stage
             const currentStage = stages.find(s => s.id === project.current_stage_id);
             if (!currentStage) return null;
-            
+
             // Find next stage
             const nextStage = stages.find(s => s.stage_order === currentStage.stage_order + 1);
             return nextStage || null;
@@ -227,14 +227,14 @@ export function ReviewList({ projectId, project, reviews, onEditReview, onViewRe
                                     <AlertDescription>{error}</AlertDescription>
                                 </Alert>
                             )}
-                            
+
                             {isLoading && !validation && (
                                 <div className="flex items-center justify-center py-8">
                                     <Clock className="w-6 h-6 animate-spin mr-2" />
                                     <span>Validating prerequisites...</span>
                                 </div>
                             )}
-                            
+
                             {validation && (
                                 <div className="space-y-4">
                                     {/* Overall Status */}
@@ -246,7 +246,7 @@ export function ReviewList({ projectId, project, reviews, onEditReview, onViewRe
                                                     {status.text}
                                                 </span>
                                             </div>
-                                            
+
                                             <div className="flex items-center gap-2">
                                                 <Progress value={completionPercentage} className="w-20 h-2" />
                                                 <span className="text-sm font-medium">
@@ -255,7 +255,7 @@ export function ReviewList({ projectId, project, reviews, onEditReview, onViewRe
                                             </div>
                                         </div>
                                     )}
-                                    
+
                                     {/* Prerequisite Checks */}
                                     <Tabs defaultValue="summary">
                                         <TabsList className="grid w-full grid-cols-6">
@@ -266,7 +266,7 @@ export function ReviewList({ projectId, project, reviews, onEditReview, onViewRe
                                             <TabsTrigger value="stage_specific">Stage Specific</TabsTrigger>
                                             <TabsTrigger value="system">System</TabsTrigger>
                                         </TabsList>
-                                        
+
                                         <TabsContent value="summary" className="space-y-3 mt-4">
                                             <div className="grid grid-cols-2 gap-4">
                                                 <div className="text-center p-4 border rounded-lg">
@@ -282,7 +282,7 @@ export function ReviewList({ projectId, project, reviews, onEditReview, onViewRe
                                                     <div className="text-sm text-muted-foreground">Failed</div>
                                                 </div>
                                             </div>
-                                            
+
                                             <div className="space-y-2">
                                                 {validation.checks.map((check: any) => (
                                                     <div key={check.id} className="flex items-start gap-3 p-3 border rounded-lg">
@@ -295,10 +295,9 @@ export function ReviewList({ projectId, project, reviews, onEditReview, onViewRe
                                                         )}
                                                         <div className="flex-1 min-w-0">
                                                             <div className="flex items-center justify-between mb-1">
-                                                                <h5 className={`font-medium text-sm ${
-                                                                    check.status === 'passed' ? 'text-green-600' : 
-                                                                    check.status === 'failed' ? 'text-red-600' : 'text-yellow-600'
-                                                                }`}>
+                                                                <h5 className={`font-medium text-sm ${check.status === 'passed' ? 'text-green-600' :
+                                                                        check.status === 'failed' ? 'text-red-600' : 'text-yellow-600'
+                                                                    }`}>
                                                                     {check.name}
                                                                 </h5>
                                                                 {check.required && (
@@ -314,7 +313,7 @@ export function ReviewList({ projectId, project, reviews, onEditReview, onViewRe
                                                 ))}
                                             </div>
                                         </TabsContent>
-                                        
+
                                         {/* Documents Tab - Enhanced with DocumentValidationPanel */}
                                         <TabsContent value="documents" className="space-y-3 mt-4">
                                             {project.current_stage_id && validation.checks.find((c: any) => c.category === 'documents') && (
@@ -325,7 +324,7 @@ export function ReviewList({ projectId, project, reviews, onEditReview, onViewRe
                                                 />
                                             )}
                                         </TabsContent>
-                                        
+
                                         {/* Other tabs */}
                                         {['project_data', 'approvals', 'stage_specific', 'system'].map(category => (
                                             <TabsContent key={category} value={category} className="space-y-3 mt-4">
@@ -342,10 +341,9 @@ export function ReviewList({ projectId, project, reviews, onEditReview, onViewRe
                                                             )}
                                                             <div className="flex-1 min-w-0">
                                                                 <div className="flex items-center justify-between mb-1">
-                                                                    <h5 className={`font-medium text-sm ${
-                                                                        check.status === 'passed' ? 'text-green-600' : 
-                                                                        check.status === 'failed' ? 'text-red-600' : 'text-yellow-600'
-                                                                    }`}>
+                                                                    <h5 className={`font-medium text-sm ${check.status === 'passed' ? 'text-green-600' :
+                                                                            check.status === 'failed' ? 'text-red-600' : 'text-yellow-600'
+                                                                        }`}>
                                                                         {check.name}
                                                                     </h5>
                                                                     {check.required && (
@@ -372,7 +370,7 @@ export function ReviewList({ projectId, project, reviews, onEditReview, onViewRe
                         </CardContent>
                     </Card>
                 )}
-                
+
                 {/* No Reviews Section */}
                 <Card>
                     <CardContent className="text-center py-8">
@@ -416,14 +414,14 @@ export function ReviewList({ projectId, project, reviews, onEditReview, onViewRe
                                 <AlertDescription>{error}</AlertDescription>
                             </Alert>
                         )}
-                        
+
                         {isLoading && !validation && (
                             <div className="flex items-center justify-center py-8">
                                 <Clock className="w-6 h-6 animate-spin mr-2" />
                                 <span>Validating prerequisites...</span>
                             </div>
                         )}
-                        
+
                         {validation && (
                             <div className="space-y-4">
                                 {/* Overall Status */}
@@ -435,7 +433,7 @@ export function ReviewList({ projectId, project, reviews, onEditReview, onViewRe
                                                 {status.text}
                                             </span>
                                         </div>
-                                        
+
                                         <div className="flex items-center gap-2">
                                             <Progress value={completionPercentage} className="w-20 h-2" />
                                             <span className="text-sm font-medium">
@@ -444,7 +442,7 @@ export function ReviewList({ projectId, project, reviews, onEditReview, onViewRe
                                         </div>
                                     </div>
                                 )}
-                                
+
                                 {/* Prerequisite Checks */}
                                 <Tabs defaultValue="summary">
                                     <TabsList className="grid w-full grid-cols-6">
@@ -455,7 +453,7 @@ export function ReviewList({ projectId, project, reviews, onEditReview, onViewRe
                                         <TabsTrigger value="stage_specific">Stage Specific</TabsTrigger>
                                         <TabsTrigger value="system">System</TabsTrigger>
                                     </TabsList>
-                                    
+
                                     <TabsContent value="summary" className="space-y-3 mt-4">
                                         <div className="grid grid-cols-2 gap-4">
                                             <div className="text-center p-4 border rounded-lg">
@@ -471,7 +469,7 @@ export function ReviewList({ projectId, project, reviews, onEditReview, onViewRe
                                                 <div className="text-sm text-muted-foreground">Failed</div>
                                             </div>
                                         </div>
-                                        
+
                                         <div className="space-y-2">
                                             {validation.checks.map((check: any) => (
                                                 <div key={check.id} className="flex items-start gap-3 p-3 border rounded-lg">
@@ -484,10 +482,9 @@ export function ReviewList({ projectId, project, reviews, onEditReview, onViewRe
                                                     )}
                                                     <div className="flex-1 min-w-0">
                                                         <div className="flex items-center justify-between mb-1">
-                                                            <h5 className={`font-medium text-sm ${
-                                                                check.status === 'passed' ? 'text-green-600' : 
-                                                                check.status === 'failed' ? 'text-red-600' : 'text-yellow-600'
-                                                            }`}>
+                                                            <h5 className={`font-medium text-sm ${check.status === 'passed' ? 'text-green-600' :
+                                                                    check.status === 'failed' ? 'text-red-600' : 'text-yellow-600'
+                                                                }`}>
                                                                 {check.name}
                                                             </h5>
                                                             {check.required && (
@@ -503,7 +500,7 @@ export function ReviewList({ projectId, project, reviews, onEditReview, onViewRe
                                             ))}
                                         </div>
                                     </TabsContent>
-                                    
+
                                     {/* Documents Tab - Enhanced with DocumentValidationPanel */}
                                     <TabsContent value="documents" className="space-y-3 mt-4">
                                         {project.current_stage_id && validation.checks.find((c: any) => c.category === 'documents') && (
@@ -514,7 +511,7 @@ export function ReviewList({ projectId, project, reviews, onEditReview, onViewRe
                                             />
                                         )}
                                     </TabsContent>
-                                    
+
                                     {/* Other tabs */}
                                     {['project_data', 'approvals', 'stage_specific', 'system'].map(category => (
                                         <TabsContent key={category} value={category} className="space-y-3 mt-4">
@@ -531,10 +528,9 @@ export function ReviewList({ projectId, project, reviews, onEditReview, onViewRe
                                                         )}
                                                         <div className="flex-1 min-w-0">
                                                             <div className="flex items-center justify-between mb-1">
-                                                                <h5 className={`font-medium text-sm ${
-                                                                    check.status === 'passed' ? 'text-green-600' : 
-                                                                    check.status === 'failed' ? 'text-red-600' : 'text-yellow-600'
-                                                                }`}>
+                                                                <h5 className={`font-medium text-sm ${check.status === 'passed' ? 'text-green-600' :
+                                                                        check.status === 'failed' ? 'text-red-600' : 'text-yellow-600'
+                                                                    }`}>
                                                                     {check.name}
                                                                 </h5>
                                                                 {check.required && (
@@ -561,7 +557,7 @@ export function ReviewList({ projectId, project, reviews, onEditReview, onViewRe
                     </CardContent>
                 </Card>
             )}
-            
+
             {/* Reviews Section */}
             <div className="space-y-4">
                 {reviews.map((review) => (
