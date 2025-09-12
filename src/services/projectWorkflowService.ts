@@ -200,6 +200,7 @@ class ProjectWorkflowService {
         bypassValidation?: boolean;
         reason?: string;
         force?: boolean;
+        estimatedDuration?: number;
     }): Promise<{ success: boolean; message: string; project?: Project }> {
         try {
             const workflowState = await this.getProjectWorkflowState(projectId);
@@ -245,7 +246,8 @@ class ProjectWorkflowService {
                     from_stage: currentStage?.id,
                     to_stage: targetStageId,
                     reason: options?.reason || 'Stage advancement',
-                    bypassed_validation: options?.bypassValidation
+                    bypassed_validation: options?.bypassValidation,
+                    estimated_duration_days: options?.estimatedDuration
                 },
                 timestamp: new Date().toISOString()
             });
@@ -639,6 +641,32 @@ class ProjectWorkflowService {
             console.log(`Project ${projectId} hold handled`);
         } catch (error) {
             console.error('Error handling project hold:', error);
+        }
+    }
+
+    /**
+     * Update sub-stage assignment
+     */
+    async updateSubStageAssignment(projectId: string, subStageId: string, userId: string): Promise<{ error?: string }> {
+        try {
+            const { error } = await supabase
+                .from('project_sub_stage_progress')
+                .update({
+                    assigned_to: userId,
+                    updated_at: new Date().toISOString()
+                })
+                .eq('project_id', projectId)
+                .eq('sub_stage_id', subStageId);
+
+            if (error) throw error;
+
+            // Clear cache
+            this.workflowCache.delete(projectId);
+
+            return {};
+        } catch (error) {
+            console.error('Error updating sub-stage assignment:', error);
+            return { error: error instanceof Error ? error.message : 'Unknown error' };
         }
     }
 

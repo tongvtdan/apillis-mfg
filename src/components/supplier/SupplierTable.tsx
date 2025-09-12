@@ -59,12 +59,15 @@ export function SupplierTable({ suppliers, onSupplierSelect, onSupplierEdit, can
 
         const query = searchQuery.toLowerCase();
         return suppliers.filter(supplier =>
-            supplier.name.toLowerCase().includes(query) ||
-            supplier.company?.toLowerCase().includes(query) ||
-            supplier.email?.toLowerCase().includes(query) ||
-            supplier.country?.toLowerCase().includes(query) ||
-            supplier.specialties.some(specialty =>
-                SPECIALTY_LABELS[specialty].toLowerCase().includes(query)
+            (supplier.name || supplier.company_name || '').toLowerCase().includes(query) ||
+            (supplier.company || supplier.company_name || '').toLowerCase().includes(query) ||
+            (supplier.email || '').toLowerCase().includes(query) ||
+            (supplier.country || '').toLowerCase().includes(query) ||
+            (supplier.specialties || []).some(specialty =>
+                SPECIALTY_LABELS[specialty]?.toLowerCase().includes(query)
+            ) ||
+            (supplier.capabilities || []).some(capability =>
+                capability.toLowerCase().includes(query)
             )
         );
     }, [suppliers, searchQuery]);
@@ -186,11 +189,11 @@ export function SupplierTable({ suppliers, onSupplierSelect, onSupplierEdit, can
                                 <TableRow key={supplier.id} className="hover:bg-muted/50">
                                     <TableCell>
                                         <div className="space-y-1">
-                                            <div className="font-medium">{supplier.name}</div>
-                                            {supplier.company && (
+                                            <div className="font-medium">{supplier.name || supplier.company_name || 'Unnamed Supplier'}</div>
+                                            {(supplier.company || supplier.company_name) && (
                                                 <div className="flex items-center text-sm text-muted-foreground">
                                                     <Building2 className="w-3 h-3 mr-1" />
-                                                    {supplier.company}
+                                                    {supplier.company || supplier.company_name}
                                                 </div>
                                             )}
                                             {supplier.country && (
@@ -229,23 +232,23 @@ export function SupplierTable({ suppliers, onSupplierSelect, onSupplierEdit, can
                                     </TableCell>
                                     <TableCell>
                                         <div className="flex flex-wrap gap-1">
-                                            {supplier.specialties.slice(0, 3).map((specialty) => (
+                                            {(supplier.specialties || []).slice(0, 3).map((specialty) => (
                                                 <Badge key={specialty} variant="secondary" className="text-xs">
                                                     {SPECIALTY_LABELS[specialty]}
                                                 </Badge>
                                             ))}
-                                            {supplier.specialties.length > 3 && (
+                                            {(supplier.specialties || []).length > 3 && (
                                                 <Badge variant="outline" className="text-xs">
-                                                    +{supplier.specialties.length - 3} more
+                                                    +{(supplier.specialties || []).length - 3} more
                                                 </Badge>
                                             )}
                                         </div>
                                     </TableCell>
                                     <TableCell>
                                         <div className="space-y-1">
-                                            {renderRating(supplier.rating)}
-                                            {renderResponseRate(supplier.response_rate)}
-                                            {renderTurnaroundTime(supplier.average_turnaround_days)}
+                                            {renderRating(supplier.rating || supplier.performance_rating || 0)}
+                                            {renderResponseRate(supplier.response_rate || 0)}
+                                            {renderTurnaroundTime(supplier.average_turnaround_days || 0)}
                                         </div>
                                     </TableCell>
                                     <TableCell>

@@ -27,6 +27,7 @@ import { projectWorkflowService } from '@/services/projectWorkflowService';
 import { useAuth } from '@/core/auth';
 import { useToast } from '@/hooks/use-toast';
 import { useStageTransition } from '@/hooks/useStageTransition';
+import { StageTransitionDialog } from './workflow/StageTransitionDialog';
 
 interface ProjectWorkflowOrchestratorProps {
     projectId: string;
@@ -43,6 +44,10 @@ export function ProjectWorkflowOrchestrator({
     const [loading, setLoading] = useState(true);
     const [activeTab, setActiveTab] = useState('overview');
     const [transitioning, setTransitioning] = useState(false);
+    const [transitionDialog, setTransitionDialog] = useState<{
+        isOpen: boolean;
+        targetStage: WorkflowStage | null;
+    }>({ isOpen: false, targetStage: null });
 
     const { user } = useAuth();
     const { toast } = useToast();
@@ -71,7 +76,7 @@ export function ProjectWorkflowOrchestrator({
     }, [loadWorkflowState]);
 
     // Handle stage transition
-    const handleStageTransition = async (targetStageId: string, reason?: string) => {
+    const handleStageTransition = async (targetStageId: string, reason?: string, estimatedDuration?: number) => {
         if (!workflowState || !user) return;
 
         setTransitioning(true);
@@ -80,7 +85,7 @@ export function ProjectWorkflowOrchestrator({
                 projectId,
                 targetStageId,
                 user.id,
-                { reason }
+                { reason, estimatedDuration }
             );
 
             if (result.success) {
@@ -113,6 +118,27 @@ export function ProjectWorkflowOrchestrator({
         } finally {
             setTransitioning(false);
         }
+    };
+
+    // Handle stage transition dialog
+    const openStageTransitionDialog = (targetStage: WorkflowStage) => {
+        setTransitionDialog({ isOpen: true, targetStage });
+    };
+
+    const closeStageTransitionDialog = () => {
+        setTransitionDialog({ isOpen: false, targetStage: null });
+    };
+
+    const confirmStageTransition = async (bypassRequired: boolean, reason?: string, estimatedDuration?: number) => {
+        if (!transitionDialog.targetStage) return;
+
+        await handleStageTransition(
+            transitionDialog.targetStage.id,
+            reason || `Manual transition to ${transitionDialog.targetStage.name}`,
+            estimatedDuration
+        );
+
+        closeStageTransitionDialog();
     };
 
     // Handle status update
@@ -331,7 +357,7 @@ export function ProjectWorkflowOrchestrator({
                                         <Button
                                             key={stage.id}
                                             variant={stage.id === currentStage?.id ? "default" : "outline"}
-                                            onClick={() => handleStageTransition(stage.id, `Manual transition to ${stage.name}`)}
+                                            onClick={() => openStageTransitionDialog(stage)}
                                             disabled={transitioning || stage.id === currentStage?.id}
                                             className="justify-start"
                                         >

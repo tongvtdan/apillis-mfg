@@ -213,7 +213,9 @@ class DocumentActionsService {
      * Check if document is a link
      */
     isLink(document: any): boolean {
-        return !!(document.external_url || document.storage_provider !== 'supabase');
+        // A document is a link if it has an external_url OR if it's stored externally
+        // Regular uploaded files should have file_path and be stored locally/supabase
+        return !!(document.external_url || (document.storage_provider && document.storage_provider !== 'supabase' && document.storage_provider !== 'local'));
     }
 
     /**

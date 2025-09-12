@@ -156,8 +156,24 @@ export function DocumentProvider({ children }: { children: React.ReactNode }) {
     }, [profile?.organization_id, filters, sort, searchQuery, toast]);
 
     // Create a new document
-    const createDocument = useCallback(async (file: File, metadata?: any): Promise<ProjectDocument | null> => {
-        if (!projectId || !profile?.organization_id) {
+    const createDocument = useCallback(async (file: File, metadata?: any, contextProjectId?: string): Promise<ProjectDocument | null> => {
+        // Use provided projectId or fall back to internal state
+        const activeProjectId = contextProjectId || projectId;
+
+        console.log('📄 [DocumentProvider] createDocument context check:', {
+            providedProjectId: contextProjectId,
+            internalProjectId: projectId,
+            activeProjectId,
+            organizationId: profile?.organization_id,
+            userId: user?.id
+        });
+
+        if (!activeProjectId || !profile?.organization_id) {
+            console.error('❌ [DocumentProvider] Missing context:', {
+                activeProjectId,
+                organizationId: profile?.organization_id,
+                userId: user?.id
+            });
             toast({
                 variant: "destructive",
                 title: "Error",
@@ -169,9 +185,19 @@ export function DocumentProvider({ children }: { children: React.ReactNode }) {
         try {
             setLoading(true);
 
+            console.log('📄 [DocumentProvider] createDocument called:', {
+                fileName: file.name,
+                fileSize: file.size,
+                fileType: file.type,
+                metadata,
+                projectId: activeProjectId,
+                organizationId: profile?.organization_id,
+                userId: user?.id
+            });
+
             // Upload file to storage
             const fileName = `${Date.now()}_${file.name}`;
-            const filePath = `${profile.organization_id}/${projectId}/${fileName}`;
+            const filePath = `${profile.organization_id}/${activeProjectId}/${fileName}`;
 
             const { data: uploadData, error: uploadError } = await supabase.storage
                 .from('documents')
@@ -182,32 +208,62 @@ export function DocumentProvider({ children }: { children: React.ReactNode }) {
             }
 
             // Create document record
+            console.log('💾 Creating database record with data:', {
+                organization_id: profile.organization_id,
+                project_id: activeProjectId,
+                title: file.name,
+                file_name: fileName,
+                file_path: filePath,
+                file_size: file.size,
+                mime_type: file.type,
+                uploaded_by: user?.id,
+                category: metadata?.category || 'general',
+                access_level: metadata?.accessLevel || 'private'
+            });
             const { data: doc, error: docError } = await supabase
                 .from('documents')
                 .insert({
                     organization_id: profile.organization_id,
-                    project_id: projectId,
+                    project_id: activeProjectId,
                     title: file.name,
                     file_name: fileName,
                     file_path: filePath,
                     file_size: file.size,
-                    file_type: file.type,
+                    mime_type: file.type,
                     uploaded_by: user?.id,
                     category: metadata?.category || 'general',
                     access_level: metadata?.accessLevel || 'private',
+                    storage_provider: 'supabase', // Explicitly set storage provider
                     metadata: metadata || {}
                 })
                 .select()
                 .single();
 
             if (docError) {
+                console.error('❌ [DocumentProvider] Database insert failed:', {
+                    error: docError.message,
+                    filePath,
+                    fileName,
+                    insertData: {
+                        organization_id: profile.organization_id,
+                        project_id: projectId,
+                        title: file.name,
+                        file_name: fileName,
+                        file_path: filePath,
+                        file_size: file.size,
+                        mime_type: file.type,
+                        uploaded_by: user?.id,
+                        category: metadata?.category || 'general',
+                        access_level: metadata?.accessLevel || 'private'
+                    }
+                });
                 // Clean up uploaded file if database insert fails
                 await supabase.storage.from('documents').remove([filePath]);
                 throw new Error(`Failed to create document record: ${docError.message}`);
             }
 
             // Refresh documents
-            await loadDocuments(projectId);
+            await loadDocuments(activeProjectId);
 
             toast({
                 title: "Document Uploaded",
