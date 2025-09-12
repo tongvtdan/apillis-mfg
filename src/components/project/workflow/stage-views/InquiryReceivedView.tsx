@@ -33,6 +33,7 @@ import {
     Phone
 } from 'lucide-react';
 import { DocumentValidationPanel } from '../../documents/DocumentValidationPanel';
+import { DocumentUploadZone } from '../../documents/DocumentUploadZone';
 import { Project, WorkflowStage } from '@/types/project';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/core/auth';
@@ -112,6 +113,8 @@ export const InquiryReceivedView: React.FC<InquiryReceivedViewProps> = ({
 
     // State for modals
     const [showClarificationModal, setShowClarificationModal] = useState(false);
+    const [showUploadModal, setShowUploadModal] = useState(false);
+    const [uploadCategory, setUploadCategory] = useState<string>('');
     const [clarificationData, setClarificationData] = useState({
         subject: '',
         message: '',
@@ -119,6 +122,7 @@ export const InquiryReceivedView: React.FC<InquiryReceivedViewProps> = ({
     });
     const [isSubmitting, setIsSubmitting] = useState(false);
     const [documents, setDocuments] = useState<any[]>([]);
+    const [missingDocuments, setMissingDocuments] = useState<string[]>([]);
 
     // Load project documents on component mount
     useEffect(() => {
@@ -150,16 +154,28 @@ export const InquiryReceivedView: React.FC<InquiryReceivedViewProps> = ({
             return acc;
         }, {} as Record<string, any[]>);
 
+        const missing: string[] = [];
+        const completeness = {
+            rfq: !!docCategories.rfq?.length,
+            drawing: !!docCategories.drawing?.length,
+            bom: !!docCategories.bom?.length,
+            quality: !!docCategories.quality?.length,
+            compliance: !!docCategories.compliance?.length,
+            other: !!docCategories.other?.length
+        };
+
+        // Track missing required documents
+        if (!completeness.rfq) missing.push('RFQ or PO Document');
+        if (!completeness.drawing) missing.push('Engineering Drawings (2D/3D)');
+        if (!completeness.bom) missing.push('Bill of Materials (BOM)');
+
+        setMissingDocuments(missing);
+
         setReviewForm(prev => ({
             ...prev,
             documentCompleteness: {
                 ...prev.documentCompleteness,
-                rfq: !!docCategories.rfq?.length,
-                drawing: !!docCategories.drawing?.length,
-                bom: !!docCategories.bom?.length,
-                quality: !!docCategories.quality?.length,
-                compliance: !!docCategories.compliance?.length,
-                other: !!docCategories.other?.length
+                ...completeness
             }
         }));
     };
@@ -206,6 +222,54 @@ export const InquiryReceivedView: React.FC<InquiryReceivedViewProps> = ({
                 additionalNotes: value
             }
         }));
+    };
+
+    // Handle upload button click
+    const handleUploadClick = (category: string) => {
+        setUploadCategory(category);
+        setShowUploadModal(true);
+    };
+
+    // Handle upload modal close
+    const handleUploadClose = () => {
+        setShowUploadModal(false);
+        setUploadCategory('');
+        // Reload documents to refresh the completeness check
+        loadProjectDocuments();
+    };
+
+    // Sync missing documents with actions system
+    const syncMissingDocumentsWithActions = async () => {
+        if (missingDocuments.length === 0) return;
+
+        try {
+            // Create or update action items for missing documents
+            const actionData = {
+                project_id: project.id,
+                organization_id: project.organization_id,
+                action_type: 'document_upload',
+                title: 'Upload Required Documents',
+                description: `Missing required documents: ${missingDocuments.join(', ')}`,
+                priority: 'high',
+                status: 'pending',
+                metadata: {
+                    missing_documents: missingDocuments,
+                    required_categories: ['rfq', 'drawing', 'bom'],
+                    stage: 'inquiry_received'
+                },
+                created_by: user?.id
+            };
+
+            // This would typically sync with the actions system
+            // For now, we'll log it and could integrate with a real actions service
+            console.log('Syncing missing documents with actions:', actionData);
+
+            // You could integrate with a real actions service here
+            // await actionsService.createAction(actionData);
+
+        } catch (error) {
+            console.error('Error syncing missing documents with actions:', error);
+        }
     };
 
     // Handle review submission
@@ -375,6 +439,13 @@ export const InquiryReceivedView: React.FC<InquiryReceivedViewProps> = ({
         }
     }, [documents]);
 
+    // Sync missing documents with actions when they change
+    useEffect(() => {
+        if (missingDocuments.length > 0) {
+            syncMissingDocumentsWithActions();
+        }
+    }, [missingDocuments]);
+
     return (
         <div className="space-y-6">
             {/* Project Snapshot */}
@@ -450,38 +521,60 @@ export const InquiryReceivedView: React.FC<InquiryReceivedViewProps> = ({
                         </p>
 
                         <div className="space-y-3">
-                            {REQUIRED_DOCUMENT_CATEGORIES.map((category) => (
-                                <div key={category.key} className="flex items-center space-x-3">
-                                    <Checkbox
-                                        id={`doc-${category.key}`}
-                                        checked={!!reviewForm.documentCompleteness[category.key as keyof typeof reviewForm.documentCompleteness]}
-                                        onCheckedChange={(checked) => handleDocumentCheckChange(category.key, !!checked)}
-                                        disabled={category.required && !documents.some(doc => doc.category === category.key)}
-                                    />
-                                    <Label htmlFor={`doc-${category.key}`} className="flex-1">
-                                        <span className={category.required ? 'font-medium' : ''}>
-                                            {category.label}
-                                        </span>
-                                        {category.required && (
-                                            <span className="text-red-500 ml-1">*</span>
-                                        )}
-                                    </Label>
-                                    {category.key === 'other' && reviewForm.documentCompleteness.other && (
-                                        <Input
-                                            placeholder="Specify other documents"
-                                            value={reviewForm.documentCompleteness.otherDescription}
-                                            onChange={(e) => setReviewForm(prev => ({
-                                                ...prev,
-                                                documentCompleteness: {
-                                                    ...prev.documentCompleteness,
-                                                    otherDescription: e.target.value
-                                                }
-                                            }))}
-                                            className="w-48"
+                            {REQUIRED_DOCUMENT_CATEGORIES.map((category) => {
+                                const isPresent = !!reviewForm.documentCompleteness[category.key as keyof typeof reviewForm.documentCompleteness];
+                                const isRequired = category.required;
+                                const isMissing = isRequired && !isPresent;
+
+                                return (
+                                    <div key={category.key} className={`flex items-center space-x-3 p-3 rounded-lg border ${isMissing ? 'bg-red-50 border-red-200' : 'bg-gray-50 border-gray-200'
+                                        }`}>
+                                        <Checkbox
+                                            id={`doc-${category.key}`}
+                                            checked={isPresent}
+                                            onCheckedChange={(checked) => handleDocumentCheckChange(category.key, !!checked)}
+                                            disabled={isRequired && !documents.some(doc => doc.category === category.key)}
                                         />
-                                    )}
-                                </div>
-                            ))}
+                                        <Label htmlFor={`doc-${category.key}`} className="flex-1">
+                                            <span className={isRequired ? 'font-medium' : ''}>
+                                                {category.label}
+                                            </span>
+                                            {isRequired && (
+                                                <span className="text-red-500 ml-1">*</span>
+                                            )}
+                                        </Label>
+
+                                        {/* Upload button for missing required documents */}
+                                        {isMissing && (
+                                            <Button
+                                                variant="outline"
+                                                size="sm"
+                                                onClick={() => handleUploadClick(category.key)}
+                                                className="text-red-700 border-red-300 hover:bg-red-100"
+                                            >
+                                                <Upload className="w-4 h-4 mr-1" />
+                                                Upload
+                                            </Button>
+                                        )}
+
+                                        {/* Other documents input */}
+                                        {category.key === 'other' && reviewForm.documentCompleteness.other && (
+                                            <Input
+                                                placeholder="Specify other documents"
+                                                value={reviewForm.documentCompleteness.otherDescription}
+                                                onChange={(e) => setReviewForm(prev => ({
+                                                    ...prev,
+                                                    documentCompleteness: {
+                                                        ...prev.documentCompleteness,
+                                                        otherDescription: e.target.value
+                                                    }
+                                                }))}
+                                                className="w-48"
+                                            />
+                                        )}
+                                    </div>
+                                );
+                            })}
                         </div>
 
                         <Alert>
@@ -491,6 +584,27 @@ export const InquiryReceivedView: React.FC<InquiryReceivedViewProps> = ({
                                 If missing, status will be set to "Incomplete — Awaiting Customer"
                             </AlertDescription>
                         </Alert>
+
+                        {/* Missing Documents Alert */}
+                        {missingDocuments.length > 0 && (
+                            <Alert variant="destructive">
+                                <XCircle className="h-4 w-4" />
+                                <AlertDescription>
+                                    <div className="space-y-2">
+                                        <p className="font-medium">Missing Required Documents:</p>
+                                        <ul className="list-disc list-inside space-y-1">
+                                            {missingDocuments.map((doc, index) => (
+                                                <li key={index} className="text-sm">{doc}</li>
+                                            ))}
+                                        </ul>
+                                        <p className="text-sm mt-2">
+                                            These missing documents will appear in the Overview → Actions Required section.
+                                            Upload them to proceed with the review.
+                                        </p>
+                                    </div>
+                                </AlertDescription>
+                            </Alert>
+                        )}
 
                         {/* Attached Files */}
                         {documents.length > 0 && (
@@ -806,6 +920,15 @@ export const InquiryReceivedView: React.FC<InquiryReceivedViewProps> = ({
                     </div>
                 </div>
             </Modal>
+
+            {/* Document Upload Modal */}
+            {showUploadModal && (
+                <DocumentUploadZone
+                    projectId={project.id}
+                    currentStageId={currentStage.id}
+                    onClose={handleUploadClose}
+                />
+            )}
         </div>
     );
 };
