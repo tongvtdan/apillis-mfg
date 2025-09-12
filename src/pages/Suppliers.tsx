@@ -2,7 +2,6 @@ import React, { useState, useEffect } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Switch } from '@/components/ui/switch';
 import { Label } from '@/components/ui/label';
 import {
@@ -15,20 +14,16 @@ import {
     Clock,
     CheckCircle,
     Award,
-    AlertTriangle,
-    LayoutGrid,
-    Table
+    AlertTriangle
 } from 'lucide-react';
 import { useSuppliers } from '@/features/supplier-management/hooks/useSuppliers';
 import { usePermissions } from '@/core/auth/hooks/usePermissions';
-import { SupplierTable } from '@/components/supplier/SupplierTable';
 import { SupplierModal } from '@/components/supplier/SupplierModal';
 import { Supplier } from '@/types/supplier';
 import { SupplierList } from '@/components/supplier/SupplierList';
 
 export default function Suppliers() {
     const [showArchived, setShowArchived] = useState(false);
-    const [viewMode, setViewMode] = useState<'table' | 'screen1'>('table');
     const { suppliers, loading } = useSuppliers(showArchived);
     const [showModal, setShowModal] = useState(false);
     const [selectedSupplier, setSelectedSupplier] = useState<Supplier | null>(null);
@@ -65,17 +60,7 @@ export default function Suppliers() {
     const pendingQualificationSuppliers = 0;
     const rejectedSuppliers = 0;
 
-    const handleSupplierSelect = (supplier: Supplier) => {
-        setSelectedSupplier(supplier);
-        // Could navigate to supplier detail page or show details panel
-    };
-
-    const handleEdit = (supplier: Supplier) => {
-        setSelectedSupplier(supplier);
-        setShowModal(true);
-    };
-
-    const handleSupplierSelectScreen1 = (supplier: any) => {
+    const handleSupplierSelect = (supplier: any) => {
         console.log('View supplier:', supplier);
         alert(`Viewing supplier: ${supplier.name}`);
     };
@@ -88,6 +73,11 @@ export default function Suppliers() {
     const handleStartQualification = (supplier: any) => {
         console.log('Start qualification for supplier:', supplier);
         alert(`Starting qualification for: ${supplier.name}`);
+    };
+
+    const handleEdit = (supplier: Supplier) => {
+        setSelectedSupplier(supplier);
+        setShowModal(true);
     };
 
     if (loading) {
@@ -129,24 +119,6 @@ export default function Suppliers() {
                             <Label htmlFor="show-archived-suppliers" className="text-sm">
                                 Show Archived
                             </Label>
-                        </div>
-                        <div className="flex items-center space-x-2">
-                            <Button
-                                variant={viewMode === 'table' ? 'default' : 'outline'}
-                                size="sm"
-                                onClick={() => setViewMode('table')}
-                            >
-                                <Table className="w-4 h-4 mr-2" />
-                                Table View
-                            </Button>
-                            <Button
-                                variant={viewMode === 'screen1' ? 'default' : 'outline'}
-                                size="sm"
-                                onClick={() => setViewMode('screen1')}
-                            >
-                                <LayoutGrid className="w-4 h-4 mr-2" />
-                                Screen 1 View
-                            </Button>
                         </div>
                         {canManageSuppliers && (
                             <Button
@@ -264,138 +236,22 @@ export default function Suppliers() {
                 </Card>
             </div>
 
-            {/* Main Content */}
-            {viewMode === 'table' ? (
-                <Tabs defaultValue="suppliers" className="w-full">
-                    <TabsList>
-                        <TabsTrigger value="suppliers">All Suppliers</TabsTrigger>
-                        <TabsTrigger value="qualification">Qualification</TabsTrigger>
-                        <TabsTrigger value="performance">Performance</TabsTrigger>
-                        <TabsTrigger value="analytics">Analytics</TabsTrigger>
-                    </TabsList>
-
-                    <TabsContent value="suppliers" className="space-y-6">
-                        <Card>
-                            <CardHeader>
-                                <CardTitle>Supplier Database</CardTitle>
-                                <CardDescription>
-                                    Manage your supplier network and capabilities
-                                </CardDescription>
-                            </CardHeader>
-                            <CardContent>
-                                <SupplierTable
-                                    suppliers={suppliers}
-                                    onSupplierSelect={handleSupplierSelect}
-                                    onSupplierEdit={handleEdit}
-                                    canArchive={canManageSuppliers}
-                                />
-                            </CardContent>
-                        </Card>
-                    </TabsContent>
-
-                    <TabsContent value="qualification" className="space-y-6">
-                        <Card>
-                            <CardHeader>
-                                <CardTitle className="flex items-center">
-                                    <Award className="w-5 h-5 mr-2" />
-                                    Supplier Qualification
-                                </CardTitle>
-                                <CardDescription>
-                                    Manage supplier qualification process and status
-                                </CardDescription>
-                            </CardHeader>
-                            <CardContent>
-                                <div className="text-center py-12">
-                                    <Award className="w-12 h-12 mx-auto text-base-content/70 mb-4" />
-                                    <h3 className="text-lg font-medium mb-2 text-base-content">Qualification Management</h3>
-                                    <p className="text-base-content/70 mb-4">
-                                        Track and manage supplier qualification status, approve suppliers, and handle exceptions.
-                                    </p>
-                                    <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mt-6">
-                                        <div className="border rounded-lg p-4">
-                                            <h4 className="font-medium mb-2">Qualified Suppliers</h4>
-                                            <p className="text-3xl font-bold text-green-600">{qualifiedSuppliers}</p>
-                                            <p className="text-sm text-muted-foreground">Ready for RFQs</p>
-                                        </div>
-                                        <div className="border rounded-lg p-4">
-                                            <h4 className="font-medium mb-2">Pending Approval</h4>
-                                            <p className="text-3xl font-bold text-yellow-600">{pendingQualificationSuppliers}</p>
-                                            <p className="text-sm text-muted-foreground">Awaiting review</p>
-                                        </div>
-                                        <div className="border rounded-lg p-4">
-                                            <h4 className="font-medium mb-2">Expiring Soon</h4>
-                                            <p className="text-3xl font-bold text-orange-600">3</p>
-                                            <p className="text-sm text-muted-foreground">Re-qualification needed</p>
-                                        </div>
-                                    </div>
-                                </div>
-                            </CardContent>
-                        </Card>
-                    </TabsContent>
-
-                    <TabsContent value="performance" className="space-y-6">
-                        <Card>
-                            <CardHeader>
-                                <CardTitle className="flex items-center">
-                                    <TrendingUp className="w-5 h-5 mr-2" />
-                                    Supplier Performance
-                                </CardTitle>
-                                <CardDescription>
-                                    Track supplier performance metrics and KPIs
-                                </CardDescription>
-                            </CardHeader>
-                            <CardContent>
-                                <div className="text-center py-12">
-                                    <TrendingUp className="w-12 h-12 mx-auto text-base-content/70 mb-4" />
-                                    <h3 className="text-lg font-medium mb-2 text-base-content">Performance Tracking Coming Soon</h3>
-                                    <p className="text-base-content/70">
-                                        Detailed supplier performance metrics will be available here
-                                    </p>
-                                </div>
-                            </CardContent>
-                        </Card>
-                    </TabsContent>
-
-                    <TabsContent value="analytics" className="space-y-6">
-                        <Card>
-                            <CardHeader>
-                                <CardTitle className="flex items-center">
-                                    <BarChart3 className="w-5 h-5 mr-2" />
-                                    Supplier Analytics
-                                </CardTitle>
-                                <CardDescription>
-                                    Supplier insights and performance analytics
-                                </CardDescription>
-                            </CardHeader>
-                            <CardContent>
-                                <div className="text-center py-12">
-                                    <BarChart3 className="w-12 h-12 mx-auto text-base-content/70 mb-4" />
-                                    <h3 className="text-lg font-medium mb-2 text-base-content">Analytics Coming Soon</h3>
-                                    <p className="text-base-content/70">
-                                        Supplier analytics and insights will be available here
-                                    </p>
-                                </div>
-                            </CardContent>
-                        </Card>
-                    </TabsContent>
-                </Tabs>
-            ) : (
-                <Card>
-                    <CardHeader>
-                        <CardTitle>Supplier Directory</CardTitle>
-                        <CardDescription>
-                            View and manage your suppliers using the Screen 1 design
-                        </CardDescription>
-                    </CardHeader>
-                    <CardContent>
-                        <SupplierList
-                            onSupplierSelect={handleSupplierSelectScreen1}
-                            onSendRFQ={handleSendRFQ}
-                            onStartQualification={handleStartQualification}
-                        />
-                    </CardContent>
-                </Card>
-            )}
+            {/* Main Content - Screen 1 View Only */}
+            <Card>
+                <CardHeader>
+                    <CardTitle>Supplier Directory</CardTitle>
+                    <CardDescription>
+                        View and manage your suppliers
+                    </CardDescription>
+                </CardHeader>
+                <CardContent>
+                    <SupplierList
+                        onSupplierSelect={handleSupplierSelect}
+                        onSendRFQ={handleSendRFQ}
+                        onStartQualification={handleStartQualification}
+                    />
+                </CardContent>
+            </Card>
 
             {/* Supplier Modal */}
             <SupplierModal
