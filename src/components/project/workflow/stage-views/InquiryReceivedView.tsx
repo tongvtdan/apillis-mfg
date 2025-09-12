@@ -1,16 +1,14 @@
-import React, { useState } from 'react';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import React, { useState, useEffect } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
-import { Progress } from '@/components/ui/progress';
 import { Modal } from '@/components/ui/modal';
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter, DialogDescription } from '@/components/ui/dialog';
 import { Textarea } from '@/components/ui/textarea';
 import { Label } from '@/components/ui/label';
 import { Checkbox } from '@/components/ui/checkbox';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Separator } from '@/components/ui/separator';
+import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
+import { Input } from '@/components/ui/input';
+import { Alert, AlertDescription } from '@/components/ui/alert';
 import {
     CheckCircle,
     XCircle,
@@ -21,17 +19,23 @@ import {
     Target,
     MessageSquare,
     CheckCircle2,
-    UserPlus,
     Eye,
-    Play,
-    Pause,
-    RotateCcw,
-    X,
-    Check,
-    Loader2
+    Send,
+    Loader2,
+    Upload,
+    Download,
+    Calendar,
+    DollarSign,
+    Package,
+    Building2,
+    User,
+    Mail,
+    Phone
 } from 'lucide-react';
 import { DocumentValidationPanel } from '../../documents/DocumentValidationPanel';
 import { Project, WorkflowStage } from '@/types/project';
+import { supabase } from '@/integrations/supabase/client';
+import { useAuth } from '@/core/auth';
 
 interface InquiryReceivedViewProps {
     project: Project;
@@ -40,58 +44,38 @@ interface InquiryReceivedViewProps {
     validation: any;
 }
 
-// Stage 1 Review Steps based on documentation
-const STAGE_1_REVIEW_STEPS = [
+// Document categories for inquiry received stage
+const REQUIRED_DOCUMENT_CATEGORIES = [
+    { key: 'rfq', label: 'RFQ or PO Document', required: true },
+    { key: 'drawing', label: 'Engineering Drawings (2D/3D)', required: true },
+    { key: 'bom', label: 'Bill of Materials (BOM)', required: true },
+    { key: 'quality', label: 'Quality / Tolerance Specifications', required: false },
+    { key: 'compliance', label: 'Compliance Docs (ISO, RoHS, etc.)', required: false },
+    { key: 'other', label: 'Other Documents', required: false }
+];
+
+// Review decision options
+const REVIEW_DECISIONS = [
     {
-        order: 1,
-        name: 'RFQ Documentation Review',
-        slug: 'rfq_documentation_review',
-        description: 'Review and validate all customer RFQ documents and requirements',
-        responsibleRoles: ['sales', 'procurement'],
-        duration: 2,
-        required: true,
-        canSkip: false,
-        autoAdvance: false,
-        requiresApproval: false,
-        icon: FileText,
-        color: 'text-blue-600',
-        status: 'wait_for_review', // wait_for_review, in_reviewing, done
-        assignedTo: null,
-        assignedPersonnel: null
+        value: 'ready_for_technical_review',
+        label: 'Ready for Technical Review (Engineering/QA/Production)',
+        description: 'Auto-advances project to "Qualification" stage and notifies assigned reviewers',
+        icon: CheckCircle2,
+        color: 'text-green-600'
     },
     {
-        order: 2,
-        name: 'Initial Feasibility Assessment',
-        slug: 'initial_feasibility_assessment',
-        description: 'Quick assessment of project feasibility and resource availability',
-        responsibleRoles: ['sales', 'engineering'],
-        duration: 4,
-        required: true,
-        canSkip: false,
-        autoAdvance: false,
-        requiresApproval: false,
-        icon: Target,
-        color: 'text-green-600',
-        status: 'wait_for_review',
-        assignedTo: null,
-        assignedPersonnel: null
-    },
-    {
-        order: 3,
-        name: 'Customer Requirements Clarification',
-        slug: 'customer_requirements_clarification',
-        description: 'Contact customer to clarify any unclear requirements or missing information',
-        responsibleRoles: ['sales'],
-        duration: 3,
-        required: false,
-        canSkip: true,
-        autoAdvance: false,
-        requiresApproval: false,
+        value: 'request_clarification',
+        label: 'Request Clarification from Customer',
+        description: 'Opens modal to draft message to Sales Rep/Customer',
         icon: MessageSquare,
-        color: 'text-orange-600',
-        status: 'wait_for_review',
-        assignedTo: null,
-        assignedPersonnel: null
+        color: 'text-orange-600'
+    },
+    {
+        value: 'reject_inquiry',
+        label: 'Reject Inquiry (Not Suitable for Our Capabilities)',
+        description: 'Requires justification and sends rejection email to customer',
+        icon: XCircle,
+        color: 'text-red-600'
     }
 ];
 
@@ -101,658 +85,725 @@ export const InquiryReceivedView: React.FC<InquiryReceivedViewProps> = ({
     nextStage,
     validation
 }) => {
-    console.log('InquiryReceivedView: Component rendered', {
-        projectId: project?.id,
-        currentStage: currentStage?.name,
-        nextStage: nextStage?.name,
-        hasValidation: !!validation,
-        validationChecks: validation?.checks?.length || 0
+    const { user } = useAuth();
+
+    // State for the inquiry review form
+    const [reviewForm, setReviewForm] = useState({
+        documentCompleteness: {
+            rfq: false,
+            drawing: false,
+            bom: false,
+            quality: false,
+            compliance: false,
+            other: false,
+            otherDescription: ''
+        },
+        projectValidity: {
+            scopeClear: false,
+            contactComplete: false,
+            priceRealistic: false,
+            deliveryFeasible: false,
+            additionalNotes: ''
+        },
+        reviewDecision: '',
+        decisionReason: '',
+        status: 'draft' as 'draft' | 'submitted'
     });
 
-    // State for managing review step status and assignments
-    const [reviewSteps, setReviewSteps] = useState(STAGE_1_REVIEW_STEPS);
-    const [showAssignModal, setShowAssignModal] = useState<string | null>(null);
-    const [showReviewModal, setShowReviewModal] = useState<string | null>(null);
-    const [selectedUserId, setSelectedUserId] = useState<string>('');
-    const [assignmentNotes, setAssignmentNotes] = useState<string>('');
-    const [isAssigning, setIsAssigning] = useState(false);
-    const [reviewData, setReviewData] = useState<{
-        reviewStepSlug: string;
-        comments: string;
-        confirmed: boolean;
-        reviewedDocuments: string[];
-    }>({
-        reviewStepSlug: '',
-        comments: '',
-        confirmed: false,
-        reviewedDocuments: []
+    // State for modals
+    const [showClarificationModal, setShowClarificationModal] = useState(false);
+    const [clarificationData, setClarificationData] = useState({
+        subject: '',
+        message: '',
+        attachments: [] as string[]
     });
+    const [isSubmitting, setIsSubmitting] = useState(false);
+    const [documents, setDocuments] = useState<any[]>([]);
 
-    // Enhanced personnel data with more details
-    const availablePersonnel = [
-        { id: '1', name: 'John Smith', email: 'john.smith@company.com', role: 'sales', department: 'Sales', isActive: true },
-        { id: '2', name: 'Sarah Johnson', email: 'sarah.johnson@company.com', role: 'procurement', department: 'Procurement', isActive: true },
-        { id: '3', name: 'Mike Chen', email: 'mike.chen@company.com', role: 'engineering', department: 'Engineering', isActive: true },
-        { id: '4', name: 'Lisa Wang', email: 'lisa.wang@company.com', role: 'qa', department: 'QA', isActive: true },
-        { id: '5', name: 'David Lee', email: 'david.lee@company.com', role: 'production', department: 'Production', isActive: true },
-        { id: '6', name: 'Emma Davis', email: 'emma.davis@company.com', role: 'management', department: 'Management', isActive: true },
-    ];
+    // Load project documents on component mount
+    useEffect(() => {
+        loadProjectDocuments();
+    }, [project.id]);
 
-    // Mock documents for each review step
-    const getReviewStepDocuments = (reviewStepSlug: string) => {
-        const documents: Record<string, Array<{ id: string, name: string, type: string, url?: string }>> = {
-            'rfq_documentation_review': [
-                { id: '1', name: 'Customer RFQ Document', type: 'PDF', url: '/documents/rfq.pdf' },
-                { id: '2', name: 'Technical Specifications', type: 'PDF', url: '/documents/specs.pdf' },
-                { id: '3', name: 'Requirements Checklist', type: 'DOCX', url: '/documents/checklist.docx' }
-            ],
-            'initial_feasibility_assessment': [
-                { id: '4', name: 'Resource Availability Report', type: 'PDF', url: '/documents/resources.pdf' },
-                { id: '5', name: 'Capacity Analysis', type: 'XLSX', url: '/documents/capacity.xlsx' },
-                { id: '6', name: 'Timeline Assessment', type: 'PDF', url: '/documents/timeline.pdf' }
-            ],
-            'customer_requirements_clarification': [
-                { id: '7', name: 'Customer Communication Log', type: 'PDF', url: '/documents/communication.pdf' },
-                { id: '8', name: 'Clarification Questions', type: 'DOCX', url: '/documents/questions.docx' },
-                { id: '9', name: 'Updated Requirements', type: 'PDF', url: '/documents/updated-req.pdf' }
-            ]
-        };
-        return documents[reviewStepSlug] || [];
-    };
-
-    // Helper functions for role-based filtering and UI
-    const getRoleColor = (role: string) => {
-        const colors: Record<string, string> = {
-            sales: 'bg-blue-100 text-blue-800',
-            procurement: 'bg-green-100 text-green-800',
-            engineering: 'bg-purple-100 text-purple-800',
-            qa: 'bg-orange-100 text-orange-800',
-            production: 'bg-teal-100 text-teal-800',
-            management: 'bg-red-100 text-red-800',
-        };
-        return colors[role] || 'bg-gray-100 text-gray-800';
-    };
-
-    const getFilteredPersonnel = (reviewStepSlug: string) => {
-        const reviewStep = reviewSteps.find(s => s.slug === reviewStepSlug);
-        if (!reviewStep || !reviewStep.responsibleRoles) {
-            return availablePersonnel;
-        }
-        return availablePersonnel.filter(person =>
-            reviewStep.responsibleRoles.includes(person.role)
-        );
-    };
-
-    const getCurrentReviewStep = () => {
-        if (!showAssignModal) return null;
-        return reviewSteps.find(s => s.slug === showAssignModal);
-    };
-    const getSubStageStatus = (subStage: any) => {
-        // This would typically come from the database/API
-        // For now, we'll simulate based on validation checks
-        const relatedChecks = validation.checks.filter((check: any) =>
-            check.name.toLowerCase().includes(subStage.slug.replace(/_/g, ' ').toLowerCase()) ||
-            check.description.toLowerCase().includes(subStage.slug.replace(/_/g, ' ').toLowerCase())
-        );
-
-        if (relatedChecks.length === 0) {
-            return 'pending';
-        }
-
-        const allPassed = relatedChecks.every((check: any) => check.status === 'passed');
-        const anyFailed = relatedChecks.some((check: any) => check.status === 'failed');
-
-        if (allPassed) return 'completed';
-        if (anyFailed) return 'failed';
-        return 'in_progress';
-    };
-
-    const getReviewStepProgress = () => {
-        const completed = reviewSteps.filter(reviewStep => reviewStep.status === 'done').length;
-        return Math.round((completed / reviewSteps.length) * 100);
-    };
-
-    // Helper functions for status management
-    const getStatusIcon = (status: string) => {
-        switch (status) {
-            case 'done':
-                return <CheckCircle2 className="w-4 h-4 text-green-600" />;
-            case 'in_reviewing':
-                return <Clock className="w-4 h-4 text-yellow-600" />;
-            case 'wait_for_review':
-                return <Pause className="w-4 h-4 text-gray-400" />;
-            default:
-                return <AlertTriangle className="w-4 h-4 text-gray-400" />;
-        }
-    };
-
-    const getStatusLabel = (status: string) => {
-        switch (status) {
-            case 'done':
-                return 'Done';
-            case 'in_reviewing':
-                return 'In Reviewing';
-            case 'wait_for_review':
-                return 'Wait for Review';
-            default:
-                return 'Unknown';
-        }
-    };
-
-    const getStatusColor = (status: string) => {
-        switch (status) {
-            case 'done':
-                return 'text-green-600 bg-green-50 border-green-200';
-            case 'in_reviewing':
-                return 'text-yellow-600 bg-yellow-50 border-yellow-200';
-            case 'wait_for_review':
-                return 'text-gray-600 bg-gray-50 border-gray-200';
-            default:
-                return 'text-gray-600 bg-gray-50 border-gray-200';
-        }
-    };
-
-    // Action handlers
-    const handleAssign = (reviewStepSlug: string) => {
-        console.log('Assigning review step:', reviewStepSlug);
-        setShowAssignModal(reviewStepSlug);
-    };
-
-    const handleReview = (reviewStepSlug: string) => {
-        console.log('Starting review for review step:', reviewStepSlug);
-        setReviewData({
-            reviewStepSlug,
-            comments: '',
-            confirmed: false,
-            reviewedDocuments: []
-        });
-        setShowReviewModal(reviewStepSlug);
-    };
-
-    const handleStatusChange = (reviewStepSlug: string, newStatus: string) => {
-        setReviewSteps(prev => prev.map(reviewStep =>
-            reviewStep.slug === reviewStepSlug
-                ? { ...reviewStep, status: newStatus }
-                : reviewStep
-        ));
-    };
-
-    const handleAssignmentConfirm = async () => {
-        if (!selectedUserId || !showAssignModal) return;
-
+    // Load project documents
+    const loadProjectDocuments = async () => {
         try {
-            setIsAssigning(true);
-            const personnel = availablePersonnel.find(p => p.id === selectedUserId);
+            const { data, error } = await supabase
+                .from('project_documents')
+                .select('*')
+                .eq('project_id', project.id as any)
+                .eq('organization_id', project.organization_id as any);
 
-            if (personnel) {
-                setReviewSteps(prev => prev.map(reviewStep =>
-                    reviewStep.slug === showAssignModal
-                        ? {
-                            ...reviewStep,
-                            assignedTo: selectedUserId,
-                            assignedPersonnel: personnel.name,
-                            status: 'wait_for_review' // Keep as wait_for_review until review is started
-                        }
-                        : reviewStep
-                ));
-
-                console.log('Assignment completed:', {
-                    reviewStep: showAssignModal,
-                    personnel: personnel.name,
-                    notes: assignmentNotes
-                });
-            }
-
-            // Reset form and close modal
-            setSelectedUserId('');
-            setAssignmentNotes('');
-            setShowAssignModal(null);
+            if (error) throw error;
+            setDocuments(data || []);
         } catch (error) {
-            console.error('Error assigning review step:', error);
-        } finally {
-            setIsAssigning(false);
+            console.error('Error loading documents:', error);
         }
     };
 
-    const handleAssignCancel = () => {
-        setSelectedUserId('');
-        setAssignmentNotes('');
-        setShowAssignModal(null);
-    };
+    // Check if required documents are present
+    const checkDocumentCompleteness = () => {
+        const docCategories = documents.reduce((acc, doc) => {
+            const category = doc.category || 'other';
+            acc[category] = acc[category] || [];
+            acc[category].push(doc);
+            return acc;
+        }, {} as Record<string, any[]>);
 
-    const handleReviewConfirm = () => {
-        if (!reviewData.confirmed) {
-            alert('Please confirm that you have reviewed all required documents and information.');
-            return;
-        }
-
-        // Mark the review step as done
-        setReviewSteps(prev => prev.map(reviewStep =>
-            reviewStep.slug === reviewData.reviewStepSlug
-                ? { ...reviewStep, status: 'done' }
-                : reviewStep
-        ));
-
-        // Reset review data and close modal
-        setReviewData({
-            reviewStepSlug: '',
-            comments: '',
-            confirmed: false,
-            reviewedDocuments: []
-        });
-        setShowReviewModal(null);
-
-        console.log('Review completed for review step:', reviewData.reviewStepSlug);
-    };
-
-    const handleDocumentReview = (documentId: string) => {
-        setReviewData(prev => ({
+        setReviewForm(prev => ({
             ...prev,
-            reviewedDocuments: prev.reviewedDocuments.includes(documentId)
-                ? prev.reviewedDocuments.filter(id => id !== documentId)
-                : [...prev.reviewedDocuments, documentId]
+            documentCompleteness: {
+                ...prev.documentCompleteness,
+                rfq: !!docCategories.rfq?.length,
+                drawing: !!docCategories.drawing?.length,
+                bom: !!docCategories.bom?.length,
+                quality: !!docCategories.quality?.length,
+                compliance: !!docCategories.compliance?.length,
+                other: !!docCategories.other?.length
+            }
         }));
     };
 
-    const handleStartReview = (reviewStepSlug: string) => {
-        setReviewSteps(prev => prev.map(reviewStep =>
-            reviewStep.slug === reviewStepSlug
-                ? { ...reviewStep, status: 'in_reviewing' }
-                : reviewStep
-        ));
+    // Check if all required documents are present
+    const canAdvanceToTechnicalReview = () => {
+        const { documentCompleteness } = reviewForm;
+        return documentCompleteness.rfq && documentCompleteness.drawing && documentCompleteness.bom;
     };
+
+    // Handle form field changes
+    const handleDocumentCheckChange = (category: string, checked: boolean) => {
+        setReviewForm(prev => ({
+            ...prev,
+            documentCompleteness: {
+                ...prev.documentCompleteness,
+                [category]: checked
+            }
+        }));
+    };
+
+    const handleValidityCheckChange = (field: string, checked: boolean) => {
+        setReviewForm(prev => ({
+            ...prev,
+            projectValidity: {
+                ...prev.projectValidity,
+                [field]: checked
+            }
+        }));
+    };
+
+    const handleTextChange = (field: string, value: string) => {
+        setReviewForm(prev => ({
+            ...prev,
+            [field]: value
+        }));
+    };
+
+    const handleValidityNotesChange = (value: string) => {
+        setReviewForm(prev => ({
+            ...prev,
+            projectValidity: {
+                ...prev.projectValidity,
+                additionalNotes: value
+            }
+        }));
+    };
+
+    // Handle review submission
+    const handleSubmitReview = async () => {
+        if (!reviewForm.reviewDecision) {
+            alert('Please select a review decision.');
+            return;
+        }
+
+        if ((reviewForm.reviewDecision === 'request_clarification' || reviewForm.reviewDecision === 'reject_inquiry') && !reviewForm.decisionReason.trim()) {
+            alert('Please provide a reason for your decision.');
+            return;
+        }
+
+        if (reviewForm.reviewDecision === 'ready_for_technical_review' && !canAdvanceToTechnicalReview()) {
+            alert('Cannot advance to technical review: Required documents (RFQ, Drawings, BOM) are missing.');
+            return;
+        }
+
+        setIsSubmitting(true);
+        try {
+            // Save review to database
+            const { data: reviewData, error: reviewError } = await supabase
+                .from('reviews')
+                .insert({
+                    project_id: project.id,
+                    organization_id: project.organization_id,
+                    review_type: 'inquiry_received',
+                    reviewer_id: user?.id,
+                    decision: reviewForm.reviewDecision === 'ready_for_technical_review' ? 'approved' :
+                        reviewForm.reviewDecision === 'request_clarification' ? 'needs_clarification' : 'rejected',
+                    decision_reason: reviewForm.decisionReason,
+                    metadata: {
+                        document_check: reviewForm.documentCompleteness,
+                        validity_notes: reviewForm.projectValidity.additionalNotes,
+                        validity_checks: reviewForm.projectValidity
+                    },
+                    status: 'submitted'
+                } as any)
+                .select()
+                .single();
+
+            if (reviewError) throw reviewError;
+
+            // Update project status based on decision
+            let newStatus = project.status;
+            if (reviewForm.reviewDecision === 'ready_for_technical_review') {
+                newStatus = 'active';
+            } else if (reviewForm.reviewDecision === 'request_clarification') {
+                newStatus = 'on_hold';
+            } else if (reviewForm.reviewDecision === 'reject_inquiry') {
+                newStatus = 'cancelled';
+            }
+
+            const { error: projectError } = await supabase
+                .from('projects')
+                .update({
+                    status: newStatus,
+                    current_stage_id: reviewForm.reviewDecision === 'ready_for_technical_review' ? nextStage?.id : project.current_stage_id
+                } as any)
+                .eq('id', project.id as any);
+
+            if (projectError) throw projectError;
+
+            // Log activity
+            await supabase
+                .from('activity_log')
+                .insert({
+                    organization_id: project.organization_id,
+                    user_id: user?.id,
+                    project_id: project.id,
+                    entity_type: 'project',
+                    entity_id: project.id,
+                    action: 'inquiry_review_submitted',
+                    description: `Inquiry review submitted with decision: ${reviewForm.reviewDecision}`,
+                    metadata: {
+                        decision: reviewForm.reviewDecision,
+                        review_id: (reviewData && 'id' in reviewData) ? reviewData.id : null
+                    }
+                } as any);
+
+            alert('Review submitted successfully!');
+            setReviewForm(prev => ({ ...prev, status: 'submitted' }));
+
+        } catch (error) {
+            console.error('Error submitting review:', error);
+            alert('Error submitting review. Please try again.');
+        } finally {
+            setIsSubmitting(false);
+        }
+    };
+
+    // Handle clarification request
+    const handleRequestClarification = async () => {
+        if (!clarificationData.subject.trim() || !clarificationData.message.trim()) {
+            alert('Please provide both subject and message.');
+            return;
+        }
+
+        try {
+            // Create message record
+            const { error: messageError } = await supabase
+                .from('messages')
+                .insert({
+                    organization_id: project.organization_id,
+                    project_id: project.id,
+                    sender_id: user?.id,
+                    subject: clarificationData.subject,
+                    content: clarificationData.message,
+                    message_type: 'clarification_request',
+                    priority: 'normal'
+                } as any);
+
+            if (messageError) throw messageError;
+
+            // Update project status
+            const { error: projectError } = await supabase
+                .from('projects')
+                .update({ status: 'on_hold' } as any)
+                .eq('id', project.id as any);
+
+            if (projectError) throw projectError;
+
+            alert('Clarification request sent successfully!');
+            setShowClarificationModal(false);
+            setClarificationData({ subject: '', message: '', attachments: [] });
+
+        } catch (error) {
+            console.error('Error sending clarification request:', error);
+            alert('Error sending clarification request. Please try again.');
+        }
+    };
+
+    // Handle save draft
+    const handleSaveDraft = async () => {
+        try {
+            const { error } = await supabase
+                .from('reviews')
+                .upsert({
+                    project_id: project.id,
+                    organization_id: project.organization_id,
+                    review_type: 'inquiry_received',
+                    reviewer_id: user?.id,
+                    decision: reviewForm.reviewDecision || null,
+                    decision_reason: reviewForm.decisionReason,
+                    metadata: {
+                        document_check: reviewForm.documentCompleteness,
+                        validity_notes: reviewForm.projectValidity.additionalNotes,
+                        validity_checks: reviewForm.projectValidity
+                    },
+                    status: 'draft'
+                } as any);
+
+            if (error) throw error;
+            alert('Draft saved successfully!');
+
+        } catch (error) {
+            console.error('Error saving draft:', error);
+            alert('Error saving draft. Please try again.');
+        }
+    };
+
+    // Initialize document completeness check when documents load
+    useEffect(() => {
+        if (documents.length > 0) {
+            checkDocumentCompleteness();
+        }
+    }, [documents]);
 
     return (
         <div className="space-y-6">
-            {/* Stage 1 Exit Criteria */}
+            {/* Project Snapshot */}
             <Card>
                 <CardHeader>
                     <CardTitle className="flex items-center gap-2">
-                        <Target className="w-5 h-5" />
-                        Stage 1 Exit Criteria
+                        <FileText className="w-5 h-5" />
+                        Project Snapshot
                     </CardTitle>
                 </CardHeader>
                 <CardContent>
-                    <div className="p-4 bg-blue-50 border border-blue-200 rounded-lg">
-                        <h4 className="font-medium text-blue-800 mb-2">Exit Criteria for Inquiry Received</h4>
-                        <p className="text-sm text-blue-700">
-                            RFQ reviewed, customer requirements understood, initial feasibility assessment completed
-                        </p>
-                    </div>
-
-                    <div className="mt-4">
-                        <div className="flex items-center justify-between mb-2">
-                            <span className="text-sm font-medium">Overall Progress</span>
-                            <span className="text-sm text-muted-foreground">{getReviewStepProgress()}%</span>
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <div className="space-y-2">
+                            <div className="flex items-center gap-2">
+                                <FileText className="w-4 h-4 text-gray-500" />
+                                <span className="font-medium">Project Title:</span>
+                                <span>{project.title}</span>
+                            </div>
+                            <div className="flex items-center gap-2">
+                                <Package className="w-4 h-4 text-gray-500" />
+                                <span className="font-medium">Intake Type:</span>
+                                <Badge variant="outline">{project.intake_type || 'RFQ'}</Badge>
+                            </div>
+                            <div className="flex items-center gap-2">
+                                <Calendar className="w-4 h-4 text-gray-500" />
+                                <span className="font-medium">Submitted On:</span>
+                                <span>{new Date(project.created_at || '').toLocaleDateString()}</span>
+                            </div>
+                            <div className="flex items-center gap-2">
+                                <Target className="w-4 h-4 text-gray-500" />
+                                <span className="font-medium">Target Delivery:</span>
+                                <span>{project.estimated_delivery_date ? new Date(project.estimated_delivery_date).toLocaleDateString() : 'Not specified'}</span>
+                            </div>
                         </div>
-                        <Progress value={getReviewStepProgress()} className="h-2" />
+                        <div className="space-y-2">
+                            <div className="flex items-center gap-2">
+                                <DollarSign className="w-4 h-4 text-gray-500" />
+                                <span className="font-medium">Target Price:</span>
+                                <span>{project.estimated_value ? `$${project.estimated_value.toLocaleString()}` : 'Not specified'}</span>
+                            </div>
+                            <div className="flex items-center gap-2">
+                                <Building2 className="w-4 h-4 text-gray-500" />
+                                <span className="font-medium">Customer:</span>
+                                <span>{project.customer_organization?.name || 'Unknown'}</span>
+                            </div>
+                            <div className="flex items-center gap-2">
+                                <User className="w-4 h-4 text-gray-500" />
+                                <span className="font-medium">Primary Contact:</span>
+                                <span>{project.primary_contact?.contact_name || 'Not specified'}</span>
+                            </div>
+                            <div className="flex items-center gap-2">
+                                <Mail className="w-4 h-4 text-gray-500" />
+                                <span className="font-medium">Contact Email:</span>
+                                <span>{project.primary_contact?.email || 'Not specified'}</span>
+                            </div>
+                        </div>
                     </div>
                 </CardContent>
             </Card>
 
-            {/* Review Progress */}
+            {/* Document Completeness Check */}
             <Card>
                 <CardHeader>
                     <CardTitle className="flex items-center gap-2">
-                        <Users className="w-5 h-5" />
-                        Review Progress
+                        <FileText className="w-5 h-5" />
+                        Document Completeness Check
                     </CardTitle>
                 </CardHeader>
                 <CardContent>
                     <div className="space-y-4">
-                        {reviewSteps.map((reviewStep) => {
-                            const IconComponent = reviewStep.icon;
+                        <p className="text-sm text-muted-foreground">
+                            Verify all required documents for intake type are present:
+                        </p>
 
-                            return (
-                                <div key={reviewStep.slug} className={`p-4 border rounded-lg ${getStatusColor(reviewStep.status)}`}>
-                                    <div className="flex items-start gap-3">
-                                        <IconComponent className={`w-5 h-5 mt-0.5 ${reviewStep.color}`} />
-                                        <div className="flex-1 min-w-0">
-                                            <div className="flex items-center justify-between mb-2">
-                                                <h4 className="font-medium text-sm">{reviewStep.name}</h4>
-                                                <div className="flex items-center gap-2">
-                                                    {getStatusIcon(reviewStep.status)}
-                                                    <Badge variant="outline" className="text-xs">
-                                                        {getStatusLabel(reviewStep.status)}
-                                                    </Badge>
-                                                    <Badge variant="outline" className="text-xs">
-                                                        {reviewStep.duration}h
-                                                    </Badge>
-                                                    {reviewStep.required && (
-                                                        <Badge variant="secondary" className="text-xs">
-                                                            Required
-                                                        </Badge>
-                                                    )}
-                                                    {reviewStep.canSkip && (
-                                                        <Badge variant="outline" className="text-xs">
-                                                            Optional
-                                                        </Badge>
-                                                    )}
-                                                </div>
-                                            </div>
-                                            <p className="text-xs text-muted-foreground mb-2">{reviewStep.description}</p>
-                                            <div className="flex items-center gap-2 text-xs mb-3">
-                                                <Users className="w-3 h-3" />
-                                                <span>Responsible: {reviewStep.responsibleRoles.join(', ')}</span>
-                                                {reviewStep.assignedPersonnel && (
-                                                    <>
-                                                        <span>•</span>
-                                                        <span>Assigned to: {reviewStep.assignedPersonnel}</span>
-                                                    </>
-                                                )}
-                                            </div>
-
-                                            {/* Action Buttons */}
-                                            <div className="flex items-center gap-2">
-                                                <Button
-                                                    variant="outline"
-                                                    size="sm"
-                                                    onClick={() => handleAssign(reviewStep.slug)}
-                                                    className="h-8"
-                                                >
-                                                    <UserPlus className="w-3 h-3 mr-1" />
-                                                    Assign
-                                                </Button>
-                                                <Button
-                                                    variant="outline"
-                                                    size="sm"
-                                                    onClick={() => handleReview(reviewStep.slug)}
-                                                    className="h-8"
-                                                    disabled={reviewStep.status === 'wait_for_review'}
-                                                >
-                                                    <Eye className="w-3 h-3 mr-1" />
-                                                    Review
-                                                </Button>
-                                                {reviewStep.status === 'wait_for_review' && reviewStep.assignedPersonnel && (
-                                                    <Button
-                                                        variant="outline"
-                                                        size="sm"
-                                                        onClick={() => handleStartReview(reviewStep.slug)}
-                                                        className="h-8"
-                                                    >
-                                                        <Play className="w-3 h-3 mr-1" />
-                                                        Start Review
-                                                    </Button>
-                                                )}
-                                            </div>
-                                        </div>
-                                    </div>
+                        <div className="space-y-3">
+                            {REQUIRED_DOCUMENT_CATEGORIES.map((category) => (
+                                <div key={category.key} className="flex items-center space-x-3">
+                                    <Checkbox
+                                        id={`doc-${category.key}`}
+                                        checked={!!reviewForm.documentCompleteness[category.key as keyof typeof reviewForm.documentCompleteness]}
+                                        onCheckedChange={(checked) => handleDocumentCheckChange(category.key, !!checked)}
+                                        disabled={category.required && !documents.some(doc => doc.category === category.key)}
+                                    />
+                                    <Label htmlFor={`doc-${category.key}`} className="flex-1">
+                                        <span className={category.required ? 'font-medium' : ''}>
+                                            {category.label}
+                                        </span>
+                                        {category.required && (
+                                            <span className="text-red-500 ml-1">*</span>
+                                        )}
+                                    </Label>
+                                    {category.key === 'other' && reviewForm.documentCompleteness.other && (
+                                        <Input
+                                            placeholder="Specify other documents"
+                                            value={reviewForm.documentCompleteness.otherDescription}
+                                            onChange={(e) => setReviewForm(prev => ({
+                                                ...prev,
+                                                documentCompleteness: {
+                                                    ...prev.documentCompleteness,
+                                                    otherDescription: e.target.value
+                                                }
+                                            }))}
+                                            className="w-48"
+                                        />
+                                    )}
                                 </div>
-                            );
-                        })}
+                            ))}
+                        </div>
+
+                        <Alert>
+                            <AlertTriangle className="h-4 w-4" />
+                            <AlertDescription>
+                                Required for RFQ/PO: At least RFQ/PO + Drawings + BOM must be present.
+                                If missing, status will be set to "Incomplete — Awaiting Customer"
+                            </AlertDescription>
+                        </Alert>
+
+                        {/* Attached Files */}
+                        {documents.length > 0 && (
+                            <div className="mt-4">
+                                <h4 className="font-medium mb-2">📎 Attached Files:</h4>
+                                <div className="space-y-2">
+                                    {documents.map((doc) => (
+                                        <div key={doc.id} className="flex items-center justify-between p-2 bg-gray-50 rounded border">
+                                            <div className="flex items-center gap-2">
+                                                <FileText className="w-4 h-4 text-gray-500" />
+                                                <span className="text-sm font-medium">{doc.title}</span>
+                                                <Badge variant="outline" className="text-xs">
+                                                    {doc.category || 'other'}
+                                                </Badge>
+                                                <span className="text-xs text-gray-500">
+                                                    ({Math.round((doc.file_size || 0) / 1024 / 1024 * 100) / 100} MB)
+                                                </span>
+                                            </div>
+                                            <Button variant="outline" size="sm">
+                                                <Eye className="w-4 h-4 mr-1" />
+                                                View
+                                            </Button>
+                                        </div>
+                                    ))}
+                                </div>
+                            </div>
+                        )}
                     </div>
                 </CardContent>
             </Card>
 
+            {/* Project Validity & Clarity */}
+            <Card>
+                <CardHeader>
+                    <CardTitle className="flex items-center gap-2">
+                        <Target className="w-5 h-5" />
+                        Project Validity & Clarity
+                    </CardTitle>
+                </CardHeader>
+                <CardContent>
+                    <div className="space-y-4">
+                        <div className="space-y-3">
+                            <div className="flex items-center space-x-3">
+                                <Checkbox
+                                    id="scope-clear"
+                                    checked={reviewForm.projectValidity.scopeClear}
+                                    onCheckedChange={(checked) => handleValidityCheckChange('scopeClear', !!checked)}
+                                />
+                                <Label htmlFor="scope-clear">Project scope is clear and unambiguous</Label>
+                            </div>
+                            <div className="flex items-center space-x-3">
+                                <Checkbox
+                                    id="contact-complete"
+                                    checked={reviewForm.projectValidity.contactComplete}
+                                    onCheckedChange={(checked) => handleValidityCheckChange('contactComplete', !!checked)}
+                                />
+                                <Label htmlFor="contact-complete">Customer contact information is complete and valid</Label>
+                            </div>
+                            <div className="flex items-center space-x-3">
+                                <Checkbox
+                                    id="price-realistic"
+                                    checked={reviewForm.projectValidity.priceRealistic}
+                                    onCheckedChange={(checked) => handleValidityCheckChange('priceRealistic', !!checked)}
+                                />
+                                <Label htmlFor="price-realistic">Target price and volume are realistic for initial assessment</Label>
+                            </div>
+                            <div className="flex items-center space-x-3">
+                                <Checkbox
+                                    id="delivery-feasible"
+                                    checked={reviewForm.projectValidity.deliveryFeasible}
+                                    onCheckedChange={(checked) => handleValidityCheckChange('deliveryFeasible', !!checked)}
+                                />
+                                <Label htmlFor="delivery-feasible">Delivery date is feasible (min 6 weeks for new product)</Label>
+                            </div>
+                        </div>
 
-            {/* Enhanced Assignment Modal - CustomerModal Style */}
+                        <div className="space-y-2">
+                            <Label htmlFor="additional-notes">Additional Notes</Label>
+                            <Textarea
+                                id="additional-notes"
+                                placeholder="Add any additional notes or observations..."
+                                value={reviewForm.projectValidity.additionalNotes}
+                                onChange={(e) => handleValidityNotesChange(e.target.value)}
+                                rows={3}
+                            />
+                        </div>
+                    </div>
+                </CardContent>
+            </Card>
+
+            {/* Review Decision */}
+            <Card>
+                <CardHeader>
+                    <CardTitle className="flex items-center gap-2">
+                        <CheckCircle2 className="w-5 h-5" />
+                        Review Decision
+                    </CardTitle>
+                </CardHeader>
+                <CardContent>
+                    <div className="space-y-4">
+                        <p className="text-sm text-muted-foreground">Select next action:</p>
+
+                        <RadioGroup
+                            value={reviewForm.reviewDecision}
+                            onValueChange={(value) => handleTextChange('reviewDecision', value)}
+                        >
+                            {REVIEW_DECISIONS.map((decision) => {
+                                const IconComponent = decision.icon;
+                                return (
+                                    <div key={decision.value} className="flex items-start space-x-3 p-3 border rounded-lg hover:bg-gray-50">
+                                        <RadioGroupItem value={decision.value} id={decision.value} />
+                                        <div className="flex-1">
+                                            <Label htmlFor={decision.value} className="flex items-center gap-2 cursor-pointer">
+                                                <IconComponent className={`w-4 h-4 ${decision.color}`} />
+                                                <span className="font-medium">{decision.label}</span>
+                                            </Label>
+                                            <p className="text-sm text-muted-foreground mt-1 ml-6">
+                                                {decision.description}
+                                            </p>
+                                        </div>
+                                    </div>
+                                );
+                            })}
+                        </RadioGroup>
+
+                        {(reviewForm.reviewDecision === 'request_clarification' || reviewForm.reviewDecision === 'reject_inquiry') && (
+                            <div className="space-y-2">
+                                <Label htmlFor="decision-reason">Reason for {reviewForm.reviewDecision === 'request_clarification' ? 'clarification request' : 'rejection'}</Label>
+                                <Textarea
+                                    id="decision-reason"
+                                    placeholder={`Provide detailed reason for ${reviewForm.reviewDecision === 'request_clarification' ? 'requesting clarification' : 'rejecting the inquiry'}...`}
+                                    value={reviewForm.decisionReason}
+                                    onChange={(e) => handleTextChange('decisionReason', e.target.value)}
+                                    rows={3}
+                                />
+                            </div>
+                        )}
+
+                        {reviewForm.reviewDecision === 'ready_for_technical_review' && !canAdvanceToTechnicalReview() && (
+                            <Alert variant="destructive">
+                                <XCircle className="h-4 w-4" />
+                                <AlertDescription>
+                                    Cannot advance to technical review: Required documents (RFQ, Drawings, BOM) are missing.
+                                </AlertDescription>
+                            </Alert>
+                        )}
+                    </div>
+                </CardContent>
+            </Card>
+
+            {/* Review Metadata */}
+            <Card>
+                <CardHeader>
+                    <CardTitle className="flex items-center gap-2">
+                        <Users className="w-5 h-5" />
+                        Review Metadata
+                    </CardTitle>
+                </CardHeader>
+                <CardContent>
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <div className="space-y-2">
+                            <div className="flex items-center gap-2">
+                                <User className="w-4 h-4 text-gray-500" />
+                                <span className="font-medium">Reviewer:</span>
+                                <span>{user?.user_metadata?.full_name || user?.email || 'Current User'}</span>
+                            </div>
+                            <div className="flex items-center gap-2">
+                                <Calendar className="w-4 h-4 text-gray-500" />
+                                <span className="font-medium">Date:</span>
+                                <span>{new Date().toLocaleDateString()}</span>
+                            </div>
+                        </div>
+                        <div className="space-y-2">
+                            <div className="flex items-center gap-2">
+                                <FileText className="w-4 h-4 text-gray-500" />
+                                <span className="font-medium">Review Type:</span>
+                                <Badge variant="outline">inquiry_received</Badge>
+                            </div>
+                            <div className="flex items-center gap-2">
+                                <Clock className="w-4 h-4 text-gray-500" />
+                                <span className="font-medium">Status:</span>
+                                <Badge variant={reviewForm.status === 'submitted' ? 'default' : 'secondary'}>
+                                    {reviewForm.status === 'submitted' ? 'Submitted' : 'Draft'}
+                                </Badge>
+                            </div>
+                        </div>
+                    </div>
+                </CardContent>
+            </Card>
+
+            {/* Action Buttons */}
+            <div className="flex justify-end gap-3">
+                <Button
+                    variant="outline"
+                    onClick={handleSaveDraft}
+                    disabled={isSubmitting}
+                >
+                    Save Draft
+                </Button>
+                {reviewForm.reviewDecision === 'request_clarification' && (
+                    <Button
+                        variant="outline"
+                        onClick={() => setShowClarificationModal(true)}
+                        disabled={isSubmitting}
+                    >
+                        <MessageSquare className="w-4 h-4 mr-2" />
+                        Request Clarification
+                    </Button>
+                )}
+                <Button
+                    onClick={handleSubmitReview}
+                    disabled={isSubmitting || !reviewForm.reviewDecision}
+                    className="bg-blue-600 hover:bg-blue-700"
+                >
+                    {isSubmitting ? (
+                        <>
+                            <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                            Submitting...
+                        </>
+                    ) : (
+                        <>
+                            <Send className="w-4 h-4 mr-2" />
+                            Submit Review
+                        </>
+                    )}
+                </Button>
+            </div>
+
+            {/* Clarification Request Modal */}
             <Modal
-                isOpen={!!showAssignModal}
-                onClose={handleAssignCancel}
+                isOpen={showClarificationModal}
+                onClose={() => setShowClarificationModal(false)}
                 title={
                     <div className="flex items-center gap-2">
-                        <Users className="w-5 h-5" />
-                        Assign Reviewer
+                        <MessageSquare className="w-5 h-5" />
+                        Request Customer Clarification
                     </div>
                 }
-                description="Assign a team member to complete this review step with specific instructions and context."
+                description="This will notify the Sales/Account Manager to contact the customer."
                 showDescription={true}
                 maxWidth="max-w-[600px]"
             >
-                <form onSubmit={(e) => { e.preventDefault(); handleAssignmentConfirm(); }} className="space-y-4">
-                    {/* Review Step Information */}
-                    {getCurrentReviewStep() && (
-                        <div className="bg-gray-50 p-4 rounded-lg border">
-                            <h4 className="font-medium text-sm mb-2">{getCurrentReviewStep()?.name}</h4>
-                            <p className="text-xs text-muted-foreground mb-3">
-                                {getCurrentReviewStep()?.description}
-                            </p>
-
-                            <div className="flex items-center gap-4 mb-3">
-                                <div className="flex items-center gap-2">
-                                    <Clock className="w-3 h-3 text-gray-500" />
-                                    <span className="text-xs text-muted-foreground">
-                                        Estimated: {getCurrentReviewStep()?.duration} hours
-                                    </span>
-                                </div>
-                            </div>
-
-                            {getCurrentReviewStep()?.responsibleRoles && getCurrentReviewStep()?.responsibleRoles.length > 0 && (
-                                <div className="flex items-center gap-2 flex-wrap">
-                                    <span className="text-xs text-muted-foreground">Responsible Roles:</span>
-                                    {getCurrentReviewStep()?.responsibleRoles.map((role) => (
-                                        <Badge key={role} variant="secondary" className="text-xs">
-                                            {role}
-                                        </Badge>
-                                    ))}
-                                </div>
-                            )}
-                        </div>
-                    )}
-
-                    {/* Personnel Selection */}
-                    <div className="grid grid-cols-1 gap-4">
-                        <div className="space-y-2">
-                            <Label htmlFor="user-select">Select Team Member *</Label>
-                            <Select value={selectedUserId} onValueChange={setSelectedUserId}>
-                                <SelectTrigger className="modal-form-input">
-                                    <SelectValue placeholder="Choose a team member" />
-                                </SelectTrigger>
-                                <SelectContent>
-                                    {getFilteredPersonnel(showAssignModal || '').map((person) => (
-                                        <SelectItem key={person.id} value={person.id}>
-                                            <div className="flex items-center gap-2">
-                                                <div className="flex items-center gap-1">
-                                                    <Users className="w-4 h-4" />
-                                                    <span className="font-medium">{person.name}</span>
-                                                </div>
-                                                <Badge
-                                                    variant="secondary"
-                                                    className={`text-xs ${getRoleColor(person.role)}`}
-                                                >
-                                                    {person.role}
-                                                </Badge>
-                                            </div>
-                                        </SelectItem>
-                                    ))}
-                                </SelectContent>
-                            </Select>
-                        </div>
-                    </div>
-
-                    {/* Assignment Notes */}
+                <div className="space-y-4">
                     <div className="space-y-2">
-                        <Label htmlFor="assignment-notes">Assignment Notes</Label>
-                        <Textarea
-                            id="assignment-notes"
-                            placeholder="Add any specific instructions or context for this assignment..."
-                            value={assignmentNotes}
-                            onChange={(e) => setAssignmentNotes(e.target.value)}
-                            rows={3}
-                            className="modal-form-textarea"
+                        <Label htmlFor="clarification-subject">Subject</Label>
+                        <Input
+                            id="clarification-subject"
+                            placeholder="Timeline Clarification Required – PRJ-2025-001"
+                            value={clarificationData.subject}
+                            onChange={(e) => setClarificationData(prev => ({ ...prev, subject: e.target.value }))}
                         />
-                        <p className="text-xs text-muted-foreground">Optional: Provide specific instructions or context for this assignment</p>
                     </div>
 
-                    {/* Selected User Preview */}
-                    {selectedUserId && (
-                        <div className="bg-blue-50 p-4 rounded-lg border border-blue-200">
-                            <div className="flex items-center gap-2 mb-2">
-                                <Users className="w-4 h-4 text-blue-600" />
-                                <span className="text-sm font-medium text-blue-900">
-                                    {availablePersonnel.find(u => u.id === selectedUserId)?.name}
-                                </span>
+                    <div className="space-y-2">
+                        <Label htmlFor="clarification-message">Message</Label>
+                        <Textarea
+                            id="clarification-message"
+                            placeholder="Hi Sarah, thank you for your inquiry. Our standard lead time for new products is 8 weeks. Your requested delivery is in 4 weeks. Can you confirm if this is flexible, or if you'd like to discuss expedited options?"
+                            value={clarificationData.message}
+                            onChange={(e) => setClarificationData(prev => ({ ...prev, message: e.target.value }))}
+                            rows={4}
+                        />
+                    </div>
+
+                    {/* Attached Files */}
+                    {documents.length > 0 && (
+                        <div className="space-y-2">
+                            <Label>Attach Files</Label>
+                            <div className="space-y-2">
+                                {documents.map((doc) => (
+                                    <div key={doc.id} className="flex items-center justify-between p-2 bg-gray-50 rounded border">
+                                        <div className="flex items-center gap-2">
+                                            <FileText className="w-4 h-4 text-gray-500" />
+                                            <span className="text-sm">{doc.title}</span>
+                                        </div>
+                                        <Checkbox
+                                            checked={clarificationData.attachments.includes(doc.id)}
+                                            onCheckedChange={(checked) => {
+                                                if (checked === true) {
+                                                    setClarificationData(prev => ({
+                                                        ...prev,
+                                                        attachments: [...prev.attachments, doc.id]
+                                                    }));
+                                                } else {
+                                                    setClarificationData(prev => ({
+                                                        ...prev,
+                                                        attachments: prev.attachments.filter(id => id !== doc.id)
+                                                    }));
+                                                }
+                                            }}
+                                        />
+                                    </div>
+                                ))}
                             </div>
-                            <p className="text-xs text-blue-700 mb-2">
-                                {availablePersonnel.find(u => u.id === selectedUserId)?.email}
-                            </p>
-                            <Badge
-                                variant="secondary"
-                                className={`text-xs ${getRoleColor(availablePersonnel.find(u => u.id === selectedUserId)?.role || '')}`}
-                            >
-                                {availablePersonnel.find(u => u.id === selectedUserId)?.role}
-                            </Badge>
                         </div>
                     )}
 
-                    {/* Modal Footer */}
                     <div className="flex justify-end gap-3 pt-4 border-t">
                         <Button
-                            type="button"
                             variant="outline"
-                            onClick={handleAssignCancel}
-                            disabled={isAssigning}
-                            className="modal-button-secondary"
+                            onClick={() => setShowClarificationModal(false)}
                         >
                             Cancel
                         </Button>
                         <Button
-                            type="submit"
-                            disabled={!selectedUserId || isAssigning}
-                            className="modal-button-primary"
-                            variant="accent"
+                            onClick={handleRequestClarification}
+                            disabled={!clarificationData.subject.trim() || !clarificationData.message.trim()}
+                            className="bg-orange-600 hover:bg-orange-700"
                         >
-                            {isAssigning ? (
-                                <>
-                                    <Loader2 className="w-4 h-4 mr-2 animate-spin" />
-                                    Assigning...
-                                </>
-                            ) : (
-                                'Assign'
-                            )}
+                            <Send className="w-4 h-4 mr-2" />
+                            Send Request
                         </Button>
                     </div>
-                </form>
-            </Modal>
-
-            {/* Review Modal - CustomerModal Style */}
-            <Modal
-                isOpen={!!showReviewModal}
-                onClose={() => setShowReviewModal(null)}
-                title={
-                    <div className="flex items-center gap-2">
-                        <Eye className="w-5 h-5" />
-                        Review Documents and Information
-                    </div>
-                }
-                description="Review all required documents and provide your assessment before completing this review step."
-                showDescription={true}
-                maxWidth="max-w-[700px]"
-            >
-                <div className="space-y-6">
-                    {/* Review Step Information */}
-                    {getCurrentReviewStep() && (
-                        <div className="bg-gray-50 p-4 rounded-lg border">
-                            <h4 className="font-medium text-sm mb-2">{getCurrentReviewStep()?.name}</h4>
-                            <p className="text-xs text-muted-foreground mb-3">
-                                {getCurrentReviewStep()?.description}
-                            </p>
-                            <div className="flex items-center gap-4 mb-3">
-                                <div className="flex items-center gap-2">
-                                    <Clock className="w-3 h-3 text-gray-500" />
-                                    <span className="text-xs text-muted-foreground">
-                                        Estimated: {getCurrentReviewStep()?.duration} hours
-                                    </span>
-                                </div>
-                            </div>
-                            {getCurrentReviewStep()?.responsibleRoles && getCurrentReviewStep()?.responsibleRoles.length > 0 && (
-                                <div className="flex items-center gap-2 flex-wrap">
-                                    <span className="text-xs text-muted-foreground">Responsible Roles:</span>
-                                    {getCurrentReviewStep()?.responsibleRoles.map((role) => (
-                                        <Badge key={role} variant="secondary" className="text-xs">
-                                            {role}
-                                        </Badge>
-                                    ))}
-                                </div>
-                            )}
-                        </div>
-                    )}
-
-                    {/* Documents Section */}
-                    <div>
-                        <h4 className="font-medium mb-3">Required Documents</h4>
-                        <div className="space-y-2">
-                            {getReviewStepDocuments(reviewData.reviewStepSlug).map((doc) => (
-                                <div key={doc.id} className="flex items-center space-x-3 p-3 border rounded-lg">
-                                    <Checkbox
-                                        id={`doc-${doc.id}`}
-                                        checked={reviewData.reviewedDocuments.includes(doc.id)}
-                                        onCheckedChange={() => handleDocumentReview(doc.id)}
-                                    />
-                                    <div className="flex-1">
-                                        <Label htmlFor={`doc-${doc.id}`} className="font-medium">
-                                            {doc.name}
-                                        </Label>
-                                        <p className="text-sm text-muted-foreground">{doc.type}</p>
-                                    </div>
-                                    <Button
-                                        variant="outline"
-                                        size="sm"
-                                        onClick={() => {
-                                            // In real app, this would open the document
-                                            console.log('Opening document:', doc.name);
-                                            window.open(doc.url, '_blank');
-                                        }}
-                                    >
-                                        <Eye className="w-4 h-4 mr-1" />
-                                        View
-                                    </Button>
-                                </div>
-                            ))}
-                        </div>
-                    </div>
-
-                    {/* Comments Section */}
-                    <div className="space-y-2">
-                        <Label htmlFor="review-comments">Review Comments</Label>
-                        <Textarea
-                            id="review-comments"
-                            placeholder="Add your review comments, findings, or recommendations..."
-                            value={reviewData.comments}
-                            onChange={(e) => setReviewData(prev => ({ ...prev, comments: e.target.value }))}
-                            className="modal-form-textarea"
-                            rows={4}
-                        />
-                        <p className="text-xs text-muted-foreground">Optional: Provide detailed feedback or recommendations</p>
-                    </div>
-
-                    {/* Confirmation Section */}
-                    <div className="bg-blue-50 p-4 rounded-lg border border-blue-200">
-                        <div className="flex items-center space-x-2">
-                            <Checkbox
-                                id="review-confirm"
-                                checked={reviewData.confirmed}
-                                onCheckedChange={(checked) =>
-                                    setReviewData(prev => ({ ...prev, confirmed: !!checked }))
-                                }
-                            />
-                            <Label htmlFor="review-confirm" className="text-sm font-medium text-blue-900">
-                                I confirm that I have reviewed all required documents and information,
-                                and the review is complete and accurate.
-                            </Label>
-                        </div>
-                    </div>
-                </div>
-
-                {/* Modal Footer */}
-                <div className="flex justify-end gap-3 pt-4 border-t">
-                    <Button
-                        type="button"
-                        variant="outline"
-                        onClick={() => setShowReviewModal(null)}
-                        className="modal-button-secondary"
-                    >
-                        Cancel
-                    </Button>
-                    <Button
-                        onClick={handleReviewConfirm}
-                        disabled={!reviewData.confirmed}
-                        className="modal-button-primary"
-                        variant="accent"
-                    >
-                        <Check className="w-4 h-4 mr-2" />
-                        Complete Review
-                    </Button>
                 </div>
             </Modal>
         </div>
