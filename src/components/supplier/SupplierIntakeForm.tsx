@@ -1,3 +1,4 @@
+
 import { useState } from "react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
@@ -56,6 +57,19 @@ const SPECIALTIES: SupplierSpecialty[] = [
     'testing',
     'packaging'
 ];
+
+// Grouped processes for better organization
+const PROCESS_GROUPS = {
+    Machining: ['machining'],
+    Fabrication: ['fabrication', 'sheet_metal', 'welding', 'casting'],
+    Manufacturing: ['injection_molding', '3d_printing', 'prototyping'],
+    Finishing: ['finishing', 'coating', 'painting'],
+    Assembly: ['assembly', 'electronics'],
+    Quality: ['testing'],
+    "Service Provider": ['packaging']
+    // Note: logistics is not currently in SPECIALTIES, so we can't include it yet
+    // Others group removed since packaging is now in Service Provider
+};
 
 // Grouped materials for better organization
 const MATERIALS_GROUPS = {
@@ -124,16 +138,6 @@ const INCOTERMS = [
     'EXW', 'FCA', 'CPT', 'CIP', 'DAT', 'DAP', 'DDP', 'FAS', 'FOB', 'CFR', 'CIF'
 ];
 
-const TOLERANCE_OPTIONS = [
-    '±0.001mm',
-    '±0.005mm',
-    '±0.01mm',
-    '±0.05mm',
-    '±0.1mm',
-    '±0.2mm',
-    'Custom'
-];
-
 // Priority countries list
 const PRIORITY_COUNTRIES = [
     'Vietnam',
@@ -163,12 +167,6 @@ export function SupplierIntakeForm({ onSuccess, onCancel }: SupplierIntakeFormPr
         // Capabilities
         specialties: [] as SupplierSpecialty[],
         materials: [] as string[],
-        toleranceCapability: "",
-        maxPartLength: "",
-        maxPartWidth: "",
-        maxPartHeight: "",
-        leadTimePrototype: "",
-        leadTimeProduction: "",
 
         // Compliance
         certifications: [] as string[],
@@ -176,10 +174,6 @@ export function SupplierIntakeForm({ onSuccess, onCancel }: SupplierIntakeFormPr
         currency: "USD",
         creditLimit: "",
         incoterms: "FOB Origin",
-
-        // Qualification
-        startQualification: false,
-        qualificationDeadline: "14",
 
         // Metadata
         tags: [] as string[],
@@ -243,10 +237,12 @@ export function SupplierIntakeForm({ onSuccess, onCancel }: SupplierIntakeFormPr
     };
 
     const handleAddProcess = () => {
-        if (newProcess.trim() && !formData.specialties.includes(newProcess.trim() as SupplierSpecialty)) {
+        const trimmedProcess = newProcess.trim();
+        if (trimmedProcess && !formData.specialties.includes(trimmedProcess as SupplierSpecialty)) {
+            // Allow custom processes to be added
             setFormData(prev => ({
                 ...prev,
-                specialties: [...prev.specialties, newProcess.trim() as SupplierSpecialty]
+                specialties: [...prev.specialties, trimmedProcess as SupplierSpecialty]
             }));
             setNewProcess("");
         }
@@ -468,17 +464,24 @@ export function SupplierIntakeForm({ onSuccess, onCancel }: SupplierIntakeFormPr
                     <CardContent className="space-y-6">
                         <div className="space-y-4">
                             <Label>Processes *</Label>
-                            <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-2">
-                                {SPECIALTIES.map((specialty) => (
-                                    <div key={specialty} className="flex items-center space-x-2">
-                                        <Checkbox
-                                            id={`specialty-${specialty}`}
-                                            checked={formData.specialties.includes(specialty)}
-                                            onCheckedChange={() => handleSpecialtyChange(specialty)}
-                                        />
-                                        <Label htmlFor={`specialty-${specialty}`} className="text-sm">
-                                            {SPECIALTY_LABELS[specialty]}
-                                        </Label>
+                            <div className="space-y-4">
+                                {Object.entries(PROCESS_GROUPS).map(([group, processes]) => (
+                                    <div key={group} className="space-y-2">
+                                        <h4 className="font-medium text-sm">{group}</h4>
+                                        <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-2">
+                                            {processes.map((process) => (
+                                                <div key={process} className="flex items-center space-x-2">
+                                                    <Checkbox
+                                                        id={`specialty-${process}`}
+                                                        checked={formData.specialties.includes(process as SupplierSpecialty)}
+                                                        onCheckedChange={() => handleSpecialtyChange(process as SupplierSpecialty)}
+                                                    />
+                                                    <Label htmlFor={`specialty-${process}`} className="text-sm">
+                                                        {SPECIALTY_LABELS[process as SupplierSpecialty]}
+                                                    </Label>
+                                                </div>
+                                            ))}
+                                        </div>
                                     </div>
                                 ))}
                             </div>
@@ -541,84 +544,8 @@ export function SupplierIntakeForm({ onSuccess, onCancel }: SupplierIntakeFormPr
                             </div>
                         </div>
 
-                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                            <div className="space-y-2">
-                                <Label htmlFor="tolerance">Tolerance Capability</Label>
-                                <Select
-                                    value={formData.toleranceCapability}
-                                    onValueChange={(value) => setFormData({ ...formData, toleranceCapability: value })}
-                                >
-                                    <SelectTrigger>
-                                        <SelectValue placeholder="Select tolerance" />
-                                    </SelectTrigger>
-                                    <SelectContent>
-                                        {TOLERANCE_OPTIONS.map((option) => (
-                                            <SelectItem key={option} value={option}>
-                                                {option}
-                                            </SelectItem>
-                                        ))}
-                                    </SelectContent>
-                                </Select>
-                            </div>
+                        {/* Removed tolerance capability, max part size, and lead time fields */}
 
-                            <div className="space-y-2">
-                                <Label>Max Part Size (mm)</Label>
-                                <div className="grid grid-cols-3 gap-2">
-                                    <div className="space-y-1">
-                                        <Label htmlFor="length" className="text-xs">Length</Label>
-                                        <Input
-                                            id="length"
-                                            type="number"
-                                            value={formData.maxPartLength}
-                                            onChange={(e) => setFormData({ ...formData, maxPartLength: e.target.value })}
-                                            placeholder="500"
-                                        />
-                                    </div>
-                                    <div className="space-y-1">
-                                        <Label htmlFor="width" className="text-xs">Width</Label>
-                                        <Input
-                                            id="width"
-                                            type="number"
-                                            value={formData.maxPartWidth}
-                                            onChange={(e) => setFormData({ ...formData, maxPartWidth: e.target.value })}
-                                            placeholder="500"
-                                        />
-                                    </div>
-                                    <div className="space-y-1">
-                                        <Label htmlFor="height" className="text-xs">Height</Label>
-                                        <Input
-                                            id="height"
-                                            type="number"
-                                            value={formData.maxPartHeight}
-                                            onChange={(e) => setFormData({ ...formData, maxPartHeight: e.target.value })}
-                                            placeholder="300"
-                                        />
-                                    </div>
-                                </div>
-                            </div>
-
-                            <div className="space-y-2">
-                                <Label htmlFor="leadTimePrototype">Lead Time (Prototype) (weeks)</Label>
-                                <Input
-                                    id="leadTimePrototype"
-                                    type="number"
-                                    value={formData.leadTimePrototype}
-                                    onChange={(e) => setFormData({ ...formData, leadTimePrototype: e.target.value })}
-                                    placeholder="2"
-                                />
-                            </div>
-
-                            <div className="space-y-2">
-                                <Label htmlFor="leadTimeProduction">Lead Time (Production) (weeks)</Label>
-                                <Input
-                                    id="leadTimeProduction"
-                                    type="number"
-                                    value={formData.leadTimeProduction}
-                                    onChange={(e) => setFormData({ ...formData, leadTimeProduction: e.target.value })}
-                                    placeholder="4"
-                                />
-                            </div>
-                        </div>
                     </CardContent>
                 </Card>
 
@@ -774,32 +701,6 @@ export function SupplierIntakeForm({ onSuccess, onCancel }: SupplierIntakeFormPr
                             />
                         </div>
 
-                        <div className="flex items-center space-x-2">
-                            <Checkbox
-                                id="startQualification"
-                                checked={formData.startQualification}
-                                onCheckedChange={(checked) => setFormData({ ...formData, startQualification: !!checked })}
-                            />
-                            <Label htmlFor="startQualification">
-                                Start Supplier Qualification Process Now
-                            </Label>
-                        </div>
-
-                        {formData.startQualification && (
-                            <div className="ml-6 space-y-2">
-                                <Label htmlFor="qualificationDeadline">Qualification Deadline</Label>
-                                <div className="flex items-center gap-2">
-                                    <Input
-                                        id="qualificationDeadline"
-                                        type="number"
-                                        value={formData.qualificationDeadline}
-                                        onChange={(e) => setFormData({ ...formData, qualificationDeadline: e.target.value })}
-                                        className="w-20"
-                                    />
-                                    <span>days from today</span>
-                                </div>
-                            </div>
-                        )}
                     </CardContent>
                 </Card>
 
