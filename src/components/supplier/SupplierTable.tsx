@@ -35,10 +35,27 @@ import {
     CheckCircle,
     XCircle,
     AlertTriangle,
-    Archive
+    Archive,
+    Award,
+    Send
 } from 'lucide-react';
 import { Supplier, SPECIALTY_LABELS } from '@/types/supplier';
 import { useSuppliers } from '@/features/supplier-management/hooks/useSuppliers';
+
+// Import the new components
+import { SupplierQualificationProgress } from './SupplierQualificationProgress';
+import { FinalApprovalModal } from './FinalApprovalModal';
+import { RFQDistributionModal } from './RFQDistributionModal';
+
+// Extend the Supplier type to include qualification fields
+interface ExtendedSupplier extends Supplier {
+    qualificationStatus?: 'not_started' | 'in_progress' | 'pending_approval' | 'qualified' | 'qualified_with_conditions' | 'qualified_as_exception' | 'rejected' | 'expired';
+    qualificationExpiry?: string;
+    responseRate?: number;
+    averageTurnaroundDays?: number;
+    capabilities?: string[];
+    company_name?: string;
+}
 
 interface SupplierTableProps {
     suppliers: Supplier[];
@@ -51,14 +68,29 @@ export function SupplierTable({ suppliers, onSupplierSelect, onSupplierEdit, can
     const [searchQuery, setSearchQuery] = useState('');
     const [showDeleteDialog, setShowDeleteDialog] = useState(false);
     const [supplierToDelete, setSupplierToDelete] = useState<Supplier | null>(null);
+    const [showQualificationProgress, setShowQualificationProgress] = useState(false);
+    const [showFinalApproval, setShowFinalApproval] = useState(false);
+    const [showRFQDistribution, setShowRFQDistribution] = useState(false);
+    const [selectedSupplier, setSelectedSupplier] = useState<Supplier | null>(null);
 
     const { deleteSupplier, archiveSupplier } = useSuppliers();
 
+    // Mock data for demonstration
+    const mockSuppliers: ExtendedSupplier[] = suppliers.map(supplier => ({
+        ...supplier,
+        qualificationStatus: 'qualified',
+        qualificationExpiry: 'Dec 15, 2026',
+        responseRate: supplier.response_rate || 0,
+        averageTurnaroundDays: supplier.average_turnaround_days || 0,
+        capabilities: supplier.tags || [],
+        company_name: supplier.company
+    }));
+
     const filteredSuppliers = useMemo(() => {
-        if (!searchQuery) return suppliers;
+        if (!searchQuery) return mockSuppliers;
 
         const query = searchQuery.toLowerCase();
-        return suppliers.filter(supplier =>
+        return mockSuppliers.filter(supplier =>
             (supplier.name || supplier.company_name || '').toLowerCase().includes(query) ||
             (supplier.company || supplier.company_name || '').toLowerCase().includes(query) ||
             (supplier.email || '').toLowerCase().includes(query) ||
@@ -70,7 +102,7 @@ export function SupplierTable({ suppliers, onSupplierSelect, onSupplierEdit, can
                 capability.toLowerCase().includes(query)
             )
         );
-    }, [suppliers, searchQuery]);
+    }, [mockSuppliers, searchQuery]);
 
     const handleEdit = (supplier: Supplier) => {
         if (onSupplierEdit) {
@@ -109,6 +141,21 @@ export function SupplierTable({ suppliers, onSupplierSelect, onSupplierEdit, can
         }
     };
 
+    const handleViewQualification = (supplier: ExtendedSupplier) => {
+        setSelectedSupplier(supplier);
+        setShowQualificationProgress(true);
+    };
+
+    const handleFinalApproval = (supplier: ExtendedSupplier) => {
+        setSelectedSupplier(supplier);
+        setShowFinalApproval(true);
+    };
+
+    const handleSendRFQ = (supplier: ExtendedSupplier) => {
+        setSelectedSupplier(supplier);
+        setShowRFQDistribution(true);
+    };
+
     const renderRating = (rating: number) => {
         return (
             <div className="flex items-center space-x-1">
@@ -136,6 +183,20 @@ export function SupplierTable({ suppliers, onSupplierSelect, onSupplierEdit, can
                 <span className="text-sm font-medium">{days.toFixed(1)}d</span>
             </div>
         );
+    };
+
+    const handleSubmitApproval = (decision: any) => {
+        console.log('Approval decision:', decision);
+        setShowFinalApproval(false);
+        setSelectedSupplier(null);
+        // In a real implementation, this would call an API to update the supplier's qualification status
+    };
+
+    const handleSubmitRFQ = (data: any) => {
+        console.log('RFQ data:', data);
+        setShowRFQDistribution(false);
+        setSelectedSupplier(null);
+        // In a real implementation, this would call an API to create and send RFQs
     };
 
     return (
@@ -168,8 +229,8 @@ export function SupplierTable({ suppliers, onSupplierSelect, onSupplierEdit, can
                             <TableHead>Contact</TableHead>
                             <TableHead>Specialties</TableHead>
                             <TableHead>Performance</TableHead>
-                            <TableHead>Status</TableHead>
-                            <TableHead className="w-[50px]">Actions</TableHead>
+                            <TableHead>Qualification</TableHead>
+                            <TableHead className="w-[100px]">Actions</TableHead>
                         </TableRow>
                     </TableHeader>
                     <TableBody>
@@ -246,28 +307,38 @@ export function SupplierTable({ suppliers, onSupplierSelect, onSupplierEdit, can
                                     </TableCell>
                                     <TableCell>
                                         <div className="space-y-1">
-                                            {renderRating(supplier.rating || supplier.performance_rating || 0)}
-                                            {renderResponseRate(supplier.response_rate || 0)}
-                                            {renderTurnaroundTime(supplier.average_turnaround_days || 0)}
+                                            {renderRating(supplier.rating || 0)}
+                                            {renderResponseRate(supplier.responseRate || 0)}
+                                            {renderTurnaroundTime(supplier.averageTurnaroundDays || 0)}
                                         </div>
                                     </TableCell>
                                     <TableCell>
-                                        <Badge
-                                            variant={supplier.is_active ? "default" : "secondary"}
-                                            className={supplier.is_active ? "bg-green-100 text-green-800" : ""}
-                                        >
-                                            {supplier.is_active ? (
-                                                <>
-                                                    <CheckCircle className="w-3 h-3 mr-1" />
-                                                    Active
-                                                </>
-                                            ) : (
-                                                <>
-                                                    <XCircle className="w-3 h-3 mr-1" />
-                                                    Inactive
-                                                </>
+                                        <div className="space-y-1">
+                                            <Badge
+                                                className={
+                                                    supplier.qualificationStatus === 'qualified' ? 'bg-green-100 text-green-800' :
+                                                        supplier.qualificationStatus === 'qualified_with_conditions' ? 'bg-yellow-100 text-yellow-800' :
+                                                            supplier.qualificationStatus === 'qualified_as_exception' ? 'bg-orange-100 text-orange-800' :
+                                                                supplier.qualificationStatus === 'rejected' ? 'bg-red-100 text-red-800' :
+                                                                    supplier.qualificationStatus === 'expired' ? 'bg-red-100 text-red-800' :
+                                                                        'bg-gray-100 text-gray-800'
+                                                }
+                                            >
+                                                {supplier.qualificationStatus === 'qualified' && 'Qualified ✅'}
+                                                {supplier.qualificationStatus === 'qualified_with_conditions' && 'Qualified ⚠️'}
+                                                {supplier.qualificationStatus === 'qualified_as_exception' && 'Exception ⚠️'}
+                                                {supplier.qualificationStatus === 'rejected' && 'Rejected ❌'}
+                                                {supplier.qualificationStatus === 'expired' && 'Expired ⚠️'}
+                                                {supplier.qualificationStatus === 'not_started' && 'Not Started'}
+                                                {supplier.qualificationStatus === 'in_progress' && 'In Progress'}
+                                                {supplier.qualificationStatus === 'pending_approval' && 'Pending'}
+                                            </Badge>
+                                            {supplier.qualificationExpiry && (
+                                                <div className="text-xs text-muted-foreground">
+                                                    Exp: {supplier.qualificationExpiry}
+                                                </div>
                                             )}
-                                        </Badge>
+                                        </div>
                                     </TableCell>
                                     <TableCell>
                                         <DropdownMenu>
@@ -280,6 +351,14 @@ export function SupplierTable({ suppliers, onSupplierSelect, onSupplierEdit, can
                                                 <DropdownMenuItem onClick={() => handleView(supplier)}>
                                                     <Eye className="w-4 h-4 mr-2" />
                                                     View Details
+                                                </DropdownMenuItem>
+                                                <DropdownMenuItem onClick={() => handleViewQualification(supplier)}>
+                                                    <Award className="w-4 h-4 mr-2" />
+                                                    Qualification
+                                                </DropdownMenuItem>
+                                                <DropdownMenuItem onClick={() => handleSendRFQ(supplier)}>
+                                                    <Send className="w-4 h-4 mr-2" />
+                                                    Send RFQ
                                                 </DropdownMenuItem>
                                                 <DropdownMenuItem onClick={() => handleEdit(supplier)}>
                                                     <Edit className="w-4 h-4 mr-2" />
@@ -294,6 +373,13 @@ export function SupplierTable({ suppliers, onSupplierSelect, onSupplierEdit, can
                                                         Archive
                                                     </DropdownMenuItem>
                                                 )}
+                                                <DropdownMenuItem
+                                                    onClick={() => handleFinalApproval(supplier)}
+                                                    className="text-blue-600"
+                                                >
+                                                    <Award className="w-4 h-4 mr-2" />
+                                                    Final Approval
+                                                </DropdownMenuItem>
                                             </DropdownMenuContent>
                                         </DropdownMenu>
                                     </TableCell>
@@ -327,6 +413,86 @@ export function SupplierTable({ suppliers, onSupplierSelect, onSupplierEdit, can
                     </Button>
                 </div>
             </Modal>
+
+            {/* Supplier Qualification Progress Modal */}
+            {showQualificationProgress && selectedSupplier && (
+                <Modal
+                    isOpen={showQualificationProgress}
+                    onClose={() => {
+                        setShowQualificationProgress(false);
+                        setSelectedSupplier(null);
+                    }}
+                    title=""
+                    maxWidth="max-w-4xl"
+                    showCloseButton={true}
+                >
+                    <SupplierQualificationProgress
+                        supplier={{
+                            id: selectedSupplier.id,
+                            name: selectedSupplier.name || 'Unnamed Supplier',
+                            qualificationStatus: (selectedSupplier as ExtendedSupplier).qualificationStatus || 'not_started',
+                            qualificationExpiry: (selectedSupplier as ExtendedSupplier).qualificationExpiry
+                        }}
+                        onRequalify={() => {
+                            console.log('Requalify supplier');
+                            setShowQualificationProgress(false);
+                        }}
+                        onViewProfile={() => {
+                            console.log('View supplier profile');
+                        }}
+                        onSendRFQ={() => {
+                            handleSendRFQ(selectedSupplier as ExtendedSupplier);
+                            setShowQualificationProgress(false);
+                        }}
+                        onBlockSupplier={() => {
+                            console.log('Block supplier');
+                        }}
+                        onExportReport={() => {
+                            console.log('Export qualification report');
+                        }}
+                    />
+                </Modal>
+            )}
+
+            {/* Final Approval Modal */}
+            {showFinalApproval && selectedSupplier && (
+                <FinalApprovalModal
+                    isOpen={showFinalApproval}
+                    onClose={() => {
+                        setShowFinalApproval(false);
+                        setSelectedSupplier(null);
+                    }}
+                    supplier={{
+                        id: selectedSupplier.id,
+                        name: selectedSupplier.name || 'Unnamed Supplier'
+                    }}
+                    onSubmit={handleSubmitApproval}
+                />
+            )}
+
+            {/* RFQ Distribution Modal */}
+            {showRFQDistribution && selectedSupplier && (
+                <RFQDistributionModal
+                    isOpen={showRFQDistribution}
+                    onClose={() => {
+                        setShowRFQDistribution(false);
+                        setSelectedSupplier(null);
+                    }}
+                    project={{
+                        id: 'project-123',
+                        title: 'Sample Project'
+                    }}
+                    suppliers={mockSuppliers.map(s => ({
+                        id: s.id,
+                        name: s.name || 'Unnamed Supplier',
+                        qualificationStatus: s.qualificationStatus || 'not_started',
+                        specialties: s.specialties || [],
+                        responseRate: s.responseRate || 0,
+                        averageTurnaroundDays: s.averageTurnaroundDays || 0
+                    }))}
+                    onSubmit={handleSubmitRFQ}
+                />
+            )}
         </div>
     );
 }
