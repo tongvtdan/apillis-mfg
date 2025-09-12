@@ -5,7 +5,6 @@ import { Button } from '@/components/ui/button';
 import { Separator } from '@/components/ui/separator';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { Progress } from '@/components/ui/progress';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import {
     CheckCircle,
     XCircle,
@@ -15,11 +14,6 @@ import {
     Calendar,
     Edit,
     Eye,
-    AlertCircle,
-    FileText,
-    Users,
-    Settings,
-    Database,
     RefreshCw
 } from 'lucide-react';
 import { InternalReview, Department, ReviewStatus, STATUS_COLORS } from '@/types/review';
@@ -28,7 +22,26 @@ import { useUserDisplayName } from '@/features/customer-management/hooks/useUser
 import { prerequisiteChecker } from '@/services/prerequisiteChecker';
 import { Project, WorkflowStage } from '@/types/project';
 import { workflowStageService } from '@/services/workflowStageService';
-import { DocumentValidationPanel } from '../documents/DocumentValidationPanel';
+import { BaseStageView } from './stage-views/BaseStageView';
+
+// Import all stage view components
+import { InquiryReceivedView } from './stage-views/InquiryReceivedView';
+import { TechnicalReviewView } from './stage-views/TechnicalReviewView';
+import { SupplierRFQView } from './stage-views/SupplierRFQView';
+import { QuotedView } from './stage-views/QuotedView';
+import { OrderConfirmedView } from './stage-views/OrderConfirmedView';
+import { ProcurementPlanningView } from './stage-views/ProcurementPlanningView';
+import { ProductionView } from './stage-views/ProductionView';
+import { CompletedView } from './stage-views/CompletedView';
+
+// Extended InternalReview type to include reviewer data from database joins
+interface ExtendedInternalReview extends InternalReview {
+    reviewer?: {
+        name: string;
+        email: string;
+        role: string;
+    };
+}
 
 interface ReviewListProps {
     projectId: string;
@@ -37,18 +50,34 @@ interface ReviewListProps {
     onViewReview: (review: InternalReview) => void;
 }
 
+// Map stage names to their corresponding view components
+const StageViewComponents: Record<string, React.ComponentType<any>> = {
+    'Inquiry Received': InquiryReceivedView,
+    'Technical Review': TechnicalReviewView,
+    'Supplier RFQ': SupplierRFQView,
+    'Quoted': QuotedView,
+    'Order Confirmed': OrderConfirmedView,
+    'Procurement Planning': ProcurementPlanningView,
+    'In Production': ProductionView,
+    'Shipped & Closed': CompletedView,
+};
+
 // Helper component to display reviewer name
-function ReviewerDisplay({ reviewerId, reviewer }: { reviewerId: string; reviewer?: { name: string; email: string; role: string } }) {
+function ReviewerDisplay({ reviewerId, reviewer }: { reviewerId?: string; reviewer?: { name: string; email: string; role: string } }) {
     // Use the reviewer data if available (from database join), otherwise fall back to hook
-    if (reviewer?.name) {
+    if (reviewer?.name && reviewerId) {
         return <>{reviewer.name}</>;
     }
 
-    const displayName = useUserDisplayName(reviewerId);
-    return <>{displayName}</>;
+    if (reviewerId) {
+        const displayName = useUserDisplayName(reviewerId);
+        return <>{displayName}</>;
+    }
+
+    return <>Unassigned</>;
 }
 
-export function ReviewList({ projectId, project, reviews, onEditReview, onViewReview }: ReviewListProps & { reviews: InternalReview[] }) {
+export function ReviewList({ projectId, project, reviews, onEditReview, onViewReview }: ReviewListProps & { reviews: ExtendedInternalReview[] }) {
     // Collect all unique reviewer IDs for reference (no longer using useUsers)
     const reviewerIds = reviews ? [...new Set(reviews.map(review => review.reviewer_id).filter(Boolean))] : [];
 
@@ -56,27 +85,44 @@ export function ReviewList({ projectId, project, reviews, onEditReview, onViewRe
     const [validation, setValidation] = useState<any>(null);
     const [isLoading, setIsLoading] = useState(false);
     const [error, setError] = useState<string | null>(null);
+    const [currentStage, setCurrentStage] = useState<WorkflowStage | null>(null);
+    const [nextStage, setNextStage] = useState<WorkflowStage | null>(null);
 
     // Load prerequisite validation when component mounts or project changes
     useEffect(() => {
         if (project) {
             validatePrerequisites();
+            loadStages();
         }
     }, [project]);
 
+    const loadStages = async () => {
+        if (!project?.current_stage_id) return;
+
+        try {
+            // Get all workflow stages
+            const stages = await workflowStageService.getWorkflowStages();
+
+            // Find current stage
+            const currentStageData = stages.find(s => s.id === project.current_stage_id);
+            setCurrentStage(currentStageData || null);
+
+            // Find next stage
+            if (currentStageData) {
+                const nextStageData = stages.find(s => s.stage_order === currentStageData.stage_order + 1);
+                setNextStage(nextStageData || null);
+            }
+        } catch (error) {
+            console.error('Error loading stages:', error);
+        }
+    };
+
     const validatePrerequisites = async () => {
-        if (!project) return;
+        if (!project || !nextStage) return;
 
         try {
             setIsLoading(true);
             setError(null);
-
-            // Get next possible stage for validation
-            const nextStage = await getNextStage();
-            if (!nextStage) {
-                setValidation(null);
-                return;
-            }
 
             // Perform prerequisite checks
             const result = await prerequisiteChecker.checkPrerequisites(
@@ -93,24 +139,8 @@ export function ReviewList({ projectId, project, reviews, onEditReview, onViewRe
         }
     };
 
-    const getNextStage = async (): Promise<WorkflowStage | null> => {
-        if (!project?.current_stage_id) return null;
-
-        try {
-            // Get all workflow stages
-            const stages = await workflowStageService.getWorkflowStages();
-
-            // Find current stage
-            const currentStage = stages.find(s => s.id === project.current_stage_id);
-            if (!currentStage) return null;
-
-            // Find next stage
-            const nextStage = stages.find(s => s.stage_order === currentStage.stage_order + 1);
-            return nextStage || null;
-        } catch (error) {
-            console.error('Error getting next stage:', error);
-            return null;
-        }
+    const handleRefresh = () => {
+        validatePrerequisites();
     };
 
     const getStatusIcon = (status: ReviewStatus) => {
@@ -152,224 +182,41 @@ export function ReviewList({ projectId, project, reviews, onEditReview, onViewRe
         }
     };
 
-    const getOverallStatus = () => {
-        if (!validation) return null;
+    // Render the appropriate stage view component based on current stage
+    const renderStageView = () => {
+        if (!project || !currentStage || !validation) return null;
 
-        if (validation.requiredPassed) {
-            return {
-                icon: <CheckCircle className="w-5 h-5 text-green-600" />,
-                text: 'Ready for Next Stage',
-                color: 'text-green-600',
-                bgColor: 'bg-green-50',
-                borderColor: 'border-green-200'
-            };
+        const StageViewComponent = StageViewComponents[currentStage.name];
+        if (!StageViewComponent) {
+            // Fallback to BaseStageView if specific component not found
+            return (
+                <BaseStageView
+                    project={project}
+                    currentStage={currentStage}
+                    nextStage={nextStage}
+                    validation={validation}
+                    isLoading={isLoading}
+                    error={error}
+                    onRefresh={handleRefresh}
+                />
+            );
         }
 
-        if (validation.blockers.length > 0) {
-            return {
-                icon: <XCircle className="w-5 h-5 text-red-600" />,
-                text: 'Not Ready for Next Stage',
-                color: 'text-red-600',
-                bgColor: 'bg-red-50',
-                borderColor: 'border-red-200'
-            };
-        }
-
-        return {
-            icon: <AlertTriangle className="w-5 h-5 text-yellow-600" />,
-            text: 'Partially Ready',
-            color: 'text-yellow-600',
-            bgColor: 'bg-yellow-50',
-            borderColor: 'border-yellow-200'
-        };
+        return (
+            <StageViewComponent
+                project={project}
+                currentStage={currentStage}
+                nextStage={nextStage}
+                validation={validation}
+            />
+        );
     };
-
-    const getCompletionPercentage = () => {
-        if (!validation) return 0;
-
-        const requiredChecks = validation.checks.filter((c: any) => c.required);
-        if (requiredChecks.length === 0) return 100;
-
-        const passedChecks = requiredChecks.filter((c: any) => c.status === 'passed').length;
-        return Math.round((passedChecks / requiredChecks.length) * 100);
-    };
-
-    const status = getOverallStatus();
-    const completionPercentage = getCompletionPercentage();
 
     if (reviews.length === 0) {
         return (
             <div className="space-y-6">
                 {/* Prerequisite Validation Section */}
-                {project && (
-                    <Card className={`${status?.borderColor || 'border-muted'}`}>
-                        <CardHeader>
-                            <div className="flex items-center justify-between">
-                                <CardTitle className="flex items-center gap-2">
-                                    <CheckCircle className="w-5 h-5" />
-                                    Prerequisite Validation
-                                </CardTitle>
-                                <Button
-                                    variant="outline"
-                                    size="sm"
-                                    onClick={validatePrerequisites}
-                                    disabled={isLoading}
-                                >
-                                    <RefreshCw className={`w-4 h-4 mr-2 ${isLoading ? 'animate-spin' : ''}`} />
-                                    Refresh
-                                </Button>
-                            </div>
-                        </CardHeader>
-                        <CardContent>
-                            {error && (
-                                <Alert variant="destructive">
-                                    <AlertTriangle className="h-4 w-4" />
-                                    <AlertDescription>{error}</AlertDescription>
-                                </Alert>
-                            )}
-
-                            {isLoading && !validation && (
-                                <div className="flex items-center justify-center py-8">
-                                    <Clock className="w-6 h-6 animate-spin mr-2" />
-                                    <span>Validating prerequisites...</span>
-                                </div>
-                            )}
-
-                            {validation && (
-                                <div className="space-y-4">
-                                    {/* Overall Status */}
-                                    {status && (
-                                        <div className={`flex items-center justify-between p-3 rounded-lg ${status.bgColor}`}>
-                                            <div className="flex items-center gap-2">
-                                                {status.icon}
-                                                <span className={`font-medium ${status.color}`}>
-                                                    {status.text}
-                                                </span>
-                                            </div>
-
-                                            <div className="flex items-center gap-2">
-                                                <Progress value={completionPercentage} className="w-20 h-2" />
-                                                <span className="text-sm font-medium">
-                                                    {completionPercentage}%
-                                                </span>
-                                            </div>
-                                        </div>
-                                    )}
-
-                                    {/* Prerequisite Checks */}
-                                    <Tabs defaultValue="summary">
-                                        <TabsList className="grid w-full grid-cols-6">
-                                            <TabsTrigger value="summary">Summary</TabsTrigger>
-                                            <TabsTrigger value="documents">Documents</TabsTrigger>
-                                            <TabsTrigger value="project_data">Project Data</TabsTrigger>
-                                            <TabsTrigger value="approvals">Approvals</TabsTrigger>
-                                            <TabsTrigger value="stage_specific">Stage Specific</TabsTrigger>
-                                            <TabsTrigger value="system">System</TabsTrigger>
-                                        </TabsList>
-
-                                        <TabsContent value="summary" className="space-y-3 mt-4">
-                                            <div className="grid grid-cols-2 gap-4">
-                                                <div className="text-center p-4 border rounded-lg">
-                                                    <div className="text-2xl font-bold text-green-600">
-                                                        {validation.checks.filter((c: any) => c.status === 'passed').length}
-                                                    </div>
-                                                    <div className="text-sm text-muted-foreground">Passed</div>
-                                                </div>
-                                                <div className="text-center p-4 border rounded-lg">
-                                                    <div className="text-2xl font-bold text-red-600">
-                                                        {validation.checks.filter((c: any) => c.status === 'failed').length}
-                                                    </div>
-                                                    <div className="text-sm text-muted-foreground">Failed</div>
-                                                </div>
-                                            </div>
-
-                                            <div className="space-y-2">
-                                                {validation.checks.map((check: any) => (
-                                                    <div key={check.id} className="flex items-start gap-3 p-3 border rounded-lg">
-                                                        {check.status === 'passed' ? (
-                                                            <CheckCircle className="w-4 h-4 text-green-600 mt-0.5" />
-                                                        ) : check.status === 'failed' ? (
-                                                            <XCircle className="w-4 h-4 text-red-600 mt-0.5" />
-                                                        ) : (
-                                                            <AlertTriangle className="w-4 h-4 text-yellow-600 mt-0.5" />
-                                                        )}
-                                                        <div className="flex-1 min-w-0">
-                                                            <div className="flex items-center justify-between mb-1">
-                                                                <h5 className={`font-medium text-sm ${check.status === 'passed' ? 'text-green-600' :
-                                                                        check.status === 'failed' ? 'text-red-600' : 'text-yellow-600'
-                                                                    }`}>
-                                                                    {check.name}
-                                                                </h5>
-                                                                {check.required && (
-                                                                    <Badge variant="outline" className="text-xs">Required</Badge>
-                                                                )}
-                                                            </div>
-                                                            <p className="text-xs text-muted-foreground mb-1">{check.description}</p>
-                                                            {check.details && (
-                                                                <p className="text-xs text-muted-foreground italic">{check.details}</p>
-                                                            )}
-                                                        </div>
-                                                    </div>
-                                                ))}
-                                            </div>
-                                        </TabsContent>
-
-                                        {/* Documents Tab - Enhanced with DocumentValidationPanel */}
-                                        <TabsContent value="documents" className="space-y-3 mt-4">
-                                            {project.current_stage_id && validation.checks.find((c: any) => c.category === 'documents') && (
-                                                <DocumentValidationPanel
-                                                    projectId={project.id}
-                                                    currentStage={{ id: project.current_stage_id, name: 'Current Stage', stage_order: 0, organization_id: project.organization_id }}
-                                                    targetStage={{ id: 'next', name: 'Next Stage', stage_order: 0, organization_id: project.organization_id }}
-                                                />
-                                            )}
-                                        </TabsContent>
-
-                                        {/* Other tabs */}
-                                        {['project_data', 'approvals', 'stage_specific', 'system'].map(category => (
-                                            <TabsContent key={category} value={category} className="space-y-3 mt-4">
-                                                {validation.checks
-                                                    .filter((check: any) => check.category === category)
-                                                    .map((check: any) => (
-                                                        <div key={check.id} className="flex items-start gap-3 p-3 border rounded-lg">
-                                                            {check.status === 'passed' ? (
-                                                                <CheckCircle className="w-4 h-4 text-green-600 mt-0.5" />
-                                                            ) : check.status === 'failed' ? (
-                                                                <XCircle className="w-4 h-4 text-red-600 mt-0.5" />
-                                                            ) : (
-                                                                <AlertTriangle className="w-4 h-4 text-yellow-600 mt-0.5" />
-                                                            )}
-                                                            <div className="flex-1 min-w-0">
-                                                                <div className="flex items-center justify-between mb-1">
-                                                                    <h5 className={`font-medium text-sm ${check.status === 'passed' ? 'text-green-600' :
-                                                                            check.status === 'failed' ? 'text-red-600' : 'text-yellow-600'
-                                                                        }`}>
-                                                                        {check.name}
-                                                                    </h5>
-                                                                    {check.required && (
-                                                                        <Badge variant="outline" className="text-xs">Required</Badge>
-                                                                    )}
-                                                                </div>
-                                                                <p className="text-xs text-muted-foreground mb-1">{check.description}</p>
-                                                                {check.details && (
-                                                                    <p className="text-xs text-muted-foreground italic">{check.details}</p>
-                                                                )}
-                                                            </div>
-                                                        </div>
-                                                    ))}
-                                                {validation.checks.filter((check: any) => check.category === category).length === 0 && (
-                                                    <div className="text-center py-4 text-muted-foreground">
-                                                        No {category.replace('_', ' ')} checks required for this transition
-                                                    </div>
-                                                )}
-                                            </TabsContent>
-                                        ))}
-                                    </Tabs>
-                                </div>
-                            )}
-                        </CardContent>
-                    </Card>
-                )}
+                {project && renderStageView()}
 
                 {/* No Reviews Section */}
                 <Card>
@@ -388,175 +235,7 @@ export function ReviewList({ projectId, project, reviews, onEditReview, onViewRe
     return (
         <div className="space-y-6">
             {/* Prerequisite Validation Section */}
-            {project && (
-                <Card className={`${status?.borderColor || 'border-muted'}`}>
-                    <CardHeader>
-                        <div className="flex items-center justify-between">
-                            <CardTitle className="flex items-center gap-2">
-                                <CheckCircle className="w-5 h-5" />
-                                Prerequisite Validation
-                            </CardTitle>
-                            <Button
-                                variant="outline"
-                                size="sm"
-                                onClick={validatePrerequisites}
-                                disabled={isLoading}
-                            >
-                                <RefreshCw className={`w-4 h-4 mr-2 ${isLoading ? 'animate-spin' : ''}`} />
-                                Refresh
-                            </Button>
-                        </div>
-                    </CardHeader>
-                    <CardContent>
-                        {error && (
-                            <Alert variant="destructive">
-                                <AlertTriangle className="h-4 w-4" />
-                                <AlertDescription>{error}</AlertDescription>
-                            </Alert>
-                        )}
-
-                        {isLoading && !validation && (
-                            <div className="flex items-center justify-center py-8">
-                                <Clock className="w-6 h-6 animate-spin mr-2" />
-                                <span>Validating prerequisites...</span>
-                            </div>
-                        )}
-
-                        {validation && (
-                            <div className="space-y-4">
-                                {/* Overall Status */}
-                                {status && (
-                                    <div className={`flex items-center justify-between p-3 rounded-lg ${status.bgColor}`}>
-                                        <div className="flex items-center gap-2">
-                                            {status.icon}
-                                            <span className={`font-medium ${status.color}`}>
-                                                {status.text}
-                                            </span>
-                                        </div>
-
-                                        <div className="flex items-center gap-2">
-                                            <Progress value={completionPercentage} className="w-20 h-2" />
-                                            <span className="text-sm font-medium">
-                                                {completionPercentage}%
-                                            </span>
-                                        </div>
-                                    </div>
-                                )}
-
-                                {/* Prerequisite Checks */}
-                                <Tabs defaultValue="summary">
-                                    <TabsList className="grid w-full grid-cols-6">
-                                        <TabsTrigger value="summary">Summary</TabsTrigger>
-                                        <TabsTrigger value="documents">Documents</TabsTrigger>
-                                        <TabsTrigger value="project_data">Project Data</TabsTrigger>
-                                        <TabsTrigger value="approvals">Approvals</TabsTrigger>
-                                        <TabsTrigger value="stage_specific">Stage Specific</TabsTrigger>
-                                        <TabsTrigger value="system">System</TabsTrigger>
-                                    </TabsList>
-
-                                    <TabsContent value="summary" className="space-y-3 mt-4">
-                                        <div className="grid grid-cols-2 gap-4">
-                                            <div className="text-center p-4 border rounded-lg">
-                                                <div className="text-2xl font-bold text-green-600">
-                                                    {validation.checks.filter((c: any) => c.status === 'passed').length}
-                                                </div>
-                                                <div className="text-sm text-muted-foreground">Passed</div>
-                                            </div>
-                                            <div className="text-center p-4 border rounded-lg">
-                                                <div className="text-2xl font-bold text-red-600">
-                                                    {validation.checks.filter((c: any) => c.status === 'failed').length}
-                                                </div>
-                                                <div className="text-sm text-muted-foreground">Failed</div>
-                                            </div>
-                                        </div>
-
-                                        <div className="space-y-2">
-                                            {validation.checks.map((check: any) => (
-                                                <div key={check.id} className="flex items-start gap-3 p-3 border rounded-lg">
-                                                    {check.status === 'passed' ? (
-                                                        <CheckCircle className="w-4 h-4 text-green-600 mt-0.5" />
-                                                    ) : check.status === 'failed' ? (
-                                                        <XCircle className="w-4 h-4 text-red-600 mt-0.5" />
-                                                    ) : (
-                                                        <AlertTriangle className="w-4 h-4 text-yellow-600 mt-0.5" />
-                                                    )}
-                                                    <div className="flex-1 min-w-0">
-                                                        <div className="flex items-center justify-between mb-1">
-                                                            <h5 className={`font-medium text-sm ${check.status === 'passed' ? 'text-green-600' :
-                                                                    check.status === 'failed' ? 'text-red-600' : 'text-yellow-600'
-                                                                }`}>
-                                                                {check.name}
-                                                            </h5>
-                                                            {check.required && (
-                                                                <Badge variant="outline" className="text-xs">Required</Badge>
-                                                            )}
-                                                        </div>
-                                                        <p className="text-xs text-muted-foreground mb-1">{check.description}</p>
-                                                        {check.details && (
-                                                            <p className="text-xs text-muted-foreground italic">{check.details}</p>
-                                                        )}
-                                                    </div>
-                                                </div>
-                                            ))}
-                                        </div>
-                                    </TabsContent>
-
-                                    {/* Documents Tab - Enhanced with DocumentValidationPanel */}
-                                    <TabsContent value="documents" className="space-y-3 mt-4">
-                                        {project.current_stage_id && validation.checks.find((c: any) => c.category === 'documents') && (
-                                            <DocumentValidationPanel
-                                                projectId={project.id}
-                                                currentStage={{ id: project.current_stage_id, name: 'Current Stage', stage_order: 0, organization_id: project.organization_id }}
-                                                targetStage={{ id: 'next', name: 'Next Stage', stage_order: 0, organization_id: project.organization_id }}
-                                            />
-                                        )}
-                                    </TabsContent>
-
-                                    {/* Other tabs */}
-                                    {['project_data', 'approvals', 'stage_specific', 'system'].map(category => (
-                                        <TabsContent key={category} value={category} className="space-y-3 mt-4">
-                                            {validation.checks
-                                                .filter((check: any) => check.category === category)
-                                                .map((check: any) => (
-                                                    <div key={check.id} className="flex items-start gap-3 p-3 border rounded-lg">
-                                                        {check.status === 'passed' ? (
-                                                            <CheckCircle className="w-4 h-4 text-green-600 mt-0.5" />
-                                                        ) : check.status === 'failed' ? (
-                                                            <XCircle className="w-4 h-4 text-red-600 mt-0.5" />
-                                                        ) : (
-                                                            <AlertTriangle className="w-4 h-4 text-yellow-600 mt-0.5" />
-                                                        )}
-                                                        <div className="flex-1 min-w-0">
-                                                            <div className="flex items-center justify-between mb-1">
-                                                                <h5 className={`font-medium text-sm ${check.status === 'passed' ? 'text-green-600' :
-                                                                        check.status === 'failed' ? 'text-red-600' : 'text-yellow-600'
-                                                                    }`}>
-                                                                    {check.name}
-                                                                </h5>
-                                                                {check.required && (
-                                                                    <Badge variant="outline" className="text-xs">Required</Badge>
-                                                                )}
-                                                            </div>
-                                                            <p className="text-xs text-muted-foreground mb-1">{check.description}</p>
-                                                            {check.details && (
-                                                                <p className="text-xs text-muted-foreground italic">{check.details}</p>
-                                                            )}
-                                                        </div>
-                                                    </div>
-                                                ))}
-                                            {validation.checks.filter((check: any) => check.category === category).length === 0 && (
-                                                <div className="text-center py-4 text-muted-foreground">
-                                                    No {category.replace('_', ' ')} checks required for this transition
-                                                </div>
-                                            )}
-                                        </TabsContent>
-                                    ))}
-                                </Tabs>
-                            </div>
-                        )}
-                    </CardContent>
-                </Card>
-            )}
+            {project && renderStageView()}
 
             {/* Reviews Section */}
             <div className="space-y-4">
