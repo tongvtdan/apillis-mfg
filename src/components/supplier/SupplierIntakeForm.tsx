@@ -57,28 +57,13 @@ const SPECIALTIES: SupplierSpecialty[] = [
     'packaging'
 ];
 
-const MATERIALS = [
-    'Aluminum',
-    'Steel',
-    'Stainless Steel',
-    'Titanium',
-    'Copper',
-    'Brass',
-    'Bronze',
-    'Plastic',
-    'ABS',
-    'Polycarbonate',
-    'Nylon',
-    'PVC',
-    'Ceramic',
-    'Composite',
-    'Carbon Fiber',
-    'Fiberglass',
-    'Rubber',
-    'Silicone',
-    'Wood',
-    'Glass'
-];
+// Grouped materials for better organization
+const MATERIALS_GROUPS = {
+    Metals: ['Aluminum', 'Steel', 'Stainless Steel', 'Titanium', 'Copper', 'Brass', 'Bronze'],
+    Plastics: ['Plastic', 'ABS', 'Polycarbonate', 'Nylon', 'PVC'],
+    Composites: ['Ceramic', 'Composite', 'Carbon Fiber', 'Fiberglass'],
+    Others: ['Rubber', 'Silicone', 'Wood', 'Glass']
+};
 
 const SPECIALTY_LABELS: Record<SupplierSpecialty, string> = {
     machining: 'CNC Machining',
@@ -511,29 +496,36 @@ export function SupplierIntakeForm({ onSuccess, onCancel }: SupplierIntakeFormPr
 
                         <div className="space-y-4">
                             <Label>Materials *</Label>
-                            <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-2">
-                                {MATERIALS.map((material) => (
-                                    <div key={material} className="flex items-center space-x-2">
-                                        <Checkbox
-                                            id={`material-${material}`}
-                                            checked={formData.materials.includes(material)}
-                                            onCheckedChange={(checked) => {
-                                                if (checked) {
-                                                    setFormData(prev => ({
-                                                        ...prev,
-                                                        materials: [...prev.materials, material]
-                                                    }));
-                                                } else {
-                                                    setFormData(prev => ({
-                                                        ...prev,
-                                                        materials: prev.materials.filter(m => m !== material)
-                                                    }));
-                                                }
-                                            }}
-                                        />
-                                        <Label htmlFor={`material-${material}`} className="text-sm">
-                                            {material}
-                                        </Label>
+                            <div className="space-y-4">
+                                {Object.entries(MATERIALS_GROUPS).map(([group, materials]) => (
+                                    <div key={group} className="space-y-2">
+                                        <h4 className="font-medium text-sm">{group}</h4>
+                                        <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-2">
+                                            {materials.map((material) => (
+                                                <div key={material} className="flex items-center space-x-2">
+                                                    <Checkbox
+                                                        id={`material-${material}`}
+                                                        checked={formData.materials.includes(material)}
+                                                        onCheckedChange={(checked) => {
+                                                            if (checked) {
+                                                                setFormData(prev => ({
+                                                                    ...prev,
+                                                                    materials: [...prev.materials, material]
+                                                                }));
+                                                            } else {
+                                                                setFormData(prev => ({
+                                                                    ...prev,
+                                                                    materials: prev.materials.filter(m => m !== material)
+                                                                }));
+                                                            }
+                                                        }}
+                                                    />
+                                                    <Label htmlFor={`material-${material}`} className="text-sm">
+                                                        {material}
+                                                    </Label>
+                                                </div>
+                                            ))}
+                                        </div>
                                     </div>
                                 ))}
                             </div>
