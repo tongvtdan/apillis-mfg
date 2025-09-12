@@ -57,6 +57,29 @@ const SPECIALTIES: SupplierSpecialty[] = [
     'packaging'
 ];
 
+const MATERIALS = [
+    'Aluminum',
+    'Steel',
+    'Stainless Steel',
+    'Titanium',
+    'Copper',
+    'Brass',
+    'Bronze',
+    'Plastic',
+    'ABS',
+    'Polycarbonate',
+    'Nylon',
+    'PVC',
+    'Ceramic',
+    'Composite',
+    'Carbon Fiber',
+    'Fiberglass',
+    'Rubber',
+    'Silicone',
+    'Wood',
+    'Glass'
+];
+
 const SPECIALTY_LABELS: Record<SupplierSpecialty, string> = {
     machining: 'CNC Machining',
     fabrication: 'Metal Fabrication',
@@ -488,17 +511,29 @@ export function SupplierIntakeForm({ onSuccess, onCancel }: SupplierIntakeFormPr
 
                         <div className="space-y-4">
                             <Label>Materials *</Label>
-                            <div className="flex flex-wrap gap-2">
-                                {formData.materials.map((material, index) => (
-                                    <div key={index} className="bg-secondary text-secondary-foreground px-3 py-1 rounded-full text-sm flex items-center gap-1">
-                                        {material}
-                                        <button
-                                            type="button"
-                                            onClick={() => handleRemoveMaterial(material)}
-                                            className="ml-1 hover:text-destructive"
-                                        >
-                                            ×
-                                        </button>
+                            <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-2">
+                                {MATERIALS.map((material) => (
+                                    <div key={material} className="flex items-center space-x-2">
+                                        <Checkbox
+                                            id={`material-${material}`}
+                                            checked={formData.materials.includes(material)}
+                                            onCheckedChange={(checked) => {
+                                                if (checked) {
+                                                    setFormData(prev => ({
+                                                        ...prev,
+                                                        materials: [...prev.materials, material]
+                                                    }));
+                                                } else {
+                                                    setFormData(prev => ({
+                                                        ...prev,
+                                                        materials: prev.materials.filter(m => m !== material)
+                                                    }));
+                                                }
+                                            }}
+                                        />
+                                        <Label htmlFor={`material-${material}`} className="text-sm">
+                                            {material}
+                                        </Label>
                                     </div>
                                 ))}
                             </div>
@@ -506,7 +541,7 @@ export function SupplierIntakeForm({ onSuccess, onCancel }: SupplierIntakeFormPr
                                 <Input
                                     value={newMaterial}
                                     onChange={(e) => setNewMaterial(e.target.value)}
-                                    placeholder="Add material (e.g., Aluminum 6061)"
+                                    placeholder="Add custom material"
                                 />
                                 <Button type="button" onClick={handleAddMaterial} variant="outline">
                                     Add
