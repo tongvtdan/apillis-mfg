@@ -670,6 +670,8 @@ export default function ProjectDetail() {
 
                             {/* Review List */}
                             <ReviewList
+                              projectId={smoothProject.id}
+                              project={smoothProject}
                               reviews={reviews}
                               onEditReview={() => { }} // No direct edit from here, handled by inline editor
                               onViewReview={() => { }} // No direct view from here, handled by inline editor

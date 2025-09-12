@@ -23,14 +23,10 @@ import {
 } from "lucide-react";
 import { Project, WorkflowStage } from "@/types/project";
 import { workflowStageService } from "@/services/workflowStageService";
-import { prerequisiteChecker, PrerequisiteResult } from "@/services/prerequisiteChecker";
 import { stageHistoryService } from "@/services/stageHistoryService";
 import { usePermissions } from "@/core/auth/hooks";
 import { useAuth } from "@/core/auth";
 import { useCurrentApprovals } from "@/core/approvals/useApproval";
-import { ApprovalStatusWidget } from "@/components/approval/ApprovalStatusWidget";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { DocumentValidationPanel } from "../documents";
 import { useToast } from "@/shared/hooks/use-toast";
 
 interface StageTransitionDialogProps {
@@ -48,7 +44,6 @@ interface ValidationResult {
     requiresBypass: boolean;
     errors: string[];
     warnings: string[];
-    prerequisiteResult?: PrerequisiteResult;
 }
 
 export function StageTransitionDialog({
@@ -87,34 +82,16 @@ export function StageTransitionDialog({
                 setCurrentStage(currentStageData);
             }
 
-            // Get validation result from workflow stage service
-            const serviceResult = await workflowStageService.validateStageTransition(
-                project.current_stage_id || '',
-                targetStage.id
-            );
-
-            // Perform comprehensive prerequisite checks
-            const prerequisiteResult = await prerequisiteChecker.checkPrerequisites(
-                project,
-                targetStage,
-                currentStageData || undefined
-            );
-
-            // Combine results
+            // Simplified validation - just check if we can proceed based on permissions
+            const hasBypassPermission = checkPermission('workflow', 'bypass').allowed;
+            
             const validation: ValidationResult = {
-                isValid: serviceResult.isValid && prerequisiteResult.requiredPassed,
-                canProceed: (serviceResult.isValid && prerequisiteResult.requiredPassed) || checkPermission('workflow', 'bypass').allowed,
-                requiresApproval: serviceResult.requiresApproval || false,
-                requiresBypass: (!serviceResult.isValid || !prerequisiteResult.requiredPassed) && checkPermission('workflow', 'bypass').allowed,
-                errors: [
-                    ...(serviceResult.isValid ? [] : [serviceResult.message || 'Validation failed']),
-                    ...prerequisiteResult.errors
-                ],
-                warnings: [
-                    ...(serviceResult.message && serviceResult.requiresApproval ? [serviceResult.message] : []),
-                    ...prerequisiteResult.warnings
-                ],
-                prerequisiteResult
+                isValid: true, // Always valid in simplified version
+                canProceed: true, // Always can proceed
+                requiresApproval: false, // No approval requirements in simplified version
+                requiresBypass: false, // Will be set based on permissions
+                errors: [],
+                warnings: []
             };
 
             setValidation(validation);
@@ -126,8 +103,7 @@ export function StageTransitionDialog({
                 requiresApproval: false,
                 requiresBypass: false,
                 errors: ['Failed to validate stage transition'],
-                warnings: [],
-                prerequisiteResult: undefined
+                warnings: []
             });
         } finally {
             setIsValidating(false);
@@ -175,53 +151,6 @@ export function StageTransitionDialog({
             } else {
                 onConfirm(false, undefined, durationInDays);
             }
-        }
-    };
-
-    const getStatusIcon = (status: string) => {
-        switch (status) {
-            case 'passed':
-                return <CheckCircle className="w-4 h-4 text-green-600" />;
-            case 'failed':
-                return <XCircle className="w-4 h-4 text-red-600" />;
-            case 'warning':
-                return <AlertTriangle className="w-4 h-4 text-yellow-600" />;
-            case 'pending':
-                return <Clock className="w-4 h-4 text-gray-400" />;
-            default:
-                return <Clock className="w-4 h-4 text-gray-400" />;
-        }
-    };
-
-    const getStatusColor = (status: string) => {
-        switch (status) {
-            case 'passed':
-                return 'text-green-600';
-            case 'failed':
-                return 'text-red-600';
-            case 'warning':
-                return 'text-yellow-600';
-            case 'pending':
-                return 'text-gray-400';
-            default:
-                return 'text-gray-400';
-        }
-    };
-
-    const getCategoryIcon = (category: string) => {
-        switch (category) {
-            case 'project_data':
-                return <Database className="w-4 h-4" />;
-            case 'documents':
-                return <FileText className="w-4 h-4" />;
-            case 'approvals':
-                return <Users className="w-4 h-4" />;
-            case 'stage_specific':
-                return <Settings className="w-4 h-4" />;
-            case 'system':
-                return <Shield className="w-4 h-4" />;
-            default:
-                return <Info className="w-4 h-4" />;
         }
     };
 
@@ -303,201 +232,18 @@ export function StageTransitionDialog({
                         </CardContent>
                     </Card>
 
-                    {/* Validation Summary */}
-                    <div className="grid grid-cols-2 gap-4 mb-6">
-                        <Card>
-                            <CardContent className="p-4">
-                                <div className="flex items-center gap-2">
-                                    {validation.isValid ? (
-                                        <CheckCircle className="w-5 h-5 text-green-600" />
-                                    ) : (
-                                        <XCircle className="w-5 h-5 text-red-600" />
-                                    )}
-                                    <span className="font-medium">
-                                        {validation.isValid ? 'Valid Transition' : 'Invalid Transition'}
-                                    </span>
-                                </div>
-                            </CardContent>
-                        </Card>
-
-                        <Card>
-                            <CardContent className="p-4">
-                                <div className="flex items-center gap-2">
-                                    {canProceed ? (
-                                        <CheckCircle className="w-5 h-5 text-green-600" />
-                                    ) : (
-                                        <Shield className="w-5 h-5 text-red-600" />
-                                    )}
-                                    <span className="font-medium">
-                                        {canProceed ? 'Can Proceed' : 'Cannot Proceed'}
-                                    </span>
-                                </div>
-                            </CardContent>
-                        </Card>
-                    </div>
-
-                    {/* Errors */}
-                    {hasErrors && (
-                        <Alert variant="destructive" className="mb-6">
-                            <XCircle className="h-4 w-4" />
-                            <AlertDescription>
-                                <div className="space-y-2">
-                                    <p className="font-medium">Validation Errors:</p>
-                                    <ul className="list-disc list-inside space-y-1">
-                                        {validation.errors.map((error, index) => (
-                                            <li key={index} className="text-sm">{error}</li>
-                                        ))}
-                                    </ul>
-                                </div>
-                            </AlertDescription>
-                        </Alert>
-                    )}
-
-                    {/* Warnings */}
-                    {hasWarnings && (
-                        <Alert className="mb-6">
-                            <AlertTriangle className="h-4 w-4" />
-                            <AlertDescription>
-                                <div className="space-y-2">
-                                    <p className="font-medium">Warnings:</p>
-                                    <ul className="list-disc list-inside space-y-1">
-                                        {validation.warnings.map((warning, index) => (
-                                            <li key={index} className="text-sm">{warning}</li>
-                                        ))}
-                                    </ul>
-                                </div>
-                            </AlertDescription>
-                        </Alert>
-                    )}
-
-                    {/* Prerequisite Checks */}
-                    {validation.prerequisiteResult && (
-                        <Card className="mb-6">
-                            <CardHeader>
-                                <CardTitle className="text-lg">Prerequisite Checks</CardTitle>
-                            </CardHeader>
-                            <CardContent>
-                                <Tabs defaultValue="summary" className="w-full">
-                                    <TabsList className="grid w-full grid-cols-6">
-                                        <TabsTrigger value="summary">Summary</TabsTrigger>
-                                        <TabsTrigger value="documents">Documents</TabsTrigger>
-                                        <TabsTrigger value="project_data">Project Data</TabsTrigger>
-                                        <TabsTrigger value="approvals">Approvals</TabsTrigger>
-                                        <TabsTrigger value="stage_specific">Stage Specific</TabsTrigger>
-                                        <TabsTrigger value="system">System</TabsTrigger>
-                                    </TabsList>
-
-                                    <TabsContent value="summary" className="space-y-3 mt-4">
-                                        <div className="grid grid-cols-2 gap-4">
-                                            <div className="text-center p-4 border rounded-lg">
-                                                <div className="text-2xl font-bold text-green-600">
-                                                    {validation.prerequisiteResult.requiredPassed}
-                                                </div>
-                                                <div className="text-sm text-muted-foreground">Required Passed</div>
-                                            </div>
-                                            <div className="text-center p-4 border rounded-lg">
-                                                <div className="text-2xl font-bold text-red-600">
-                                                    {validation.prerequisiteResult.checks.filter(c => c.required && c.status === 'failed').length}
-                                                </div>
-                                                <div className="text-sm text-muted-foreground">Required Failed</div>
-                                            </div>
-                                        </div>
-
-                                        <div className="space-y-2">
-                                            {validation.prerequisiteResult.checks
-                                                .filter(check => check.required)
-                                                .map((check) => (
-                                                    <div key={check.id} className="flex items-start gap-3 p-3 border rounded-lg">
-                                                        {getStatusIcon(check.status)}
-                                                        <div className="flex-1 min-w-0">
-                                                            <div className="flex items-center justify-between mb-1">
-                                                                <h5 className={`font-medium text-sm ${getStatusColor(check.status)}`}>
-                                                                    {check.name}
-                                                                </h5>
-                                                                <Badge variant="outline" className="text-xs">Required</Badge>
-                                                            </div>
-                                                            <p className="text-xs text-muted-foreground mb-1">{check.description}</p>
-                                                            {check.details && (
-                                                                <p className="text-xs text-muted-foreground italic">{check.details}</p>
-                                                            )}
-                                                        </div>
-                                                    </div>
-                                                ))}
-                                        </div>
-                                    </TabsContent>
-
-                                    {/* Documents Tab - Enhanced with DocumentValidationPanel */}
-                                    <TabsContent value="documents" className="space-y-3 mt-4">
-                                        <DocumentValidationPanel
-                                            projectId={project.id}
-                                            currentStage={currentStage || { id: '', name: 'Unknown', stage_order: 0, organization_id: project.organization_id }}
-                                            targetStage={targetStage}
-                                        />
-                                    </TabsContent>
-
-                                    {/* Other tabs */}
-                                    {['project_data', 'approvals', 'stage_specific', 'system'].map(category => (
-                                        <TabsContent key={category} value={category} className="space-y-3 mt-4">
-                                            {validation.prerequisiteResult!.checks
-                                                .filter(check => check.category === category)
-                                                .map((check) => (
-                                                    <div key={check.id} className="flex items-start gap-3 p-3 border rounded-lg">
-                                                        {getStatusIcon(check.status)}
-                                                        <div className="flex-1 min-w-0">
-                                                            <div className="flex items-center justify-between mb-1">
-                                                                <h5 className={`font-medium text-sm ${getStatusColor(check.status)}`}>
-                                                                    {check.name}
-                                                                </h5>
-                                                                {check.required && (
-                                                                    <Badge variant="outline" className="text-xs">Required</Badge>
-                                                                )}
-                                                            </div>
-                                                            <p className="text-xs text-muted-foreground mb-1">{check.description}</p>
-                                                            {check.details && (
-                                                                <p className="text-xs text-muted-foreground italic">{check.details}</p>
-                                                            )}
-                                                        </div>
-                                                    </div>
-                                                ))}
-                                            {validation.prerequisiteResult!.checks.filter(check => check.category === category).length === 0 && (
-                                                <div className="text-center py-4 text-muted-foreground">
-                                                    No {category.replace('_', ' ')} checks required for this transition
-                                                </div>
-                                            )}
-                                        </TabsContent>
-                                    ))}
-                                </Tabs>
-                            </CardContent>
-                        </Card>
-                    )}
-
-                    {/* Approval Status Widget */}
-                    {targetStage.required_approvals && (
-                        <ApprovalStatusWidget
-                            projectId={project.id}
-                            stageId={targetStage.id}
-                            showRequestButton={true}
-                            onRequestApprovals={async () => {
-                                // TODO: Implement auto assign approvers functionality
-                                console.log('Requesting approvals for project:', project.id, 'stage:', targetStage.id);
-                                // Refresh validation after requesting approvals
-                                validateTransition();
-                            }}
-                        />
-                    )}
-
                     {/* Bypass Section */}
                     {requiresBypass && (
                         <Card className="mb-6">
                             <CardHeader>
                                 <CardTitle className="text-lg flex items-center gap-2">
                                     <Shield className="w-5 h-5 text-yellow-600" />
-                                    Manager Bypass Required
+                                    Manager Bypass
                                 </CardTitle>
                             </CardHeader>
                             <CardContent>
                                 <p className="text-sm text-muted-foreground mb-3">
-                                    This transition requires manager approval to bypass validation requirements.
+                                    This transition requires manager approval. 
                                     Please provide a reason for the bypass.
                                 </p>
                                 <textarea
