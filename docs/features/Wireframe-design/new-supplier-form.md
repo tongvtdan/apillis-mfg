@@ -1,16 +1,3 @@
-Absolutely. Based on your **updated supplier implementation model** in Factory Pulse — which centralizes suppliers as **organizations** (`organization_type = 'supplier'`) with associated **contacts** (`type = 'supplier'`), and uses dedicated tables for **qualification**, **RFQs**, and **quotes** — I’ve fully revised the **“Add Supplier” screen specification** to align precisely with your **data schema, workflow, and architecture** from the End-to-End Blueprint.
-
-This version eliminates redundant or conflicting structures (e.g., `supplier_profile` JSONB on contacts) and replaces them with **correct, normalized, and scalable** references to:
-
-- `organizations`
-- `contacts`
-- `supplier_qualifications`
-- `documents`
-
-All while preserving full functionality, UX clarity, and compliance with your **Tech Stack**, **PRD**, and **Data Schema**.
-
----
-
 # 🖼️ **Screen: Add Supplier (Revised & Schema-Aligned)**  
 *Factory Pulse – Supplier Management Module*  
 *Aligned with PRD v1.2, Tech Stack v1.0.0, and End-to-End Data Schema Blueprint*
@@ -65,11 +52,11 @@ Address*                 [ 123 Industrial Blvd, Torrance, CA 90210, USA ]
   SUPPLIER CAPABILITIES & PROFILE
 ───────────────────────────────────────────────────────────────────────────────────────────────────────────────────────
 Processes*               [ Select multiple ▼ ] → [✓] CNC Machining, [✓] 5-Axis, [✓] Wire EDM, [✓] Surface Grinding
-                         → Search: “CNC”, “Molding”, “PCB”, etc.
+                         → Search: "CNC", "Molding", "PCB", etc.
                          → [+] Add Custom Process: _______________________
 
 Materials*               [ Select multiple ▼ ] → [✓] Aluminum 6061, [✓] Stainless Steel 304, [✓] Titanium Grade 5
-                         → Search: “Aluminum”, “Plastic”, “Copper”, etc.
+                         → Search: "Aluminum", "Plastic", "Copper", etc.
                          → [+] Add Custom Material: _____________________
 
 Tolerance Capability*    [ ±0.01mm ▼ ] → Options: ±0.001mm, ±0.005mm, ±0.01mm, ±0.05mm, ±0.1mm, ±0.2mm, Custom
@@ -82,7 +69,7 @@ Lead Time (Production)   [ 4 ] weeks
   CERTIFICATIONS & COMPLIANCE
 ───────────────────────────────────────────────────────────────────────────────────────────────────────────────────────
 Certifications           [ Select multiple ▼ ] → [✓] ISO 9001, [✓] AS9100, [✓] ITAR Registered, [✓] RoHS Compliant
-                         → Search: “ISO”, “AS9100”, “UL”, “FDA”, etc.
+                         → Search: "ISO", "AS9100", "UL", "FDA", etc.
                          → [+] Add Custom Cert: _________________________
 
 Payment Terms            [ Net 30 ▼ ] → Options: Net 15, Net 30, Net 45, Net 60, 50% Deposit
@@ -99,9 +86,11 @@ Preferred Region         [ North America ▼ ] → North America, Europe, Asia-P
 
    [✓] Company Profile PDF     → [ Acme_Supplier_Profile_2025.pdf ] ✅ (4.1 MB)
    [✓] Company Logo            → [ acme_logo.png ] ✅ (1.8 MB)
+   [✓] Qualified Product Image → [ qualified_product.jpg ] ✅ (2.3 MB)
    [ ] Product Catalog         → [ Upload ]
    [ ] Quality Manual          → [ Upload ]
    [ ] Sustainability Report   → [ Upload ]
+   [ ] External Document Link  → [ Add Link ]
    [+] Add Another File        → Opens file picker
 
 ⚠️  Files must be ≤5MB each. Use ZIP if combining multiple files.
@@ -115,14 +104,14 @@ Preferred Region         [ North America ▼ ] → North America, Europe, Asia-P
    - Creates record in `supplier_qualifications` table
    - Sets status = 'in_progress'
    - Triggers email to supplier with links to complete profile & upload docs
-   - Automatically assigns qualification stage: ‘profile_complete’, ‘nda_signed’, ‘docs_uploaded’, etc.
+   - Automatically assigns qualification stage: 'profile_complete', 'nda_signed', 'docs_uploaded', etc.
    - Deadline: [ 14 days from today ▼ ]
 
 ───────────────────────────────────────────────────────────────────────────────────────────────────────────────────────
   METADATA & TAGS
 ───────────────────────────────────────────────────────────────────────────────────────────────────────────────────────
-Tags                     [ Add tag ] → e.g., “High Priority”, “Aerospace”, “Prototype Specialist”
-Internal Notes           [ Textarea: “Met at IMTS 2025. Strong in 5-axis titanium work. Pricing competitive.” ]
+Tags                     [ Add tag ] → e.g., "High Priority", "Aerospace", "Prototype Specialist"
+Internal Notes           [ Textarea: "Met at IMTS 2025. Strong in 5-axis titanium work. Pricing competitive." ]
 
                       [ Cancel ]                                                      [ Save & Close ]                     [ Save & Start Qualification → ]
 ```
@@ -133,12 +122,12 @@ Internal Notes           [ Textarea: “Met at IMTS 2025. Strong in 5-axis titan
 
 | Field                                                | Source Table                                      | Validation Rule                                            | UI Feedback                            |
 | ---------------------------------------------------- | ------------------------------------------------- | ---------------------------------------------------------- | -------------------------------------- |
-| **Organization Name**                                | `organizations.name`                              | Required, unique per org                                   | “Organization name already exists”     |
-| **Primary Contact Name, Email, Address**             | `contacts.*`                                      | Required; email valid format                               | “Invalid email”                        |
-| **Processes, Materials, Tolerance**                  | `supplier_qualifications.capabilities` (JSONB)    | At least one process/material required                     | “Select at least one capability”       |
+| **Organization Name**                                | `organizations.name`                              | Required, unique per org                                   | "Organization name already exists"     |
+| **Primary Contact Name, Email, Address**             | `contacts.*`                                      | Required; email valid format                               | "Invalid email"                        |
+| **Processes, Materials, Tolerance**                  | `supplier_qualifications.capabilities` (JSONB)    | At least one process/material required                     | "Select at least one capability"       |
 | **Certifications**                                   | `supplier_qualifications.certifications` (array)  | Optional                                                   | None                                   |
 | **Payment Terms, Currency, Incoterms, Credit Limit** | `supplier_qualifications.financial_terms` (JSONB) | Optional                                                   | None                                   |
-| **Profile Documents**                                | `documents` table                                 | Max 5MB per file; types: `.pdf,.jpg,.jpeg,.png,.svg,.docx` | ❌ “File exceeds 5MB limit”             |
+| **Profile Documents**                                | `documents` table                                 | Max 5MB per file; types: `.pdf,.jpg,.jpeg,.png,.svg,.docx` | ❌ "File exceeds 5MB limit"             |
 | **Start Qualification**                              | `supplier_qualifications`                         | If checked → auto-create record                            | Requires all above fields to be filled |
 
 > 💡 **On Save**:
@@ -178,7 +167,7 @@ Internal Notes           [ Textarea: “Met at IMTS 2025. Strong in 5-axis titan
 >      ```sql
 >      INSERT INTO documents (
 >        organization_id,
->        category, -- 'supplier_profile', 'supplier_logo'
+>        category, -- 'supplier_profile', 'supplier_logo', 'supplier_qualified_image', 'supplier_external_link'
 >        file_path,
 >        url,
 >        mime_type,
@@ -186,7 +175,7 @@ Internal Notes           [ Textarea: “Met at IMTS 2025. Strong in 5-axis titan
 >        uploaded_by
 >      ) VALUES (...);
 >      ```
-> 5. **If “Start Qualification” is checked**:
+> 5. **If "Start Qualification" is checked**:
 >    - Trigger `start_supplier_qualification(org_id)` RPC
 >    - Create `supplier_qualification_progress` records for all stages
 >    - Send 3 secure links to contact email:
@@ -202,10 +191,10 @@ Internal Notes           [ Textarea: “Met at IMTS 2025. Strong in 5-axis titan
 | ----------------------- | --------------------------------------------------------------------------------------------------------------------------- |
 | **Multi-Tenancy**       | All tables use `organization_id` → RLS enforced                                                                             |
 | **File Uploads**        | Supabase Storage bucket `supplier-documents` → RLS restricts access to org members                                          |
-| **Document Categories** | Uses `document_categories.code = 'supplier_profile'`, `'supplier_logo'` (from Appendix A)                                   |
+| **Document Categories** | Uses `document_categories.code = 'supplier_profile'`, `'supplier_logo'`, `'supplier_qualified_image'`, `'supplier_external_link'` |
 | **Audit Trail**         | All actions logged in `activity_log` with entity type: `supplier_organization`, `supplier_qualification`, `document_upload` |
 | **Compliance**          | Supports ISO 9001, AS9100 — all qualifications and documents are auditable artifacts                                        |
-| **Privacy**             | Supplier portal users see only their own organization’s documents via `access_level = 'supplier'`                           |
+| **Privacy**             | Supplier portal users see only their own organization's documents via `access_level = 'supplier'`                           |
 
 ### ✅ **Supabase RLS Policy for `supplier-documents`**
 ```sql
@@ -248,8 +237,8 @@ WITH CHECK (
 | File Upload Area      | `file-input file-input-bordered w-full border-dashed border-gray-300 p-4 rounded-lg` |
 | File Preview Card     | `card bg-gray-50 shadow-sm p-3 flex items-center gap-3`                              |
 | Thumbnail Image       | `w-12 h-12 object-cover rounded`                                                     |
-| File Info             | `text-xs text-gray-600` → “4.1 MB • PDF”                                             |
-| Warning Banner        | `alert alert-warning text-sm` → “Files must be ≤5MB”                                 |
+| File Info             | `text-xs text-gray-600` → "4.1 MB • PDF"                                             |
+| Warning Banner        | `alert alert-warning text-sm` → "Files must be ≤5MB"                                 |
 | Button (Save & Start) | `btn btn-primary loading` → spinner on submit                                        |
 
 > ✅ **Responsive**: Full-width on mobile, 2-column grid on desktop for size fields
@@ -293,6 +282,11 @@ const addSupplierSchema = z.object({
   tags: z.array(z.string()),
   internalNotes: z.string().optional(),
   profileFiles: z.array(z.instanceof(File)).optional(),
+  externalLinks: z.array(z.object({
+    title: z.string(),
+    url: z.string().url(),
+    description: z.string().optional()
+  })).optional()
 });
 
 type AddSupplierForm = z.infer<typeof addSupplierSchema>;
@@ -369,16 +363,49 @@ export const createSupplier = async (data: AddSupplierForm) => {
 
     if (uploadError) throw uploadError;
 
+    // Determine document category based on file name or type
+    let category = 'supplier_profile';
+    if (file.name.toLowerCase().includes('logo')) {
+      category = 'supplier_logo';
+    } else if (file.name.toLowerCase().includes('qualified') && file.type.startsWith('image/')) {
+      category = 'supplier_qualified_image';
+    }
+
     const { data: doc } = await supabase
       .from('documents')
       .insert({
         organization_id: org.id,
-        category: file.name.toLowerCase().includes('logo') ? 'supplier_logo' : 'supplier_profile',
+        category: category,
         file_path: uploadData.path,
         url: supabase.storage.from('supplier-documents').getPublicUrl(uploadData.path).data.publicUrl,
         mime_type: file.type,
         file_size_bytes: file.size,
         uploaded_by: getUserId(),
+      })
+      .select()
+      .single();
+
+    documentIds.push(doc.id);
+  }
+
+  // 5. Add External Document Links
+  for (const link of data.externalLinks || []) {
+    const { data: doc } = await supabase
+      .from('documents')
+      .insert({
+        organization_id: org.id,
+        category: 'supplier_external_link',
+        title: link.title,
+        description: link.description,
+        file_path: link.url,
+        url: link.url,
+        mime_type: 'text/plain',
+        file_size_bytes: 0,
+        uploaded_by: getUserId(),
+        storage_provider: 'external',
+        metadata: {
+          external_link: link.url
+        }
       })
       .select()
       .single();
@@ -407,7 +434,7 @@ export const createSupplier = async (data: AddSupplierForm) => {
 - [ ] Contact created with `type = 'supplier'` and linked to org
 - [ ] Profile documents uploaded to correct bucket/path
 - [ ] Documents inserted into `documents` table with correct `category`
-- [ ] `supplier_qualifications` record created when “Start Qualification” checked
+- [ ] `supplier_qualifications` record created when "Start Qualification" checked
 - [ ] RLS prevents unauthorized access to documents
 - [ ] File size validation enforced client-side and server-side
 - [ ] Activity log captures: `supplier_created`, `document_uploaded`, `qualification_started`
@@ -424,7 +451,7 @@ export const createSupplier = async (data: AddSupplierForm) => {
 | **Capabilities**           | `supplier_qualifications.capabilities` (JSONB)               | Processes, materials, tolerances                         |
 | **Certifications**         | `supplier_qualifications.certifications` (array)             | ISO, AS9100, etc.                                        |
 | **Financial Terms**        | `supplier_qualifications.financial_terms` (JSONB)            | Payment terms, currency, credit limit                    |
-| **Profile Docs**           | `documents`                                                  | `category = 'supplier_profile'`, `'supplier_logo'`       |
+| **Profile Docs**           | `documents`                                                  | `category = 'supplier_profile'`, `'supplier_logo'`, `'supplier_qualified_image'`, `'supplier_external_link'` |
 | **Qualification Workflow** | `supplier_qualifications`, `supplier_qualification_progress` | Managed via `start_supplier_qualification()` RPC         |
 
 # Add New Supplier Screen Design

@@ -22,6 +22,7 @@ erDiagram
     organizations ||--o{ supplier_performance_metrics : "measures"
     organizations ||--o{ supplier_rfqs : "sends"
     organizations ||--o{ supplier_quotes : "receives"
+    organizations ||--o{ documents : "owns"
     
     contacts ||--o{ supplier_qualification_progress : "progress"
     contacts ||--o{ supplier_performance_metrics : "performance"
@@ -33,6 +34,8 @@ erDiagram
     supplier_qualifications }|--|{ approvals : "approval"
     supplier_qualifications }|--|{ approval_history : "history"
     supplier_qualifications }|--|{ activity_log : "audit"
+    
+    documents ||--o{ supplier_qualifications : "supports_qualification"
 ```
 
 ## Table Descriptions
@@ -207,6 +210,8 @@ Supplier documents use the existing `documents` table with supplier-specific cat
 - `supplier_qc`
 - `supplier_profile`
 - `supplier_logo`
+- `supplier_qualified_image` (NEW) - For qualified supplier images
+- `supplier_external_link` (NEW) - For external document links
 
 ### Activity Logging
 All supplier management actions are logged in the existing `activity_log` table with appropriate entity types.

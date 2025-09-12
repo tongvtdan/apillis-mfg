@@ -411,7 +411,9 @@ VALUES
   ('supplier_financial', 'Supplier Financial Statement', false, '{"years": 7}'),
   ('supplier_qc', 'Supplier Quality Certificate', true, '{"years": 3}'),
   ('supplier_profile', 'Supplier Profile Document', true, '{"years": 5}'),
-  ('supplier_logo', 'Supplier Logo', true, '{"years": 5}')
+  ('supplier_logo', 'Supplier Logo', true, '{"years": 5}'),
+  ('supplier_qualified_image', 'Supplier Qualified Image', true, '{"years": 5}'),
+  ('supplier_external_link', 'Supplier External Document Link', true, '{"years": 5}')
 ON CONFLICT (code) DO NOTHING;
 
 -- =========================================

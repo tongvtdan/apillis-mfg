@@ -424,6 +424,7 @@ Qualification Status: [ Qualified ✅ ]   Expiry: [ Dec 15, 2026 ]   [ Re-Qualif
 [✓] ISO 9001 Certificate.pdf    → Expires Dec 2026 → [ Download ]
 [✓] Insurance Certificate.pdf   → Expires Jun 2026 → [ Download ]
 [✓] Financial Statement.xlsx    → FY 2024 → [ Download ]
+[✓] Qualified Product Image.jpg → Uploaded as qualified image → [ View ]
 
 [ Request Re-Qualification ]    [ Block Supplier ]    [ Export Qualification Report ]
 ```
@@ -652,7 +653,11 @@ VALUES
   ('supplier_iso', 'Supplier ISO Certificate', true, '{"years": 3}'),
   ('supplier_insurance', 'Supplier Insurance Certificate', true, '{"years": 2}'),
   ('supplier_financial', 'Supplier Financial Statement', false, '{"years": 7}'),
-  ('supplier_qc', 'Supplier Quality Certificate', true, '{"years": 3}');
+  ('supplier_qc', 'Supplier Quality Certificate', true, '{"years": 3}'),
+  ('supplier_profile', 'Supplier Profile Document', true, '{"years": 5}'),
+  ('supplier_logo', 'Supplier Logo', true, '{"years": 5}'),
+  ('supplier_qualified_image', 'Supplier Qualified Image', true, '{"years": 5}'),
+  ('supplier_external_link', 'Supplier External Document Link', true, '{"years": 5}');
 ```
 
 ### Appendix B: Enums (Optional)
