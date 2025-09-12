@@ -5,6 +5,7 @@ export { StageFlowchart } from './StageFlowchart';
 export { StageHistoryTimeline } from './StageHistoryTimeline';
 export { StageProgression } from './StageProgression';
 export { StageTransitionValidator } from './StageTransitionValidator';
+export { StageTransitionDialog } from './StageTransitionDialog';
 export { WorkflowBypassDialog } from './WorkflowBypassDialog';
 export { WorkflowFlowchart } from './WorkflowFlowchart';
 export { WorkflowStepper } from './WorkflowStepper';

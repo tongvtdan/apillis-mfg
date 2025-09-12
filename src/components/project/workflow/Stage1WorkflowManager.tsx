@@ -21,7 +21,7 @@ import {
 
 import { Project, WorkflowStage, WorkflowSubStage, ProjectSubStageProgress } from '@/types/project';
 import { projectWorkflowService } from '@/services/projectWorkflowService';
-import { workflowSubStageService } from '@/services/workflowSubStageService';
+import { WorkflowSubStageService } from '@/services/workflowSubStageService';
 import { useAuth } from '@/core/auth';
 import { useToast } from '@/shared/hooks/use-toast';
 import { SubStageAssignmentDialog } from './SubStageAssignmentDialog';
@@ -74,7 +74,7 @@ export function Stage1WorkflowManager({
 
                 if (state?.currentStage) {
                     // Get sub-stages for current stage
-                    const stageSubStages = await workflowSubStageService.getSubStagesByStageId(state.currentStage.id);
+                    const stageSubStages = await WorkflowSubStageService.getSubStagesByStageId(state.currentStage.id);
 
                     // Get progress for each sub-stage
                     const subStagesWithProgress: SubStageWithProgress[] = await Promise.all(

@@ -460,5 +460,18 @@ export function ProjectWorkflowOrchestrator({
                 </Tabs>
             </CardContent>
         </Card>
+
+        {/* Stage Transition Dialog */ }
+    {
+        transitionDialog.targetStage && (
+            <StageTransitionDialog
+                project={workflowState.project}
+                targetStage={transitionDialog.targetStage}
+                isOpen={transitionDialog.isOpen}
+                onClose={closeStageTransitionDialog}
+                onConfirm={confirmStageTransition}
+            />
+        )
+    }
     );
 }

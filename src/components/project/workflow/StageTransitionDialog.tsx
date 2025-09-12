@@ -31,6 +31,7 @@ import { useCurrentApprovals } from "@/core/approvals/useApproval";
 import { ApprovalStatusWidget } from "@/components/approval/ApprovalStatusWidget";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { DocumentValidationPanel } from "../documents";
+import { useToast } from "@/shared/hooks/use-toast";
 
 interface StageTransitionDialogProps {
     project: Project;
@@ -66,6 +67,7 @@ export function StageTransitionDialog({
     const { checkPermission } = usePermissions();
     const { user } = useAuth();
     const { bulkApprove } = useCurrentApprovals();
+    const { toast } = useToast();
 
     useEffect(() => {
         if (isOpen && project && targetStage) {
@@ -285,8 +287,8 @@ export function StageTransitionDialog({
                                     <Label>Default Duration</Label>
                                     <div className="p-3 bg-gray-50 rounded-md">
                                         <div className="text-sm text-gray-600">
-                                            {targetStage.estimated_duration_days ? 
-                                                `${targetStage.estimated_duration_days} days` : 
+                                            {targetStage.estimated_duration_days ?
+                                                `${targetStage.estimated_duration_days} days` :
                                                 'No default duration set'
                                             }
                                         </div>
@@ -476,7 +478,8 @@ export function StageTransitionDialog({
                             stageId={targetStage.id}
                             showRequestButton={true}
                             onRequestApprovals={async () => {
-                                await autoAssignApprovers(project.id, targetStage.id, project.organization_id);
+                                // TODO: Implement auto assign approvers functionality
+                                console.log('Requesting approvals for project:', project.id, 'stage:', targetStage.id);
                                 // Refresh validation after requesting approvals
                                 validateTransition();
                             }}
