@@ -24,7 +24,7 @@ import { projectWorkflowService } from '@/services/projectWorkflowService';
 import { WorkflowSubStageService } from '@/services/workflowSubStageService';
 import { useAuth } from '@/core/auth';
 import { useToast } from '@/shared/hooks/use-toast';
-import { SubStageAssignmentDialog } from './SubStageAssignmentDialog';
+import { StageTransitionDialog } from './StageTransitionDialog';
 import { DocumentValidationPanel } from './DocumentValidationPanel';
 import { ActionsNeededList } from './ActionsNeededList';
 
@@ -60,6 +60,13 @@ export function Stage1WorkflowManager({
     }>({
         isOpen: false,
         subStage: null
+    });
+    const [transitionDialog, setTransitionDialog] = useState<{
+        isOpen: boolean;
+        targetStage: WorkflowStage | null;
+    }>({
+        isOpen: false,
+        targetStage: null
     });
 
     // Load workflow state and sub-stages
@@ -198,27 +205,45 @@ export function Stage1WorkflowManager({
         const nextStage = getNextStage();
         if (!nextStage) return;
 
+        // Open transition dialog instead of direct transition
+        setTransitionDialog({
+            isOpen: true,
+            targetStage: nextStage
+        });
+    }, [getNextStage]);
+
+    // Handle transition dialog
+    const closeTransitionDialog = useCallback(() => {
+        setTransitionDialog({ isOpen: false, targetStage: null });
+    }, []);
+
+    const confirmTransition = useCallback(async (bypassRequired: boolean, reason?: string, estimatedDuration?: number) => {
+        if (!transitionDialog.targetStage || !user) return;
+
         try {
             setIsTransitioning(true);
 
             const result = await projectWorkflowService.advanceProjectStage(
                 project.id,
-                nextStage.id,
-                user?.id || '',
+                transitionDialog.targetStage.id,
+                user.id,
                 {
-                    reason: 'All Stage 1 sub-stages completed'
+                    reason: reason || 'All Stage 1 sub-stages completed',
+                    estimatedDuration
                 }
             );
 
             if (result.success && result.project) {
                 toast({
                     title: "Stage Advanced",
-                    description: `Project moved to ${nextStage.name}`,
+                    description: `Project moved to ${transitionDialog.targetStage.name}`,
                 });
 
                 if (onProjectUpdate) {
                     onProjectUpdate(result.project);
                 }
+
+                closeTransitionDialog();
             } else {
                 throw new Error(result.message);
             }
@@ -232,7 +257,7 @@ export function Stage1WorkflowManager({
         } finally {
             setIsTransitioning(false);
         }
-    }, [project.id, getNextStage, user?.id, toast, onProjectUpdate]);
+    }, [transitionDialog.targetStage, user, project.id, toast, onProjectUpdate, closeTransitionDialog]);
 
     // Get sub-stage status icon
     const getSubStageStatusIcon = useCallback((subStage: SubStageWithProgress) => {
@@ -480,6 +505,17 @@ export function Stage1WorkflowManager({
                 onAssign={handleAssignmentComplete}
                 subStage={assignmentDialog.subStage}
             />
+
+            {/* Stage Transition Dialog */}
+            {transitionDialog.targetStage && (
+                <StageTransitionDialog
+                    project={project}
+                    targetStage={transitionDialog.targetStage}
+                    isOpen={transitionDialog.isOpen}
+                    onClose={closeTransitionDialog}
+                    onConfirm={confirmTransition}
+                />
+            )}
         </div>
     );
 }
