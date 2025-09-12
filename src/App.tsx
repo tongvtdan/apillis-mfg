@@ -30,6 +30,7 @@ import Reports from "./pages/Reports";
 import ProjectDetail from "./pages/ProjectDetail";
 import NewRFQ from "./pages/NewRFQ";
 import CreateProject from "./pages/CreateProject";
+import CreateSupplier from "./pages/CreateSupplier";
 import Settings from "./pages/Settings";
 import Profile from "./pages/Profile";
 import Approvals from "./pages/Approvals";
@@ -170,6 +171,11 @@ const App = () => {
             <Route path="/projects/new" element={
               <ProtectedRoute>
                 <AppLayout><CreateProject /></AppLayout>
+              </ProtectedRoute>
+            } />
+            <Route path="/suppliers/new" element={
+              <ProtectedRoute>
+                <AppLayout><CreateSupplier /></AppLayout>
               </ProtectedRoute>
             } />
             <Route path="/core-test" element={

@@ -36,7 +36,7 @@
 **Goal**: Centralize supplier onboarding, qualification, performance tracking, and RFQ distribution — ensuring only **qualified or conditionally approved suppliers** receive RFQs and can be assigned to projects.
 
 > ✅ **Core Philosophy**:  
-> - Every supplier must pass through a **structured qualification workflow** before being eligible for RFQs.  
+> - Every supplier must pass through a **structured qualification workflow** before being eligible for RFQs  
 > - Support **partial approval** ("Approve with Conditions") and **exceptional approval** ("Approve as Exception") for real-world flexibility.  
 > - Maintain **full audit trail** for ISO 9001, AS9100, IATF 16949 compliance.  
 > - Enforce **multi-tenancy** via `organization_id` and **RLS**.

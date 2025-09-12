@@ -1,0 +1,1 @@
+export { SupplierIntakeForm } from './SupplierIntakeForm';

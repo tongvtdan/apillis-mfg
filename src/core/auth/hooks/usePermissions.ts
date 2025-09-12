@@ -49,7 +49,7 @@ export function usePermissions() {
     };
 
     const canManageSuppliers = () => {
-        return checkPermission('suppliers', 'manage').allowed;
+        return checkPermission('supplier', 'create').allowed;
     };
 
     const canManageCustomers = () => {

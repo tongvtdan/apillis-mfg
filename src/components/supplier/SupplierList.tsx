@@ -684,10 +684,7 @@ export function SupplierList({
                         Filter, onboard, qualify, and track performance of your supplier base
                     </p>
                 </div>
-                <Button className="whitespace-nowrap">
-                    <Plus className="w-4 h-4 mr-2" />
-                    Add New Supplier
-                </Button>
+
             </div>
 
             {/* Filter Controls */}

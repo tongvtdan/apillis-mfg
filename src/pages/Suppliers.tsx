@@ -18,29 +18,23 @@ import {
 } from 'lucide-react';
 import { useSuppliers } from '@/features/supplier-management/hooks/useSuppliers';
 import { usePermissions } from '@/core/auth/hooks/usePermissions';
-import { SupplierModal } from '@/components/supplier/SupplierModal';
+import { useNavigate } from 'react-router-dom';
 import { Supplier } from '@/types/supplier';
 import { SupplierList } from '@/components/supplier/SupplierList';
 
 export default function Suppliers() {
     const [showArchived, setShowArchived] = useState(false);
     const { suppliers, loading } = useSuppliers(showArchived);
-    const [showModal, setShowModal] = useState(false);
-    const [selectedSupplier, setSelectedSupplier] = useState<Supplier | null>(null);
-    const [canManageSuppliers, setCanManageSuppliers] = useState(false);
-
-    const {
-        canManageSuppliers: checkCanManageSuppliers
-    } = usePermissions();
+    const { canManageSuppliers } = usePermissions(); // Use the hook function directly
+    const navigate = useNavigate();
 
     // Check permissions on component mount
     useEffect(() => {
         const checkPermissions = async () => {
-            const canManage = await checkCanManageSuppliers();
-            setCanManageSuppliers(canManage);
+            const canManage = await canManageSuppliers();
         };
         checkPermissions();
-    }, [checkCanManageSuppliers]);
+    }, [canManageSuppliers]);
 
     // Calculate supplier statistics
     const totalSuppliers = suppliers.length;
@@ -75,9 +69,8 @@ export default function Suppliers() {
         alert(`Starting qualification for: ${supplier.name}`);
     };
 
-    const handleEdit = (supplier: Supplier) => {
-        setSelectedSupplier(supplier);
-        setShowModal(true);
+    const handleAddSupplier = () => {
+        navigate('/suppliers/new');
     };
 
     if (loading) {
@@ -120,16 +113,14 @@ export default function Suppliers() {
                                 Show Archived
                             </Label>
                         </div>
-                        {canManageSuppliers && (
-                            <Button
-                                onClick={() => setShowModal(true)}
-                                variant="accent"
-                                className="action-button shadow-md hover:shadow-lg"
-                            >
-                                <Plus className="w-4 h-4 mr-2" />
-                                Add Supplier
-                            </Button>
-                        )}
+                        <Button
+                            onClick={handleAddSupplier}
+                            variant="accent"
+                            className="action-button shadow-md hover:shadow-lg"
+                        >
+                            <Plus className="w-4 h-4 mr-2" />
+                            Add Supplier
+                        </Button>
                     </div>
                 </div>
             </div>
@@ -252,21 +243,6 @@ export default function Suppliers() {
                     />
                 </CardContent>
             </Card>
-
-            {/* Supplier Modal */}
-            <SupplierModal
-                isOpen={showModal}
-                onClose={() => {
-                    setShowModal(false);
-                    setSelectedSupplier(null);
-                }}
-                onSubmit={(supplierData) => {
-                    console.log('Supplier submitted:', supplierData);
-                    setShowModal(false);
-                    setSelectedSupplier(null);
-                }}
-                supplier={selectedSupplier}
-            />
         </div>
     );
 }
