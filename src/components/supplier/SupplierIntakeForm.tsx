@@ -1,4 +1,3 @@
-
 import { useState, useRef } from "react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
@@ -33,7 +32,8 @@ import {
     File,
     Image,
     FileText as FileTextIcon,
-    Archive
+    Archive,
+    Plus
 } from "lucide-react";
 import { useAuth } from "@/core/auth";
 import { useToast } from "@/shared/hooks/use-toast";
@@ -193,10 +193,16 @@ export function SupplierIntakeForm({ onSuccess, onCancel }: SupplierIntakeFormPr
     const [fileDocumentTypes, setFileDocumentTypes] = useState<Record<number, string>>({});
     const fileInputRef = useRef<HTMLInputElement>(null);
 
+    // State for external links
+    const [externalLinks, setExternalLinks] = useState<Array<{title: string, url: string, description?: string}>>([]);
+    const [newExternalLink, setNewExternalLink] = useState({title: '', url: '', description: ''});
+
     // Document types based on wireframe design
     const DOCUMENT_TYPES = [
-        { value: 'company_profile', label: 'Company Profile' },
-        { value: 'logo', label: 'Company Logo' },
+        { value: 'supplier_profile', label: 'Company Profile' },
+        { value: 'supplier_logo', label: 'Company Logo' },
+        { value: 'supplier_qualified_image', label: 'Qualified Product Image' },
+        { value: 'supplier_external_link', label: 'External Document Link' },
         { value: 'product_catalog', label: 'Product Catalog' },
         { value: 'quality_manual', label: 'Quality Manual' },
         { value: 'sustainability_report', label: 'Sustainability Report' },
@@ -265,6 +271,27 @@ export function SupplierIntakeForm({ onSuccess, onCancel }: SupplierIntakeFormPr
             }));
             setNewProcess("");
         }
+    };
+
+    const handleAddExternalLink = () => {
+        if (newExternalLink.title.trim() && newExternalLink.url.trim()) {
+            // Simple URL validation
+            try {
+                new URL(newExternalLink.url);
+                setExternalLinks(prev => [...prev, {...newExternalLink}]);
+                setNewExternalLink({title: '', url: '', description: ''});
+            } catch (e) {
+                toast({
+                    title: "Invalid URL",
+                    description: "Please enter a valid URL including http:// or https://",
+                    variant: "destructive"
+                });
+            }
+        }
+    };
+
+    const handleRemoveExternalLink = (index: number) => {
+        setExternalLinks(prev => prev.filter((_, i) => i !== index));
     };
 
     // File upload handlers
@@ -373,12 +400,12 @@ export function SupplierIntakeForm({ onSuccess, onCancel }: SupplierIntakeFormPr
 
             const supplier = await SupplierManagementService.createSupplier(supplierData, user.id);
 
-            // TODO: Implement proper document upload for supplier profile documents
-            // For now, we'll just show a message about the files that would be uploaded
-            if (uploadedFiles.length > 0) {
+            // Show a message about the files and links that would be uploaded
+            // In a future implementation, we would actually upload these files
+            if (uploadedFiles.length > 0 || externalLinks.length > 0) {
                 toast({
                     title: "Supplier Created",
-                    description: `Supplier created successfully! ${uploadedFiles.length} files will be uploaded to the supplier profile.`
+                    description: `Supplier created successfully! ${uploadedFiles.length} files and ${externalLinks.length} external links will be processed.`
                 });
             } else {
                 toast({
@@ -848,7 +875,7 @@ export function SupplierIntakeForm({ onSuccess, onCancel }: SupplierIntakeFormPr
                                                         <SelectValue placeholder="Document Type" />
                                                     </SelectTrigger>
                                                     <SelectContent>
-                                                        {DOCUMENT_TYPES.map((docType) => (
+                                                        {DOCUMENT_TYPES.filter(dt => dt.value !== 'supplier_external_link').map((docType) => (
                                                             <SelectItem key={docType.value} value={docType.value}>
                                                                 {docType.label}
                                                             </SelectItem>
@@ -860,6 +887,82 @@ export function SupplierIntakeForm({ onSuccess, onCancel }: SupplierIntakeFormPr
                                                     variant="ghost"
                                                     size="sm"
                                                     onClick={() => handleRemoveFile(index)}
+                                                >
+                                                    <X className="h-4 w-4" />
+                                                </Button>
+                                            </div>
+                                        </div>
+                                    ))}
+                                </div>
+                            </div>
+                        )}
+
+                        {/* External Document Links Section */}
+                        <div className="space-y-2">
+                            <h4 className="text-sm font-medium">External Document Links</h4>
+                            <div className="flex flex-col sm:flex-row gap-2">
+                                <Input
+                                    placeholder="Document Title"
+                                    value={newExternalLink.title}
+                                    onChange={(e) => setNewExternalLink({...newExternalLink, title: e.target.value})}
+                                />
+                                <Input
+                                    placeholder="https://example.com/document.pdf"
+                                    value={newExternalLink.url}
+                                    onChange={(e) => setNewExternalLink({...newExternalLink, url: e.target.value})}
+                                />
+                                <Button type="button" onClick={handleAddExternalLink} variant="outline">
+                                    Add Link
+                                </Button>
+                            </div>
+                            {newExternalLink.title || newExternalLink.url ? (
+                                <Input
+                                    placeholder="Description (optional)"
+                                    value={newExternalLink.description}
+                                    onChange={(e) => setNewExternalLink({...newExternalLink, description: e.target.value})}
+                                />
+                            ) : null}
+                        </div>
+
+                        {externalLinks.length > 0 && (
+                            <div className="space-y-2">
+                                <h4 className="text-sm font-medium">Added External Links</h4>
+                                <div className="space-y-2">
+                                    {externalLinks.map((link, index) => (
+                                        <div key={index} className="flex items-center justify-between p-2 border rounded">
+                                            <div className="flex items-center space-x-2">
+                                                <Globe className="h-8 w-8 text-blue-500" />
+                                                <div>
+                                                    <p className="text-sm font-medium">{link.title}</p>
+                                                    <p className="text-xs text-muted-foreground truncate max-w-xs">
+                                                        {link.url}
+                                                    </p>
+                                                    {link.description && (
+                                                        <p className="text-xs text-muted-foreground">
+                                                            {link.description}
+                                                        </p>
+                                                    )}
+                                                </div>
+                                            </div>
+                                            <div className="flex items-center space-x-2">
+                                                <Select
+                                                    value="supplier_external_link"
+                                                    disabled
+                                                >
+                                                    <SelectTrigger className="w-40">
+                                                        <SelectValue placeholder="Document Type" />
+                                                    </SelectTrigger>
+                                                    <SelectContent>
+                                                        <SelectItem value="supplier_external_link">
+                                                            External Document Link
+                                                        </SelectItem>
+                                                    </SelectContent>
+                                                </Select>
+                                                <Button
+                                                    type="button"
+                                                    variant="ghost"
+                                                    size="sm"
+                                                    onClick={() => handleRemoveExternalLink(index)}
                                                 >
                                                     <X className="h-4 w-4" />
                                                 </Button>
