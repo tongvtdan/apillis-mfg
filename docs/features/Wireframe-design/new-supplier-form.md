@@ -187,14 +187,14 @@ Internal Notes           [ Textarea: "Met at IMTS 2025. Strong in 5-axis titaniu
 
 ## 🔐 **Security & Compliance (Schema-Aligned)**
 
-| Feature                 | Implementation                                                                                                              |
-| ----------------------- | --------------------------------------------------------------------------------------------------------------------------- |
-| **Multi-Tenancy**       | All tables use `organization_id` → RLS enforced                                                                             |
-| **File Uploads**        | Supabase Storage bucket `supplier-documents` → RLS restricts access to org members                                          |
+| Feature                 | Implementation                                                                                                                    |
+| ----------------------- | --------------------------------------------------------------------------------------------------------------------------------- |
+| **Multi-Tenancy**       | All tables use `organization_id` → RLS enforced                                                                                   |
+| **File Uploads**        | Supabase Storage bucket `supplier-documents` → RLS restricts access to org members                                                |
 | **Document Categories** | Uses `document_categories.code = 'supplier_profile'`, `'supplier_logo'`, `'supplier_qualified_image'`, `'supplier_external_link'` |
-| **Audit Trail**         | All actions logged in `activity_log` with entity type: `supplier_organization`, `supplier_qualification`, `document_upload` |
-| **Compliance**          | Supports ISO 9001, AS9100 — all qualifications and documents are auditable artifacts                                        |
-| **Privacy**             | Supplier portal users see only their own organization's documents via `access_level = 'supplier'`                           |
+| **Audit Trail**         | All actions logged in `activity_log` with entity type: `supplier_organization`, `supplier_qualification`, `document_upload`       |
+| **Compliance**          | Supports ISO 9001, AS9100 — all qualifications and documents are auditable artifacts                                              |
+| **Privacy**             | Supplier portal users see only their own organization's documents via `access_level = 'supplier'`                                 |
 
 ### ✅ **Supabase RLS Policy for `supplier-documents`**
 ```sql
@@ -444,15 +444,15 @@ export const createSupplier = async (data: AddSupplierForm) => {
 
 ## 📁 **Final Data Model Alignment**
 
-| Entity                     | Source                                                       | Purpose                                                  |
-| -------------------------- | ------------------------------------------------------------ | -------------------------------------------------------- |
-| **Supplier Org**           | `organizations`                                              | Core entity with `organization_type = 'supplier'`        |
-| **Primary Contact**        | `contacts`                                                   | Linked to org via `organization_id`, `type = 'supplier'` |
-| **Capabilities**           | `supplier_qualifications.capabilities` (JSONB)               | Processes, materials, tolerances                         |
-| **Certifications**         | `supplier_qualifications.certifications` (array)             | ISO, AS9100, etc.                                        |
-| **Financial Terms**        | `supplier_qualifications.financial_terms` (JSONB)            | Payment terms, currency, credit limit                    |
+| Entity                     | Source                                                       | Purpose                                                                                                      |
+| -------------------------- | ------------------------------------------------------------ | ------------------------------------------------------------------------------------------------------------ |
+| **Supplier Org**           | `organizations`                                              | Core entity with `organization_type = 'supplier'`                                                            |
+| **Primary Contact**        | `contacts`                                                   | Linked to org via `organization_id`, `type = 'supplier'`                                                     |
+| **Capabilities**           | `supplier_qualifications.capabilities` (JSONB)               | Processes, materials, tolerances                                                                             |
+| **Certifications**         | `supplier_qualifications.certifications` (array)             | ISO, AS9100, etc.                                                                                            |
+| **Financial Terms**        | `supplier_qualifications.financial_terms` (JSONB)            | Payment terms, currency, credit limit                                                                        |
 | **Profile Docs**           | `documents`                                                  | `category = 'supplier_profile'`, `'supplier_logo'`, `'supplier_qualified_image'`, `'supplier_external_link'` |
-| **Qualification Workflow** | `supplier_qualifications`, `supplier_qualification_progress` | Managed via `start_supplier_qualification()` RPC         |
+| **Qualification Workflow** | `supplier_qualifications`, `supplier_qualification_progress` | Managed via `start_supplier_qualification()` RPC                                                             |
 
 # Add New Supplier Screen Design
 

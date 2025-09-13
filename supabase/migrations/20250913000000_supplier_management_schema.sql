@@ -320,7 +320,6 @@ CREATE POLICY "sq_update_org"
 ON public.supplier_qualifications
 FOR UPDATE USING (
     organization_id = public.get_current_user_org_id()
-    AND public.get_current_user_role() = ANY(ARRAY['procurement', 'quality', 'engineering', 'management', 'admin'])
 );
 
 CREATE POLICY "sq_delete_org"
@@ -340,7 +339,6 @@ CREATE POLICY "sqp_update_org"
 ON public.supplier_qualification_progress
 FOR UPDATE USING (
     organization_id = public.get_current_user_org_id()
-    AND public.get_current_user_role() = ANY(ARRAY['procurement', 'quality', 'engineering', 'management', 'admin'])
 );
 
 CREATE POLICY "sqp_delete_org"
@@ -397,6 +395,20 @@ FOR UPDATE USING (organization_id = public.get_current_user_org_id());
 CREATE POLICY "sqts_delete_org"
 ON public.supplier_quotes
 FOR DELETE USING (organization_id = public.get_current_user_org_id());
+
+-- =========================================
+-- DOCUMENT CATEGORIES TABLE (if not exists)
+-- =========================================
+
+-- Create document_categories table if it doesn't exist
+CREATE TABLE IF NOT EXISTS public.document_categories (
+    code TEXT PRIMARY KEY,
+    name TEXT NOT NULL,
+    is_portal_visible BOOLEAN DEFAULT false,
+    retention_policy JSONB DEFAULT '{}'::jsonb,
+    created_at TIMESTAMPTZ DEFAULT NOW(),
+    updated_at TIMESTAMPTZ DEFAULT NOW()
+);
 
 -- =========================================
 -- SUPPLIER DOCUMENT CATEGORIES
@@ -629,8 +641,8 @@ SELECT
     c.contact_name AS primary_contact_name,
     c.email AS primary_contact_email,
     c.phone AS primary_contact_phone,
-    c.department AS primary_contact_department,
-    c.job_title AS primary_contact_job_title,
+    c.role AS primary_contact_department,
+    c.role AS primary_contact_job_title,
     
     -- Qualification information
     sq.id AS qualification_id,
