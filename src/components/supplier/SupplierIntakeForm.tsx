@@ -512,15 +512,26 @@ export function SupplierIntakeForm({ onSuccess, onCancel }: SupplierIntakeFormPr
                 }]
             };
 
-            const supplier = await SupplierManagementService.createSupplier(supplierData, user.id);
+            // Prepare documents for upload
+            const documents = uploadedFiles.map((file, index) => ({
+                file,
+                documentType: fileDocumentTypes[index] || 'other',
+                title: file.name,
+                description: `Supplier document: ${fileDocumentTypes[index] || 'other'}`
+            }));
 
+            const supplier = await SupplierManagementService.createSupplier(
+                supplierData,
+                user.id,
+                documents,
+                externalLinks
+            );
 
-            // Show a message about the files and links that would be uploaded
-            // In a future implementation, we would actually upload these files
+            // Show success message with document upload info
             if (uploadedFiles.length > 0 || externalLinks.length > 0) {
                 toast({
                     title: "Supplier Created Successfully!",
-                    description: `New supplier "${supplier.name || formData.name}" has been created successfully! ${uploadedFiles.length} files and ${externalLinks.length} external links will be processed.`
+                    description: `New supplier "${supplier.name || formData.name}" has been created successfully! ${uploadedFiles.length} files and ${externalLinks.length} external links have been uploaded.`
                 });
             } else {
                 toast({

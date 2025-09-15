@@ -116,8 +116,8 @@ export function useProjectCreation() {
             const projectId = projectData.project_id || await generateProjectId();
             console.log('📝 Using project ID:', projectId);
 
-            // Determine project status - default to 'inquiry' unless explicitly set to 'draft'
-            const projectStatus = projectData.status || 'inquiry';
+            // Determine project status - default to 'in_progress' unless explicitly set to 'draft'
+            const projectStatus = projectData.status || 'in_progress';
             console.log('📝 Using project status:', projectStatus);
 
             console.log('📝 Inserting project data:', {
@@ -128,7 +128,7 @@ export function useProjectCreation() {
                 current_stage_id: projectData.current_stage_id,
                 created_by: user.id,
                 priority_level: (projectData.priority || 'normal') as 'low' | 'normal' | 'high' | 'urgent',
-                status: projectStatus as 'draft' | 'inquiry' | 'reviewing' | 'quoted' | 'confirmed' | 'procurement' | 'production' | 'completed' | 'cancelled'
+                status: projectStatus as 'draft' | 'inquiry' | 'in_progress' | 'reviewing' | 'quoted' | 'confirmed' | 'procurement' | 'production' | 'completed' | 'cancelled'
             });
 
             const { data, error } = await supabase

@@ -24,6 +24,7 @@ export interface ProjectIntakeData {
     desired_delivery_date?: string;
     project_reference?: string;
     status?: 'draft' | 'in_progress'; // Updated status field
+    current_stage_id?: string; // Allow setting current stage ID
 }
 
 export class ProjectIntakeService {

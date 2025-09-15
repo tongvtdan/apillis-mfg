@@ -1,4 +1,5 @@
 import { supabase } from '@/integrations/supabase/client';
+import { createClient } from '@supabase/supabase-js';
 import { useAuth } from '@/core/auth';
 import { useApproval } from '@/core/approvals';
 import {
@@ -19,7 +20,21 @@ export class SupplierManagementService {
     /**
      * Create a new supplier
      */
-    static async createSupplier(supplierData: Omit<Supplier, 'id' | 'createdAt' | 'updatedAt'>, userId: string): Promise<Supplier> {
+    static async createSupplier(
+        supplierData: Omit<Supplier, 'id' | 'createdAt' | 'updatedAt'>,
+        userId: string,
+        documents?: Array<{
+            file?: File;
+            documentType: string;
+            title?: string;
+            description?: string;
+        }>,
+        externalLinks?: Array<{
+            title: string;
+            url: string;
+            description?: string;
+        }>
+    ): Promise<Supplier> {
 
         console.log('🏢 Creating new supplier:', supplierData.name);
 
@@ -195,6 +210,17 @@ export class SupplierManagementService {
                 locations: validatedData.locations
             };
 
+            // Upload documents if provided
+            if (documents && documents.length > 0) {
+                console.log('📄 Uploading supplier documents:', documents.length);
+                await this.uploadSupplierDocuments(orgData.id, documents, userId, userData.organization_id);
+            }
+
+            // Create external link documents if provided
+            if (externalLinks && externalLinks.length > 0) {
+                console.log('🔗 Creating external link documents:', externalLinks.length);
+                await this.createExternalLinkDocuments(orgData.id, externalLinks, userId, userData.organization_id);
+            }
 
             return supplier;
 
@@ -1181,5 +1207,152 @@ export class SupplierManagementService {
             csv: csvData,
             json: jsonData
         };
+    }
+
+    /**
+     * Upload supplier documents to storage and database
+     */
+    private static async uploadSupplierDocuments(
+        supplierId: string,
+        documents: Array<{
+            file?: File;
+            documentType: string;
+            title?: string;
+            description?: string;
+        }>,
+        userId: string,
+        organizationId: string
+    ): Promise<void> {
+        try {
+            for (const doc of documents) {
+                if (!doc.file) continue;
+
+                // Upload file to storage
+                // Clean the file name to avoid issues with special characters
+                const cleanFileName = doc.file.name.replace(/[^a-zA-Z0-9.-]/g, '_');
+                const fileName = `supplier-${supplierId}-${Date.now()}-${cleanFileName}`;
+                const filePath = `suppliers/${supplierId}/${fileName}`;
+
+                console.log('📤 Uploading file to storage:', {
+                    originalFileName: doc.file.name,
+                    cleanFileName: cleanFileName,
+                    fileName: fileName,
+                    filePath: filePath,
+                    fileSize: doc.file.size,
+                    documentType: doc.documentType,
+                    mimeType: doc.file.type
+                });
+
+                const { data: uploadData, error: uploadError } = await supabase.storage
+                    .from('documents')
+                    .upload(filePath, doc.file, {
+                        contentType: doc.file.type,
+                        upsert: false
+                    });
+
+                if (uploadError) {
+                    console.error('❌ File upload failed:', uploadError);
+                    throw new Error(`Failed to upload file ${doc.file.name}: ${uploadError.message}`);
+                }
+
+                console.log('✅ File uploaded successfully:', uploadData);
+
+                // Create document record in database
+                console.log('💾 Creating document record with data:', {
+                    organization_id: organizationId,
+                    userId: userId,
+                    fileName: fileName,
+                    filePath: filePath,
+                    documentType: doc.documentType
+                });
+
+                const { error: docError } = await supabase
+                    .from('documents')
+                    .insert({
+                        organization_id: organizationId,
+                        title: doc.title || doc.file.name,
+                        description: doc.description || `Supplier document: ${doc.documentType}`,
+                        file_name: fileName,
+                        file_path: filePath,
+                        file_size: doc.file.size,
+                        mime_type: doc.file.type,
+                        category: doc.documentType as any,
+                        uploaded_by: userId,
+                        metadata: {
+                            supplierId: supplierId,
+                            documentType: doc.documentType,
+                            originalFileName: doc.file.name
+                        }
+                    });
+
+                if (docError) {
+                    console.error('❌ Document record creation failed:', docError);
+                    // Clean up uploaded file
+                    await supabase.storage.from('documents').remove([filePath]);
+                    throw new Error(`Failed to create document record: ${docError.message}`);
+                }
+
+                console.log('✅ Document record created successfully');
+            }
+        } catch (error) {
+            console.error('❌ Supplier document upload failed:', error);
+            throw error;
+        }
+    }
+
+    /**
+     * Create external link documents in database
+     */
+    private static async createExternalLinkDocuments(
+        supplierId: string,
+        externalLinks: Array<{
+            title: string;
+            url: string;
+            description?: string;
+        }>,
+        userId: string,
+        organizationId: string
+    ): Promise<void> {
+        try {
+            for (const link of externalLinks) {
+                console.log('🔗 Creating external link document:', {
+                    title: link.title,
+                    url: link.url,
+                    supplierId,
+                    organization_id: organizationId,
+                    userId: userId
+                });
+
+                const { error: docError } = await supabase
+                    .from('documents')
+                    .insert({
+                        organization_id: organizationId,
+                        title: link.title,
+                        description: link.description || `External document link: ${link.title}`,
+                        file_name: link.title,
+                        file_path: link.url,
+                        file_size: null,
+                        mime_type: 'application/link',
+                        category: 'supplier_external_link' as any,
+                        uploaded_by: userId,
+                        metadata: {
+                            supplierId: supplierId,
+                            documentType: 'supplier_external_link',
+                            externalUrl: link.url,
+                            isExternalLink: true
+                        }
+                    });
+
+                if (docError) {
+                    console.error('❌ External link document creation failed:', docError);
+                    throw new Error(`Failed to create external link document: ${docError.message}`);
+                }
+
+                console.log('✅ External link document created successfully');
+            }
+        } catch (error) {
+            console.error('❌ External link document creation failed:', error);
+            throw error;
+        }
     }
 }

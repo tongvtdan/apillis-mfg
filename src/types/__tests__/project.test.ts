@@ -11,11 +11,16 @@ describe('Project Types', () => {
     describe('ProjectStatus', () => {
         it('should include all valid status values', () => {
             const validStatuses: ProjectStatus[] = [
-                'active',
-                'on_hold',
-                'delayed',
-                'cancelled',
-                'completed'
+                'draft',
+                'inquiry',
+                'in_progress',
+                'reviewing',
+                'quoted',
+                'confirmed',
+                'procurement',
+                'production',
+                'completed',
+                'cancelled'
             ]
 
             validStatuses.forEach(status => {
