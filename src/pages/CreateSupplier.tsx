@@ -4,16 +4,27 @@ import { useToast } from "@/shared/hooks/use-toast";
 import { Button } from "@/components/ui/button";
 import { ArrowLeft } from "lucide-react";
 import { SupplierIntakeForm } from "@/components/supplier";
+import { SupplierManagementService } from "@/features/supplier-management/services/supplierManagementService";
 
 export default function CreateSupplier() {
     const navigate = useNavigate();
     const { toast } = useToast();
 
-    const handleSuccess = (supplierId: string) => {
-        toast({
-            title: "Supplier Created Successfully!",
-            description: `New supplier has been created with ID: ${supplierId}`,
-        });
+    const handleSuccess = async (supplierId: string) => {
+        try {
+            // Fetch the supplier details to get the name
+            const supplier = await SupplierManagementService.getSupplierById(supplierId);
+            toast({
+                title: "Supplier Created Successfully!",
+                description: `New supplier "${supplier.name}" has been created successfully.`,
+            });
+        } catch (error) {
+            // Fallback if we can't fetch the supplier details
+            toast({
+                title: "Supplier Created Successfully!",
+                description: `New supplier has been created successfully.`,
+            });
+        }
 
         // Navigate back to suppliers list
         navigate("/suppliers");

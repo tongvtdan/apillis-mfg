@@ -64,7 +64,6 @@ export const supplierSchema = z.object({
     qualityStandards: z.array(z.string()),
 
     // Financial information
-    creditLimit: z.number().positive().optional(),
     paymentTerms: z.string().optional(),
     currency: z.string().default('USD'),
 

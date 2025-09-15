@@ -62,6 +62,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     };
 
     const fetchProfile = async (userId: string) => {
+        console.log('🔍 fetchProfile called for userId:', userId);
         try {
             // Get user and session in parallel for better performance
             const [{ data: { user: authUser }, error: userError }, { data: { session }, error: sessionError }] =
@@ -70,29 +71,28 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
                     supabase.auth.getSession()
                 ]);
 
+            console.log('🔍 Auth user:', authUser?.id, 'Session:', !!session?.access_token);
+
             // Validate both auth user and session exist
             if (userError || sessionError || !authUser?.id || !session?.access_token) {
-                console.error('Authentication validation failed:', { userError, sessionError });
+                console.error('❌ Authentication validation failed:', { userError, sessionError });
                 setProfile(null);
                 return;
             }
 
             // Optimized query: fetch user profile with organization data in single query
+            console.log('🔍 Querying users table for userId:', authUser.id);
             const { data, error } = await supabase
                 .from('users')
-                .select(`
-          *,
-          organizations!inner (
-            id,
-            name,
-            slug
-          )
-        `)
+                .select('*')
                 .eq('id', authUser.id)
                 .maybeSingle();
 
+            console.log('🔍 Database query result:', { data: !!data, error });
+
             if (error) {
-                console.error('Error fetching user profile:', error);
+                console.error('❌ Error fetching user profile:', error);
+                console.error('❌ Error details:', JSON.stringify(error, null, 2));
                 setProfile(null);
                 return;
             }
@@ -120,13 +120,21 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
                     // Try to create a new profile in the database first
                     try {
                         // Get the default organization
-                        const { data: orgData } = await supabase
+                        console.log('🔍 Looking up default organization with slug: apillis');
+                        const { data: orgData, error: orgError } = await supabase
                             .from('organizations')
-                            .select('id')
+                            .select('id, name, slug')
                             .eq('slug', 'apillis')  // Changed from 'factory-pulse-vietnam' to 'apillis'
                             .maybeSingle();
 
+                        console.log('🔍 Organization lookup result:', { orgData, orgError });
+
+                        if (orgError) {
+                            console.error('❌ Error looking up organization:', orgError);
+                        }
+
                         if (orgData) {
+                            console.log('✅ Found organization:', orgData);
                             // Determine role based on email pattern
                             let userRole: 'sales' | 'procurement' | 'engineering' | 'qa' | 'production' | 'management' | 'admin' = 'sales';
 
@@ -149,6 +157,14 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
                             }
 
                             // Create new user profile in database
+                            console.log('🔍 Creating new user profile with data:', {
+                                id: authUser.id,
+                                organization_id: orgData.id,
+                                email: authUser.email,
+                                name: authUser.user_metadata?.name || authUser.email.split('@')[0],
+                                role: userRole
+                            });
+
                             const { data: newProfile, error: createError } = await supabase
                                 .from('users')
                                 .insert({
@@ -164,6 +180,8 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
                                 })
                                 .select()
                                 .single();
+
+                            console.log('🔍 User creation result:', { newProfile: !!newProfile, createError });
 
                             if (newProfile && !createError) {
                                 console.log('New profile created in database:', newProfile);

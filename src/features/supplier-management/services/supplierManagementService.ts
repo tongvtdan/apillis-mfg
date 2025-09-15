@@ -32,23 +32,180 @@ export class SupplierManagementService {
                 updatedAt: new Date().toISOString()
             });
 
-            const { data, error } = await supabase
-                .from('suppliers')
-                .insert(validatedData)
+            // Get user's organization ID
+            const { data: userData, error: userError } = await supabase
+                .from('users')
+                .select('organization_id')
+                .eq('id', userId)
+                .single();
+
+            if (userError || !userData?.organization_id) {
+                throw new Error('User organization not found');
+            }
+
+            // Create organization record for supplier
+            console.log('📝 Inserting organization data:', {
+                name: validatedData.name,
+                description: validatedData.description,
+                industry: validatedData.industry,
+                address: validatedData.address,
+                city: validatedData.city,
+                state: validatedData.state,
+                country: validatedData.country,
+                postal_code: validatedData.postalCode,
+                website: validatedData.website,
+                organization_type: 'supplier',
+                is_active: true,
+                tax_id: validatedData.taxId,
+                payment_terms: validatedData.paymentTerms,
+                default_currency: validatedData.currency,
+                metadata: {
+                    supplierType: validatedData.supplierType,
+                    qualificationStatus: validatedData.qualificationStatus,
+                    capabilities: validatedData.capabilities,
+                    certifications: validatedData.certifications,
+                    qualityStandards: validatedData.qualityStandards,
+                    onTimeDelivery: validatedData.onTimeDelivery,
+                    qualityRating: validatedData.qualityRating,
+                    responsiveness: validatedData.responsiveness,
+                    notes: validatedData.notes
+                }
+            });
+
+            const { data: orgData, error: orgError } = await supabase
+                .from('organizations')
+                .insert({
+                    name: validatedData.name,
+                    description: validatedData.description || null,
+                    industry: validatedData.industry || null,
+                    address: validatedData.address || null,
+                    city: validatedData.city || null,
+                    state: validatedData.state || null,
+                    country: validatedData.country || null,
+                    postal_code: validatedData.postalCode || null,
+                    website: validatedData.website || null,
+                    organization_type: 'supplier',
+                    is_active: true,
+                    tax_id: validatedData.taxId || null,
+                    payment_terms: validatedData.paymentTerms || null,
+                    default_currency: validatedData.currency || 'USD',
+                    metadata: {
+                        supplierType: validatedData.supplierType,
+                        qualificationStatus: validatedData.qualificationStatus,
+                        capabilities: validatedData.capabilities,
+                        certifications: validatedData.certifications,
+                        qualityStandards: validatedData.qualityStandards,
+                        onTimeDelivery: validatedData.onTimeDelivery,
+                        qualityRating: validatedData.qualityRating,
+                        responsiveness: validatedData.responsiveness,
+                        notes: validatedData.notes
+                    }
+                })
                 .select()
                 .single();
 
-            if (error) {
-                throw new Error(`Failed to create supplier: ${error.message}`);
+            if (orgError) {
+                console.error('❌ Organization insert error:', orgError);
+                throw new Error(`Failed to create supplier organization: ${orgError.message}`);
             }
 
+            // Create primary contact record
+            const { data: contactData, error: contactError } = await supabase
+                .from('contacts')
+                .insert({
+                    organization_id: orgData.id,
+                    type: 'supplier',
+                    contact_name: validatedData.name,
+                    email: validatedData.email,
+                    phone: validatedData.phone,
+                    address: validatedData.address,
+                    city: validatedData.city,
+                    state: validatedData.state,
+                    country: validatedData.country,
+                    postal_code: validatedData.postalCode,
+                    website: validatedData.website,
+                    is_primary_contact: true,
+                    role: 'Primary Contact',
+                    notes: validatedData.notes,
+                    created_by: userId
+                })
+                .select()
+                .single();
+
+            if (contactError) {
+                throw new Error(`Failed to create supplier contact: ${contactError.message}`);
+            }
+
+            // Create additional contacts if provided
+            if (validatedData.contacts && validatedData.contacts.length > 0) {
+                const additionalContacts = validatedData.contacts
+                    .filter(contact => !contact.isPrimary)
+                    .map(contact => ({
+                        organization_id: orgData.id,
+                        type: 'supplier',
+                        contact_name: contact.name,
+                        email: contact.email,
+                        phone: contact.phone,
+                        role: contact.title,
+                        is_primary_contact: false,
+                        notes: contact.department,
+                        created_by: userId
+                    }));
+
+                if (additionalContacts.length > 0) {
+                    const { error: additionalContactsError } = await supabase
+                        .from('contacts')
+                        .insert(additionalContacts);
+
+                    if (additionalContactsError) {
+                        console.warn('Failed to create additional contacts:', additionalContactsError);
+                    }
+                }
+            }
+
+            // Transform the organization data to match Supplier interface
+            const supplier: Supplier = {
+                id: orgData.id,
+                name: orgData.name,
+                companyName: orgData.name,
+                description: orgData.description,
+                supplierType: validatedData.supplierType,
+                status: validatedData.status,
+                qualificationStatus: validatedData.qualificationStatus,
+                email: contactData.email,
+                phone: contactData.phone,
+                website: orgData.website,
+                address: orgData.address,
+                city: orgData.city,
+                state: orgData.state,
+                country: orgData.country,
+                postalCode: orgData.postal_code,
+                taxId: orgData.tax_id,
+                registrationNumber: orgData.metadata?.registrationNumber,
+                industry: orgData.industry,
+                capabilities: orgData.metadata?.capabilities || [],
+                certifications: orgData.metadata?.certifications || [],
+                qualityStandards: orgData.metadata?.qualityStandards || [],
+                paymentTerms: orgData.payment_terms,
+                currency: orgData.default_currency || 'USD',
+                onTimeDelivery: orgData.metadata?.onTimeDelivery,
+                qualityRating: orgData.metadata?.qualityRating,
+                responsiveness: orgData.metadata?.responsiveness,
+                createdAt: orgData.created_at,
+                updatedAt: orgData.updated_at,
+                createdBy: userId,
+                notes: orgData.metadata?.notes,
+                contacts: validatedData.contacts,
+                locations: validatedData.locations
+            };
+
             // Log activity
-            await this.logSupplierActivity(data.id, 'supplier_created', {
-                supplierName: data.name,
-                supplierType: data.supplierType
+            await this.logSupplierActivity(orgData.id, 'supplier_created', {
+                supplierName: orgData.name,
+                supplierType: validatedData.supplierType
             }, userId);
 
-            return data;
+            return supplier;
 
         } catch (error) {
             console.error('❌ Supplier creation failed:', error);
@@ -69,23 +226,101 @@ export class SupplierManagementService {
                 updatedAt: new Date().toISOString()
             };
 
-            const { data, error } = await supabase
-                .from('suppliers')
-                .update(updateData)
+            // Update organization record
+            const { data: orgData, error: orgError } = await supabase
+                .from('organizations')
+                .update({
+                    name: updateData.name,
+                    description: updateData.description,
+                    industry: updateData.industry,
+                    address: updateData.address,
+                    city: updateData.city,
+                    state: updateData.state,
+                    country: updateData.country,
+                    postal_code: updateData.postalCode,
+                    website: updateData.website,
+                    tax_id: updateData.taxId,
+                    payment_terms: updateData.paymentTerms,
+                    default_currency: updateData.currency,
+                    metadata: {
+                        supplierType: updateData.supplierType,
+                        qualificationStatus: updateData.qualificationStatus,
+                        capabilities: updateData.capabilities,
+                        certifications: updateData.certifications,
+                        qualityStandards: updateData.qualityStandards,
+                        onTimeDelivery: updateData.onTimeDelivery,
+                        qualityRating: updateData.qualityRating,
+                        responsiveness: updateData.responsiveness,
+                        notes: updateData.notes
+                    }
+                })
                 .eq('id', supplierId)
                 .select()
                 .single();
 
-            if (error) {
-                throw new Error(`Failed to update supplier: ${error.message}`);
+            if (orgError) {
+                throw new Error(`Failed to update supplier organization: ${orgError.message}`);
             }
+
+            // Update primary contact if email or phone changed
+            if (updateData.email || updateData.phone) {
+                const { error: contactError } = await supabase
+                    .from('contacts')
+                    .update({
+                        email: updateData.email,
+                        phone: updateData.phone,
+                        contact_name: updateData.name
+                    })
+                    .eq('organization_id', supplierId)
+                    .eq('is_primary_contact', true);
+
+                if (contactError) {
+                    console.warn('Failed to update primary contact:', contactError);
+                }
+            }
+
+            // Transform the organization data to match Supplier interface
+            const supplier: Supplier = {
+                id: orgData.id,
+                name: orgData.name,
+                companyName: orgData.name,
+                description: orgData.description,
+                supplierType: orgData.metadata?.supplierType || 'manufacturer',
+                status: orgData.metadata?.status || 'active',
+                qualificationStatus: orgData.metadata?.qualificationStatus || 'not_qualified',
+                email: updateData.email,
+                phone: updateData.phone,
+                website: orgData.website,
+                address: orgData.address,
+                city: orgData.city,
+                state: orgData.state,
+                country: orgData.country,
+                postalCode: orgData.postal_code,
+                taxId: orgData.tax_id,
+                registrationNumber: orgData.metadata?.registrationNumber,
+                industry: orgData.industry,
+                capabilities: orgData.metadata?.capabilities || [],
+                certifications: orgData.metadata?.certifications || [],
+                qualityStandards: orgData.metadata?.qualityStandards || [],
+                paymentTerms: orgData.payment_terms,
+                currency: orgData.default_currency || 'USD',
+                onTimeDelivery: orgData.metadata?.onTimeDelivery,
+                qualityRating: orgData.metadata?.qualityRating,
+                responsiveness: orgData.metadata?.responsiveness,
+                createdAt: orgData.created_at,
+                updatedAt: orgData.updated_at,
+                createdBy: userId,
+                notes: orgData.metadata?.notes,
+                contacts: updateData.contacts,
+                locations: updateData.locations
+            };
 
             // Log activity
             await this.logSupplierActivity(supplierId, 'supplier_updated', {
                 updatedFields: Object.keys(updates)
             }, userId);
 
-            return data;
+            return supplier;
 
         } catch (error) {
             console.error('❌ Supplier update failed:', error);
@@ -102,42 +337,20 @@ export class SupplierManagementService {
 
         try {
             let query = supabase
-                .from('suppliers')
-                .select('*', { count: 'exact' })
-                .eq('organization_id', organizationId);
+                .from('organizations')
+                .select(`
+                    *,
+                    contacts!inner(*)
+                `, { count: 'exact' })
+                .eq('organization_type', 'supplier');
 
             // Apply filters
             if (filters.name) {
                 query = query.ilike('name', `%${filters.name}%`);
             }
 
-            if (filters.supplierType?.length) {
-                query = query.in('supplier_type', filters.supplierType);
-            }
-
-            if (filters.status?.length) {
-                query = query.in('status', filters.status);
-            }
-
-            if (filters.qualificationStatus?.length) {
-                query = query.in('qualification_status', filters.qualificationStatus);
-            }
-
             if (filters.country?.length) {
                 query = query.in('country', filters.country);
-            }
-
-            if (filters.capabilities?.length) {
-                // This would require a more complex query for array contains
-                // For now, we'll filter in memory
-            }
-
-            if (filters.minRating) {
-                query = query.gte('quality_rating', filters.minRating);
-            }
-
-            if (filters.maxRating) {
-                query = query.lte('quality_rating', filters.maxRating);
             }
 
             const { data, error, count } = await query
@@ -148,12 +361,99 @@ export class SupplierManagementService {
                 throw new Error(`Failed to search suppliers: ${error.message}`);
             }
 
+            // Transform organization data to Supplier interface
+            const suppliers: Supplier[] = (data || []).map(org => {
+                const primaryContact = org.contacts?.find((c: any) => c.is_primary_contact) || org.contacts?.[0];
+
+                return {
+                    id: org.id,
+                    name: org.name,
+                    companyName: org.name,
+                    description: org.description,
+                    supplierType: org.metadata?.supplierType || 'manufacturer',
+                    status: org.metadata?.status || 'active',
+                    qualificationStatus: org.metadata?.qualificationStatus || 'not_qualified',
+                    email: primaryContact?.email,
+                    phone: primaryContact?.phone,
+                    website: org.website,
+                    address: org.address,
+                    city: org.city,
+                    state: org.state,
+                    country: org.country,
+                    postalCode: org.postal_code,
+                    taxId: org.tax_id,
+                    registrationNumber: org.metadata?.registrationNumber,
+                    industry: org.industry,
+                    capabilities: org.metadata?.capabilities || [],
+                    certifications: org.metadata?.certifications || [],
+                    qualityStandards: org.metadata?.qualityStandards || [],
+                    paymentTerms: org.payment_terms,
+                    currency: org.default_currency || 'USD',
+                    onTimeDelivery: org.metadata?.onTimeDelivery,
+                    qualityRating: org.metadata?.qualityRating,
+                    responsiveness: org.metadata?.responsiveness,
+                    createdAt: org.created_at,
+                    updatedAt: org.updated_at,
+                    createdBy: org.metadata?.createdBy,
+                    notes: org.metadata?.notes,
+                    contacts: org.contacts?.map((c: any) => ({
+                        id: c.id,
+                        name: c.contact_name,
+                        title: c.role,
+                        email: c.email,
+                        phone: c.phone,
+                        isPrimary: c.is_primary_contact,
+                        department: c.notes
+                    })),
+                    locations: [] // TODO: Implement locations if needed
+                };
+            });
+
+            // Apply additional filters in memory for complex queries
+            let filteredSuppliers = suppliers;
+
+            if (filters.supplierType?.length) {
+                filteredSuppliers = filteredSuppliers.filter(s =>
+                    filters.supplierType!.includes(s.supplierType)
+                );
+            }
+
+            if (filters.status?.length) {
+                filteredSuppliers = filteredSuppliers.filter(s =>
+                    filters.status!.includes(s.status)
+                );
+            }
+
+            if (filters.qualificationStatus?.length) {
+                filteredSuppliers = filteredSuppliers.filter(s =>
+                    filters.qualificationStatus!.includes(s.qualificationStatus)
+                );
+            }
+
+            if (filters.capabilities?.length) {
+                filteredSuppliers = filteredSuppliers.filter(s =>
+                    filters.capabilities!.some(cap => s.capabilities.includes(cap))
+                );
+            }
+
+            if (filters.minRating && filters.minRating > 0) {
+                filteredSuppliers = filteredSuppliers.filter(s =>
+                    (s.qualityRating || 0) >= filters.minRating!
+                );
+            }
+
+            if (filters.maxRating && filters.maxRating < 5) {
+                filteredSuppliers = filteredSuppliers.filter(s =>
+                    (s.qualityRating || 0) <= filters.maxRating!
+                );
+            }
+
             // Calculate facets
-            const facets = this.calculateFacets(data || []);
+            const facets = this.calculateFacets(filteredSuppliers);
 
             return {
-                suppliers: data || [],
-                totalCount: count || 0,
+                suppliers: filteredSuppliers,
+                totalCount: filteredSuppliers.length,
                 facets
             };
 
@@ -220,8 +520,30 @@ export class SupplierManagementService {
         console.log('✅ Qualifying supplier:', supplierId);
 
         try {
+            // Update supplier qualification status in organization metadata
+            const { error: updateError } = await supabase
+                .from('organizations')
+                .update({
+                    metadata: {
+                        qualificationStatus: 'qualified',
+                        qualificationScore: qualificationData.overallScore,
+                        qualificationCriteria: qualificationData.criteria,
+                        qualificationRecommendations: qualificationData.recommendations,
+                        qualificationValidUntil: qualificationData.validUntil,
+                        qualificationApprovedBy: qualificationData.approvedBy,
+                        qualificationApprovedAt: new Date().toISOString()
+                    },
+                    updated_at: new Date().toISOString()
+                })
+                .eq('id', supplierId);
+
+            if (updateError) {
+                throw new Error(`Failed to update supplier qualification: ${updateError.message}`);
+            }
+
+            // Create qualification record in supplier_qualifications table if it exists
             const qualificationRecord = {
-                supplier_id: supplierId,
+                organization_id: supplierId,
                 criteria_scores: qualificationData.criteria,
                 overall_score: qualificationData.overallScore,
                 recommendations: qualificationData.recommendations,
@@ -231,28 +553,12 @@ export class SupplierManagementService {
                 created_by: userId
             };
 
-            // Update supplier qualification status
-            const { error: updateError } = await supabase
-                .from('suppliers')
-                .update({
-                    qualification_status: 'qualified',
-                    approved_by: qualificationData.approvedBy,
-                    approved_at: new Date().toISOString(),
-                    updated_at: new Date().toISOString()
-                })
-                .eq('id', supplierId);
-
-            if (updateError) {
-                throw new Error(`Failed to update supplier: ${updateError.message}`);
-            }
-
-            // Create qualification record
             const { error: qualError } = await supabase
                 .from('supplier_qualifications')
                 .insert(qualificationRecord);
 
             if (qualError) {
-                throw new Error(`Failed to create qualification record: ${qualError.message}`);
+                console.warn('Failed to create qualification record (table may not exist):', qualError);
             }
 
             // Log activity
@@ -282,9 +588,32 @@ export class SupplierManagementService {
                 updatedAt: new Date().toISOString()
             });
 
+            // Get user's organization ID
+            const { data: userData, error: userError } = await supabase
+                .from('users')
+                .select('organization_id')
+                .eq('id', userId)
+                .single();
+
+            if (userError || !userData?.organization_id) {
+                throw new Error('User organization not found');
+            }
+
+            // Create RFQ record
             const { data, error } = await supabase
-                .from('rfqs')
-                .insert(validatedData)
+                .from('supplier_rfqs')
+                .insert({
+                    organization_id: userData.organization_id,
+                    project_id: validatedData.projectId,
+                    supplier_id: validatedData.suppliers[0], // For now, assume single supplier
+                    rfq_number: validatedData.title,
+                    status: validatedData.status,
+                    priority: validatedData.priority,
+                    due_date: validatedData.dueDate,
+                    requirements: validatedData.description,
+                    special_instructions: validatedData.requirements.join('\n'),
+                    created_by: userId
+                })
                 .select()
                 .single();
 
@@ -294,12 +623,33 @@ export class SupplierManagementService {
 
             // Log activity
             await this.logRFQActivity(data.id, 'rfq_created', {
-                title: data.title,
-                supplierCount: data.suppliers.length,
-                itemCount: data.items.length
+                title: data.rfq_number,
+                supplierCount: validatedData.suppliers.length,
+                itemCount: validatedData.items.length
             }, userId);
 
-            return data;
+            // Transform to RFQ interface
+            const rfq: RFQ = {
+                id: data.id,
+                title: data.rfq_number,
+                description: data.requirements,
+                projectId: data.project_id,
+                items: validatedData.items,
+                suppliers: [data.supplier_id],
+                status: data.status,
+                dueDate: data.due_date,
+                budget: validatedData.budget,
+                priority: data.priority,
+                requirements: data.special_instructions ? data.special_instructions.split('\n') : [],
+                attachments: validatedData.attachments,
+                createdAt: data.created_at,
+                updatedAt: data.updated_at,
+                createdBy: data.created_by,
+                sentAt: data.sent_at,
+                completedAt: undefined
+            };
+
+            return rfq;
 
         } catch (error) {
             console.error('❌ RFQ creation failed:', error);
@@ -317,7 +667,7 @@ export class SupplierManagementService {
         try {
             // Update RFQ status
             const { error: updateError } = await supabase
-                .from('rfqs')
+                .from('supplier_rfqs')
                 .update({
                     status: 'sent',
                     sent_at: new Date().toISOString(),
@@ -355,9 +705,35 @@ export class SupplierManagementService {
                 submittedAt: new Date().toISOString()
             });
 
+            // Get user's organization ID
+            const { data: userData, error: userError } = await supabase
+                .from('users')
+                .select('organization_id')
+                .eq('id', userId)
+                .single();
+
+            if (userError || !userData?.organization_id) {
+                throw new Error('User organization not found');
+            }
+
+            // Create supplier quote record
             const { data, error } = await supabase
-                .from('supplier_responses')
-                .insert(validatedData)
+                .from('supplier_quotes')
+                .insert({
+                    organization_id: userData.organization_id,
+                    supplier_rfq_id: validatedData.rfqId,
+                    supplier_id: validatedData.supplierId,
+                    quote_number: `Q-${Date.now()}`,
+                    total_amount: validatedData.totalValue,
+                    currency: 'USD', // Default currency
+                    lead_time_days: validatedData.items[0]?.leadTime || 30,
+                    valid_until: new Date(Date.now() + validatedData.validityPeriod * 24 * 60 * 60 * 1000).toISOString().split('T')[0],
+                    payment_terms: validatedData.paymentTerms,
+                    shipping_terms: validatedData.deliveryTerms,
+                    status: 'received',
+                    notes: validatedData.comments,
+                    submitted_at: validatedData.submittedAt
+                })
                 .select()
                 .single();
 
@@ -371,7 +747,26 @@ export class SupplierManagementService {
                 totalValue: responseData.totalValue
             }, userId);
 
-            return data;
+            // Transform to SupplierResponse interface
+            const response: SupplierResponse = {
+                id: data.id,
+                rfqId: data.supplier_rfq_id,
+                supplierId: data.supplier_id,
+                status: 'submitted',
+                items: validatedData.items,
+                totalValue: data.total_amount,
+                validityPeriod: validatedData.validityPeriod,
+                paymentTerms: data.payment_terms,
+                deliveryTerms: data.shipping_terms,
+                warranty: validatedData.warranty,
+                comments: data.notes,
+                exceptions: validatedData.exceptions,
+                submittedAt: data.submitted_at,
+                reviewedAt: undefined,
+                reviewedBy: undefined
+            };
+
+            return response;
 
         } catch (error) {
             console.error('❌ Supplier response submission failed:', error);
@@ -387,18 +782,59 @@ export class SupplierManagementService {
         try {
             const targetPeriod = period || new Date().toISOString().slice(0, 7); // YYYY-MM
 
+            // Try to get from supplier_performance table first
             const { data, error } = await supabase
-                .from('supplier_performance')
+                .from('supplier_performance_metrics')
                 .select('*')
                 .eq('supplier_id', supplierId)
-                .eq('period', targetPeriod)
+                .eq('period_start', targetPeriod + '-01')
                 .single();
 
             if (error && error.code !== 'PGRST116') { // Not found error
-                throw new Error(`Failed to fetch supplier performance: ${error.message}`);
+                console.warn('Failed to fetch supplier performance from metrics table:', error);
             }
 
-            return data || null;
+            if (data) {
+                return {
+                    supplierId: data.supplier_id,
+                    period: targetPeriod,
+                    metrics: {
+                        totalOrders: data.total_orders || 0,
+                        onTimeDeliveries: data.on_time_deliveries || 0,
+                        qualityIncidents: data.quality_incidents || 0,
+                        averageLeadTime: data.average_lead_time_days || 0,
+                        averageCostVariance: data.average_cost_variance || 0,
+                        responsivenessRating: data.response_rate || 0
+                    },
+                    score: data.overall_performance_score || 0,
+                    grade: data.performance_grade as 'A' | 'B' | 'C' | 'D' | 'F' || 'F'
+                };
+            }
+
+            // Fallback: get basic performance data from organization metadata
+            const { data: orgData, error: orgError } = await supabase
+                .from('organizations')
+                .select('metadata')
+                .eq('id', supplierId)
+                .single();
+
+            if (orgError) {
+                console.warn('Failed to fetch supplier organization:', orgError);
+                return null;
+            }
+
+            const metadata = orgData?.metadata as any;
+            if (metadata?.performanceMetrics) {
+                return {
+                    supplierId,
+                    period: targetPeriod,
+                    metrics: metadata.performanceMetrics,
+                    score: metadata.performanceScore || 0,
+                    grade: metadata.performanceGrade || 'F'
+                };
+            }
+
+            return null;
 
         } catch (error) {
             console.error('❌ Failed to fetch supplier performance:', error);
@@ -424,9 +860,11 @@ export class SupplierManagementService {
 
             const score = this.calculatePerformanceScore(updatedMetrics);
 
+            // Try to update supplier_performance_metrics table first
             const performanceData = {
                 supplier_id: supplierId,
-                period,
+                period_start: period + '-01',
+                period_end: period + '-31',
                 metrics: updatedMetrics,
                 score,
                 grade: this.calculateGrade(score),
@@ -434,13 +872,30 @@ export class SupplierManagementService {
             };
 
             const { error } = await supabase
-                .from('supplier_performance')
+                .from('supplier_performance_metrics')
                 .upsert(performanceData, {
-                    onConflict: 'supplier_id,period'
+                    onConflict: 'supplier_id,period_start,period_end'
                 });
 
             if (error) {
-                throw new Error(`Failed to update supplier performance: ${error.message}`);
+                console.warn('Failed to update supplier performance metrics table:', error);
+
+                // Fallback: update organization metadata
+                const { error: orgError } = await supabase
+                    .from('organizations')
+                    .update({
+                        metadata: {
+                            performanceMetrics: updatedMetrics,
+                            performanceScore: score,
+                            performanceGrade: this.calculateGrade(score),
+                            performanceUpdatedAt: new Date().toISOString()
+                        }
+                    })
+                    .eq('id', supplierId);
+
+                if (orgError) {
+                    throw new Error(`Failed to update supplier performance: ${orgError.message}`);
+                }
             }
 
             // Log activity
@@ -488,13 +943,13 @@ export class SupplierManagementService {
 
         try {
             const { data, error } = await supabase
-                .from('rfqs')
+                .from('supplier_rfqs')
                 .select(`
                     *,
-                    suppliers:rfq_suppliers(
-                        supplier:suppliers(name, company_name)
+                    suppliers:supplier_id(
+                        organizations!inner(name, organization_type)
                     ),
-                    responses:supplier_responses(count)
+                    responses:supplier_quotes(count)
                 `)
                 .eq('project_id', projectId)
                 .order('created_at', { ascending: false });
@@ -503,7 +958,28 @@ export class SupplierManagementService {
                 throw new Error(`Failed to fetch RFQs: ${error.message}`);
             }
 
-            return data || [];
+            // Transform the data to match RFQ interface
+            const rfqs: RFQ[] = (data || []).map(rfq => ({
+                id: rfq.id,
+                title: rfq.rfq_number,
+                description: rfq.requirements,
+                projectId: rfq.project_id,
+                items: [], // TODO: Implement RFQ items if needed
+                suppliers: [rfq.supplier_id],
+                status: rfq.status,
+                dueDate: rfq.due_date,
+                budget: undefined,
+                priority: rfq.priority || 'normal',
+                requirements: rfq.requirements ? [rfq.requirements] : [],
+                attachments: [],
+                createdAt: rfq.created_at,
+                updatedAt: rfq.updated_at,
+                createdBy: rfq.created_by,
+                sentAt: rfq.sent_at,
+                completedAt: undefined
+            }));
+
+            return rfqs;
 
         } catch (error) {
             console.error('❌ Failed to fetch project RFQs:', error);
@@ -521,9 +997,22 @@ export class SupplierManagementService {
         userId: string
     ) {
         try {
+            // Get user's organization_id first
+            const { data: userData, error: userError } = await supabase
+                .from('users')
+                .select('organization_id')
+                .eq('id', userId)
+                .single();
+
+            if (userError || !userData?.organization_id) {
+                console.warn('Could not get user organization for activity log:', userError);
+                return;
+            }
+
             const { error } = await supabase
                 .from('activity_log')
                 .insert({
+                    organization_id: userData.organization_id,
                     entity_type: 'supplier',
                     entity_id: supplierId,
                     user_id: userId,
@@ -550,9 +1039,22 @@ export class SupplierManagementService {
         userId: string
     ) {
         try {
+            // Get user's organization_id first
+            const { data: userData, error: userError } = await supabase
+                .from('users')
+                .select('organization_id')
+                .eq('id', userId)
+                .single();
+
+            if (userError || !userData?.organization_id) {
+                console.warn('Could not get user organization for activity log:', userError);
+                return;
+            }
+
             const { error } = await supabase
                 .from('activity_log')
                 .insert({
+                    organization_id: userData.organization_id,
                     entity_type: 'rfq',
                     entity_id: rfqId,
                     user_id: userId,

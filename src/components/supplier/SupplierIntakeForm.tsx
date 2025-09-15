@@ -40,6 +40,7 @@ import { useToast } from "@/shared/hooks/use-toast";
 import { SupplierSpecialty } from "@/types/supplier";
 import { SUPPLIER_TYPE_CONFIG } from "@/features/supplier-management";
 import { SupplierManagementService } from "@/features/supplier-management/services/supplierManagementService";
+import { generateSupplierSampleData } from "@/utils/supplierSampleData";
 
 interface SupplierIntakeFormProps {
     onSuccess?: (supplierId: string) => void;
@@ -137,7 +138,7 @@ const PAYMENT_TERMS = [
 ];
 
 const CURRENCIES = [
-    'USD', 'EUR', 'GBP', 'CNY', 'JPY', 'CAD', 'MXN', 'AUD', 'CHF', 'SEK'
+    'USD', 'EUR', 'GBP', 'CNY', 'JPY', 'CAD', 'MXN', 'AUD', 'CHF', 'SEK', 'VND'
 ];
 
 const INCOTERMS = [
@@ -178,7 +179,6 @@ export function SupplierIntakeForm({ onSuccess, onCancel }: SupplierIntakeFormPr
         certifications: [] as string[],
         paymentTerms: "Net 30",
         currency: "USD",
-        creditLimit: "",
         incoterms: "FOB Origin",
 
         // Metadata
@@ -194,8 +194,18 @@ export function SupplierIntakeForm({ onSuccess, onCancel }: SupplierIntakeFormPr
     const fileInputRef = useRef<HTMLInputElement>(null);
 
     // State for external links
-    const [externalLinks, setExternalLinks] = useState<Array<{title: string, url: string, description?: string}>>([]);
-    const [newExternalLink, setNewExternalLink] = useState({title: '', url: '', description: ''});
+    const [externalLinks, setExternalLinks] = useState<Array<{ title: string, url: string, description?: string }>>([]);
+    const [newExternalLink, setNewExternalLink] = useState({ title: '', url: '', description: '' });
+
+    // Validation state
+    const [errors, setErrors] = useState<Record<string, string>>({});
+
+    // Helper component for error display
+    const ErrorMessage = ({ field }: { field: string }) => {
+        return errors[field] ? (
+            <p className="text-sm text-red-600 mt-1">{errors[field]}</p>
+        ) : null;
+    };
 
     // Document types based on wireframe design
     const DOCUMENT_TYPES = [
@@ -278,8 +288,8 @@ export function SupplierIntakeForm({ onSuccess, onCancel }: SupplierIntakeFormPr
             // Simple URL validation
             try {
                 new URL(newExternalLink.url);
-                setExternalLinks(prev => [...prev, {...newExternalLink}]);
-                setNewExternalLink({title: '', url: '', description: ''});
+                setExternalLinks(prev => [...prev, { ...newExternalLink }]);
+                setNewExternalLink({ title: '', url: '', description: '' });
             } catch (e) {
                 toast({
                     title: "Invalid URL",
@@ -292,6 +302,46 @@ export function SupplierIntakeForm({ onSuccess, onCancel }: SupplierIntakeFormPr
 
     const handleRemoveExternalLink = (index: number) => {
         setExternalLinks(prev => prev.filter((_, i) => i !== index));
+    };
+
+    // Sample data functionality
+    const handleFillSampleData = () => {
+        const sampleData = generateSupplierSampleData();
+
+        setFormData({
+            // Organization info
+            name: sampleData.name,
+            email: sampleData.email,
+            phone: sampleData.phone,
+            website: sampleData.website,
+            address: sampleData.address,
+            city: sampleData.city,
+            state: sampleData.state,
+            country: sampleData.country,
+            postalCode: sampleData.postalCode,
+
+            // Capabilities
+            specialties: sampleData.specialties,
+            materials: sampleData.materials,
+
+            // Compliance
+            certifications: sampleData.certifications,
+            paymentTerms: sampleData.paymentTerms,
+            currency: sampleData.currency,
+            incoterms: sampleData.incoterms,
+
+            // Metadata
+            tags: sampleData.tags,
+            internalNotes: sampleData.internalNotes,
+        });
+
+        // Clear any existing errors
+        setErrors({});
+
+        toast({
+            title: "Sample Data Loaded",
+            description: "Form has been filled with sample supplier data. You can modify any fields as needed.",
+        });
     };
 
     // File upload handlers
@@ -345,12 +395,77 @@ export function SupplierIntakeForm({ onSuccess, onCancel }: SupplierIntakeFormPr
         }
     };
 
+    // Validation functions
+    const validateEmail = (email: string): boolean => {
+        const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+        return emailRegex.test(email);
+    };
+
+    const validateWebsite = (website: string): boolean => {
+        if (!website.trim()) return true; // Optional field
+        const websiteRegex = /^(https?:\/\/)?([\da-z\.-]+)\.([a-z\.]{2,6})([\/\w \.-]*)*\/?$/;
+        return websiteRegex.test(website);
+    };
+
+    const validateForm = (): boolean => {
+        const newErrors: Record<string, string> = {};
+
+        // Required field validations
+        if (!formData.name.trim()) {
+            newErrors.name = "Organization name is required";
+        }
+
+        if (!formData.email.trim()) {
+            newErrors.email = "Primary contact email is required";
+        } else if (!validateEmail(formData.email)) {
+            newErrors.email = "Please enter a valid email address";
+        }
+
+        if (!formData.address.trim()) {
+            newErrors.address = "Address is required";
+        }
+
+        if (!formData.city.trim()) {
+            newErrors.city = "City is required";
+        }
+
+        if (!formData.country.trim()) {
+            newErrors.country = "Country is required";
+        }
+
+        // Optional field validations
+        if (formData.website.trim() && !validateWebsite(formData.website)) {
+            newErrors.website = "Please enter a valid website URL (e.g., www.example.com)";
+        }
+
+        if (formData.phone.trim() && formData.phone.length < 10) {
+            newErrors.phone = "Please enter a valid phone number";
+        }
+
+        setErrors(newErrors);
+        return Object.keys(newErrors).length === 0;
+    };
+
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
+
+        // Clear previous errors
+        setErrors({});
+
         if (!user?.id) {
             toast({
                 title: "Authentication Error",
                 description: "You must be logged in to create a supplier.",
+                variant: "destructive"
+            });
+            return;
+        }
+
+        // Validate form before submission
+        if (!validateForm()) {
+            toast({
+                title: "Validation Error",
+                description: "Please fix the errors below before submitting.",
                 variant: "destructive"
             });
             return;
@@ -376,7 +491,6 @@ export function SupplierIntakeForm({ onSuccess, onCancel }: SupplierIntakeFormPr
                 capabilities: formData.specialties,
                 certifications: formData.certifications,
                 qualityStandards: formData.certifications.filter(c => c.includes('ISO')),
-                creditLimit: formData.creditLimit ? parseFloat(formData.creditLimit) : undefined,
                 paymentTerms: formData.paymentTerms,
                 currency: formData.currency,
                 description: formData.internalNotes,
@@ -404,13 +518,13 @@ export function SupplierIntakeForm({ onSuccess, onCancel }: SupplierIntakeFormPr
             // In a future implementation, we would actually upload these files
             if (uploadedFiles.length > 0 || externalLinks.length > 0) {
                 toast({
-                    title: "Supplier Created",
-                    description: `Supplier created successfully! ${uploadedFiles.length} files and ${externalLinks.length} external links will be processed.`
+                    title: "Supplier Created Successfully!",
+                    description: `New supplier "${supplier.name}" has been created successfully! ${uploadedFiles.length} files and ${externalLinks.length} external links will be processed.`
                 });
             } else {
                 toast({
-                    title: "Success",
-                    description: "Supplier created successfully!"
+                    title: "Supplier Created Successfully!",
+                    description: `New supplier "${supplier.name}" has been created successfully.`
                 });
             }
 
@@ -430,11 +544,27 @@ export function SupplierIntakeForm({ onSuccess, onCancel }: SupplierIntakeFormPr
     return (
         <div className="max-w-4xl mx-auto space-y-6">
             {/* Header */}
-            <div className="text-center space-y-2">
-                <h1 className="text-3xl font-bold">Add New Supplier</h1>
-                <p className="text-muted-foreground">
-                    Onboard a new supplier into your qualified vendor base
-                </p>
+            <div className="text-center space-y-4">
+                <div className="space-y-2">
+                    <h1 className="text-3xl font-bold">Add New Supplier</h1>
+                    <p className="text-muted-foreground">
+                        Onboard a new supplier into your qualified vendor base
+                    </p>
+                </div>
+
+                {/* Sample Data Button */}
+                <div className="flex justify-center">
+                    <Button
+                        type="button"
+                        variant="outline"
+                        onClick={handleFillSampleData}
+                        disabled={isSubmitting}
+                        className="flex items-center gap-2"
+                    >
+                        <Plus className="h-4 w-4" />
+                        Fill Sample Data
+                    </Button>
+                </div>
             </div>
 
             <form onSubmit={handleSubmit}>
@@ -458,7 +588,9 @@ export function SupplierIntakeForm({ onSuccess, onCancel }: SupplierIntakeFormPr
                                     onChange={(e) => setFormData({ ...formData, name: e.target.value })}
                                     placeholder="Acme Precision Machining LLC"
                                     required
+                                    className={errors.name ? "border-red-500 focus:border-red-500" : ""}
                                 />
+                                <ErrorMessage field="name" />
                             </div>
 
                             <div className="space-y-2">
@@ -470,7 +602,9 @@ export function SupplierIntakeForm({ onSuccess, onCancel }: SupplierIntakeFormPr
                                     onChange={(e) => setFormData({ ...formData, email: e.target.value })}
                                     placeholder="john.smith@acme-machining.com"
                                     required
+                                    className={errors.email ? "border-red-500 focus:border-red-500" : ""}
                                 />
+                                <ErrorMessage field="email" />
                             </div>
 
                             <div className="space-y-2">
@@ -480,7 +614,9 @@ export function SupplierIntakeForm({ onSuccess, onCancel }: SupplierIntakeFormPr
                                     value={formData.phone}
                                     onChange={(e) => setFormData({ ...formData, phone: e.target.value })}
                                     placeholder="+1-555-123-4567"
+                                    className={errors.phone ? "border-red-500 focus:border-red-500" : ""}
                                 />
+                                <ErrorMessage field="phone" />
                             </div>
 
                             <div className="space-y-2">
@@ -490,7 +626,9 @@ export function SupplierIntakeForm({ onSuccess, onCancel }: SupplierIntakeFormPr
                                     value={formData.website}
                                     onChange={(e) => setFormData({ ...formData, website: e.target.value })}
                                     placeholder="www.acme-machining.com"
+                                    className={errors.website ? "border-red-500 focus:border-red-500" : ""}
                                 />
+                                <ErrorMessage field="website" />
                             </div>
 
                             <div className="space-y-2 md:col-span-2">
@@ -501,7 +639,9 @@ export function SupplierIntakeForm({ onSuccess, onCancel }: SupplierIntakeFormPr
                                     onChange={(e) => setFormData({ ...formData, address: e.target.value })}
                                     placeholder="123 Industrial Blvd"
                                     required
+                                    className={errors.address ? "border-red-500 focus:border-red-500" : ""}
                                 />
+                                <ErrorMessage field="address" />
                             </div>
 
                             <div className="space-y-2">
@@ -512,7 +652,9 @@ export function SupplierIntakeForm({ onSuccess, onCancel }: SupplierIntakeFormPr
                                     onChange={(e) => setFormData({ ...formData, city: e.target.value })}
                                     placeholder="Torrance"
                                     required
+                                    className={errors.city ? "border-red-500 focus:border-red-500" : ""}
                                 />
+                                <ErrorMessage field="city" />
                             </div>
 
                             <div className="space-y-2">
@@ -531,7 +673,7 @@ export function SupplierIntakeForm({ onSuccess, onCancel }: SupplierIntakeFormPr
                                     value={formData.country}
                                     onValueChange={(value) => setFormData({ ...formData, country: value })}
                                 >
-                                    <SelectTrigger>
+                                    <SelectTrigger className={errors.country ? "border-red-500 focus:border-red-500" : ""}>
                                         <SelectValue placeholder="Select country" />
                                     </SelectTrigger>
                                     <SelectContent>
@@ -542,6 +684,7 @@ export function SupplierIntakeForm({ onSuccess, onCancel }: SupplierIntakeFormPr
                                         ))}
                                     </SelectContent>
                                 </Select>
+                                <ErrorMessage field="country" />
                             </div>
 
                             <div className="space-y-2">
@@ -724,17 +867,6 @@ export function SupplierIntakeForm({ onSuccess, onCancel }: SupplierIntakeFormPr
                             </div>
 
                             <div className="space-y-2">
-                                <Label htmlFor="creditLimit">Credit Limit</Label>
-                                <Input
-                                    id="creditLimit"
-                                    type="number"
-                                    value={formData.creditLimit}
-                                    onChange={(e) => setFormData({ ...formData, creditLimit: e.target.value })}
-                                    placeholder="100000"
-                                />
-                            </div>
-
-                            <div className="space-y-2">
                                 <Label htmlFor="incoterms">Incoterms</Label>
                                 <Select
                                     value={formData.incoterms}
@@ -904,12 +1036,12 @@ export function SupplierIntakeForm({ onSuccess, onCancel }: SupplierIntakeFormPr
                                 <Input
                                     placeholder="Document Title"
                                     value={newExternalLink.title}
-                                    onChange={(e) => setNewExternalLink({...newExternalLink, title: e.target.value})}
+                                    onChange={(e) => setNewExternalLink({ ...newExternalLink, title: e.target.value })}
                                 />
                                 <Input
                                     placeholder="https://example.com/document.pdf"
                                     value={newExternalLink.url}
-                                    onChange={(e) => setNewExternalLink({...newExternalLink, url: e.target.value})}
+                                    onChange={(e) => setNewExternalLink({ ...newExternalLink, url: e.target.value })}
                                 />
                                 <Button type="button" onClick={handleAddExternalLink} variant="outline">
                                     Add Link
@@ -919,7 +1051,7 @@ export function SupplierIntakeForm({ onSuccess, onCancel }: SupplierIntakeFormPr
                                 <Input
                                     placeholder="Description (optional)"
                                     value={newExternalLink.description}
-                                    onChange={(e) => setNewExternalLink({...newExternalLink, description: e.target.value})}
+                                    onChange={(e) => setNewExternalLink({ ...newExternalLink, description: e.target.value })}
                                 />
                             ) : null}
                         </div>
