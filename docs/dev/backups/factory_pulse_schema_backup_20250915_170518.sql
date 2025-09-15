@@ -157,7 +157,16 @@ CREATE TYPE "public"."document_category" AS ENUM (
     'shipping_doc',
     'delivery_confirmation',
     'invoice',
-    'other'
+    'other',
+    'supplier_nda',
+    'supplier_iso',
+    'supplier_insurance',
+    'supplier_financial',
+    'supplier_qc',
+    'supplier_profile',
+    'supplier_logo',
+    'supplier_qualified_image',
+    'supplier_external_link'
 );
 
 
@@ -238,6 +247,48 @@ CREATE TYPE "public"."sub_stage_status" AS ENUM (
 ALTER TYPE "public"."sub_stage_status" OWNER TO "postgres";
 
 
+CREATE TYPE "public"."supplier_qualification_status" AS ENUM (
+    'not_started',
+    'in_progress',
+    'pending_approval',
+    'qualified',
+    'qualified_with_conditions',
+    'qualified_as_exception',
+    'rejected',
+    'expired'
+);
+
+
+ALTER TYPE "public"."supplier_qualification_status" OWNER TO "postgres";
+
+
+CREATE TYPE "public"."supplier_quote_status" AS ENUM (
+    'sent',
+    'received',
+    'rejected',
+    'accepted',
+    'expired',
+    'cancelled'
+);
+
+
+ALTER TYPE "public"."supplier_quote_status" OWNER TO "postgres";
+
+
+CREATE TYPE "public"."supplier_rfq_status" AS ENUM (
+    'draft',
+    'sent',
+    'viewed',
+    'quoted',
+    'declined',
+    'expired',
+    'cancelled'
+);
+
+
+ALTER TYPE "public"."supplier_rfq_status" OWNER TO "postgres";
+
+
 CREATE TYPE "public"."user_role" AS ENUM (
     'admin',
     'management',
@@ -264,6 +315,124 @@ CREATE TYPE "public"."user_status" AS ENUM (
 
 
 ALTER TYPE "public"."user_status" OWNER TO "postgres";
+
+
+CREATE OR REPLACE FUNCTION "public"."approve_supplier_qualification"("supplier_org_id" "uuid", "approver_id" "uuid", "decision_type" "text", "conditions" "text" DEFAULT NULL::"text", "exception_justification" "text" DEFAULT NULL::"text", "escalated_to" "uuid" DEFAULT NULL::"uuid", "review_due_date" "date" DEFAULT NULL::"date", "attached_document_id" "uuid" DEFAULT NULL::"uuid", "overall_score" numeric DEFAULT NULL::numeric, "criteria_scores" "jsonb" DEFAULT '{}'::"jsonb") RETURNS json
+    LANGUAGE "plpgsql"
+    AS $$
+BEGIN
+    -- Update supplier_qualifications table with approval details
+    UPDATE public.supplier_qualifications
+    SET 
+        qualification_status = CASE 
+            WHEN decision_type = 'approve' THEN 'qualified'
+            WHEN decision_type = 'partial' THEN 'qualified_with_conditions'
+            WHEN decision_type = 'exception' THEN 'qualified_as_exception'
+            WHEN decision_type = 'reject' THEN 'rejected'
+            ELSE qualification_status
+        END,
+        qualification_conditions = CASE 
+            WHEN decision_type = 'partial' THEN conditions 
+            ELSE qualification_conditions 
+        END,
+        qualification_exception_justification = CASE 
+            WHEN decision_type = 'exception' THEN exception_justification 
+            ELSE qualification_exception_justification 
+        END,
+        qualification_exception_expires_at = CASE 
+            WHEN decision_type = 'exception' THEN review_due_date 
+            ELSE qualification_exception_expires_at 
+        END,
+        qualification_exception_reviewed_by = CASE 
+            WHEN decision_type = 'exception' THEN escalated_to 
+            ELSE qualification_exception_reviewed_by 
+        END,
+        overall_score = overall_score,
+        criteria_scores = criteria_scores,
+        approved_by = approver_id,
+        approved_at = NOW(),
+        updated_at = NOW()
+    WHERE organization_id = supplier_org_id;
+
+    -- Log approval in activity_log
+    INSERT INTO public.activity_log (
+        organization_id,
+        user_id,
+        entity_type,
+        entity_id,
+        action,
+        description,
+        metadata
+    ) VALUES (
+        (SELECT organization_id FROM public.organizations WHERE id = supplier_org_id),
+        approver_id,
+        'supplier_qualification',
+        supplier_org_id::TEXT,
+        'approved',
+        'Supplier qualification ' || decision_type || ' decision made',
+        json_build_object(
+            'decision_type', decision_type,
+            'conditions', conditions,
+            'exception_justification', exception_justification,
+            'escalated_to', escalated_to,
+            'review_due_date', review_due_date,
+            'attached_document_id', attached_document_id,
+            'overall_score', overall_score,
+            'criteria_scores', criteria_scores
+        )
+    );
+
+    -- Log approval in approval_history if there's a related approval
+    INSERT INTO public.approval_history (
+        organization_id,
+        approval_id,
+        user_id,
+        action,
+        old_status,
+        new_status,
+        comments,
+        metadata
+    )
+    SELECT 
+        a.organization_id,
+        a.id,
+        approver_id,
+        'approved',
+        a.status,
+        CASE 
+            WHEN decision_type = 'approve' THEN 'approved'::approval_status
+            WHEN decision_type = 'partial' THEN 'approved'::approval_status
+            WHEN decision_type = 'exception' THEN 'approved'::approval_status
+            WHEN decision_type = 'reject' THEN 'rejected'::approval_status
+            ELSE a.status
+        END,
+        'Supplier qualification ' || decision_type || ' decision',
+        json_build_object(
+            'decision_type', decision_type,
+            'conditions', conditions,
+            'exception_justification', exception_justification
+        )
+    FROM public.approvals a
+    WHERE a.entity_type = 'supplier_qualification'
+        AND a.entity_id = supplier_org_id
+        AND a.status IN ('pending', 'in_review')
+    LIMIT 1;
+
+    RETURN json_build_object(
+        'status', 'success',
+        'message', 'Supplier qualification approval processed successfully'
+    );
+EXCEPTION
+    WHEN OTHERS THEN
+        RETURN json_build_object(
+            'status', 'error',
+            'message', SQLERRM
+        );
+END;
+$$;
+
+
+ALTER FUNCTION "public"."approve_supplier_qualification"("supplier_org_id" "uuid", "approver_id" "uuid", "decision_type" "text", "conditions" "text", "exception_justification" "text", "escalated_to" "uuid", "review_due_date" "date", "attached_document_id" "uuid", "overall_score" numeric, "criteria_scores" "jsonb") OWNER TO "postgres";
 
 
 CREATE OR REPLACE FUNCTION "public"."delete_all_inactive_organizations"() RETURNS TABLE("organization_name" "text", "organization_slug" "text", "deleted_table" "text", "deleted_count" bigint, "status" "text")
@@ -1065,6 +1234,31 @@ $$;
 ALTER FUNCTION "public"."get_dashboard_summary_test"("org_id" "uuid") OWNER TO "postgres";
 
 
+CREATE OR REPLACE FUNCTION "public"."get_document_url"("file_path" "text", "expires_in" integer DEFAULT 3600) RETURNS "text"
+    LANGUAGE "plpgsql" SECURITY DEFINER
+    AS $$
+DECLARE
+    signed_url text;
+BEGIN
+    -- Verify user has access to this file
+    IF NOT EXISTS (
+        SELECT 1 FROM public.profiles 
+        WHERE profiles.id = auth.uid() 
+        AND profiles.organization_id::text = (storage.foldername(file_path))[1]
+    ) THEN
+        RAISE EXCEPTION 'Access denied to file: %', file_path;
+    END IF;
+    
+    -- Generate signed URL (this would need to be implemented with actual Supabase storage API)
+    -- For now, return the file path - the frontend will need to use Supabase client to get signed URLs
+    RETURN file_path;
+END;
+$$;
+
+
+ALTER FUNCTION "public"."get_document_url"("file_path" "text", "expires_in" integer) OWNER TO "postgres";
+
+
 CREATE OR REPLACE FUNCTION "public"."get_project_progress_summary"("p_project_id" "uuid") RETURNS TABLE("total_sub_stages" bigint, "completed_sub_stages" bigint, "in_progress_sub_stages" bigint, "blocked_sub_stages" bigint, "overdue_sub_stages" bigint, "next_due_date" timestamp with time zone, "estimated_completion_date" "date")
     LANGUAGE "plpgsql"
     AS $$
@@ -1110,6 +1304,41 @@ $$;
 
 
 ALTER FUNCTION "public"."get_project_progress_summary"("p_project_id" "uuid") OWNER TO "postgres";
+
+
+CREATE OR REPLACE FUNCTION "public"."get_secure_document_url"("document_id" "uuid", "expires_in" integer DEFAULT 3600) RETURNS "text"
+    LANGUAGE "plpgsql" SECURITY DEFINER
+    AS $$
+DECLARE
+    doc_record record;
+    signed_url text;
+BEGIN
+    -- Get document record
+    SELECT * INTO doc_record 
+    FROM public.documents 
+    WHERE id = document_id;
+    
+    -- Check if document exists
+    IF NOT FOUND THEN
+        RAISE EXCEPTION 'Document not found: %', document_id;
+    END IF;
+    
+    -- Verify user has access
+    IF NOT verify_document_access(doc_record.organization_id, doc_record.project_id) THEN
+        RAISE EXCEPTION 'Access denied to document: %', document_id;
+    END IF;
+    
+    -- Return the file path - frontend will use Supabase client to get signed URL
+    RETURN doc_record.file_path;
+END;
+$$;
+
+
+ALTER FUNCTION "public"."get_secure_document_url"("document_id" "uuid", "expires_in" integer) OWNER TO "postgres";
+
+
+COMMENT ON FUNCTION "public"."get_secure_document_url"("document_id" "uuid", "expires_in" integer) IS 'Returns the file path for a document if the user has access. Frontend should use Supabase client to get signed URLs for private storage';
+
 
 
 CREATE OR REPLACE FUNCTION "public"."get_user_org_simple"("user_id" "uuid") RETURNS "uuid"
@@ -1629,6 +1858,65 @@ $$;
 ALTER FUNCTION "public"."set_created_by"() OWNER TO "postgres";
 
 
+CREATE OR REPLACE FUNCTION "public"."start_supplier_qualification"("supplier_org_id" "uuid") RETURNS json
+    LANGUAGE "plpgsql"
+    AS $$
+DECLARE
+    qualification_id UUID;
+BEGIN
+    -- Insert or update supplier qualification record
+    INSERT INTO public.supplier_qualifications (organization_id, qualification_status)
+    VALUES (supplier_org_id, 'in_progress')
+    ON CONFLICT (organization_id)
+    DO UPDATE SET 
+        qualification_status = 'in_progress', 
+        updated_at = NOW()
+    RETURNING id INTO qualification_id;
+    
+    -- Insert 5 sub-stage records if they don't exist
+    INSERT INTO public.supplier_qualification_progress 
+        (organization_id, supplier_id, sub_stage_slug, status)
+    SELECT 
+        supplier_org_id,
+        c.id,
+        sub_stage,
+        'pending'
+    FROM public.contacts c
+    CROSS JOIN (
+        VALUES 
+        ('profile_complete'),
+        ('nda_signed'),
+        ('docs_uploaded'),
+        ('internal_review'),
+        ('final_approval')
+    ) AS sub_stages(sub_stage)
+    WHERE c.organization_id = supplier_org_id 
+        AND c.type = 'supplier'
+        AND NOT EXISTS (
+            SELECT 1 FROM public.supplier_qualification_progress sqp
+            WHERE sqp.supplier_id = c.id 
+                AND sqp.sub_stage_slug = sub_stages.sub_stage
+        )
+    ON CONFLICT DO NOTHING;
+    
+    RETURN json_build_object(
+        'status', 'success',
+        'qualification_id', qualification_id,
+        'message', 'Supplier qualification process started successfully'
+    );
+EXCEPTION
+    WHEN OTHERS THEN
+        RETURN json_build_object(
+            'status', 'error',
+            'message', SQLERRM
+        );
+END;
+$$;
+
+
+ALTER FUNCTION "public"."start_supplier_qualification"("supplier_org_id" "uuid") OWNER TO "postgres";
+
+
 CREATE OR REPLACE FUNCTION "public"."update_updated_at_column"() RETURNS "trigger"
     LANGUAGE "plpgsql"
     AS $$
@@ -1683,6 +1971,44 @@ $$;
 
 
 ALTER FUNCTION "public"."update_user_profile"("p_user_id" "uuid", "p_updates" "jsonb") OWNER TO "postgres";
+
+
+CREATE OR REPLACE FUNCTION "public"."verify_document_access"("document_org_id" "uuid", "document_project_id" "uuid" DEFAULT NULL::"uuid") RETURNS boolean
+    LANGUAGE "plpgsql" SECURITY DEFINER
+    AS $$
+DECLARE
+    user_org_id uuid;
+    user_id uuid;
+BEGIN
+    -- Get current user info
+    user_id := auth.uid();
+    IF user_id IS NULL THEN
+        RETURN false;
+    END IF;
+    
+    -- Get user's organization
+    SELECT organization_id INTO user_org_id 
+    FROM public.users 
+    WHERE id = user_id;
+    
+    -- User must be in the same organization as the document
+    IF user_org_id != document_org_id THEN
+        RETURN false;
+    END IF;
+    
+    -- Additional checks can be added here for project-specific access
+    -- For now, organization-level access is sufficient
+    
+    RETURN true;
+END;
+$$;
+
+
+ALTER FUNCTION "public"."verify_document_access"("document_org_id" "uuid", "document_project_id" "uuid") OWNER TO "postgres";
+
+
+COMMENT ON FUNCTION "public"."verify_document_access"("document_org_id" "uuid", "document_project_id" "uuid") IS 'Verifies that the current user has access to a document based on organization membership';
+
 
 SET default_tablespace = '';
 
@@ -1802,6 +2128,7 @@ CREATE TABLE IF NOT EXISTS "public"."contacts" (
     "id" "uuid" DEFAULT "gen_random_uuid"() NOT NULL,
     "organization_id" "uuid",
     "type" "text" DEFAULT 'customer'::"text",
+    "company_name" "text",
     "contact_name" "text",
     "email" "text",
     "phone" "text",
@@ -1825,10 +2152,6 @@ CREATE TABLE IF NOT EXISTS "public"."contacts" (
 
 
 ALTER TABLE "public"."contacts" OWNER TO "postgres";
-
-
-COMMENT ON COLUMN "public"."contacts"."created_by" IS 'User ID of the person who created this contact';
-
 
 
 CREATE TABLE IF NOT EXISTS "public"."custom_roles" (
@@ -1865,6 +2188,19 @@ CREATE TABLE IF NOT EXISTS "public"."document_access_log" (
 
 
 ALTER TABLE "public"."document_access_log" OWNER TO "postgres";
+
+
+CREATE TABLE IF NOT EXISTS "public"."document_categories" (
+    "code" "text" NOT NULL,
+    "name" "text" NOT NULL,
+    "is_portal_visible" boolean DEFAULT false,
+    "retention_policy" "jsonb" DEFAULT '{}'::"jsonb",
+    "created_at" timestamp with time zone DEFAULT "now"(),
+    "updated_at" timestamp with time zone DEFAULT "now"()
+);
+
+
+ALTER TABLE "public"."document_categories" OWNER TO "postgres";
 
 
 CREATE TABLE IF NOT EXISTS "public"."document_versions" (
@@ -2039,10 +2375,7 @@ CREATE TABLE IF NOT EXISTS "public"."users" (
     "last_login_at" timestamp with time zone,
     "preferences" "jsonb",
     "created_at" timestamp with time zone DEFAULT "now"(),
-    "updated_at" timestamp with time zone DEFAULT "now"(),
-    "permission_override" boolean DEFAULT false,
-    "custom_permissions_cache" "jsonb" DEFAULT '{}'::"jsonb",
-    "last_permission_update" timestamp with time zone DEFAULT "now"()
+    "updated_at" timestamp with time zone DEFAULT "now"()
 );
 
 
@@ -2126,6 +2459,11 @@ CREATE TABLE IF NOT EXISTS "public"."organizations" (
     "is_active" boolean DEFAULT true,
     "created_at" timestamp with time zone DEFAULT "now"(),
     "updated_at" timestamp with time zone DEFAULT "now"(),
+    "default_currency" "text" DEFAULT 'USD'::"text",
+    "tax_id" "text",
+    "payment_terms" "text",
+    "timezone" "text" DEFAULT 'UTC'::"text",
+    "metadata" "jsonb" DEFAULT '{}'::"jsonb",
     "created_by" "uuid"
 );
 
@@ -2133,7 +2471,11 @@ CREATE TABLE IF NOT EXISTS "public"."organizations" (
 ALTER TABLE "public"."organizations" OWNER TO "postgres";
 
 
-COMMENT ON COLUMN "public"."organizations"."created_by" IS 'User ID of the person who created this organization';
+COMMENT ON COLUMN "public"."organizations"."default_currency" IS 'Default currency this organization use for transaction';
+
+
+
+COMMENT ON COLUMN "public"."organizations"."tax_id" IS 'TAX id';
 
 
 
@@ -2181,53 +2523,57 @@ COMMENT ON TABLE "public"."permissions" IS 'System-wide permissions catalog defi
 
 
 
-CREATE TABLE IF NOT EXISTS "public"."review_checklist_items" (
-    "id" "uuid" DEFAULT "extensions"."uuid_generate_v4"() NOT NULL,
-    "review_id" "uuid" NOT NULL,
-    "item_text" "text" NOT NULL,
-    "is_checked" boolean DEFAULT false,
-    "is_required" boolean DEFAULT false,
-    "notes" "text",
-    "checked_by" "uuid",
-    "checked_at" timestamp with time zone,
-    "created_at" timestamp with time zone DEFAULT "now"(),
-    "updated_at" timestamp with time zone DEFAULT "now"()
-);
+CREATE OR REPLACE VIEW "public"."review_checklist_items" AS
+ SELECT NULL::"uuid" AS "id",
+    NULL::"uuid" AS "review_id",
+    NULL::"text" AS "item_text",
+    NULL::boolean AS "is_checked",
+    NULL::boolean AS "is_required",
+    NULL::"text" AS "notes",
+    NULL::"uuid" AS "checked_by",
+    NULL::timestamp with time zone AS "checked_at"
+  WHERE false;
 
 
-ALTER TABLE "public"."review_checklist_items" OWNER TO "postgres";
+ALTER VIEW "public"."review_checklist_items" OWNER TO "postgres";
 
 
-COMMENT ON TABLE "public"."review_checklist_items" IS 'Checklist items for reviews';
+COMMENT ON VIEW "public"."review_checklist_items" IS 'Empty view for review checklist items - placeholder for future implementation';
 
 
 
-CREATE TABLE IF NOT EXISTS "public"."reviews" (
-    "id" "uuid" DEFAULT "extensions"."uuid_generate_v4"() NOT NULL,
-    "organization_id" "uuid" NOT NULL,
-    "project_id" "uuid" NOT NULL,
-    "reviewer_id" "uuid" NOT NULL,
-    "reviewer_role" "public"."user_role",
-    "review_type" "public"."approval_type" NOT NULL,
-    "status" "public"."approval_status" DEFAULT 'pending'::"public"."approval_status" NOT NULL,
-    "priority" "public"."approval_priority" DEFAULT 'normal'::"public"."approval_priority" NOT NULL,
-    "comments" "text",
-    "risks" "jsonb" DEFAULT '{}'::"jsonb",
-    "recommendations" "text",
-    "tooling_required" boolean DEFAULT false,
-    "estimated_cost" numeric,
-    "estimated_lead_time" numeric,
-    "due_date" "date",
-    "reviewed_at" timestamp with time zone,
-    "created_at" timestamp with time zone DEFAULT "now"(),
-    "updated_at" timestamp with time zone DEFAULT "now"()
-);
+CREATE OR REPLACE VIEW "public"."reviews" AS
+ SELECT "id",
+    "organization_id",
+    "entity_id" AS "project_id",
+    "current_approver_id" AS "reviewer_id",
+    "current_approver_role" AS "reviewer_role",
+    "approval_type" AS "review_type",
+    "status",
+    "priority",
+    "decision_comments" AS "comments",
+    "request_metadata" AS "risks",
+    "decision_reason" AS "recommendations",
+        CASE
+            WHEN ("approval_type" = 'technical_review'::"public"."approval_type") THEN true
+            WHEN ("approval_type" = 'quality_review'::"public"."approval_type") THEN true
+            WHEN ("approval_type" = 'engineering_change'::"public"."approval_type") THEN true
+            ELSE false
+        END AS "tooling_required",
+    NULL::numeric AS "estimated_cost",
+    NULL::numeric AS "estimated_lead_time",
+    "due_date",
+    "decided_at" AS "reviewed_at",
+    "created_at",
+    "updated_at"
+   FROM "public"."approvals"
+  WHERE ("entity_type" = 'project'::"text");
 
 
-ALTER TABLE "public"."reviews" OWNER TO "postgres";
+ALTER VIEW "public"."reviews" OWNER TO "postgres";
 
 
-COMMENT ON TABLE "public"."reviews" IS 'Reviews table with proper foreign key constraints for Supabase joins';
+COMMENT ON VIEW "public"."reviews" IS 'View that maps reviews table to approvals table for backward compatibility';
 
 
 
@@ -2244,6 +2590,340 @@ ALTER TABLE "public"."role_permissions" OWNER TO "postgres";
 
 
 COMMENT ON TABLE "public"."role_permissions" IS 'Junction table linking custom roles to specific permissions';
+
+
+
+CREATE OR REPLACE VIEW "public"."secure_documents" AS
+ SELECT "id",
+    "organization_id",
+    "project_id",
+    "title",
+    "description",
+    "file_name",
+    "file_path",
+    "file_size",
+    "mime_type",
+    "category",
+    "version_number",
+    "is_current_version",
+    "storage_provider",
+    "checksum",
+    "access_level",
+    "tags",
+    "metadata",
+    "uploaded_by",
+    "approved_by",
+    "approved_at",
+    "created_at",
+    "updated_at",
+        CASE
+            WHEN "public"."verify_document_access"("organization_id", "project_id") THEN true
+            ELSE false
+        END AS "user_can_access"
+   FROM "public"."documents" "d";
+
+
+ALTER VIEW "public"."secure_documents" OWNER TO "postgres";
+
+
+COMMENT ON VIEW "public"."secure_documents" IS 'Provides secure access to documents with access verification';
+
+
+
+CREATE TABLE IF NOT EXISTS "public"."supplier_performance_metrics" (
+    "id" "uuid" DEFAULT "extensions"."uuid_generate_v4"() NOT NULL,
+    "organization_id" "uuid" NOT NULL,
+    "supplier_id" "uuid" NOT NULL,
+    "period_start" "date" NOT NULL,
+    "period_end" "date" NOT NULL,
+    "total_orders" integer DEFAULT 0,
+    "on_time_deliveries" integer DEFAULT 0,
+    "average_lead_time_days" numeric(5,2),
+    "quality_incidents" integer DEFAULT 0,
+    "quality_score" numeric(5,2),
+    "total_spend" numeric(18,2) DEFAULT 0,
+    "average_cost_variance" numeric(5,2),
+    "response_rate" numeric(5,2),
+    "average_response_time_hours" numeric(5,2),
+    "overall_performance_score" numeric(5,2),
+    "performance_grade" "text",
+    "notes" "text",
+    "metadata" "jsonb" DEFAULT '{}'::"jsonb",
+    "created_by" "uuid",
+    "created_at" timestamp with time zone DEFAULT "now"(),
+    "updated_at" timestamp with time zone DEFAULT "now"()
+);
+
+
+ALTER TABLE "public"."supplier_performance_metrics" OWNER TO "postgres";
+
+
+COMMENT ON TABLE "public"."supplier_performance_metrics" IS 'Tracks supplier performance metrics for analytics and reporting';
+
+
+
+COMMENT ON COLUMN "public"."supplier_performance_metrics"."period_start" IS 'Start date of the performance period';
+
+
+
+COMMENT ON COLUMN "public"."supplier_performance_metrics"."period_end" IS 'End date of the performance period';
+
+
+
+COMMENT ON COLUMN "public"."supplier_performance_metrics"."on_time_deliveries" IS 'Number of on-time deliveries during the period';
+
+
+
+COMMENT ON COLUMN "public"."supplier_performance_metrics"."quality_score" IS 'Quality score (0-100) based on incidents';
+
+
+
+COMMENT ON COLUMN "public"."supplier_performance_metrics"."response_rate" IS 'Supplier response rate percentage';
+
+
+
+COMMENT ON COLUMN "public"."supplier_performance_metrics"."overall_performance_score" IS 'Overall performance score (0-100)';
+
+
+
+CREATE TABLE IF NOT EXISTS "public"."supplier_qualifications" (
+    "id" "uuid" DEFAULT "extensions"."uuid_generate_v4"() NOT NULL,
+    "organization_id" "uuid" NOT NULL,
+    "qualification_status" "public"."supplier_qualification_status" DEFAULT 'not_started'::"public"."supplier_qualification_status",
+    "qualification_expiry" "date",
+    "qualification_conditions" "text",
+    "qualification_conditions_resolved" boolean DEFAULT false,
+    "qualification_exception_justification" "text",
+    "qualification_exception_expires_at" "date",
+    "qualification_exception_reviewed_by" "uuid",
+    "overall_score" numeric(5,2),
+    "criteria_scores" "jsonb" DEFAULT '{}'::"jsonb",
+    "recommendations" "text"[],
+    "valid_until" "date",
+    "approved_by" "uuid",
+    "approved_at" timestamp with time zone,
+    "created_by" "uuid",
+    "created_at" timestamp with time zone DEFAULT "now"(),
+    "updated_at" timestamp with time zone DEFAULT "now"()
+);
+
+
+ALTER TABLE "public"."supplier_qualifications" OWNER TO "postgres";
+
+
+COMMENT ON TABLE "public"."supplier_qualifications" IS 'Stores detailed qualification information for suppliers including status, conditions, and scoring';
+
+
+
+COMMENT ON COLUMN "public"."supplier_qualifications"."qualification_status" IS 'Current qualification status of the supplier';
+
+
+
+COMMENT ON COLUMN "public"."supplier_qualifications"."qualification_conditions" IS 'Conditions for partial approval';
+
+
+
+COMMENT ON COLUMN "public"."supplier_qualifications"."qualification_exception_justification" IS 'Justification for exception approval';
+
+
+
+COMMENT ON COLUMN "public"."supplier_qualifications"."overall_score" IS 'Overall qualification score (0-100)';
+
+
+
+COMMENT ON COLUMN "public"."supplier_qualifications"."criteria_scores" IS 'Detailed scores for each qualification criterion';
+
+
+
+COMMENT ON COLUMN "public"."supplier_qualifications"."valid_until" IS 'Date until which the qualification is valid';
+
+
+
+CREATE TABLE IF NOT EXISTS "public"."supplier_quotes" (
+    "id" "uuid" DEFAULT "extensions"."uuid_generate_v4"() NOT NULL,
+    "organization_id" "uuid" NOT NULL,
+    "supplier_rfq_id" "uuid" NOT NULL,
+    "supplier_id" "uuid" NOT NULL,
+    "quote_number" "text",
+    "unit_price" numeric(18,2),
+    "total_amount" numeric(18,2),
+    "currency" "text",
+    "quantity" integer,
+    "lead_time_days" integer,
+    "valid_until" "date",
+    "payment_terms" "text",
+    "shipping_terms" "text",
+    "status" "public"."supplier_quote_status" DEFAULT 'sent'::"public"."supplier_quote_status",
+    "notes" "text",
+    "quote_file_url" "text",
+    "is_selected" boolean DEFAULT false,
+    "submitted_at" timestamp with time zone,
+    "evaluated_at" timestamp with time zone,
+    "evaluated_by" "uuid",
+    "evaluation_score" numeric(5,2),
+    "evaluation_notes" "text",
+    "metadata" "jsonb" DEFAULT '{}'::"jsonb",
+    "created_at" timestamp with time zone DEFAULT "now"(),
+    "updated_at" timestamp with time zone DEFAULT "now"()
+);
+
+
+ALTER TABLE "public"."supplier_quotes" OWNER TO "postgres";
+
+
+COMMENT ON TABLE "public"."supplier_quotes" IS 'Stores quotes received from suppliers';
+
+
+
+COMMENT ON COLUMN "public"."supplier_quotes"."unit_price" IS 'Unit price quoted by the supplier';
+
+
+
+COMMENT ON COLUMN "public"."supplier_quotes"."total_amount" IS 'Total amount of the quote';
+
+
+
+COMMENT ON COLUMN "public"."supplier_quotes"."lead_time_days" IS 'Lead time in days offered by the supplier';
+
+
+
+COMMENT ON COLUMN "public"."supplier_quotes"."valid_until" IS 'Date until which the quote is valid';
+
+
+
+COMMENT ON COLUMN "public"."supplier_quotes"."status" IS 'Current status of the quote';
+
+
+
+COMMENT ON COLUMN "public"."supplier_quotes"."is_selected" IS 'Whether this quote has been selected for the RFQ';
+
+
+
+CREATE TABLE IF NOT EXISTS "public"."supplier_rfqs" (
+    "id" "uuid" DEFAULT "extensions"."uuid_generate_v4"() NOT NULL,
+    "organization_id" "uuid" NOT NULL,
+    "project_id" "uuid",
+    "supplier_id" "uuid",
+    "rfq_number" "text" NOT NULL,
+    "status" "public"."supplier_rfq_status" DEFAULT 'draft'::"public"."supplier_rfq_status",
+    "priority" "text",
+    "due_date" "date",
+    "expected_response_date" "date",
+    "sent_at" timestamp with time zone,
+    "viewed_at" timestamp with time zone,
+    "requirements" "text",
+    "special_instructions" "text",
+    "created_by" "uuid",
+    "created_at" timestamp with time zone DEFAULT "now"(),
+    "updated_at" timestamp with time zone DEFAULT "now"()
+);
+
+
+ALTER TABLE "public"."supplier_rfqs" OWNER TO "postgres";
+
+
+COMMENT ON TABLE "public"."supplier_rfqs" IS 'Manages RFQs sent to suppliers';
+
+
+
+COMMENT ON COLUMN "public"."supplier_rfqs"."rfq_number" IS 'Unique RFQ number for identification';
+
+
+
+COMMENT ON COLUMN "public"."supplier_rfqs"."status" IS 'Current status of the RFQ';
+
+
+
+COMMENT ON COLUMN "public"."supplier_rfqs"."due_date" IS 'Date by which the RFQ response is due';
+
+
+
+CREATE OR REPLACE VIEW "public"."supplier_details_view" AS
+ SELECT "o"."id" AS "organization_id",
+    "o"."name" AS "organization_name",
+    "o"."slug" AS "organization_slug",
+    "o"."description" AS "organization_description",
+    "o"."industry",
+    "o"."address",
+    "o"."city",
+    "o"."state",
+    "o"."country",
+    "o"."postal_code",
+    "o"."website",
+    "o"."logo_url",
+    "o"."is_active",
+    "c"."id" AS "primary_contact_id",
+    "c"."contact_name" AS "primary_contact_name",
+    "c"."email" AS "primary_contact_email",
+    "c"."phone" AS "primary_contact_phone",
+    "c"."role" AS "primary_contact_department",
+    "c"."role" AS "primary_contact_job_title",
+    "sq"."id" AS "qualification_id",
+    "sq"."qualification_status",
+    "sq"."qualification_expiry",
+    "sq"."overall_score",
+    "sq"."approved_at" AS "qualification_approved_at",
+    "sq"."valid_until",
+    "spm"."overall_performance_score",
+    "spm"."performance_grade",
+    "spm"."total_orders",
+    "spm"."on_time_deliveries",
+    "spm"."average_lead_time_days",
+    "spm"."quality_score",
+    "spm"."response_rate",
+    ( SELECT "count"(*) AS "count"
+           FROM "public"."supplier_rfqs" "sr"
+          WHERE ("sr"."supplier_id" = "c"."id")) AS "total_rfqs_sent",
+    ( SELECT "count"(*) AS "count"
+           FROM "public"."supplier_quotes" "sqts"
+          WHERE ("sqts"."supplier_id" = "c"."id")) AS "total_quotes_received",
+    ( SELECT "count"(*) AS "count"
+           FROM "public"."supplier_quotes" "sqts"
+          WHERE (("sqts"."supplier_id" = "c"."id") AND ("sqts"."status" = 'accepted'::"public"."supplier_quote_status"))) AS "total_quotes_accepted",
+    "o"."created_at" AS "organization_created_at",
+    "o"."updated_at" AS "organization_updated_at"
+   FROM ((("public"."organizations" "o"
+     LEFT JOIN "public"."contacts" "c" ON ((("o"."id" = "c"."organization_id") AND ("c"."type" = 'supplier'::"text") AND ("c"."is_primary_contact" = true))))
+     LEFT JOIN "public"."supplier_qualifications" "sq" ON (("o"."id" = "sq"."organization_id")))
+     LEFT JOIN "public"."supplier_performance_metrics" "spm" ON ((("c"."id" = "spm"."supplier_id") AND ("spm"."period_end" = ( SELECT "max"("spm2"."period_end") AS "max"
+           FROM "public"."supplier_performance_metrics" "spm2"
+          WHERE ("spm2"."supplier_id" = "c"."id"))))))
+  WHERE ("o"."organization_type" = 'supplier'::"text");
+
+
+ALTER VIEW "public"."supplier_details_view" OWNER TO "postgres";
+
+
+CREATE TABLE IF NOT EXISTS "public"."supplier_qualification_progress" (
+    "id" "uuid" DEFAULT "extensions"."uuid_generate_v4"() NOT NULL,
+    "organization_id" "uuid" NOT NULL,
+    "supplier_id" "uuid" NOT NULL,
+    "sub_stage_slug" "text" NOT NULL,
+    "status" "text" DEFAULT 'pending'::"text" NOT NULL,
+    "completed_at" timestamp with time zone,
+    "metadata" "jsonb" DEFAULT '{}'::"jsonb",
+    "created_at" timestamp with time zone DEFAULT "now"(),
+    "updated_at" timestamp with time zone DEFAULT "now"(),
+    CONSTRAINT "supplier_qualification_progress_status_check" CHECK (("status" = ANY (ARRAY['pending'::"text", 'in_progress'::"text", 'completed'::"text", 'blocked'::"text"])))
+);
+
+
+ALTER TABLE "public"."supplier_qualification_progress" OWNER TO "postgres";
+
+
+COMMENT ON TABLE "public"."supplier_qualification_progress" IS 'Tracks progress through qualification sub-stages for suppliers';
+
+
+
+COMMENT ON COLUMN "public"."supplier_qualification_progress"."sub_stage_slug" IS 'Slug identifier for the qualification sub-stage';
+
+
+
+COMMENT ON COLUMN "public"."supplier_qualification_progress"."status" IS 'Status of the sub-stage progress';
+
+
+
+COMMENT ON COLUMN "public"."supplier_qualification_progress"."completed_at" IS 'Timestamp when the sub-stage was completed';
 
 
 
@@ -2716,6 +3396,11 @@ ALTER TABLE ONLY "public"."document_access_log"
 
 
 
+ALTER TABLE ONLY "public"."document_categories"
+    ADD CONSTRAINT "document_categories_pkey" PRIMARY KEY ("code");
+
+
+
 ALTER TABLE ONLY "public"."document_versions"
     ADD CONSTRAINT "document_versions_pkey" PRIMARY KEY ("id");
 
@@ -2796,16 +3481,6 @@ ALTER TABLE ONLY "public"."projects"
 
 
 
-ALTER TABLE ONLY "public"."review_checklist_items"
-    ADD CONSTRAINT "review_checklist_items_pkey" PRIMARY KEY ("id");
-
-
-
-ALTER TABLE ONLY "public"."reviews"
-    ADD CONSTRAINT "reviews_pkey" PRIMARY KEY ("id");
-
-
-
 ALTER TABLE ONLY "public"."role_permissions"
     ADD CONSTRAINT "role_permissions_custom_role_id_permission_id_key" UNIQUE ("custom_role_id", "permission_id");
 
@@ -2813,6 +3488,51 @@ ALTER TABLE ONLY "public"."role_permissions"
 
 ALTER TABLE ONLY "public"."role_permissions"
     ADD CONSTRAINT "role_permissions_pkey" PRIMARY KEY ("id");
+
+
+
+ALTER TABLE ONLY "public"."supplier_performance_metrics"
+    ADD CONSTRAINT "supplier_performance_metrics_pkey" PRIMARY KEY ("id");
+
+
+
+ALTER TABLE ONLY "public"."supplier_performance_metrics"
+    ADD CONSTRAINT "supplier_performance_metrics_supplier_id_period_start_perio_key" UNIQUE ("supplier_id", "period_start", "period_end");
+
+
+
+ALTER TABLE ONLY "public"."supplier_qualification_progress"
+    ADD CONSTRAINT "supplier_qualification_progress_pkey" PRIMARY KEY ("id");
+
+
+
+ALTER TABLE ONLY "public"."supplier_qualification_progress"
+    ADD CONSTRAINT "supplier_qualification_progress_supplier_id_sub_stage_slug_key" UNIQUE ("supplier_id", "sub_stage_slug");
+
+
+
+ALTER TABLE ONLY "public"."supplier_qualifications"
+    ADD CONSTRAINT "supplier_qualifications_organization_id_key" UNIQUE ("organization_id");
+
+
+
+ALTER TABLE ONLY "public"."supplier_qualifications"
+    ADD CONSTRAINT "supplier_qualifications_pkey" PRIMARY KEY ("id");
+
+
+
+ALTER TABLE ONLY "public"."supplier_quotes"
+    ADD CONSTRAINT "supplier_quotes_pkey" PRIMARY KEY ("id");
+
+
+
+ALTER TABLE ONLY "public"."supplier_rfqs"
+    ADD CONSTRAINT "supplier_rfqs_pkey" PRIMARY KEY ("id");
+
+
+
+ALTER TABLE ONLY "public"."supplier_rfqs"
+    ADD CONSTRAINT "supplier_rfqs_rfq_number_key" UNIQUE ("rfq_number");
 
 
 
@@ -2957,10 +3677,6 @@ CREATE INDEX "idx_approvals_type_status" ON "public"."approvals" USING "btree" (
 
 
 
-CREATE INDEX "idx_contacts_created_by" ON "public"."contacts" USING "btree" ("created_by");
-
-
-
 CREATE INDEX "idx_contacts_email" ON "public"."contacts" USING "btree" ("email");
 
 
@@ -3014,10 +3730,6 @@ CREATE INDEX "idx_notifications_user_created" ON "public"."notifications" USING 
 
 
 CREATE INDEX "idx_organizations_active" ON "public"."organizations" USING "btree" ("is_active");
-
-
-
-CREATE INDEX "idx_organizations_created_by" ON "public"."organizations" USING "btree" ("created_by");
 
 
 
@@ -3117,23 +3829,75 @@ CREATE INDEX "idx_pssp_status" ON "public"."project_sub_stage_progress" USING "b
 
 
 
-CREATE INDEX "idx_reviews_organization_id" ON "public"."reviews" USING "btree" ("organization_id");
-
-
-
-CREATE INDEX "idx_reviews_project_id" ON "public"."reviews" USING "btree" ("project_id");
-
-
-
-CREATE INDEX "idx_reviews_reviewer_id" ON "public"."reviews" USING "btree" ("reviewer_id");
-
-
-
-CREATE INDEX "idx_reviews_status" ON "public"."reviews" USING "btree" ("status");
-
-
-
 CREATE INDEX "idx_role_permissions_role" ON "public"."role_permissions" USING "btree" ("custom_role_id");
+
+
+
+CREATE INDEX "idx_supplier_performance_metrics_org_supplier" ON "public"."supplier_performance_metrics" USING "btree" ("organization_id", "supplier_id");
+
+
+
+CREATE INDEX "idx_supplier_performance_metrics_period" ON "public"."supplier_performance_metrics" USING "btree" ("period_start", "period_end");
+
+
+
+CREATE INDEX "idx_supplier_performance_metrics_score" ON "public"."supplier_performance_metrics" USING "btree" ("overall_performance_score");
+
+
+
+CREATE INDEX "idx_supplier_qualification_progress_org_supplier" ON "public"."supplier_qualification_progress" USING "btree" ("organization_id", "supplier_id");
+
+
+
+CREATE INDEX "idx_supplier_qualification_progress_status" ON "public"."supplier_qualification_progress" USING "btree" ("status");
+
+
+
+CREATE INDEX "idx_supplier_qualification_progress_sub_stage" ON "public"."supplier_qualification_progress" USING "btree" ("sub_stage_slug");
+
+
+
+CREATE INDEX "idx_supplier_qualifications_approved_by" ON "public"."supplier_qualifications" USING "btree" ("approved_by");
+
+
+
+CREATE INDEX "idx_supplier_qualifications_expiry" ON "public"."supplier_qualifications" USING "btree" ("qualification_expiry") WHERE ("qualification_expiry" IS NOT NULL);
+
+
+
+CREATE INDEX "idx_supplier_qualifications_org_status" ON "public"."supplier_qualifications" USING "btree" ("organization_id", "qualification_status");
+
+
+
+CREATE INDEX "idx_supplier_quotes_org_rfq" ON "public"."supplier_quotes" USING "btree" ("organization_id", "supplier_rfq_id");
+
+
+
+CREATE INDEX "idx_supplier_quotes_selected" ON "public"."supplier_quotes" USING "btree" ("is_selected");
+
+
+
+CREATE INDEX "idx_supplier_quotes_submitted_at" ON "public"."supplier_quotes" USING "btree" ("submitted_at" DESC);
+
+
+
+CREATE INDEX "idx_supplier_quotes_supplier_status" ON "public"."supplier_quotes" USING "btree" ("supplier_id", "status");
+
+
+
+CREATE INDEX "idx_supplier_rfqs_created_at" ON "public"."supplier_rfqs" USING "btree" ("created_at" DESC);
+
+
+
+CREATE INDEX "idx_supplier_rfqs_due_date" ON "public"."supplier_rfqs" USING "btree" ("due_date") WHERE ("due_date" IS NOT NULL);
+
+
+
+CREATE INDEX "idx_supplier_rfqs_org_project" ON "public"."supplier_rfqs" USING "btree" ("organization_id", "project_id");
+
+
+
+CREATE INDEX "idx_supplier_rfqs_supplier_status" ON "public"."supplier_rfqs" USING "btree" ("supplier_id", "status");
 
 
 
@@ -3238,6 +4002,26 @@ CREATE OR REPLACE TRIGGER "update_permissions_updated_at" BEFORE UPDATE ON "publ
 
 
 CREATE OR REPLACE TRIGGER "update_projects_updated_at" BEFORE UPDATE ON "public"."projects" FOR EACH ROW EXECUTE FUNCTION "public"."update_updated_at_column"();
+
+
+
+CREATE OR REPLACE TRIGGER "update_supplier_performance_metrics_updated_at" BEFORE UPDATE ON "public"."supplier_performance_metrics" FOR EACH ROW EXECUTE FUNCTION "public"."update_updated_at_column"();
+
+
+
+CREATE OR REPLACE TRIGGER "update_supplier_qualification_progress_updated_at" BEFORE UPDATE ON "public"."supplier_qualification_progress" FOR EACH ROW EXECUTE FUNCTION "public"."update_updated_at_column"();
+
+
+
+CREATE OR REPLACE TRIGGER "update_supplier_qualifications_updated_at" BEFORE UPDATE ON "public"."supplier_qualifications" FOR EACH ROW EXECUTE FUNCTION "public"."update_updated_at_column"();
+
+
+
+CREATE OR REPLACE TRIGGER "update_supplier_quotes_updated_at" BEFORE UPDATE ON "public"."supplier_quotes" FOR EACH ROW EXECUTE FUNCTION "public"."update_updated_at_column"();
+
+
+
+CREATE OR REPLACE TRIGGER "update_supplier_rfqs_updated_at" BEFORE UPDATE ON "public"."supplier_rfqs" FOR EACH ROW EXECUTE FUNCTION "public"."update_updated_at_column"();
 
 
 
@@ -3357,7 +4141,7 @@ ALTER TABLE ONLY "public"."approvals"
 
 
 ALTER TABLE ONLY "public"."contacts"
-    ADD CONSTRAINT "contacts_created_by_fkey" FOREIGN KEY ("created_by") REFERENCES "auth"."users"("id");
+    ADD CONSTRAINT "contacts_created_by_fkey" FOREIGN KEY ("created_by") REFERENCES "public"."users"("id");
 
 
 
@@ -3472,7 +4256,7 @@ ALTER TABLE ONLY "public"."notifications"
 
 
 ALTER TABLE ONLY "public"."organizations"
-    ADD CONSTRAINT "organizations_created_by_fkey" FOREIGN KEY ("created_by") REFERENCES "auth"."users"("id");
+    ADD CONSTRAINT "organizations_created_by_fkey" FOREIGN KEY ("created_by") REFERENCES "public"."users"("id");
 
 
 
@@ -3546,31 +4330,6 @@ ALTER TABLE ONLY "public"."projects"
 
 
 
-ALTER TABLE ONLY "public"."review_checklist_items"
-    ADD CONSTRAINT "review_checklist_items_checked_by_fkey" FOREIGN KEY ("checked_by") REFERENCES "public"."users"("id");
-
-
-
-ALTER TABLE ONLY "public"."review_checklist_items"
-    ADD CONSTRAINT "review_checklist_items_review_id_fkey" FOREIGN KEY ("review_id") REFERENCES "public"."reviews"("id") ON DELETE CASCADE;
-
-
-
-ALTER TABLE ONLY "public"."reviews"
-    ADD CONSTRAINT "reviews_organization_id_fkey" FOREIGN KEY ("organization_id") REFERENCES "public"."organizations"("id") ON DELETE CASCADE;
-
-
-
-ALTER TABLE ONLY "public"."reviews"
-    ADD CONSTRAINT "reviews_project_id_fkey" FOREIGN KEY ("project_id") REFERENCES "public"."projects"("id") ON DELETE CASCADE;
-
-
-
-ALTER TABLE ONLY "public"."reviews"
-    ADD CONSTRAINT "reviews_reviewer_id_fkey" FOREIGN KEY ("reviewer_id") REFERENCES "public"."users"("id") ON DELETE CASCADE;
-
-
-
 ALTER TABLE ONLY "public"."role_permissions"
     ADD CONSTRAINT "role_permissions_custom_role_id_fkey" FOREIGN KEY ("custom_role_id") REFERENCES "public"."custom_roles"("id") ON DELETE CASCADE;
 
@@ -3583,6 +4342,91 @@ ALTER TABLE ONLY "public"."role_permissions"
 
 ALTER TABLE ONLY "public"."role_permissions"
     ADD CONSTRAINT "role_permissions_permission_id_fkey" FOREIGN KEY ("permission_id") REFERENCES "public"."permissions"("id") ON DELETE CASCADE;
+
+
+
+ALTER TABLE ONLY "public"."supplier_performance_metrics"
+    ADD CONSTRAINT "supplier_performance_metrics_created_by_fkey" FOREIGN KEY ("created_by") REFERENCES "public"."users"("id");
+
+
+
+ALTER TABLE ONLY "public"."supplier_performance_metrics"
+    ADD CONSTRAINT "supplier_performance_metrics_organization_id_fkey" FOREIGN KEY ("organization_id") REFERENCES "public"."organizations"("id") ON DELETE CASCADE;
+
+
+
+ALTER TABLE ONLY "public"."supplier_performance_metrics"
+    ADD CONSTRAINT "supplier_performance_metrics_supplier_id_fkey" FOREIGN KEY ("supplier_id") REFERENCES "public"."contacts"("id") ON DELETE CASCADE;
+
+
+
+ALTER TABLE ONLY "public"."supplier_qualification_progress"
+    ADD CONSTRAINT "supplier_qualification_progress_organization_id_fkey" FOREIGN KEY ("organization_id") REFERENCES "public"."organizations"("id") ON DELETE CASCADE;
+
+
+
+ALTER TABLE ONLY "public"."supplier_qualification_progress"
+    ADD CONSTRAINT "supplier_qualification_progress_supplier_id_fkey" FOREIGN KEY ("supplier_id") REFERENCES "public"."contacts"("id") ON DELETE CASCADE;
+
+
+
+ALTER TABLE ONLY "public"."supplier_qualifications"
+    ADD CONSTRAINT "supplier_qualifications_approved_by_fkey" FOREIGN KEY ("approved_by") REFERENCES "public"."users"("id");
+
+
+
+ALTER TABLE ONLY "public"."supplier_qualifications"
+    ADD CONSTRAINT "supplier_qualifications_created_by_fkey" FOREIGN KEY ("created_by") REFERENCES "public"."users"("id");
+
+
+
+ALTER TABLE ONLY "public"."supplier_qualifications"
+    ADD CONSTRAINT "supplier_qualifications_organization_id_fkey" FOREIGN KEY ("organization_id") REFERENCES "public"."organizations"("id") ON DELETE CASCADE;
+
+
+
+ALTER TABLE ONLY "public"."supplier_qualifications"
+    ADD CONSTRAINT "supplier_qualifications_qualification_exception_reviewed_b_fkey" FOREIGN KEY ("qualification_exception_reviewed_by") REFERENCES "public"."users"("id");
+
+
+
+ALTER TABLE ONLY "public"."supplier_quotes"
+    ADD CONSTRAINT "supplier_quotes_evaluated_by_fkey" FOREIGN KEY ("evaluated_by") REFERENCES "public"."users"("id");
+
+
+
+ALTER TABLE ONLY "public"."supplier_quotes"
+    ADD CONSTRAINT "supplier_quotes_organization_id_fkey" FOREIGN KEY ("organization_id") REFERENCES "public"."organizations"("id") ON DELETE CASCADE;
+
+
+
+ALTER TABLE ONLY "public"."supplier_quotes"
+    ADD CONSTRAINT "supplier_quotes_supplier_id_fkey" FOREIGN KEY ("supplier_id") REFERENCES "public"."contacts"("id") ON DELETE CASCADE;
+
+
+
+ALTER TABLE ONLY "public"."supplier_quotes"
+    ADD CONSTRAINT "supplier_quotes_supplier_rfq_id_fkey" FOREIGN KEY ("supplier_rfq_id") REFERENCES "public"."supplier_rfqs"("id") ON DELETE CASCADE;
+
+
+
+ALTER TABLE ONLY "public"."supplier_rfqs"
+    ADD CONSTRAINT "supplier_rfqs_created_by_fkey" FOREIGN KEY ("created_by") REFERENCES "public"."users"("id");
+
+
+
+ALTER TABLE ONLY "public"."supplier_rfqs"
+    ADD CONSTRAINT "supplier_rfqs_organization_id_fkey" FOREIGN KEY ("organization_id") REFERENCES "public"."organizations"("id") ON DELETE CASCADE;
+
+
+
+ALTER TABLE ONLY "public"."supplier_rfqs"
+    ADD CONSTRAINT "supplier_rfqs_project_id_fkey" FOREIGN KEY ("project_id") REFERENCES "public"."projects"("id") ON DELETE SET NULL;
+
+
+
+ALTER TABLE ONLY "public"."supplier_rfqs"
+    ADD CONSTRAINT "supplier_rfqs_supplier_id_fkey" FOREIGN KEY ("supplier_id") REFERENCES "public"."contacts"("id") ON DELETE CASCADE;
 
 
 
@@ -3681,7 +4525,11 @@ ALTER TABLE ONLY "public"."workflow_sub_stages"
 
 
 
-CREATE POLICY "Users can insert contacts" ON "public"."contacts" FOR INSERT WITH CHECK ((("auth"."role"() = 'authenticated'::"text") AND ("created_by" = "auth"."uid"())));
+CREATE POLICY "Users can insert contacts" ON "public"."contacts" FOR INSERT WITH CHECK (("auth"."role"() = 'authenticated'::"text"));
+
+
+
+CREATE POLICY "Users can insert organizations" ON "public"."organizations" FOR INSERT WITH CHECK (("auth"."role"() = 'authenticated'::"text"));
 
 
 
@@ -3693,14 +4541,19 @@ CREATE POLICY "Users can update contacts" ON "public"."contacts" FOR UPDATE USIN
 
 
 
+CREATE POLICY "Users can update their organization" ON "public"."organizations" FOR UPDATE USING (("auth"."role"() = 'authenticated'::"text"));
+
+
+
 CREATE POLICY "Users can update users" ON "public"."users" FOR UPDATE USING (("auth"."role"() = 'authenticated'::"text"));
 
 
 
-CREATE POLICY "Users can view contacts" ON "public"."contacts" FOR SELECT USING ((("auth"."role"() = 'authenticated'::"text") AND (("created_by" = "auth"."uid"()) OR (EXISTS ( SELECT 1
-   FROM ("public"."organizations" "o"
-     JOIN "public"."users" "u" ON (("u"."organization_id" = "o"."id")))
-  WHERE (("o"."id" = "contacts"."organization_id") AND ("u"."id" = "auth"."uid"()) AND ("u"."role" = ANY (ARRAY['admin'::"text", 'management'::"text"]))))))));
+CREATE POLICY "Users can view all contacts" ON "public"."contacts" FOR SELECT USING (true);
+
+
+
+CREATE POLICY "Users can view all organizations" ON "public"."organizations" FOR SELECT USING (true);
 
 
 
@@ -3708,12 +4561,18 @@ CREATE POLICY "Users can view users" ON "public"."users" FOR SELECT USING (("aut
 
 
 
-CREATE POLICY "activity_log_insert_policy" ON "public"."activity_log" FOR INSERT TO "authenticated" WITH CHECK (true);
+ALTER TABLE "public"."activity_log" ENABLE ROW LEVEL SECURITY;
+
+
+CREATE POLICY "activity_log_insert_policy" ON "public"."activity_log" FOR INSERT WITH CHECK (("organization_id" = ( SELECT "public"."get_current_user_org_id"() AS "get_current_user_org_id")));
 
 
 
-CREATE POLICY "activity_log_select_policy" ON "public"."activity_log" FOR SELECT TO "authenticated" USING (true);
+CREATE POLICY "activity_log_select_policy" ON "public"."activity_log" FOR SELECT USING (("organization_id" = ( SELECT "public"."get_current_user_org_id"() AS "get_current_user_org_id")));
 
+
+
+ALTER TABLE "public"."approval_attachments" ENABLE ROW LEVEL SECURITY;
 
 
 CREATE POLICY "approval_attachments_insert_policy" ON "public"."approval_attachments" FOR INSERT WITH CHECK (("organization_id" = ( SELECT "public"."get_current_user_org_id"() AS "get_current_user_org_id")));
@@ -3724,12 +4583,18 @@ CREATE POLICY "approval_attachments_select_policy" ON "public"."approval_attachm
 
 
 
+ALTER TABLE "public"."approval_history" ENABLE ROW LEVEL SECURITY;
+
+
 CREATE POLICY "approval_history_insert_policy" ON "public"."approval_history" FOR INSERT WITH CHECK (("organization_id" = ( SELECT "public"."get_current_user_org_id"() AS "get_current_user_org_id")));
 
 
 
 CREATE POLICY "approval_history_select_policy" ON "public"."approval_history" FOR SELECT USING (("organization_id" = ( SELECT "public"."get_current_user_org_id"() AS "get_current_user_org_id")));
 
+
+
+ALTER TABLE "public"."approvals" ENABLE ROW LEVEL SECURITY;
 
 
 CREATE POLICY "approvals_insert_policy" ON "public"."approvals" FOR INSERT WITH CHECK (("organization_id" = ( SELECT "public"."get_current_user_org_id"() AS "get_current_user_org_id")));
@@ -3742,6 +4607,9 @@ CREATE POLICY "approvals_select_policy" ON "public"."approvals" FOR SELECT USING
 
 CREATE POLICY "approvals_update_policy" ON "public"."approvals" FOR UPDATE USING (("organization_id" = ( SELECT "public"."get_current_user_org_id"() AS "get_current_user_org_id")));
 
+
+
+ALTER TABLE "public"."contacts" ENABLE ROW LEVEL SECURITY;
 
 
 CREATE POLICY "contacts_insert_policy" ON "public"."contacts" FOR INSERT WITH CHECK (("organization_id" = ( SELECT "public"."get_current_user_org_id"() AS "get_current_user_org_id")));
@@ -3763,11 +4631,21 @@ CREATE POLICY "custom_roles_org_policy" ON "public"."custom_roles" USING (("orga
 
 
 
+ALTER TABLE "public"."document_access_log" ENABLE ROW LEVEL SECURITY;
+
+
 CREATE POLICY "document_access_log_insert_policy" ON "public"."document_access_log" FOR INSERT WITH CHECK (("organization_id" = ( SELECT "public"."get_current_user_org_id"() AS "get_current_user_org_id")));
 
 
 
 CREATE POLICY "document_access_log_select_policy" ON "public"."document_access_log" FOR SELECT USING (("organization_id" = ( SELECT "public"."get_current_user_org_id"() AS "get_current_user_org_id")));
+
+
+
+ALTER TABLE "public"."document_versions" ENABLE ROW LEVEL SECURITY;
+
+
+CREATE POLICY "document_versions_delete_policy" ON "public"."document_versions" FOR DELETE USING (("organization_id" = "public"."get_current_user_org_id"()));
 
 
 
@@ -3779,15 +4657,26 @@ CREATE POLICY "document_versions_select_policy" ON "public"."document_versions" 
 
 
 
-CREATE POLICY "documents_insert_policy" ON "public"."documents" FOR INSERT WITH CHECK (("organization_id" = ( SELECT "public"."get_current_user_org_id"() AS "get_current_user_org_id")));
+CREATE POLICY "document_versions_update_policy" ON "public"."document_versions" FOR UPDATE USING (("organization_id" = "public"."get_current_user_org_id"())) WITH CHECK (("organization_id" = "public"."get_current_user_org_id"()));
 
 
 
-CREATE POLICY "documents_select_policy" ON "public"."documents" FOR SELECT USING (("organization_id" = ( SELECT "public"."get_current_user_org_id"() AS "get_current_user_org_id")));
+ALTER TABLE "public"."documents" ENABLE ROW LEVEL SECURITY;
+
+
+CREATE POLICY "documents_delete_policy" ON "public"."documents" FOR DELETE USING (("organization_id" = "public"."get_current_user_org_id"()));
 
 
 
-CREATE POLICY "documents_update_policy" ON "public"."documents" FOR UPDATE USING (("organization_id" = ( SELECT "public"."get_current_user_org_id"() AS "get_current_user_org_id")));
+CREATE POLICY "documents_insert_policy" ON "public"."documents" FOR INSERT WITH CHECK (("organization_id" = "public"."get_current_user_org_id"()));
+
+
+
+CREATE POLICY "documents_select_policy" ON "public"."documents" FOR SELECT USING (("organization_id" = "public"."get_current_user_org_id"()));
+
+
+
+CREATE POLICY "documents_update_policy" ON "public"."documents" FOR UPDATE USING (("organization_id" = "public"."get_current_user_org_id"())) WITH CHECK (("organization_id" = "public"."get_current_user_org_id"()));
 
 
 
@@ -3798,12 +4687,18 @@ CREATE POLICY "feature_toggles_org_policy" ON "public"."feature_toggles" USING (
 
 
 
+ALTER TABLE "public"."messages" ENABLE ROW LEVEL SECURITY;
+
+
 CREATE POLICY "messages_insert_policy" ON "public"."messages" FOR INSERT WITH CHECK ((("organization_id" = ( SELECT "public"."get_current_user_org_id"() AS "get_current_user_org_id")) AND ("sender_id" = "auth"."uid"())));
 
 
 
 CREATE POLICY "messages_select_policy" ON "public"."messages" FOR SELECT USING (("organization_id" = ( SELECT "public"."get_current_user_org_id"() AS "get_current_user_org_id")));
 
+
+
+ALTER TABLE "public"."notifications" ENABLE ROW LEVEL SECURITY;
 
 
 CREATE POLICY "notifications_insert_policy" ON "public"."notifications" FOR INSERT WITH CHECK (("organization_id" = ( SELECT "public"."get_current_user_org_id"() AS "get_current_user_org_id")));
@@ -3816,6 +4711,25 @@ CREATE POLICY "notifications_select_policy" ON "public"."notifications" FOR SELE
 
 CREATE POLICY "notifications_update_policy" ON "public"."notifications" FOR UPDATE USING ((("organization_id" = ( SELECT "public"."get_current_user_org_id"() AS "get_current_user_org_id")) AND ("user_id" = "auth"."uid"())));
 
+
+
+CREATE POLICY "org_delete_policy" ON "public"."organizations" FOR DELETE USING (("auth"."role"() = 'authenticated'::"text"));
+
+
+
+CREATE POLICY "org_insert_policy" ON "public"."organizations" FOR INSERT WITH CHECK (("auth"."role"() = 'authenticated'::"text"));
+
+
+
+CREATE POLICY "org_select_policy" ON "public"."organizations" FOR SELECT USING (("auth"."role"() = 'authenticated'::"text"));
+
+
+
+CREATE POLICY "org_update_policy" ON "public"."organizations" FOR UPDATE USING (("auth"."role"() = 'authenticated'::"text"));
+
+
+
+ALTER TABLE "public"."organizations" ENABLE ROW LEVEL SECURITY;
 
 
 CREATE POLICY "organizations_access" ON "public"."organizations" USING (true);
@@ -3850,6 +4764,9 @@ CREATE POLICY "progress_update_policy" ON "public"."project_sub_stage_progress" 
 
 
 
+ALTER TABLE "public"."project_sub_stage_progress" ENABLE ROW LEVEL SECURITY;
+
+
 ALTER TABLE "public"."projects" ENABLE ROW LEVEL SECURITY;
 
 
@@ -3865,52 +4782,6 @@ CREATE POLICY "projects_update_policy" ON "public"."projects" FOR UPDATE USING (
 
 
 
-ALTER TABLE "public"."review_checklist_items" ENABLE ROW LEVEL SECURITY;
-
-
-CREATE POLICY "review_checklist_items_delete_policy" ON "public"."review_checklist_items" FOR DELETE USING (("review_id" IN ( SELECT "reviews"."id"
-   FROM "public"."reviews"
-  WHERE ("reviews"."organization_id" = ( SELECT "public"."get_current_user_org_id"() AS "get_current_user_org_id")))));
-
-
-
-CREATE POLICY "review_checklist_items_insert_policy" ON "public"."review_checklist_items" FOR INSERT WITH CHECK (("review_id" IN ( SELECT "reviews"."id"
-   FROM "public"."reviews"
-  WHERE ("reviews"."organization_id" = ( SELECT "public"."get_current_user_org_id"() AS "get_current_user_org_id")))));
-
-
-
-CREATE POLICY "review_checklist_items_select_policy" ON "public"."review_checklist_items" FOR SELECT USING (("review_id" IN ( SELECT "reviews"."id"
-   FROM "public"."reviews"
-  WHERE ("reviews"."organization_id" = ( SELECT "public"."get_current_user_org_id"() AS "get_current_user_org_id")))));
-
-
-
-CREATE POLICY "review_checklist_items_update_policy" ON "public"."review_checklist_items" FOR UPDATE USING (("review_id" IN ( SELECT "reviews"."id"
-   FROM "public"."reviews"
-  WHERE ("reviews"."organization_id" = ( SELECT "public"."get_current_user_org_id"() AS "get_current_user_org_id")))));
-
-
-
-ALTER TABLE "public"."reviews" ENABLE ROW LEVEL SECURITY;
-
-
-CREATE POLICY "reviews_delete_policy" ON "public"."reviews" FOR DELETE USING (("organization_id" = ( SELECT "public"."get_current_user_org_id"() AS "get_current_user_org_id")));
-
-
-
-CREATE POLICY "reviews_insert_policy" ON "public"."reviews" FOR INSERT WITH CHECK (("organization_id" = ( SELECT "public"."get_current_user_org_id"() AS "get_current_user_org_id")));
-
-
-
-CREATE POLICY "reviews_select_policy" ON "public"."reviews" FOR SELECT USING (("organization_id" = ( SELECT "public"."get_current_user_org_id"() AS "get_current_user_org_id")));
-
-
-
-CREATE POLICY "reviews_update_policy" ON "public"."reviews" FOR UPDATE USING (("organization_id" = ( SELECT "public"."get_current_user_org_id"() AS "get_current_user_org_id")));
-
-
-
 ALTER TABLE "public"."role_permissions" ENABLE ROW LEVEL SECURITY;
 
 
@@ -3918,6 +4789,101 @@ CREATE POLICY "role_permissions_org_policy" ON "public"."role_permissions" USING
    FROM "public"."custom_roles" "cr"
   WHERE (("cr"."id" = "role_permissions"."custom_role_id") AND ("cr"."organization_id" = ( SELECT "public"."get_current_user_org_id"() AS "get_current_user_org_id"))))));
 
+
+
+CREATE POLICY "spm_delete_org" ON "public"."supplier_performance_metrics" FOR DELETE USING (("organization_id" = "public"."get_current_user_org_id"()));
+
+
+
+CREATE POLICY "spm_insert_org" ON "public"."supplier_performance_metrics" FOR INSERT WITH CHECK (("organization_id" = "public"."get_current_user_org_id"()));
+
+
+
+CREATE POLICY "spm_select_org" ON "public"."supplier_performance_metrics" FOR SELECT USING (("organization_id" = "public"."get_current_user_org_id"()));
+
+
+
+CREATE POLICY "spm_update_org" ON "public"."supplier_performance_metrics" FOR UPDATE USING (("organization_id" = "public"."get_current_user_org_id"()));
+
+
+
+CREATE POLICY "sq_delete_org" ON "public"."supplier_qualifications" FOR DELETE USING (("organization_id" = "public"."get_current_user_org_id"()));
+
+
+
+CREATE POLICY "sq_insert_org" ON "public"."supplier_qualifications" FOR INSERT WITH CHECK (("organization_id" = "public"."get_current_user_org_id"()));
+
+
+
+CREATE POLICY "sq_select_org" ON "public"."supplier_qualifications" FOR SELECT USING (("organization_id" = "public"."get_current_user_org_id"()));
+
+
+
+CREATE POLICY "sq_update_org" ON "public"."supplier_qualifications" FOR UPDATE USING (("organization_id" = "public"."get_current_user_org_id"()));
+
+
+
+CREATE POLICY "sqp_delete_org" ON "public"."supplier_qualification_progress" FOR DELETE USING (("organization_id" = "public"."get_current_user_org_id"()));
+
+
+
+CREATE POLICY "sqp_insert_org" ON "public"."supplier_qualification_progress" FOR INSERT WITH CHECK (("organization_id" = "public"."get_current_user_org_id"()));
+
+
+
+CREATE POLICY "sqp_select_org" ON "public"."supplier_qualification_progress" FOR SELECT USING (("organization_id" = "public"."get_current_user_org_id"()));
+
+
+
+CREATE POLICY "sqp_update_org" ON "public"."supplier_qualification_progress" FOR UPDATE USING (("organization_id" = "public"."get_current_user_org_id"()));
+
+
+
+CREATE POLICY "sqts_delete_org" ON "public"."supplier_quotes" FOR DELETE USING (("organization_id" = "public"."get_current_user_org_id"()));
+
+
+
+CREATE POLICY "sqts_insert_org" ON "public"."supplier_quotes" FOR INSERT WITH CHECK (("organization_id" = "public"."get_current_user_org_id"()));
+
+
+
+CREATE POLICY "sqts_select_org" ON "public"."supplier_quotes" FOR SELECT USING (("organization_id" = "public"."get_current_user_org_id"()));
+
+
+
+CREATE POLICY "sqts_update_org" ON "public"."supplier_quotes" FOR UPDATE USING (("organization_id" = "public"."get_current_user_org_id"()));
+
+
+
+CREATE POLICY "srfq_delete_org" ON "public"."supplier_rfqs" FOR DELETE USING (("organization_id" = "public"."get_current_user_org_id"()));
+
+
+
+CREATE POLICY "srfq_insert_org" ON "public"."supplier_rfqs" FOR INSERT WITH CHECK (("organization_id" = "public"."get_current_user_org_id"()));
+
+
+
+CREATE POLICY "srfq_select_org" ON "public"."supplier_rfqs" FOR SELECT USING (("organization_id" = "public"."get_current_user_org_id"()));
+
+
+
+CREATE POLICY "srfq_update_org" ON "public"."supplier_rfqs" FOR UPDATE USING (("organization_id" = "public"."get_current_user_org_id"()));
+
+
+
+ALTER TABLE "public"."supplier_performance_metrics" ENABLE ROW LEVEL SECURITY;
+
+
+ALTER TABLE "public"."supplier_qualification_progress" ENABLE ROW LEVEL SECURITY;
+
+
+ALTER TABLE "public"."supplier_qualifications" ENABLE ROW LEVEL SECURITY;
+
+
+ALTER TABLE "public"."supplier_quotes" ENABLE ROW LEVEL SECURITY;
+
+
+ALTER TABLE "public"."supplier_rfqs" ENABLE ROW LEVEL SECURITY;
 
 
 ALTER TABLE "public"."user_custom_roles" ENABLE ROW LEVEL SECURITY;
@@ -3950,16 +4916,19 @@ CREATE POLICY "user_permissions_org_policy" ON "public"."user_permissions" USING
 ALTER TABLE "public"."users" ENABLE ROW LEVEL SECURITY;
 
 
-CREATE POLICY "users_insert_policy" ON "public"."users" FOR INSERT TO "authenticated" WITH CHECK (true);
+CREATE POLICY "users_insert_policy" ON "public"."users" FOR INSERT WITH CHECK (("organization_id" = ( SELECT "public"."get_current_user_org_id"() AS "get_current_user_org_id")));
 
 
 
-CREATE POLICY "users_select_policy" ON "public"."users" FOR SELECT TO "authenticated" USING (true);
+CREATE POLICY "users_select_policy" ON "public"."users" FOR SELECT USING (("organization_id" = ( SELECT "public"."get_current_user_org_id"() AS "get_current_user_org_id")));
 
 
 
-CREATE POLICY "users_update_policy" ON "public"."users" FOR UPDATE TO "authenticated" USING (true) WITH CHECK (true);
+CREATE POLICY "users_update_policy" ON "public"."users" FOR UPDATE USING (("organization_id" = ( SELECT "public"."get_current_user_org_id"() AS "get_current_user_org_id")));
 
+
+
+ALTER TABLE "public"."workflow_definition_stages" ENABLE ROW LEVEL SECURITY;
 
 
 CREATE POLICY "workflow_definition_stages_insert_policy" ON "public"."workflow_definition_stages" FOR INSERT TO "authenticated" WITH CHECK (("workflow_definition_id" IN ( SELECT "workflow_definitions"."id"
@@ -3982,6 +4951,9 @@ CREATE POLICY "workflow_definition_stages_update_policy" ON "public"."workflow_d
 
 
 
+ALTER TABLE "public"."workflow_definition_sub_stages" ENABLE ROW LEVEL SECURITY;
+
+
 CREATE POLICY "workflow_definition_sub_stages_insert_policy" ON "public"."workflow_definition_sub_stages" FOR INSERT TO "authenticated" WITH CHECK (("workflow_definition_id" IN ( SELECT "workflow_definitions"."id"
    FROM "public"."workflow_definitions"
   WHERE ("workflow_definitions"."organization_id" = ( SELECT "public"."get_current_user_org_id"() AS "get_current_user_org_id")))));
@@ -4000,6 +4972,9 @@ CREATE POLICY "workflow_definition_sub_stages_update_policy" ON "public"."workfl
    FROM "public"."workflow_definitions"
   WHERE ("workflow_definitions"."organization_id" = ( SELECT "public"."get_current_user_org_id"() AS "get_current_user_org_id")))));
 
+
+
+ALTER TABLE "public"."workflow_definitions" ENABLE ROW LEVEL SECURITY;
 
 
 CREATE POLICY "workflow_definitions_insert_policy" ON "public"."workflow_definitions" FOR INSERT TO "authenticated" WITH CHECK (("organization_id" = ( SELECT "public"."get_current_user_org_id"() AS "get_current_user_org_id")));
@@ -4021,7 +4996,7 @@ CREATE POLICY "workflow_stages_insert_policy" ON "public"."workflow_stages" FOR 
 
 
 
-CREATE POLICY "workflow_stages_select_policy" ON "public"."workflow_stages" FOR SELECT TO "authenticated" USING (true);
+CREATE POLICY "workflow_stages_select_policy" ON "public"."workflow_stages" FOR SELECT USING (("organization_id" = ( SELECT "public"."get_current_user_org_id"() AS "get_current_user_org_id")));
 
 
 
@@ -4036,7 +5011,7 @@ CREATE POLICY "workflow_sub_stages_insert_policy" ON "public"."workflow_sub_stag
 
 
 
-CREATE POLICY "workflow_sub_stages_select_policy" ON "public"."workflow_sub_stages" FOR SELECT TO "authenticated" USING (true);
+CREATE POLICY "workflow_sub_stages_select_policy" ON "public"."workflow_sub_stages" FOR SELECT USING (("organization_id" = ( SELECT "public"."get_current_user_org_id"() AS "get_current_user_org_id")));
 
 
 
@@ -4233,6 +5208,12 @@ GRANT ALL ON FUNCTION "public"."gtrgm_out"("public"."gtrgm") TO "service_role";
 
 
 
+GRANT ALL ON FUNCTION "public"."approve_supplier_qualification"("supplier_org_id" "uuid", "approver_id" "uuid", "decision_type" "text", "conditions" "text", "exception_justification" "text", "escalated_to" "uuid", "review_due_date" "date", "attached_document_id" "uuid", "overall_score" numeric, "criteria_scores" "jsonb") TO "anon";
+GRANT ALL ON FUNCTION "public"."approve_supplier_qualification"("supplier_org_id" "uuid", "approver_id" "uuid", "decision_type" "text", "conditions" "text", "exception_justification" "text", "escalated_to" "uuid", "review_due_date" "date", "attached_document_id" "uuid", "overall_score" numeric, "criteria_scores" "jsonb") TO "authenticated";
+GRANT ALL ON FUNCTION "public"."approve_supplier_qualification"("supplier_org_id" "uuid", "approver_id" "uuid", "decision_type" "text", "conditions" "text", "exception_justification" "text", "escalated_to" "uuid", "review_due_date" "date", "attached_document_id" "uuid", "overall_score" numeric, "criteria_scores" "jsonb") TO "service_role";
+
+
+
 GRANT ALL ON FUNCTION "public"."delete_all_inactive_organizations"() TO "anon";
 GRANT ALL ON FUNCTION "public"."delete_all_inactive_organizations"() TO "authenticated";
 GRANT ALL ON FUNCTION "public"."delete_all_inactive_organizations"() TO "service_role";
@@ -4293,9 +5274,21 @@ GRANT ALL ON FUNCTION "public"."get_dashboard_summary_test"("org_id" "uuid") TO 
 
 
 
+GRANT ALL ON FUNCTION "public"."get_document_url"("file_path" "text", "expires_in" integer) TO "anon";
+GRANT ALL ON FUNCTION "public"."get_document_url"("file_path" "text", "expires_in" integer) TO "authenticated";
+GRANT ALL ON FUNCTION "public"."get_document_url"("file_path" "text", "expires_in" integer) TO "service_role";
+
+
+
 GRANT ALL ON FUNCTION "public"."get_project_progress_summary"("p_project_id" "uuid") TO "anon";
 GRANT ALL ON FUNCTION "public"."get_project_progress_summary"("p_project_id" "uuid") TO "authenticated";
 GRANT ALL ON FUNCTION "public"."get_project_progress_summary"("p_project_id" "uuid") TO "service_role";
+
+
+
+GRANT ALL ON FUNCTION "public"."get_secure_document_url"("document_id" "uuid", "expires_in" integer) TO "anon";
+GRANT ALL ON FUNCTION "public"."get_secure_document_url"("document_id" "uuid", "expires_in" integer) TO "authenticated";
+GRANT ALL ON FUNCTION "public"."get_secure_document_url"("document_id" "uuid", "expires_in" integer) TO "service_role";
 
 
 
@@ -4498,6 +5491,12 @@ GRANT ALL ON FUNCTION "public"."similarity_op"("text", "text") TO "service_role"
 
 
 
+GRANT ALL ON FUNCTION "public"."start_supplier_qualification"("supplier_org_id" "uuid") TO "anon";
+GRANT ALL ON FUNCTION "public"."start_supplier_qualification"("supplier_org_id" "uuid") TO "authenticated";
+GRANT ALL ON FUNCTION "public"."start_supplier_qualification"("supplier_org_id" "uuid") TO "service_role";
+
+
+
 GRANT ALL ON FUNCTION "public"."strict_word_similarity"("text", "text") TO "postgres";
 GRANT ALL ON FUNCTION "public"."strict_word_similarity"("text", "text") TO "anon";
 GRANT ALL ON FUNCTION "public"."strict_word_similarity"("text", "text") TO "authenticated";
@@ -4542,6 +5541,12 @@ GRANT ALL ON FUNCTION "public"."update_updated_at_column"() TO "service_role";
 GRANT ALL ON FUNCTION "public"."update_user_profile"("p_user_id" "uuid", "p_updates" "jsonb") TO "anon";
 GRANT ALL ON FUNCTION "public"."update_user_profile"("p_user_id" "uuid", "p_updates" "jsonb") TO "authenticated";
 GRANT ALL ON FUNCTION "public"."update_user_profile"("p_user_id" "uuid", "p_updates" "jsonb") TO "service_role";
+
+
+
+GRANT ALL ON FUNCTION "public"."verify_document_access"("document_org_id" "uuid", "document_project_id" "uuid") TO "anon";
+GRANT ALL ON FUNCTION "public"."verify_document_access"("document_org_id" "uuid", "document_project_id" "uuid") TO "authenticated";
+GRANT ALL ON FUNCTION "public"."verify_document_access"("document_org_id" "uuid", "document_project_id" "uuid") TO "service_role";
 
 
 
@@ -4637,6 +5642,12 @@ GRANT ALL ON TABLE "public"."document_access_log" TO "service_role";
 
 
 
+GRANT ALL ON TABLE "public"."document_categories" TO "anon";
+GRANT ALL ON TABLE "public"."document_categories" TO "authenticated";
+GRANT ALL ON TABLE "public"."document_categories" TO "service_role";
+
+
+
 GRANT ALL ON TABLE "public"."document_versions" TO "anon";
 GRANT ALL ON TABLE "public"."document_versions" TO "authenticated";
 GRANT ALL ON TABLE "public"."document_versions" TO "service_role";
@@ -4724,6 +5735,48 @@ GRANT ALL ON TABLE "public"."reviews" TO "service_role";
 GRANT ALL ON TABLE "public"."role_permissions" TO "anon";
 GRANT ALL ON TABLE "public"."role_permissions" TO "authenticated";
 GRANT ALL ON TABLE "public"."role_permissions" TO "service_role";
+
+
+
+GRANT ALL ON TABLE "public"."secure_documents" TO "anon";
+GRANT ALL ON TABLE "public"."secure_documents" TO "authenticated";
+GRANT ALL ON TABLE "public"."secure_documents" TO "service_role";
+
+
+
+GRANT ALL ON TABLE "public"."supplier_performance_metrics" TO "anon";
+GRANT ALL ON TABLE "public"."supplier_performance_metrics" TO "authenticated";
+GRANT ALL ON TABLE "public"."supplier_performance_metrics" TO "service_role";
+
+
+
+GRANT ALL ON TABLE "public"."supplier_qualifications" TO "anon";
+GRANT ALL ON TABLE "public"."supplier_qualifications" TO "authenticated";
+GRANT ALL ON TABLE "public"."supplier_qualifications" TO "service_role";
+
+
+
+GRANT ALL ON TABLE "public"."supplier_quotes" TO "anon";
+GRANT ALL ON TABLE "public"."supplier_quotes" TO "authenticated";
+GRANT ALL ON TABLE "public"."supplier_quotes" TO "service_role";
+
+
+
+GRANT ALL ON TABLE "public"."supplier_rfqs" TO "anon";
+GRANT ALL ON TABLE "public"."supplier_rfqs" TO "authenticated";
+GRANT ALL ON TABLE "public"."supplier_rfqs" TO "service_role";
+
+
+
+GRANT ALL ON TABLE "public"."supplier_details_view" TO "anon";
+GRANT ALL ON TABLE "public"."supplier_details_view" TO "authenticated";
+GRANT ALL ON TABLE "public"."supplier_details_view" TO "service_role";
+
+
+
+GRANT ALL ON TABLE "public"."supplier_qualification_progress" TO "anon";
+GRANT ALL ON TABLE "public"."supplier_qualification_progress" TO "authenticated";
+GRANT ALL ON TABLE "public"."supplier_qualification_progress" TO "service_role";
 
 
 
