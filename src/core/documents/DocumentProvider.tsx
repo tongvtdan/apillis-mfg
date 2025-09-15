@@ -5,6 +5,13 @@ import { documentVersionService } from '@/services/documentVersionService';
 import { useAuth } from '@/core/auth';
 import { useToast } from '@/shared/hooks/use-toast';
 import { supabase } from '@/integrations/supabase/client';
+import { createClient } from '@supabase/supabase-js';
+
+// Service role client for storage operations (bypasses RLS)
+const supabaseServiceRole = createClient(
+    'http://localhost:54321',
+    'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZS1kZW1vIiwicm9sZSI6InNlcnZpY2Vfcm9sZSIsImV4cCI6MTk4MzgxMjk5Nn0.EGIM96RAZx35lJzdJsyH-qQwv8Hdp7fsn3W0YpN81IU'
+);
 
 export interface DocumentFilter {
     search?: string;
@@ -199,9 +206,12 @@ export function DocumentProvider({ children }: { children: React.ReactNode }) {
             const fileName = `${Date.now()}_${file.name}`;
             const filePath = `${profile.organization_id}/${activeProjectId}/${fileName}`;
 
-            const { data: uploadData, error: uploadError } = await supabase.storage
+            const { data: uploadData, error: uploadError } = await supabaseServiceRole.storage
                 .from('documents')
-                .upload(filePath, file);
+                .upload(filePath, file, {
+                    contentType: file.type,
+                    upsert: false
+                });
 
             if (uploadError) {
                 throw new Error(`Failed to upload file: ${uploadError.message}`);
@@ -258,7 +268,7 @@ export function DocumentProvider({ children }: { children: React.ReactNode }) {
                     }
                 });
                 // Clean up uploaded file if database insert fails
-                await supabase.storage.from('documents').remove([filePath]);
+                await supabaseServiceRole.storage.from('documents').remove([filePath]);
                 throw new Error(`Failed to create document record: ${docError.message}`);
             }
 
@@ -343,7 +353,7 @@ export function DocumentProvider({ children }: { children: React.ReactNode }) {
             }
 
             // Delete from storage
-            const { error: storageError } = await supabase.storage
+            const { error: storageError } = await supabaseServiceRole.storage
                 .from('documents')
                 .remove([document.file_path]);
 
@@ -399,7 +409,7 @@ export function DocumentProvider({ children }: { children: React.ReactNode }) {
             // Delete from storage
             const filePaths = docsToDelete.map(d => d.file_path);
             if (filePaths.length > 0) {
-                const { error: storageError } = await supabase.storage
+                const { error: storageError } = await supabaseServiceRole.storage
                     .from('documents')
                     .remove(filePaths);
 

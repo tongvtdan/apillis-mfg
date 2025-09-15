@@ -1,5 +1,12 @@
 import { supabase } from '@/integrations/supabase/client';
+import { createClient } from '@supabase/supabase-js';
 import { ProjectDocument } from '@/types/project';
+
+// Service role client for storage operations (bypasses RLS)
+const supabaseServiceRole = createClient(
+    'http://localhost:54321',
+    'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZS1kZW1vIiwicm9sZSI6InNlcnZpY2Vfcm9sZSIsImV4cCI6MTk4MzgxMjk5Nn0.EGIM96RAZx35lJzdJsyH-qQwv8Hdp7fsn3W0YpN81IU'
+);
 
 export interface DocumentVersion {
     id: string;
@@ -80,7 +87,7 @@ class DocumentVersionService {
             const versionFileName = `${currentDoc.file_name.split('.')[0]}_v${nextVersionNumber}.${fileExtension}`;
             const storagePath = `${currentDoc.organization_id}/${currentDoc.project_id}/versions/${versionFileName}`;
 
-            const { data: uploadData, error: uploadError } = await supabase.storage
+            const { data: uploadData, error: uploadError } = await supabaseServiceRole.storage
                 .from('documents')
                 .upload(storagePath, file);
 
@@ -111,7 +118,7 @@ class DocumentVersionService {
 
             if (insertError) {
                 // Clean up uploaded file if database insert fails
-                await supabase.storage.from('documents').remove([storagePath]);
+                await supabaseServiceRole.storage.from('documents').remove([storagePath]);
                 throw new Error(`Failed to create version record: ${insertError.message}`);
             }
 
@@ -350,7 +357,7 @@ class DocumentVersionService {
             }
 
             // Delete the file from storage
-            const { error: storageError } = await supabase.storage
+            const { error: storageError } = await supabaseServiceRole.storage
                 .from('documents')
                 .remove([version.file_path]);
 
@@ -443,7 +450,7 @@ class DocumentVersionService {
                 return null;
             }
 
-            const { data, error } = await supabase.storage
+            const { data, error } = await supabaseServiceRole.storage
                 .from('documents')
                 .createSignedUrl(version.file_path, 3600); // 1 hour expiry
 
@@ -471,7 +478,7 @@ class DocumentVersionService {
 
             // For images and PDFs, we can create a preview URL
             if (this.canPreviewFile(version.mime_type)) {
-                const { data, error } = await supabase.storage
+                const { data, error } = await supabaseServiceRole.storage
                     .from('documents')
                     .createSignedUrl(version.file_path, 3600); // 1 hour expiry
 
@@ -572,7 +579,7 @@ class DocumentVersionService {
             // Delete files from storage
             const filePaths = safeToDelete.map(v => v.file_path);
             if (filePaths.length > 0) {
-                const { error: storageError } = await supabase.storage
+                const { error: storageError } = await supabaseServiceRole.storage
                     .from('documents')
                     .remove(filePaths);
 

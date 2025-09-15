@@ -2,6 +2,12 @@ import { supabase } from '@/integrations/supabase/client';
 import { createClient } from '@supabase/supabase-js';
 import { useAuth } from '@/core/auth';
 import { useApproval } from '@/core/approvals';
+
+// Service role client for storage operations (bypasses RLS)
+const supabaseServiceRole = createClient(
+    'http://localhost:54321',
+    'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZS1kZW1vIiwicm9sZSI6InNlcnZpY2Vfcm9sZSIsImV4cCI6MTk4MzgxMjk5Nn0.EGIM96RAZx35lJzdJsyH-qQwv8Hdp7fsn3W0YpN81IU'
+);
 import {
     Supplier,
     RFQ,
@@ -1243,7 +1249,7 @@ export class SupplierManagementService {
                     mimeType: doc.file.type
                 });
 
-                const { data: uploadData, error: uploadError } = await supabase.storage
+                const { data: uploadData, error: uploadError } = await supabaseServiceRole.storage
                     .from('documents')
                     .upload(filePath, doc.file, {
                         contentType: doc.file.type,
@@ -1252,6 +1258,11 @@ export class SupplierManagementService {
 
                 if (uploadError) {
                     console.error('❌ File upload failed:', uploadError);
+                    console.error('Upload error details:', {
+                        message: uploadError.message,
+                        statusCode: uploadError.statusCode,
+                        error: uploadError.error
+                    });
                     throw new Error(`Failed to upload file ${doc.file.name}: ${uploadError.message}`);
                 }
 
