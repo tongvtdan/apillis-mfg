@@ -16,9 +16,10 @@ export default function CreateSupplier() {
             const supplier = await SupplierManagementService.getSupplierById(supplierId);
             toast({
                 title: "Supplier Created Successfully!",
-                description: `New supplier "${supplier.name}" has been created successfully.`,
+                description: `New supplier "${supplier.name || 'Unknown'}" has been created successfully.`,
             });
         } catch (error) {
+            console.error('Error fetching supplier for toast:', error);
             // Fallback if we can't fetch the supplier details
             toast({
                 title: "Supplier Created Successfully!",

@@ -351,7 +351,7 @@ export function generateSupplierSampleData() {
         name: companyName,
         email: email,
         phone: phone,
-        website: Math.random() > 0.1 ? website : '', // 90% chance of having website
+        website: Math.random() > 0.1 ? website : undefined, // 90% chance of having website
         address: generateAddress(),
         city: city,
         state: state,
@@ -399,7 +399,7 @@ export function generateSupplierSampleForSpecialty(specialty: SupplierSpecialty)
         name: companyName,
         email: email,
         phone: phone,
-        website: Math.random() > 0.1 ? website : '', // 90% chance of having website
+        website: Math.random() > 0.1 ? website : undefined, // 90% chance of having website
         address: generateAddress(),
         city: city,
         state: state,

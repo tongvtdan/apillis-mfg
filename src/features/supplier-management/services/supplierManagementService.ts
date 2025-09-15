@@ -104,10 +104,6 @@ export class SupplierManagementService {
                 .select()
                 .single();
 
-            if (orgError) {
-                console.error('❌ Organization insert error:', orgError);
-                throw new Error(`Failed to create supplier organization: ${orgError.message}`);
-            }
 
             // Create primary contact record
             const { data: contactData, error: contactError } = await supabase
@@ -199,11 +195,6 @@ export class SupplierManagementService {
                 locations: validatedData.locations
             };
 
-            // Log activity
-            await this.logSupplierActivity(orgData.id, 'supplier_created', {
-                supplierName: orgData.name,
-                supplierType: validatedData.supplierType
-            }, userId);
 
             return supplier;
 
@@ -325,6 +316,81 @@ export class SupplierManagementService {
         } catch (error) {
             console.error('❌ Supplier update failed:', error);
             throw new Error(`Failed to update supplier: ${error instanceof Error ? error.message : 'Unknown error'}`);
+        }
+    }
+
+    /**
+     * Get supplier by ID
+     */
+    static async getSupplierById(supplierId: string): Promise<Supplier> {
+        console.log('🔍 Getting supplier by ID:', supplierId);
+
+        try {
+            // Get organization data
+            const { data: orgData, error: orgError } = await supabase
+                .from('organizations')
+                .select('*')
+                .eq('id', supplierId)
+                .eq('organization_type', 'supplier')
+                .single();
+
+            if (orgError || !orgData) {
+                throw new Error(`Supplier not found: ${orgError?.message || 'Unknown error'}`);
+            }
+
+            // Get primary contact
+            const { data: contactData, error: contactError } = await supabase
+                .from('contacts')
+                .select('*')
+                .eq('organization_id', supplierId)
+                .eq('is_primary_contact', true)
+                .single();
+
+            if (contactError || !contactData) {
+                throw new Error(`Primary contact not found: ${contactError?.message || 'Unknown error'}`);
+            }
+
+            // Transform to Supplier interface
+            const supplier: Supplier = {
+                id: orgData.id,
+                name: orgData.name,
+                companyName: orgData.name,
+                description: orgData.description,
+                supplierType: orgData.metadata?.supplierType || 'manufacturer',
+                status: orgData.is_active ? 'active' : 'inactive',
+                qualificationStatus: orgData.metadata?.qualificationStatus || 'not_qualified',
+                email: contactData.email,
+                phone: contactData.phone,
+                website: orgData.website,
+                address: orgData.address,
+                city: orgData.city,
+                state: orgData.state,
+                country: orgData.country,
+                postalCode: orgData.postal_code,
+                taxId: orgData.tax_id,
+                registrationNumber: orgData.metadata?.registrationNumber,
+                industry: orgData.industry,
+                capabilities: orgData.metadata?.capabilities || [],
+                certifications: orgData.metadata?.certifications || [],
+                qualityStandards: orgData.metadata?.qualityStandards || [],
+                paymentTerms: orgData.payment_terms,
+                currency: orgData.default_currency || 'USD',
+                onTimeDelivery: orgData.metadata?.onTimeDelivery,
+                qualityRating: orgData.metadata?.qualityRating,
+                responsiveness: orgData.metadata?.responsiveness,
+                createdAt: orgData.created_at,
+                updatedAt: orgData.updated_at,
+                createdBy: orgData.created_by,
+                notes: orgData.metadata?.notes,
+                contacts: [contactData],
+                locations: []
+            };
+
+            return supplier;
+
+        } catch (error) {
+            console.error('❌ Failed to get supplier by ID:', error);
+            throw new Error(`Failed to get supplier: ${error instanceof Error ? error.message : 'Unknown error'}`);
         }
     }
 
@@ -1017,7 +1083,7 @@ export class SupplierManagementService {
                     entity_id: supplierId,
                     user_id: userId,
                     action,
-                    details,
+                    new_values: details,
                     created_at: new Date().toISOString()
                 });
 
@@ -1059,7 +1125,7 @@ export class SupplierManagementService {
                     entity_id: rfqId,
                     user_id: userId,
                     action,
-                    details,
+                    new_values: details,
                     created_at: new Date().toISOString()
                 });
 

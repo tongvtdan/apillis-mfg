@@ -164,7 +164,7 @@ export function SupplierIntakeForm({ onSuccess, onCancel }: SupplierIntakeFormPr
         name: "",
         email: "",
         phone: "",
-        website: "",
+        website: undefined,
         address: "",
         city: "",
         state: "",
@@ -479,7 +479,7 @@ export function SupplierIntakeForm({ onSuccess, onCancel }: SupplierIntakeFormPr
                 companyName: formData.name,
                 email: formData.email,
                 phone: formData.phone,
-                website: formData.website,
+                website: formData.website || undefined,
                 address: formData.address,
                 city: formData.city,
                 state: formData.state,
@@ -514,17 +514,18 @@ export function SupplierIntakeForm({ onSuccess, onCancel }: SupplierIntakeFormPr
 
             const supplier = await SupplierManagementService.createSupplier(supplierData, user.id);
 
+
             // Show a message about the files and links that would be uploaded
             // In a future implementation, we would actually upload these files
             if (uploadedFiles.length > 0 || externalLinks.length > 0) {
                 toast({
                     title: "Supplier Created Successfully!",
-                    description: `New supplier "${supplier.name}" has been created successfully! ${uploadedFiles.length} files and ${externalLinks.length} external links will be processed.`
+                    description: `New supplier "${supplier.name || formData.name}" has been created successfully! ${uploadedFiles.length} files and ${externalLinks.length} external links will be processed.`
                 });
             } else {
                 toast({
                     title: "Supplier Created Successfully!",
-                    description: `New supplier "${supplier.name}" has been created successfully.`
+                    description: `New supplier "${supplier.name || formData.name}" has been created successfully.`
                 });
             }
 
