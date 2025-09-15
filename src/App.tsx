@@ -26,6 +26,7 @@ import PurchaseOrders from "./pages/PurchaseOrders";
 import Inventory from "./pages/Inventory";
 import Customers from "./pages/Customers";
 import Suppliers from "./pages/Suppliers";
+import SupplierProfile from "./pages/SupplierProfile";
 import Reports from "./pages/Reports";
 import ProjectDetail from "./pages/ProjectDetail";
 import NewRFQ from "./pages/NewRFQ";
@@ -100,6 +101,11 @@ const App = () => {
             <Route path="/suppliers" element={
               <ProtectedRoute>
                 <AppLayout><Suppliers /></AppLayout>
+              </ProtectedRoute>
+            } />
+            <Route path="/suppliers/:id" element={
+              <ProtectedRoute>
+                <AppLayout><SupplierProfile /></AppLayout>
               </ProtectedRoute>
             } />
             <Route path="/reports" element={

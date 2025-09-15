@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Badge } from '@/components/ui/badge';
@@ -308,17 +309,27 @@ const PAYMENT_TERMS_FILTERS = [
 ];
 
 interface SupplierListProps {
+    suppliers?: Supplier[];
     onSupplierSelect?: (supplier: Supplier) => void;
     onSendRFQ?: (supplier: Supplier) => void;
     onStartQualification?: (supplier: Supplier) => void;
 }
 
 export function SupplierList({
+    suppliers: propSuppliers,
     onSupplierSelect,
     onSendRFQ,
     onStartQualification
 }: SupplierListProps) {
+    const navigate = useNavigate();
+    // Use provided suppliers or fall back to mock data
+    // If propSuppliers is empty, use mock data for demonstration
+    const suppliers = propSuppliers && propSuppliers.length > 0 ? propSuppliers : MOCK_SUPPLIERS;
     const [searchQuery, setSearchQuery] = useState('');
+
+    // Pagination state
+    const [currentPage, setCurrentPage] = useState(1);
+    const itemsPerPage = 5;
     const [selectedProcesses, setSelectedProcesses] = useState<string[]>([]);
     const [selectedMaterials, setSelectedMaterials] = useState<string[]>([]);
     const [selectedTolerances, setSelectedTolerances] = useState<string[]>([]);
@@ -440,7 +451,7 @@ export function SupplierList({
         );
     };
 
-    const filteredSuppliers = MOCK_SUPPLIERS.filter(supplier => {
+    const filteredSuppliers = suppliers.filter(supplier => {
         // Search filter
         const matchesSearch = !searchQuery ||
             supplier.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
@@ -503,24 +514,27 @@ export function SupplierList({
             selectedRatings.some(ratingValue => {
                 const ratingFilter = PERFORMANCE_RATING_FILTERS.find(r => r.value === ratingValue);
                 if (!ratingFilter) return false;
-                return supplier.performance.rating >= ratingFilter.min && supplier.performance.rating <= ratingFilter.max;
+                const rating = supplier.performance?.rating || supplier.rating || 0;
+                return rating >= ratingFilter.min && rating <= ratingFilter.max;
             });
 
         // Quality score filter
         const matchesQualityScores = selectedQualityScores.length === 0 ||
             selectedQualityScores.some(scoreValue => {
                 const scoreFilter = QUALITY_SCORE_FILTERS.find(s => s.value === scoreValue);
-                if (!scoreFilter || supplier.performance.qualityScore === undefined) return false;
-                return supplier.performance.qualityScore >= scoreFilter.min && supplier.performance.qualityScore <= scoreFilter.max;
+                if (!scoreFilter) return false;
+                const qualityScore = supplier.performance?.qualityScore || supplier.quality_rating;
+                if (qualityScore === undefined) return false;
+                return qualityScore >= scoreFilter.min && qualityScore <= scoreFilter.max;
             });
 
         // Response rate filter
         const matchesMinResponseRate = minResponseRate === '' ||
-            supplier.performance.responseRate >= Number(minResponseRate);
+            (supplier.performance?.responseRate || supplier.response_rate || 0) >= Number(minResponseRate);
 
         // Turnaround days filter
         const matchesMaxTurnaroundDays = maxTurnaroundDays === '' ||
-            supplier.performance.turnaroundDays <= Number(maxTurnaroundDays);
+            (supplier.performance?.turnaroundDays || supplier.average_turnaround_days || 0) <= Number(maxTurnaroundDays);
 
         // Annual spend filters
         const matchesMinAnnualSpend = minAnnualSpend === '' ||
@@ -541,6 +555,35 @@ export function SupplierList({
             matchesRatings && matchesQualityScores && matchesMinResponseRate && matchesMaxTurnaroundDays &&
             matchesMinAnnualSpend && matchesMaxAnnualSpend && matchesPaymentTerms && matchesLastActivity;
     });
+
+    // Pagination calculations
+    const totalItems = filteredSuppliers.length;
+    const totalPages = Math.ceil(totalItems / itemsPerPage);
+    const startIndex = (currentPage - 1) * itemsPerPage;
+    const endIndex = startIndex + itemsPerPage;
+    const currentPageSuppliers = filteredSuppliers.slice(startIndex, endIndex);
+
+    // Pagination handlers
+    const handlePageChange = (page: number) => {
+        setCurrentPage(page);
+    };
+
+    const handlePreviousPage = () => {
+        if (currentPage > 1) {
+            setCurrentPage(currentPage - 1);
+        }
+    };
+
+    const handleNextPage = () => {
+        if (currentPage < totalPages) {
+            setCurrentPage(currentPage + 1);
+        }
+    };
+
+    // Reset to first page when filters change
+    React.useEffect(() => {
+        setCurrentPage(1);
+    }, [searchQuery, selectedProcesses, selectedMaterials, selectedTolerances, selectedCertifications, selectedRegions, selectedCountries, selectedStatuses, selectedSupplierTypes, selectedRatings, selectedQualityScores, minResponseRate, maxTurnaroundDays, minAnnualSpend, maxAnnualSpend, selectedPaymentTerms, lastActivityDays]);
 
     // Helper function to check if a date is within the last N days
     const isWithinLastDays = (dateString: string, days: number): boolean => {
@@ -585,7 +628,7 @@ export function SupplierList({
                     <Button
                         variant="outline"
                         size="sm"
-                        onClick={() => onSupplierSelect?.(supplier)}
+                        onClick={() => navigate(`/suppliers/${supplier.id}`)}
                         className="h-8"
                     >
                         <Eye className="w-4 h-4 mr-1" />
@@ -604,7 +647,7 @@ export function SupplierList({
                         <Button
                             variant="outline"
                             size="sm"
-                            onClick={() => onSupplierSelect?.(supplier)}
+                            onClick={() => navigate(`/suppliers/${supplier.id}`)}
                             className="h-8"
                         >
                             <RefreshCw className="w-4 h-4 mr-1" />
@@ -630,7 +673,7 @@ export function SupplierList({
                 <Button
                     variant="outline"
                     size="sm"
-                    onClick={() => onSupplierSelect?.(supplier)}
+                    onClick={() => navigate(`/suppliers/${supplier.id}`)}
                     className="h-8"
                 >
                     <Eye className="w-4 h-4 mr-1" />
@@ -1190,7 +1233,7 @@ export function SupplierList({
 
             {/* Supplier List */}
             <div className="space-y-4">
-                {filteredSuppliers.map((supplier) => (
+                {currentPageSuppliers.map((supplier) => (
                     <Card key={supplier.id} className="p-4">
                         <div className="flex flex-col lg:flex-row lg:items-start lg:justify-between gap-4">
                             <div className="flex-1">
@@ -1243,23 +1286,23 @@ export function SupplierList({
                                 <div className="flex flex-wrap items-center gap-4">
                                     <div className="flex items-center text-sm">
                                         <Star className="w-4 h-4 fill-yellow-400 text-yellow-400 mr-1" />
-                                        <span>{supplier.performance.rating.toFixed(1)}</span>
+                                        <span>{supplier.performance?.rating?.toFixed(1) || supplier.rating?.toFixed(1) || 'N/A'}</span>
                                     </div>
                                     <div className="flex items-center text-sm">
                                         <CheckCircle className="w-4 h-4 text-green-500 mr-1" />
-                                        <span>{supplier.performance.responseRate}% OTD</span>
+                                        <span>{supplier.performance?.responseRate || supplier.response_rate || 0}% OTD</span>
                                     </div>
                                     <div className="flex items-center text-sm">
                                         <Clock className="w-4 h-4 text-blue-500 mr-1" />
-                                        <span>{supplier.performance.turnaroundDays} days</span>
+                                        <span>{supplier.performance?.turnaroundDays || supplier.average_turnaround_days || 0} days</span>
                                     </div>
-                                    {supplier.performance.qualityScore !== undefined && (
+                                    {(supplier.performance?.qualityScore !== undefined || supplier.quality_rating !== undefined) && (
                                         <div className="flex items-center text-sm">
                                             <Award className="w-4 h-4 text-purple-500 mr-1" />
-                                            <span>Q: {supplier.performance.qualityScore}</span>
+                                            <span>Q: {supplier.performance?.qualityScore || supplier.quality_rating}</span>
                                         </div>
                                     )}
-                                    {supplier.performance.costCompetitiveness !== undefined && (
+                                    {supplier.performance?.costCompetitiveness !== undefined && (
                                         <div className="flex items-center text-sm">
                                             <TrendingUp className="w-4 h-4 text-orange-500 mr-1" />
                                             <span>C: {supplier.performance.costCompetitiveness}</span>
@@ -1279,17 +1322,61 @@ export function SupplierList({
             {/* Pagination */}
             <div className="flex flex-col sm:flex-row items-center justify-between gap-4">
                 <div className="text-sm text-muted-foreground">
-                    Showing 1 to {Math.min(10, filteredSuppliers.length)} of {filteredSuppliers.length} results
+                    Showing {startIndex + 1} to {Math.min(endIndex, totalItems)} of {totalItems} results
                 </div>
-                <div className="flex items-center gap-2">
-                    <Button variant="outline" size="sm">Previous</Button>
-                    <Button variant="outline" size="sm" className="bg-primary text-primary-foreground">1</Button>
-                    <Button variant="outline" size="sm">2</Button>
-                    <Button variant="outline" size="sm">3</Button>
-                    <span className="text-muted-foreground">...</span>
-                    <Button variant="outline" size="sm">12</Button>
-                    <Button variant="outline" size="sm">Next</Button>
-                </div>
+                {totalPages > 1 && (
+                    <div className="flex items-center gap-2">
+                        <Button
+                            variant="outline"
+                            size="sm"
+                            onClick={handlePreviousPage}
+                            disabled={currentPage === 1}
+                        >
+                            Previous
+                        </Button>
+
+                        {/* Page numbers */}
+                        {Array.from({ length: totalPages }, (_, i) => i + 1).map((page) => {
+                            // Show first 3 pages, last 3 pages, and current page with some context
+                            const shouldShow =
+                                page <= 3 ||
+                                page >= totalPages - 2 ||
+                                Math.abs(page - currentPage) <= 1;
+
+                            if (!shouldShow) {
+                                // Show ellipsis for gaps
+                                if (page === 4 && currentPage > 5) {
+                                    return <span key={`ellipsis-${page}`} className="text-muted-foreground">...</span>;
+                                }
+                                if (page === totalPages - 3 && currentPage < totalPages - 4) {
+                                    return <span key={`ellipsis-${page}`} className="text-muted-foreground">...</span>;
+                                }
+                                return null;
+                            }
+
+                            return (
+                                <Button
+                                    key={page}
+                                    variant="outline"
+                                    size="sm"
+                                    onClick={() => handlePageChange(page)}
+                                    className={currentPage === page ? "bg-primary text-primary-foreground" : ""}
+                                >
+                                    {page}
+                                </Button>
+                            );
+                        })}
+
+                        <Button
+                            variant="outline"
+                            size="sm"
+                            onClick={handleNextPage}
+                            disabled={currentPage === totalPages}
+                        >
+                            Next
+                        </Button>
+                    </div>
+                )}
             </div>
         </div>
     );

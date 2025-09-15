@@ -56,7 +56,7 @@ export default function Suppliers() {
 
     const handleSupplierSelect = (supplier: any) => {
         console.log('View supplier:', supplier);
-        alert(`Viewing supplier: ${supplier.name}`);
+        navigate(`/suppliers/${supplier.id}`);
     };
 
     const handleSendRFQ = (supplier: any) => {
@@ -237,6 +237,7 @@ export default function Suppliers() {
                 </CardHeader>
                 <CardContent>
                     <SupplierList
+                        suppliers={suppliers}
                         onSupplierSelect={handleSupplierSelect}
                         onSendRFQ={handleSendRFQ}
                         onStartQualification={handleStartQualification}
