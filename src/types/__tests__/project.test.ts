@@ -13,7 +13,6 @@ describe('Project Types', () => {
             const validStatuses: ProjectStatus[] = [
                 'draft',
                 'inquiry',
-                'in_progress',
                 'reviewing',
                 'quoted',
                 'confirmed',

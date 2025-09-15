@@ -439,7 +439,7 @@ export function InquiryIntakeForm({ submissionType, onSuccess }: InquiryIntakeFo
                 tags: data.intakeType === 'po' ? [data.projectReference].filter(Boolean) : undefined,
                 intake_type: data.intakeType,
                 intake_source: 'portal',
-                status: 'in_progress', // Explicitly set status to 'in_progress' for submissions
+                status: 'inquiry', // Explicitly set status to 'inquiry' for submissions
                 current_stage_id: '880e8400-e29b-41d4-a716-446655440001', // Set to inquiry_received stage
                 // Additional fields for database
                 volume: data.volumes ? JSON.stringify(data.volumes) : undefined,

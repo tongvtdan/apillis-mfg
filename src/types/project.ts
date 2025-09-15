@@ -3,7 +3,7 @@ export type ProjectStage = 'inquiry_received' | 'technical_review' | 'supplier_r
 
 // Dynamic stage type based on database workflow_stages
 export type WorkflowStageId = string; // UUID from workflow_stages table
-export type ProjectStatus = 'draft' | 'inquiry' | 'in_progress' | 'reviewing' | 'quoted' | 'confirmed' | 'procurement' | 'production' | 'completed' | 'cancelled';
+export type ProjectStatus = 'draft' | 'inquiry' | 'reviewing' | 'quoted' | 'confirmed' | 'procurement' | 'production' | 'completed' | 'cancelled';
 export type ProjectPriority = 'low' | 'normal' | 'high' | 'urgent';
 export type ProjectType = 'system_build' | 'fabrication' | 'manufacturing';
 export type ProjectSource = 'manual' | 'portal' | 'email' | 'api' | 'import' | 'migration';

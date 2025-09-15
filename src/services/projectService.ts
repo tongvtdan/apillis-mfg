@@ -540,7 +540,7 @@ class ProjectService {
                 customer_organization_id: (projectData as any).customer_organization_id || projectData.customer_id || null,
                 point_of_contacts: (projectData as any).point_of_contacts || null,
                 current_stage_id: projectData.current_stage_id || null,
-                status: projectData.status || 'in_progress',
+                status: projectData.status || 'inquiry',
                 priority_level: projectData.priority_level || (projectData as any).priority || 'normal',
                 source: projectData.source || 'portal',
                 assigned_to: projectData.assigned_to || null,
@@ -560,9 +560,9 @@ class ProjectService {
                 project_reference: (projectData as any).project_reference || null
             };
 
-            // Ensure that when status is 'in_progress' and no current_stage_id is set, 
+            // Ensure that when status is 'inquiry' and no current_stage_id is set, 
             // we default to inquiry_received stage
-            if (insertData.status === 'in_progress' && !insertData.current_stage_id) {
+            if (insertData.status === 'inquiry' && !insertData.current_stage_id) {
                 // Set current_stage_id to inquiry_received stage (id = 880e8400-e29b-41d4-a716-446655440001)
                 insertData.current_stage_id = '880e8400-e29b-41d4-a716-446655440001';
             }

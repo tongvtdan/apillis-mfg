@@ -153,7 +153,7 @@ class ProjectWorkflowService {
                 ...projectData,
                 current_stage_id: initialStage.id,
                 workflow_definition_id: defaultWorkflow?.id,
-                status: projectData.status || 'in_progress', // Use provided status or default to 'in_progress'
+                status: projectData.status || 'inquiry', // Use provided status or default to 'inquiry'
                 point_of_contacts: projectData.contacts || []
             } as any);
 
@@ -426,7 +426,7 @@ class ProjectWorkflowService {
             if (project.estimated_delivery_date) {
                 const dueDate = new Date(project.estimated_delivery_date);
                 const now = new Date();
-                if (dueDate < now && project.status === 'in_progress') {
+                if (dueDate < now && project.status === 'inquiry') {
                     validation.warnings.push('Project is overdue');
                 }
             }
@@ -529,8 +529,8 @@ class ProjectWorkflowService {
     private async handleStatusChangeActions(projectId: string, newStatus: ProjectStatus): Promise<void> {
         try {
             switch (newStatus) {
-                case 'in_progress':
-                    // No specific actions needed for in_progress status
+                case 'inquiry':
+                    // No specific actions needed for inquiry status
                     break;
                 case 'draft':
                     // No specific actions needed for draft status

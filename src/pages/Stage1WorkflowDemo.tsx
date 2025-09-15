@@ -168,7 +168,7 @@ export function Stage1WorkflowDemo() {
                                 <Badge variant="secondary">
                                     {currentStage?.name || 'Unknown'}
                                 </Badge>
-                                <Badge variant={project.status === 'in_progress' ? 'default' : 'outline'}>
+                                <Badge variant={project.status === 'inquiry' ? 'default' : 'outline'}>
                                     {project.status}
                                 </Badge>
                             </div>
