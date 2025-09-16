@@ -63,7 +63,7 @@ export function SupplierDocumentUploader({
     const { uploadDocument, loading } = useSupplierDocuments(supplierId);
 
     const getFileIcon = (file: File) => {
-        const type = file.type.toLowerCase();
+        const type = file.type?.toLowerCase() || '';
 
         if (type.startsWith('image/')) {
             return <Image className="h-8 w-8 text-blue-500" />;
@@ -77,7 +77,7 @@ export function SupplierDocumentUploader({
     };
 
     const formatFileSize = (bytes: number) => {
-        if (bytes === 0) return '0 Bytes';
+        if (!bytes || bytes === 0) return '0 Bytes';
         const k = 1024;
         const sizes = ['Bytes', 'KB', 'MB', 'GB'];
         const i = Math.floor(Math.log(bytes) / Math.log(k));
@@ -85,14 +85,19 @@ export function SupplierDocumentUploader({
     };
 
     const validateFile = (file: File): string | null => {
+        // Check if file is valid
+        if (!file || !file.name) {
+            return 'Invalid file';
+        }
+
         // Check file size
         const maxSizeBytes = maxFileSize * 1024 * 1024;
         if (file.size > maxSizeBytes) {
             return `File size exceeds ${maxFileSize}MB limit`;
         }
 
-        // Check file type
-        if (allowedTypes[0] !== '*' && !allowedTypes.includes(file.type)) {
+        // Check file type (only if file.type exists and allowedTypes is not wildcard)
+        if (file.type && allowedTypes[0] !== '*' && !allowedTypes.includes(file.type)) {
             return `File type ${file.type} is not allowed`;
         }
 
@@ -101,10 +106,15 @@ export function SupplierDocumentUploader({
 
     const addFiles = useCallback((newFiles: File[]) => {
         const validFiles: UploadFile[] = [];
-
+        
+        console.log('📁 Adding files:', newFiles.length);
+        
         newFiles.forEach(file => {
+            console.log('📄 Processing file:', { name: file.name, type: file.type, size: file.size });
+            
             const error = validateFile(file);
             if (error) {
+                console.log('❌ File validation error:', error);
                 // Add file with error status
                 validFiles.push({
                     ...file,
@@ -114,6 +124,7 @@ export function SupplierDocumentUploader({
                     error
                 });
             } else {
+                console.log('✅ File validation passed');
                 validFiles.push({
                     ...file,
                     id: Math.random().toString(36).substr(2, 9),
@@ -365,12 +376,12 @@ export function SupplierDocumentUploader({
                             {files.map((file) => (
                                 <div key={file.id} className="flex items-center space-x-4 p-3 border rounded-lg">
                                     <div className="flex-shrink-0">
-                                        {getFileIcon(file)}
+                                        {file && file.name ? getFileIcon(file) : <File className="h-8 w-8 text-gray-500" />}
                                     </div>
 
                                     <div className="flex-1 min-w-0">
-                                        <p className="text-sm font-medium truncate">{file.name}</p>
-                                        <p className="text-xs text-muted-foreground">{formatFileSize(file.size)}</p>
+                                        <p className="text-sm font-medium truncate">{file.name || 'Unknown file'}</p>
+                                        <p className="text-xs text-muted-foreground">{formatFileSize(file.size || 0)}</p>
 
                                         {file.status === 'uploading' && (
                                             <Progress value={file.progress} className="mt-2" />
