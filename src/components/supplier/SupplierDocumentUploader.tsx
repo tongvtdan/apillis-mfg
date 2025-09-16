@@ -21,6 +21,34 @@ import {
 import { useSupplierDocuments } from '@/hooks/useSupplierDocuments';
 import { cn } from '@/lib/utils';
 
+// Supplier-specific document types
+const SUPPLIER_DOCUMENT_TYPES = [
+    { value: 'certificate', label: 'Certificate/Compliance' },
+    { value: 'qualification', label: 'Qualification Document' },
+    { value: 'contract', label: 'Contract/Agreement' },
+    { value: 'insurance', label: 'Insurance Document' },
+    { value: 'compliance', label: 'Compliance Document' },
+    { value: 'financial', label: 'Financial Document' },
+    { value: 'technical', label: 'Technical Specification' },
+    { value: 'quality', label: 'Quality Manual' },
+    { value: 'safety', label: 'Safety Document' },
+    { value: 'environmental', label: 'Environmental Document' },
+    { value: 'audit', label: 'Audit Report' },
+    { value: 'license', label: 'License/Permit' },
+    { value: 'warranty', label: 'Warranty Document' },
+    { value: 'supplier_nda', label: 'Non-Disclosure Agreement' },
+    { value: 'supplier_profile', label: 'Company Profile' },
+    { value: 'product_catalog', label: 'Product Catalog' },
+    { value: 'sustainability_report', label: 'Sustainability Report' },
+    { value: 'other', label: 'Other Document' }
+];
+
+const ACCESS_LEVELS = [
+    { value: 'public', label: 'Public' },
+    { value: 'internal', label: 'Internal Only' },
+    { value: 'confidential', label: 'Confidential' }
+];
+
 interface SupplierDocumentUploaderProps {
     supplierId: string;
     onUploadSuccess?: (document: any) => void;
@@ -37,6 +65,12 @@ interface UploadFile extends File {
     status: 'pending' | 'uploading' | 'success' | 'error';
     progress: number;
     error?: string;
+    metadata: {
+        document_type: string;
+        access_level: string;
+        tags: string[];
+        description?: string;
+    };
 }
 
 export function SupplierDocumentUploader({
@@ -61,6 +95,13 @@ export function SupplierDocumentUploader({
     const fileInputRef = useRef<HTMLInputElement>(null);
 
     const { uploadDocument, loading } = useSupplierDocuments(supplierId);
+
+    // Default metadata for new files
+    const [defaultMetadata, setDefaultMetadata] = useState({
+        document_type: 'certificate',
+        access_level: 'internal',
+        tags: []
+    });
 
     const getFileIcon = (file: File) => {
         const type = file.type?.toLowerCase() || '';
@@ -121,7 +162,13 @@ export function SupplierDocumentUploader({
                     id: Math.random().toString(36).substr(2, 9),
                     status: 'error',
                     progress: 0,
-                    error
+                    error,
+                    metadata: {
+                        document_type: defaultMetadata.document_type,
+                        access_level: defaultMetadata.access_level,
+                        tags: defaultMetadata.tags,
+                        description: ''
+                    }
                 });
             } else {
                 console.log('✅ File validation passed');
@@ -129,13 +176,19 @@ export function SupplierDocumentUploader({
                     ...file,
                     id: Math.random().toString(36).substr(2, 9),
                     status: 'pending',
-                    progress: 0
+                    progress: 0,
+                    metadata: {
+                        document_type: defaultMetadata.document_type,
+                        access_level: defaultMetadata.access_level,
+                        tags: defaultMetadata.tags,
+                        description: ''
+                    }
                 });
             }
         });
 
         setFiles(prev => [...prev, ...validFiles]);
-    }, [maxFileSize, allowedTypes]);
+    }, [maxFileSize, allowedTypes, defaultMetadata]);
 
     const handleDragOver = useCallback((e: React.DragEvent) => {
         e.preventDefault();
@@ -160,6 +213,14 @@ export function SupplierDocumentUploader({
         addFiles(selectedFiles);
     };
 
+    const updateFileMetadata = useCallback((fileId: string, updates: Partial<UploadFile['metadata']>) => {
+        setFiles(prev => prev.map(file => 
+            file.id === fileId 
+                ? { ...file, metadata: { ...file.metadata, ...updates } }
+                : file
+        ));
+    }, []);
+
     const uploadFile = useCallback(async (uploadFile: UploadFile) => {
         // Update status to uploading
         setFiles(prev => prev.map(f =>
@@ -169,19 +230,11 @@ export function SupplierDocumentUploader({
         ));
 
         try {
-            // Prepare metadata
-            const fileMetadata = showMetadata ? {
-                category: metadata.category,
-                accessLevel: metadata.accessLevel,
-                tags: metadata.tags ? metadata.tags.split(',').map(tag => tag.trim()) : [],
-                description: metadata.description
-            } : undefined;
-
             const success = await uploadDocument(
                 uploadFile,
-                metadata.category,
-                metadata.description || uploadFile.name,
-                metadata.description
+                uploadFile.metadata.document_type,
+                uploadFile.name,
+                uploadFile.metadata.description
             );
 
             if (success) {
@@ -208,7 +261,7 @@ export function SupplierDocumentUploader({
 
             onUploadError?.(errorMessage);
         }
-    }, [uploadDocument, metadata, showMetadata, onUploadSuccess, onUploadError]);
+    }, [uploadDocument, onUploadSuccess, onUploadError]);
 
     const uploadAllFiles = useCallback(async () => {
         const pendingFiles = files.filter(f => f.status === 'pending');
@@ -234,228 +287,241 @@ export function SupplierDocumentUploader({
     const hasCompletedFiles = files.some(f => f.status === 'success');
     const hasErrorFiles = files.some(f => f.status === 'error');
 
+    const pendingFiles = files.filter(f => f.status === 'pending');
+    const completedFiles = files.filter(f => f.status === 'success');
+    const errorFiles = files.filter(f => f.status === 'error');
+
     return (
         <div className={cn("space-y-6", className)}>
-            {/* Upload Zone */}
-            <Card>
-                <CardContent className="p-6">
-                    <div
-                        className={cn(
-                            "border-2 border-dashed rounded-lg p-8 text-center transition-colors",
-                            isDragOver
-                                ? "border-primary bg-primary/5"
-                                : "border-muted-foreground/25 hover:border-primary/50"
-                        )}
-                        onDragOver={handleDragOver}
-                        onDragLeave={handleDragLeave}
-                        onDrop={handleDrop}
+            {/* Default metadata settings */}
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-4 p-4 bg-muted/50 rounded-lg">
+                <div className="space-y-2">
+                    <Label className="text-sm font-medium">Default Document Type</Label>
+                    <Select
+                        value={defaultMetadata.document_type}
+                        onValueChange={(value) => setDefaultMetadata(prev => ({ ...prev, document_type: value }))}
                     >
-                        <Upload className="mx-auto h-12 w-12 text-muted-foreground mb-4" />
-                        <div className="space-y-2">
-                            <p className="text-lg font-medium">
-                                Drop files here or{' '}
-                                <button
-                                    type="button"
-                                    className="text-primary hover:underline"
-                                    onClick={() => fileInputRef.current?.click()}
-                                >
-                                    browse
-                                </button>
-                            </p>
-                            <p className="text-sm text-muted-foreground">
-                                Maximum file size: {maxFileSize}MB
-                                {allowedTypes[0] !== '*' && (
-                                    <span> • Allowed types: {allowedTypes.join(', ')}</span>
-                                )}
-                            </p>
-                        </div>
-                        <input
-                            ref={fileInputRef}
-                            type="file"
-                            multiple
-                            className="hidden"
-                            onChange={handleFileSelect}
-                            accept={allowedTypes[0] === '*' ? undefined : allowedTypes.join(',')}
-                        />
-                    </div>
-                </CardContent>
-            </Card>
+                        <SelectTrigger>
+                            <SelectValue />
+                        </SelectTrigger>
+                        <SelectContent>
+                            {SUPPLIER_DOCUMENT_TYPES.map(type => (
+                                <SelectItem key={type.value} value={type.value}>
+                                    {type.label}
+                                </SelectItem>
+                            ))}
+                        </SelectContent>
+                    </Select>
+                </div>
 
-            {/* Metadata Form */}
-            {showMetadata && files.length > 0 && (
+                <div className="space-y-2">
+                    <Label className="text-sm font-medium">Default Access Level</Label>
+                    <Select
+                        value={defaultMetadata.access_level}
+                        onValueChange={(value) => setDefaultMetadata(prev => ({ ...prev, access_level: value }))}
+                    >
+                        <SelectTrigger>
+                            <SelectValue />
+                        </SelectTrigger>
+                        <SelectContent>
+                            {ACCESS_LEVELS.map(level => (
+                                <SelectItem key={level.value} value={level.value}>
+                                    {level.label}
+                                </SelectItem>
+                            ))}
+                        </SelectContent>
+                    </Select>
+                </div>
+
+                <div className="space-y-2">
+                    <Label className="text-sm font-medium">Default Tags (comma-separated)</Label>
+                    <Input
+                        placeholder="e.g. ISO 9001, Quality"
+                        value={defaultMetadata.tags?.join(', ') || ''}
+                        onChange={(e) => {
+                            const tags = e.target.value.split(',').map(tag => tag.trim()).filter(Boolean);
+                            setDefaultMetadata(prev => ({ ...prev, tags }));
+                        }}
+                    />
+                </div>
+            </div>
+
+            {/* Drag and drop zone */}
+            <div
+                className={`border-2 border-dashed rounded-lg p-12 text-center transition-colors ${isDragOver
+                    ? 'border-primary bg-primary/5'
+                    : 'border-muted-foreground/25 hover:border-muted-foreground/50'
+                    }`}
+                onDragOver={handleDragOver}
+                onDragLeave={handleDragLeave}
+                onDrop={handleDrop}
+            >
+                <Upload className="w-12 h-12 mx-auto text-muted-foreground mb-4" />
+                <h3 className="text-lg font-medium mb-2">Drop files here or click to browse</h3>
+                <p className="text-muted-foreground mb-4">
+                    Support for PDF, DOC, DOCX, XLS, XLSX, DWG, CAD files, and images
+                    <br />
+                    Maximum file size: {maxFileSize}MB per file
+                </p>
+                <Button onClick={() => fileInputRef.current?.click()}>
+                    <Upload className="w-4 h-4 mr-2" />
+                    Select Files
+                </Button>
+                <input
+                    ref={fileInputRef}
+                    type="file"
+                    multiple
+                    className="hidden"
+                    onChange={handleFileSelect}
+                    accept=".pdf,.doc,.docx,.xls,.xlsx,.dwg,.dxf,.step,.stp,.iges,.igs,.jpg,.jpeg,.png,.gif,.bmp,.tiff,.txt,.csv"
+                />
+            </div>
+
+            {/* File list */}
+            {files.length > 0 && (
                 <div className="space-y-4">
-                    <h3 className="text-lg font-medium">Document Information</h3>
-                    <div className="grid grid-cols-1 md:grid-cols-3 gap-4 p-4 bg-muted/50 rounded-lg">
-                        <div className="space-y-2">
-                            <Label className="text-sm font-medium">Default Document Type</Label>
-                            <Select
-                                value={metadata.category}
-                                onValueChange={(value) => setMetadata(prev => ({ ...prev, category: value }))}
-                            >
-                                <SelectTrigger>
-                                    <SelectValue />
-                                </SelectTrigger>
-                                <SelectContent>
-                                    <SelectItem value="certificate">Certificate</SelectItem>
-                                    <SelectItem value="qualification">Qualification</SelectItem>
-                                    <SelectItem value="contract">Contract</SelectItem>
-                                    <SelectItem value="insurance">Insurance</SelectItem>
-                                    <SelectItem value="compliance">Compliance</SelectItem>
-                                    <SelectItem value="financial">Financial</SelectItem>
-                                    <SelectItem value="technical">Technical</SelectItem>
-                                    <SelectItem value="quality">Quality</SelectItem>
-                                    <SelectItem value="safety">Safety</SelectItem>
-                                    <SelectItem value="environmental">Environmental</SelectItem>
-                                    <SelectItem value="audit">Audit</SelectItem>
-                                    <SelectItem value="license">License</SelectItem>
-                                    <SelectItem value="warranty">Warranty</SelectItem>
-                                    <SelectItem value="supplier_nda">Non-Disclosure Agreement</SelectItem>
-                                    <SelectItem value="other">Other</SelectItem>
-                                </SelectContent>
-                            </Select>
-                        </div>
-
-                        <div className="space-y-2">
-                            <Label className="text-sm font-medium">Access Level</Label>
-                            <Select
-                                value={metadata.accessLevel}
-                                onValueChange={(value) => setMetadata(prev => ({ ...prev, accessLevel: value }))}
-                            >
-                                <SelectTrigger>
-                                    <SelectValue />
-                                </SelectTrigger>
-                                <SelectContent>
-                                    <SelectItem value="public">Public</SelectItem>
-                                    <SelectItem value="internal">Internal</SelectItem>
-                                    <SelectItem value="confidential">Confidential</SelectItem>
-                                </SelectContent>
-                            </Select>
-                        </div>
-
-                        <div className="space-y-2">
-                            <Label className="text-sm font-medium">Tags (comma-separated)</Label>
-                            <Input
-                                value={metadata.tags}
-                                onChange={(e) => setMetadata(prev => ({ ...prev, tags: e.target.value }))}
-                                placeholder="e.g., ISO 9001, Quality, Manufacturing"
-                            />
+                    <div className="flex items-center justify-between">
+                        <h4 className="font-medium">
+                            Files to Upload ({files.length})
+                        </h4>
+                        <div className="flex gap-2 text-sm text-muted-foreground">
+                            {completedFiles.length > 0 && (
+                                <Badge variant="secondary" className="bg-green-100 text-green-800">
+                                    {completedFiles.length} completed
+                                </Badge>
+                            )}
+                            {errorFiles.length > 0 && (
+                                <Badge variant="secondary" className="bg-red-100 text-red-800">
+                                    {errorFiles.length} failed
+                                </Badge>
+                            )}
                         </div>
                     </div>
 
-                    <div className="space-y-2">
-                        <Label className="text-sm font-medium">Description</Label>
-                        <Textarea
-                            value={metadata.description}
-                            onChange={(e) => setMetadata(prev => ({ ...prev, description: e.target.value }))}
-                            placeholder="Enter document description..."
-                            rows={3}
-                        />
+                    <div className="max-h-96 overflow-y-auto space-y-3">
+                        {files.map((fileItem) => (
+                            <div key={fileItem.id} className="border rounded-lg p-4 space-y-3">
+                                <div className="flex items-start justify-between">
+                                    <div className="flex items-start gap-3 flex-1">
+                                        <FileText className="w-5 h-5 text-muted-foreground mt-0.5" />
+                                        <div className="flex-1 min-w-0">
+                                            <div className="flex items-center gap-2">
+                                                <h5 className="font-medium truncate">{fileItem.name}</h5>
+                                                {fileItem.status === 'success' && (
+                                                    <CheckCircle className="w-4 h-4 text-green-600" />
+                                                )}
+                                                {fileItem.status === 'error' && (
+                                                    <AlertCircle className="w-4 h-4 text-red-600" />
+                                                )}
+                                            </div>
+                                            <p className="text-sm text-muted-foreground">
+                                                {formatFileSize(fileItem.size)} • {fileItem.type || 'Unknown type'}
+                                            </p>
+                                            {fileItem.error && (
+                                                <p className="text-sm text-red-600 mt-1">{fileItem.error}</p>
+                                            )}
+                                        </div>
+                                    </div>
+
+                                    {fileItem.status === 'pending' && (
+                                        <Button
+                                            variant="ghost"
+                                            size="sm"
+                                            onClick={() => removeFile(fileItem.id)}
+                                        >
+                                            <X className="w-4 h-4" />
+                                        </Button>
+                                    )}
+                                </div>
+
+                                {/* Progress bar */}
+                                {(fileItem.status === 'uploading' || fileItem.status === 'success') && (
+                                    <Progress value={fileItem.progress} className="h-2" />
+                                )}
+
+                                {/* File metadata */}
+                                {fileItem.status === 'pending' && (
+                                    <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
+                                        <Select
+                                            value={fileItem.metadata.document_type}
+                                            onValueChange={(value) => updateFileMetadata(fileItem.id, { document_type: value })}
+                                        >
+                                            <SelectTrigger className="h-8">
+                                                <SelectValue />
+                                            </SelectTrigger>
+                                            <SelectContent>
+                                                {SUPPLIER_DOCUMENT_TYPES.map(type => (
+                                                    <SelectItem key={type.value} value={type.value}>
+                                                        {type.label}
+                                                    </SelectItem>
+                                                ))}
+                                            </SelectContent>
+                                        </Select>
+
+                                        <Select
+                                            value={fileItem.metadata.access_level}
+                                            onValueChange={(value) => updateFileMetadata(fileItem.id, { access_level: value })}
+                                        >
+                                            <SelectTrigger className="h-8">
+                                                <SelectValue />
+                                            </SelectTrigger>
+                                            <SelectContent>
+                                                {ACCESS_LEVELS.map(level => (
+                                                    <SelectItem key={level.value} value={level.value}>
+                                                        {level.label}
+                                                    </SelectItem>
+                                                ))}
+                                            </SelectContent>
+                                        </Select>
+
+                                        <Input
+                                            placeholder="Tags (comma-separated)"
+                                            value={fileItem.metadata.tags?.join(', ') || ''}
+                                            onChange={(e) => {
+                                                const tags = e.target.value.split(',').map(tag => tag.trim()).filter(Boolean);
+                                                updateFileMetadata(fileItem.id, { tags });
+                                            }}
+                                            className="h-8"
+                                        />
+                                    </div>
+                                )}
+                            </div>
+                        ))}
                     </div>
                 </div>
             )}
 
-            {/* File List */}
-            {files.length > 0 && (
-                <Card>
-                    <CardContent className="p-6">
-                        <div className="flex items-center justify-between mb-4">
-                            <h3 className="text-lg font-medium">Files to Upload</h3>
-                            <div className="flex gap-2">
-                                {hasCompletedFiles && (
-                                    <Button variant="outline" size="sm" onClick={clearCompleted}>
-                                        Clear Completed
-                                    </Button>
-                                )}
-                                <Button variant="outline" size="sm" onClick={clearAll}>
-                                    Clear All
-                                </Button>
-                            </div>
-                        </div>
-
-                        <div className="space-y-3">
-                            {files.map((file) => (
-                                <div key={file.id} className="flex items-center space-x-4 p-3 border rounded-lg">
-                                    <div className="flex-shrink-0">
-                                        {file && file.name ? getFileIcon(file) : <File className="h-8 w-8 text-gray-500" />}
-                                    </div>
-
-                                    <div className="flex-1 min-w-0">
-                                        <p className="text-sm font-medium truncate">{file.name || 'Unknown file'}</p>
-                                        <p className="text-xs text-muted-foreground">{formatFileSize(file.size || 0)}</p>
-
-                                        {file.status === 'uploading' && (
-                                            <Progress value={file.progress} className="mt-2" />
-                                        )}
-
-                                        {file.status === 'error' && file.error && (
-                                            <p className="text-xs text-red-500 mt-1">{file.error}</p>
-                                        )}
-                                    </div>
-
-                                    <div className="flex items-center space-x-2">
-                                        {file.status === 'pending' && (
-                                            <Badge variant="secondary">Pending</Badge>
-                                        )}
-                                        {file.status === 'uploading' && (
-                                            <Badge variant="default">
-                                                <Loader2 className="w-3 h-3 mr-1 animate-spin" />
-                                                Uploading
-                                            </Badge>
-                                        )}
-                                        {file.status === 'success' && (
-                                            <Badge variant="default" className="bg-green-500">
-                                                <CheckCircle className="w-3 h-3 mr-1" />
-                                                Success
-                                            </Badge>
-                                        )}
-                                        {file.status === 'error' && (
-                                            <Badge variant="destructive">
-                                                <AlertCircle className="w-3 h-3 mr-1" />
-                                                Error
-                                            </Badge>
-                                        )}
-
-                                        <Button
-                                            variant="ghost"
-                                            size="sm"
-                                            onClick={() => removeFile(file.id)}
-                                            className="h-8 w-8 p-0"
-                                        >
-                                            <X className="w-4 h-4" />
-                                        </Button>
-                                    </div>
-                                </div>
-                            ))}
-                        </div>
-
-                        {/* Upload Actions */}
-                        <div className="flex justify-end space-x-2 mt-6">
-                            {onClose && (
-                                <Button variant="outline" onClick={onClose}>
-                                    Cancel
-                                </Button>
-                            )}
-                            <Button
-                                onClick={uploadAllFiles}
-                                disabled={!hasPendingFiles || loading}
-                                className="min-w-[120px]"
-                            >
-                                {loading ? (
-                                    <>
-                                        <Loader2 className="w-4 h-4 mr-2 animate-spin" />
-                                        Uploading...
-                                    </>
-                                ) : (
-                                    <>
-                                        <Upload className="w-4 h-4 mr-2" />
-                                        Upload All
-                                    </>
-                                )}
-                            </Button>
-                        </div>
-                    </CardContent>
-                </Card>
-            )}
+            {/* Actions */}
+            <div className="flex justify-between items-center pt-4 border-t">
+                <div className="text-sm text-muted-foreground">
+                    {files.length > 0 && (
+                        <>
+                            Total size: {formatFileSize(files.reduce((sum, f) => sum + f.size, 0))}
+                        </>
+                    )}
+                </div>
+                <div className="flex gap-3">
+                    <Button variant="outline" onClick={onClose} disabled={loading}>
+                        Cancel
+                    </Button>
+                    <Button
+                        onClick={uploadAllFiles}
+                        disabled={files.length === 0 || loading || pendingFiles.length === 0}
+                    >
+                        {loading ? (
+                            <>
+                                <Upload className="w-4 h-4 mr-2 animate-spin" />
+                                Uploading...
+                            </>
+                        ) : (
+                            <>
+                                <Upload className="w-4 h-4 mr-2" />
+                                Upload All ({pendingFiles.length})
+                            </>
+                        )}
+                    </Button>
+                </div>
+            </div>
         </div>
     );
 }
