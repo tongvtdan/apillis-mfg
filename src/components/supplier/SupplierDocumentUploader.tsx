@@ -126,33 +126,50 @@ export function SupplierDocumentUploader({
     };
 
     const validateFile = (file: File): string | null => {
+        console.log('🔍 Validating file:', { 
+            name: file.name, 
+            size: file.size, 
+            type: file.type,
+            lastModified: file.lastModified 
+        });
+
         // Check if file is valid
         if (!file || !file.name) {
+            console.log('❌ Invalid file: missing name');
             return 'Invalid file';
         }
 
-        // Check file size
+        // Check if file size is valid
+        if (file.size === 0) {
+            console.log('❌ Invalid file: zero size');
+            return 'File appears to be empty (0 bytes)';
+        }
+
+        // Check file size limit
         const maxSizeBytes = maxFileSize * 1024 * 1024;
         if (file.size > maxSizeBytes) {
+            console.log('❌ File too large:', file.size, 'bytes');
             return `File size exceeds ${maxFileSize}MB limit`;
         }
 
         // Check file type (only if file.type exists and allowedTypes is not wildcard)
         if (file.type && allowedTypes[0] !== '*' && !allowedTypes.includes(file.type)) {
+            console.log('❌ File type not allowed:', file.type);
             return `File type ${file.type} is not allowed`;
         }
 
+        console.log('✅ File validation passed');
         return null;
     };
 
     const addFiles = useCallback((newFiles: File[]) => {
         const validFiles: UploadFile[] = [];
-        
+
         console.log('📁 Adding files:', newFiles.length);
-        
+
         newFiles.forEach(file => {
             console.log('📄 Processing file:', { name: file.name, type: file.type, size: file.size });
-            
+
             const error = validateFile(file);
             if (error) {
                 console.log('❌ File validation error:', error);
@@ -210,18 +227,35 @@ export function SupplierDocumentUploader({
 
     const handleFileSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
         const selectedFiles = Array.from(e.target.files || []);
+        console.log('📁 File input changed:', selectedFiles.length, 'files');
+        selectedFiles.forEach((file, index) => {
+            console.log(`📄 File ${index + 1}:`, {
+                name: file.name,
+                size: file.size,
+                type: file.type,
+                lastModified: file.lastModified
+            });
+        });
         addFiles(selectedFiles);
     };
 
     const updateFileMetadata = useCallback((fileId: string, updates: Partial<UploadFile['metadata']>) => {
-        setFiles(prev => prev.map(file => 
-            file.id === fileId 
+        setFiles(prev => prev.map(file =>
+            file.id === fileId
                 ? { ...file, metadata: { ...file.metadata, ...updates } }
                 : file
         ));
     }, []);
 
     const uploadFile = useCallback(async (uploadFile: UploadFile) => {
+        console.log('📤 Starting upload for file:', {
+            id: uploadFile.id,
+            name: uploadFile.name,
+            size: uploadFile.size,
+            type: uploadFile.type,
+            metadata: uploadFile.metadata
+        });
+
         // Update status to uploading
         setFiles(prev => prev.map(f =>
             f.id === uploadFile.id
@@ -230,6 +264,11 @@ export function SupplierDocumentUploader({
         ));
 
         try {
+            // Validate file before upload
+            if (!uploadFile.name || uploadFile.size === 0) {
+                throw new Error('Invalid file: missing name or empty file');
+            }
+
             const success = await uploadDocument(
                 uploadFile,
                 uploadFile.metadata.document_type,
@@ -238,6 +277,7 @@ export function SupplierDocumentUploader({
             );
 
             if (success) {
+                console.log('✅ Upload successful for:', uploadFile.name);
                 // Update status to success
                 setFiles(prev => prev.map(f =>
                     f.id === uploadFile.id
@@ -247,9 +287,10 @@ export function SupplierDocumentUploader({
 
                 onUploadSuccess?.(uploadFile);
             } else {
-                throw new Error('Failed to upload document');
+                throw new Error('Upload function returned false');
             }
         } catch (error) {
+            console.error('❌ Upload error for file:', uploadFile.name, error);
             const errorMessage = error instanceof Error ? error.message : 'Upload failed';
 
             // Update status to error
@@ -363,10 +404,27 @@ export function SupplierDocumentUploader({
                     <br />
                     Maximum file size: {maxFileSize}MB per file
                 </p>
-                <Button onClick={() => fileInputRef.current?.click()}>
-                    <Upload className="w-4 h-4 mr-2" />
-                    Select Files
-                </Button>
+                <div className="flex gap-2 justify-center">
+                    <Button onClick={() => fileInputRef.current?.click()}>
+                        <Upload className="w-4 h-4 mr-2" />
+                        Select Files
+                    </Button>
+                    <Button 
+                        variant="outline" 
+                        onClick={() => {
+                            // Create a test file to debug
+                            const testFile = new File(['test content'], 'test.txt', { type: 'text/plain' });
+                            console.log('🧪 Test file created:', {
+                                name: testFile.name,
+                                size: testFile.size,
+                                type: testFile.type
+                            });
+                            addFiles([testFile]);
+                        }}
+                    >
+                        Test Upload
+                    </Button>
+                </div>
                 <input
                     ref={fileInputRef}
                     type="file"
