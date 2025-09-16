@@ -209,7 +209,7 @@ export default function SupplierProfile() {
                 {canManage && (
                     <SupplierProfileActions
                         supplier={supplier}
-                        onEdit={() => setIsEditModalOpen(true)}
+                        onEdit={() => navigate(`/suppliers/${id}/edit`)}
                         onDelete={() => setIsDeleteModalOpen(true)}
                         onSendRFQ={() => console.log('Send RFQ to:', supplier.name)}
                         onRequalify={() => console.log('Re-qualify:', supplier.name)}
