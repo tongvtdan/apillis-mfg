@@ -36,7 +36,8 @@ import {
     X,
     Upload,
     History,
-    MoreVertical
+    MoreVertical,
+    Plus
 } from 'lucide-react';
 import { useSuppliers } from '@/features/supplier-management/hooks/useSuppliers';
 import { usePermissions } from '@/core/auth/hooks/usePermissions';
@@ -44,6 +45,7 @@ import { useSupplierDocuments } from '@/hooks/useSupplierDocuments';
 import { SupplierProfileActions } from '@/components/supplier/SupplierProfileActions';
 import { SupplierEditModal } from '@/components/supplier/SupplierEditModal';
 import { SupplierDeleteModal } from '@/components/supplier/SupplierDeleteModal';
+import { SupplierDocumentUploadModal } from '@/components/supplier/SupplierDocumentUploadModal';
 import { SupplierManagementService } from '@/features/supplier-management/services/supplierManagementService';
 import { useAuth } from '@/core/auth';
 
@@ -153,11 +155,12 @@ export default function SupplierProfile() {
     const { user } = useAuth();
     const { suppliers, loading, fetchSuppliers } = useSuppliers();
     const { canManageSuppliers } = usePermissions();
-    const { documents, loading: documentsLoading, downloadDocument, deleteDocument } = useSupplierDocuments(id || '');
+    const { documents, loading: documentsLoading, downloadDocument, deleteDocument, uploadDocument } = useSupplierDocuments(id || '');
     const { toast } = useToast();
 
     const [isEditModalOpen, setIsEditModalOpen] = useState(false);
     const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
+    const [isUploadModalOpen, setIsUploadModalOpen] = useState(false);
     const [canManage, setCanManage] = useState(false);
 
     // Inline editing state
@@ -234,6 +237,15 @@ export default function SupplierProfile() {
             title: "Feature Coming Soon",
             description: "Document history view will be available soon"
         });
+    };
+
+    const handleAddDocument = () => {
+        setIsUploadModalOpen(true);
+    };
+
+    const handleUploadSuccess = () => {
+        setIsUploadModalOpen(false);
+        // Documents will be refreshed automatically by the hook
     };
 
     // Inline editing functions
@@ -929,13 +941,26 @@ export default function SupplierProfile() {
                 <TabsContent value="documents" className="space-y-6">
                     <Card>
                         <CardHeader>
-                            <CardTitle className="flex items-center">
-                                <FileText className="w-5 h-5 mr-2" />
-                                Supplier Documents
-                            </CardTitle>
-                            <CardDescription>
-                                Certificates, qualifications, and other documents organized by type
-                            </CardDescription>
+                            <div className="flex items-center justify-between">
+                                <div>
+                                    <CardTitle className="flex items-center">
+                                        <FileText className="w-5 h-5 mr-2" />
+                                        Supplier Documents
+                                    </CardTitle>
+                                    <CardDescription>
+                                        Certificates, qualifications, and other documents organized by type
+                                    </CardDescription>
+                                </div>
+                                {canManage && (
+                                    <Button
+                                        onClick={handleAddDocument}
+                                        className="flex items-center gap-2"
+                                    >
+                                        <Plus className="w-4 h-4" />
+                                        Add Document
+                                    </Button>
+                                )}
+                            </div>
                         </CardHeader>
                         <CardContent>
                             {documentsLoading ? (
@@ -947,9 +972,18 @@ export default function SupplierProfile() {
                                 <div className="text-center py-8">
                                     <FileText className="w-12 h-12 mx-auto text-muted-foreground mb-4" />
                                     <h3 className="text-lg font-medium mb-2">No Documents Available</h3>
-                                    <p className="text-muted-foreground">
+                                    <p className="text-muted-foreground mb-4">
                                         Documents will appear here once uploaded
                                     </p>
+                                    {canManage && (
+                                        <Button
+                                            onClick={handleAddDocument}
+                                            className="flex items-center gap-2"
+                                        >
+                                            <Plus className="w-4 h-4" />
+                                            Add First Document
+                                        </Button>
+                                    )}
                                 </div>
                             ) : (
                                 <div className="space-y-6">
@@ -1128,6 +1162,15 @@ export default function SupplierProfile() {
                         console.log('Delete supplier:', supplierData.id);
                         navigate('/suppliers');
                     }}
+                />
+            )}
+
+            {isUploadModalOpen && (
+                <SupplierDocumentUploadModal
+                    supplierId={id || ''}
+                    isOpen={isUploadModalOpen}
+                    onClose={() => setIsUploadModalOpen(false)}
+                    onUploadSuccess={handleUploadSuccess}
                 />
             )}
         </div>
