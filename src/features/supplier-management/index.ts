@@ -1,6 +1,15 @@
 // Main Components
 export { SupplierManagement } from './components/SupplierManagement';
 
+// Pages
+export {
+    SupplierProfilePage,
+    SuppliersPage,
+    CreateSupplierPage,
+    EditSupplierPage,
+    SupplierManagementTestPage
+} from './components/pages';
+
 // Types
 export type {
     Supplier,
