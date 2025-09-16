@@ -1,6 +1,9 @@
 // Main Components
 export { SupplierManagement } from './components/SupplierManagement';
 
+// UI Components
+export * from './components/ui';
+
 // Pages
 export {
     SupplierProfilePage,

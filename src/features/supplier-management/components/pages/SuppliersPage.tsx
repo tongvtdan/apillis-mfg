@@ -20,7 +20,7 @@ import { useSuppliers } from '@/features/supplier-management/hooks/useSuppliers'
 import { usePermissions } from '@/core/auth/hooks/usePermissions';
 import { useNavigate } from 'react-router-dom';
 import { Supplier } from '@/types/supplier';
-import { SupplierList } from '@/components/supplier/SupplierList';
+import { SupplierList } from '@/features/supplier-management';
 
 export function SuppliersPage() {
     const [showArchived, setShowArchived] = useState(false);
@@ -179,7 +179,7 @@ export function SuppliersPage() {
                             {['manufacturer', 'distributor', 'service_provider'].map((type) => {
                                 const count = suppliers.filter(s => s.supplierType === type).length;
                                 const percentage = totalSuppliers > 0 ? (count / totalSuppliers) * 100 : 0;
-                                
+
                                 return (
                                     <div key={type} className="flex items-center justify-between">
                                         <span className="text-sm capitalize">
@@ -187,8 +187,8 @@ export function SuppliersPage() {
                                         </span>
                                         <div className="flex items-center space-x-2">
                                             <div className="w-20 bg-secondary rounded-full h-2">
-                                                <div 
-                                                    className="bg-primary h-2 rounded-full" 
+                                                <div
+                                                    className="bg-primary h-2 rounded-full"
                                                     style={{ width: `${percentage}%` }}
                                                 />
                                             </div>
@@ -218,13 +218,13 @@ export function SuppliersPage() {
                             ].map(({ status, label, color }) => {
                                 const count = suppliers.filter(s => s.qualificationStatus === status).length;
                                 const percentage = totalSuppliers > 0 ? (count / totalSuppliers) * 100 : 0;
-                                
+
                                 return (
                                     <div key={status} className="flex items-center justify-between">
                                         <span className="text-sm">{label}</span>
                                         <div className="flex items-center space-x-2">
                                             <div className="w-20 bg-secondary rounded-full h-2">
-                                                <div 
+                                                <div
                                                     className={`${color} h-2 rounded-full`}
                                                     style={{ width: `${percentage}%` }}
                                                 />

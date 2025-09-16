@@ -152,21 +152,21 @@ export function SupplierManagementTestPage() {
                         <div>
                             <h4 className="font-semibold">1. Supplier Management</h4>
                             <p className="text-sm text-muted-foreground">
-                                Use the Suppliers tab to view, create, and manage suppliers. 
+                                Use the Suppliers tab to view, create, and manage suppliers.
                                 You can search, filter, and perform bulk operations.
                             </p>
                         </div>
                         <div>
                             <h4 className="font-semibold">2. RFQ Creation</h4>
                             <p className="text-sm text-muted-foreground">
-                                Create RFQs with multiple items, select suppliers, 
+                                Create RFQs with multiple items, select suppliers,
                                 and send them for quotes. Track responses and compare offers.
                             </p>
                         </div>
                         <div>
                             <h4 className="font-semibold">3. Performance Tracking</h4>
                             <p className="text-sm text-muted-foreground">
-                                Monitor supplier performance metrics including quality, 
+                                Monitor supplier performance metrics including quality,
                                 delivery times, and response rates.
                             </p>
                         </div>

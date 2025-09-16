@@ -42,10 +42,7 @@ import {
 import { useSuppliers } from '@/features/supplier-management/hooks/useSuppliers';
 import { usePermissions } from '@/core/auth/hooks/usePermissions';
 import { useSupplierDocuments } from '@/hooks/useSupplierDocuments';
-import { SupplierProfileActions } from '@/components/supplier/SupplierProfileActions';
-import { SupplierEditModal } from '@/components/supplier/SupplierEditModal';
-import { SupplierDeleteModal } from '@/components/supplier/SupplierDeleteModal';
-import { SupplierDocumentUploadModal } from '@/components/supplier/SupplierDocumentUploadModal';
+import { SupplierProfileActions, SupplierEditModal, SupplierDeleteModal, SupplierDocumentUploadModal } from '@/features/supplier-management';
 import { SupplierManagementService } from '@/features/supplier-management/services/supplierManagementService';
 import { useAuth } from '@/core/auth';
 import { Supplier } from '@/types/supplier';
@@ -57,7 +54,7 @@ export function SupplierProfilePage() {
     const { user } = useAuth();
     const { canManageSuppliers, canViewSuppliers } = usePermissions();
     const { documents, loading: documentsLoading, uploadDocument, deleteDocument, refreshDocuments } = useSupplierDocuments(id || '');
-    
+
     const [supplier, setSupplier] = useState<Supplier | null>(null);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState<string | null>(null);
@@ -99,11 +96,11 @@ export function SupplierProfilePage() {
     useEffect(() => {
         const checkPermissions = async () => {
             if (!user) return;
-            
+
             try {
                 const canManage = await canManageSuppliers();
                 const canView = await canViewSuppliers();
-                
+
                 if (!canView) {
                     navigate('/suppliers');
                     toast({
@@ -178,15 +175,15 @@ export function SupplierProfilePage() {
 
         try {
             const updatedSupplier = await SupplierManagementService.updateSupplier(
-                supplier.id, 
-                { is_active: !supplier.is_active }, 
+                supplier.id,
+                { is_active: !supplier.is_active },
                 user.id
             );
             setSupplier(updatedSupplier);
             toast({
                 title: supplier.is_active ? 'Supplier Archived' : 'Supplier Restored',
-                description: supplier.is_active 
-                    ? 'Supplier has been archived.' 
+                description: supplier.is_active
+                    ? 'Supplier has been archived.'
                     : 'Supplier has been restored.',
             });
         } catch (error) {
@@ -239,7 +236,7 @@ export function SupplierProfilePage() {
         try {
             const response = await fetch(`/api/suppliers/${id}/documents/${documentId}/download`);
             if (!response.ok) throw new Error('Download failed');
-            
+
             const blob = await response.blob();
             const url = window.URL.createObjectURL(blob);
             const a = document.createElement('a');
@@ -356,7 +353,7 @@ export function SupplierProfilePage() {
                                 <Archive className="h-4 w-4 mr-2" />
                                 {supplier.is_active ? 'Archive' : 'Restore'}
                             </DropdownMenuItem>
-                            <DropdownMenuItem 
+                            <DropdownMenuItem
                                 onClick={() => setShowDeleteModal(true)}
                                 className="text-destructive"
                             >
@@ -397,14 +394,14 @@ export function SupplierProfilePage() {
                                                     <label className="text-sm font-medium">Name</label>
                                                     <Input
                                                         value={editData.name || ''}
-                                                        onChange={(e) => setEditData({...editData, name: e.target.value})}
+                                                        onChange={(e) => setEditData({ ...editData, name: e.target.value })}
                                                     />
                                                 </div>
                                                 <div>
                                                     <label className="text-sm font-medium">Company Name</label>
                                                     <Input
                                                         value={editData.companyName || ''}
-                                                        onChange={(e) => setEditData({...editData, companyName: e.target.value})}
+                                                        onChange={(e) => setEditData({ ...editData, companyName: e.target.value })}
                                                     />
                                                 </div>
                                             </div>
@@ -414,14 +411,14 @@ export function SupplierProfilePage() {
                                                     <Input
                                                         type="email"
                                                         value={editData.email || ''}
-                                                        onChange={(e) => setEditData({...editData, email: e.target.value})}
+                                                        onChange={(e) => setEditData({ ...editData, email: e.target.value })}
                                                     />
                                                 </div>
                                                 <div>
                                                     <label className="text-sm font-medium">Phone</label>
                                                     <Input
                                                         value={editData.phone || ''}
-                                                        onChange={(e) => setEditData({...editData, phone: e.target.value})}
+                                                        onChange={(e) => setEditData({ ...editData, phone: e.target.value })}
                                                     />
                                                 </div>
                                             </div>
@@ -429,7 +426,7 @@ export function SupplierProfilePage() {
                                                 <label className="text-sm font-medium">Address</label>
                                                 <Input
                                                     value={editData.address || ''}
-                                                    onChange={(e) => setEditData({...editData, address: e.target.value})}
+                                                    onChange={(e) => setEditData({ ...editData, address: e.target.value })}
                                                 />
                                             </div>
                                             <div className="flex justify-end space-x-2">
@@ -464,9 +461,9 @@ export function SupplierProfilePage() {
                                             {supplier.website && (
                                                 <div className="flex items-center gap-3">
                                                     <Globe className="h-4 w-4 text-muted-foreground" />
-                                                    <a 
-                                                        href={supplier.website} 
-                                                        target="_blank" 
+                                                    <a
+                                                        href={supplier.website}
+                                                        target="_blank"
                                                         rel="noopener noreferrer"
                                                         className="text-primary hover:underline"
                                                     >
@@ -534,7 +531,7 @@ export function SupplierProfilePage() {
                                     <div className="flex items-center justify-between">
                                         <span className="text-sm text-muted-foreground">Last Contact</span>
                                         <span className="font-medium">
-                                            {supplier.lastContactDate 
+                                            {supplier.lastContactDate
                                                 ? new Date(supplier.lastContactDate).toLocaleDateString()
                                                 : 'Never'
                                             }
@@ -549,24 +546,24 @@ export function SupplierProfilePage() {
                                     <CardTitle>Quick Actions</CardTitle>
                                 </CardHeader>
                                 <CardContent className="space-y-2">
-                                    <Button 
-                                        className="w-full justify-start" 
+                                    <Button
+                                        className="w-full justify-start"
                                         variant="outline"
                                         onClick={() => setShowUploadModal(true)}
                                     >
                                         <Upload className="h-4 w-4 mr-2" />
                                         Upload Document
                                     </Button>
-                                    <Button 
-                                        className="w-full justify-start" 
+                                    <Button
+                                        className="w-full justify-start"
                                         variant="outline"
                                         onClick={() => navigate(`/suppliers/${id}/edit`)}
                                     >
                                         <Edit className="h-4 w-4 mr-2" />
                                         Edit Supplier
                                     </Button>
-                                    <Button 
-                                        className="w-full justify-start" 
+                                    <Button
+                                        className="w-full justify-start"
                                         variant="outline"
                                         onClick={() => navigate(`/rfq/new?supplier=${id}`)}
                                     >
@@ -605,8 +602,8 @@ export function SupplierProfilePage() {
                                         Upload
                                     </Button>
                                     {selectedDocuments.length > 0 && (
-                                        <Button 
-                                            variant="destructive" 
+                                        <Button
+                                            variant="destructive"
                                             onClick={handleBulkDelete}
                                         >
                                             <Trash2 className="h-4 w-4 mr-2" />

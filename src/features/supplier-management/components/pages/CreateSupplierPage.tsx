@@ -3,7 +3,7 @@ import { useNavigate } from "react-router-dom";
 import { useToast } from "@/shared/hooks/use-toast";
 import { Button } from "@/components/ui/button";
 import { ArrowLeft } from "lucide-react";
-import { SupplierIntakeForm } from "@/components/supplier";
+import { SupplierIntakeForm } from "@/features/supplier-management";
 import { SupplierManagementService } from "@/features/supplier-management/services/supplierManagementService";
 
 export function CreateSupplierPage() {

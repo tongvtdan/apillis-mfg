@@ -3,7 +3,7 @@ import { useParams, useNavigate } from "react-router-dom";
 import { useToast } from "@/shared/hooks/use-toast";
 import { Button } from "@/components/ui/button";
 import { ArrowLeft, RefreshCw, AlertTriangle } from "lucide-react";
-import { SupplierEditForm } from "@/components/supplier/SupplierEditForm";
+import { SupplierEditForm } from "@/features/supplier-management";
 import { SupplierManagementService } from "@/features/supplier-management/services/supplierManagementService";
 import { Supplier } from "@/types/supplier";
 
