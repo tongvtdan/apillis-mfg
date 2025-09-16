@@ -1,7 +1,8 @@
 import React from 'react';
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
+import { Modal } from '@/components/ui/modal';
 import { SupplierDocumentUploader } from './SupplierDocumentUploader';
 import { useToast } from '@/shared/hooks/use-toast';
+import { Upload } from 'lucide-react';
 
 interface SupplierDocumentUploadModalProps {
     supplierId: string;
@@ -35,22 +36,26 @@ export function SupplierDocumentUploadModal({
     };
 
     return (
-        <Dialog open={isOpen} onOpenChange={onClose}>
-            <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
-                <DialogHeader>
-                    <DialogTitle>Upload Supplier Documents</DialogTitle>
-                </DialogHeader>
-                
-                <SupplierDocumentUploader
-                    supplierId={supplierId}
-                    onUploadSuccess={handleUploadSuccess}
-                    onUploadError={handleUploadError}
-                    onClose={onClose}
-                    maxFileSize={50}
-                    allowedTypes={['*']}
-                    showMetadata={true}
-                />
-            </DialogContent>
-        </Dialog>
+        <Modal
+            isOpen={isOpen}
+            onClose={onClose}
+            title={
+                <div className="flex items-center gap-2">
+                    <Upload className="w-5 h-5" />
+                    Upload Supplier Documents
+                </div>
+            }
+            maxWidth="max-w-4xl"
+        >
+            <SupplierDocumentUploader
+                supplierId={supplierId}
+                onUploadSuccess={handleUploadSuccess}
+                onUploadError={handleUploadError}
+                onClose={onClose}
+                maxFileSize={50}
+                allowedTypes={['*']}
+                showMetadata={true}
+            />
+        </Modal>
     );
 }

@@ -49,7 +49,7 @@ export function SupplierDocumentUploader({
     allowedTypes = ['*'],
     showMetadata = true
 }: SupplierDocumentUploaderProps) {
-    
+
     const [metadata, setMetadata] = useState({
         category: 'certificate',
         accessLevel: 'internal',
@@ -101,7 +101,7 @@ export function SupplierDocumentUploader({
 
     const addFiles = useCallback((newFiles: File[]) => {
         const validFiles: UploadFile[] = [];
-        
+
         newFiles.forEach(file => {
             const error = validateFile(file);
             if (error) {
@@ -139,7 +139,7 @@ export function SupplierDocumentUploader({
     const handleDrop = useCallback((e: React.DragEvent) => {
         e.preventDefault();
         setIsDragOver(false);
-        
+
         const droppedFiles = Array.from(e.dataTransfer.files);
         addFiles(droppedFiles);
     }, [addFiles]);
@@ -272,79 +272,75 @@ export function SupplierDocumentUploader({
 
             {/* Metadata Form */}
             {showMetadata && files.length > 0 && (
-                <Card>
-                    <CardContent className="p-6">
-                        <h3 className="text-lg font-medium mb-4">Document Information</h3>
-                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                            <div className="space-y-2">
-                                <Label htmlFor="category">Category</Label>
-                                <Select
-                                    value={metadata.category}
-                                    onValueChange={(value) => setMetadata(prev => ({ ...prev, category: value }))}
-                                >
-                                    <SelectTrigger>
-                                        <SelectValue />
-                                    </SelectTrigger>
-                                    <SelectContent>
-                                        <SelectItem value="certificate">Certificate</SelectItem>
-                                        <SelectItem value="qualification">Qualification</SelectItem>
-                                        <SelectItem value="contract">Contract</SelectItem>
-                                        <SelectItem value="insurance">Insurance</SelectItem>
-                                        <SelectItem value="compliance">Compliance</SelectItem>
-                                        <SelectItem value="financial">Financial</SelectItem>
-                                        <SelectItem value="technical">Technical</SelectItem>
-                                        <SelectItem value="quality">Quality</SelectItem>
-                                        <SelectItem value="safety">Safety</SelectItem>
-                                        <SelectItem value="environmental">Environmental</SelectItem>
-                                        <SelectItem value="audit">Audit</SelectItem>
-                                        <SelectItem value="license">License</SelectItem>
-                                        <SelectItem value="warranty">Warranty</SelectItem>
-                                        <SelectItem value="supplier_nda">Non-Disclosure Agreement</SelectItem>
-                                        <SelectItem value="other">Other</SelectItem>
-                                    </SelectContent>
-                                </Select>
-                            </div>
-
-                            <div className="space-y-2">
-                                <Label htmlFor="accessLevel">Access Level</Label>
-                                <Select
-                                    value={metadata.accessLevel}
-                                    onValueChange={(value) => setMetadata(prev => ({ ...prev, accessLevel: value }))}
-                                >
-                                    <SelectTrigger>
-                                        <SelectValue />
-                                    </SelectTrigger>
-                                    <SelectContent>
-                                        <SelectItem value="public">Public</SelectItem>
-                                        <SelectItem value="internal">Internal</SelectItem>
-                                        <SelectItem value="confidential">Confidential</SelectItem>
-                                    </SelectContent>
-                                </Select>
-                            </div>
-
-                            <div className="space-y-2 md:col-span-2">
-                                <Label htmlFor="tags">Tags (comma-separated)</Label>
-                                <Input
-                                    id="tags"
-                                    value={metadata.tags}
-                                    onChange={(e) => setMetadata(prev => ({ ...prev, tags: e.target.value }))}
-                                    placeholder="e.g., ISO 9001, Quality, Manufacturing"
-                                />
-                            </div>
-
-                            <div className="space-y-2 md:col-span-2">
-                                <Label htmlFor="description">Description</Label>
-                                <Textarea
-                                    id="description"
-                                    value={metadata.description}
-                                    onChange={(e) => setMetadata(prev => ({ ...prev, description: e.target.value }))}
-                                    placeholder="Enter document description..."
-                                    rows={3}
-                                />
-                            </div>
+                <div className="space-y-4">
+                    <h3 className="text-lg font-medium">Document Information</h3>
+                    <div className="grid grid-cols-1 md:grid-cols-3 gap-4 p-4 bg-muted/50 rounded-lg">
+                        <div className="space-y-2">
+                            <Label className="text-sm font-medium">Default Document Type</Label>
+                            <Select
+                                value={metadata.category}
+                                onValueChange={(value) => setMetadata(prev => ({ ...prev, category: value }))}
+                            >
+                                <SelectTrigger>
+                                    <SelectValue />
+                                </SelectTrigger>
+                                <SelectContent>
+                                    <SelectItem value="certificate">Certificate</SelectItem>
+                                    <SelectItem value="qualification">Qualification</SelectItem>
+                                    <SelectItem value="contract">Contract</SelectItem>
+                                    <SelectItem value="insurance">Insurance</SelectItem>
+                                    <SelectItem value="compliance">Compliance</SelectItem>
+                                    <SelectItem value="financial">Financial</SelectItem>
+                                    <SelectItem value="technical">Technical</SelectItem>
+                                    <SelectItem value="quality">Quality</SelectItem>
+                                    <SelectItem value="safety">Safety</SelectItem>
+                                    <SelectItem value="environmental">Environmental</SelectItem>
+                                    <SelectItem value="audit">Audit</SelectItem>
+                                    <SelectItem value="license">License</SelectItem>
+                                    <SelectItem value="warranty">Warranty</SelectItem>
+                                    <SelectItem value="supplier_nda">Non-Disclosure Agreement</SelectItem>
+                                    <SelectItem value="other">Other</SelectItem>
+                                </SelectContent>
+                            </Select>
                         </div>
-                    </CardContent>
-                </Card>
+
+                        <div className="space-y-2">
+                            <Label className="text-sm font-medium">Access Level</Label>
+                            <Select
+                                value={metadata.accessLevel}
+                                onValueChange={(value) => setMetadata(prev => ({ ...prev, accessLevel: value }))}
+                            >
+                                <SelectTrigger>
+                                    <SelectValue />
+                                </SelectTrigger>
+                                <SelectContent>
+                                    <SelectItem value="public">Public</SelectItem>
+                                    <SelectItem value="internal">Internal</SelectItem>
+                                    <SelectItem value="confidential">Confidential</SelectItem>
+                                </SelectContent>
+                            </Select>
+                        </div>
+
+                        <div className="space-y-2">
+                            <Label className="text-sm font-medium">Tags (comma-separated)</Label>
+                            <Input
+                                value={metadata.tags}
+                                onChange={(e) => setMetadata(prev => ({ ...prev, tags: e.target.value }))}
+                                placeholder="e.g., ISO 9001, Quality, Manufacturing"
+                            />
+                        </div>
+                    </div>
+
+                    <div className="space-y-2">
+                        <Label className="text-sm font-medium">Description</Label>
+                        <Textarea
+                            value={metadata.description}
+                            onChange={(e) => setMetadata(prev => ({ ...prev, description: e.target.value }))}
+                            placeholder="Enter document description..."
+                            rows={3}
+                        />
+                    </div>
+                </div>
             )}
 
             {/* File List */}
@@ -371,15 +367,15 @@ export function SupplierDocumentUploader({
                                     <div className="flex-shrink-0">
                                         {getFileIcon(file)}
                                     </div>
-                                    
+
                                     <div className="flex-1 min-w-0">
                                         <p className="text-sm font-medium truncate">{file.name}</p>
                                         <p className="text-xs text-muted-foreground">{formatFileSize(file.size)}</p>
-                                        
+
                                         {file.status === 'uploading' && (
                                             <Progress value={file.progress} className="mt-2" />
                                         )}
-                                        
+
                                         {file.status === 'error' && file.error && (
                                             <p className="text-xs text-red-500 mt-1">{file.error}</p>
                                         )}
@@ -407,7 +403,7 @@ export function SupplierDocumentUploader({
                                                 Error
                                             </Badge>
                                         )}
-                                        
+
                                         <Button
                                             variant="ghost"
                                             size="sm"
