@@ -6,6 +6,7 @@ import { Badge } from '@/components/ui/badge';
 import { Input } from '@/components/ui/input';
 import { Separator } from '@/components/ui/separator';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
 import { useToast } from '@/shared/hooks/use-toast';
 import {
     Building2,
@@ -32,7 +33,10 @@ import {
     Archive,
     Eye,
     Save,
-    X
+    X,
+    Upload,
+    History,
+    MoreVertical
 } from 'lucide-react';
 import { useSuppliers } from '@/features/supplier-management/hooks/useSuppliers';
 import { usePermissions } from '@/core/auth/hooks/usePermissions';
@@ -206,6 +210,30 @@ export default function SupplierProfile() {
 
     const handlePreviewDocument = (doc: any) => {
         navigate(`/suppliers/${id}/documents/${doc.id}/preview`);
+    };
+
+    const handleUpdateDocumentVersion = (doc: any) => {
+        // TODO: Implement document version update functionality
+        toast({
+            title: "Feature Coming Soon",
+            description: "Document version update functionality will be available soon"
+        });
+    };
+
+    const handleEditDocument = (doc: any) => {
+        // TODO: Implement document edit functionality
+        toast({
+            title: "Feature Coming Soon",
+            description: "Document editing functionality will be available soon"
+        });
+    };
+
+    const handleViewDocumentHistory = (doc: any) => {
+        // TODO: Implement document history view functionality
+        toast({
+            title: "Feature Coming Soon",
+            description: "Document history view will be available soon"
+        });
     };
 
     // Inline editing functions
@@ -1000,15 +1028,47 @@ export default function SupplierProfile() {
                                                                     <Eye className="w-4 h-4" />
                                                                 </Button>
                                                                 {canManage && (
-                                                                    <Button
-                                                                        variant="outline"
-                                                                        size="sm"
-                                                                        onClick={() => deleteDocument(doc.id)}
-                                                                        title="Delete"
-                                                                        className="text-destructive hover:text-destructive"
-                                                                    >
-                                                                        <Archive className="w-4 h-4" />
-                                                                    </Button>
+                                                                    <DropdownMenu>
+                                                                        <DropdownMenuTrigger asChild>
+                                                                            <Button
+                                                                                variant="outline"
+                                                                                size="sm"
+                                                                                title="More Actions"
+                                                                            >
+                                                                                <MoreVertical className="w-4 h-4" />
+                                                                            </Button>
+                                                                        </DropdownMenuTrigger>
+                                                                        <DropdownMenuContent align="end">
+                                                                            <DropdownMenuItem
+                                                                                onClick={() => handleUpdateDocumentVersion(doc)}
+                                                                                className="cursor-pointer"
+                                                                            >
+                                                                                <Upload className="w-4 h-4 mr-2" />
+                                                                                Update New Version
+                                                                            </DropdownMenuItem>
+                                                                            <DropdownMenuItem
+                                                                                onClick={() => handleEditDocument(doc)}
+                                                                                className="cursor-pointer"
+                                                                            >
+                                                                                <Edit className="w-4 h-4 mr-2" />
+                                                                                Edit
+                                                                            </DropdownMenuItem>
+                                                                            <DropdownMenuItem
+                                                                                onClick={() => handleViewDocumentHistory(doc)}
+                                                                                className="cursor-pointer"
+                                                                            >
+                                                                                <History className="w-4 h-4 mr-2" />
+                                                                                View History
+                                                                            </DropdownMenuItem>
+                                                                            <DropdownMenuItem
+                                                                                onClick={() => deleteDocument(doc.id)}
+                                                                                className="cursor-pointer text-destructive focus:text-destructive"
+                                                                            >
+                                                                                <Archive className="w-4 h-4 mr-2" />
+                                                                                Delete
+                                                                            </DropdownMenuItem>
+                                                                        </DropdownMenuContent>
+                                                                    </DropdownMenu>
                                                                 )}
                                                             </div>
                                                         </div>
