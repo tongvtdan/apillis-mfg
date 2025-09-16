@@ -249,6 +249,34 @@ export class SupplierManagementService {
                 updatedAt: new Date().toISOString()
             };
 
+            console.log('📝 Update data:', updateData);
+            console.log('📝 Capabilities being updated:', updateData.capabilities);
+
+            // First, get the existing organization data to merge metadata
+            const { data: existingOrg, error: fetchError } = await supabase
+                .from('organizations')
+                .select('metadata')
+                .eq('id', supplierId)
+                .single();
+
+            if (fetchError) {
+                throw new Error(`Failed to fetch existing organization: ${fetchError.message}`);
+            }
+
+            // Merge existing metadata with new metadata
+            const existingMetadata = existingOrg?.metadata || {};
+            const newMetadata = {
+                supplierType: updateData.supplierType,
+                qualificationStatus: updateData.qualificationStatus,
+                capabilities: updateData.capabilities,
+                certifications: updateData.certifications,
+                qualityStandards: updateData.qualityStandards,
+                onTimeDelivery: updateData.onTimeDelivery,
+                qualityRating: updateData.qualityRating,
+                responsiveness: updateData.responsiveness,
+                notes: updateData.notes
+            };
+
             // Update organization record
             const { data: orgData, error: orgError } = await supabase
                 .from('organizations')
@@ -266,15 +294,8 @@ export class SupplierManagementService {
                     payment_terms: updateData.paymentTerms,
                     default_currency: updateData.currency,
                     metadata: {
-                        supplierType: updateData.supplierType,
-                        qualificationStatus: updateData.qualificationStatus,
-                        capabilities: updateData.capabilities,
-                        certifications: updateData.certifications,
-                        qualityStandards: updateData.qualityStandards,
-                        onTimeDelivery: updateData.onTimeDelivery,
-                        qualityRating: updateData.qualityRating,
-                        responsiveness: updateData.responsiveness,
-                        notes: updateData.notes
+                        ...existingMetadata,
+                        ...newMetadata
                     }
                 })
                 .eq('id', supplierId)
@@ -285,15 +306,17 @@ export class SupplierManagementService {
                 throw new Error(`Failed to update supplier organization: ${orgError.message}`);
             }
 
-            // Update primary contact if email or phone changed
-            if (updateData.email || updateData.phone) {
+            // Update primary contact if email, phone, or contact name changed
+            if (updateData.email || updateData.phone || updateData.primaryContactName) {
+                const contactUpdateData: any = {};
+
+                if (updateData.email) contactUpdateData.email = updateData.email;
+                if (updateData.phone) contactUpdateData.phone = updateData.phone;
+                if (updateData.primaryContactName) contactUpdateData.contact_name = updateData.primaryContactName;
+
                 const { error: contactError } = await supabase
                     .from('contacts')
-                    .update({
-                        email: updateData.email,
-                        phone: updateData.phone,
-                        contact_name: updateData.name
-                    })
+                    .update(contactUpdateData)
                     .eq('organization_id', supplierId)
                     .eq('is_primary_contact', true);
 
@@ -307,6 +330,7 @@ export class SupplierManagementService {
                 id: orgData.id,
                 name: orgData.name,
                 companyName: orgData.name,
+                primaryContactName: updateData.primaryContactName || orgData.name, // Add primary contact name
                 description: orgData.description,
                 supplierType: orgData.metadata?.supplierType || 'manufacturer',
                 status: orgData.metadata?.status || 'active',
@@ -387,6 +411,7 @@ export class SupplierManagementService {
                 id: orgData.id,
                 name: orgData.name,
                 companyName: orgData.name,
+                primaryContactName: contactData.contact_name || orgData.name, // Add primary contact name
                 description: orgData.description,
                 supplierType: orgData.metadata?.supplierType || 'manufacturer',
                 status: orgData.is_active ? 'active' : 'inactive',

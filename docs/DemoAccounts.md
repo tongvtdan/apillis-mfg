@@ -15,43 +15,43 @@ This document contains all demo accounts available in the Factory Pulse system f
 | Email                    | Role  | Name       | ID                                     | Created    | Password Note  |
 | ------------------------ | ----- | ---------- | -------------------------------------- | ---------- | -------------- |
 | `admin@apillis.com`      | admin | Admin User | `383b189e-acec-4989-94b3-a0267f4501bb` | 2025-09-07 | `Password123!` |
-| `john.smith@apillis.com` | admin | John Smith | `660e8400-e29b-41d4-a716-446655440001` | 2022-09-07 | `Password123!` |
+| `john.smith@apillis.com` | admin | John Smith | `5c15f93c-5cfc-41b8-8aee-b7fed47c50f5` | 2022-09-07 | `Password123!` |
 
 ### Management Team
 | Email                      | Role       | Name         | ID                                     | Created    | Password Note  |
 | -------------------------- | ---------- | ------------ | -------------------------------------- | ---------- | -------------- |
-| `mary.johnson@apillis.com` | management | Mary Johnson | `660e8400-e29b-41d4-a716-446655440002` | 2023-03-07 | `Password123!` |
+| `mary.johnson@apillis.com` | management | Mary Johnson | `2ec906ce-38c7-4f13-8bc1-72805f0babb1` | 2023-03-07 | `Password123!` |
 | `nguyen.van.a@apillis.com` | management | Nguyen Van A | `660e8400-e29b-41d4-a716-446655440003` | 2023-09-07 | `Password123!` |
-| `tran.thi.b@apillis.com`   | management | Tran Thi B   | `660e8400-e29b-41d4-a716-446655440004` | 2023-11-07 | `Password123!` |
-| `le.van.c@apillis.com`     | management | Le Van C     | `660e8400-e29b-41d4-a716-446655440005` | 2024-03-07 | `Password123!` |
+| `tran.thi.b@apillis.com`   | management | Tran Thi B   | `7eceb5b5-eb6f-484b-8601-6fd29b4ee543` | 2023-11-07 | `Password123!` |
+| `le.van.c@apillis.com`     | management | Le Van C     | `951f0ab8-b36b-44e4-90f3-057fc332d8cb` | 2024-03-07 | `Password123!` |
 
 ### Sales Team
 | Email                    | Role  | Name       | ID                                     | Created    | Password Note  |
 | ------------------------ | ----- | ---------- | -------------------------------------- | ---------- | -------------- |
-| `pham.thi.d@apillis.com` | sales | Pham Thi D | `660e8400-e29b-41d4-a716-446655440006` | 2024-07-07 | `Password123!` |
-| `vu.thi.f@apillis.com`   | sales | Vu Thi F   | `660e8400-e29b-41d4-a716-446655440008` | 2024-11-07 | `Password123!` |
+| `pham.thi.d@apillis.com` | sales | Pham Thi D | `b6181435-15ac-4934-9042-8e68b4526449` | 2024-07-07 | `Password123!` |
+| `vu.thi.f@apillis.com`   | sales | Vu Thi F   | `f13a197f-503b-4796-8b90-3aefeb63a3c2` | 2024-11-07 | `Password123!` |
 
 ### Procurement Team
 | Email                     | Role        | Name        | ID                                     | Created    | Password Note  |
 | ------------------------- | ----------- | ----------- | -------------------------------------- | ---------- | -------------- |
-| `hoang.van.e@apillis.com` | procurement | Hoang Van E | `660e8400-e29b-41d4-a716-446655440007` | 2024-09-07 | `Password123!` |
+| `hoang.van.e@apillis.com` | procurement | Hoang Van E | `e5722240-2856-4371-97f7-14ec83f887d0` | 2024-09-07 | `Password123!` |
 
 ### Engineering Team
 | Email                    | Role        | Name       | ID                                     | Created    | Password Note  |
 | ------------------------ | ----------- | ---------- | -------------------------------------- | ---------- | -------------- |
-| `dinh.van.g@apillis.com` | engineering | Dinh Van G | `660e8400-e29b-41d4-a716-446655440009` | 2025-01-07 | `Password123!` |
+| `dinh.van.g@apillis.com` | engineering | Dinh Van G | `99436219-df0f-47be-a3e9-a58d7ba6a195` | 2025-01-07 | `Password123!` |
 
 ### Quality Assurance Team
 | Email                   | Role | Name      | ID                                     | Created    | Password Note  |
 | ----------------------- | ---- | --------- | -------------------------------------- | ---------- | -------------- |
-| `bui.thi.h@apillis.com` | qa   | Bui Thi H | `660e8400-e29b-41d4-a716-446655440010` | 2025-03-07 | `Password123!` |
-| `ngo.van.i@apillis.com` | qa   | Ngo Van I | `660e8400-e29b-41d4-a716-446655440011` | 2025-05-07 | `Password123!` |
+| `bui.thi.h@apillis.com` | qa   | Bui Thi H | `6bd01c71-c9e5-40dc-82b2-10635a775963` | 2025-03-07 | `Password123!` |
+| `ngo.van.i@apillis.com` | qa   | Ngo Van I | `c67b1f45-7caa-4a75-b641-34408efc3c3f` | 2025-05-07 | `Password123!` |
 
 ### Production Team
 | Email                  | Role       | Name     | ID                                     | Created    | Password Note  |
 | ---------------------- | ---------- | -------- | -------------------------------------- | ---------- | -------------- |
-| `do.thi.j@apillis.com` | production | Do Thi J | `660e8400-e29b-41d4-a716-446655440012` | 2025-06-07 | `Password123!` |
-| `ly.van.k@apillis.com` | production | Ly Van K | `660e8400-e29b-41d4-a716-446655440013` | 2025-07-07 | `Password123!` |
+| `do.thi.j@apillis.com` | production | Do Thi J | `ca1db5ee-f706-4753-82b3-a578fb259db3` | 2025-06-07 | `Password123!` |
+| `ly.van.k@apillis.com` | production | Ly Van K | `025f70ae-8fe5-44c1-af1d-741c31af7d0b` | 2025-07-07 | `Password123!` |
 
 ---
 

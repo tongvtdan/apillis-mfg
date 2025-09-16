@@ -34,10 +34,13 @@ import {
     FileText as FileTextIcon,
     Archive,
     Plus,
-    Save
+    Save,
+    RefreshCw,
+    Download
 } from "lucide-react";
 import { useAuth } from "@/core/auth";
 import { useToast } from "@/shared/hooks/use-toast";
+import { useSupplierDocuments } from "@/hooks/useSupplierDocuments";
 import { SupplierSpecialty, Supplier } from "@/types/supplier";
 import { SUPPLIER_TYPE_CONFIG } from "@/features/supplier-management";
 import { SupplierManagementService } from "@/features/supplier-management/services/supplierManagementService";
@@ -132,31 +135,52 @@ const PRIORITY_COUNTRIES = [
     'China'
 ];
 
+// Document types for supplier documents
+const DOCUMENT_TYPES = [
+    { value: 'supplier_profile', label: 'Company Profile' },
+    { value: 'supplier_logo', label: 'Company Logo' },
+    { value: 'supplier_qualified_image', label: 'Qualified Product Image' },
+    { value: 'supplier_external_link', label: 'External Document Link' },
+    { value: 'supplier_nda', label: 'NDA' },
+    { value: 'supplier_iso', label: 'ISO Certificate' },
+    { value: 'supplier_insurance', label: 'Insurance Certificate' },
+    { value: 'supplier_financial', label: 'Financial Statement' },
+    { value: 'supplier_qc', label: 'Quality Certificate' },
+    { value: 'other', label: 'Other Document' }
+];
+
 export function SupplierEditForm({ supplier, onSuccess, onCancel }: SupplierEditFormProps) {
     const { user } = useAuth();
     const { toast } = useToast();
     const [isSubmitting, setIsSubmitting] = useState(false);
+    const { documents, loading: documentsLoading, uploadDocument, deleteDocument, downloadDocument } = useSupplierDocuments(supplier.id);
+
+    // Debug: Log supplier data to see what we're working with
+    console.log('🔍 Supplier data for edit form:', supplier);
+    console.log('🔍 Supplier specialties:', supplier.specialties);
+    console.log('🔍 Supplier capabilities:', (supplier as any).capabilities);
 
     // Form state - initialize with supplier data
     const [formData, setFormData] = useState({
         // Organization info
         name: supplier.name || "",
+        primaryContactName: supplier.name || "", // Default to company name if no contact name
         email: supplier.email || "",
         phone: supplier.phone || "",
-        website: "",
+        website: (supplier as any).website || "",
         address: supplier.address || "",
-        city: "",
-        state: "",
+        city: (supplier as any).city || "",
+        state: (supplier as any).state || "",
         country: supplier.country || "",
-        postalCode: "",
+        postalCode: (supplier as any).postal_code || "",
 
         // Capabilities
-        specialties: supplier.specialties || [],
+        capabilities: supplier.specialties || (supplier as any).capabilities || [],
         materials: [] as string[],
 
         // Compliance
-        certifications: [] as string[],
-        paymentTerms: "Net 30",
+        certifications: (supplier as any).certifications || [],
+        paymentTerms: (supplier as any).payment_terms || "Net 30",
         currency: "USD",
         incoterms: "FOB Origin",
 
@@ -164,6 +188,9 @@ export function SupplierEditForm({ supplier, onSuccess, onCancel }: SupplierEdit
         tags: supplier.tags || [],
         internalNotes: supplier.notes || "",
     });
+
+    // Debug: Log form data capabilities after initialization
+    console.log('🔍 Form data capabilities after init:', formData.capabilities);
 
     const [newTag, setNewTag] = useState("");
     const [newMaterial, setNewMaterial] = useState("");
@@ -185,12 +212,12 @@ export function SupplierEditForm({ supplier, onSuccess, onCancel }: SupplierEdit
         ) : null;
     };
 
-    const handleSpecialtyChange = (specialty: SupplierSpecialty) => {
+    const handleCapabilityChange = (capability: SupplierSpecialty) => {
         setFormData(prev => ({
             ...prev,
-            specialties: prev.specialties.includes(specialty)
-                ? prev.specialties.filter(s => s !== specialty)
-                : [...prev.specialties, specialty]
+            capabilities: prev.capabilities.includes(capability)
+                ? prev.capabilities.filter(c => c !== capability)
+                : [...prev.capabilities, capability]
         }));
     };
 
@@ -329,6 +356,10 @@ export function SupplierEditForm({ supplier, onSuccess, onCancel }: SupplierEdit
             newErrors.name = "Organization name is required";
         }
 
+        if (!formData.primaryContactName.trim()) {
+            newErrors.primaryContactName = "Primary contact name is required";
+        }
+
         if (!formData.email.trim()) {
             newErrors.email = "Primary contact email is required";
         } else if (!validateEmail(formData.email)) {
@@ -395,7 +426,7 @@ export function SupplierEditForm({ supplier, onSuccess, onCancel }: SupplierEdit
                 state: formData.state,
                 country: formData.country,
                 postalCode: formData.postalCode,
-                capabilities: formData.specialties,
+                capabilities: formData.capabilities,
                 certifications: formData.certifications,
                 qualityStandards: formData.certifications.filter(c => c.includes('ISO')),
                 paymentTerms: formData.paymentTerms,
@@ -403,7 +434,7 @@ export function SupplierEditForm({ supplier, onSuccess, onCancel }: SupplierEdit
                 notes: formData.internalNotes,
                 // Add contacts and locations arrays
                 contacts: formData.email ? [{
-                    name: formData.name,
+                    name: formData.primaryContactName,
                     email: formData.email,
                     phone: formData.phone,
                     isPrimary: true,
@@ -420,18 +451,31 @@ export function SupplierEditForm({ supplier, onSuccess, onCancel }: SupplierEdit
                 }]
             };
 
+            console.log('📝 Form data capabilities:', formData.capabilities);
+            console.log('📝 Update data capabilities:', updateData.capabilities);
+
             const updatedSupplier = await SupplierManagementService.updateSupplier(
                 supplier.id,
-                updateData,
+                updateData as any,
                 user.id
             );
+
+            // Upload any new documents
+            if (uploadedFiles.length > 0) {
+                console.log('📤 Uploading documents:', uploadedFiles.length);
+                for (let i = 0; i < uploadedFiles.length; i++) {
+                    const file = uploadedFiles[i];
+                    const documentType = fileDocumentTypes[i] || 'other';
+                    await uploadDocument(file, documentType, file.name);
+                }
+            }
 
             toast({
                 title: "Supplier Updated Successfully!",
                 description: `Supplier "${updatedSupplier.name || formData.name}" has been updated successfully.`
             });
 
-            onSuccess?.(updatedSupplier);
+            onSuccess?.(updatedSupplier as any);
         } catch (error) {
             console.error("Error updating supplier:", error);
             toast({
@@ -478,6 +522,17 @@ export function SupplierEditForm({ supplier, onSuccess, onCancel }: SupplierEdit
                                     placeholder="Enter organization name"
                                 />
                                 <ErrorMessage field="name" />
+                            </div>
+
+                            <div className="space-y-2">
+                                <Label htmlFor="primaryContactName">Primary Contact Name *</Label>
+                                <Input
+                                    id="primaryContactName"
+                                    value={formData.primaryContactName}
+                                    onChange={(e) => setFormData(prev => ({ ...prev, primaryContactName: e.target.value }))}
+                                    placeholder="Enter contact name"
+                                />
+                                <ErrorMessage field="primaryContactName" />
                             </div>
 
                             <div className="space-y-2">
@@ -585,7 +640,7 @@ export function SupplierEditForm({ supplier, onSuccess, onCancel }: SupplierEdit
                     <CardHeader>
                         <CardTitle className="flex items-center gap-2">
                             <Wrench className="h-5 w-5" />
-                            Capabilities & Specialties
+                            Capabilities
                         </CardTitle>
                         <CardDescription>
                             Select the manufacturing processes and materials this supplier can handle
@@ -595,15 +650,15 @@ export function SupplierEditForm({ supplier, onSuccess, onCancel }: SupplierEdit
                         <div className="space-y-4">
                             <Label>Manufacturing Processes</Label>
                             <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
-                                {SPECIALTIES.map(specialty => (
-                                    <div key={specialty} className="flex items-center space-x-2">
+                                {SPECIALTIES.map(capability => (
+                                    <div key={capability} className="flex items-center space-x-2">
                                         <Checkbox
-                                            id={specialty}
-                                            checked={formData.specialties.includes(specialty)}
-                                            onCheckedChange={() => handleSpecialtyChange(specialty)}
+                                            id={capability}
+                                            checked={formData.capabilities.includes(capability)}
+                                            onCheckedChange={() => handleCapabilityChange(capability)}
                                         />
-                                        <Label htmlFor={specialty} className="text-sm">
-                                            {SPECIALTY_LABELS[specialty]}
+                                        <Label htmlFor={capability} className="text-sm">
+                                            {SPECIALTY_LABELS[capability]}
                                         </Label>
                                     </div>
                                 ))}
@@ -783,6 +838,140 @@ export function SupplierEditForm({ supplier, onSuccess, onCancel }: SupplierEdit
                                 rows={4}
                             />
                         </div>
+                    </CardContent>
+                </Card>
+
+                {/* Document Management Section */}
+                <Card>
+                    <CardHeader>
+                        <CardTitle className="flex items-center gap-2">
+                            <FileText className="h-5 w-5" />
+                            Document Management
+                        </CardTitle>
+                        <CardDescription>
+                            Upload and manage supplier documents
+                        </CardDescription>
+                    </CardHeader>
+                    <CardContent className="space-y-6">
+                        {/* File Upload */}
+                        <div className="space-y-4">
+                            <Label>Upload New Document</Label>
+                            <div className="flex gap-2">
+                                <Input
+                                    ref={fileInputRef}
+                                    type="file"
+                                    onChange={handleFileChange}
+                                    className="hidden"
+                                    multiple
+                                />
+                                <Button
+                                    type="button"
+                                    variant="outline"
+                                    onClick={triggerFileInput}
+                                    className="flex items-center gap-2"
+                                >
+                                    <Upload className="h-4 w-4" />
+                                    Choose Files
+                                </Button>
+                            </div>
+                        </div>
+
+                        {/* Uploaded Files */}
+                        {uploadedFiles.length > 0 && (
+                            <div className="space-y-4">
+                                <Label>Files to Upload</Label>
+                                <div className="space-y-2">
+                                    {uploadedFiles.map((file, index) => (
+                                        <div key={index} className="flex items-center justify-between p-3 border rounded-lg">
+                                            <div className="flex items-center">
+                                                {getFileIcon(file)}
+                                                <div className="ml-3">
+                                                    <p className="font-medium">{file.name}</p>
+                                                    <p className="text-sm text-muted-foreground">
+                                                        {(file.size / 1024 / 1024).toFixed(2)} MB
+                                                    </p>
+                                                </div>
+                                            </div>
+                                            <div className="flex items-center gap-2">
+                                                <Select
+                                                    value={fileDocumentTypes[index] || 'other'}
+                                                    onValueChange={(value) => setFileDocumentTypes(prev => ({ ...prev, [index]: value }))}
+                                                >
+                                                    <SelectTrigger className="w-32">
+                                                        <SelectValue />
+                                                    </SelectTrigger>
+                                                    <SelectContent>
+                                                        {DOCUMENT_TYPES.map(type => (
+                                                            <SelectItem key={type.value} value={type.value}>
+                                                                {type.label}
+                                                            </SelectItem>
+                                                        ))}
+                                                    </SelectContent>
+                                                </Select>
+                                                <Button
+                                                    type="button"
+                                                    variant="outline"
+                                                    size="sm"
+                                                    onClick={() => handleRemoveFile(index)}
+                                                >
+                                                    <X className="h-4 w-4" />
+                                                </Button>
+                                            </div>
+                                        </div>
+                                    ))}
+                                </div>
+                            </div>
+                        )}
+
+                        {/* Existing Documents */}
+                        {documentsLoading ? (
+                            <div className="text-center py-4">
+                                <RefreshCw className="w-6 h-6 animate-spin mx-auto mb-2" />
+                                <p className="text-sm text-muted-foreground">Loading documents...</p>
+                            </div>
+                        ) : documents.length > 0 ? (
+                            <div className="space-y-4">
+                                <Label>Existing Documents</Label>
+                                <div className="space-y-2">
+                                    {documents.map((doc) => (
+                                        <div key={doc.id} className="flex items-center justify-between p-3 border rounded-lg">
+                                            <div className="flex items-center">
+                                                <FileText className="w-5 h-5 text-muted-foreground mr-3" />
+                                                <div>
+                                                    <p className="font-medium">{doc.title}</p>
+                                                    <p className="text-sm text-muted-foreground">
+                                                        {doc.category} • {new Date(doc.created_at).toLocaleDateString()}
+                                                    </p>
+                                                </div>
+                                            </div>
+                                            <div className="flex items-center gap-2">
+                                                <Button
+                                                    type="button"
+                                                    variant="outline"
+                                                    size="sm"
+                                                    onClick={() => downloadDocument(doc)}
+                                                >
+                                                    <Download className="w-4 h-4" />
+                                                </Button>
+                                                <Button
+                                                    type="button"
+                                                    variant="outline"
+                                                    size="sm"
+                                                    onClick={() => deleteDocument(doc.id)}
+                                                >
+                                                    <Archive className="w-4 h-4" />
+                                                </Button>
+                                            </div>
+                                        </div>
+                                    ))}
+                                </div>
+                            </div>
+                        ) : (
+                            <div className="text-center py-4">
+                                <FileText className="w-8 h-8 mx-auto text-muted-foreground mb-2" />
+                                <p className="text-sm text-muted-foreground">No documents uploaded yet</p>
+                            </div>
+                        )}
                     </CardContent>
                 </Card>
 

@@ -162,6 +162,7 @@ export function SupplierIntakeForm({ onSuccess, onCancel }: SupplierIntakeFormPr
     const [formData, setFormData] = useState({
         // Organization info
         name: "",
+        primaryContactName: "",
         email: "",
         phone: "",
         website: undefined,
@@ -311,6 +312,7 @@ export function SupplierIntakeForm({ onSuccess, onCancel }: SupplierIntakeFormPr
         setFormData({
             // Organization info
             name: sampleData.name,
+            primaryContactName: sampleData.name, // Use company name as default contact name
             email: sampleData.email,
             phone: sampleData.phone,
             website: sampleData.website,
@@ -415,6 +417,10 @@ export function SupplierIntakeForm({ onSuccess, onCancel }: SupplierIntakeFormPr
             newErrors.name = "Organization name is required";
         }
 
+        if (!formData.primaryContactName.trim()) {
+            newErrors.primaryContactName = "Primary contact name is required";
+        }
+
         if (!formData.email.trim()) {
             newErrors.email = "Primary contact email is required";
         } else if (!validateEmail(formData.email)) {
@@ -495,7 +501,7 @@ export function SupplierIntakeForm({ onSuccess, onCancel }: SupplierIntakeFormPr
                 currency: formData.currency,
                 description: formData.internalNotes,
                 contacts: formData.email ? [{
-                    name: formData.name,
+                    name: formData.primaryContactName,
                     email: formData.email,
                     phone: formData.phone,
                     isPrimary: true,
@@ -603,6 +609,19 @@ export function SupplierIntakeForm({ onSuccess, onCancel }: SupplierIntakeFormPr
                                     className={errors.name ? "border-red-500 focus:border-red-500" : ""}
                                 />
                                 <ErrorMessage field="name" />
+                            </div>
+
+                            <div className="space-y-2">
+                                <Label htmlFor="primaryContactName">Primary Contact Name *</Label>
+                                <Input
+                                    id="primaryContactName"
+                                    value={formData.primaryContactName}
+                                    onChange={(e) => setFormData({ ...formData, primaryContactName: e.target.value })}
+                                    placeholder="John Smith"
+                                    required
+                                    className={errors.primaryContactName ? "border-red-500 focus:border-red-500" : ""}
+                                />
+                                <ErrorMessage field="primaryContactName" />
                             </div>
 
                             <div className="space-y-2">
@@ -716,7 +735,7 @@ export function SupplierIntakeForm({ onSuccess, onCancel }: SupplierIntakeFormPr
                     <CardHeader>
                         <CardTitle className="flex items-center gap-2">
                             <Wrench className="h-5 w-5" />
-                            Supplier Capabilities & Profile
+                            Capabilities
                         </CardTitle>
                         <CardDescription>
                             Processes, materials, and capabilities

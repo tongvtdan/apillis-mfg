@@ -33,6 +33,7 @@ import NewRFQ from "./pages/NewRFQ";
 import CreateProject from "./pages/CreateProject";
 import CreateSupplier from "./pages/CreateSupplier";
 import EditSupplier from "./pages/EditSupplier";
+import DocumentPreviewPage from "./pages/DocumentPreviewPage";
 import Settings from "./pages/Settings";
 import Profile from "./pages/Profile";
 import Approvals from "./pages/Approvals";
@@ -188,6 +189,11 @@ const App = () => {
             <Route path="/suppliers/:id/edit" element={
               <ProtectedRoute>
                 <AppLayout><EditSupplier /></AppLayout>
+              </ProtectedRoute>
+            } />
+            <Route path="/suppliers/:supplierId/documents/:documentId/preview" element={
+              <ProtectedRoute>
+                <DocumentPreviewPage />
               </ProtectedRoute>
             } />
             <Route path="/core-test" element={

@@ -34,6 +34,7 @@ export const supplierSchema = z.object({
     id: z.string().optional(),
     name: z.string().min(2, 'Supplier name must be at least 2 characters'),
     companyName: z.string().optional(),
+    primaryContactName: z.string().optional(),
     description: z.string().optional(),
 
     // Basic information
