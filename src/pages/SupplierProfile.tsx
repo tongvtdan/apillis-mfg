@@ -3,8 +3,10 @@ import { useParams, useNavigate } from 'react-router-dom';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
+import { Input } from '@/components/ui/input';
 import { Separator } from '@/components/ui/separator';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { useToast } from '@/shared/hooks/use-toast';
 import {
     Building2,
     MapPin,
@@ -27,13 +29,67 @@ import {
     RefreshCw,
     Send,
     Download,
-    Archive
+    Archive,
+    Eye,
+    Save,
+    X
 } from 'lucide-react';
 import { useSuppliers } from '@/features/supplier-management/hooks/useSuppliers';
 import { usePermissions } from '@/core/auth/hooks/usePermissions';
+import { useSupplierDocuments } from '@/hooks/useSupplierDocuments';
 import { SupplierProfileActions } from '@/components/supplier/SupplierProfileActions';
 import { SupplierEditModal } from '@/components/supplier/SupplierEditModal';
 import { SupplierDeleteModal } from '@/components/supplier/SupplierDeleteModal';
+import { SupplierManagementService } from '@/features/supplier-management/services/supplierManagementService';
+import { useAuth } from '@/core/auth';
+
+// Capability name mapping for readable display
+const CAPABILITY_LABELS: Record<string, string> = {
+    machining: 'CNC Machining',
+    fabrication: 'Metal Fabrication',
+    casting: 'Casting & Molding',
+    finishing: 'Surface Finishing',
+    injection_molding: 'Injection Molding',
+    assembly: 'Assembly Services',
+    '3d_printing': '3D Printing',
+    prototyping: 'Rapid Prototyping',
+    coating: 'Coating Services',
+    painting: 'Painting & Powder Coating',
+    welding: 'Welding Services',
+    sheet_metal: 'Sheet Metal Work',
+    electronics: 'Electronics Assembly',
+    testing: 'Testing & Validation',
+    packaging: 'Packaging Services'
+};
+
+// Document category mapping for readable display
+const DOCUMENT_CATEGORY_LABELS: Record<string, string> = {
+    supplier_nda: 'Non-Disclosure Agreement',
+    certificate: 'Certificates',
+    qualification: 'Qualification Documents',
+    contract: 'Contracts',
+    insurance: 'Insurance Documents',
+    compliance: 'Compliance Documents',
+    financial: 'Financial Documents',
+    technical: 'Technical Specifications',
+    quality: 'Quality Documents',
+    safety: 'Safety Documents',
+    environmental: 'Environmental Documents',
+    audit: 'Audit Reports',
+    license: 'Licenses & Permits',
+    warranty: 'Warranty Documents',
+    other: 'Other Documents'
+};
+
+// Helper function to convert capability names to readable text
+const getReadableCapabilityName = (capability: string): string => {
+    return CAPABILITY_LABELS[capability] || capability;
+};
+
+// Helper function to convert document category names to readable text
+const getReadableDocumentCategory = (category: string): string => {
+    return DOCUMENT_CATEGORY_LABELS[category] || category.replace(/_/g, ' ').replace(/\b\w/g, l => l.toUpperCase());
+};
 
 // Mock suppliers for demonstration when no real data is available
 const MOCK_SUPPLIERS = [
@@ -90,15 +146,55 @@ const MOCK_SUPPLIERS = [
 export default function SupplierProfile() {
     const { id } = useParams<{ id: string }>();
     const navigate = useNavigate();
-    const { suppliers, loading, refreshSuppliers } = useSuppliers();
+    const { user } = useAuth();
+    const { suppliers, loading, fetchSuppliers } = useSuppliers();
     const { canManageSuppliers } = usePermissions();
+    const { documents, loading: documentsLoading, downloadDocument, deleteDocument } = useSupplierDocuments(id || '');
+    const { toast } = useToast();
 
     const [isEditModalOpen, setIsEditModalOpen] = useState(false);
     const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
     const [canManage, setCanManage] = useState(false);
 
+    // Inline editing state
+    const [editingField, setEditingField] = useState<string | null>(null);
+    const [editValue, setEditValue] = useState<string>('');
+    const [isSaving, setIsSaving] = useState(false);
+
+    // Global error handler for browser extension interference
+    useEffect(() => {
+        const handleGlobalError = (event: ErrorEvent) => {
+            if (event.message?.includes('ControlLooksLikePasswordCredentialField') ||
+                event.message?.includes('content_script')) {
+                console.warn('Browser extension interference detected, ignoring:', event.message);
+                event.preventDefault();
+                return false;
+            }
+        };
+
+        const handleUnhandledRejection = (event: PromiseRejectionEvent) => {
+            if (event.reason?.message?.includes('ControlLooksLikePasswordCredentialField') ||
+                event.reason?.message?.includes('content_script')) {
+                console.warn('Browser extension promise rejection detected, ignoring:', event.reason);
+                event.preventDefault();
+                return false;
+            }
+        };
+
+        window.addEventListener('error', handleGlobalError);
+        window.addEventListener('unhandledrejection', handleUnhandledRejection);
+
+        return () => {
+            window.removeEventListener('error', handleGlobalError);
+            window.removeEventListener('unhandledrejection', handleUnhandledRejection);
+        };
+    }, []);
+
     // Find the supplier by ID - check both real data and mock data
     const supplier = suppliers.find(s => s.id === id) || MOCK_SUPPLIERS.find(s => s.id === id);
+
+    // Type assertion to handle mixed data types
+    const supplierData = supplier as any;
 
     useEffect(() => {
         const checkPermissions = async () => {
@@ -107,6 +203,278 @@ export default function SupplierProfile() {
         };
         checkPermissions();
     }, [canManageSuppliers]);
+
+    const handlePreviewDocument = (doc: any) => {
+        navigate(`/suppliers/${id}/documents/${doc.id}/preview`);
+    };
+
+    // Inline editing functions
+    const startEditing = (field: string, currentValue: string) => {
+        try {
+            if (!canManage) return;
+            setEditingField(field);
+            setEditValue(currentValue || '');
+        } catch (error) {
+            console.warn('Start editing error:', error);
+        }
+    };
+
+    const cancelEditing = () => {
+        try {
+            setEditingField(null);
+            setEditValue('');
+        } catch (error) {
+            console.warn('Cancel editing error:', error);
+            // Force reset state
+            setEditingField(null);
+            setEditValue('');
+        }
+    };
+
+    const saveEdit = async () => {
+        if (!editingField || !supplierData || !user?.id) return;
+
+        setIsSaving(true);
+        try {
+            // Prepare update data based on the field being edited
+            const updateData: any = {};
+
+            switch (editingField) {
+                case 'companyName':
+                    updateData.name = editValue;
+                    break;
+                case 'contactName':
+                    updateData.primaryContactName = editValue;
+                    break;
+                case 'email':
+                    updateData.email = editValue;
+                    break;
+                case 'phone':
+                    updateData.phone = editValue;
+                    break;
+                case 'address':
+                    updateData.address = editValue;
+                    break;
+                case 'city':
+                    updateData.city = editValue;
+                    break;
+                case 'state':
+                    updateData.state = editValue;
+                    break;
+                case 'country':
+                    updateData.country = editValue;
+                    break;
+                case 'postalCode':
+                    updateData.postalCode = editValue;
+                    break;
+                case 'website':
+                    updateData.website = editValue;
+                    break;
+                case 'annualSpend':
+                    updateData.annualSpend = parseFloat(editValue.replace(/[^0-9.-]/g, '')) || 0;
+                    break;
+                case 'currency':
+                    updateData.currency = editValue;
+                    break;
+                case 'paymentTerms':
+                    updateData.paymentTerms = editValue;
+                    break;
+                case 'taxId':
+                    updateData.taxId = editValue;
+                    break;
+                default:
+                    console.warn('Unknown field for editing:', editingField);
+                    return;
+            }
+
+            console.log('Saving field update:', { field: editingField, value: editValue, updateData });
+
+            // Call the supplier management service to update the supplier
+            await SupplierManagementService.updateSupplier(supplierData.id, updateData, user.id);
+
+            toast({
+                title: "Success",
+                description: `${editingField} updated successfully`
+            });
+
+            // Refresh supplier data
+            await fetchSuppliers();
+
+            setEditingField(null);
+            setEditValue('');
+        } catch (error) {
+            console.warn('Save edit error:', error);
+            toast({
+                title: "Error",
+                description: `Failed to update ${editingField}: ${error instanceof Error ? error.message : 'Unknown error'}`,
+                variant: "destructive"
+            });
+        } finally {
+            setIsSaving(false);
+        }
+    };
+
+    const handleKeyPress = (e: React.KeyboardEvent) => {
+        try {
+            if (e.key === 'Enter') {
+                e.preventDefault();
+                e.stopPropagation();
+                saveEdit();
+            } else if (e.key === 'Escape') {
+                e.preventDefault();
+                e.stopPropagation();
+                cancelEditing();
+            }
+        } catch (error) {
+            console.warn('Key press handling error:', error);
+            cancelEditing();
+        }
+    };
+
+    // Inline edit component
+    const InlineEditField = ({
+        field,
+        value,
+        label,
+        type = 'text',
+        placeholder = '',
+        icon: Icon,
+        href,
+        className = ''
+    }: {
+        field: string;
+        value: string;
+        label: string;
+        type?: string;
+        placeholder?: string;
+        icon?: React.ComponentType<{ className?: string }>;
+        href?: string;
+        className?: string;
+    }) => {
+        const isEditing = editingField === field;
+
+        return (
+            <div className="group">
+                <label className="text-sm font-medium text-muted-foreground">{label}</label>
+                <div className="flex items-center justify-between">
+                    <div className="flex items-center flex-1">
+                        {Icon && <Icon className="w-4 h-4 mr-2 text-muted-foreground" />}
+                        {isEditing ? (
+                            <div className="flex items-center gap-2 flex-1">
+                                <Input
+                                    type={type}
+                                    value={editValue}
+                                    onChange={(e) => {
+                                        try {
+                                            setEditValue(e.target.value);
+                                        } catch (error) {
+                                            console.warn('Input change error:', error);
+                                            // Fallback: cancel editing if there's an error
+                                            cancelEditing();
+                                        }
+                                    }}
+                                    onKeyDown={(e) => {
+                                        try {
+                                            handleKeyPress(e);
+                                        } catch (error) {
+                                            console.warn('Key press error:', error);
+                                            // Fallback: cancel editing if there's an error
+                                            cancelEditing();
+                                        }
+                                    }}
+                                    onBlur={(e) => {
+                                        // Only auto-save on blur if the value has changed
+                                        if (e.target.value !== value) {
+                                            try {
+                                                saveEdit();
+                                            } catch (error) {
+                                                console.warn('Auto-save error:', error);
+                                                cancelEditing();
+                                            }
+                                        }
+                                    }}
+                                    placeholder={placeholder}
+                                    className="flex-1"
+                                    autoFocus
+                                    autoComplete="off"
+                                    data-lpignore="true"
+                                    data-form-type="other"
+                                />
+                                <Button
+                                    size="sm"
+                                    onClick={(e) => {
+                                        e.preventDefault();
+                                        e.stopPropagation();
+                                        try {
+                                            saveEdit();
+                                        } catch (error) {
+                                            console.warn('Save button error:', error);
+                                            cancelEditing();
+                                        }
+                                    }}
+                                    disabled={isSaving}
+                                    className="h-8 w-8 p-0"
+                                >
+                                    <Save className="w-4 h-4" />
+                                </Button>
+                                <Button
+                                    size="sm"
+                                    variant="outline"
+                                    onClick={(e) => {
+                                        e.preventDefault();
+                                        e.stopPropagation();
+                                        try {
+                                            cancelEditing();
+                                        } catch (error) {
+                                            console.warn('Cancel button error:', error);
+                                            setEditingField(null);
+                                            setEditValue('');
+                                        }
+                                    }}
+                                    className="h-8 w-8 p-0"
+                                >
+                                    <X className="w-4 h-4" />
+                                </Button>
+                            </div>
+                        ) : (
+                            <div className="flex items-center flex-1">
+                                {href ? (
+                                    <a
+                                        href={href}
+                                        target="_blank"
+                                        rel="noopener noreferrer"
+                                        className="text-blue-600 hover:underline"
+                                    >
+                                        {value || 'Not provided'}
+                                    </a>
+                                ) : (
+                                    <span className={className}>{value || 'Not provided'}</span>
+                                )}
+                                {canManage && (
+                                    <Button
+                                        size="sm"
+                                        variant="ghost"
+                                        onClick={(e) => {
+                                            e.preventDefault();
+                                            e.stopPropagation();
+                                            try {
+                                                startEditing(field, value);
+                                            } catch (error) {
+                                                console.warn('Start editing error:', error);
+                                            }
+                                        }}
+                                        className="ml-2 opacity-0 group-hover:opacity-100 transition-opacity h-8 w-8 p-0"
+                                    >
+                                        <Edit className="w-4 h-4" />
+                                    </Button>
+                                )}
+                            </div>
+                        )}
+                    </div>
+                </div>
+            </div>
+        );
+    };
 
     if (loading) {
         return (
@@ -119,7 +487,7 @@ export default function SupplierProfile() {
         );
     }
 
-    if (!supplier) {
+    if (!supplierData) {
         return (
             <div className="flex items-center justify-center min-h-screen">
                 <div className="text-center">
@@ -199,32 +567,32 @@ export default function SupplierProfile() {
                         Back to Suppliers
                     </Button>
                     <div>
-                        <h1 className="text-3xl font-bold">{supplier.name}</h1>
+                        <h1 className="text-3xl font-bold">{supplierData.name}</h1>
                         <p className="text-muted-foreground">
-                            {supplier.company || 'Supplier Profile'}
+                            {supplierData.company || 'Supplier Profile'}
                         </p>
                     </div>
                 </div>
 
                 {canManage && (
                     <SupplierProfileActions
-                        supplier={supplier}
+                        supplier={supplierData}
                         onEdit={() => navigate(`/suppliers/${id}/edit`)}
                         onDelete={() => setIsDeleteModalOpen(true)}
-                        onSendRFQ={() => console.log('Send RFQ to:', supplier.name)}
-                        onRequalify={() => console.log('Re-qualify:', supplier.name)}
-                        onExport={() => console.log('Export:', supplier.name)}
+                        onSendRFQ={() => console.log('Send RFQ to:', supplierData.name)}
+                        onRequalify={() => console.log('Re-qualify:', supplierData.name)}
+                        onExport={() => console.log('Export:', supplierData.name)}
                     />
                 )}
             </div>
 
             {/* Status and Type Badges */}
             <div className="flex items-center gap-2">
-                {getStatusBadge(supplier)}
-                {supplier.supplierType && getSupplierTypeBadge(supplier.supplierType)}
-                {supplier.expiryDate && (
+                {getStatusBadge(supplierData)}
+                {supplierData.supplierType && getSupplierTypeBadge(supplierData.supplierType)}
+                {supplierData.expiryDate && (
                     <span className="text-sm text-muted-foreground">
-                        Expires: {supplier.expiryDate}
+                        Expires: {supplierData.expiryDate}
                     </span>
                 )}
             </div>
@@ -233,9 +601,9 @@ export default function SupplierProfile() {
             <Tabs defaultValue="overview" className="space-y-6">
                 <TabsList>
                     <TabsTrigger value="overview">Overview</TabsTrigger>
+                    <TabsTrigger value="documents">Documents</TabsTrigger>
                     <TabsTrigger value="performance">Performance</TabsTrigger>
                     <TabsTrigger value="qualification">Qualification</TabsTrigger>
-                    <TabsTrigger value="documents">Documents</TabsTrigger>
                     <TabsTrigger value="history">History</TabsTrigger>
                 </TabsList>
 
@@ -251,57 +619,58 @@ export default function SupplierProfile() {
                                 </CardTitle>
                             </CardHeader>
                             <CardContent className="space-y-4">
-                                <div>
-                                    <label className="text-sm font-medium text-muted-foreground">Company Name</label>
-                                    <p className="text-lg">{supplier.company || supplier.companyName || supplier.name}</p>
-                                </div>
+                                <InlineEditField
+                                    field="companyName"
+                                    value={supplierData.company || supplierData.companyName || supplierData.name}
+                                    label="Company Name"
+                                    className="text-lg font-medium"
+                                />
 
-                                {supplier.country && (
-                                    <div>
-                                        <label className="text-sm font-medium text-muted-foreground">Location</label>
-                                        <div className="flex items-center">
-                                            <MapPin className="w-4 h-4 mr-2 text-muted-foreground" />
-                                            <span>{supplier.country}</span>
-                                        </div>
-                                    </div>
-                                )}
+                                <InlineEditField
+                                    field="address"
+                                    value={supplierData.address || ''}
+                                    label="Address"
+                                    placeholder="Enter company address"
+                                    icon={MapPin}
+                                />
 
-                                {supplier.website && (
-                                    <div>
-                                        <label className="text-sm font-medium text-muted-foreground">Website</label>
-                                        <div className="flex items-center">
-                                            <Globe className="w-4 h-4 mr-2 text-muted-foreground" />
-                                            <a
-                                                href={supplier.website}
-                                                target="_blank"
-                                                rel="noopener noreferrer"
-                                                className="text-blue-600 hover:underline"
-                                            >
-                                                {supplier.website}
-                                            </a>
-                                        </div>
-                                    </div>
-                                )}
+                                <InlineEditField
+                                    field="city"
+                                    value={supplierData.city || ''}
+                                    label="City"
+                                    placeholder="Enter city"
+                                />
 
-                                {supplier.annualSpend !== undefined && supplier.annualSpend > 0 && (
-                                    <div>
-                                        <label className="text-sm font-medium text-muted-foreground">Annual Spend</label>
-                                        <div className="flex items-center">
-                                            <DollarSign className="w-4 h-4 mr-2 text-muted-foreground" />
-                                            <span>${supplier.annualSpend.toLocaleString()}</span>
-                                        </div>
-                                    </div>
-                                )}
+                                <InlineEditField
+                                    field="state"
+                                    value={supplierData.state || ''}
+                                    label="State/Province"
+                                    placeholder="Enter state/province"
+                                />
 
-                                {supplier.paymentTerms && (
-                                    <div>
-                                        <label className="text-sm font-medium text-muted-foreground">Payment Terms</label>
-                                        <div className="flex items-center">
-                                            <Calendar className="w-4 h-4 mr-2 text-muted-foreground" />
-                                            <span>{supplier.paymentTerms}</span>
-                                        </div>
-                                    </div>
-                                )}
+                                <InlineEditField
+                                    field="country"
+                                    value={supplierData.country || ''}
+                                    label="Country"
+                                    placeholder="Enter country"
+                                    icon={MapPin}
+                                />
+
+                                <InlineEditField
+                                    field="postalCode"
+                                    value={supplierData.postalCode || ''}
+                                    label="Postal Code"
+                                    placeholder="Enter postal code"
+                                />
+
+                                <InlineEditField
+                                    field="website"
+                                    value={supplierData.website || ''}
+                                    label="Website"
+                                    placeholder="https://www.company.com"
+                                    icon={Globe}
+                                    href={supplierData.website ? `https://${supplierData.website.replace(/^https?:\/\//, '')}` : undefined}
+                                />
                             </CardContent>
                         </Card>
 
@@ -314,75 +683,109 @@ export default function SupplierProfile() {
                                 </CardTitle>
                             </CardHeader>
                             <CardContent className="space-y-4">
-                                <div>
-                                    <label className="text-sm font-medium text-muted-foreground">Primary Contact</label>
-                                    <p className="text-lg">{supplier.name}</p>
-                                </div>
+                                <InlineEditField
+                                    field="contactName"
+                                    value={supplierData.primaryContactName || supplierData.name || ''}
+                                    label="Primary Contact"
+                                    placeholder="Enter contact name"
+                                    className="text-lg font-medium"
+                                />
 
-                                <div>
-                                    <label className="text-sm font-medium text-muted-foreground">Email</label>
-                                    <div className="flex items-center">
-                                        <Mail className="w-4 h-4 mr-2 text-muted-foreground" />
-                                        <a
-                                            href={`mailto:${supplier.email}`}
-                                            className="text-blue-600 hover:underline"
-                                        >
-                                            {supplier.email}
-                                        </a>
-                                    </div>
-                                </div>
+                                <InlineEditField
+                                    field="email"
+                                    value={supplierData.email || ''}
+                                    label="Email"
+                                    type="email"
+                                    placeholder="contact@company.com"
+                                    icon={Mail}
+                                    href={supplierData.email ? `mailto:${supplierData.email}` : undefined}
+                                />
 
-                                {supplier.phone && (
-                                    <div>
-                                        <label className="text-sm font-medium text-muted-foreground">Phone</label>
-                                        <div className="flex items-center">
-                                            <Phone className="w-4 h-4 mr-2 text-muted-foreground" />
-                                            <a
-                                                href={`tel:${supplier.phone}`}
-                                                className="text-blue-600 hover:underline"
-                                            >
-                                                {supplier.phone}
-                                            </a>
-                                        </div>
-                                    </div>
-                                )}
+                                <InlineEditField
+                                    field="phone"
+                                    value={supplierData.phone || ''}
+                                    label="Phone"
+                                    type="tel"
+                                    placeholder="+1 (555) 123-4567"
+                                    icon={Phone}
+                                    href={supplierData.phone ? `tel:${supplierData.phone}` : undefined}
+                                />
                             </CardContent>
                         </Card>
                     </div>
 
-                    {/* Capabilities and Specialties */}
+                    {/* Financial Information */}
+                    <Card>
+                        <CardHeader>
+                            <CardTitle className="flex items-center">
+                                <DollarSign className="w-5 h-5 mr-2" />
+                                Financial Information
+                            </CardTitle>
+                            <CardDescription>
+                                Financial details and payment terms
+                            </CardDescription>
+                        </CardHeader>
+                        <CardContent>
+                            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                                <div className="space-y-4">
+                                    <InlineEditField
+                                        field="annualSpend"
+                                        value={supplierData.annualSpend ? `$${supplierData.annualSpend.toLocaleString()}` : ''}
+                                        label="Annual Spend"
+                                        type="number"
+                                        placeholder="Enter annual spend amount"
+                                        icon={DollarSign}
+                                        className="text-lg font-semibold text-green-600"
+                                    />
+
+                                    <InlineEditField
+                                        field="currency"
+                                        value={supplierData.currency || 'USD'}
+                                        label="Default Currency"
+                                        placeholder="USD"
+                                    />
+                                </div>
+
+                                <div className="space-y-4">
+                                    <InlineEditField
+                                        field="paymentTerms"
+                                        value={supplierData.paymentTerms || ''}
+                                        label="Payment Terms"
+                                        placeholder="e.g., Net 30, Net 45"
+                                        icon={Calendar}
+                                    />
+
+                                    <InlineEditField
+                                        field="taxId"
+                                        value={supplierData.taxId || ''}
+                                        label="Tax ID"
+                                        placeholder="Enter tax identification number"
+                                    />
+                                </div>
+                            </div>
+                        </CardContent>
+                    </Card>
+
+                    {/* Capabilities */}
                     <Card>
                         <CardHeader>
                             <CardTitle className="flex items-center">
                                 <Award className="w-5 h-5 mr-2" />
-                                Capabilities & Specialties
+                                Capabilities
                             </CardTitle>
                         </CardHeader>
                         <CardContent>
                             <div className="space-y-4">
                                 <div>
-                                    <label className="text-sm font-medium text-muted-foreground mb-2 block">Specialties</label>
+                                    <label className="text-sm font-medium text-muted-foreground mb-2 block">Manufacturing Capabilities</label>
                                     <div className="flex flex-wrap gap-2">
-                                        {(supplier.specialties || supplier.capabilities || []).map((specialty: string, index: number) => (
+                                        {(supplierData.specialties || supplierData.capabilities || []).map((capability: string, index: number) => (
                                             <Badge key={index} variant="secondary">
-                                                {specialty}
+                                                {getReadableCapabilityName(capability)}
                                             </Badge>
                                         ))}
                                     </div>
                                 </div>
-
-                                {supplier.capabilities && supplier.capabilities.length > 0 && (
-                                    <div>
-                                        <label className="text-sm font-medium text-muted-foreground mb-2 block">Capabilities</label>
-                                        <div className="flex flex-wrap gap-2">
-                                            {supplier.capabilities.map((capability, index) => (
-                                                <Badge key={index} variant="outline">
-                                                    {capability}
-                                                </Badge>
-                                            ))}
-                                        </div>
-                                    </div>
-                                )}
                             </div>
                         </CardContent>
                     </Card>
@@ -397,7 +800,7 @@ export default function SupplierProfile() {
                                 <Star className="h-4 w-4 text-yellow-500" />
                             </CardHeader>
                             <CardContent>
-                                <div className="text-2xl font-bold">{supplier.performance?.rating?.toFixed(1) || supplier.rating?.toFixed(1) || supplier.performance_rating?.toFixed(1) || 'N/A'}</div>
+                                <div className="text-2xl font-bold">{supplierData.performance?.rating?.toFixed(1) || supplierData.rating?.toFixed(1) || supplierData.performance_rating?.toFixed(1) || 'N/A'}</div>
                                 <p className="text-xs text-muted-foreground">
                                     Based on quality & service
                                 </p>
@@ -410,7 +813,7 @@ export default function SupplierProfile() {
                                 <CheckCircle className="h-4 w-4 text-green-500" />
                             </CardHeader>
                             <CardContent>
-                                <div className="text-2xl font-bold">{supplier.performance?.responseRate || supplier.response_rate || 0}%</div>
+                                <div className="text-2xl font-bold">{supplierData.performance?.responseRate || supplierData.response_rate || 0}%</div>
                                 <p className="text-xs text-muted-foreground">
                                     On-time delivery rate
                                 </p>
@@ -423,7 +826,7 @@ export default function SupplierProfile() {
                                 <Clock className="h-4 w-4 text-blue-500" />
                             </CardHeader>
                             <CardContent>
-                                <div className="text-2xl font-bold">{supplier.performance?.turnaroundDays || supplier.average_turnaround_days || 0}</div>
+                                <div className="text-2xl font-bold">{supplierData.performance?.turnaroundDays || supplierData.average_turnaround_days || 0}</div>
                                 <p className="text-xs text-muted-foreground">
                                     Average days
                                 </p>
@@ -436,7 +839,7 @@ export default function SupplierProfile() {
                                 <Award className="h-4 w-4 text-purple-500" />
                             </CardHeader>
                             <CardContent>
-                                <div className="text-2xl font-bold">{supplier.performance?.qualityScore || 'N/A'}</div>
+                                <div className="text-2xl font-bold">{supplierData.performance?.qualityScore || 'N/A'}</div>
                                 <p className="text-xs text-muted-foreground">
                                     Quality assessment
                                 </p>
@@ -444,7 +847,7 @@ export default function SupplierProfile() {
                         </Card>
                     </div>
 
-                    {supplier.performance?.costCompetitiveness && (
+                    {supplierData.performance?.costCompetitiveness && (
                         <Card>
                             <CardHeader>
                                 <CardTitle className="flex items-center">
@@ -453,7 +856,7 @@ export default function SupplierProfile() {
                                 </CardTitle>
                             </CardHeader>
                             <CardContent>
-                                <div className="text-2xl font-bold">{supplier.performance.costCompetitiveness}</div>
+                                <div className="text-2xl font-bold">{supplierData.performance.costCompetitiveness}</div>
                                 <p className="text-sm text-muted-foreground">
                                     Cost competitiveness score
                                 </p>
@@ -475,19 +878,19 @@ export default function SupplierProfile() {
                             <div className="space-y-4">
                                 <div className="flex items-center justify-between">
                                     <span className="text-sm font-medium">Status</span>
-                                    {getStatusBadge(supplier)}
+                                    {getStatusBadge(supplierData)}
                                 </div>
 
-                                {supplier.expiryDate && (
+                                {supplierData.expiryDate && (
                                     <div className="flex items-center justify-between">
                                         <span className="text-sm font-medium">Expiry Date</span>
-                                        <span className="text-sm">{supplier.expiryDate}</span>
+                                        <span className="text-sm">{supplierData.expiryDate}</span>
                                     </div>
                                 )}
 
                                 <div className="flex items-center justify-between">
                                     <span className="text-sm font-medium">Last Activity</span>
-                                    <span className="text-sm">{supplier.lastActivity || supplier.last_contact_date || 'No recent activity'}</span>
+                                    <span className="text-sm">{supplierData.lastActivity || supplierData.last_contact_date || 'No recent activity'}</span>
                                 </div>
                             </div>
                         </CardContent>
@@ -503,17 +906,119 @@ export default function SupplierProfile() {
                                 Supplier Documents
                             </CardTitle>
                             <CardDescription>
-                                Certificates, qualifications, and other documents
+                                Certificates, qualifications, and other documents organized by type
                             </CardDescription>
                         </CardHeader>
                         <CardContent>
-                            <div className="text-center py-8">
-                                <FileText className="w-12 h-12 mx-auto text-muted-foreground mb-4" />
-                                <h3 className="text-lg font-medium mb-2">No Documents Available</h3>
-                                <p className="text-muted-foreground">
-                                    Documents will appear here once uploaded
-                                </p>
-                            </div>
+                            {documentsLoading ? (
+                                <div className="text-center py-8">
+                                    <RefreshCw className="w-8 h-8 animate-spin mx-auto mb-4" />
+                                    <p>Loading documents...</p>
+                                </div>
+                            ) : documents.length === 0 ? (
+                                <div className="text-center py-8">
+                                    <FileText className="w-12 h-12 mx-auto text-muted-foreground mb-4" />
+                                    <h3 className="text-lg font-medium mb-2">No Documents Available</h3>
+                                    <p className="text-muted-foreground">
+                                        Documents will appear here once uploaded
+                                    </p>
+                                </div>
+                            ) : (
+                                <div className="space-y-6">
+                                    {(() => {
+                                        // Group documents by category
+                                        const groupedDocs = documents.reduce((acc, doc) => {
+                                            const category = doc.category || 'other';
+                                            if (!acc[category]) {
+                                                acc[category] = [];
+                                            }
+                                            acc[category].push(doc);
+                                            return acc;
+                                        }, {} as Record<string, typeof documents>);
+
+                                        // Sort categories alphabetically by readable name
+                                        const sortedCategories = Object.keys(groupedDocs).sort((a, b) => {
+                                            const readableA = getReadableDocumentCategory(a);
+                                            const readableB = getReadableDocumentCategory(b);
+                                            return readableA.localeCompare(readableB);
+                                        });
+
+                                        return sortedCategories.map((category) => (
+                                            <div key={category} className="space-y-3">
+                                                <div className="flex items-center justify-between">
+                                                    <h3 className="text-lg font-semibold text-foreground">
+                                                        {getReadableDocumentCategory(category)}
+                                                    </h3>
+                                                    <Badge variant="secondary" className="text-xs">
+                                                        {groupedDocs[category].length} document{groupedDocs[category].length !== 1 ? 's' : ''}
+                                                    </Badge>
+                                                </div>
+                                                <div className="space-y-2">
+                                                    {groupedDocs[category].map((doc) => (
+                                                        <div key={doc.id} className="flex items-center justify-between p-3 border rounded-lg hover:bg-muted/50 transition-colors">
+                                                            <div className="flex items-center flex-1">
+                                                                <FileText className="w-5 h-5 text-muted-foreground mr-3 flex-shrink-0" />
+                                                                <div className="flex-1 min-w-0">
+                                                                    <p className="font-medium truncate">{doc.title}</p>
+                                                                    <div className="flex items-center gap-2 text-sm text-muted-foreground">
+                                                                        <span>{new Date(doc.created_at).toLocaleDateString()}</span>
+                                                                        {doc.file_size && (
+                                                                            <>
+                                                                                <span>•</span>
+                                                                                <span>{Math.round(doc.file_size / 1024)} KB</span>
+                                                                            </>
+                                                                        )}
+                                                                        {doc.uploaded_by_user && (
+                                                                            <>
+                                                                                <span>•</span>
+                                                                                <span>by {doc.uploaded_by_user.name}</span>
+                                                                            </>
+                                                                        )}
+                                                                    </div>
+                                                                    {doc.description && (
+                                                                        <p className="text-sm text-muted-foreground mt-1 line-clamp-2">
+                                                                            {doc.description}
+                                                                        </p>
+                                                                    )}
+                                                                </div>
+                                                            </div>
+                                                            <div className="flex items-center gap-2 ml-4">
+                                                                <Button
+                                                                    variant="outline"
+                                                                    size="sm"
+                                                                    onClick={() => downloadDocument(doc)}
+                                                                    title="Download"
+                                                                >
+                                                                    <Download className="w-4 h-4" />
+                                                                </Button>
+                                                                <Button
+                                                                    variant="outline"
+                                                                    size="sm"
+                                                                    onClick={() => handlePreviewDocument(doc)}
+                                                                    title="Preview"
+                                                                >
+                                                                    <Eye className="w-4 h-4" />
+                                                                </Button>
+                                                                {canManage && (
+                                                                    <Button
+                                                                        variant="outline"
+                                                                        size="sm"
+                                                                        onClick={() => deleteDocument(doc.id)}
+                                                                        title="Delete"
+                                                                        className="text-destructive hover:text-destructive"
+                                                                    >
+                                                                        <Archive className="w-4 h-4" />
+                                                                    </Button>
+                                                                )}
+                                                            </div>
+                                                        </div>
+                                                    ))}
+                                                </div>
+                                            </div>
+                                        ));
+                                    })()}
+                                </div>
+                            )}
                         </CardContent>
                     </Card>
                 </TabsContent>
@@ -543,12 +1048,12 @@ export default function SupplierProfile() {
             {/* Modals */}
             {isEditModalOpen && (
                 <SupplierEditModal
-                    supplier={supplier}
+                    supplier={supplierData}
                     isOpen={isEditModalOpen}
                     onClose={() => setIsEditModalOpen(false)}
                     onSave={(updatedSupplier) => {
                         console.log('Updated supplier:', updatedSupplier);
-                        refreshSuppliers();
+                        fetchSuppliers();
                         setIsEditModalOpen(false);
                     }}
                 />
@@ -556,11 +1061,11 @@ export default function SupplierProfile() {
 
             {isDeleteModalOpen && (
                 <SupplierDeleteModal
-                    supplier={supplier}
+                    supplier={supplierData}
                     isOpen={isDeleteModalOpen}
                     onClose={() => setIsDeleteModalOpen(false)}
                     onConfirm={() => {
-                        console.log('Delete supplier:', supplier.id);
+                        console.log('Delete supplier:', supplierData.id);
                         navigate('/suppliers');
                     }}
                 />
