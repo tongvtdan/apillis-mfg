@@ -677,7 +677,7 @@ export function SupplierList({
                     className="h-8"
                 >
                     <Eye className="w-4 h-4 mr-1" />
-                    View Progress
+                    View Details
                 </Button>
             );
         }
