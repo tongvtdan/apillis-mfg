@@ -26,10 +26,14 @@ import PurchaseOrders from "./pages/PurchaseOrders";
 import Inventory from "./pages/Inventory";
 import Customers from "./pages/Customers";
 import Suppliers from "./pages/Suppliers";
+import SupplierProfile from "./pages/SupplierProfile";
 import Reports from "./pages/Reports";
 import ProjectDetail from "./pages/ProjectDetail";
 import NewRFQ from "./pages/NewRFQ";
 import CreateProject from "./pages/CreateProject";
+import CreateSupplier from "./pages/CreateSupplier";
+import EditSupplier from "./pages/EditSupplier";
+import DocumentPreviewPage from "./pages/DocumentPreviewPage";
 import Settings from "./pages/Settings";
 import Profile from "./pages/Profile";
 import Approvals from "./pages/Approvals";
@@ -101,6 +105,11 @@ const App = () => {
                 <AppLayout><Suppliers /></AppLayout>
               </ProtectedRoute>
             } />
+            <Route path="/suppliers/:id" element={
+              <ProtectedRoute>
+                <AppLayout><SupplierProfile /></AppLayout>
+              </ProtectedRoute>
+            } />
             <Route path="/reports" element={
               <ProtectedRoute>
                 <AppLayout><Reports /></AppLayout>
@@ -170,6 +179,21 @@ const App = () => {
             <Route path="/projects/new" element={
               <ProtectedRoute>
                 <AppLayout><CreateProject /></AppLayout>
+              </ProtectedRoute>
+            } />
+            <Route path="/suppliers/new" element={
+              <ProtectedRoute>
+                <AppLayout><CreateSupplier /></AppLayout>
+              </ProtectedRoute>
+            } />
+            <Route path="/suppliers/:id/edit" element={
+              <ProtectedRoute>
+                <AppLayout><EditSupplier /></AppLayout>
+              </ProtectedRoute>
+            } />
+            <Route path="/suppliers/:supplierId/documents/:documentId/preview" element={
+              <ProtectedRoute>
+                <DocumentPreviewPage />
               </ProtectedRoute>
             } />
             <Route path="/core-test" element={

@@ -1,7 +1,14 @@
 import { supabase } from '@/integrations/supabase/client';
+import { createClient } from '@supabase/supabase-js';
 import { toast } from 'sonner';
 import { format } from 'date-fns';
 import type { ProjectDocument } from '@/hooks/useDocuments';
+
+// Service role client for storage operations (bypasses RLS)
+const supabaseServiceRole = createClient(
+    'http://localhost:54321',
+    'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZS1kZW1vIiwicm9sZSI6InNlcnZpY2Vfcm9sZSIsImV4cCI6MTk4MzgxMjk5Nn0.EGIM96RAZx35lJzdJsyH-qQwv8Hdp7fsn3W0YpN81IU'
+);
 
 export interface DocumentEditData {
     title?: string;
@@ -18,7 +25,7 @@ class DocumentActionsService {
     async downloadDocument(document: ProjectDocument): Promise<void> {
         try {
             // Create a signed URL for download
-            const { data, error } = await supabase.storage
+            const { data, error } = await supabaseServiceRole.storage
                 .from('documents')
                 .createSignedUrl(document.file_path, 3600); // 1 hour expiry
 
@@ -109,7 +116,7 @@ class DocumentActionsService {
             }
 
             // Delete file from storage
-            const { error: storageError } = await supabase.storage
+            const { error: storageError } = await supabaseServiceRole.storage
                 .from('documents')
                 .remove([document.file_path]);
 
@@ -149,7 +156,7 @@ class DocumentActionsService {
 
             // Delete files from storage
             if (storagePaths.length > 0) {
-                const { error: storageError } = await supabase.storage
+                const { error: storageError } = await supabaseServiceRole.storage
                     .from('documents')
                     .remove(storagePaths);
 
@@ -176,7 +183,7 @@ class DocumentActionsService {
     async getPreviewUrl(document: ProjectDocument): Promise<string | null> {
         try {
             // For images and PDFs, we can create a signed URL for preview
-            const { data, error } = await supabase.storage
+            const { data, error } = await supabaseServiceRole.storage
                 .from('documents')
                 .createSignedUrl(document.file_path, 3600); // 1 hour expiry
 

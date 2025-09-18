@@ -23,7 +23,8 @@ export interface ProjectIntakeData {
     target_price_per_unit?: number;
     desired_delivery_date?: string;
     project_reference?: string;
-    status?: 'draft' | 'in_progress'; // Updated status field
+    status?: 'draft' | 'inquiry'; // Updated status field
+    current_stage_id?: string; // Allow setting current stage ID
 }
 
 export class ProjectIntakeService {
@@ -62,10 +63,10 @@ export class ProjectIntakeService {
             let stageId = initialStageId || await IntakeWorkflowService.getFirstAvailableStage(organizationId);
             console.log('✅ Final stage ID:', stageId);
 
-            // Override stageId for 'in_progress' projects to always use inquiry_received stage
-            if (intakeData.status === 'in_progress') {
+            // Override stageId for 'inquiry' projects to always use inquiry_received stage
+            if (intakeData.status === 'inquiry') {
                 stageId = '880e8400-e29b-41d4-a716-446655440001'; // inquiry_received stage
-                console.log('🔄 Overriding stage ID for in_progress project to inquiry_received:', stageId);
+                console.log('🔄 Overriding stage ID for inquiry project to inquiry_received:', stageId);
             }
 
             if (!stageId) {

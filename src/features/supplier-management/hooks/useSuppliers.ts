@@ -66,7 +66,7 @@ export function useSuppliers(showArchived = false) {
                 phone: org.contacts?.[0]?.phone || '',
                 address: org.address || '',
                 country: org.country || '',
-                specialties: org.capabilities || [],
+                specialties: org.metadata?.capabilities || org.capabilities || [],
                 rating: org.performance_rating || 0,
                 response_rate: 0, // Default value, would need to be calculated from actual data
                 is_active: org.is_active,
@@ -93,8 +93,8 @@ export function useSuppliers(showArchived = false) {
                 credit_limit: org.credit_limit || 0,
                 organization_id: org.id,
                 organization_type: org.organization_type,
-                capabilities: org.capabilities || [],
-                certifications: org.certifications || [],
+                capabilities: org.metadata?.capabilities || org.capabilities || [],
+                certifications: org.metadata?.certifications || org.certifications || [],
                 performance_rating: org.performance_rating || 0,
                 last_evaluation_date: org.last_evaluation_date,
                 preferred_contact_method: org.preferred_contact_method || 'email'
@@ -501,7 +501,7 @@ export function useSuppliers(showArchived = false) {
                 phone: org.contacts?.[0]?.phone || '',
                 address: org.address || '',
                 country: org.country || '',
-                specialties: org.capabilities || [],
+                specialties: org.metadata?.capabilities || org.capabilities || [],
                 rating: org.performance_rating || 0,
                 response_rate: 0,
                 is_active: org.is_active,

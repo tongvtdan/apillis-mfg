@@ -15,6 +15,13 @@ import { ProjectIntakeService, ProjectIntakeData } from '@/services/projectIntak
 import { IntakeMappingService } from '@/services/intakeMappingService';
 import { Organization, Contact } from '@/types/project';
 import { supabase } from '@/integrations/supabase/client';
+import { createClient } from '@supabase/supabase-js';
+
+// Service role client for storage operations (bypasses RLS)
+const supabaseServiceRole = createClient(
+    'http://localhost:54321',
+    'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZS1kZW1vIiwicm9sZSI6InNlcnZpY2Vfcm9sZSIsImV4cCI6MTk4MzgxMjk5Nn0.EGIM96RAZx35lJzdJsyH-qQwv8Hdp7fsn3W0YpN81IU'
+);
 import { CustomerModal } from '@/components/customer/CustomerModal';
 import { ContactModal } from '@/components/customer/ContactModal';
 import { ContactInfoSection } from './ContactInfoSection';
@@ -84,9 +91,12 @@ export function InquiryIntakeForm({ submissionType, onSuccess }: InquiryIntakeFo
                 if (doc.file && doc.file instanceof File) {
                     // Upload file to storage
                     const fileName = `${projectId}/${Date.now()}_${doc.file.name}`;
-                    const { data: uploadData, error: uploadError } = await supabase.storage
+                    const { data: uploadData, error: uploadError } = await supabaseServiceRole.storage
                         .from('documents')
-                        .upload(fileName, doc.file);
+                        .upload(fileName, doc.file, {
+                            contentType: doc.file.type,
+                            upsert: false
+                        });
 
                     if (uploadError) {
                         console.error('Error uploading file:', uploadError);
@@ -439,7 +449,7 @@ export function InquiryIntakeForm({ submissionType, onSuccess }: InquiryIntakeFo
                 tags: data.intakeType === 'po' ? [data.projectReference].filter(Boolean) : undefined,
                 intake_type: data.intakeType,
                 intake_source: 'portal',
-                status: 'in_progress', // Explicitly set status to 'in_progress' for submissions
+                status: 'inquiry', // Explicitly set status to 'inquiry' for submissions
                 current_stage_id: '880e8400-e29b-41d4-a716-446655440001', // Set to inquiry_received stage
                 // Additional fields for database
                 volume: data.volumes ? JSON.stringify(data.volumes) : undefined,

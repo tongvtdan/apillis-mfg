@@ -174,7 +174,7 @@ export function ActionsNeededList({
             if (project.estimated_delivery_date) {
                 const dueDate = new Date(project.estimated_delivery_date);
                 const now = new Date();
-                if (dueDate < now && project.status === 'in_progress') {
+                if (dueDate < now && project.status === 'inquiry') {
                     generatedActions.push({
                         id: 'overdue-project',
                         type: 'validation',
