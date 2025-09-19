@@ -1,5 +1,20 @@
 # Demo Accounts Documentation
 
+## Remote:
+
+🔐 Current Admin Accounts
+You now have two admin accounts:
+1.  dantong@apillis.com
+    Role: admin
+    Department: Management
+    Status: Active and working
+
+2. admin@apillis.com
+Role: admin
+Department: IT
+Password: admin123
+
+
 ## Overview
 This document contains all demo accounts available in the Factory Pulse system for testing and demonstration purposes.
 

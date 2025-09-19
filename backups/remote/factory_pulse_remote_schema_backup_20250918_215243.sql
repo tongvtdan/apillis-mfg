@@ -1259,6 +1259,48 @@ $$;
 ALTER FUNCTION "public"."get_document_url"("file_path" "text", "expires_in" integer) OWNER TO "postgres";
 
 
+CREATE OR REPLACE FUNCTION "public"."get_or_create_bootstrap_org"() RETURNS "uuid"
+    LANGUAGE "plpgsql" SECURITY DEFINER
+    AS $$
+DECLARE
+    bootstrap_org_id uuid;
+BEGIN
+    -- Check if we already have an organization
+    SELECT id INTO bootstrap_org_id FROM organizations LIMIT 1;
+    
+    IF bootstrap_org_id IS NOT NULL THEN
+        RETURN bootstrap_org_id;
+    END IF;
+    
+    -- Create bootstrap organization (no created_by initially)
+    INSERT INTO organizations (
+        id,
+        name,
+        slug,
+        description,
+        organization_type,
+        is_active,
+        created_at,
+        updated_at
+    ) VALUES (
+        gen_random_uuid(),
+        'Bootstrap Organization',
+        'bootstrap',
+        'Temporary organization for bootstrap process',
+        'internal',
+        true,
+        now(),
+        now()
+    ) RETURNING id INTO bootstrap_org_id;
+    
+    RETURN bootstrap_org_id;
+END;
+$$;
+
+
+ALTER FUNCTION "public"."get_or_create_bootstrap_org"() OWNER TO "postgres";
+
+
 CREATE OR REPLACE FUNCTION "public"."get_project_progress_summary"("p_project_id" "uuid") RETURNS TABLE("total_sub_stages" bigint, "completed_sub_stages" bigint, "in_progress_sub_stages" bigint, "blocked_sub_stages" bigint, "overdue_sub_stages" bigint, "next_due_date" timestamp with time zone, "estimated_completion_date" "date")
     LANGUAGE "plpgsql"
     AS $$
@@ -3733,6 +3775,10 @@ CREATE INDEX "idx_organizations_active" ON "public"."organizations" USING "btree
 
 
 
+CREATE INDEX "idx_organizations_created_by" ON "public"."organizations" USING "btree" ("created_by");
+
+
+
 CREATE INDEX "idx_organizations_slug" ON "public"."organizations" USING "btree" ("slug");
 
 
@@ -3926,6 +3972,10 @@ CREATE INDEX "idx_users_email" ON "public"."users" USING "btree" ("email");
 
 
 CREATE INDEX "idx_users_org" ON "public"."users" USING "btree" ("organization_id");
+
+
+
+CREATE INDEX "idx_users_organization_id" ON "public"."users" USING "btree" ("organization_id");
 
 
 
@@ -4256,7 +4306,7 @@ ALTER TABLE ONLY "public"."notifications"
 
 
 ALTER TABLE ONLY "public"."organizations"
-    ADD CONSTRAINT "organizations_created_by_fkey" FOREIGN KEY ("created_by") REFERENCES "public"."users"("id");
+    ADD CONSTRAINT "organizations_created_by_fkey" FOREIGN KEY ("created_by") REFERENCES "public"."users"("id") ON DELETE SET NULL DEFERRABLE INITIALLY DEFERRED;
 
 
 
@@ -4476,7 +4526,7 @@ ALTER TABLE ONLY "public"."user_permissions"
 
 
 ALTER TABLE ONLY "public"."users"
-    ADD CONSTRAINT "users_organization_id_fkey" FOREIGN KEY ("organization_id") REFERENCES "public"."organizations"("id") ON DELETE CASCADE;
+    ADD CONSTRAINT "users_organization_id_fkey" FOREIGN KEY ("organization_id") REFERENCES "public"."organizations"("id") ON DELETE SET NULL DEFERRABLE INITIALLY DEFERRED;
 
 
 
@@ -4639,6 +4689,33 @@ CREATE POLICY "document_access_log_insert_policy" ON "public"."document_access_l
 
 
 CREATE POLICY "document_access_log_select_policy" ON "public"."document_access_log" FOR SELECT USING (("organization_id" = ( SELECT "public"."get_current_user_org_id"() AS "get_current_user_org_id")));
+
+
+
+ALTER TABLE "public"."document_categories" ENABLE ROW LEVEL SECURITY;
+
+
+CREATE POLICY "document_categories_delete_policy" ON "public"."document_categories" FOR DELETE USING ((EXISTS ( SELECT 1
+   FROM "public"."users"
+  WHERE (("users"."id" = "auth"."uid"()) AND ("users"."role" = 'admin'::"text")))));
+
+
+
+CREATE POLICY "document_categories_insert_policy" ON "public"."document_categories" FOR INSERT WITH CHECK ((EXISTS ( SELECT 1
+   FROM "public"."users"
+  WHERE (("users"."id" = "auth"."uid"()) AND ("users"."role" = 'admin'::"text")))));
+
+
+
+CREATE POLICY "document_categories_select_policy" ON "public"."document_categories" FOR SELECT USING (("auth"."role"() = 'authenticated'::"text"));
+
+
+
+CREATE POLICY "document_categories_update_policy" ON "public"."document_categories" FOR UPDATE USING ((EXISTS ( SELECT 1
+   FROM "public"."users"
+  WHERE (("users"."id" = "auth"."uid"()) AND ("users"."role" = 'admin'::"text"))))) WITH CHECK ((EXISTS ( SELECT 1
+   FROM "public"."users"
+  WHERE (("users"."id" = "auth"."uid"()) AND ("users"."role" = 'admin'::"text")))));
 
 
 
@@ -5202,12 +5279,6 @@ GRANT ALL ON FUNCTION "public"."gtrgm_out"("public"."gtrgm") TO "service_role";
 
 
 
-
-
-
-
-
-
 GRANT ALL ON FUNCTION "public"."approve_supplier_qualification"("supplier_org_id" "uuid", "approver_id" "uuid", "decision_type" "text", "conditions" "text", "exception_justification" "text", "escalated_to" "uuid", "review_due_date" "date", "attached_document_id" "uuid", "overall_score" numeric, "criteria_scores" "jsonb") TO "anon";
 GRANT ALL ON FUNCTION "public"."approve_supplier_qualification"("supplier_org_id" "uuid", "approver_id" "uuid", "decision_type" "text", "conditions" "text", "exception_justification" "text", "escalated_to" "uuid", "review_due_date" "date", "attached_document_id" "uuid", "overall_score" numeric, "criteria_scores" "jsonb") TO "authenticated";
 GRANT ALL ON FUNCTION "public"."approve_supplier_qualification"("supplier_org_id" "uuid", "approver_id" "uuid", "decision_type" "text", "conditions" "text", "exception_justification" "text", "escalated_to" "uuid", "review_due_date" "date", "attached_document_id" "uuid", "overall_score" numeric, "criteria_scores" "jsonb") TO "service_role";
@@ -5277,6 +5348,12 @@ GRANT ALL ON FUNCTION "public"."get_dashboard_summary_test"("org_id" "uuid") TO 
 GRANT ALL ON FUNCTION "public"."get_document_url"("file_path" "text", "expires_in" integer) TO "anon";
 GRANT ALL ON FUNCTION "public"."get_document_url"("file_path" "text", "expires_in" integer) TO "authenticated";
 GRANT ALL ON FUNCTION "public"."get_document_url"("file_path" "text", "expires_in" integer) TO "service_role";
+
+
+
+GRANT ALL ON FUNCTION "public"."get_or_create_bootstrap_org"() TO "anon";
+GRANT ALL ON FUNCTION "public"."get_or_create_bootstrap_org"() TO "authenticated";
+GRANT ALL ON FUNCTION "public"."get_or_create_bootstrap_org"() TO "service_role";
 
 
 

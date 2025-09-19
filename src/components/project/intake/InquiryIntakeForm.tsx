@@ -19,8 +19,8 @@ import { createClient } from '@supabase/supabase-js';
 
 // Service role client for storage operations (bypasses RLS)
 const supabaseServiceRole = createClient(
-    'http://localhost:54321',
-    'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZS1kZW1vIiwicm9sZSI6InNlcnZpY2Vfcm9sZSIsImV4cCI6MTk4MzgxMjk5Nn0.EGIM96RAZx35lJzdJsyH-qQwv8Hdp7fsn3W0YpN81IU'
+    import.meta.env.VITE_SUPABASE_URL || 'https://ynhgxwnkpbpzwbtzrzka.supabase.co',
+    import.meta.env.VITE_SUPABASE_SERVICE_ROLE_KEY || 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InluaGd4d25rcGJwendidHpyemthIiwicm9sZSI6InNlcnZpY2Vfcm9sZSIsImlhdCI6MTc1NTc4NjE1OSwiZXhwIjoyMDcxMzYyMTU5fQ.4hohg8ZybIOX_frV6EHm2LwTRPYi07xEy6lRIkQZSUo'
 );
 import { CustomerModal } from '@/components/customer/CustomerModal';
 import { ContactModal } from '@/components/customer/ContactModal';
