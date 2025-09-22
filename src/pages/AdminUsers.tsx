@@ -49,9 +49,8 @@ import { UserProfile } from '@/core/auth';
 import { ROLE_DESCRIPTIONS } from '@/lib/auth-constants';
 
 interface UserWithStats extends UserProfile {
-  login_attempts?: number;
-  locked_until?: string;
-  password_last_changed?: string;
+  // Additional fields from database that aren't in UserProfile
+  last_login_at?: string;
 }
 
 export default function AdminUsers() {
@@ -89,8 +88,8 @@ export default function AdminUsers() {
         return;
       }
 
-      setUsers((usersData || []) as UserWithStats[]);
-      setFilteredUsers((usersData || []) as UserWithStats[]);
+      setUsers((usersData || []) as unknown as UserWithStats[]);
+      setFilteredUsers((usersData || []) as unknown as UserWithStats[]);
     } catch (error) {
       console.error('Error fetching users:', error);
     } finally {
@@ -120,15 +119,15 @@ export default function AdminUsers() {
     setFilteredUsers(filtered);
   };
 
-  const updateUserRole = async (userId: string, newRole: 'sales' | 'procurement' | 'engineering' | 'qa' | 'production' | 'management' | 'admin') => {
+  const updateUserRole = async (userId: string, newRole: string) => {
     try {
       const { error } = await supabase
         .from('users')
         .update({
           role: newRole,
           updated_at: new Date().toISOString()
-        })
-        .eq('id', userId);
+        } as any)
+        .eq('id', userId as any);
 
       if (error) {
         throw error;
@@ -143,7 +142,7 @@ export default function AdminUsers() {
         entity_id: userId,
         old_values: { role: users.find(u => u.id === userId)?.role },
         new_values: { role: newRole }
-      });
+      } as any);
 
       toast({
         title: "Role Updated",
@@ -161,26 +160,22 @@ export default function AdminUsers() {
     }
   };
 
-  const updateUserStatus = async (userId: string, newStatus: 'active' | 'inactive' | 'pending' | 'suspended' | 'dismiss') => {
+  const updateUserStatus = async (userId: string, newStatus: string) => {
     try {
-      // Map custom "dismiss" status to database "inactive" status
-      const dbStatus = newStatus === 'dismiss' ? 'inactive' : newStatus;
+      const dbStatus = newStatus;
 
       const updateData: any = {
         status: dbStatus,
         updated_at: new Date().toISOString()
       };
 
-      // If unlocking, clear lockout fields
-      if (newStatus === 'active') {
-        updateData.locked_until = null;
-        updateData.login_attempts = 0;
-      }
+      // Note: Lockout functionality not implemented in current schema
+      // This would require additional database fields for login_attempts and locked_until
 
       const { error } = await supabase
         .from('users')
-        .update(updateData)
-        .eq('id', userId);
+        .update(updateData as any)
+        .eq('id', userId as any);
 
       if (error) {
         throw error;
@@ -195,11 +190,11 @@ export default function AdminUsers() {
         entity_id: userId,
         old_values: { status: users.find(u => u.id === userId)?.status },
         new_values: { status: newStatus }
-      });
+      } as any);
 
       toast({
         title: "Status Updated",
-        description: `User account has been ${newStatus === 'dismiss' ? 'dismissed' : newStatus.toLowerCase()}.`
+        description: `User account has been ${newStatus.toLowerCase()}.`
       });
 
       fetchUsers();
@@ -216,10 +211,9 @@ export default function AdminUsers() {
   const getStatusBadgeVariant = (status: string) => {
     switch (status) {
       case 'active': return 'default';
-      case 'inactive': return 'secondary';
-      case 'locked': return 'destructive';
-      case 'pending': return 'outline';
-      case 'dormant': return 'secondary';
+      case 'invited': return 'outline';
+      case 'suspended': return 'destructive';
+      case 'disabled': return 'secondary';
       default: return 'secondary';
     }
   };
@@ -237,10 +231,6 @@ export default function AdminUsers() {
     }
   };
 
-  const isAccountLocked = (user: UserWithStats) => {
-    if (!user.locked_until) return false;
-    return new Date(user.locked_until) > new Date();
-  };
 
   const formatDate = (dateString?: string) => {
     if (!dateString) return 'Never';
@@ -265,8 +255,8 @@ export default function AdminUsers() {
     filterUsers();
   }, [searchQuery, roleFilter, statusFilter, users]);
 
-  const roles = ['procurement', 'engineering', 'qa', 'production', 'management'];
-  const statuses = ['active', 'inactive', 'pending', 'suspended'];
+  const roles = ['admin', 'management', 'sales', 'engineering', 'qa', 'production', 'procurement', 'logistics', 'finance', 'auditor'];
+  const statuses = ['active', 'invited', 'suspended', 'disabled'];
 
   return (
     <div className="p-6 max-w-7xl mx-auto">
@@ -333,9 +323,9 @@ export default function AdminUsers() {
               <CardContent className="p-4">
                 <div className="flex items-center justify-between">
                   <div>
-                    <p className="text-sm font-medium text-base-content/70">Locked Accounts</p>
+                    <p className="text-sm font-medium text-base-content/70">Suspended Users</p>
                     <p className="text-2xl font-bold text-red-600">
-                      {users.filter(u => isAccountLocked(u)).length}
+                      {users.filter(u => u.status === 'suspended').length}
                     </p>
                   </div>
                   <Lock className="h-8 w-8 text-red-600" />
@@ -347,9 +337,9 @@ export default function AdminUsers() {
               <CardContent className="p-4">
                 <div className="flex items-center justify-between">
                   <div>
-                    <p className="text-sm font-medium text-base-content/70">Dismissed Users</p>
+                    <p className="text-sm font-medium text-base-content/70">Disabled Users</p>
                     <p className="text-2xl font-bold text-yellow-600">
-                      {users.filter(u => u.status === 'dismiss').length}
+                      {users.filter(u => u.status === 'disabled').length}
                     </p>
                   </div>
                   <Calendar className="h-8 w-8 text-yellow-600" />
@@ -443,11 +433,6 @@ export default function AdminUsers() {
                               <div className="text-sm text-base-content/70">
                                 {user.email || 'No email'}
                               </div>
-                              {user.login_attempts > 0 && (
-                                <div className="text-xs text-red-600">
-                                  {user.login_attempts} failed attempts
-                                </div>
-                              )}
                             </div>
                           </TableCell>
                           <TableCell>
@@ -457,7 +442,7 @@ export default function AdminUsers() {
                           </TableCell>
                           <TableCell>
                             <Badge variant={getStatusBadgeVariant(user.status)}>
-                              {isAccountLocked(user) ? 'Locked' : user.status}
+                              {user.status}
                             </Badge>
                           </TableCell>
                           <TableCell>{user.department || '-'}</TableCell>
@@ -465,12 +450,13 @@ export default function AdminUsers() {
                           <TableCell>{formatDate(user.created_at)}</TableCell>
                           <TableCell>
                             <div className="flex items-center gap-2">
-                              <Dialog open={editDialogOpen && selectedUser?.id === user.id} onOpenChange={(open) => {
-                                setEditDialogOpen(open);
-                                if (open) setSelectedUser(user);
-                              }}>
+                              <Dialog open={editDialogOpen && selectedUser?.id === user.id} onOpenChange={setEditDialogOpen}>
                                 <DialogTrigger asChild>
-                                  <Button variant="ghost" size="sm">
+                                  <Button
+                                    variant="ghost"
+                                    size="sm"
+                                    onClick={() => setSelectedUser(user)}
+                                  >
                                     <Edit className="h-4 w-4" />
                                   </Button>
                                 </DialogTrigger>
@@ -544,23 +530,6 @@ export default function AdminUsers() {
                                 </DialogContent>
                               </Dialog>
 
-                              {isAccountLocked(user) ? (
-                                <Button
-                                  variant="ghost"
-                                  size="sm"
-                                  onClick={() => updateUserStatus(user.id, 'active')}
-                                >
-                                  <Unlock className="h-4 w-4" />
-                                </Button>
-                              ) : (
-                                <Button
-                                  variant="ghost"
-                                  size="sm"
-                                  onClick={() => updateUserStatus(user.id, 'suspended')}
-                                >
-                                  <Lock className="h-4 w-4" />
-                                </Button>
-                              )}
                             </div>
                           </TableCell>
                         </TableRow>
@@ -576,290 +545,27 @@ export default function AdminUsers() {
           <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
             <div>
               <h1 className="text-3xl font-bold flex items-center gap-2 text-base-content">
-                <Users className="h-8 w-8 text-base-content" />
-                User Management
+                <Activity className="h-8 w-8 text-base-content" />
+                User Activity Log
               </h1>
               <p className="text-base-content/70">
-                Manage user accounts, roles, and permissions
+                View user management activity and audit trail
               </p>
             </div>
-
-            <Button
-              variant="accent"
-              className="action-button shadow-md hover:shadow-lg"
-            >
-              <UserPlus className="h-4 w-4 mr-2" />
-              Invite User
-            </Button>
           </div>
 
-          {/* Stats Cards */}
-          <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-            <Card>
-              <CardContent className="p-4">
-                <div className="flex items-center justify-between">
-                  <div>
-                    <p className="text-sm font-medium text-base-content/70">Total Users</p>
-                    <p className="text-2xl font-bold text-base-content">{users.length}</p>
-                  </div>
-                  <Users className="h-8 w-8 text-base-content/70" />
-                </div>
-              </CardContent>
-            </Card>
-
-            <Card>
-              <CardContent className="p-4">
-                <div className="flex items-center justify-between">
-                  <div>
-                    <p className="text-sm font-medium text-base-content/70">Active Users</p>
-                    <p className="text-2xl font-bold text-green-600">
-                      {users.filter(u => u.status === 'active').length}
-                    </p>
-                  </div>
-                  <Activity className="h-8 w-8 text-green-600" />
-                </div>
-              </CardContent>
-            </Card>
-
-            <Card>
-              <CardContent className="p-4">
-                <div className="flex items-center justify-between">
-                  <div>
-                    <p className="text-sm font-medium text-base-content/70">Locked Accounts</p>
-                    <p className="text-2xl font-bold text-red-600">
-                      {users.filter(u => isAccountLocked(u)).length}
-                    </p>
-                  </div>
-                  <Lock className="h-8 w-8 text-red-600" />
-                </div>
-              </CardContent>
-            </Card>
-
-            <Card>
-              <CardContent className="p-4">
-                <div className="flex items-center justify-between">
-                  <div>
-                    <p className="text-sm font-medium text-base-content/70">Dismissed Users</p>
-                    <p className="text-2xl font-bold text-yellow-600">
-                      {users.filter(u => u.status === 'dismiss').length}
-                    </p>
-                  </div>
-                  <Calendar className="h-8 w-8 text-yellow-600" />
-                </div>
-              </CardContent>
-            </Card>
-          </div>
-
-          {/* Filters */}
           <Card>
             <CardHeader>
-              <CardTitle className="text-lg">Filters & Search</CardTitle>
+              <CardTitle>Activity Log</CardTitle>
+              <CardDescription>
+                Recent user management activities and system events
+              </CardDescription>
             </CardHeader>
             <CardContent>
-              <div className="flex flex-col md:flex-row gap-4">
-                <div className="flex-1 relative">
-                  <Search className="absolute left-3 top-3 h-4 w-4 text-base-content/70" />
-                  <Input
-                    placeholder="Search users by name, email, or department..."
-                    value={searchQuery}
-                    onChange={(e) => setSearchQuery(e.target.value)}
-                    className="pl-10"
-                  />
-                </div>
-
-                <Select value={roleFilter} onValueChange={setRoleFilter}>
-                  <SelectTrigger className="w-full md:w-48">
-                    <SelectValue placeholder="Filter by role" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="all">All Roles</SelectItem>
-                    {roles.map(role => (
-                      <SelectItem key={role} value={role}>{role}</SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-
-                <Select value={statusFilter} onValueChange={setStatusFilter}>
-                  <SelectTrigger className="w-full md:w-48">
-                    <SelectValue placeholder="Filter by status" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="all">All Statuses</SelectItem>
-                    {statuses.map(status => (
-                      <SelectItem key={status} value={status}>{status}</SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-              </div>
-            </CardContent>
-          </Card>
-
-          {/* Users Table */}
-          <Card>
-            <CardHeader>
-              <CardTitle>Users ({filteredUsers.length})</CardTitle>
-            </CardHeader>
-            <CardContent>
-              <div className="rounded-md border">
-                <Table>
-                  <TableHeader>
-                    <TableRow>
-                      <TableHead>User</TableHead>
-                      <TableHead>Role</TableHead>
-                      <TableHead>Status</TableHead>
-                      <TableHead>Department</TableHead>
-                      <TableHead>Last Login</TableHead>
-                      <TableHead>Created</TableHead>
-                      <TableHead>Actions</TableHead>
-                    </TableRow>
-                  </TableHeader>
-                  <TableBody>
-                    {loading ? (
-                      <TableRow>
-                        <TableCell colSpan={7} className="text-center py-8">
-                          Loading users...
-                        </TableCell>
-                      </TableRow>
-                    ) : filteredUsers.length === 0 ? (
-                      <TableRow>
-                        <TableCell colSpan={7} className="text-center py-8">
-                          No users found matching your criteria.
-                        </TableCell>
-                      </TableRow>
-                    ) : (
-                      filteredUsers.map((user) => (
-                        <TableRow key={user.id}>
-                          <TableCell>
-                            <div>
-                              <div className="font-medium">{user.name}</div>
-                              <div className="text-sm text-base-content/70">
-                                {user.email || 'No email'}
-                              </div>
-                              {user.login_attempts > 0 && (
-                                <div className="text-xs text-red-600">
-                                  {user.login_attempts} failed attempts
-                                </div>
-                              )}
-                            </div>
-                          </TableCell>
-                          <TableCell>
-                            <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${getRoleBadgeColor(user.role)}`}>
-                              {user.role}
-                            </span>
-                          </TableCell>
-                          <TableCell>
-                            <Badge variant={getStatusBadgeVariant(user.status)}>
-                              {isAccountLocked(user) ? 'Locked' : user.status}
-                            </Badge>
-                          </TableCell>
-                          <TableCell>{user.department || '-'}</TableCell>
-                          <TableCell>{formatDate(user.last_login_at)}</TableCell>
-                          <TableCell>{formatDate(user.created_at)}</TableCell>
-                          <TableCell>
-                            <div className="flex items-center gap-2">
-                              <Dialog open={editDialogOpen && selectedUser?.id === user.id} onOpenChange={(open) => {
-                                setEditDialogOpen(open);
-                                if (open) setSelectedUser(user);
-                              }}>
-                                <DialogTrigger asChild>
-                                  <Button variant="ghost" size="sm">
-                                    <Edit className="h-4 w-4" />
-                                  </Button>
-                                </DialogTrigger>
-                                <DialogContent className="modal-dialog">
-                                  <DialogHeader className="modal-dialog-header">
-                                    <DialogTitle className="modal-dialog-title">Edit User: {user.name}</DialogTitle>
-                                    <DialogDescription className="modal-dialog-description">
-                                      Update user role and status
-                                    </DialogDescription>
-                                  </DialogHeader>
-
-                                  <div className="space-y-4">
-                                    <div>
-                                      <Label htmlFor="role">Role</Label>
-                                      <Select
-                                        value={selectedUser?.role}
-                                        onValueChange={(value) => setSelectedUser(prev => prev ? { ...prev, role: value as any } : null)}
-                                      >
-                                        <SelectTrigger className="modal-select-trigger">
-                                          <SelectValue />
-                                        </SelectTrigger>
-                                        <SelectContent>
-                                          {roles.map(role => (
-                                            <SelectItem key={role} value={role}>
-                                              {role}
-                                              <div className="text-xs text-base-content/70 ml-2">
-                                                {ROLE_DESCRIPTIONS[role as keyof typeof ROLE_DESCRIPTIONS]}
-                                              </div>
-                                            </SelectItem>
-                                          ))}
-                                        </SelectContent>
-                                      </Select>
-                                    </div>
-
-                                    <div>
-                                      <Label htmlFor="status">Status</Label>
-                                      <Select
-                                        value={selectedUser?.status}
-                                        onValueChange={(value) => setSelectedUser(prev => prev ? { ...prev, status: value as any } : null)}
-                                      >
-                                        <SelectTrigger className="modal-select-trigger">
-                                          <SelectValue />
-                                        </SelectTrigger>
-                                        <SelectContent>
-                                          {statuses.map(status => (
-                                            <SelectItem key={status} value={status}>{status}</SelectItem>
-                                          ))}
-                                        </SelectContent>
-                                      </Select>
-                                    </div>
-                                  </div>
-
-                                  <DialogFooter>
-                                    <Button variant="outline" className="border-2 modal-button-secondary" onClick={() => setEditDialogOpen(false)}>
-                                      Cancel
-                                    </Button>
-                                    <Button variant="accent" className="modal-button-primary" onClick={() => {
-                                      if (selectedUser) {
-                                        if (selectedUser.role !== user.role) {
-                                          updateUserRole(user.id, selectedUser.role);
-                                        }
-                                        if (selectedUser.status !== user.status) {
-                                          updateUserStatus(user.id, selectedUser.status);
-                                        }
-                                      }
-                                      setEditDialogOpen(false);
-                                    }}>
-                                      Save Changes
-                                    </Button>
-                                  </DialogFooter>
-                                </DialogContent>
-                              </Dialog>
-
-                              {isAccountLocked(user) ? (
-                                <Button
-                                  variant="ghost"
-                                  size="sm"
-                                  onClick={() => updateUserStatus(user.id, 'active')}
-                                >
-                                  <Unlock className="h-4 w-4" />
-                                </Button>
-                              ) : (
-                                <Button
-                                  variant="ghost"
-                                  size="sm"
-                                  onClick={() => updateUserStatus(user.id, 'suspended')}
-                                >
-                                  <Lock className="h-4 w-4" />
-                                </Button>
-                              )}
-                            </div>
-                          </TableCell>
-                        </TableRow>
-                      ))
-                    )}
-                  </TableBody>
-                </Table>
+              <div className="text-center py-12 text-base-content/70">
+                <Activity className="h-12 w-12 mx-auto mb-4 opacity-50" />
+                <p>Activity log feature coming soon</p>
+                <p className="text-sm">This will show user management activities, role changes, and account status updates.</p>
               </div>
             </CardContent>
           </Card>
