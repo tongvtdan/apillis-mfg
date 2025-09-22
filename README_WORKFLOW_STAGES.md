@@ -1,10 +1,20 @@
-# Workflow Stages Setup
+# Workflow System Setup
 
 ## Problem
-The project creation is failing because there are no workflow stages defined for your organization. The console shows the initialization being triggered repeatedly, but the stages aren't being created.
+The project creation is failing because there are no workflow-related tables populated for your organization. The console shows the initialization being triggered repeatedly, but the stages aren't being created.
+
+## What Tables Need Seeding
+
+Based on your database schema, these tables need data for projects to work properly:
+
+1. **`workflow_stages`** - Main workflow stages (inquiry_received, technical_review, etc.)
+2. **`workflow_definitions`** - Workflow definitions that group stages together
+3. **`workflow_sub_stages`** - Sub-stages within each main stage
+4. **`workflow_definition_stages`** - Links workflows to stages
+5. **`workflow_definition_sub_stages`** - Links workflows to sub-stages
 
 ## Solution
-You need to seed the workflow stages for your organization. There are two approaches:
+You need to seed all workflow-related tables for your organization. There are two approaches:
 
 ### Option 1: Run the SQL Seed Script (Recommended)
 When your database is available, run the seed script:
@@ -32,10 +42,14 @@ supabase start
 ```
 
 ## What This Fixes
-- Creates 8 default workflow stages for organization `550e8400-e29b-41d4-a716-446655440000`
+- Creates **complete workflow system** including:
+  - 1 workflow definition ("Default Manufacturing Workflow")
+  - 8 main workflow stages for organization `550e8400-e29b-41d4-a716-446655440000`
+  - 20+ sub-stages across all main stages
+  - All necessary links between workflows, stages, and sub-stages
 - Stages include: inquiry_received, technical_review, supplier_rfq_sent, quoted, order_confirmed, procurement_planning, in_production, shipped_closed
-- Each stage has appropriate duration and responsible roles
-- Project creation should work after running this
+- Each stage/sub-stage has appropriate duration, responsible roles, and metadata
+- **Project creation, sub-stage progress tracking, and workflow management** should all work after running this
 
 ## Alternative: Use Supabase Dashboard
 1. Go to your Supabase project dashboard
