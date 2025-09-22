@@ -673,7 +673,7 @@ export type Database = {
           ai_last_analyzed: string | null
           ai_risk_score: number | null
           city: string | null
-          client.js_organization_id: string | null
+          client.ts.js_organization_id: string | null
           company_name: string
           contact_name: string | null
           country: string | null
@@ -705,7 +705,7 @@ export type Database = {
           ai_last_analyzed?: string | null
           ai_risk_score?: number | null
           city?: string | null
-          client.js_organization_id?: string | null
+          client.ts.js_organization_id?: string | null
           company_name: string
           contact_name?: string | null
           country?: string | null
@@ -737,7 +737,7 @@ export type Database = {
           ai_last_analyzed?: string | null
           ai_risk_score?: number | null
           city?: string | null
-          client.js_organization_id?: string | null
+          client.ts.js_organization_id?: string | null
           company_name?: string
           contact_name?: string | null
           country?: string | null
@@ -764,8 +764,8 @@ export type Database = {
         }
         Relationships: [
           {
-            foreignKeyName: "contacts_client.js_organization_id_fkey"
-            columns: ["client.js_organization_id"]
+            foreignKeyName: "contacts_client.ts.js_organization_id_fkey"
+            columns: ["client.ts.js_organization_id"]
             isOneToOne: false
             referencedRelation: "organizations"
             referencedColumns: ["id"]

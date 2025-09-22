@@ -1,5 +1,5 @@
 import { useState, useCallback, useEffect } from 'react';
-import { supabase } from '@/integrations/supabase/client.js';
+import { supabase } from '@/integrations/supabase/client.ts.js';
 import { useAuth } from '@/core/auth';
 import { CustomerSearchResult, ContactSearchResult } from '../types/intake.types';
 

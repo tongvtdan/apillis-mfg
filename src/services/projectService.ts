@@ -1,5 +1,5 @@
 import { Project, Contact, WorkflowStage } from '@/types/project';
-import { supabase } from '@/integrations/supabase/client.js';
+import { supabase } from '@/integrations/supabase/client.ts.js';
 // Mock project data removed - using database only
 
 // Environment flag to control data source - force Supabase mode
@@ -519,7 +519,7 @@ class ProjectService {
     // Method to create a new project
     async createProject(projectData: Partial<Project>): Promise<Project> {
         try {
-            // Use the statically imported supabase client.js to maintain authentication context
+            // Use the statically imported supabase client.ts.js to maintain authentication context
             // Import it here to ensure we're using the same instance as other parts of the application
             // Using static import instead
 

@@ -1,6 +1,6 @@
 import { useEffect, useCallback, useRef } from 'react';
 import { useAuth } from '@/core/auth';
-import { supabase } from '@/integrations/supabase/client.js';
+import { supabase } from '@/integrations/supabase/client.ts.js';
 import { AUTH_CONFIG } from '@/lib/auth-constants';
 import { useToast } from '@/shared/hooks/use-toast';
 

@@ -1,5 +1,5 @@
 import { UserRole, Permission, ROLE_PERMISSIONS, PermissionCheckResult } from '../types/auth';
-import { supabase } from '@/integrations/supabase/client.js';
+import { supabase } from '@/integrations/supabase/client.ts.js';
 
 /**
  * Check if a user role has permission to perform an action on a resource

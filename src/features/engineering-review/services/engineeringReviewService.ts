@@ -1,4 +1,4 @@
-import { supabase } from '@/integrations/supabase/client.js';
+import { supabase } from '@/integrations/supabase/client.ts.js';
 import { useAuth } from '@/core/auth';
 import { useApproval } from '@/core/approvals';
 import { EngineeringReviewData, EngineeringRisk, ReviewSubmissionResult, EngineeringDepartment } from '../types/engineering-review.types';

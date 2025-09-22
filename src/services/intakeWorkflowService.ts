@@ -1,4 +1,4 @@
-import { supabase } from '@/integrations/supabase/client.js';
+import { supabase } from '@/integrations/supabase/client.ts.js';
 import { IntakeMappingService } from './intakeMappingService';
 
 export class IntakeWorkflowService {

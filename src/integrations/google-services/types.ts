@@ -49,8 +49,8 @@ export interface GoogleDriveTokenResponse {
 export interface GoogleDriveConfig {
   id?: string;
   organization_id: string;
-  client.js_id: string;
-  client.js_secret: string;
+  client.ts.js_id: string;
+  client.ts.js_secret: string;
   redirect_uri: string;
   is_active: boolean;
   created_at?: string;
@@ -104,8 +104,8 @@ export interface GoogleDriveFilePickerProps {
 
 export interface GoogleDriveServiceConfig {
   apiKey?: string;
-  client.jsId?: string;
-  client.jsSecret?: string;
+  client.ts.jsId?: string;
+  client.ts.jsSecret?: string;
   redirectUri?: string;
   scope?: string;
   discoveryDocs?: string[];
