@@ -1,5 +1,5 @@
 import { useState, useCallback } from 'react';
-import { supabase } from '@/integrations/supabase/client.ts.js';
+import { supabase } from '@/integrations/supabase/client';
 import { Project } from '@/types/project';
 import { useAuth } from '@/core/auth';
 import { useToast } from '@/shared/hooks/use-toast';

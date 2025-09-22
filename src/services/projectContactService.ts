@@ -2,7 +2,7 @@
 // Manages project contacts using point_of_contacts array in projects table
 // Primary contact = first contact in the array
 
-import { supabase } from '@/integrations/supabase/client.ts.js';
+import { supabase } from '@/integrations/supabase/client';
 import { Contact } from '@/types/project';
 
 export interface ProjectContactWithDetails extends Contact {

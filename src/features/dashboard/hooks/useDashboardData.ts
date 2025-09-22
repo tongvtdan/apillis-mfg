@@ -1,5 +1,5 @@
 import { useQuery } from '@tanstack/react-query';
-import { supabase } from '@/integrations/supabase/client.ts.js';
+import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/core/auth';
 import { useEffect } from 'react';
 import { ProjectStatus, ProjectPriority } from '@/types/project';

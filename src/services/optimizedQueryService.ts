@@ -1,4 +1,4 @@
-import { supabase } from '@/integrations/supabase/client.ts.js';
+import { supabase } from '@/integrations/supabase/client';
 import { Project } from '@/types/project';
 import { cacheService } from './cacheService';
 import { RetryService } from './retryService';

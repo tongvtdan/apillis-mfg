@@ -1,4 +1,4 @@
-import { supabase } from '@/integrations/supabase/client.ts.js';
+import { supabase } from '@/integrations/supabase/client';
 
 /**
  * RLS (Row Level Security) Helper Functions

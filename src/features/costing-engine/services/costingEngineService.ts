@@ -1,4 +1,4 @@
-import { supabase } from '@/integrations/supabase/client.ts.js';
+import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/core/auth';
 import {
     CostItem,

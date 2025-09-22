@@ -5,7 +5,7 @@
  * and checks for any data type mismatches or missing foreign key relationships.
  */
 
-import { supabase } from '@/integrations/supabase/client.ts.js';
+import { supabase } from '@/integrations/supabase/client';
 import type { Database } from '@/integrations/supabase/types';
 
 // Type aliases for better readability

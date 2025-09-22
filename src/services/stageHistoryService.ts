@@ -1,4 +1,4 @@
-import { supabase } from '@/integrations/supabase/client.ts.js';
+import { supabase } from '@/integrations/supabase/client';
 import { ProjectStageHistory } from '@/types/project';
 
 export interface StageTransitionData {

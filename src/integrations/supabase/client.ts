@@ -27,8 +27,8 @@ if (import.meta.env.PROD && (!import.meta.env.VITE_SUPABASE_URL || !import.meta.
   console.error('❌ PRODUCTION ERROR: Missing required Supabase environment variables. Please set VITE_SUPABASE_URL and VITE_SUPABASE_ANON_KEY in Vercel.');
 }
 
-// Import the supabase client.ts.js like this:
-// import { supabase } from "@/integrations/supabase/client.ts.js";
+// Import the supabase client like this:
+// import { supabase } from "@/integrations/supabase/client";
 
 export const supabase = createClient<Database>(SUPABASE_URL, SUPABASE_PUBLISHABLE_KEY, {
   auth: {
