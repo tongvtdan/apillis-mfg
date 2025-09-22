@@ -22,7 +22,7 @@ import {
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { format } from 'date-fns';
-import { supabase } from '@/integrations/supabase/client.js';
+import { supabase } from '@/integrations/supabase/client';
 
 interface DocumentAccessLogEntry {
     id: string;

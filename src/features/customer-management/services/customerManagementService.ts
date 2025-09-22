@@ -32,9 +32,43 @@ export class CustomerManagementService {
                 lastActivityAt: new Date().toISOString()
             });
 
+            // Map customer data to organizations table structure
+            const organizationData = {
+                name: validatedData.name,
+                slug: validatedData.name.toLowerCase().replace(/\s+/g, '-').replace(/[^a-z0-9-]/g, ''),
+                organization_type: 'customer',
+                industry: validatedData.industry,
+                website: validatedData.website,
+                address: validatedData.billingAddress?.street,
+                city: validatedData.billingAddress?.city,
+                state: validatedData.billingAddress?.state,
+                country: validatedData.billingAddress?.country,
+                postal_code: validatedData.billingAddress?.postalCode,
+                tax_id: validatedData.taxId,
+                payment_terms: validatedData.paymentTerms,
+                default_currency: validatedData.currency,
+                metadata: {
+                    customerType: validatedData.customerType,
+                    status: validatedData.status,
+                    customerTier: validatedData.customerTier,
+                    companySize: validatedData.companySize,
+                    annualRevenue: validatedData.annualRevenue,
+                    employeeCount: validatedData.employeeCount,
+                    email: validatedData.email,
+                    phone: validatedData.phone,
+                    shippingAddress: validatedData.shippingAddress,
+                    creditLimit: validatedData.creditLimit,
+                    tags: validatedData.tags,
+                    source: validatedData.source,
+                    referralSource: validatedData.referralSource,
+                    lastActivityAt: validatedData.lastActivityAt,
+                    notes: validatedData.notes
+                }
+            };
+
             const { data, error } = await supabase
-                .from('customers')
-                .insert(validatedData)
+                .from('organizations')
+                .insert(organizationData)
                 .select()
                 .single();
 
@@ -45,7 +79,7 @@ export class CustomerManagementService {
             // Log activity
             await this.logCustomerActivity(data.id, 'customer_created', {
                 customerName: data.name,
-                customerType: data.customerType
+                customerType: validatedData.customerType
             }, userId);
 
             return data;
@@ -70,9 +104,41 @@ export class CustomerManagementService {
                 lastActivityAt: new Date().toISOString()
             };
 
+            // Map update data to organizations table structure
+            const organizationUpdateData = {
+                name: updates.name,
+                industry: updates.industry,
+                website: updates.website,
+                address: updates.billingAddress?.street,
+                city: updates.billingAddress?.city,
+                state: updates.billingAddress?.state,
+                country: updates.billingAddress?.country,
+                postal_code: updates.billingAddress?.postalCode,
+                tax_id: updates.taxId,
+                payment_terms: updates.paymentTerms,
+                default_currency: updates.currency,
+                metadata: {
+                    customerType: updates.customerType,
+                    status: updates.status,
+                    customerTier: updates.customerTier,
+                    companySize: updates.companySize,
+                    annualRevenue: updates.annualRevenue,
+                    employeeCount: updates.employeeCount,
+                    email: updates.email,
+                    phone: updates.phone,
+                    shippingAddress: updates.shippingAddress,
+                    creditLimit: updates.creditLimit,
+                    tags: updates.tags,
+                    source: updates.source,
+                    referralSource: updates.referralSource,
+                    lastActivityAt: updates.lastActivityAt,
+                    notes: updates.notes
+                }
+            };
+
             const { data, error } = await supabase
-                .from('customers')
-                .update(updateData)
+                .from('organizations')
+                .update(organizationUpdateData)
                 .eq('id', customerId)
                 .select()
                 .single();
@@ -97,15 +163,15 @@ export class CustomerManagementService {
     /**
      * Search and filter customers
      */
-    static async searchCustomers(filters: CustomerSearchFilters, organizationId: string): Promise<CustomerSearchResult> {
+    static async searchCustomers(filters: CustomerSearchFilters): Promise<CustomerSearchResult> {
 
         console.log('🔍 Searching customers with filters:', filters);
 
         try {
             let query = supabase
-                .from('customers')
+                .from('organizations')
                 .select('*', { count: 'exact' })
-                .eq('organization_id', organizationId);
+                .eq('organization_type', 'customer');
 
             // Apply filters
             if (filters.name) {
@@ -113,11 +179,11 @@ export class CustomerManagementService {
             }
 
             if (filters.customerType?.length) {
-                query = query.in('customer_type', filters.customerType);
+                query = query.in('metadata->>customerType', filters.customerType);
             }
 
             if (filters.status?.length) {
-                query = query.in('status', filters.status);
+                query = query.in('metadata->>status', filters.status);
             }
 
             if (filters.industry?.length) {
@@ -125,23 +191,23 @@ export class CustomerManagementService {
             }
 
             if (filters.customerTier?.length) {
-                query = query.in('customer_tier', filters.customerTier);
+                query = query.in('metadata->>customerTier', filters.customerTier);
             }
 
             if (filters.country) {
-                query = query.ilike('billing_address->>country', `%${filters.country}%`);
+                query = query.ilike('country', `%${filters.country}%`);
             }
 
             if (filters.city) {
-                query = query.ilike('billing_address->>city', `%${filters.city}%`);
+                query = query.ilike('city', `%${filters.city}%`);
             }
 
             if (filters.minRevenue) {
-                query = query.gte('annual_revenue', filters.minRevenue);
+                query = query.gte('metadata->>annualRevenue', filters.minRevenue);
             }
 
             if (filters.maxRevenue) {
-                query = query.lte('annual_revenue', filters.maxRevenue);
+                query = query.lte('metadata->>annualRevenue', filters.maxRevenue);
             }
 
             if (filters.createdAfter) {
@@ -188,35 +254,42 @@ export class CustomerManagementService {
             tags: {} as Record<string, number>
         };
 
-        customers.forEach(customer => {
+        customers.forEach(organization => {
             // Customer types
-            const type = customer.customerType;
-            facets.customerTypes[type] = (facets.customerTypes[type] || 0) + 1;
+            const type = organization.metadata?.customerType;
+            if (type) {
+                facets.customerTypes[type] = (facets.customerTypes[type] || 0) + 1;
+            }
 
             // Industries
-            if (customer.industry) {
-                facets.industries[customer.industry] = (facets.industries[customer.industry] || 0) + 1;
+            if (organization.industry) {
+                facets.industries[organization.industry] = (facets.industries[organization.industry] || 0) + 1;
             }
 
             // Statuses
-            const status = customer.status;
-            facets.statuses[status] = (facets.statuses[status] || 0) + 1;
+            const status = organization.metadata?.status;
+            if (status) {
+                facets.statuses[status] = (facets.statuses[status] || 0) + 1;
+            }
 
             // Tiers
-            if (customer.customerTier) {
-                facets.tiers[customer.customerTier] = (facets.tiers[customer.customerTier] || 0) + 1;
+            const tier = organization.metadata?.customerTier;
+            if (tier) {
+                facets.tiers[tier] = (facets.tiers[tier] || 0) + 1;
             }
 
             // Countries
-            if (customer.billingAddress?.country) {
-                const country = customer.billingAddress.country;
-                facets.countries[country] = (facets.countries[country] || 0) + 1;
+            if (organization.country) {
+                facets.countries[organization.country] = (facets.countries[organization.country] || 0) + 1;
             }
 
             // Tags
-            customer.tags?.forEach(tag => {
-                facets.tags[tag] = (facets.tags[tag] || 0) + 1;
-            });
+            const tags = organization.metadata?.tags;
+            if (Array.isArray(tags)) {
+                tags.forEach(tag => {
+                    facets.tags[tag] = (facets.tags[tag] || 0) + 1;
+                });
+            }
         });
 
         return facets;
@@ -317,9 +390,11 @@ export class CustomerManagementService {
 
             // Update customer's last activity
             await supabase
-                .from('customers')
+                .from('organizations')
                 .update({
-                    last_activity_at: new Date().toISOString(),
+                    metadata: {
+                        lastActivityAt: new Date().toISOString()
+                    },
                     updated_at: new Date().toISOString()
                 })
                 .eq('id', interactionData.customerId);
@@ -681,18 +756,18 @@ export class CustomerManagementService {
             'Created Date'
         ];
 
-        const csvRows = customers.map(customer => [
-            customer.name,
-            customer.customerType,
-            customer.status,
-            customer.industry || '',
-            customer.email,
-            customer.phone || '',
-            customer.billingAddress?.country || '',
-            customer.billingAddress?.city || '',
-            customer.annualRevenue?.toString() || '',
-            customer.customerTier || '',
-            customer.createdAt || ''
+        const csvRows = customers.map(organization => [
+            organization.name,
+            organization.metadata?.customerType || '',
+            organization.metadata?.status || '',
+            organization.industry || '',
+            organization.metadata?.email || '',
+            organization.metadata?.phone || '',
+            organization.country || '',
+            organization.city || '',
+            organization.metadata?.annualRevenue?.toString() || '',
+            organization.metadata?.customerTier || '',
+            organization.created_at || ''
         ]);
 
         const csvData = [csvHeaders, ...csvRows]

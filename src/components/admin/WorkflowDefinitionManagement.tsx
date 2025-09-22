@@ -49,7 +49,7 @@ import {
 import { useToast } from "@/shared/hooks/use-toast";
 import { workflowDefinitionService } from '@/services/workflowDefinitionService';
 import { workflowStageService } from '@/services/workflowStageService';
-import { supabase } from '@/integrations/supabase/client.js';
+import { supabase } from '@/integrations/supabase/client';
 import {
     WorkflowDefinition,
     WorkflowStage,
@@ -389,8 +389,8 @@ export function WorkflowDefinitionManagement() {
                     <div
                         key={stage.id}
                         className={`flex items-center justify-between p-3 rounded-lg border cursor-pointer transition-colors ${selectedStages.includes(stage.id)
-                                ? 'bg-primary/10 border-primary'
-                                : 'hover:bg-muted'
+                            ? 'bg-primary/10 border-primary'
+                            : 'hover:bg-muted'
                             }`}
                         onClick={() => handleStageSelection(stage.id)}
                     >
