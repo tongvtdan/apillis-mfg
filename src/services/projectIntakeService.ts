@@ -66,7 +66,7 @@ export class ProjectIntakeService {
             // Note: No need to override stage ID anymore as workflow stages are now properly initialized
 
             if (!stageId) {
-                throw new Error('No workflow stage found for project creation. Please ensure workflow stages are properly set up for your organization.');
+                throw new Error('No workflow stage found for project creation. This could be because:\n• Workflow stages have not been seeded for your organization\n• Database permissions prevent stage creation\n• Connection issues with the database\n\nPlease run the seed script to initialize workflow stages.');
             }
 
             // Get priority from mapping
