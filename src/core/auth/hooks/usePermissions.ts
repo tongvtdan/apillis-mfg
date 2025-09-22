@@ -52,6 +52,10 @@ export function usePermissions() {
         return checkPermission('supplier', 'create').allowed;
     };
 
+    const canViewSuppliers = () => {
+        return checkPermission('supplier', 'read').allowed;
+    };
+
     const canManageCustomers = () => {
         return checkPermission('customers', 'manage').allowed;
     };
@@ -68,6 +72,7 @@ export function usePermissions() {
         canViewReports,
         canManageApprovals,
         canManageSuppliers,
+        canViewSuppliers,
         canManageCustomers,
         hasEnhancedPermission,
         hasFeatureAccess,
