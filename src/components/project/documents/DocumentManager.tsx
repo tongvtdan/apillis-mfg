@@ -1,4 +1,4 @@
-import React, { useState, useCallback, useMemo } from 'react';
+import React, { useState, useCallback, useMemo, useEffect } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -65,7 +65,14 @@ export interface DocumentFiltersState {
 }
 
 export const DocumentManager: React.FC<DocumentManagerProps> = ({ projectId, currentStageId }) => {
-    const { documents, loading: isLoading } = useCurrentDocuments();
+    const { documents, loading: isLoading, loadDocuments } = useCurrentDocuments();
+
+    // Load documents when projectId changes
+    useEffect(() => {
+        if (projectId && loadDocuments) {
+            loadDocuments(projectId);
+        }
+    }, [projectId, loadDocuments]);
 
     // View state
     const [viewMode, setViewMode] = useState<ViewMode>('grid');
