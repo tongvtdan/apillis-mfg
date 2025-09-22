@@ -28,7 +28,6 @@ import {
     Trash2,
     Eye,
     Search,
-    Plus,
     Users,
     AlertTriangle,
     Archive,
@@ -38,20 +37,18 @@ import {
     BarChart3
 } from 'lucide-react';
 import { CustomerOrganizationWithSummary } from '@/types/project';
-import { useCustomerOrganizations } from '@/features/customer-management/hooks/useCustomerOrganizations';
-import { CustomerModal } from './CustomerModal';
+import { useCustomerOrganizations } from '@/hooks/useCustomerOrganizations';
 
 interface CustomerTableProps {
     customers: CustomerOrganizationWithSummary[];
     onCustomerSelect?: (customer: CustomerOrganizationWithSummary) => void;
     onAddContact?: (customer: CustomerOrganizationWithSummary) => void;
+    onEdit?: (customer: CustomerOrganizationWithSummary) => void;
     canArchive?: boolean;
 }
 
-export function CustomerTable({ customers, onCustomerSelect, onAddContact, canArchive = false }: CustomerTableProps) {
+export function CustomerTable({ customers, onCustomerSelect, onAddContact, onEdit, canArchive = false }: CustomerTableProps) {
     const [searchQuery, setSearchQuery] = useState('');
-    const [selectedCustomer, setSelectedCustomer] = useState<CustomerOrganizationWithSummary | null>(null);
-    const [showModal, setShowModal] = useState(false);
     const [showDeleteDialog, setShowDeleteDialog] = useState(false);
     const [customerToDelete, setCustomerToDelete] = useState<CustomerOrganizationWithSummary | null>(null);
 
@@ -71,8 +68,7 @@ export function CustomerTable({ customers, onCustomerSelect, onAddContact, canAr
     }, [customers, searchQuery]);
 
     const handleEdit = (customer: CustomerOrganizationWithSummary) => {
-        setSelectedCustomer(customer);
-        setShowModal(true);
+        onEdit?.(customer);
     };
 
     const handleArchive = async (customer: CustomerOrganizationWithSummary) => {
@@ -106,10 +102,6 @@ export function CustomerTable({ customers, onCustomerSelect, onAddContact, canAr
         }
     };
 
-    const handleModalClose = () => {
-        setShowModal(false);
-        setSelectedCustomer(null);
-    };
 
     const formatCurrency = (amount: number) => {
         return new Intl.NumberFormat('en-US', {
@@ -149,10 +141,6 @@ export function CustomerTable({ customers, onCustomerSelect, onAddContact, canAr
                         {filteredCustomers.length} customers
                     </Badge>
                 </div>
-                <Button onClick={() => setShowModal(true)}>
-                    <Plus className="w-4 h-4 mr-2" />
-                    Add Customer
-                </Button>
             </div>
 
             {/* Table */}
@@ -179,10 +167,7 @@ export function CustomerTable({ customers, onCustomerSelect, onAddContact, canAr
                                             {searchQuery ? 'No customers match your search' : 'No customers found'}
                                         </p>
                                         {!searchQuery && (
-                                            <Button variant="outline" onClick={() => setShowModal(true)}>
-                                                <Plus className="w-4 h-4 mr-2" />
-                                                Add First Customer
-                                            </Button>
+                                            <p className="text-muted-foreground">No customers found</p>
                                         )}
                                     </div>
                                 </TableCell>
@@ -344,12 +329,6 @@ export function CustomerTable({ customers, onCustomerSelect, onAddContact, canAr
                 </Table>
             </div>
 
-            {/* Customer Modal */}
-            <CustomerModal
-                open={showModal}
-                onClose={handleModalClose}
-                customer={selectedCustomer}
-            />
 
             {/* Delete Confirmation Dialog */}
             <Modal

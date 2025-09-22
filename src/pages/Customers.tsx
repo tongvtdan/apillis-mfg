@@ -11,7 +11,7 @@ import {
   Plus,
   BarChart3
 } from 'lucide-react';
-import { useCustomerOrganizations } from '@/features/customer-management/hooks/useCustomerOrganizations';
+import { useCustomerOrganizations } from '@/hooks/useCustomerOrganizations';
 import { usePermissions } from '@/core/auth/hooks/usePermissions';
 import { Switch } from '@/components/ui/switch';
 import { Label } from '@/components/ui/label';
@@ -198,6 +198,10 @@ export default function Customers() {
                 customers={customers}
                 onCustomerSelect={handleCustomerSelect}
                 onAddContact={handleAddContact}
+                onEdit={(customer) => {
+                  setSelectedCustomer(customer);
+                  setShowModal(true);
+                }}
                 canArchive={canManageCustomers}
               />
             </CardContent>
@@ -232,6 +236,12 @@ export default function Customers() {
       <CustomerModal
         open={showModal}
         onClose={() => setShowModal(false)}
+        customer={selectedCustomer}
+        onSuccess={(updatedCustomer) => {
+          // Handle successful update
+          console.log('Customer updated:', updatedCustomer);
+          setSelectedCustomer(null);
+        }}
       />
 
       {/* Contact Modal */}

@@ -17,7 +17,7 @@ import { Command, CommandEmpty, CommandGroup, CommandInput, CommandItem, Command
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { Check, ChevronsUpDown, X, Building2 } from 'lucide-react';
 import { Organization } from '@/types/project';
-import { useCustomerOrganizations } from '@/features/customer-management/hooks/useCustomerOrganizations';
+import { useCustomerOrganizations } from '@/hooks/useCustomerOrganizations';
 import { cn } from '@/lib/utils';
 
 interface CustomerModalProps {
@@ -109,7 +109,7 @@ export function CustomerModal({ open, onClose, customer, onSuccess }: CustomerMo
     const [loading, setLoading] = useState(false);
     const [industryOpen, setIndustryOpen] = useState(false);
     const [customIndustry, setCustomIndustry] = useState('');
-    const { createOrganization } = useCustomerOrganizations();
+    const { createOrganization, updateOrganization } = useCustomerOrganizations();
 
     const {
         register,
@@ -165,9 +165,9 @@ export function CustomerModal({ open, onClose, customer, onSuccess }: CustomerMo
                 slug: customer.slug || '',
                 description: customer.description || '',
                 industry: customer.industry || '',
-                contact_name: '', // Contact info is separate
-                email: '', // Contact info is separate
-                phone: '', // Contact info is separate
+                contact_name: customer.primary_contact?.contact_name || '',
+                email: customer.primary_contact?.email || '',
+                phone: customer.primary_contact?.phone || '',
                 address: customer.address || '',
                 city: customer.city || '',
                 state: customer.state || '',
@@ -220,9 +220,9 @@ export function CustomerModal({ open, onClose, customer, onSuccess }: CustomerMo
             };
 
             if (isEditing && customer) {
-                // For now, we'll only support creating new organizations
-                // TODO: Implement update functionality
-                throw new Error('Editing organizations is not yet supported');
+                // Update existing organization
+                const updatedOrganization = await updateOrganization(customer.id, organizationData);
+                onSuccess?.(updatedOrganization);
             } else {
                 const newOrganization = await createOrganization(organizationData, contactData);
                 onSuccess?.(newOrganization);

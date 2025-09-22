@@ -8,7 +8,7 @@ import { Form } from '@/components/ui/form';
 import { CheckCircle2, Loader2 } from 'lucide-react';
 import { useToast } from '@/shared/hooks/use-toast';
 import { useProjectManagement } from '@/features/project-management/hooks';
-import { useCustomerOrganizations } from '@/features/customer-management/hooks/useCustomerOrganizations';
+import { useCustomerOrganizations } from '@/hooks/useCustomerOrganizations';
 import { useCustomers } from '@/features/customer-management/hooks/useCustomers';
 import { useAuth } from '@/core/auth';
 import { ProjectIntakeService, ProjectIntakeData } from '@/services/projectIntakeService';
