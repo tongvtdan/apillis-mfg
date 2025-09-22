@@ -412,9 +412,9 @@ export const DocumentPreview: React.FC<DocumentPreviewProps> = ({
                                 <Badge variant="outline" className="text-xs">
                                     {document.access_level}
                                 </Badge>
-                                {document.version && (
+                                {document.version_number && (
                                     <Badge variant="outline" className="text-xs bg-blue-50 text-blue-700 border-blue-200">
-                                        v{document.version}
+                                        v{document.version_number}
                                     </Badge>
                                 )}
                             </div>
@@ -474,12 +474,12 @@ export const DocumentPreview: React.FC<DocumentPreviewProps> = ({
                             </div>
 
                             {/* Version Information */}
-                            {document.version && (
+                            {document.version_number && (
                                 <div className="space-y-2">
                                     <div className="flex items-center gap-1">
                                         <File className="w-3 h-3 text-slate-500" />
                                         <span className="text-sm font-medium text-slate-700 dark:text-slate-300">Current version:</span>
-                                        <span className="text-slate-600 dark:text-slate-400">{document.version}</span>
+                                        <span className="text-slate-600 dark:text-slate-400">{document.version_number}</span>
                                     </div>
                                     {document.metadata?.version && (
                                         <div className="space-y-1">

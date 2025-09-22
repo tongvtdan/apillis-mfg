@@ -281,7 +281,7 @@ class DocumentVersionService {
                     file_path: targetVersion.file_path,
                     file_size: targetVersion.file_size,
                     file_type: targetVersion.mime_type,
-                    version: targetVersion.version_number,
+                    version_number: targetVersion.version_number,
                     is_current_version: true,
                     updated_at: new Date().toISOString()
                 })
