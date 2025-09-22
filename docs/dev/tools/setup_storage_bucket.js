@@ -5,7 +5,7 @@
  * This script creates the required storage bucket for document uploads
  */
 
-const { createClient } = require('@supabase/supabase-js');
+import { createClient } from '@supabase/supabase-js';
 
 // Configuration
 const SUPABASE_URL = process.env.VITE_SUPABASE_URL || 'http://127.0.0.1:54321';
@@ -227,11 +227,11 @@ async function main() {
 }
 
 // Run the script
-if (require.main === module) {
+if (import.meta.url === `file://${process.argv[1]}`) {
     main().catch(console.error);
 }
 
-module.exports = {
+export {
     checkExistingBuckets,
     createDocumentsBucket,
     testBucketAccess,

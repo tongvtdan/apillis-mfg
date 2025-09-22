@@ -376,6 +376,68 @@ export class SupplierManagementService {
     }
 
     /**
+     * Delete a supplier (soft delete by setting is_active to false)
+     */
+    static async deleteSupplier(supplierId: string, userId: string): Promise<void> {
+
+        console.log('🗑️ Deleting supplier:', supplierId);
+
+        try {
+            // Get user's organization ID
+            const { data: userData, error: userError } = await supabase
+                .from('users')
+                .select('organization_id')
+                .eq('id', userId)
+                .single();
+
+            if (userError || !userData?.organization_id) {
+                throw new Error('User organization not found');
+            }
+
+            // Verify supplier exists and belongs to the user's organization
+            const { data: supplierData, error: fetchError } = await supabase
+                .from('organizations')
+                .select('id, name, is_active')
+                .eq('id', supplierId)
+                .eq('organization_type', 'supplier')
+                .single();
+
+            if (fetchError || !supplierData) {
+                throw new Error(`Supplier not found: ${fetchError?.message || 'Unknown error'}`);
+            }
+
+            if (!supplierData.is_active) {
+                throw new Error('Supplier is already inactive');
+            }
+
+            // Soft delete by setting is_active to false
+            const { error: updateError } = await supabase
+                .from('organizations')
+                .update({
+                    is_active: false,
+                    updated_at: new Date().toISOString()
+                })
+                .eq('id', supplierId);
+
+            if (updateError) {
+                throw new Error(`Failed to delete supplier: ${updateError.message}`);
+            }
+
+            // Log activity
+            await this.logSupplierActivity(supplierId, 'supplier_deleted', {
+                deletedBy: userId,
+                supplierName: supplierData.name
+            }, userId);
+
+            console.log('✅ Supplier deleted successfully');
+
+        } catch (error) {
+            console.error('❌ Supplier deletion failed:', error);
+            throw new Error(`Failed to delete supplier: ${error instanceof Error ? error.message : 'Unknown error'}`);
+        }
+    }
+
+    /**
      * Get supplier by ID
      */
     static async getSupplierById(supplierId: string): Promise<Supplier> {
