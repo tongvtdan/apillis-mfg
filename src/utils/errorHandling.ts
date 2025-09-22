@@ -1,4 +1,4 @@
-import { toast } from '@/hooks/use-toast';
+import { toast } from '@/shared/hooks/use-toast';
 
 interface ErrorOptions {
     showToast?: boolean;

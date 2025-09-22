@@ -25,7 +25,7 @@ import {
 import { Project, WorkflowStage, ProjectWorkflowState } from '@/types/project';
 import { projectWorkflowService } from '@/services/projectWorkflowService';
 import { useAuth } from '@/core/auth';
-import { useToast } from '@/hooks/use-toast';
+import { useToast } from '@/shared/hooks/use-toast';
 import { useStageTransition } from '@/hooks/useStageTransition';
 import { StageTransitionDialog } from './workflow/StageTransitionDialog';
 

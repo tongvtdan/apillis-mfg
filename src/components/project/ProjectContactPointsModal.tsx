@@ -31,7 +31,7 @@ import {
 import { Project, Contact, ProjectContactPoint } from '@/types/project';
 import { useProjectContactPoints } from '@/hooks/useCustomerOrganizations';
 import { useCustomerOrganizations } from '@/hooks/useCustomerOrganizations';
-import { useToast } from '@/hooks/use-toast';
+import { useToast } from '@/shared/hooks/use-toast';
 
 interface ProjectContactPointsModalProps {
     open: boolean;
