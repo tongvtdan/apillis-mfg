@@ -70,7 +70,11 @@ class WorkflowStageService {
                         this.cacheTimestamp = Date.now();
                         console.log('✅ Re-fetched workflow stages after initialization:', this.cachedStages.length);
                     }
+                } else {
+                    console.warn('⚠️ Failed to initialize default workflow stages, but continuing with empty array');
                 }
+            } else if (this.cachedStages.length === 0) {
+                console.warn('⚠️ No workflow stages found and no user profile available for initialization');
             }
 
             console.log('Fetched workflow stages:', this.cachedStages);
@@ -284,12 +288,26 @@ class WorkflowStageService {
         try {
             console.log('🔄 Initializing default workflow stages for organization:', organizationId);
 
-            // Check if stages already exist for this organization
-            const existingStages = await this.getWorkflowStages(true);
-            if (existingStages.length > 0) {
+            // Check if stages already exist for this organization (bypass cache)
+            const { data: existingStages, error: checkError } = await supabase
+                .from('workflow_stages')
+                .select('*')
+                .eq('organization_id', organizationId)
+                .eq('is_active', true)
+                .order('stage_order', { ascending: true });
+
+            if (checkError) {
+                console.error('❌ Error checking existing stages:', checkError);
+                // Continue anyway - might be a permissions issue
+                console.warn('⚠️ Continuing despite error checking existing stages...');
+            }
+
+            if (existingStages && existingStages.length > 0) {
                 console.log('✅ Workflow stages already exist for organization');
                 return true;
             }
+
+            console.log('📝 No existing stages found, creating default stages...');
 
             // Create default workflow stages
             const defaultStages = PROJECT_STAGES.map((stage, index) => ({
@@ -313,10 +331,23 @@ class WorkflowStageService {
 
             if (error) {
                 console.error('❌ Error creating default workflow stages:', error);
+                console.error('❌ Error details:', {
+                    message: error.message,
+                    details: error.details,
+                    hint: error.hint,
+                    code: error.code
+                });
+
+                // If it's a permissions error, log it and return false
+                if (error.code === '42501' || error.message.includes('permission')) {
+                    console.error('❌ Insufficient permissions to create workflow stages. Please run the migration script manually.');
+                    return false;
+                }
+
                 throw error;
             }
 
-            console.log('✅ Created default workflow stages:', data?.length || 0);
+            console.log('✅ Successfully created default workflow stages:', data?.length || 0);
 
             // Clear cache to force refresh
             this.clearCache();
@@ -324,6 +355,8 @@ class WorkflowStageService {
             return true;
         } catch (error) {
             console.error('❌ Error initializing default workflow stages:', error);
+            console.error('❌ This may be due to database permissions or connection issues.');
+            console.error('❌ Please ensure your database is running and you have the necessary permissions.');
             return false;
         }
     }

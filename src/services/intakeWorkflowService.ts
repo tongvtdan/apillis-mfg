@@ -12,7 +12,11 @@ export class IntakeWorkflowService {
             console.log('🔍 Looking up stage with slug:', stageSlug, 'for organization:', organizationId);
 
             // First, ensure default stages are initialized for the organization
-            await workflowStageService.initializeDefaultStages(organizationId);
+            const initialized = await workflowStageService.initializeDefaultStages(organizationId);
+            if (!initialized) {
+                console.error('❌ Failed to initialize default workflow stages');
+                return null;
+            }
 
             const { data, error } = await supabase
                 .from('workflow_stages')
@@ -43,7 +47,11 @@ export class IntakeWorkflowService {
             console.log('🔍 Looking up first available stage for organization:', organizationId);
 
             // First, ensure default stages are initialized for the organization
-            await workflowStageService.initializeDefaultStages(organizationId);
+            const initialized = await workflowStageService.initializeDefaultStages(organizationId);
+            if (!initialized) {
+                console.error('❌ Failed to initialize default workflow stages');
+                return null;
+            }
 
             const { data, error } = await supabase
                 .from('workflow_stages')
