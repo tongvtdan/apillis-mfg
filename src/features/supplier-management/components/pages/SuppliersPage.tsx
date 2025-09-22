@@ -41,16 +41,16 @@ export function SuppliersPage() {
     const activeSuppliers = suppliers.filter(s => s.is_active).length;
     const archivedSuppliers = suppliers.filter(s => !s.is_active).length;
     const averageRating = suppliers.length > 0
-        ? suppliers.reduce((sum, s) => sum + (s.rating || 0), 0) / suppliers.length
+        ? suppliers.reduce((sum, s) => sum + (s.performance?.rating || 0), 0) / suppliers.length
         : 0;
     const averageResponseRate = suppliers.length > 0
-        ? suppliers.reduce((sum, s) => sum + (s.response_rate || 0), 0) / suppliers.length
+        ? suppliers.reduce((sum, s) => sum + (s.performance?.responseRate || 0), 0) / suppliers.length
         : 0;
 
-    // Calculate qualification statistics (mock data for now)
-    const qualifiedSuppliers = suppliers.filter(s => s.qualificationStatus === 'qualified').length;
-    const pendingSuppliers = suppliers.filter(s => s.qualificationStatus === 'pending').length;
-    const rejectedSuppliers = suppliers.filter(s => s.qualificationStatus === 'rejected').length;
+    // Calculate qualification statistics
+    const qualifiedSuppliers = suppliers.filter(s => s.status === 'qualified').length;
+    const pendingSuppliers = suppliers.filter(s => s.status === 'in_progress').length;
+    const rejectedSuppliers = suppliers.filter(s => s.status === 'not_qualified').length;
 
     const handleCreateSupplier = () => {
         navigate('/suppliers/create');
@@ -176,7 +176,7 @@ export function SuppliersPage() {
                     </CardHeader>
                     <CardContent>
                         <div className="space-y-3">
-                            {['manufacturer', 'distributor', 'service_provider'].map((type) => {
+                            {['manufacturer', 'distributor', 'service_provider', 'raw_material', 'component'].map((type) => {
                                 const count = suppliers.filter(s => s.supplierType === type).length;
                                 const percentage = totalSuppliers > 0 ? (count / totalSuppliers) * 100 : 0;
 
@@ -212,11 +212,11 @@ export function SuppliersPage() {
                         <div className="space-y-3">
                             {[
                                 { status: 'qualified', label: 'Qualified', color: 'bg-green-500' },
-                                { status: 'pending', label: 'Pending', color: 'bg-yellow-500' },
-                                { status: 'rejected', label: 'Rejected', color: 'bg-red-500' },
-                                { status: 'not_qualified', label: 'Not Qualified', color: 'bg-gray-500' }
+                                { status: 'in_progress', label: 'In Progress', color: 'bg-yellow-500' },
+                                { status: 'not_qualified', label: 'Not Qualified', color: 'bg-gray-500' },
+                                { status: 'expiring_soon', label: 'Expiring Soon', color: 'bg-orange-500' }
                             ].map(({ status, label, color }) => {
-                                const count = suppliers.filter(s => s.qualificationStatus === status).length;
+                                const count = suppliers.filter(s => s.status === status).length;
                                 const percentage = totalSuppliers > 0 ? (count / totalSuppliers) * 100 : 0;
 
                                 return (

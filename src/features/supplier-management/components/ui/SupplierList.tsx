@@ -31,6 +31,10 @@ interface Supplier {
     id: string;
     name: string;
     company?: string;
+    email?: string;
+    phone?: string;
+    address?: string;
+    country?: string;
     specialties: string[];
     status: 'qualified' | 'expiring_soon' | 'not_qualified' | 'in_progress';
     expiryDate?: string;
@@ -42,159 +46,15 @@ interface Supplier {
         qualityScore?: number;
         costCompetitiveness?: number;
     };
-    country?: string;
     supplierType?: 'manufacturer' | 'distributor' | 'service_provider' | 'raw_material' | 'component';
     lastActivity?: string;
     annualSpend?: number;
     paymentTerms?: string;
+    is_active?: boolean;
+    created_at?: string;
+    updated_at?: string;
 }
 
-const MOCK_SUPPLIERS: Supplier[] = [
-    {
-        id: '1',
-        name: 'Acme Precision Machining',
-        company: 'Acme Precision Machining',
-        specialties: ['5-Axis', '±0.01mm', 'ISO 9001'],
-        status: 'qualified',
-        expiryDate: 'Dec 2026',
-        capabilities: ['5-Axis', '±0.01mm', 'ISO 9001'],
-        performance: {
-            rating: 4.8,
-            responseRate: 98,
-            turnaroundDays: 3.2,
-            qualityScore: 95,
-            costCompetitiveness: 85
-        },
-        country: 'USA',
-        supplierType: 'manufacturer',
-        lastActivity: '2025-09-10',
-        annualSpend: 125000,
-        paymentTerms: 'Net 30'
-    },
-    {
-        id: '2',
-        name: 'Titan Metalworks',
-        company: 'Titan Metalworks',
-        specialties: ['Sheet Metal', 'Welding', 'ISO 14001'],
-        status: 'expiring_soon',
-        expiryDate: 'Oct 2025',
-        capabilities: ['Sheet Metal', 'Welding', 'ISO 14001'],
-        performance: {
-            rating: 4.2,
-            responseRate: 92,
-            turnaroundDays: 4.1,
-            qualityScore: 88,
-            costCompetitiveness: 92
-        },
-        country: 'USA',
-        supplierType: 'manufacturer',
-        lastActivity: '2025-09-08',
-        annualSpend: 87000,
-        paymentTerms: 'Net 45'
-    },
-    {
-        id: '3',
-        name: 'Global Plastics Inc.',
-        company: 'Global Plastics Inc.',
-        specialties: ['Injection Molding', 'Prototyping'],
-        status: 'not_qualified',
-        capabilities: [],
-        performance: {
-            rating: 0,
-            responseRate: 0,
-            turnaroundDays: 0
-        },
-        country: 'Canada',
-        supplierType: 'manufacturer',
-        lastActivity: '2025-08-15',
-        annualSpend: 0,
-        paymentTerms: ''
-    },
-    {
-        id: '4',
-        name: 'Precision Castings Ltd',
-        company: 'Precision Castings Ltd',
-        specialties: ['Casting', 'Aluminum', 'ISO 9001'],
-        status: 'qualified',
-        expiryDate: 'Mar 2027',
-        capabilities: ['Casting', 'Aluminum', 'ISO 9001'],
-        performance: {
-            rating: 4.5,
-            responseRate: 87,
-            turnaroundDays: 5.0,
-            qualityScore: 92,
-            costCompetitiveness: 78
-        },
-        country: 'Mexico',
-        supplierType: 'manufacturer',
-        lastActivity: '2025-09-05',
-        annualSpend: 65000,
-        paymentTerms: 'Net 30'
-    },
-    {
-        id: '5',
-        name: 'ElectroTech Components',
-        company: 'ElectroTech Components',
-        specialties: ['Electronics', 'PCB Assembly', 'RoHS'],
-        status: 'qualified',
-        expiryDate: 'Jan 2026',
-        capabilities: ['Electronics', 'PCB Assembly', 'RoHS'],
-        performance: {
-            rating: 4.0,
-            responseRate: 95,
-            turnaroundDays: 2.8,
-            qualityScore: 85,
-            costCompetitiveness: 95
-        },
-        country: 'USA',
-        supplierType: 'component',
-        lastActivity: '2025-09-11',
-        annualSpend: 42000,
-        paymentTerms: 'Net 15'
-    },
-    {
-        id: '6',
-        name: 'Global Distribution Co',
-        company: 'Global Distribution Co',
-        specialties: ['Logistics', 'Warehousing'],
-        status: 'qualified',
-        expiryDate: 'Sep 2026',
-        capabilities: ['Logistics', 'Warehousing'],
-        performance: {
-            rating: 4.3,
-            responseRate: 99,
-            turnaroundDays: 1.5,
-            qualityScore: 90,
-            costCompetitiveness: 88
-        },
-        country: 'Germany',
-        supplierType: 'distributor',
-        lastActivity: '2025-09-09',
-        annualSpend: 35000,
-        paymentTerms: 'Net 60'
-    },
-    {
-        id: '7',
-        name: 'Tech Services Plus',
-        company: 'Tech Services Plus',
-        specialties: ['Maintenance', 'Consulting'],
-        status: 'qualified',
-        expiryDate: 'Apr 2027',
-        capabilities: ['Maintenance', 'Consulting'],
-        performance: {
-            rating: 4.6,
-            responseRate: 96,
-            turnaroundDays: 2.0,
-            qualityScore: 93,
-            costCompetitiveness: 80
-        },
-        country: 'UK',
-        supplierType: 'service_provider',
-        lastActivity: '2025-09-07',
-        annualSpend: 28000,
-        paymentTerms: 'Net 30'
-    }
-];
 
 const PROCESS_FILTERS = [
     'CNC Machining',
@@ -322,9 +182,8 @@ export function SupplierList({
     onStartQualification
 }: SupplierListProps) {
     const navigate = useNavigate();
-    // Use provided suppliers or fall back to mock data
-    // If propSuppliers is empty, use mock data for demonstration
-    const suppliers = propSuppliers && propSuppliers.length > 0 ? propSuppliers : MOCK_SUPPLIERS;
+    // Use provided suppliers from props (real data from Supabase)
+    const suppliers = propSuppliers || [];
     const [searchQuery, setSearchQuery] = useState('');
 
     // Pagination state
@@ -514,7 +373,7 @@ export function SupplierList({
             selectedRatings.some(ratingValue => {
                 const ratingFilter = PERFORMANCE_RATING_FILTERS.find(r => r.value === ratingValue);
                 if (!ratingFilter) return false;
-                const rating = supplier.performance?.rating || supplier.rating || 0;
+                const rating = supplier.performance?.rating || 0;
                 return rating >= ratingFilter.min && rating <= ratingFilter.max;
             });
 
@@ -523,18 +382,17 @@ export function SupplierList({
             selectedQualityScores.some(scoreValue => {
                 const scoreFilter = QUALITY_SCORE_FILTERS.find(s => s.value === scoreValue);
                 if (!scoreFilter) return false;
-                const qualityScore = supplier.performance?.qualityScore || supplier.quality_rating;
-                if (qualityScore === undefined) return false;
+                const qualityScore = supplier.performance?.qualityScore || 0;
                 return qualityScore >= scoreFilter.min && qualityScore <= scoreFilter.max;
             });
 
         // Response rate filter
         const matchesMinResponseRate = minResponseRate === '' ||
-            (supplier.performance?.responseRate || supplier.response_rate || 0) >= Number(minResponseRate);
+            (supplier.performance?.responseRate || 0) >= Number(minResponseRate);
 
         // Turnaround days filter
         const matchesMaxTurnaroundDays = maxTurnaroundDays === '' ||
-            (supplier.performance?.turnaroundDays || supplier.average_turnaround_days || 0) <= Number(maxTurnaroundDays);
+            (supplier.performance?.turnaroundDays || 0) <= Number(maxTurnaroundDays);
 
         // Annual spend filters
         const matchesMinAnnualSpend = minAnnualSpend === '' ||
@@ -1286,20 +1144,20 @@ export function SupplierList({
                                 <div className="flex flex-wrap items-center gap-4">
                                     <div className="flex items-center text-sm">
                                         <Star className="w-4 h-4 fill-yellow-400 text-yellow-400 mr-1" />
-                                        <span>{supplier.performance?.rating?.toFixed(1) || supplier.rating?.toFixed(1) || 'N/A'}</span>
+                                        <span>{supplier.performance?.rating?.toFixed(1) || 'N/A'}</span>
                                     </div>
                                     <div className="flex items-center text-sm">
                                         <CheckCircle className="w-4 h-4 text-green-500 mr-1" />
-                                        <span>{supplier.performance?.responseRate || supplier.response_rate || 0}% OTD</span>
+                                        <span>{supplier.performance?.responseRate || 0}% OTD</span>
                                     </div>
                                     <div className="flex items-center text-sm">
                                         <Clock className="w-4 h-4 text-blue-500 mr-1" />
-                                        <span>{supplier.performance?.turnaroundDays || supplier.average_turnaround_days || 0} days</span>
+                                        <span>{supplier.performance?.turnaroundDays || 0} days</span>
                                     </div>
-                                    {(supplier.performance?.qualityScore !== undefined || supplier.quality_rating !== undefined) && (
+                                    {(supplier.performance?.qualityScore !== undefined && supplier.performance.qualityScore > 0) && (
                                         <div className="flex items-center text-sm">
                                             <Award className="w-4 h-4 text-purple-500 mr-1" />
-                                            <span>Q: {supplier.performance?.qualityScore || supplier.quality_rating}</span>
+                                            <span>Q: {supplier.performance?.qualityScore || 'N/A'}</span>
                                         </div>
                                     )}
                                     {supplier.performance?.costCompetitiveness !== undefined && (
