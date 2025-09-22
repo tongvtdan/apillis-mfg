@@ -14,7 +14,7 @@ INSERT INTO workflow_stages (
     created_at,
     updated_at
 ) VALUES
-    ('550e8400-e29b-41d4-a716-446655440000', 'Inquiry Received', 'inquiry_received', 'Default inquiry received stage', 1, 1, ARRAY['admin', 'sales'], true, NOW(), NOW()),
+    ('550e8400-e29b-41d4-a716-446655440000', 'Inquiry Received', 'inquiry_received', 'Default inquiry received stage', 1, 1, ARRAY['admin', 'sales']::user_role[], true, NOW(), NOW()),
     ('550e8400-e29b-41d4-a716-446655440000', 'Technical Review', 'technical_review', 'Default technical review stage', 2, 3, ARRAY['admin', 'engineering'], true, NOW(), NOW()),
     ('550e8400-e29b-41d4-a716-446655440000', 'Supplier RFQ Sent', 'supplier_rfq_sent', 'Default supplier rfq sent stage', 3, 5, ARRAY['admin', 'procurement'], true, NOW(), NOW()),
     ('550e8400-e29b-41d4-a716-446655440000', 'Quoted', 'quoted', 'Default quoted stage', 4, 2, ARRAY['admin', 'sales'], true, NOW(), NOW()),
