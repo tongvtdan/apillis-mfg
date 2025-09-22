@@ -55,14 +55,14 @@ BEGIN
         created_at,
         updated_at
     ) VALUES
-        (org_id, 'Inquiry Received', 'inquiry_received', 'Initial inquiry received from customer', 1, 1, ARRAY['admin', 'sales']::user_role[], true, NOW(), NOW()),
-        (org_id, 'Technical Review', 'technical_review', 'Technical review and feasibility assessment', 2, 3, ARRAY['admin', 'engineering'], true, NOW(), NOW()),
-        (org_id, 'Supplier RFQ Sent', 'supplier_rfq_sent', 'Request for quotes sent to suppliers', 3, 5, ARRAY['admin', 'procurement'], true, NOW(), NOW()),
-        (org_id, 'Quoted', 'quoted', 'Project quoted and ready for approval', 4, 2, ARRAY['admin', 'sales'], true, NOW(), NOW()),
-        (org_id, 'Order Confirmed', 'order_confirmed', 'Order confirmed and ready for procurement', 5, 1, ARRAY['admin', 'procurement'], true, NOW(), NOW()),
-        (org_id, 'Procurement Planning', 'procurement_planning', 'Procurement and material planning', 6, 7, ARRAY['admin', 'procurement'], true, NOW(), NOW()),
-        (org_id, 'In Production', 'in_production', 'Manufacturing in progress', 7, 14, ARRAY['admin', 'production'], true, NOW(), NOW()),
-        (org_id, 'Shipped & Closed', 'shipped_closed', 'Project completed and shipped', 8, 1, ARRAY['admin'], true, NOW(), NOW())
+        (org_id, 'Inquiry Received', 'inquiry_received', 'Initial inquiry received from customer', 1, 1, ARRAY['admin'::user_role, 'sales'::user_role], true, NOW(), NOW()),
+        (org_id, 'Technical Review', 'technical_review', 'Technical review and feasibility assessment', 2, 3, ARRAY['admin'::user_role, 'engineering'::user_role], true, NOW(), NOW()),
+        (org_id, 'Supplier RFQ Sent', 'supplier_rfq_sent', 'Request for quotes sent to suppliers', 3, 5, ARRAY['admin'::user_role, 'procurement'::user_role], true, NOW(), NOW()),
+        (org_id, 'Quoted', 'quoted', 'Project quoted and ready for approval', 4, 2, ARRAY['admin'::user_role, 'sales'::user_role], true, NOW(), NOW()),
+        (org_id, 'Order Confirmed', 'order_confirmed', 'Order confirmed and ready for procurement', 5, 1, ARRAY['admin'::user_role, 'procurement'::user_role], true, NOW(), NOW()),
+        (org_id, 'Procurement Planning', 'procurement_planning', 'Procurement and material planning', 6, 7, ARRAY['admin'::user_role, 'procurement'::user_role], true, NOW(), NOW()),
+        (org_id, 'In Production', 'in_production', 'Manufacturing in progress', 7, 14, ARRAY['admin'::user_role, 'production'::user_role], true, NOW(), NOW()),
+        (org_id, 'Shipped & Closed', 'shipped_closed', 'Project completed and shipped', 8, 1, ARRAY['admin'::user_role], true, NOW(), NOW())
     ON CONFLICT (organization_id, slug) DO NOTHING;
 
     RAISE NOTICE 'Ensured workflow stages exist';
@@ -97,9 +97,9 @@ BEGIN
         created_at,
         updated_at
     ) VALUES
-        (org_id, stage_id_inquiry, 'Initial Contact', 'initial_contact', 'Initial customer contact recorded', 1, true, true, false, false, 2, ARRAY['admin']::user_role[], NOW(), NOW()),
-        (org_id, stage_id_inquiry, 'Requirement Gathering', 'requirement_gathering', 'Gather project requirements', 2, true, true, false, false, 4, ARRAY['admin', 'sales']::user_role[], NOW(), NOW()),
-        (org_id, stage_id_inquiry, 'Feasibility Check', 'feasibility_check', 'Check technical feasibility', 3, true, false, true, false, 2, ARRAY['admin', 'engineering']::user_role[], NOW(), NOW())
+        (org_id, stage_id_inquiry, 'Initial Contact', 'initial_contact', 'Initial customer contact recorded', 1, true, true, false, false, 2, ARRAY['admin'::user_role], NOW(), NOW()),
+        (org_id, stage_id_inquiry, 'Requirement Gathering', 'requirement_gathering', 'Gather project requirements', 2, true, true, false, false, 4, ARRAY['admin'::user_role, 'sales'::user_role], NOW(), NOW()),
+        (org_id, stage_id_inquiry, 'Feasibility Check', 'feasibility_check', 'Check technical feasibility', 3, true, false, true, false, 2, ARRAY['admin'::user_role, 'engineering'::user_role], NOW(), NOW())
     ON CONFLICT (organization_id, slug) DO NOTHING;
 
     -- Technical Review sub-stages
@@ -119,9 +119,9 @@ BEGIN
         created_at,
         updated_at
     ) VALUES
-        (org_id, stage_id_technical, 'Design Review', 'design_review', 'Review design requirements', 1, true, true, false, false, 8, ARRAY['admin', 'engineering']::user_role[], NOW(), NOW()),
-        (org_id, stage_id_technical, 'Material Analysis', 'material_analysis', 'Analyze material requirements', 2, true, true, false, false, 6, ARRAY['admin', 'engineering']::user_role[], NOW(), NOW()),
-        (org_id, stage_id_technical, 'Cost Estimation', 'cost_estimation', 'Estimate project costs', 3, true, true, false, false, 4, ARRAY['admin', 'engineering']::user_role[], NOW(), NOW())
+        (org_id, stage_id_technical, 'Design Review', 'design_review', 'Review design requirements', 1, true, true, false, false, 8, ARRAY['admin'::user_role, 'engineering'::user_role], NOW(), NOW()),
+        (org_id, stage_id_technical, 'Material Analysis', 'material_analysis', 'Analyze material requirements', 2, true, true, false, false, 6, ARRAY['admin'::user_role, 'engineering'::user_role], NOW(), NOW()),
+        (org_id, stage_id_technical, 'Cost Estimation', 'cost_estimation', 'Estimate project costs', 3, true, true, false, false, 4, ARRAY['admin'::user_role, 'engineering'::user_role], NOW(), NOW())
     ON CONFLICT (organization_id, slug) DO NOTHING;
 
     -- Supplier RFQ Sent sub-stages
@@ -141,9 +141,9 @@ BEGIN
         created_at,
         updated_at
     ) VALUES
-        (org_id, stage_id_supplier, 'Supplier Selection', 'supplier_selection', 'Select appropriate suppliers', 1, true, true, false, false, 4, ARRAY['admin', 'procurement']::user_role[], NOW(), NOW()),
-        (org_id, stage_id_supplier, 'RFQ Preparation', 'rfq_preparation', 'Prepare RFQ documents', 2, true, true, false, false, 8, ARRAY['admin', 'procurement']::user_role[], NOW(), NOW()),
-        (org_id, stage_id_supplier, 'RFQ Distribution', 'rfq_distribution', 'Send RFQ to suppliers', 3, true, true, false, false, 2, ARRAY['admin', 'procurement']::user_role[], NOW(), NOW())
+        (org_id, stage_id_supplier, 'Supplier Selection', 'supplier_selection', 'Select appropriate suppliers', 1, true, true, false, false, 4, ARRAY['admin'::user_role, 'procurement'::user_role], NOW(), NOW()),
+        (org_id, stage_id_supplier, 'RFQ Preparation', 'rfq_preparation', 'Prepare RFQ documents', 2, true, true, false, false, 8, ARRAY['admin'::user_role, 'procurement'::user_role], NOW(), NOW()),
+        (org_id, stage_id_supplier, 'RFQ Distribution', 'rfq_distribution', 'Send RFQ to suppliers', 3, true, true, false, false, 2, ARRAY['admin'::user_role, 'procurement'::user_role], NOW(), NOW())
     ON CONFLICT (organization_id, slug) DO NOTHING;
 
     -- Procurement Planning sub-stages
@@ -163,9 +163,9 @@ BEGIN
         created_at,
         updated_at
     ) VALUES
-        (org_id, stage_id_procurement, 'Material Procurement', 'material_procurement', 'Procure required materials', 1, true, true, false, false, 16, ARRAY['admin', 'procurement']::user_role[], NOW(), NOW()),
-        (org_id, stage_id_procurement, 'Quality Check', 'quality_check', 'Quality assurance check', 2, true, true, false, false, 8, ARRAY['admin', 'procurement']::user_role[], NOW(), NOW()),
-        (org_id, stage_id_procurement, 'Inventory Management', 'inventory_management', 'Manage inventory', 3, true, true, false, false, 4, ARRAY['admin', 'procurement']::user_role[], NOW(), NOW())
+        (org_id, stage_id_procurement, 'Material Procurement', 'material_procurement', 'Procure required materials', 1, true, true, false, false, 16, ARRAY['admin'::user_role, 'procurement'::user_role], NOW(), NOW()),
+        (org_id, stage_id_procurement, 'Quality Check', 'quality_check', 'Quality assurance check', 2, true, true, false, false, 8, ARRAY['admin'::user_role, 'procurement'::user_role], NOW(), NOW()),
+        (org_id, stage_id_procurement, 'Inventory Management', 'inventory_management', 'Manage inventory', 3, true, true, false, false, 4, ARRAY['admin'::user_role, 'procurement'::user_role], NOW(), NOW())
     ON CONFLICT (organization_id, slug) DO NOTHING;
 
     -- In Production sub-stages
@@ -185,10 +185,10 @@ BEGIN
         created_at,
         updated_at
     ) VALUES
-        (org_id, stage_id_production, 'Setup', 'setup', 'Production setup and preparation', 1, true, true, false, false, 8, ARRAY['admin', 'production']::user_role[], NOW(), NOW()),
-        (org_id, stage_id_production, 'Manufacturing', 'manufacturing', 'Main manufacturing process', 2, true, true, false, false, 48, ARRAY['admin', 'production']::user_role[], NOW(), NOW()),
-        (org_id, stage_id_production, 'Quality Control', 'quality_control', 'Final quality control', 3, true, true, false, false, 8, ARRAY['admin', 'production']::user_role[], NOW(), NOW()),
-        (org_id, stage_id_production, 'Packaging', 'packaging', 'Product packaging', 4, true, true, false, false, 4, ARRAY['admin', 'production']::user_role[], NOW(), NOW())
+        (org_id, stage_id_production, 'Setup', 'setup', 'Production setup and preparation', 1, true, true, false, false, 8, ARRAY['admin'::user_role, 'production'::user_role], NOW(), NOW()),
+        (org_id, stage_id_production, 'Manufacturing', 'manufacturing', 'Main manufacturing process', 2, true, true, false, false, 48, ARRAY['admin'::user_role, 'production'::user_role], NOW(), NOW()),
+        (org_id, stage_id_production, 'Quality Control', 'quality_control', 'Final quality control', 3, true, true, false, false, 8, ARRAY['admin'::user_role, 'production'::user_role], NOW(), NOW()),
+        (org_id, stage_id_production, 'Packaging', 'packaging', 'Product packaging', 4, true, true, false, false, 4, ARRAY['admin'::user_role, 'production'::user_role], NOW(), NOW())
     ON CONFLICT (organization_id, slug) DO NOTHING;
 
     RAISE NOTICE 'Created workflow sub-stages';
