@@ -11,13 +11,14 @@ import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Separator } from '@/components/ui/separator';
-import { Calendar, Building2, User, DollarSign, AlertCircle, CheckCircle2, Loader2, Settings } from 'lucide-react';
+import { Calendar, Building2, User, DollarSign, AlertCircle, CheckCircle2, Loader2, Settings, FileText, X } from 'lucide-react';
 import { ProjectType, ProjectPriority, PROJECT_TYPE_LABELS, PROJECT_TYPE_DESCRIPTIONS, WorkflowDefinition } from '@/types/project';
 import { useCustomerOrganizations } from '@/hooks/useCustomerOrganizations';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/core/auth';
 import { workflowDefinitionService } from '@/services/workflowDefinitionService';
 import { projectWorkflowService } from '@/services/projectWorkflowService';
+// DocumentUploader import removed - using custom file collection instead
 
 // Enhanced validation schema for project creation
 const projectCreationSchema = z.object({
@@ -88,6 +89,7 @@ export function EnhancedProjectCreationModal({
     const [loadingCustomers, setLoadingCustomers] = useState(false);
     const [workflowDefinitions, setWorkflowDefinitions] = useState<WorkflowDefinition[]>([]);
     const [loadingWorkflowDefinitions, setLoadingWorkflowDefinitions] = useState(false);
+    const [initialDocuments, setInitialDocuments] = useState<File[]>([]);
     const { organizations: customerOrganizations, loading: loadingOrganizations } = useCustomerOrganizations();
 
     const form = useForm<ProjectCreationFormData>({
@@ -100,6 +102,14 @@ export function EnhancedProjectCreationModal({
     });
 
     const customerType = form.watch('customer_type');
+
+    // Handle document upload success
+    const handleDocumentUploadSuccess = useCallback((document: any) => {
+        // This callback is called after document is saved to database
+        console.log('Document uploaded successfully:', document);
+        // Note: Documents are automatically saved by DocumentUploader to the database
+        // The initialDocuments array will be populated when user selects files in the uploader
+    }, []);
 
     // Generate project ID when modal opens
     useEffect(() => {
@@ -251,9 +261,11 @@ export function EnhancedProjectCreationModal({
                 project_type: data.project_type,
                 intake_type: 'project_idea',
                 intake_source: 'manual',
-                initial_documents: [],
+                initial_documents: initialDocuments,
                 contacts: []
             };
+
+            console.log('📄 Creating project with', initialDocuments.length, 'initial documents');
 
             const newProject = await projectWorkflowService.createProjectWithWorkflow(projectData);
 
@@ -300,6 +312,7 @@ export function EnhancedProjectCreationModal({
         if (!open) {
             form.reset();
             setGeneratedProjectId('');
+            setInitialDocuments([]);
         }
     }, [open, form]);
 
@@ -760,6 +773,95 @@ export function EnhancedProjectCreationModal({
                                     </FormItem>
                                 )}
                             />
+                        </CardContent>
+                    </Card>
+
+                    {/* Document Upload */}
+                    <Card>
+                        <CardHeader>
+                            <CardTitle className="flex items-center gap-2">
+                                <FileText className="h-5 w-5" />
+                                Initial Documents
+                            </CardTitle>
+                            <CardDescription>
+                                Upload any initial documents, drawings, specifications, or other files for this project
+                            </CardDescription>
+                        </CardHeader>
+                        <CardContent>
+                            <div className="space-y-4">
+                                <div
+                                    className="border-2 border-dashed border-muted-foreground/25 rounded-lg p-8 text-center hover:border-primary/50 transition-colors"
+                                    onDragOver={(e) => {
+                                        e.preventDefault();
+                                    }}
+                                    onDrop={(e) => {
+                                        e.preventDefault();
+                                        const files = Array.from(e.dataTransfer.files);
+                                        setInitialDocuments(prev => [...prev, ...files]);
+                                    }}
+                                >
+                                    <FileText className="mx-auto h-12 w-12 text-muted-foreground mb-4" />
+                                    <div className="space-y-2">
+                                        <p className="text-lg font-medium">
+                                            Drop files here or{' '}
+                                            <button
+                                                type="button"
+                                                className="text-primary hover:underline"
+                                                onClick={() => {
+                                                    const input = document.createElement('input');
+                                                    input.type = 'file';
+                                                    input.multiple = true;
+                                                    input.onchange = (e) => {
+                                                        const files = Array.from((e.target as HTMLInputElement).files || []);
+                                                        setInitialDocuments(prev => [...prev, ...files]);
+                                                    };
+                                                    input.click();
+                                                }}
+                                            >
+                                                browse
+                                            </button>
+                                        </p>
+                                        <p className="text-sm text-muted-foreground">
+                                            Maximum file size: 50MB per file
+                                        </p>
+                                    </div>
+                                </div>
+
+                                {/* File List */}
+                                {initialDocuments.length > 0 && (
+                                    <div className="space-y-2">
+                                        <h4 className="text-sm font-medium">Selected Files ({initialDocuments.length})</h4>
+                                        <div className="space-y-2 max-h-32 overflow-y-auto">
+                                            {initialDocuments.map((file, index) => (
+                                                <div
+                                                    key={index}
+                                                    className="flex items-center justify-between p-2 bg-muted rounded-md"
+                                                >
+                                                    <div className="flex items-center gap-2">
+                                                        <FileText className="h-4 w-4 text-muted-foreground" />
+                                                        <span className="text-sm font-medium truncate">
+                                                            {file.name}
+                                                        </span>
+                                                        <span className="text-xs text-muted-foreground">
+                                                            ({(file.size / 1024 / 1024).toFixed(2)} MB)
+                                                        </span>
+                                                    </div>
+                                                    <Button
+                                                        type="button"
+                                                        variant="ghost"
+                                                        size="sm"
+                                                        onClick={() => {
+                                                            setInitialDocuments(prev => prev.filter((_, i) => i !== index));
+                                                        }}
+                                                    >
+                                                        <X className="h-4 w-4" />
+                                                    </Button>
+                                                </div>
+                                            ))}
+                                        </div>
+                                    </div>
+                                )}
+                            </div>
                         </CardContent>
                     </Card>
 

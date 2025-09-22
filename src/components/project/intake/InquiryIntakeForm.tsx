@@ -14,14 +14,7 @@ import { useAuth } from '@/core/auth';
 import { ProjectIntakeService, ProjectIntakeData } from '@/services/projectIntakeService';
 import { IntakeMappingService } from '@/services/intakeMappingService';
 import { Organization, Contact } from '@/types/project';
-import { supabase } from '@/integrations/supabase/client';
-import { createClient } from '@supabase/supabase-js';
-
-// Service role client for storage operations (bypasses RLS)
-const supabaseServiceRole = createClient(
-    import.meta.env.VITE_SUPABASE_URL || 'https://ynhgxwnkpbpzwbtzrzka.supabase.co',
-    import.meta.env.VITE_SUPABASE_SERVICE_ROLE_KEY || 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InluaGd4d25rcGJwendidHpyemthIiwicm9sZSI6InNlcnZpY2Vfcm9sZSIsImlhdCI6MTc1NTc4NjE1OSwiZXhwIjoyMDcxMzYyMTU5fQ.4hohg8ZybIOX_frV6EHm2LwTRPYi07xEy6lRIkQZSUo'
-);
+import { supabase, supabaseServiceRole } from '@/integrations/supabase/client';
 import { CustomerModal } from '@/components/customer/CustomerModal';
 import { ContactModal } from '@/components/customer/ContactModal';
 import { ContactInfoSection } from './ContactInfoSection';
@@ -99,7 +92,16 @@ export function InquiryIntakeForm({ submissionType, onSuccess }: InquiryIntakeFo
                         });
 
                     if (uploadError) {
-                        console.error('Error uploading file:', uploadError);
+                        console.error('❌ Error uploading file:', uploadError);
+
+                        // Provide helpful error message for common issues
+                        if (uploadError.message.includes('Bucket not found')) {
+                            console.error(
+                                '💡 Storage bucket "documents" not found. ' +
+                                'Please create the "documents" bucket in your Supabase dashboard: ' +
+                                'Storage → Create Bucket → Name: "documents", Type: Private'
+                            );
+                        }
                         continue;
                     }
 

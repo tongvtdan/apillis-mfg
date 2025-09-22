@@ -12,7 +12,7 @@ class WorkflowStageService {
 
         // Return cached data if still valid
         if (!forceRefresh && this.cachedStages && (now - this.cacheTimestamp) < this.CACHE_DURATION) {
-            console.log('Returning cached workflow stages');
+            console.log('Returning cached workflow stages:', this.cachedStages.length);
             return this.cachedStages;
         }
 
@@ -37,13 +37,20 @@ class WorkflowStageService {
 
                 if (userError) {
                     console.error('Error fetching user profile:', userError);
+                    // Continue without user profile - will try to use fallback logic
                 } else {
                     userProfile = profileData;
+                    console.log('✅ User profile loaded:', { organization_id: userProfile.organization_id });
                 }
 
                 if (userProfile?.organization_id) {
                     query = query.eq('organization_id', userProfile.organization_id);
+                    console.log('🔍 Querying workflow stages for organization:', userProfile.organization_id);
+                } else {
+                    console.warn('⚠️ No organization_id found in user profile');
                 }
+            } else {
+                console.warn('⚠️ No authenticated user found');
             }
 
             const { data, error } = await query.order('stage_order', { ascending: true });
@@ -56,31 +63,67 @@ class WorkflowStageService {
             this.cachedStages = data || [];
             this.cacheTimestamp = now;
 
+            console.log('📊 Initial query result:', {
+                stagesCount: this.cachedStages.length,
+                userProfile: userProfile?.organization_id,
+                error: error,
+                data: data?.map(s => ({ id: s.id, name: s.name, organization_id: s.organization_id }))
+            });
+
             // If no stages found and we have a user profile, initialize default stages
             if (this.cachedStages.length === 0 && userProfile?.organization_id) {
-                console.log('🔄 No workflow stages found, initializing default stages...');
+                console.log('🔄 No workflow stages found for organization:', userProfile.organization_id, '- initializing default stages...');
                 const initialized = await this.initializeDefaultStages(userProfile.organization_id, userId);
 
                 if (initialized) {
+                    console.log('✅ Default stages initialized, re-fetching...');
                     // Re-fetch stages after initialization
-                    const { data: newData, error: newError } = await query.order('stage_order', { ascending: true });
+                    const { data: newData, error: newError } = await supabase
+                        .from('workflow_stages')
+                        .select('*')
+                        .eq('is_active', true)
+                        .eq('organization_id', userProfile.organization_id)
+                        .order('stage_order', { ascending: true });
 
-                    if (!newError) {
-                        this.cachedStages = newData || [];
+                    if (!newError && newData && newData.length > 0) {
+                        this.cachedStages = newData;
                         this.cacheTimestamp = Date.now();
                         console.log('✅ Re-fetched workflow stages after initialization:', this.cachedStages.length);
+                    } else {
+                        console.error('❌ Re-fetch failed after initialization:', newError);
                     }
                 } else {
-                    console.warn('⚠️ Failed to initialize default workflow stages, but continuing with empty array');
+                    console.warn('⚠️ Failed to initialize default workflow stages');
                 }
             } else if (this.cachedStages.length === 0) {
                 console.warn('⚠️ No workflow stages found and no user profile available for initialization');
+
+                // Try to get any active workflow stages from any organization as a last resort
+                console.log('🔍 Attempting fallback: querying all active workflow stages from any organization...');
+                const { data: fallbackData, error: fallbackError } = await supabase
+                    .from('workflow_stages')
+                    .select('*')
+                    .eq('is_active', true)
+                    .order('stage_order', { ascending: true })
+                    .limit(10);
+
+                if (!fallbackError && fallbackData && fallbackData.length > 0) {
+                    console.log('✅ Found fallback workflow stages:', fallbackData.length);
+                    this.cachedStages = fallbackData;
+                    this.cacheTimestamp = now;
+                } else {
+                    console.log('❌ No fallback stages found either');
+                }
             }
 
-            console.log('Fetched workflow stages:', this.cachedStages);
+            console.log('✅ Final workflow stages result:', {
+                count: this.cachedStages.length,
+                stages: this.cachedStages.map(s => ({ id: s.id, name: s.name, organization_id: s.organization_id }))
+            });
+
             return this.cachedStages;
         } catch (error) {
-            console.error('Error in getWorkflowStages:', error);
+            console.error('💥 Error in getWorkflowStages:', error);
             // Return empty array as fallback
             return [];
         }
@@ -291,38 +334,144 @@ class WorkflowStageService {
             // Check if stages already exist for this organization (bypass cache)
             const { data: existingStages, error: checkError } = await supabase
                 .from('workflow_stages')
-                .select('*')
+                .select('id, name')
                 .eq('organization_id', organizationId)
                 .eq('is_active', true)
                 .order('stage_order', { ascending: true });
 
             if (checkError) {
                 console.error('❌ Error checking existing stages:', checkError);
-                // Continue anyway - might be a permissions issue
-                console.warn('⚠️ Continuing despite error checking existing stages...');
+                console.error('❌ Error details:', {
+                    message: checkError.message,
+                    details: checkError.details,
+                    hint: checkError.hint,
+                    code: checkError.code
+                });
+
+                // For permissions errors, try to continue with a different approach
+                if (checkError.code === '42501' || checkError.message.includes('permission')) {
+                    console.error('❌ Insufficient permissions to check existing stages. Attempting to create stages anyway...');
+                } else {
+                    return false;
+                }
             }
 
             if (existingStages && existingStages.length > 0) {
-                console.log('✅ Workflow stages already exist for organization');
+                console.log('✅ Workflow stages already exist for organization:', existingStages.length);
                 return true;
             }
 
             console.log('📝 No existing stages found, creating default stages...');
 
-            // Create default workflow stages
-            const defaultStages = PROJECT_STAGES.map((stage, index) => ({
-                organization_id: organizationId,
-                name: stage.name,
-                slug: stage.id,
-                description: `Default ${stage.name.toLowerCase()} stage`,
-                stage_order: index + 1,
-                estimated_duration_days: this.getDefaultDurationForStage(stage.id),
-                responsible_roles: this.getDefaultResponsibleRolesForStage(stage.id),
-                is_active: true,
-                created_at: new Date().toISOString(),
-                updated_at: new Date().toISOString(),
-                created_by: createdBy
-            }));
+            // Create default workflow stages with better error handling
+            const defaultStages = [
+                {
+                    organization_id: organizationId,
+                    name: "Inquiry Received",
+                    slug: "inquiry_received",
+                    description: "Default inquiry received stage",
+                    stage_order: 1,
+                    estimated_duration_days: 1,
+                    responsible_roles: ["admin", "sales"],
+                    is_active: true,
+                    created_by: createdBy,
+                    created_at: new Date().toISOString(),
+                    updated_at: new Date().toISOString()
+                },
+                {
+                    organization_id: organizationId,
+                    name: "Technical Review",
+                    slug: "technical_review",
+                    description: "Default technical review stage",
+                    stage_order: 2,
+                    estimated_duration_days: 3,
+                    responsible_roles: ["admin", "engineering"],
+                    is_active: true,
+                    created_by: createdBy,
+                    created_at: new Date().toISOString(),
+                    updated_at: new Date().toISOString()
+                },
+                {
+                    organization_id: organizationId,
+                    name: "Supplier RFQ Sent",
+                    slug: "supplier_rfq_sent",
+                    description: "Default supplier rfq sent stage",
+                    stage_order: 3,
+                    estimated_duration_days: 5,
+                    responsible_roles: ["admin", "procurement"],
+                    is_active: true,
+                    created_by: createdBy,
+                    created_at: new Date().toISOString(),
+                    updated_at: new Date().toISOString()
+                },
+                {
+                    organization_id: organizationId,
+                    name: "Quoted",
+                    slug: "quoted",
+                    description: "Default quoted stage",
+                    stage_order: 4,
+                    estimated_duration_days: 2,
+                    responsible_roles: ["admin", "sales"],
+                    is_active: true,
+                    created_by: createdBy,
+                    created_at: new Date().toISOString(),
+                    updated_at: new Date().toISOString()
+                },
+                {
+                    organization_id: organizationId,
+                    name: "Order Confirmed",
+                    slug: "order_confirmed",
+                    description: "Default order confirmed stage",
+                    stage_order: 5,
+                    estimated_duration_days: 1,
+                    responsible_roles: ["admin", "procurement"],
+                    is_active: true,
+                    created_by: createdBy,
+                    created_at: new Date().toISOString(),
+                    updated_at: new Date().toISOString()
+                },
+                {
+                    organization_id: organizationId,
+                    name: "Procurement Planning",
+                    slug: "procurement_planning",
+                    description: "Default procurement planning stage",
+                    stage_order: 6,
+                    estimated_duration_days: 7,
+                    responsible_roles: ["admin", "procurement"],
+                    is_active: true,
+                    created_by: createdBy,
+                    created_at: new Date().toISOString(),
+                    updated_at: new Date().toISOString()
+                },
+                {
+                    organization_id: organizationId,
+                    name: "In Production",
+                    slug: "in_production",
+                    description: "Default in production stage",
+                    stage_order: 7,
+                    estimated_duration_days: 14,
+                    responsible_roles: ["admin", "production"],
+                    is_active: true,
+                    created_by: createdBy,
+                    created_at: new Date().toISOString(),
+                    updated_at: new Date().toISOString()
+                },
+                {
+                    organization_id: organizationId,
+                    name: "Shipped & Closed",
+                    slug: "shipped_closed",
+                    description: "Default shipped closed stage",
+                    stage_order: 8,
+                    estimated_duration_days: 1,
+                    responsible_roles: ["admin"],
+                    is_active: true,
+                    created_by: createdBy,
+                    created_at: new Date().toISOString(),
+                    updated_at: new Date().toISOString()
+                }
+            ];
+
+            console.log('📝 Creating default stages:', defaultStages.map(s => ({ name: s.name, slug: s.slug })));
 
             const { data, error } = await supabase
                 .from('workflow_stages')
@@ -341,6 +490,7 @@ class WorkflowStageService {
                 // If it's a permissions error, log it and return false
                 if (error.code === '42501' || error.message.includes('permission')) {
                     console.error('❌ Insufficient permissions to create workflow stages. Please run the migration script manually.');
+                    console.error('💡 You can run: SELECT initialize_default_workflow_stages(\'', organizationId, '\'::UUID);');
                     return false;
                 }
 
@@ -348,6 +498,7 @@ class WorkflowStageService {
             }
 
             console.log('✅ Successfully created default workflow stages:', data?.length || 0);
+            console.log('✅ Created stages:', data?.map(s => ({ id: s.id, name: s.name })));
 
             // Clear cache to force refresh
             this.clearCache();
@@ -357,6 +508,8 @@ class WorkflowStageService {
             console.error('❌ Error initializing default workflow stages:', error);
             console.error('❌ This may be due to database permissions or connection issues.');
             console.error('❌ Please ensure your database is running and you have the necessary permissions.');
+            console.error('💡 Try running this SQL manually:');
+            console.error('💡 SELECT initialize_default_workflow_stages(\'', organizationId, '\'::UUID);');
             return false;
         }
     }

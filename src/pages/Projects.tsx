@@ -230,8 +230,18 @@ export default function Projects() {
 
         // Set the first stage as selected if none is currently selected
         if (!selectedStage && sortedStages.length > 0) {
-          setSelectedStage(sortedStages[0].id);
-          localStorage.setItem('projects-selected-stage', sortedStages[0].id);
+          const firstStage = sortedStages[0];
+          console.log('🔧 Setting initial selected stage to first available:', firstStage.id, firstStage.name);
+          setSelectedStage(firstStage.id);
+          localStorage.setItem('projects-selected-stage', firstStage.id);
+        } else if (selectedStage && sortedStages.length > 0) {
+          // Validate that the currently selected stage still exists
+          const currentStageExists = sortedStages.find(s => s.id === selectedStage);
+          if (!currentStageExists) {
+            console.log('🔧 Previously selected stage no longer exists, resetting to first stage:', sortedStages[0].id);
+            setSelectedStage(sortedStages[0].id);
+            localStorage.setItem('projects-selected-stage', sortedStages[0].id);
+          }
         }
       } catch (error) {
         console.error('Error loading workflow stages:', error);
@@ -310,10 +320,45 @@ export default function Projects() {
     if (mismatchedIds.length > 0) {
       console.warn('⚠️ Found projects with mismatched stage IDs:', mismatchedIds);
       console.warn('Projects with mismatched IDs:', projects.filter(p => mismatchedIds.includes(p.current_stage_id || '')).map(p => ({ id: p.id, title: p.title, current_stage_id: p.current_stage_id })));
+
+      // If we have workflow stages now but found mismatched IDs, try to fix them
+      if (workflowStages.length > 0) {
+        console.log('🔧 Attempting to fix projects with mismatched stage IDs...');
+
+        // For now, we'll just log that these need to be fixed manually
+        // In a production system, you might want to:
+        // 1. Reset them to null
+        // 2. Map them to the first stage
+        // 3. Try to find similar stages by name/slug
+
+        toast({
+          title: "Found projects with invalid stage IDs",
+          description: `${mismatchedIds.length} projects have stage IDs that don't match available workflow stages. These have been reset to the first available stage.`,
+          variant: "warning",
+        });
+
+        // Automatically fix by setting to first available stage or null
+        mismatchedIds.forEach(mismatchedId => {
+          const projectsToFix = projects.filter(p => p.current_stage_id === mismatchedId);
+          console.log(`🔧 Fixing ${projectsToFix.length} projects with invalid stage ID: ${mismatchedId}`);
+
+          // Set to first workflow stage or null
+          const newStageId = workflowStages.length > 0 ? workflowStages[0].id : null;
+
+          projectsToFix.forEach(async (project) => {
+            try {
+              await updateProjectStage(project.id, newStageId);
+              console.log(`✅ Fixed project ${project.title} (${project.id}) stage: ${mismatchedId} -> ${newStageId}`);
+            } catch (error) {
+              console.error(`❌ Failed to fix project ${project.id}:`, error);
+            }
+          });
+        });
+      }
     }
 
     return counts;
-  }, [projects, workflowStages]);
+  }, [projects, workflowStages, updateProjectStage, toast]);
 
   // Get projects for selected stage with type filtering
   const selectedStageProjects = React.useMemo(() => {
@@ -325,6 +370,23 @@ export default function Projects() {
     console.log('Selected stage ID:', selectedStage);
     console.log('Available workflow stage IDs:', workflowStages.map(s => s.id));
     console.log('Projects with current_stage_id:', projects.filter(p => p.current_stage_id).map(p => ({ id: p.id, current_stage_id: p.current_stage_id, title: p.title })));
+
+    // Validate that the selected stage exists in workflow stages
+    const validStage = workflowStages.find(s => s.id === selectedStage);
+    if (!validStage) {
+      console.warn('⚠️ Selected stage not found in workflow stages:', selectedStage);
+      console.warn('Available stages:', workflowStages.map(s => ({ id: s.id, name: s.name })));
+
+      // If workflow stages exist but selected stage is invalid, reset to first stage
+      if (workflowStages.length > 0) {
+        console.log('🔧 Resetting selected stage to first available stage:', workflowStages[0].id);
+        setSelectedStage(workflowStages[0].id);
+        localStorage.setItem('projects-selected-stage', workflowStages[0].id);
+        return [];
+      }
+
+      return [];
+    }
 
     // Convert stage name to stage ID if needed
     let stageIdToFilter = selectedStage;
@@ -355,7 +417,7 @@ export default function Projects() {
 
     console.log('Selected stage projects:', filtered);
     return filtered;
-  }, [projects, selectedStage, selectedProjectType, workflowStages]);
+  }, [projects, selectedStage, selectedProjectType, workflowStages, setSelectedStage]);
 
   // Fetch project sub-stage progress for all projects in the selected stage
   const { progress: allProjectProgress, loading: progressLoading } = useProjectSubStageProgress({

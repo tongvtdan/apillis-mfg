@@ -30,6 +30,37 @@ if (import.meta.env.PROD && (!import.meta.env.VITE_SUPABASE_URL || !import.meta.
 // Import the supabase client like this:
 // import { supabase } from "@/integrations/supabase/client";
 
+// Service role client for storage operations (bypasses RLS)
+// This uses the service role key for operations that need elevated permissions
+export const supabaseServiceRole = createClient<Database>(
+  import.meta.env.VITE_SUPABASE_URL || "https://ynhgxwnkpbpzwbtzrzka.supabase.co",
+  import.meta.env.VITE_SUPABASE_SERVICE_ROLE_KEY || "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InluaGd4d25rcGJwendidHpyemthIiwicm9sZSI6InNlcnZpY2Vfcm9sZSIsImlhdCI6MTc1NTc4NjE1OSwiZXhwIjoyMDcxMzYyMTU5fQ.4hohg8ZybIOX_frV6EHm2LwTRPYi07xEy6lRIkQZSUo",
+  {
+    auth: {
+      autoRefreshToken: false,
+      persistSession: false,
+    },
+    realtime: {
+      params: {
+        eventsPerSecond: 10,
+      },
+    },
+    db: {
+      schema: 'public',
+    },
+    global: {
+      headers: {
+        'X-Client-Info': 'factory-pulse-web-service-role',
+      },
+    },
+    // Add timeout configuration for storage operations
+    storage: {
+      // Increase timeout for file uploads
+      timeout: 60000, // 60 seconds
+    },
+  }
+);
+
 export const supabase = createClient<Database>(SUPABASE_URL, SUPABASE_PUBLISHABLE_KEY, {
   auth: {
     storage: localStorage,

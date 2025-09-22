@@ -4,14 +4,7 @@ import { documentActionsService } from '@/services/documentActions';
 import { documentVersionService } from '@/services/documentVersionService';
 import { useAuth } from '@/core/auth';
 import { useToast } from '@/shared/hooks/use-toast';
-import { supabase } from '@/integrations/supabase/client';
-import { createClient } from '@supabase/supabase-js';
-
-// Service role client for storage operations (bypasses RLS)
-const supabaseServiceRole = createClient(
-    import.meta.env.VITE_SUPABASE_URL || 'https://ynhgxwnkpbpzwbtzrzka.supabase.co',
-    import.meta.env.VITE_SUPABASE_SERVICE_ROLE_KEY || 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InluaGd4d25rcGJwendidHpyemthIiwicm9sZSI6InNlcnZpY2Vfcm9sZSIsImlhdCI6MTc1NTc4NjE1OSwiZXhwIjoyMDcxMzYyMTU5fQ.4hohg8ZybIOX_frV6EHm2LwTRPYi07xEy6lRIkQZSUo'
-);
+import { supabase, supabaseServiceRole } from '@/integrations/supabase/client';
 
 export interface DocumentFilter {
     search?: string;
@@ -214,7 +207,23 @@ export function DocumentProvider({ children }: { children: React.ReactNode }) {
                 });
 
             if (uploadError) {
-                throw new Error(`Failed to upload file: ${uploadError.message}`);
+                console.error('❌ [DocumentProvider] Storage upload failed:', uploadError);
+
+                // Provide helpful error message for common issues
+                if (uploadError.message.includes('Bucket not found')) {
+                    throw new Error(
+                        'Storage bucket "documents" not found. ' +
+                        'Please create the "documents" bucket in your Supabase dashboard: ' +
+                        'Storage → Create Bucket → Name: "documents", Type: Private'
+                    );
+                } else if (uploadError.message.includes('signature verification failed')) {
+                    throw new Error(
+                        'Authentication error with storage service. ' +
+                        'Please check your Supabase service role key configuration.'
+                    );
+                } else {
+                    throw new Error(`Failed to upload file: ${uploadError.message}`);
+                }
             }
 
             // Create document record
