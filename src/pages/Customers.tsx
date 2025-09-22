@@ -19,6 +19,7 @@ import { CustomerTable } from '@/components/customer/CustomerTableEnhanced';
 import { CustomerModal } from '@/components/customer/CustomerModal';
 import { ContactModal } from '@/components/customer/ContactModal';
 import { CustomerOrganizationWithSummary } from '@/types/project';
+import { calculateCustomerStatistics } from '@/utils/customerStatistics';
 
 export default function Customers() {
   const [showArchived, setShowArchived] = useState(false);
@@ -43,13 +44,8 @@ export default function Customers() {
   }, [checkCanManageCustomers]);
 
   // Calculate customer statistics
-  const totalCustomers = customers.length;
-  const activeCustomers = customers.filter(c => c.is_active !== false).length;
-  const archivedCustomers = customers.filter(c => c.is_active === false).length;
-  const countries = [...new Set(customers.map(c => c.country).filter(Boolean))].length;
-  const totalProjects = customers.reduce((sum, c) => sum + c.project_summary.total_projects, 0);
-  const totalValue = customers.reduce((sum, c) => sum + c.project_summary.total_value, 0);
-  const activeProjects = customers.reduce((sum, c) => sum + c.project_summary.active_projects, 0);
+  const stats = calculateCustomerStatistics(customers);
+  const { totalCustomers, activeCustomers, archivedCustomers, countries, totalProjects, totalValue, activeProjects } = stats;
 
   const handleCustomerSelect = (customer: CustomerOrganizationWithSummary) => {
     setSelectedCustomer(customer);
@@ -61,11 +57,6 @@ export default function Customers() {
     setShowContactModal(true);
   };
 
-  const handleContactCreated = (contact: any) => {
-    // Refresh the customers data to show updated contact count
-    // The useCustomerOrganizations hook should automatically refresh
-    console.log('Contact created:', contact);
-  };
 
   if (loading) {
     return (

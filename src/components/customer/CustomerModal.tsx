@@ -19,6 +19,7 @@ import { Check, ChevronsUpDown, X, Building2 } from 'lucide-react';
 import { Organization } from '@/types/project';
 import { useCustomerOrganizations } from '@/hooks/useCustomerOrganizations';
 import { cn } from '@/lib/utils';
+import { processOrganizationData, processContactData, populateCustomerFormData } from '@/utils/customerFormUtils';
 
 interface CustomerModalProps {
     open: boolean;
@@ -160,21 +161,7 @@ export function CustomerModal({ open, onClose, customer, onSuccess }: CustomerMo
 
     useEffect(() => {
         if (customer) {
-            reset({
-                company_name: customer.name || '',
-                slug: customer.slug || '',
-                description: customer.description || '',
-                industry: customer.industry || '',
-                contact_name: customer.primary_contact?.contact_name || '',
-                email: customer.primary_contact?.email || '',
-                phone: customer.primary_contact?.phone || '',
-                address: customer.address || '',
-                city: customer.city || '',
-                state: customer.state || '',
-                country: customer.country || '',
-                postal_code: customer.postal_code || '',
-                website: customer.website || ''
-            });
+            populateCustomerFormData(customer, reset);
         } else {
             reset({
                 company_name: '',
@@ -198,26 +185,8 @@ export function CustomerModal({ open, onClose, customer, onSuccess }: CustomerMo
         try {
             setLoading(true);
 
-            const organizationData = {
-                name: data.company_name.trim(),
-                slug: data.slug.trim() || undefined,
-                description: data.description.trim() || undefined,
-                industry: data.industry.trim() || undefined,
-                address: data.address.trim() || undefined,
-                city: data.city.trim() || undefined,
-                state: data.state.trim() || undefined,
-                country: data.country || undefined,
-                postal_code: data.postal_code.trim() || undefined,
-                website: data.website.trim() || undefined,
-                organization_type: 'customer' as const
-            };
-
-            const contactData = {
-                contact_name: data.contact_name.trim() || undefined,
-                email: data.email.trim() || undefined,
-                phone: data.phone.trim() || undefined,
-                is_primary_contact: true
-            };
+            const organizationData = processOrganizationData(data);
+            const contactData = processContactData(data);
 
             if (isEditing && customer) {
                 // Update existing organization
@@ -231,6 +200,7 @@ export function CustomerModal({ open, onClose, customer, onSuccess }: CustomerMo
             onClose();
         } catch (error) {
             console.error('Error saving customer:', error);
+            // Error toast is already handled in the hook
         } finally {
             setLoading(false);
         }
