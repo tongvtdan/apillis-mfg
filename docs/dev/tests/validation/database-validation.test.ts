@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest'
-import { supabase } from '@/integrations/supabase/client'
+import { supabase } from '@/integrations/supabase/client.js'
 import { Project, ProjectStatus, ProjectPriority } from '@/types/project'
 
 // Validation tests that verify database schema alignment and data integrity
