@@ -8,11 +8,6 @@
 -- 4. Storage bucket configuration
 -- =========================================
 
--- Set up for better output formatting
-\set ON_ERROR_STOP on
-\pset border 2
-\pset format aligned
-
 -- =========================================
 -- 1. CHECK TABLE STRUCTURE
 -- =========================================

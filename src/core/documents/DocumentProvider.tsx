@@ -117,6 +117,28 @@ export function DocumentProvider({ children }: { children: React.ReactNode }) {
             setError(null);
             setProjectId(projId);
 
+            console.log('🔍 DocumentProvider: Loading documents for project:', projId);
+            console.log('🔍 DocumentProvider: User organization_id:', profile.organization_id);
+
+            // First, get the project's organization_id to ensure we're loading the right documents
+            const { data: projectData, error: projectError } = await supabase
+                .from('projects')
+                .select('organization_id')
+                .eq('id', projId)
+                .single();
+
+            if (projectError) {
+                throw new Error(`Failed to get project organization: ${projectError.message}`);
+            }
+
+            const projectOrgId = projectData?.organization_id;
+            console.log('🔍 DocumentProvider: Project organization_id:', projectOrgId);
+
+            if (!projectOrgId) {
+                throw new Error('Project does not have an organization_id');
+            }
+
+            // Load documents that belong to the project and the same organization
             const { data, error: fetchError } = await supabase
                 .from('documents')
                 .select(`
@@ -128,7 +150,7 @@ export function DocumentProvider({ children }: { children: React.ReactNode }) {
                     )
                 `)
                 .eq('project_id', projId)
-                .eq('organization_id', profile.organization_id)
+                .eq('organization_id', projectOrgId)
                 .order('created_at', { ascending: false });
 
             if (fetchError) {
@@ -136,6 +158,8 @@ export function DocumentProvider({ children }: { children: React.ReactNode }) {
             }
 
             const docs = data || [];
+            console.log('🔍 DocumentProvider: Loaded documents:', docs.length);
+
             setDocuments(docs);
             setFilteredDocuments(applyFiltersAndSort(docs, filter || filters, sort, searchQuery));
 
@@ -195,9 +219,27 @@ export function DocumentProvider({ children }: { children: React.ReactNode }) {
                 userId: user?.id
             });
 
+            // Get the project's organization_id first
+            const { data: projectData, error: projectError } = await supabase
+                .from('projects')
+                .select('organization_id')
+                .eq('id', activeProjectId)
+                .single();
+
+            if (projectError) {
+                throw new Error(`Failed to get project organization: ${projectError.message}`);
+            }
+
+            const projectOrgId = projectData?.organization_id;
+            console.log('📄 [DocumentProvider] Project organization_id:', projectOrgId);
+
+            if (!projectOrgId) {
+                throw new Error('Project does not have an organization_id');
+            }
+
             // Upload file to storage
             const fileName = `${Date.now()}_${file.name}`;
-            const filePath = `${profile.organization_id}/${activeProjectId}/${fileName}`;
+            const filePath = `${projectOrgId}/${activeProjectId}/${fileName}`;
 
             const { data: uploadData, error: uploadError } = await supabaseServiceRole.storage
                 .from('documents')
@@ -228,7 +270,7 @@ export function DocumentProvider({ children }: { children: React.ReactNode }) {
 
             // Create document record
             console.log('💾 Creating database record with data:', {
-                organization_id: profile.organization_id,
+                organization_id: projectOrgId,
                 project_id: activeProjectId,
                 title: file.name,
                 file_name: fileName,
@@ -242,7 +284,7 @@ export function DocumentProvider({ children }: { children: React.ReactNode }) {
             const { data: doc, error: docError } = await supabase
                 .from('documents')
                 .insert({
-                    organization_id: profile.organization_id,
+                    organization_id: projectOrgId,
                     project_id: activeProjectId,
                     title: file.name,
                     file_name: fileName,
