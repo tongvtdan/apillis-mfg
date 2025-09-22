@@ -130,7 +130,6 @@ export function Dashboard({ layout: initialLayout, onLayoutChange, className }: 
 
     const renderWidget = (widget: DashboardWidget) => {
         const widgetProps = {
-            key: widget.id,
             widget,
             metrics,
             timeRange,
@@ -143,22 +142,22 @@ export function Dashboard({ layout: initialLayout, onLayoutChange, className }: 
 
         switch (widget.type) {
             case 'metrics':
-                return <MetricsWidget {...widgetProps} />;
+                return <MetricsWidget key={widget.id} {...widgetProps} />;
             case 'chart':
-                return <ChartWidget {...widgetProps} />;
+                return <ChartWidget key={widget.id} {...widgetProps} />;
             case 'kanban':
-                return <KanbanWidget {...widgetProps} />;
+                return <KanbanWidget key={widget.id} {...widgetProps} />;
             case 'timeline':
-                return <TimelineWidget {...widgetProps} />;
+                return <TimelineWidget key={widget.id} {...widgetProps} />;
             case 'project-overview':
-                return <ProjectOverviewWidget {...widgetProps} />;
+                return <ProjectOverviewWidget key={widget.id} {...widgetProps} />;
             case 'quick-stats':
-                return <QuickStatsWidget {...widgetProps} />;
+                return <QuickStatsWidget key={widget.id} {...widgetProps} />;
             case 'recent-activities':
-                return <RecentActivitiesWidget {...widgetProps} />;
+                return <RecentActivitiesWidget key={widget.id} {...widgetProps} />;
             default:
                 return (
-                    <Card className="h-full">
+                    <Card key={widget.id} className="h-full">
                         <CardContent className="p-4">
                             <div className="text-center text-muted-foreground">
                                 Widget type "{widget.type}" not implemented

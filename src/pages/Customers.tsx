@@ -57,6 +57,17 @@ export default function Customers() {
     setShowContactModal(true);
   };
 
+  const handleContactCreated = (contact: any) => {
+    // Handle successful contact creation
+    console.log('Contact created:', contact);
+    // You can add additional logic here, such as:
+    // - Refresh customer data
+    // - Show a success message
+    // - Navigate to contact details
+    setShowContactModal(false);
+    setSelectedCustomer(null);
+  };
+
 
   if (loading) {
     return (
