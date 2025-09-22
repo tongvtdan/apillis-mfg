@@ -1,8 +1,8 @@
-import { supabase } from '@/integrations/supabase/client.ts';
+import { supabase } from '@/integrations/supabase/client.js';
 import { createClient } from '@supabase/supabase-js';
 import { ProjectDocument } from '@/types/project';
 
-// Service role client.ts for storage operations (bypasses RLS)
+// Service role client.js for storage operations (bypasses RLS)
 const supabaseServiceRole = createClient(
     import.meta.env.VITE_SUPABASE_URL || 'https://ynhgxwnkpbpzwbtzrzka.supabase.co',
     import.meta.env.VITE_SUPABASE_SERVICE_ROLE_KEY || 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InluaGd4d25rcGJwendidHpyemthIiwicm9sZSI6InNlcnZpY2Vfcm9sZSIsImlhdCI6MTc1NTc4NjE1OSwiZXhwIjoyMDcxMzYyMTU5fQ.4hohg8ZybIOX_frV6EHm2LwTRPYi07xEy6lRIkQZSUo'

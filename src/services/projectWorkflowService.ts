@@ -2,7 +2,7 @@ import { Project, WorkflowStage, ProjectStatus, ProjectSubStageProgress } from '
 import { projectService } from './projectService';
 import { workflowStageService } from './workflowStageService';
 import { workflowDefinitionService } from './workflowDefinitionService';
-import { supabase } from '@/integrations/supabase/client.ts';
+import { supabase } from '@/integrations/supabase/client.js';
 import { useAuth } from '@/core/auth';
 
 export interface WorkflowEvent {

@@ -1,6 +1,6 @@
 import { useCallback } from 'react';
 import { useAuth } from '@/core/auth';
-import { supabase } from '@/integrations/supabase/client.ts';
+import { supabase } from '@/integrations/supabase/client.js';
 
 export type AuditEventType =
     | 'login_success'
@@ -33,7 +33,7 @@ export interface AuditLogEntry {
 export function useAuditLogger() {
     const { user, profile } = useAuth();
 
-    // Get client.ts information
+    // Get client.js information
     const getClientInfo = useCallback(() => {
         return {
             userAgent: navigator.userAgent,
@@ -46,7 +46,7 @@ export function useAuditLogger() {
     // Log audit event
     const logAuditEvent = useCallback(async (entry: AuditLogEntry) => {
         try {
-            const client.tsInfo = getClientInfo();
+            const client.jsInfo = getClientInfo();
 
             // Prepare audit log data
             const auditData: any = {
@@ -59,9 +59,9 @@ export function useAuditLogger() {
                 new_values: {
                     success: entry.success,
                     details: entry.details || {},
-                    client.ts_info: client.tsInfo
+                    client.js_info: client.jsInfo
                 },
-                user_agent: entry.userAgent || client.tsInfo.userAgent,
+                user_agent: entry.userAgent || client.jsInfo.userAgent,
                 ip_address: null // Will be populated by server if available
             };
 

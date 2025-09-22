@@ -1,1 +1,1 @@
-/// <reference types="vite/client.ts" />
+/// <reference types="vite/client.js" />

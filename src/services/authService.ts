@@ -1,4 +1,4 @@
-import { supabase } from '@/integrations/supabase/client.ts';
+import { supabase } from '@/integrations/supabase/client.js';
 import { UserProfile } from '@/core/auth';
 
 /**
