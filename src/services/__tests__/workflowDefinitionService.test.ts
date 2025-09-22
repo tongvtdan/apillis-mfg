@@ -1,7 +1,7 @@
 import { workflowDefinitionService } from '../workflowDefinitionService';
 import { WorkflowDefinition, WorkflowStage, WorkflowSubStage } from '../../types/project';
 
-// Mock Supabase client
+// Mock Supabase client.ts
 const mockSupabase = {
   from: jest.fn().mockReturnThis(),
   select: jest.fn().mockReturnThis(),
@@ -15,7 +15,7 @@ const mockSupabase = {
   order: jest.fn().mockReturnThis(),
 };
 
-jest.mock('@/integrations/supabase/client', () => ({
+jest.mock('@/integrations/supabase/client.ts', () => ({
   supabase: mockSupabase,
 }));
 

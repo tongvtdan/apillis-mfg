@@ -2,7 +2,7 @@
 // Handles Google Drive API integration and authentication
 // Moved to integrations/google-services for future implementation
 
-import { supabase } from '@/integrations/supabase/client';
+import { supabase } from '@/integrations/supabase/client.ts';
 
 // Placeholder interfaces for future implementation
 export interface GoogleDriveFile {
@@ -15,8 +15,8 @@ export interface GoogleDriveFile {
 }
 
 export interface GoogleDriveConfig {
-  client_id: string;
-  client_secret: string;
+  client.ts_id: string;
+  client.ts_secret: string;
   redirect_uri: string;
 }
 

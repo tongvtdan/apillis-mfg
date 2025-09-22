@@ -3,8 +3,8 @@ import { mockSupabaseClient } from '@/test/mocks/supabase'
 import { mockProject, mockProjects } from '@/test/mocks/project-data'
 import { ProjectService } from '../projectService'
 
-// Mock the Supabase client
-vi.mock('@/integrations/supabase/client', () => ({
+// Mock the Supabase client.ts
+vi.mock('@/integrations/supabase/client.ts', () => ({
     supabase: mockSupabaseClient,
 }))
 

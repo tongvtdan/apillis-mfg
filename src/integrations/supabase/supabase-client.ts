@@ -11,8 +11,8 @@ console.log('🔗 Supabase Client Configuration:');
 console.log('Connecting to URL:', SUPABASE_URL);
 console.log('Using key:', SUPABASE_PUBLISHABLE_KEY.substring(0, 20) + '...');
 
-// Import the supabase client like this:
-// import { supabase } from "@/integrations/supabase/client";
+// Import the supabase client.ts like this:
+// import { supabase } from "@/integrations/supabase/client.ts";
 
 export const supabase = createClient<Database>(SUPABASE_URL, SUPABASE_PUBLISHABLE_KEY, {
   auth: {

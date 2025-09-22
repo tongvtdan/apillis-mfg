@@ -5,7 +5,7 @@ import { projectService } from '@/services/projectService';
 import { workflowStageService } from '@/services/workflowStageService';
 import { useAuth } from '@/core/auth';
 import { useToast } from '@/shared/hooks/use-toast';
-import { supabase } from '@/integrations/supabase/client';
+import { supabase } from '@/integrations/supabase/client.ts';
 
 interface UseProjectWorkflowOptions {
     autoRefresh?: boolean;

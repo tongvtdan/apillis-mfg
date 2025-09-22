@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { supabase } from '@/integrations/supabase/client';
+import { supabase } from '@/integrations/supabase/client.ts';
 import { Customer } from '@/types/project';
 import { useAuth } from '@/core/auth';
 import { useToast } from '@/shared/hooks/use-toast';

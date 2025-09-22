@@ -1,4 +1,4 @@
-import { supabase } from '@/integrations/supabase/client';
+import { supabase } from '@/integrations/supabase/client.ts';
 import { UserProfile } from '@/core/auth';
 
 export interface UserLookup {

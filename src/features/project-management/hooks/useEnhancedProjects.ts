@@ -3,7 +3,7 @@ import { Project } from '@/types/project';
 import { useAuth } from '@/core/auth';
 import { useToast } from '@/shared/hooks/use-toast';
 import { cacheService } from '@/services/cacheService';
-import { supabase } from '@/integrations/supabase/client';
+import { supabase } from '@/integrations/supabase/client.ts';
 
 // Hook configuration options
 interface UseEnhancedProjectsConfig {

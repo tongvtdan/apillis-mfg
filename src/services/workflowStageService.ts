@@ -1,5 +1,5 @@
 import { WorkflowStage, ProjectStage, STAGE_NAME_TO_LEGACY, LEGACY_TO_STAGE_NAME } from '@/types/project';
-import { supabase } from '@/integrations/supabase/client';
+import { supabase } from '@/integrations/supabase/client.ts';
 
 class WorkflowStageService {
     private cachedStages: WorkflowStage[] | null = null;

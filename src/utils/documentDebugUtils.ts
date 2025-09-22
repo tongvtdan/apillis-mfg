@@ -5,7 +5,7 @@
  * in the Factory Pulse application.
  */
 
-import { supabase } from '@/integrations/supabase/client';
+import { supabase } from '@/integrations/supabase/client.ts';
 import type { ProjectDocument } from '@/types/project';
 
 export interface DocumentDebugInfo {

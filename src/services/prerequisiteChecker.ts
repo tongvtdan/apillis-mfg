@@ -1,4 +1,4 @@
-import { supabase } from '@/integrations/supabase/client';
+import { supabase } from '@/integrations/supabase/client.ts';
 import { Project, WorkflowStage } from '@/types/project';
 import { approvalService } from './approvalService';
 import { documentRequirementsService } from './documentRequirementsService';

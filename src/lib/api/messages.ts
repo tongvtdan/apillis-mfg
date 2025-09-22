@@ -1,4 +1,4 @@
-import { supabase } from '@/integrations/supabase/client';
+import { supabase } from '@/integrations/supabase/client.ts';
 import type { Message, Notification } from '@/types/message';
 
 export const messagesApi = {

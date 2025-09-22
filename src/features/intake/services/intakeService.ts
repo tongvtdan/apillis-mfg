@@ -1,4 +1,4 @@
-import { supabase } from '@/integrations/supabase/client';
+import { supabase } from '@/integrations/supabase/client.ts';
 import { useAuth } from '@/core/auth';
 import { useDocument } from '@/core/documents';
 import { IntakeFormData, IntakeSubmissionResult, IntakeSubmissionType, SUBMISSION_TYPE_CONFIG } from '../types/intake.types';
