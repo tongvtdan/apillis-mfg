@@ -35,7 +35,7 @@ import {
 import { DocumentValidationPanel } from '../../documents/DocumentValidationPanel';
 import { DocumentUploadZone } from '../../documents/DocumentUploadZone';
 import { Project, WorkflowStage } from '@/types/project';
-import { supabase } from '@/integrations/supabase/client';
+import { supabase } from '@/integrations/supabase/client.js';
 import { useAuth } from '@/core/auth';
 
 interface InquiryReceivedViewProps {

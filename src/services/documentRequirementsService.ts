@@ -1,4 +1,4 @@
-import { supabase } from '@/integrations/supabase/client';
+import { supabase } from '@/integrations/supabase/client.js';
 import { WorkflowStage, ProjectDocument } from '@/types/project';
 
 export interface DocumentRequirement {

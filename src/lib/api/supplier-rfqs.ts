@@ -1,4 +1,4 @@
-import { supabase } from '@/integrations/supabase/client';
+import { supabase } from '@/integrations/supabase/client.js';
 import type { SupplierRFQ, SupplierQuote } from '@/types/supplier-rfq';
 
 export const supplierRfqsApi = {

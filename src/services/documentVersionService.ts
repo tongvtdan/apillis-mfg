@@ -1,4 +1,4 @@
-import { supabase } from '@/integrations/supabase/client';
+import { supabase } from '@/integrations/supabase/client.js';
 import { createClient } from '@supabase/supabase-js';
 import { ProjectDocument } from '@/types/project';
 

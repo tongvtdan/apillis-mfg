@@ -21,7 +21,7 @@ import {
     File
 } from 'lucide-react';
 import { format } from 'date-fns';
-import { supabase } from '@/integrations/supabase/client';
+import { supabase } from '@/integrations/supabase/client.js';
 import { documentActionsService } from '@/services/documentActions';
 import type { ProjectDocument } from '@/hooks/useDocuments';
 import { useUserDisplayName } from '@/features/customer-management/hooks/useUsers';

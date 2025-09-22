@@ -5,7 +5,7 @@ import { Badge } from '@/components/ui/badge';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { FileText, Download, ArrowLeft, Image, File, RefreshCw, AlertCircle } from 'lucide-react';
 import { useToast } from '@/shared/hooks/use-toast';
-import { supabase } from '@/integrations/supabase/client';
+import { supabase } from '@/integrations/supabase/client.js';
 import { useSupplierDocuments } from '@/hooks/useSupplierDocuments';
 
 export default function DocumentPreviewPage() {

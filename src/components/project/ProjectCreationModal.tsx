@@ -14,7 +14,7 @@ import { Separator } from '@/components/ui/separator';
 import { Calendar, Building2, User, DollarSign, AlertCircle, CheckCircle2, Loader2, Settings } from 'lucide-react';
 import { ProjectType, ProjectPriority, PROJECT_TYPE_LABELS, PROJECT_TYPE_DESCRIPTIONS, WorkflowDefinition } from '@/types/project';
 import { useCustomerOrganizations } from '@/hooks/useCustomerOrganizations';
-import { supabase } from '@/integrations/supabase/client';
+import { supabase } from '@/integrations/supabase/client.js';
 import { useAuth } from '@/core/auth';
 import { workflowDefinitionService } from '@/services/workflowDefinitionService';
 import { projectWorkflowService } from '@/services/projectWorkflowService';

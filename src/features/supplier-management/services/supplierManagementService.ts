@@ -1,4 +1,4 @@
-import { supabase } from '@/integrations/supabase/client';
+import { supabase } from '@/integrations/supabase/client.js';
 import { createClient } from '@supabase/supabase-js';
 import { useAuth } from '@/core/auth';
 import { useApproval } from '@/core/approvals';

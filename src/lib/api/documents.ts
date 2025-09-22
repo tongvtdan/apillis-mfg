@@ -1,4 +1,4 @@
-import { supabase } from '@/integrations/supabase/client';
+import { supabase } from '@/integrations/supabase/client.js';
 import type { ProjectDocument, DocumentComment, DocumentAccessLog } from '@/types/project';
 
 export const documentsApi = {

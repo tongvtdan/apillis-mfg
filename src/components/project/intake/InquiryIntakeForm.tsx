@@ -14,7 +14,7 @@ import { useAuth } from '@/core/auth';
 import { ProjectIntakeService, ProjectIntakeData } from '@/services/projectIntakeService';
 import { IntakeMappingService } from '@/services/intakeMappingService';
 import { Organization, Contact } from '@/types/project';
-import { supabase } from '@/integrations/supabase/client';
+import { supabase } from '@/integrations/supabase/client.js';
 import { createClient } from '@supabase/supabase-js';
 
 // Service role client for storage operations (bypasses RLS)

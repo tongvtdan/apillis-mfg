@@ -1,4 +1,5 @@
 import { Project, Contact, WorkflowStage } from '@/types/project';
+import { supabase } from '@/integrations/supabase/client.js';
 // Mock project data removed - using database only
 
 // Environment flag to control data source - force Supabase mode
@@ -95,7 +96,6 @@ class ProjectService {
     // Test connection to Supabase
     async testConnection(): Promise<{ success: boolean; error?: string; source: 'supabase' | 'mock' }> {
         try {
-            const { supabase } = await import('@/integrations/supabase/client');
             const { data, error } = await supabase
                 .from('projects')
                 .select('id')
@@ -129,7 +129,7 @@ class ProjectService {
 
             try {
                 // Get the current user's profile to access organization ID
-                const { supabase } = await import('@/integrations/supabase/client');
+                // Using static import instead
 
                 // First get the current user's organization ID
                 const { data: userData, error: userError } = await supabase.auth.getUser();
@@ -304,7 +304,7 @@ class ProjectService {
 
             try {
                 // Dynamic import to avoid issues if Supabase is not available
-                const { supabase } = await import('@/integrations/supabase/client');
+                // Using static import instead
 
                 // Build optimized query with filtering and pagination
                 let query = supabase
@@ -521,7 +521,7 @@ class ProjectService {
         try {
             // Use the statically imported supabase client to maintain authentication context
             // Import it here to ensure we're using the same instance as other parts of the application
-            const { supabase } = await import('@/integrations/supabase/client');
+            // Using static import instead
 
             // Validate required fields
             if (!projectData.title) {
@@ -688,7 +688,7 @@ class ProjectService {
     // Method to update a project
     async updateProject(id: string, updates: Partial<Project>): Promise<Project> {
         try {
-            const { supabase } = await import('@/integrations/supabase/client');
+            // Using static import instead
 
             // Prepare data for database update - only include fields that exist in database
             const updateData: any = {};
@@ -830,7 +830,7 @@ class ProjectService {
     // Method to get projects by customer
     async getProjectsByCustomer(customerId: string): Promise<Project[]> {
         try {
-            const { supabase } = await import('@/integrations/supabase/client');
+            // Using static import instead
 
             const { data, error } = await supabase
                 .from('projects')
@@ -902,7 +902,7 @@ class ProjectService {
     // Method to get projects by status
     async getProjectsByStatus(status: string): Promise<Project[]> {
         try {
-            const { supabase } = await import('@/integrations/supabase/client');
+            // Using static import instead
 
             const { data, error } = await supabase
                 .from('projects')
@@ -974,7 +974,7 @@ class ProjectService {
     // Method to delete a project
     async deleteProject(id: string): Promise<void> {
         try {
-            const { supabase } = await import('@/integrations/supabase/client');
+            // Using static import instead
 
             const { error } = await supabase
                 .from('projects')

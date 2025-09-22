@@ -1,4 +1,4 @@
-import { supabase } from '@/integrations/supabase/client';
+import { supabase } from '@/integrations/supabase/client.js';
 import { Project } from '@/types/project';
 
 // Optimized field selection for different use cases
