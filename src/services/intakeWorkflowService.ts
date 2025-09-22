@@ -1,5 +1,6 @@
 import { supabase } from '@/integrations/supabase/client';
 import { IntakeMappingService } from './intakeMappingService';
+import { workflowStageService } from './workflowStageService';
 
 export class IntakeWorkflowService {
     /**
@@ -9,6 +10,9 @@ export class IntakeWorkflowService {
         try {
             const stageSlug = IntakeMappingService.getInitialStageSlug(intakeType);
             console.log('🔍 Looking up stage with slug:', stageSlug, 'for organization:', organizationId);
+
+            // First, ensure default stages are initialized for the organization
+            await workflowStageService.initializeDefaultStages(organizationId);
 
             const { data, error } = await supabase
                 .from('workflow_stages')
@@ -37,6 +41,9 @@ export class IntakeWorkflowService {
     static async getFirstAvailableStage(organizationId: string): Promise<string | null> {
         try {
             console.log('🔍 Looking up first available stage for organization:', organizationId);
+
+            // First, ensure default stages are initialized for the organization
+            await workflowStageService.initializeDefaultStages(organizationId);
 
             const { data, error } = await supabase
                 .from('workflow_stages')

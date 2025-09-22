@@ -1,4 +1,4 @@
-import { WorkflowStage, ProjectStage, STAGE_NAME_TO_LEGACY, LEGACY_TO_STAGE_NAME } from '@/types/project';
+import { WorkflowStage, ProjectStage, STAGE_NAME_TO_LEGACY, LEGACY_TO_STAGE_NAME, PROJECT_STAGES } from '@/types/project';
 import { supabase } from '@/integrations/supabase/client';
 
 class WorkflowStageService {
@@ -55,6 +55,23 @@ class WorkflowStageService {
 
             this.cachedStages = data || [];
             this.cacheTimestamp = now;
+
+            // If no stages found and we have a user profile, initialize default stages
+            if (this.cachedStages.length === 0 && userProfile?.organization_id) {
+                console.log('🔄 No workflow stages found, initializing default stages...');
+                const initialized = await this.initializeDefaultStages(userProfile.organization_id, userId);
+
+                if (initialized) {
+                    // Re-fetch stages after initialization
+                    const { data: newData, error: newError } = await query.order('stage_order', { ascending: true });
+
+                    if (!newError) {
+                        this.cachedStages = newData || [];
+                        this.cacheTimestamp = Date.now();
+                        console.log('✅ Re-fetched workflow stages after initialization:', this.cachedStages.length);
+                    }
+                }
+            }
 
             console.log('Fetched workflow stages:', this.cachedStages);
             return this.cachedStages;
@@ -260,6 +277,85 @@ class WorkflowStageService {
     async forceRefresh(): Promise<WorkflowStage[]> {
         this.clearCache();
         return await this.getWorkflowStages(true);
+    }
+
+    // Initialize default workflow stages for an organization
+    async initializeDefaultStages(organizationId: string, createdBy?: string): Promise<boolean> {
+        try {
+            console.log('🔄 Initializing default workflow stages for organization:', organizationId);
+
+            // Check if stages already exist for this organization
+            const existingStages = await this.getWorkflowStages(true);
+            if (existingStages.length > 0) {
+                console.log('✅ Workflow stages already exist for organization');
+                return true;
+            }
+
+            // Create default workflow stages
+            const defaultStages = PROJECT_STAGES.map((stage, index) => ({
+                organization_id: organizationId,
+                name: stage.name,
+                slug: stage.id,
+                description: `Default ${stage.name.toLowerCase()} stage`,
+                stage_order: index + 1,
+                estimated_duration_days: this.getDefaultDurationForStage(stage.id),
+                responsible_roles: this.getDefaultResponsibleRolesForStage(stage.id),
+                is_active: true,
+                created_at: new Date().toISOString(),
+                updated_at: new Date().toISOString(),
+                created_by: createdBy
+            }));
+
+            const { data, error } = await supabase
+                .from('workflow_stages')
+                .insert(defaultStages)
+                .select();
+
+            if (error) {
+                console.error('❌ Error creating default workflow stages:', error);
+                throw error;
+            }
+
+            console.log('✅ Created default workflow stages:', data?.length || 0);
+
+            // Clear cache to force refresh
+            this.clearCache();
+
+            return true;
+        } catch (error) {
+            console.error('❌ Error initializing default workflow stages:', error);
+            return false;
+        }
+    }
+
+    // Get default duration for a stage
+    private getDefaultDurationForStage(stageId: string): number {
+        const durations: Record<string, number> = {
+            'inquiry_received': 1,
+            'technical_review': 3,
+            'supplier_rfq_sent': 5,
+            'quoted': 2,
+            'order_confirmed': 1,
+            'procurement_planning': 7,
+            'in_production': 14,
+            'shipped_closed': 1
+        };
+        return durations[stageId] || 1;
+    }
+
+    // Get default responsible roles for a stage
+    private getDefaultResponsibleRolesForStage(stageId: string): string[] {
+        const roles: Record<string, string[]> = {
+            'inquiry_received': ['admin', 'sales'],
+            'technical_review': ['admin', 'engineering'],
+            'supplier_rfq_sent': ['admin', 'procurement'],
+            'quoted': ['admin', 'sales'],
+            'order_confirmed': ['admin', 'procurement'],
+            'procurement_planning': ['admin', 'procurement'],
+            'in_production': ['admin', 'production'],
+            'shipped_closed': ['admin']
+        };
+        return roles[stageId] || ['admin'];
     }
 }
 

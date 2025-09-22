@@ -63,11 +63,7 @@ export class ProjectIntakeService {
             let stageId = initialStageId || await IntakeWorkflowService.getFirstAvailableStage(organizationId);
             console.log('✅ Final stage ID:', stageId);
 
-            // Override stageId for 'inquiry' projects to always use inquiry_received stage
-            if (intakeData.status === 'inquiry') {
-                stageId = '880e8400-e29b-41d4-a716-446655440001'; // inquiry_received stage
-                console.log('🔄 Overriding stage ID for inquiry project to inquiry_received:', stageId);
-            }
+            // Note: No need to override stage ID anymore as workflow stages are now properly initialized
 
             if (!stageId) {
                 throw new Error('No workflow stage found for project creation');
