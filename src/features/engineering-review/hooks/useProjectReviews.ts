@@ -24,8 +24,7 @@ export function useProjectReviews(projectId: string) {
             const { data: reviewsData, error: reviewsError } = await supabase
                 .from('reviews')
                 .select(`
-                    *,
-                    reviewer:users!reviews_reviewer_id_fkey(name, email, role)
+                    *
                 `)
                 .eq('project_id', projectId)
                 .order('created_at', { ascending: false });
@@ -50,11 +49,11 @@ export function useProjectReviews(projectId: string) {
                 reviewed_at: review.completed_at,
                 created_at: review.created_at,
                 updated_at: review.updated_at,
-                reviewer: review.reviewer ? {
-                    name: review.reviewer.name,
-                    email: review.reviewer.email,
-                    role: review.reviewer.role
-                } : undefined
+                reviewer: {
+                    name: review.reviewer_name,
+                    email: review.reviewer_email,
+                    role: review.reviewer_role
+                }
             }));
 
             setReviews(transformedReviews);
