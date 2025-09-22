@@ -1,7 +1,7 @@
 // Customer Organization Service
 // Handles organization-based customer model operations
 
-import { supabase } from '@/integrations/supabase/client.js';
+import { supabase } from '@/integrations/supabase/client';
 import { Organization, Contact, ProjectContactPoint } from '@/types/project';
 
 export interface CustomerOrganization extends Organization {

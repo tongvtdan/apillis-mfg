@@ -1,6 +1,6 @@
 import { useCallback } from 'react';
 import { useAuth } from '@/core/auth';
-import { supabase } from '@/integrations/supabase/client.js';
+import { supabase } from '@/integrations/supabase/client';
 
 export type AuditEventType =
     | 'login_success'

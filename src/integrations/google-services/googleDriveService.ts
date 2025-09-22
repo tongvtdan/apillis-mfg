@@ -2,7 +2,7 @@
 // Handles Google Drive API integration and authentication
 // Moved to integrations/google-services for future implementation
 
-import { supabase } from '@/integrations/supabase/client.js';
+import { supabase } from '@/integrations/supabase/client';
 
 // Placeholder interfaces for future implementation
 export interface GoogleDriveFile {

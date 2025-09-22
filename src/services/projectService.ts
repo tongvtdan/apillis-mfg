@@ -1,5 +1,5 @@
 import { Project, Contact, WorkflowStage } from '@/types/project';
-import { supabase } from '@/integrations/supabase/client.js';
+import { supabase } from '@/integrations/supabase/client';
 // Mock project data removed - using database only
 
 // Environment flag to control data source - force Supabase mode

@@ -1,5 +1,5 @@
 import { Project, WorkflowStage, ProjectSubStageProgress } from '@/types/project';
-import { supabase } from '@/integrations/supabase/client.js';
+import { supabase } from '@/integrations/supabase/client';
 
 export interface ExitCriteriaResult {
     canAdvance: boolean;
