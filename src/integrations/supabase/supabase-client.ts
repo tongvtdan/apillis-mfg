@@ -10,7 +10,7 @@ const SUPABASE_PUBLISHABLE_KEY = import.meta.env.VITE_SUPABASE_ANON_KEY || impor
 if (typeof window !== 'undefined' && import.meta.env.DEV) {
   console.log('🔗 Supabase Client Configuration:');
   console.log('Connecting to URL:', SUPABASE_URL);
-  console.log('Using key prefix:', SUPABASE_PUBLISHABLE_KEY.substring(0, 20) + '...');
+  console.log('Using key prefix:', SUPABASE_PUBLISHABLE_KEY ? SUPABASE_PUBLISHABLE_KEY.substring(0, 20) + '...' : 'Not set');
 }
 
 // Import the supabase client like this:
