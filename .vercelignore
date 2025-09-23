@@ -13,7 +13,6 @@ docs/
 scripts/
 backups/
 database/
-supabase/
 
 # Test files
 **/*.test.*

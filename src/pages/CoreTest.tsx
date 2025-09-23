@@ -1,5 +1,5 @@
 import React from 'react';
-import { CoreModulesTestWrapper } from '@/core/test-core-functionality';
+import { CoreModulesTestWrapper } from '@/core/core-test';
 
 /**
  * Core Modules Test Page
