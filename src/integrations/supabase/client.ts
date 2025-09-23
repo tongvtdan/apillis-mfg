@@ -3,28 +3,16 @@ import { createClient } from '@supabase/supabase-js';
 import type { Database } from './types';
 
 // Use environment variables for flexible configuration
-const SUPABASE_URL = import.meta.env.VITE_SUPABASE_URL || "https://ynhgxwnkpbpzwbtzrzka.supabase.co";
-const SUPABASE_PUBLISHABLE_KEY = import.meta.env.VITE_SUPABASE_ANON_KEY || "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZS1kZW1vIiwicm9sZSI6ImFub24iLCJleHAiOjE5ODM4MTI5OTZ9.CRXP1A7WOeoJeXxjNni43kdQwgnWNReilDMblYTn_I0";
+// In Vercel, these will be replaced at build time if set as environment variables
+const SUPABASE_URL = import.meta.env?.VITE_SUPABASE_URL || "https://ynhgxwnkpbpzwbtzrzka.supabase.co";
+const SUPABASE_PUBLISHABLE_KEY = import.meta.env?.VITE_SUPABASE_ANON_KEY || "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZS1kZW1vIiwicm9sZSI6ImFub24iLCJleHAiOjE5ODM4MTI5OTZ9.CRXP1A7WOeoJeXxjNni43kdQwgnWNReilDMblYTn_I0";
 
-// Validate configuration in production
-if (import.meta.env.PROD) {
-  if (!import.meta.env.VITE_SUPABASE_URL) {
-    throw new Error('VITE_SUPABASE_URL environment variable is required in production');
-  }
-  if (!import.meta.env.VITE_SUPABASE_ANON_KEY) {
-    throw new Error('VITE_SUPABASE_ANON_KEY environment variable is required in production');
-  }
-}
-
-// Debug logging
-console.log('🔗 Supabase Client Configuration:');
-console.log('Environment:', import.meta.env.MODE || 'development');
-console.log('Connecting to URL:', SUPABASE_URL);
-console.log('Using key prefix:', SUPABASE_PUBLISHABLE_KEY.substring(0, 20) + '...');
-
-// Warn in production if using fallback values
-if (import.meta.env.PROD && (!import.meta.env.VITE_SUPABASE_URL || !import.meta.env.VITE_SUPABASE_ANON_KEY)) {
-  console.error('❌ PRODUCTION ERROR: Missing required Supabase environment variables. Please set VITE_SUPABASE_URL and VITE_SUPABASE_ANON_KEY in Vercel.');
+// Debug logging (only in development)
+if (import.meta.env?.MODE === 'development') {
+  console.log('🔗 Supabase Client Configuration:');
+  console.log('Environment:', import.meta.env?.MODE || 'unknown');
+  console.log('Connecting to URL:', SUPABASE_URL);
+  console.log('Using key prefix:', SUPABASE_PUBLISHABLE_KEY.substring(0, 20) + '...');
 }
 
 // Import the supabase client like this:
@@ -33,8 +21,8 @@ if (import.meta.env.PROD && (!import.meta.env.VITE_SUPABASE_URL || !import.meta.
 // Service role client for storage operations (bypasses RLS)
 // This uses the service role key for operations that need elevated permissions
 export const supabaseServiceRole = createClient<Database>(
-  import.meta.env.VITE_SUPABASE_URL || "https://ynhgxwnkpbpzwbtzrzka.supabase.co",
-  import.meta.env.VITE_SUPABASE_SERVICE_ROLE_KEY || "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InluaGd4d25rcGJwendidHpyemthIiwicm9sZSI6InNlcnZpY2Vfcm9sZSIsImlhdCI6MTc1NTc4NjE1OSwiZXhwIjoyMDcxMzYyMTU5fQ.4hohg8ZybIOX_frV6EHm2LwTRPYi07xEy6lRIkQZSUo",
+  import.meta.env?.VITE_SUPABASE_URL || "https://ynhgxwnkpbpzwbtzrzka.supabase.co",
+  import.meta.env?.VITE_SUPABASE_SERVICE_ROLE_KEY || "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InluaGd4d25rcGJwendidHpyemthIiwicm9sZSI6InNlcnZpY2Vfcm9sZSIsImlhdCI6MTc1NTc4NjE1OSwiZXhwIjoyMDcxMzYyMTU5fQ.4hohg8ZybIOX_frV6EHm2LwTRPYi07xEy6lRIkQZSUo",
   {
     auth: {
       autoRefreshToken: false,
