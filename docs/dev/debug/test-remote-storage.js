@@ -9,9 +9,9 @@
 
 import { createClient } from '@supabase/supabase-js';
 
-// Load environment variables
-const supabaseUrl = 'https://ynhgxwnkpbpzwbtzrzka.supabase.co';
-const supabaseAnonKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZS1kZW1vIiwicm9sZSI6ImFub24iLCJleHAiOjE5ODM4MTI5OTZ9.CRXP1A7WOeoJeXxjNni43kdQwgnWNReilDMblYTn_I0';
+// Load environment variables - Update with your actual keys
+const supabaseUrl = process.env.VITE_SUPABASE_URL || 'https://ynhgxwnkpbpzwbtzrzka.supabase.co';
+const supabaseAnonKey = process.env.VITE_SUPABASE_ANON_KEY;
 
 // Create Supabase client
 const supabase = createClient(supabaseUrl, supabaseAnonKey);
