@@ -13,6 +13,10 @@ import {
     Info,
 } from "lucide-react";
 
+// App version information
+const APP_VERSION = "1.0.0";
+const APP_NAME = "Factory Pulse";
+
 // This component displays user settings and profile information
 // It uses the authenticated user's profile data from the AuthContext
 // The profile data is fetched from the public.users table and connected to the auth.users table
@@ -127,6 +131,46 @@ export default function Settings() {
                                     <label className="text-sm font-medium">Status</label>
                                     <Badge variant={profile?.status === "active" ? "default" : "secondary"}>
                                         {profile?.status || "Unknown"}
+                                    </Badge>
+                                </div>
+                            </div>
+                        </CardContent>
+                    </Card>
+
+                    <Card>
+                        <CardHeader>
+                            <CardTitle className="flex items-center gap-2">
+                                <SettingsIcon className="h-5 w-5" />
+                                Application Information
+                            </CardTitle>
+                            <CardDescription>
+                                System version and application details.
+                            </CardDescription>
+                        </CardHeader>
+                        <CardContent className="space-y-4">
+                            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                <div>
+                                    <label className="text-sm font-medium">Application Name</label>
+                                    <p className="text-sm text-base-content/70 mt-1">
+                                        {APP_NAME}
+                                    </p>
+                                </div>
+                                <div>
+                                    <label className="text-sm font-medium">Version</label>
+                                    <p className="text-sm text-base-content/70 mt-1">
+                                        v{APP_VERSION}
+                                    </p>
+                                </div>
+                                <div>
+                                    <label className="text-sm font-medium">Environment</label>
+                                    <p className="text-sm text-base-content/70 mt-1">
+                                        {import.meta.env.MODE || "development"}
+                                    </p>
+                                </div>
+                                <div>
+                                    <label className="text-sm font-medium">Build</label>
+                                    <Badge variant="outline">
+                                        Production Ready
                                     </Badge>
                                 </div>
                             </div>
