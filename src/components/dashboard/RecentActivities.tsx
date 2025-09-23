@@ -1,5 +1,6 @@
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { useRecentActivity } from '@/hooks/useDashboardData';
+import { useCurrentActivityLog } from '@/core/activity-log/useActivityLog';
+import { useNavigate } from 'react-router-dom';
 import { formatDistanceToNow } from "date-fns";
 import {
   FileText,
@@ -9,126 +10,203 @@ import {
   TrendingUp,
   Send,
   Package,
-  Cog
+  Cog,
+  User,
+  Plus,
+  Edit3,
+  Trash2
 } from "lucide-react";
+import { useEffect } from "react";
+
+interface Activity {
+  id: string;
+  type: 'project' | 'user' | 'contact' | 'document' | 'review';
+  title: string;
+  description: string;
+  status: string;
+  priority: string;
+  created_at: string;
+  customer_name?: string;
+  project_id?: string;
+  action: string;
+  entity_type: string;
+}
 
 export function RecentActivities() {
-  const { projects, isLoading } = useRecentActivity();
+  const { entries, loading, error } = useCurrentActivityLog();
+  const navigate = useNavigate();
 
-  // Map projects to activities
-  const allActivities = projects.map(project => ({
-    id: project.id,
-    type: 'project' as const,
-    title: project.title,
-    subtitle: `Project ${project.project_id}`,
-    status: project.status,
-    priority: project.priority,
-    created_at: project.created_at,
-    customer_name: project.customer_name
-  })).sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime());
+  // Debug log entries
+  useEffect(() => {
+    if (entries.length > 0) {
+      console.log('Activities loaded:', entries);
+      console.log('Sample entry structure:', entries[0]);
+    }
+  }, [entries]);
 
-  const getActivityIcon = (status: string) => {
-    switch (status) {
-      case 'inquiry_received': return FileText;
-      case 'order_confirmed': return CheckCircle;
-      case 'quoted': return TrendingUp;
-      case 'technical_review': return Building2;
-      case 'supplier_rfq_sent': return Send;
-      case 'procurement_planning': return Package;
-      case 'in_production': return Cog;
-      case 'shipped_closed': return AlertTriangle;
+  // Map entries to a more user-friendly format
+  const mappedActivities = entries
+    .map(activity => {
+      try {
+        let type: 'project' | 'user' | 'contact' | 'document' | 'review' = 'project';
+        let title = '';
+        let description = '';
+        let status = '';
+        let priority = 'medium';
+        let projectId: string | undefined;
+
+        // Extract project ID - now we can get it directly from the activity_log table
+        if (activity.project_id) {
+          projectId = activity.project_id;
+          console.log(`Found project ID ${projectId} in project_id column for activity ${activity.id}`);
+        }
+        // Fallback to previous methods for backward compatibility
+        else if (activity.metadata?.project_id) {
+          projectId = activity.metadata.project_id;
+          console.log(`Found project ID ${projectId} in metadata for activity ${activity.id}`);
+        }
+        else if (activity.entity_type === 'projects' && activity.entity_id) {
+          projectId = activity.entity_id;
+          console.log(`Using entity_id ${projectId} as project ID for activity ${activity.id}`);
+        }
+        else if (activity.new_values?.project_id) {
+          projectId = activity.new_values.project_id;
+          console.log(`Found project ID ${projectId} in new_values for activity ${activity.id}`);
+        }
+        else if (activity.old_values?.project_id) {
+          projectId = activity.old_values.project_id;
+          console.log(`Found project ID ${projectId} in old_values for activity ${activity.id}`);
+        }
+
+        // Process the activity
+
+        // Determine activity type and details based on entity_type
+        switch (activity.entity_type) {
+          case 'projects':
+            type = 'project';
+            // Try to get title from new_values first, then old_values
+            title = activity.new_values?.title || activity.old_values?.title || 'Untitled Project';
+            description = `${activity.action === 'INSERT' ? 'Created' : activity.action === 'UPDATE' ? 'Updated' : activity.action} project`;
+            status = activity.new_values?.status || activity.old_values?.status || 'active';
+            priority = activity.new_values?.priority_level || activity.old_values?.priority_level || 'medium';
+            // Project ID is already set above
+            break;
+          case 'contacts':
+            type = 'contact';
+            // Try to get company name from new_values first, then old_values
+            title = activity.new_values?.company_name || activity.old_values?.company_name || 'Untitled Contact';
+            description = `${activity.action === 'INSERT' ? 'Created' : activity.action === 'UPDATE' ? 'Updated' : activity.action} contact`;
+            break;
+          default:
+            // Handle unknown entity types
+            type = 'project';
+            title = activity.description || activity.entity_type || 'Activity';
+            description = activity.action || 'Unknown action';
+          // Project ID is already set above
+        }
+
+        // If we still don't have a title, use a fallback
+        if (!title) {
+          title = 'Untitled ' + (activity.entity_type?.slice(0, -1) || 'item'); // Remove 's' from entity_type
+        }
+
+        // Ensure we have a valid created_at - handle different date formats
+        let createdAt: string;
+        if (activity.created_at) {
+          // Handle PostgreSQL timestamp format like '2025-08-31 02:42:12.83972+00'
+          if (typeof activity.created_at === 'string' && activity.created_at.includes(' ')) {
+            // Convert PostgreSQL format to ISO format
+            // '2025-08-31 02:42:12.83972+00' -> '2025-08-31T02:42:12.83972Z'
+            createdAt = activity.created_at.replace(' ', 'T').replace('+00', 'Z');
+          } else {
+            createdAt = activity.created_at;
+          }
+        } else {
+          createdAt = new Date().toISOString();
+        }
+
+        // Map the activity data
+
+        return {
+          id: activity.id,
+          type,
+          title,
+          description,
+          status,
+          priority,
+          created_at: createdAt,
+          project_id: projectId,
+          action: activity.action,
+          entity_type: activity.entity_type
+        };
+      } catch (error) {
+        // Handle mapping errors
+        // Return a fallback activity object
+        return {
+          id: activity.id,
+          type: 'project',
+          title: 'Activity Error',
+          description: 'Failed to process activity',
+          status: 'active',
+          priority: 'medium',
+          created_at: new Date().toISOString(),
+          project_id: undefined,
+          action: 'ERROR',
+          entity_type: 'error'
+        };
+      }
+    })
+    .filter(activity => activity.title && activity.description); // Filter out activities with missing data
+
+  const getActivityIcon = (entityType: string, action: string) => {
+    // Special handling for action types
+    if (action === 'INSERT') return Plus;
+    if (action === 'UPDATE') return Edit3;
+    if (action === 'DELETE') return Trash2;
+
+    // Default icons based on entity type
+    switch (entityType) {
+      case 'projects': return FileText;
+      case 'users': return User;
+      case 'contacts': return Building2;
+      case 'documents': return FileText;
+      case 'reviews': return CheckCircle;
       default: return FileText;
     }
   };
 
-  // Get the status badge classes
-  const getStatusClass = (status: string) => {
-    switch (status) {
-      case 'inquiry_received': return 'status-badge status-badge-sm status-inquiry';
-      case 'order_confirmed': return 'status-badge status-badge-sm status-active';
-      case 'quoted': return 'status-badge status-badge-sm status-quote';
-      case 'technical_review': return 'status-badge status-badge-sm status-review';
-      case 'supplier_rfq_sent': return 'status-badge status-badge-sm status-active';
-      case 'procurement_planning': return 'status-badge status-badge-sm status-review';
-      case 'in_production': return 'status-badge status-badge-sm status-active';
-      case 'shipped_closed': return 'status-badge status-badge-sm status-overdue';
-      default: return 'status-badge status-badge-sm';
+  const getIconColorClass = (entityType: string) => {
+    switch (entityType) {
+      case 'projects': return 'text-blue-500';
+      case 'users': return 'text-green-500';
+      case 'contacts': return 'text-purple-500';
+      case 'documents': return 'text-yellow-500';
+      case 'reviews': return 'text-indigo-500';
+      default: return 'text-gray-500';
     }
   };
 
-  // Get the list item classes with enhanced styling
-  const getListItemClass = (status: string) => {
-    switch (status) {
-      case 'inquiry_received':
-        return 'enhanced-list-item enhanced-list-item-normal border-l-4 border-l-blue-400 bg-blue-50/10 dark:bg-blue-950/10';
-      case 'order_confirmed':
-        return 'enhanced-list-item enhanced-list-item-active border-l-4 border-l-green-400 bg-green-50/10 dark:bg-green-950/10';
-      case 'quoted':
-        return 'enhanced-list-item enhanced-list-item-medium border-l-4 border-l-purple-400 bg-purple-50/10 dark:bg-purple-950/10';
-      case 'technical_review':
-        return 'enhanced-list-item enhanced-list-item-normal border-l-4 border-l-yellow-400 bg-yellow-50/10 dark:bg-yellow-950/10';
-      case 'supplier_rfq_sent':
-        return 'enhanced-list-item enhanced-list-item-normal border-l-4 border-l-indigo-400 bg-indigo-50/10 dark:bg-indigo-950/10';
-      case 'procurement_planning':
-        return 'enhanced-list-item enhanced-list-item-normal border-l-4 border-l-yellow-400 bg-yellow-50/10 dark:bg-yellow-950/10';
-      case 'in_production':
-        return 'enhanced-list-item enhanced-list-item-active border-l-4 border-l-teal-400 bg-teal-50/10 dark:bg-teal-950/10';
-      case 'shipped_closed':
-        return 'enhanced-list-item enhanced-list-item-high border-l-4 border-l-red-400 bg-red-50/10 dark:bg-red-950/10';
-      default:
-        return 'enhanced-list-item enhanced-list-item-normal';
+  const getIconBgClass = (entityType: string) => {
+    switch (entityType) {
+      case 'projects': return 'bg-blue-100 dark:bg-blue-900/30';
+      case 'users': return 'bg-green-100 dark:bg-green-900/30';
+      case 'contacts': return 'bg-purple-100 dark:bg-purple-900/30';
+      case 'documents': return 'bg-yellow-100 dark:bg-yellow-900/30';
+      case 'reviews': return 'bg-indigo-100 dark:bg-indigo-900/30';
+      default: return 'bg-gray-100 dark:bg-gray-800';
     }
   };
 
-  // Get activity icon color with enhanced visibility
-  const getIconColorClass = (status: string) => {
-    switch (status) {
-      case 'inquiry_received': return 'text-blue-600 dark:text-blue-400';
-      case 'order_confirmed': return 'text-green-600 dark:text-green-400';
-      case 'quoted': return 'text-purple-600 dark:text-purple-400';
-      case 'technical_review': return 'text-yellow-600 dark:text-yellow-400';
-      case 'supplier_rfq_sent': return 'text-indigo-600 dark:text-indigo-400';
-      case 'procurement_planning': return 'text-yellow-600 dark:text-yellow-400';
-      case 'in_production': return 'text-teal-600 dark:text-teal-400';
-      case 'shipped_closed': return 'text-red-600 dark:text-red-400';
-      default: return 'text-gray-600 dark:text-gray-400';
+  const handleActivityClick = (activity: Activity) => {
+    if (activity.project_id) {
+      console.log(`Navigating to project ${activity.project_id} from activity ${activity.id}`);
+      navigate(`/project/${activity.project_id}`);
+    } else {
+      console.warn(`No project_id available for activity ${activity.id}`, activity);
     }
   };
 
-  // Get icon background class with enhanced styling
-  const getIconBgClass = (status: string) => {
-    switch (status) {
-      case 'inquiry_received': return 'bg-blue-100 dark:bg-blue-950/70 shadow-sm';
-      case 'order_confirmed': return 'bg-green-100 dark:bg-green-950/70 shadow-sm';
-      case 'quoted': return 'bg-purple-100 dark:bg-purple-950/70 shadow-sm';
-      case 'technical_review': return 'bg-yellow-100 dark:bg-yellow-950/70 shadow-sm';
-      case 'supplier_rfq_sent': return 'bg-indigo-100 dark:bg-indigo-950/70 shadow-sm';
-      case 'procurement_planning': return 'bg-yellow-100 dark:bg-yellow-950/70 shadow-sm';
-      case 'in_production': return 'bg-teal-100 dark:bg-teal-950/70 shadow-sm';
-      case 'shipped_closed': return 'bg-red-100 dark:bg-red-950/70 shadow-sm';
-      default: return 'bg-gray-100 dark:bg-gray-800/80 shadow-sm';
-    }
-  };
-
-  // Get text styling based on status
-  const getTitleClass = (status: string) => {
-    switch (status) {
-      case 'inquiry_received': return 'text-sm font-medium text-blue-800 dark:text-blue-300';
-      case 'order_confirmed': return 'text-sm font-medium text-green-800 dark:text-green-300';
-      case 'quoted': return 'text-sm font-medium text-purple-800 dark:text-purple-300';
-      case 'technical_review': return 'text-sm font-medium text-yellow-800 dark:text-yellow-300';
-      case 'supplier_rfq_sent': return 'text-sm font-medium text-indigo-800 dark:text-indigo-300';
-      case 'procurement_planning': return 'text-sm font-medium text-yellow-800 dark:text-yellow-300';
-      case 'in_production': return 'text-sm font-medium text-teal-800 dark:text-teal-300';
-      case 'shipped_closed': return 'text-sm font-medium text-red-800 dark:text-red-300';
-      default: return 'text-sm font-medium text-foreground';
-    }
-  };
-
-  // Get recent activities from the combined list
-  const recentActivities = allActivities.slice(0, 5);
-
-  if (isLoading) {
+  if (loading) {
     return (
       <Card>
         <CardHeader>
@@ -137,7 +215,7 @@ export function RecentActivities() {
         <CardContent>
           <div className="space-y-4">
             {[1, 2, 3, 4, 5].map((i) => (
-              <div key={i} className="enhanced-list-item enhanced-list-item-normal flex items-start space-x-3">
+              <div key={i} className="flex items-start space-x-3">
                 <div className="p-2 rounded-full bg-muted animate-pulse">
                   <div className="h-4 w-4 bg-muted-foreground/20 rounded"></div>
                 </div>
@@ -153,46 +231,58 @@ export function RecentActivities() {
     );
   }
 
+  // Show error if there is one
+  if (error) {
+    return (
+      <Card>
+        <CardHeader>
+          <CardTitle className="text-lg font-semibold">Recent Activities</CardTitle>
+        </CardHeader>
+        <CardContent>
+          <div className="text-center py-4 text-red-500">
+            Error loading entries: {error}
+          </div>
+        </CardContent>
+      </Card>
+    );
+  }
+
   return (
     <Card>
       <CardHeader>
         <CardTitle className="text-lg font-semibold">Recent Activities</CardTitle>
       </CardHeader>
       <CardContent className="space-y-4">
-        {recentActivities.map((activity) => {
-          const IconComponent = getActivityIcon(activity.status);
-          const iconColor = getIconColorClass(activity.status);
-          const iconBg = getIconBgClass(activity.status);
-          const statusClass = getStatusClass(activity.status);
-          const listItemClass = getListItemClass(activity.status);
-          const titleClass = getTitleClass(activity.status);
+        {mappedActivities.map((activity) => {
+          const IconComponent = getActivityIcon(activity.entity_type, activity.action);
+          const iconColor = getIconColorClass(activity.entity_type);
+          const iconBg = getIconBgClass(activity.entity_type);
 
           return (
-            <div key={activity.id} className={`flex items-start space-x-3 ${listItemClass}`}>
+            <div
+              key={activity.id}
+              className="flex items-start space-x-3 p-3 rounded-lg border hover:bg-muted/50 transition-colors cursor-pointer"
+              onClick={() => handleActivityClick(activity as any)}
+            >
               <div className={`p-2 rounded-full ${iconBg}`}>
                 <IconComponent className={`h-4 w-4 ${iconColor}`} />
               </div>
               <div className="flex-1 min-w-0">
-                <div className="flex items-center space-x-2 mb-1">
-                  <p className={titleClass}>
-                    {activity.title}
-                  </p>
-                  <div className={statusClass}>
-                    {activity.status.replace('_', ' ').charAt(0).toUpperCase() + activity.status.replace('_', ' ').slice(1)}
-                  </div>
-                </div>
-                <p className="text-xs text-muted-foreground">
-                  {formatDistanceToNow(new Date(activity.created_at), { addSuffix: true })}
+                <p className="text-sm font-medium text-foreground truncate">
+                  {activity.title}
                 </p>
-                <div className="flex items-center justify-between mt-1">
-                  <span className="text-muted-foreground">{activity.customer_name}</span>
-                </div>
+                <p className="text-xs text-muted-foreground mt-1">
+                  {activity.description} • {formatDistanceToNow(new Date(activity.created_at), { addSuffix: true })}
+                </p>
               </div>
             </div>
           );
         })}
-        {recentActivities.length === 0 && (
-          <p className="text-sm text-muted-foreground">No recent activities</p>
+        {mappedActivities.length === 0 && (
+          <div className="text-center py-4">
+            <FileText className="h-8 w-8 text-gray-400 mx-auto mb-2" />
+            <p className="text-sm text-muted-foreground">No recent activities</p>
+          </div>
         )}
       </CardContent>
     </Card>

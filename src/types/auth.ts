@@ -71,18 +71,7 @@ export interface Permission {
     actions: string[];
 }
 
-// Authentication context interface
-export interface AuthContextType {
-    user: User | null;
-    loading: boolean;
-    error: string | null;
-    signIn: (email: string, password: string) => Promise<void>;
-    signInWithGoogle: () => Promise<void>;
-    signUp: (email: string, password: string, displayName: string) => Promise<void>;
-    signOut: () => Promise<void>;
-    resetPassword: (email: string) => Promise<void>;
-    updateProfile: (data: Partial<User>) => Promise<void>;
-}
+// Note: AuthContextType is now defined in @/core/auth/AuthProvider.tsx
 
 // User session interface
 export interface UserSession {
@@ -172,6 +161,8 @@ export const ROLE_PERMISSIONS: Record<UserRole, Permission[]> = {
     [UserRole.MANAGEMENT]: [
         { resource: 'rfq', actions: ['read', 'approve', 'reject'] },
         { resource: 'users', actions: ['read', 'create', 'update', 'delete'] },
+        { resource: 'customer', actions: ['read', 'create', 'update', 'delete', 'archive'] },
+        { resource: 'supplier', actions: ['read', 'create', 'update', 'delete', 'archive'] },
         { resource: 'dashboard', actions: ['read', 'admin'] },
         { resource: 'profile', actions: ['read_own', 'update_own', 'read_all'] },
         { resource: 'analytics', actions: ['read', 'export'] },
@@ -182,6 +173,8 @@ export const ROLE_PERMISSIONS: Record<UserRole, Permission[]> = {
     [UserRole.ADMIN]: [
         { resource: 'rfq', actions: ['read', 'approve', 'reject', 'delete'] },
         { resource: 'users', actions: ['read', 'create', 'update', 'delete', 'manage_roles'] },
+        { resource: 'customer', actions: ['read', 'create', 'update', 'delete', 'archive'] },
+        { resource: 'supplier', actions: ['read', 'create', 'update', 'delete', 'archive'] },
         { resource: 'dashboard', actions: ['read', 'admin', 'system'] },
         { resource: 'profile', actions: ['read_own', 'update_own', 'read_all', 'update_all'] },
         { resource: 'analytics', actions: ['read', 'export', 'system'] },

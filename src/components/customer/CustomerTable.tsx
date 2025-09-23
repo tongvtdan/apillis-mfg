@@ -17,16 +17,7 @@ import {
     DropdownMenuItem,
     DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
-import {
-    AlertDialog,
-    AlertDialogAction,
-    AlertDialogCancel,
-    AlertDialogContent,
-    AlertDialogDescription,
-    AlertDialogFooter,
-    AlertDialogHeader,
-    AlertDialogTitle,
-} from '@/components/ui/alert-dialog';
+import { Modal } from '@/components/ui/modal';
 import {
     Building2,
     Mail,
@@ -38,7 +29,9 @@ import {
     Eye,
     Search,
     Plus,
-    Users
+    Users,
+    AlertTriangle,
+    Archive
 } from 'lucide-react';
 import { Customer } from '@/types/project';
 import { useCustomers } from '@/hooks/useCustomers';
@@ -47,24 +40,25 @@ import { CustomerModal } from './CustomerModal';
 interface CustomerTableProps {
     customers: Customer[];
     onCustomerSelect?: (customer: Customer) => void;
+    canArchive?: boolean;
 }
 
-export function CustomerTable({ customers, onCustomerSelect }: CustomerTableProps) {
+export function CustomerTable({ customers, onCustomerSelect, canArchive = false }: CustomerTableProps) {
     const [searchQuery, setSearchQuery] = useState('');
     const [selectedCustomer, setSelectedCustomer] = useState<Customer | null>(null);
     const [showModal, setShowModal] = useState(false);
     const [showDeleteDialog, setShowDeleteDialog] = useState(false);
     const [customerToDelete, setCustomerToDelete] = useState<Customer | null>(null);
 
-    const { deleteCustomer, getCustomerProjects } = useCustomers();
+    const { deleteCustomer, archiveCustomer, getCustomerProjects } = useCustomers();
 
     const filteredCustomers = useMemo(() => {
         if (!searchQuery) return customers;
 
         const query = searchQuery.toLowerCase();
         return customers.filter(customer =>
-            customer.name.toLowerCase().includes(query) ||
-            customer.company?.toLowerCase().includes(query) ||
+            customer.company_name.toLowerCase().includes(query) ||
+            customer.contact_name?.toLowerCase().includes(query) ||
             customer.email?.toLowerCase().includes(query) ||
             customer.country?.toLowerCase().includes(query)
         );
@@ -73,6 +67,14 @@ export function CustomerTable({ customers, onCustomerSelect }: CustomerTableProp
     const handleEdit = (customer: Customer) => {
         setSelectedCustomer(customer);
         setShowModal(true);
+    };
+
+    const handleArchive = async (customer: Customer) => {
+        try {
+            await archiveCustomer(customer.id);
+        } catch (error) {
+            console.error('Error archiving customer:', error);
+        }
     };
 
     const handleDelete = (customer: Customer) => {
@@ -163,11 +165,11 @@ export function CustomerTable({ customers, onCustomerSelect }: CustomerTableProp
                                 <TableRow key={customer.id} className="hover:bg-muted/50">
                                     <TableCell>
                                         <div className="space-y-1">
-                                            <div className="font-medium">{customer.name}</div>
-                                            {customer.company && (
+                                            <div className="font-medium">{customer.company_name}</div>
+                                            {customer.contact_name && (
                                                 <div className="flex items-center text-sm text-muted-foreground">
-                                                    <Building2 className="w-3 h-3 mr-1" />
-                                                    {customer.company}
+                                                    <Users className="w-3 h-3 mr-1" />
+                                                    {customer.contact_name}
                                                 </div>
                                             )}
                                         </div>
@@ -199,12 +201,20 @@ export function CustomerTable({ customers, onCustomerSelect }: CustomerTableProp
                                         </div>
                                     </TableCell>
                                     <TableCell>
-                                        {customer.country && (
-                                            <div className="flex items-center text-sm">
-                                                <MapPin className="w-3 h-3 mr-1 text-muted-foreground" />
-                                                {customer.country}
-                                            </div>
-                                        )}
+                                        <div className="space-y-1">
+                                            {customer.city && (
+                                                <div className="text-sm">
+                                                    {customer.city}
+                                                    {customer.state && `, ${customer.state}`}
+                                                </div>
+                                            )}
+                                            {customer.country && (
+                                                <div className="flex items-center text-sm text-muted-foreground">
+                                                    <MapPin className="w-3 h-3 mr-1" />
+                                                    {customer.country}
+                                                </div>
+                                            )}
+                                        </div>
                                     </TableCell>
                                     <TableCell>
                                         <div className="text-sm text-muted-foreground">
@@ -227,13 +237,15 @@ export function CustomerTable({ customers, onCustomerSelect }: CustomerTableProp
                                                     <Edit className="w-4 h-4 mr-2" />
                                                     Edit
                                                 </DropdownMenuItem>
-                                                <DropdownMenuItem
-                                                    onClick={() => handleDelete(customer)}
-                                                    className="text-destructive"
-                                                >
-                                                    <Trash2 className="w-4 h-4 mr-2" />
-                                                    Delete
-                                                </DropdownMenuItem>
+                                                {canArchive && (
+                                                    <DropdownMenuItem
+                                                        onClick={() => handleArchive(customer)}
+                                                        className="text-orange-600"
+                                                    >
+                                                        <Archive className="w-4 h-4 mr-2" />
+                                                        Archive
+                                                    </DropdownMenuItem>
+                                                )}
                                             </DropdownMenuContent>
                                         </DropdownMenu>
                                     </TableCell>
@@ -252,23 +264,28 @@ export function CustomerTable({ customers, onCustomerSelect }: CustomerTableProp
             />
 
             {/* Delete Confirmation Dialog */}
-            <AlertDialog open={showDeleteDialog} onOpenChange={setShowDeleteDialog}>
-                <AlertDialogContent>
-                    <AlertDialogHeader>
-                        <AlertDialogTitle>Delete Customer</AlertDialogTitle>
-                        <AlertDialogDescription>
-                            Are you sure you want to delete {customerToDelete?.name}? This action cannot be undone.
-                            All associated projects will lose their customer reference.
-                        </AlertDialogDescription>
-                    </AlertDialogHeader>
-                    <AlertDialogFooter>
-                        <AlertDialogCancel>Cancel</AlertDialogCancel>
-                        <AlertDialogAction onClick={confirmDelete} className="bg-destructive text-destructive-foreground">
-                            Delete
-                        </AlertDialogAction>
-                    </AlertDialogFooter>
-                </AlertDialogContent>
-            </AlertDialog>
+            <Modal
+                isOpen={showDeleteDialog}
+                onClose={() => setShowDeleteDialog(false)}
+                title={
+                    <div className="flex items-center gap-2">
+                        <AlertTriangle className="w-5 h-5 text-destructive" />
+                        Delete Customer
+                    </div>
+                }
+                description={`Are you sure you want to delete ${customerToDelete?.company_name}? This action cannot be undone. All associated projects will lose their customer reference.`}
+                showDescription={true}
+                maxWidth="max-w-md"
+            >
+                <div className="flex justify-end gap-3 pt-4 border-t">
+                    <Button variant="outline" onClick={() => setShowDeleteDialog(false)}>
+                        Cancel
+                    </Button>
+                    <Button variant="destructive" onClick={confirmDelete}>
+                        Delete
+                    </Button>
+                </div>
+            </Modal>
         </div>
     );
 }

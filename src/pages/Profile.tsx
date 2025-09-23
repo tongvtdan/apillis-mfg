@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { useAuth } from "@/contexts/AuthContext";
+import { useAuth } from "@/core/auth";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -31,10 +31,6 @@ export default function Profile() {
         phone: profile?.phone || '',
     });
 
-    // Debug logging
-    console.log('Profile component render - Current profile state:', profile);
-    console.log('Profile component render - Current user state:', user);
-    console.log('Profile component render - Loading state:', loading);
 
     const isManagement = profile?.role === "management" || profile?.role === "admin";
 

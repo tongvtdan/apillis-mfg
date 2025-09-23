@@ -1,7 +1,7 @@
 import { BarChart3, FileText, Home, ShoppingCart, Settings, Users, Package, Factory, UserCheck, Truck, Shield } from "lucide-react";
 import { NavLink, useLocation } from "react-router-dom";
 import { Sidebar, SidebarContent, SidebarGroup, SidebarGroupContent, SidebarGroupLabel, SidebarMenu, SidebarMenuButton, SidebarMenuItem, SidebarHeader } from "@/components/ui/sidebar";
-import { useAuth } from "@/contexts/AuthContext";
+import { useAuth } from "@/core/auth";
 
 const mainMenuItems = [{
   title: "Dashboard",
@@ -44,8 +44,12 @@ const settingsItems = [{
 }];
 
 const adminItems = [{
-  title: "Admin",
+  title: "User Management",
   url: "/users",
+  icon: Users
+}, {
+  title: "Permissions",
+  url: "/permissions",
   icon: Shield
 }];
 

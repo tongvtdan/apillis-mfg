@@ -1,4 +1,4 @@
-import { ProjectIntakePortal } from "@/components/project/ProjectIntakePortal";
+import { ProjectIntakePortal } from "@/components/project/intake";
 
 export default function NewRFQ() {
   return <ProjectIntakePortal />;

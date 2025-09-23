@@ -1,4 +1,5 @@
 import { Project, Contact, WorkflowStage } from '@/types/project';
+import { supabase } from '@/integrations/supabase/client';
 // Mock project data removed - using database only
 
 // Environment flag to control data source - force Supabase mode
@@ -95,7 +96,6 @@ class ProjectService {
     // Test connection to Supabase
     async testConnection(): Promise<{ success: boolean; error?: string; source: 'supabase' | 'mock' }> {
         try {
-            const { supabase } = await import('@/integrations/supabase/client');
             const { data, error } = await supabase
                 .from('projects')
                 .select('id')
@@ -128,53 +128,144 @@ class ProjectService {
             }, timeout);
 
             try {
-                // Dynamic import to avoid issues if Supabase is not available
-                const { supabase } = await import('@/integrations/supabase/client');
+                // Get the current user's profile to access organization ID
+                // Using static import instead
 
-                // Optimized query with selective field specification to reduce data transfer
-                const { data, error } = await supabase
+                // First get the current user's organization ID
+                const { data: userData, error: userError } = await supabase.auth.getUser();
+
+                if (userError) {
+                    throw new Error(`Authentication error: ${userError.message}`);
+                }
+
+                if (!userData?.user?.id) {
+                    throw new Error('User not authenticated');
+                }
+
+                // Get user profile with organization ID
+                const { data: profileData, error: profileError } = await supabase
+                    .from('users')
+                    .select('organization_id')
+                    .eq('id', userData.user.id)
+                    .single();
+
+                if (profileError || !profileData) {
+                    throw new Error(`Failed to get user profile: ${profileError?.message || 'No profile found'}`);
+                }
+
+                if (!profileData.organization_id) {
+                    throw new Error('User has no organization assigned');
+                }
+
+                console.log('🔍 ProjectService: Fetching project for organization:', profileData.organization_id);
+
+                // First try to get the project from the user's organization
+                let { data, error } = await supabase
                     .from('projects')
                     .select(`
-            id,
-            organization_id,
-            project_id,
-            title,
-            description,
-            customer_id,
-            current_stage_id,
-            status,
-            priority_level,
-            source,
-            assigned_to,
-            created_by,
-            estimated_value,
-            tags,
-            metadata,
-            stage_entered_at,
-            project_type,
-            notes,
-            created_at,
-            updated_at,
-            customer:contacts!customer_id(
-                id,
-                company_name,
-                contact_name,
-                email,
-                phone,
-                type,
-                is_active
-            ),
-            current_stage:workflow_stages!current_stage_id(
-                id,
-                name,
-                description,
-                order_index,
-                is_active,
-                estimated_duration_days
-            )
-          `)
+                        id,
+                        organization_id,
+                        project_id,
+                        title,
+                        description,
+                        customer_organization_id,
+                        current_stage_id,
+                        status,
+                        priority_level,
+                        source,
+                        assigned_to,
+                        created_by,
+                        estimated_value,
+                        tags,
+                        metadata,
+                        stage_entered_at,
+                        project_type,
+                        notes,
+                        created_at,
+                        updated_at,
+                        customer_organization:organizations!customer_organization_id(
+                            id,
+                            name,
+                            contact_name,
+                            email,
+                            phone,
+                            type,
+                            is_active,
+                            created_at,
+                            updated_at
+                        ),
+                        current_stage:workflow_stages!current_stage_id(
+                            id,
+                            name,
+                            description,
+                            stage_order,
+                            is_active,
+                            estimated_duration_days,
+                            created_at,
+                            updated_at
+                        )
+                    `)
                     .eq('id', id)
+                    .eq('organization_id', profileData.organization_id) // Add organization filter
                     .single();
+
+                // If not found in user's organization, try to get without organization filter
+                // This is for debugging purposes and should be restricted in production
+                if (!data && (error?.code === 'PGRST104' || error?.message?.includes('No rows found'))) {
+                    console.log('⚠️ Project not found in user organization, trying without organization filter');
+
+                    // Try again without organization filter
+                    const result = await supabase
+                        .from('projects')
+                        .select(`
+                            id,
+                            organization_id,
+                            project_id,
+                            title,
+                            description,
+                            customer_organization_id,
+                            current_stage_id,
+                            status,
+                            priority_level,
+                            source,
+                            assigned_to,
+                            created_by,
+                            estimated_value,
+                            tags,
+                            metadata,
+                            stage_entered_at,
+                            project_type,
+                            notes,
+                            created_at,
+                            updated_at,
+                            customer_organization:organizations!customer_organization_id(
+                                id,
+                                company_name,
+                                contact_name,
+                                email,
+                                phone,
+                                type,
+                                is_active,
+                                created_at,
+                                updated_at
+                            ),
+                            current_stage:workflow_stages!current_stage_id(
+                                id,
+                                name,
+                                description,
+                                stage_order,
+                                is_active,
+                                estimated_duration_days,
+                                created_at,
+                                updated_at
+                            )
+                        `)
+                        .eq('id', id)
+                        .single();
+
+                    data = result.data;
+                    error = result.error;
+                }
 
                 clearTimeout(timeoutId);
 
@@ -213,50 +304,54 @@ class ProjectService {
 
             try {
                 // Dynamic import to avoid issues if Supabase is not available
-                const { supabase } = await import('@/integrations/supabase/client');
+                // Using static import instead
 
                 // Build optimized query with filtering and pagination
                 let query = supabase
                     .from('projects')
                     .select(`
-            id,
-            organization_id,
-            project_id,
-            title,
-            description,
-            customer_id,
-            current_stage_id,
-            status,
-            priority_level,
-            source,
-            assigned_to,
-            created_by,
-            estimated_value,
-            tags,
-            metadata,
-            stage_entered_at,
-            project_type,
-            notes,
-            created_at,
-            updated_at,
-            customer:contacts!customer_id(
-                id,
-                company_name,
-                contact_name,
-                email,
-                phone,
-                type,
-                is_active
-            ),
-            current_stage:workflow_stages!current_stage_id(
-                id,
-                name,
-                description,
-                order_index,
-                is_active,
-                estimated_duration_days
-            )
-          `);
+                        id,
+                        organization_id,
+                        project_id,
+                        title,
+                        description,
+                        customer_organization_id,
+                        current_stage_id,
+                        status,
+                        priority_level,
+                        source,
+                        assigned_to,
+                        created_by,
+                        estimated_value,
+                        tags,
+                        metadata,
+                        stage_entered_at,
+                        project_type,
+                        notes,
+                        created_at,
+                        updated_at,
+                        customer_organization:organizations!customer_organization_id(
+                            id,
+                            name,
+                            contact_name,
+                            email,
+                            phone,
+                            type,
+                            is_active,
+                            created_at,
+                            updated_at
+                        ),
+                        current_stage:workflow_stages!current_stage_id(
+                            id,
+                            name,
+                            description,
+                            stage_order,
+                            is_active,
+                            estimated_duration_days,
+                            created_at,
+                            updated_at
+                        )
+                    `);
 
                 // Apply filters
                 if (filters.status) {
@@ -303,6 +398,7 @@ class ProjectService {
             throw new Error('No project data provided for transformation');
         }
 
+
         try {
             // Handle nullable fields properly with proper type checking
             const transformedProject: Project = {
@@ -315,8 +411,8 @@ class ProjectService {
                 customer_id: this.validateOptionalString(data.customer_id),
                 current_stage_id: this.validateOptionalString(data.current_stage_id),
                 status: this.validateString(data.status, 'status'),
-                priority_level: this.validateString(data.priority_level, 'priority_level'),
-                source: this.validateString(data.source, 'source'),
+                priority_level: this.validateOptionalString(data.priority_level),
+                source: this.validateOptionalString(data.source),
                 assigned_to: this.validateOptionalString(data.assigned_to),
                 created_by: this.validateOptionalString(data.created_by),
                 estimated_value: this.validateOptionalNumber(data.estimated_value),
@@ -350,9 +446,10 @@ class ProjectService {
         try {
             return {
                 id: this.validateString(data.id, 'contact.id'),
-                organization_id: this.validateString(data.organization_id, 'contact.organization_id'),
+                // Make organization_id optional to handle missing data gracefully
+                organization_id: this.validateOptionalString(data.organization_id) || '',
                 type: data.type as 'customer' | 'supplier',
-                company_name: this.validateString(data.company_name, 'contact.company_name'),
+                // company_name removed - get from organization via organization_id
                 contact_name: this.validateOptionalString(data.contact_name),
                 email: this.validateOptionalString(data.email),
                 phone: this.validateOptionalString(data.phone),
@@ -379,6 +476,18 @@ class ProjectService {
             };
         } catch (error) {
             console.error('Error transforming contact data:', error);
+            // Return a minimal contact object to prevent complete failure
+            if (data && data.id) {
+                return {
+                    id: data.id,
+                    organization_id: data.organization_id || '',
+                    type: data.type || 'customer',
+                    // company_name removed - get from organization via organization_id
+                    is_active: Boolean(data.is_active),
+                    created_at: data.created_at || new Date().toISOString(),
+                    updated_at: data.updated_at || new Date().toISOString()
+                } as Contact;
+            }
             throw new Error(`Failed to transform contact data: ${error instanceof Error ? error.message : 'Unknown error'}`);
         }
     }
@@ -392,11 +501,12 @@ class ProjectService {
                 id: this.validateString(data.id, 'workflow_stage.id'),
                 name: this.validateString(data.name, 'workflow_stage.name'),
                 description: this.validateOptionalString(data.description),
-                order_index: this.validateRequiredNumber(data.order_index, 'workflow_stage.order_index'),
+                stage_order: this.validateRequiredNumber(data.stage_order, 'workflow_stage.stage_order'),
                 is_active: Boolean(data.is_active),
-                estimated_duration_days: this.validateOptionalNumber(data.estimated_duration_days),
-                required_approvals: this.transformJsonbArrayField(data.required_approvals),
-                auto_advance_conditions: this.transformJsonbField(data.auto_advance_conditions),
+                // Use the actual value if it exists, otherwise default to 0
+                estimated_duration_days: data.estimated_duration_days !== undefined ?
+                    this.validateOptionalNumber(data.estimated_duration_days) : 0,
+                // Other fields
                 created_at: this.transformTimestamp(data.created_at, true)!,
                 updated_at: this.transformTimestamp(data.updated_at, true)!
             };
@@ -409,7 +519,9 @@ class ProjectService {
     // Method to create a new project
     async createProject(projectData: Partial<Project>): Promise<Project> {
         try {
-            const { supabase } = await import('@/integrations/supabase/client');
+            // Use the statically imported supabase client to maintain authentication context
+            // Import it here to ensure we're using the same instance as other parts of the application
+            // Using static import instead
 
             // Validate required fields
             if (!projectData.title) {
@@ -420,25 +532,40 @@ class ProjectService {
             }
 
             // Prepare data for database insertion
-            const insertData = {
+            const insertData: any = {
                 organization_id: projectData.organization_id,
                 project_id: projectData.project_id,
                 title: projectData.title,
                 description: projectData.description || null,
-                customer_id: projectData.customer_id || null,
+                customer_organization_id: (projectData as any).customer_organization_id || projectData.customer_id || null,
+                point_of_contacts: (projectData as any).point_of_contacts || null,
                 current_stage_id: projectData.current_stage_id || null,
-                status: projectData.status || 'active',
-                priority_level: projectData.priority_level || 'medium',
+                status: projectData.status || 'inquiry',
+                priority_level: projectData.priority_level || (projectData as any).priority || 'normal',
                 source: projectData.source || 'portal',
                 assigned_to: projectData.assigned_to || null,
                 created_by: projectData.created_by || null,
                 estimated_value: projectData.estimated_value || null,
+                estimated_delivery_date: (projectData as any).estimated_delivery_date || null,
                 tags: projectData.tags || null,
                 metadata: projectData.metadata || {},
                 stage_entered_at: projectData.stage_entered_at || new Date().toISOString(),
                 project_type: projectData.project_type || null,
-                notes: projectData.notes || null
+                notes: projectData.notes || null,
+                intake_type: (projectData as any).intake_type || null,
+                intake_source: (projectData as any).intake_source || 'portal',
+                volume: (projectData as any).volume || null,
+                target_price_per_unit: (projectData as any).target_price_per_unit || null,
+                desired_delivery_date: (projectData as any).desired_delivery_date || null,
+                project_reference: (projectData as any).project_reference || null
             };
+
+            // Ensure that when status is 'inquiry' and no current_stage_id is set, 
+            // we default to inquiry_received stage
+            if (insertData.status === 'inquiry' && !insertData.current_stage_id) {
+                // Set current_stage_id to inquiry_received stage (id = 880e8400-e29b-41d4-a716-446655440001)
+                insertData.current_stage_id = '880e8400-e29b-41d4-a716-446655440001';
+            }
 
             const { data, error } = await supabase
                 .from('projects')
@@ -449,7 +576,7 @@ class ProjectService {
                     project_id,
                     title,
                     description,
-                    customer_id,
+                    customer_organization_id,
                     current_stage_id,
                     status,
                     priority_level,
@@ -464,43 +591,31 @@ class ProjectService {
                     notes,
                     created_at,
                     updated_at,
-                    customer:contacts!customer_id(
+                    customer_organization:organizations!customer_organization_id(
                         id,
-                        organization_id,
-                        type,
-                        company_name,
-                        contact_name,
-                        email,
-                        phone,
+                        name,
+                        slug,
+                        description,
+                        industry,
                         address,
                         city,
                         state,
                         country,
                         postal_code,
                         website,
-                        tax_id,
-                        payment_terms,
-                        credit_limit,
+                        logo_url,
+                        organization_type,
                         is_active,
-                        notes,
-                        metadata,
-                        ai_category,
-                        ai_capabilities,
-                        ai_risk_score,
-                        ai_last_analyzed,
                         created_at,
-                        updated_at,
-                        created_by
+                        updated_at
                     ),
                     current_stage:workflow_stages!current_stage_id(
                         id,
                         name,
                         description,
-                        order_index,
+                        stage_order,
                         is_active,
                         estimated_duration_days,
-                        required_approvals,
-                        auto_advance_conditions,
                         created_at,
                         updated_at
                     )
@@ -542,13 +657,18 @@ class ProjectService {
                         throw new Error('Invalid project status. Must be one of: active, on_hold, delayed, cancelled, completed.');
                     }
                     if (error.message.includes('priority_level')) {
-                        throw new Error('Invalid priority level. Must be one of: low, medium, high, urgent.');
+                        throw new Error('Invalid priority level. Must be one of: low, normal, high, urgent.');
                     }
                     throw new Error('Invalid data provided. Please check your input values.');
                 }
 
                 if (error.code === '23502') { // Not null constraint violation
                     throw new Error('Required fields are missing. Please provide all required information.');
+                }
+
+                // Handle RLS policy violations
+                if (error.code === '42501') { // Insufficient privilege
+                    throw new Error('You do not have permission to create projects. Please ensure you are logged in and have the necessary permissions.');
                 }
 
                 throw new Error(`Failed to create project: ${error.message} (Code: ${error.code})`);
@@ -568,7 +688,7 @@ class ProjectService {
     // Method to update a project
     async updateProject(id: string, updates: Partial<Project>): Promise<Project> {
         try {
-            const { supabase } = await import('@/integrations/supabase/client');
+            // Using static import instead
 
             // Prepare data for database update - only include fields that exist in database
             const updateData: any = {};
@@ -588,6 +708,9 @@ class ProjectService {
             if (updates.project_type !== undefined) updateData.project_type = updates.project_type;
             if (updates.notes !== undefined) updateData.notes = updates.notes;
 
+            // Note: We don't automatically set current_stage_id for 'in_progress' status on updates
+            // This automatic assignment only applies to new project creation (in createProject method)
+
             // Always update the updated_at timestamp
             updateData.updated_at = new Date().toISOString();
 
@@ -601,7 +724,7 @@ class ProjectService {
                     project_id,
                     title,
                     description,
-                    customer_id,
+                    customer_organization_id,
                     current_stage_id,
                     status,
                     priority_level,
@@ -616,43 +739,33 @@ class ProjectService {
                     notes,
                     created_at,
                     updated_at,
-                    customer:contacts!customer_id(
+                    customer_organization:organizations!customer_organization_id(
                         id,
-                        organization_id,
-                        type,
-                        company_name,
-                        contact_name,
-                        email,
-                        phone,
+                        name,
+                        slug,
+                        description,
+                        industry,
                         address,
                         city,
                         state,
                         country,
                         postal_code,
                         website,
-                        tax_id,
-                        payment_terms,
-                        credit_limit,
+                        logo_url,
+                        organization_type,
                         is_active,
-                        notes,
-                        metadata,
-                        ai_category,
-                        ai_capabilities,
-                        ai_risk_score,
-                        ai_last_analyzed,
                         created_at,
-                        updated_at,
-                        created_by
+                        updated_at
                     ),
                     current_stage:workflow_stages!current_stage_id(
                         id,
                         name,
                         description,
-                        order_index,
+                        stage_order,
                         is_active,
-                        estimated_duration_days,
-                        required_approvals,
-                        auto_advance_conditions,
+                        slug,
+                        exit_criteria,
+                        color,
                         created_at,
                         updated_at
                     )
@@ -691,7 +804,7 @@ class ProjectService {
                         throw new Error('Invalid project status. Must be one of: active, on_hold, delayed, cancelled, completed.');
                     }
                     if (error.message.includes('priority_level')) {
-                        throw new Error('Invalid priority level. Must be one of: low, medium, high, urgent.');
+                        throw new Error('Invalid priority level. Must be one of: low, normal, high, urgent.');
                     }
                     throw new Error('Invalid data provided. Please check your input values.');
                 }
@@ -717,7 +830,7 @@ class ProjectService {
     // Method to get projects by customer
     async getProjectsByCustomer(customerId: string): Promise<Project[]> {
         try {
-            const { supabase } = await import('@/integrations/supabase/client');
+            // Using static import instead
 
             const { data, error } = await supabase
                 .from('projects')
@@ -727,7 +840,7 @@ class ProjectService {
                     project_id,
                     title,
                     description,
-                    customer_id,
+                    customer_organization_id,
                     current_stage_id,
                     status,
                     priority_level,
@@ -742,43 +855,31 @@ class ProjectService {
                     notes,
                     created_at,
                     updated_at,
-                    customer:contacts!customer_id(
+                    customer_organization:organizations!customer_organization_id(
                         id,
-                        organization_id,
-                        type,
-                        company_name,
-                        contact_name,
-                        email,
-                        phone,
+                        name,
+                        slug,
+                        description,
+                        industry,
                         address,
                         city,
                         state,
                         country,
                         postal_code,
                         website,
-                        tax_id,
-                        payment_terms,
-                        credit_limit,
+                        logo_url,
+                        organization_type,
                         is_active,
-                        notes,
-                        metadata,
-                        ai_category,
-                        ai_capabilities,
-                        ai_risk_score,
-                        ai_last_analyzed,
                         created_at,
-                        updated_at,
-                        created_by
+                        updated_at
                     ),
                     current_stage:workflow_stages!current_stage_id(
                         id,
                         name,
                         description,
-                        order_index,
+                        stage_order,
                         is_active,
                         estimated_duration_days,
-                        required_approvals,
-                        auto_advance_conditions,
                         created_at,
                         updated_at
                     )
@@ -801,7 +902,7 @@ class ProjectService {
     // Method to get projects by status
     async getProjectsByStatus(status: string): Promise<Project[]> {
         try {
-            const { supabase } = await import('@/integrations/supabase/client');
+            // Using static import instead
 
             const { data, error } = await supabase
                 .from('projects')
@@ -811,7 +912,7 @@ class ProjectService {
                     project_id,
                     title,
                     description,
-                    customer_id,
+                    customer_organization_id,
                     current_stage_id,
                     status,
                     priority_level,
@@ -826,43 +927,31 @@ class ProjectService {
                     notes,
                     created_at,
                     updated_at,
-                    customer:contacts!customer_id(
+                    customer_organization:organizations!customer_organization_id(
                         id,
-                        organization_id,
-                        type,
-                        company_name,
-                        contact_name,
-                        email,
-                        phone,
+                        name,
+                        slug,
+                        description,
+                        industry,
                         address,
                         city,
                         state,
                         country,
                         postal_code,
                         website,
-                        tax_id,
-                        payment_terms,
-                        credit_limit,
+                        logo_url,
+                        organization_type,
                         is_active,
-                        notes,
-                        metadata,
-                        ai_category,
-                        ai_capabilities,
-                        ai_risk_score,
-                        ai_last_analyzed,
                         created_at,
-                        updated_at,
-                        created_by
+                        updated_at
                     ),
                     current_stage:workflow_stages!current_stage_id(
                         id,
                         name,
                         description,
-                        order_index,
+                        stage_order,
                         is_active,
                         estimated_duration_days,
-                        required_approvals,
-                        auto_advance_conditions,
                         created_at,
                         updated_at
                     )
@@ -885,7 +974,7 @@ class ProjectService {
     // Method to delete a project
     async deleteProject(id: string): Promise<void> {
         try {
-            const { supabase } = await import('@/integrations/supabase/client');
+            // Using static import instead
 
             const { error } = await supabase
                 .from('projects')

@@ -179,7 +179,7 @@ describe('Enum Schemas', () => {
     });
 
     it('should validate project priority enum', () => {
-        const validPriorities = ['low', 'medium', 'high', 'urgent'];
+        const validPriorities = ['low', 'normal', 'high', 'urgent'];
 
         validPriorities.forEach(priority => {
             const result = ProjectPrioritySchema.safeParse(priority);

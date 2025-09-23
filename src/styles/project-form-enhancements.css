@@ -17,7 +17,7 @@
 }
 
 .project-card {
-    @apply shadow-lg border-base-200 transition-all duration-200;
+    @apply shadow-lg border-border transition-all duration-200;
     border: 1px solid var(--fp-border);
 }
 
@@ -31,7 +31,7 @@
 }
 
 .project-input {
-    @apply border-base-300 transition-colors;
+    @apply border-border transition-colors;
 }
 
 .project-input:focus {
@@ -41,7 +41,7 @@
 }
 
 .project-select {
-    @apply border-base-300 transition-colors;
+    @apply border-border transition-colors;
 }
 
 .project-select[data-state="open"] {

@@ -25,7 +25,7 @@ import {
   User
 } from 'lucide-react';
 import { formatDistanceToNow } from 'date-fns';
-import { useUserDisplayName, useUsers } from '@/hooks/useUsers';
+import { useUserDisplayName } from '@/hooks/useUsers';
 
 interface ReviewStatusPanelProps {
   rfq: RFQ;
@@ -34,6 +34,17 @@ interface ReviewStatusPanelProps {
   clarifications: RFQClarification[];
   onAssignReviewer?: (department: Department) => void;
   canAssignReviewers?: boolean;
+}
+
+// Helper component to display assigned reviewer
+function AssignedReviewerDisplay({ reviewerId }: { reviewerId: string }) {
+  const displayName = useUserDisplayName(reviewerId);
+  return (
+    <AssignedReviewerBadge
+      reviewerId={reviewerId}
+      displayName={displayName}
+    />
+  );
 }
 
 export function ReviewStatusPanel({
@@ -47,9 +58,8 @@ export function ReviewStatusPanel({
 
   const departments: Department[] = ['Engineering', 'QA', 'Production'];
 
-  // Get all unique reviewer IDs to fetch display names
+  // Collect all unique reviewer IDs for reference (no longer using useUsers)
   const reviewerIds = reviews ? [...new Set(reviews.map(review => review.reviewer_id).filter(Boolean))] : [];
-  const { users: reviewerUsers } = useUsers(reviewerIds);
 
   const getReviewForDepartment = (department: Department) => {
     return reviews.find(r => r.department === department);
@@ -130,10 +140,7 @@ export function ReviewStatusPanel({
 
                   <div className="flex items-center gap-2">
                     {assignedReviewer && (
-                      <AssignedReviewerBadge
-                        reviewerId={assignedReviewer}
-                        displayName={reviewerUsers.get(assignedReviewer)?.display_name || assignedReviewer}
-                      />
+                      <AssignedReviewerDisplay reviewerId={assignedReviewer} />
                     )}
                     {canAssignReviewers && !assignedReviewer && (
                       <Button

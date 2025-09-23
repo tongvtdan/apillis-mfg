@@ -1,13 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useForm } from 'react-hook-form';
-import {
-    Dialog,
-    DialogContent,
-    DialogDescription,
-    DialogFooter,
-    DialogHeader,
-    DialogTitle,
-} from '@/components/ui/dialog';
+import { Modal } from '@/components/ui/modal';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -19,22 +12,36 @@ import {
     SelectTrigger,
     SelectValue,
 } from '@/components/ui/select';
-import { Customer } from '@/types/project';
-import { useCustomers, CreateCustomerRequest } from '@/hooks/useCustomers';
+import { Badge } from '@/components/ui/badge';
+import { Command, CommandEmpty, CommandGroup, CommandInput, CommandItem, CommandList } from '@/components/ui/command';
+import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
+import { Check, ChevronsUpDown, X, Building2 } from 'lucide-react';
+import { Organization } from '@/types/project';
+import { useCustomerOrganizations } from '@/hooks/useCustomerOrganizations';
+import { cn } from '@/lib/utils';
+import { processOrganizationData, processContactData, populateCustomerFormData } from '@/utils/customerFormUtils';
 
 interface CustomerModalProps {
     open: boolean;
     onClose: () => void;
-    customer?: Customer | null;
+    customer?: Organization | null;
+    onSuccess?: (customer: Organization) => void;
 }
 
 interface CustomerFormData {
-    name: string;
-    company: string;
+    company_name: string;
+    slug: string;
+    description: string;
+    industry: string;
+    contact_name: string;
     email: string;
     phone: string;
     address: string;
+    city: string;
+    state: string;
     country: string;
+    postal_code: string;
+    website: string;
 }
 
 const COUNTRIES = [
@@ -62,12 +69,48 @@ const COUNTRIES = [
     'India',
     'Brazil',
     'Mexico',
+    'Vietnam',
     'Other'
 ];
 
-export function CustomerModal({ open, onClose, customer }: CustomerModalProps) {
+const INDUSTRIES = [
+    'Technology',
+    'Manufacturing',
+    'Automotive',
+    'Aerospace',
+    'Healthcare',
+    'Pharmaceuticals',
+    'Electronics',
+    'Telecommunications',
+    'Energy',
+    'Oil & Gas',
+    'Construction',
+    'Agriculture',
+    'Food & Beverage',
+    'Textiles',
+    'Chemicals',
+    'Mining',
+    'Transportation',
+    'Logistics',
+    'Retail',
+    'Finance',
+    'Insurance',
+    'Real Estate',
+    'Education',
+    'Government',
+    'Non-Profit',
+    'Consulting',
+    'Media',
+    'Entertainment',
+    'Sports',
+    'Other'
+];
+
+export function CustomerModal({ open, onClose, customer, onSuccess }: CustomerModalProps) {
     const [loading, setLoading] = useState(false);
-    const { createCustomer, updateCustomer } = useCustomers();
+    const [industryOpen, setIndustryOpen] = useState(false);
+    const [customIndustry, setCustomIndustry] = useState('');
+    const { createOrganization, updateOrganization } = useCustomerOrganizations();
 
     const {
         register,
@@ -79,35 +122,61 @@ export function CustomerModal({ open, onClose, customer }: CustomerModalProps) {
     } = useForm<CustomerFormData>({
         mode: 'onChange',
         defaultValues: {
-            name: '',
-            company: '',
+            company_name: '',
+            slug: '',
+            description: '',
+            industry: '',
+            contact_name: '',
             email: '',
             phone: '',
             address: '',
-            country: ''
+            city: '',
+            state: '',
+            country: '',
+            postal_code: '',
+            website: ''
         }
     });
 
     const isEditing = !!customer;
 
+    // Helper function to generate slug from company name
+    const generateSlug = (name: string) => {
+        return name
+            .toLowerCase()
+            .replace(/[^a-z0-9\s-]/g, '')
+            .replace(/\s+/g, '-')
+            .replace(/-+/g, '-')
+            .trim();
+    };
+
+    // Watch company name to auto-generate slug
+    const companyName = watch('company_name');
+    useEffect(() => {
+        if (companyName && !isEditing) {
+            const slug = generateSlug(companyName);
+            setValue('slug', slug);
+        }
+    }, [companyName, setValue, isEditing]);
+
     useEffect(() => {
         if (customer) {
-            reset({
-                name: customer.name || '',
-                company: customer.company || '',
-                email: customer.email || '',
-                phone: customer.phone || '',
-                address: customer.address || '',
-                country: customer.country || ''
-            });
+            populateCustomerFormData(customer, reset);
         } else {
             reset({
-                name: '',
-                company: '',
+                company_name: '',
+                slug: '',
+                description: '',
+                industry: '',
+                contact_name: '',
                 email: '',
                 phone: '',
                 address: '',
-                country: ''
+                city: '',
+                state: '',
+                country: '',
+                postal_code: '',
+                website: ''
             });
         }
     }, [customer, reset]);
@@ -116,24 +185,22 @@ export function CustomerModal({ open, onClose, customer }: CustomerModalProps) {
         try {
             setLoading(true);
 
-            const customerData: CreateCustomerRequest = {
-                name: data.name.trim(),
-                company: data.company.trim() || undefined,
-                email: data.email.trim() || undefined,
-                phone: data.phone.trim() || undefined,
-                address: data.address.trim() || undefined,
-                country: data.country || undefined
-            };
+            const organizationData = processOrganizationData(data);
+            const contactData = processContactData(data);
 
             if (isEditing && customer) {
-                await updateCustomer(customer.id, customerData);
+                // Update existing organization
+                const updatedOrganization = await updateOrganization(customer.id, organizationData);
+                onSuccess?.(updatedOrganization);
             } else {
-                await createCustomer(customerData);
+                const newOrganization = await createOrganization(organizationData, contactData);
+                onSuccess?.(newOrganization);
             }
 
             onClose();
         } catch (error) {
             console.error('Error saving customer:', error);
+            // Error toast is already handled in the hook
         } finally {
             setLoading(false);
         }
@@ -146,91 +213,195 @@ export function CustomerModal({ open, onClose, customer }: CustomerModalProps) {
     };
 
     return (
-        <Dialog open={open} onOpenChange={handleClose}>
-            <DialogContent className="sm:max-w-[500px] modal-dialog">
-                <DialogHeader className="modal-dialog-header">
-                    <DialogTitle className="modal-dialog-title">
-                        {isEditing ? 'Edit Customer' : 'Add New Customer'}
-                    </DialogTitle>
-                    <DialogDescription className="modal-dialog-description">
-                        {isEditing
-                            ? 'Update customer information and contact details.'
-                            : 'Add a new customer to your database with their contact information.'
-                        }
-                    </DialogDescription>
-                </DialogHeader>
+        <Modal
+            isOpen={open}
+            onClose={handleClose}
+            title={
+                <div className="flex items-center gap-2">
+                    <Building2 className="w-5 h-5" />
+                    {isEditing ? 'Edit Customer' : 'Add New Customer'}
+                </div>
+            }
+            description={
+                isEditing
+                    ? 'Update customer information and contact details.'
+                    : 'Add a new customer to your database with their contact information. A primary contact will be created automatically.'
+            }
+            showDescription={true}
+            maxWidth="max-w-[600px]"
+        >
 
-                <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
-                    <div className="grid grid-cols-2 gap-4">
-                        <div className="space-y-2">
-                            <Label htmlFor="name">Name *</Label>
-                            <Input
-                                id="name"
-                                {...register('name', {
-                                    required: 'Name is required',
-                                    minLength: { value: 2, message: 'Name must be at least 2 characters' }
-                                })}
-                                placeholder="John Smith"
-                                className="modal-form-input"
-                            />
-                            {errors.name && (
-                                <p className="text-sm text-destructive">{errors.name.message}</p>
-                            )}
-                        </div>
-
-                        <div className="space-y-2">
-                            <Label htmlFor="company">Company</Label>
-                            <Input
-                                id="company"
-                                {...register('company')}
-                                placeholder="Acme Manufacturing"
-                                className="modal-form-input"
-                            />
-                        </div>
-                    </div>
-
-                    <div className="grid grid-cols-2 gap-4">
-                        <div className="space-y-2">
-                            <Label htmlFor="email">Email</Label>
-                            <Input
-                                id="email"
-                                type="email"
-                                {...register('email', {
-                                    pattern: {
-                                        value: /^[^\s@]+@[^\s@]+\.[^\s@]+$/,
-                                        message: 'Please enter a valid email address'
-                                    }
-                                })}
-                                placeholder="john@acme.com"
-                                className="modal-form-input"
-                            />
-                            {errors.email && (
-                                <p className="text-sm text-destructive">{errors.email.message}</p>
-                            )}
-                        </div>
-
-                        <div className="space-y-2">
-                            <Label htmlFor="phone">Phone</Label>
-                            <Input
-                                id="phone"
-                                {...register('phone')}
-                                placeholder="+1-555-0123"
-                                className="modal-form-input"
-                            />
-                        </div>
+            <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
+                <div className="grid grid-cols-2 gap-4">
+                    <div className="space-y-2">
+                        <Label htmlFor="company_name">Company Name *</Label>
+                        <Input
+                            id="company_name"
+                            {...register('company_name', {
+                                required: 'Company name is required',
+                                minLength: { value: 2, message: 'Company name must be at least 2 characters' }
+                            })}
+                            placeholder="Acme Manufacturing"
+                            className="modal-form-input"
+                        />
+                        {errors.company_name && (
+                            <p className="text-sm text-destructive">{errors.company_name.message}</p>
+                        )}
                     </div>
 
                     <div className="space-y-2">
-                        <Label htmlFor="address">Address</Label>
-                        <Textarea
-                            id="address"
-                            {...register('address')}
-                            placeholder="123 Industrial Ave, Detroit, MI 48201"
-                            rows={2}
-                            className="modal-form-textarea"
+                        <Label htmlFor="slug">Slug</Label>
+                        <Input
+                            id="slug"
+                            {...register('slug')}
+                            placeholder="acme-manufacturing"
+                            className="modal-form-input"
+                        />
+                        <p className="text-xs text-muted-foreground">URL-friendly identifier (auto-generated from company name)</p>
+                    </div>
+                </div>
+
+                <div className="space-y-2">
+                    <Label htmlFor="description">Description</Label>
+                    <Textarea
+                        id="description"
+                        {...register('description')}
+                        placeholder="Brief description of the company and its business..."
+                        rows={3}
+                        className="modal-form-textarea"
+                    />
+                </div>
+
+                <div className="space-y-2">
+                    <Label>Industry</Label>
+                    <Popover open={industryOpen} onOpenChange={setIndustryOpen}>
+                        <PopoverTrigger asChild>
+                            <Button
+                                variant="outline"
+                                role="combobox"
+                                aria-expanded={industryOpen}
+                                className="w-full justify-between modal-form-input"
+                            >
+                                {watch('industry') || "Select industry..."}
+                                <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
+                            </Button>
+                        </PopoverTrigger>
+                        <PopoverContent className="w-full p-0">
+                            <Command>
+                                <CommandInput placeholder="Search industry..." />
+                                <CommandList>
+                                    <CommandEmpty>
+                                        <div className="p-2">
+                                            <Input
+                                                placeholder="Add custom industry..."
+                                                value={customIndustry}
+                                                onChange={(e) => setCustomIndustry(e.target.value)}
+                                                onKeyDown={(e) => {
+                                                    if (e.key === 'Enter' && customIndustry.trim()) {
+                                                        setValue('industry', customIndustry.trim());
+                                                        setIndustryOpen(false);
+                                                        setCustomIndustry('');
+                                                    }
+                                                }}
+                                            />
+                                        </div>
+                                    </CommandEmpty>
+                                    <CommandGroup>
+                                        {INDUSTRIES.map((industry) => (
+                                            <CommandItem
+                                                key={industry}
+                                                value={industry}
+                                                onSelect={() => {
+                                                    setValue('industry', industry);
+                                                    setIndustryOpen(false);
+                                                }}
+                                            >
+                                                <Check
+                                                    className={cn(
+                                                        "mr-2 h-4 w-4",
+                                                        watch('industry') === industry ? "opacity-100" : "opacity-0"
+                                                    )}
+                                                />
+                                                {industry}
+                                            </CommandItem>
+                                        ))}
+                                    </CommandGroup>
+                                </CommandList>
+                            </Command>
+                        </PopoverContent>
+                    </Popover>
+                    {watch('industry') && (
+                        <div className="flex items-center gap-2">
+                            <Badge variant="secondary" className="text-xs">
+                                {watch('industry')}
+                            </Badge>
+                            <Button
+                                type="button"
+                                variant="ghost"
+                                size="sm"
+                                onClick={() => setValue('industry', '')}
+                                className="h-6 w-6 p-0"
+                            >
+                                <X className="h-3 w-3" />
+                            </Button>
+                        </div>
+                    )}
+                </div>
+
+                {/* Organization Address Information */}
+                <div className="space-y-4">
+                    <h3 className="text-lg font-medium text-foreground border-b border-border pb-2">
+                        Organization Address & Website
+                    </h3>
+                    <p className="text-sm text-muted-foreground">
+                        Company address and website information for the organization.
+                    </p>
+                </div>
+
+                <div className="space-y-2">
+                    <Label htmlFor="address">Organization Address</Label>
+                    <Textarea
+                        id="address"
+                        {...register('address')}
+                        placeholder="123 Industrial Ave"
+                        rows={2}
+                        className="modal-form-textarea"
+                    />
+                </div>
+
+                <div className="grid grid-cols-3 gap-4">
+                    <div className="space-y-2">
+                        <Label htmlFor="city">City</Label>
+                        <Input
+                            id="city"
+                            {...register('city')}
+                            placeholder="Detroit"
+                            className="modal-form-input"
                         />
                     </div>
 
+                    <div className="space-y-2">
+                        <Label htmlFor="state">State/Province</Label>
+                        <Input
+                            id="state"
+                            {...register('state')}
+                            placeholder="MI"
+                            className="modal-form-input"
+                        />
+                    </div>
+
+                    <div className="space-y-2">
+                        <Label htmlFor="postal_code">Postal Code</Label>
+                        <Input
+                            id="postal_code"
+                            {...register('postal_code')}
+                            placeholder="48201"
+                            className="modal-form-input"
+                        />
+                    </div>
+                </div>
+
+                <div className="grid grid-cols-2 gap-4">
                     <div className="space-y-2">
                         <Label htmlFor="country">Country</Label>
                         <Select
@@ -250,27 +421,92 @@ export function CustomerModal({ open, onClose, customer }: CustomerModalProps) {
                         </Select>
                     </div>
 
-                    <DialogFooter>
-                        <Button
-                            type="button"
-                            variant="outline"
-                            onClick={handleClose}
-                            disabled={loading}
-                            className="modal-button-secondary"
-                        >
-                            Cancel
-                        </Button>
-                        <Button
-                            type="submit"
-                            disabled={!isValid || loading}
-                            className="modal-button-primary"
-                            variant="accent"
-                        >
-                            {loading ? 'Saving...' : (isEditing ? 'Update Customer' : 'Add Customer')}
-                        </Button>
-                    </DialogFooter>
-                </form>
-            </DialogContent>
-        </Dialog>
+                    <div className="space-y-2">
+                        <Label htmlFor="website">Organization Website</Label>
+                        <Input
+                            id="website"
+                            type="url"
+                            {...register('website')}
+                            placeholder="https://acme.com"
+                            className="modal-form-input"
+                        />
+                    </div>
+                </div>
+
+                {/* Primary Contact Information */}
+                <div className="space-y-4">
+                    <h3 className="text-lg font-medium text-foreground border-b border-border pb-2">
+                        Primary Contact Information
+                    </h3>
+                    <p className="text-sm text-muted-foreground">
+                        This contact will be set as the main point of contact for this customer organization.
+                    </p>
+                </div>
+
+                <div className="grid grid-cols-2 gap-4">
+                    <div className="space-y-2">
+                        <Label htmlFor="contact_name">Primary Contact Name</Label>
+                        <Input
+                            id="contact_name"
+                            {...register('contact_name')}
+                            placeholder="John Smith"
+                            className="modal-form-input"
+                        />
+
+                    </div>
+
+                    <div className="space-y-2">
+                        <Label htmlFor="email">Primary Contact Email</Label>
+                        <Input
+                            id="email"
+                            type="email"
+                            {...register('email', {
+                                pattern: {
+                                    value: /^[^\s@]+@[^\s@]+\.[^\s@]+$/,
+                                    message: 'Please enter a valid email address'
+                                }
+                            })}
+                            placeholder="john@acme.com"
+                            className="modal-form-input"
+                        />
+                        {errors.email && (
+                            <p className="text-sm text-destructive">{errors.email.message}</p>
+                        )}
+
+                    </div>
+
+                    <div className="space-y-2">
+                        <Label htmlFor="phone">Primary Contact Phone</Label>
+                        <Input
+                            id="phone"
+                            {...register('phone')}
+                            placeholder="+1-555-0123"
+                            className="modal-form-input"
+                        />
+
+                    </div>
+                </div>
+
+                <div className="flex justify-end gap-3 pt-4 border-t">
+                    <Button
+                        type="button"
+                        variant="outline"
+                        onClick={handleClose}
+                        disabled={loading}
+                        className="modal-button-secondary"
+                    >
+                        Cancel
+                    </Button>
+                    <Button
+                        type="submit"
+                        disabled={!isValid || loading}
+                        className="modal-button-primary"
+                        variant="accent"
+                    >
+                        {loading ? 'Saving...' : (isEditing ? 'Update Customer' : 'Add Customer')}
+                    </Button>
+                </div>
+            </form>
+        </Modal>
     );
 }

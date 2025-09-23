@@ -81,8 +81,8 @@ export const ROLE_DEFAULT_ROUTES = {
     engineering: '/dashboard',
     qa: '/dashboard',
     production: '/dashboard',
-    management: '/admin/dashboard',
-    admin: '/admin/dashboard',
+    management: '/dashboard',
+    admin: '/dashboard',
 } as const;
 
 /**

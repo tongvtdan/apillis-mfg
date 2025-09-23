@@ -1,0 +1,2 @@
+- Check current codebase that related to the task before implementing the task to avoid duplicated code or reduntant code.
+- Focus on improvements instead of breaking changes and create new files or code.

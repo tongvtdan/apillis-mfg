@@ -22,8 +22,8 @@ import {
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { format } from "date-fns";
-import { useProjectMessages, useCreateMessage } from "@/hooks/useMessages";
-import { useAuth } from "@/contexts/AuthContext";
+import { useProjectMessages, useCreateMessage } from "@/features/communication/hooks";
+import { useAuth } from "@/core/auth";
 
 interface ProjectCommunicationProps {
     projectId: string;
@@ -303,11 +303,11 @@ export default function ProjectCommunication({ projectId, projectTitle }: Projec
 
                         <div>
                             <Label htmlFor="subject">Subject</Label>
-                            <Input 
-                                id="subject" 
+                            <Input
+                                id="subject"
                                 value={newSubject}
                                 onChange={(e) => setNewSubject(e.target.value)}
-                                placeholder="Message subject..." 
+                                placeholder="Message subject..."
                             />
                         </div>
 

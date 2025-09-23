@@ -16,18 +16,19 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-import { Project, ProjectStatus, PROJECT_STAGES } from "@/types/project";
-import { useProjects } from "@/hooks/useProjects";
+import { Project, ProjectStatus, PROJECT_STAGES, WorkflowStage } from "@/types/project";
+import { useProjectManagement } from "@/features/project-management/hooks";
 import { ExternalLink, User, ArrowUpDown, ArrowUp, ArrowDown } from "lucide-react";
 import { useNavigate } from "react-router-dom";
-import { AnimatedTableRow } from "./AnimatedTableRow";
+import { AnimatedTableRow } from "./ui";
 import { WorkflowValidator } from "@/lib/workflow-validator";
 import { ProjectErrorBoundary } from "@/components/error/ProjectErrorBoundary";
-import { useErrorHandling } from "@/hooks/useErrorHandling";
+import { useErrorHandling } from "@/shared/hooks";
 import { DataUnavailable, LoadingFallback } from "@/components/error/FallbackMechanisms";
 
 interface ProjectTableProps {
   projects: Project[];
+  workflowStages?: WorkflowStage[];
   updateProjectStatusOptimistic?: (projectId: string, newStatus: ProjectStatus) => Promise<boolean>;
   refetch?: (forceRefresh?: boolean) => Promise<void>;
 }
@@ -50,8 +51,8 @@ const priorityVariants = {
   urgent: "bg-red-200 text-red-900",
 } as const;
 
-export function ProjectTable({ projects, updateProjectStatusOptimistic: externalUpdateFn, refetch: externalRefetch }: ProjectTableProps) {
-  const { updateProjectStatusOptimistic: hookUpdateFn, refetch: hookRefetch } = useProjects();
+export function ProjectTable({ projects, workflowStages = [], updateProjectStatusOptimistic: externalUpdateFn, refetch: externalRefetch }: ProjectTableProps) {
+  const { updateProjectStatusOptimistic: hookUpdateFn, refetch: hookRefetch } = useProjectManagement();
   const navigate = useNavigate();
   const [updatingProjects, setUpdatingProjects] = useState<Set<string>>(new Set());
   const [sortField, setSortField] = useState<'name' | 'stage' | 'priority'>('name');
@@ -166,8 +167,8 @@ export function ProjectTable({ projects, updateProjectStatusOptimistic: external
           break;
         case 'priority':
           // Use priority_level (database field) or fallback to priority for compatibility
-          aValue = a.priority_level || a.priority || 'medium';
-          bValue = b.priority_level || b.priority || 'medium';
+          aValue = a.priority_level || a.priority || 'normal';
+          bValue = b.priority_level || b.priority || 'normal';
           break;
         default:
           aValue = a.title.toLowerCase();
@@ -338,6 +339,7 @@ export function ProjectTable({ projects, updateProjectStatusOptimistic: external
                 <AnimatedTableRow
                   key={project.id}
                   project={project}
+                  workflowStages={workflowStages}
                   onStatusChange={handleStatusChange}
                   onViewProject={handleViewProject}
                   statusVariants={statusVariants}
