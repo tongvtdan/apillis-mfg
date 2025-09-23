@@ -1,13 +1,6 @@
-import { supabase } from '@/integrations/supabase/client';
-import { createClient } from '@supabase/supabase-js';
+import { supabase, supabaseServiceRole } from '@/integrations/supabase/client';
 import { useAuth } from '@/core/auth';
 import { useApproval } from '@/core/approvals';
-
-// Service role client for storage operations (bypasses RLS)
-const supabaseServiceRole = createClient(
-    'http://localhost:54321',
-    'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZS1kZW1vIiwicm9sZSI6InNlcnZpY2Vfcm9sZSIsImV4cCI6MTk4MzgxMjk5Nn0.EGIM96RAZx35lJzdJsyH-qQwv8Hdp7fsn3W0YpN81IU'
-);
 import {
     Supplier,
     RFQ,
@@ -372,6 +365,68 @@ export class SupplierManagementService {
         } catch (error) {
             console.error('❌ Supplier update failed:', error);
             throw new Error(`Failed to update supplier: ${error instanceof Error ? error.message : 'Unknown error'}`);
+        }
+    }
+
+    /**
+     * Delete a supplier (soft delete by setting is_active to false)
+     */
+    static async deleteSupplier(supplierId: string, userId: string): Promise<void> {
+
+        console.log('🗑️ Deleting supplier:', supplierId);
+
+        try {
+            // Get user's organization ID
+            const { data: userData, error: userError } = await supabase
+                .from('users')
+                .select('organization_id')
+                .eq('id', userId)
+                .single();
+
+            if (userError || !userData?.organization_id) {
+                throw new Error('User organization not found');
+            }
+
+            // Verify supplier exists and belongs to the user's organization
+            const { data: supplierData, error: fetchError } = await supabase
+                .from('organizations')
+                .select('id, name, is_active')
+                .eq('id', supplierId)
+                .eq('organization_type', 'supplier')
+                .single();
+
+            if (fetchError || !supplierData) {
+                throw new Error(`Supplier not found: ${fetchError?.message || 'Unknown error'}`);
+            }
+
+            if (!supplierData.is_active) {
+                throw new Error('Supplier is already inactive');
+            }
+
+            // Soft delete by setting is_active to false
+            const { error: updateError } = await supabase
+                .from('organizations')
+                .update({
+                    is_active: false,
+                    updated_at: new Date().toISOString()
+                })
+                .eq('id', supplierId);
+
+            if (updateError) {
+                throw new Error(`Failed to delete supplier: ${updateError.message}`);
+            }
+
+            // Log activity
+            await this.logSupplierActivity(supplierId, 'supplier_deleted', {
+                deletedBy: userId,
+                supplierName: supplierData.name
+            }, userId);
+
+            console.log('✅ Supplier deleted successfully');
+
+        } catch (error) {
+            console.error('❌ Supplier deletion failed:', error);
+            throw new Error(`Failed to delete supplier: ${error instanceof Error ? error.message : 'Unknown error'}`);
         }
     }
 

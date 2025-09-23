@@ -1,12 +1,5 @@
-import { supabase } from '@/integrations/supabase/client';
-import { createClient } from '@supabase/supabase-js';
+import { supabase, supabaseServiceRole } from '@/integrations/supabase/client';
 import { ProjectDocument } from '@/types/project';
-
-// Service role client for storage operations (bypasses RLS)
-const supabaseServiceRole = createClient(
-    'http://localhost:54321',
-    'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZS1kZW1vIiwicm9sZSI6InNlcnZpY2Vfcm9sZSIsImV4cCI6MTk4MzgxMjk5Nn0.EGIM96RAZx35lJzdJsyH-qQwv8Hdp7fsn3W0YpN81IU'
-);
 
 export interface DocumentVersion {
     id: string;
@@ -288,7 +281,7 @@ class DocumentVersionService {
                     file_path: targetVersion.file_path,
                     file_size: targetVersion.file_size,
                     file_type: targetVersion.mime_type,
-                    version: targetVersion.version_number,
+                    version_number: targetVersion.version_number,
                     is_current_version: true,
                     updated_at: new Date().toISOString()
                 })

@@ -11,7 +11,7 @@ import {
   Plus,
   BarChart3
 } from 'lucide-react';
-import { useCustomerOrganizations } from '@/features/customer-management/hooks/useCustomerOrganizations';
+import { useCustomerOrganizations } from '@/hooks/useCustomerOrganizations';
 import { usePermissions } from '@/core/auth/hooks/usePermissions';
 import { Switch } from '@/components/ui/switch';
 import { Label } from '@/components/ui/label';
@@ -19,6 +19,7 @@ import { CustomerTable } from '@/components/customer/CustomerTableEnhanced';
 import { CustomerModal } from '@/components/customer/CustomerModal';
 import { ContactModal } from '@/components/customer/ContactModal';
 import { CustomerOrganizationWithSummary } from '@/types/project';
+import { calculateCustomerStatistics } from '@/utils/customerStatistics';
 
 export default function Customers() {
   const [showArchived, setShowArchived] = useState(false);
@@ -43,13 +44,8 @@ export default function Customers() {
   }, [checkCanManageCustomers]);
 
   // Calculate customer statistics
-  const totalCustomers = customers.length;
-  const activeCustomers = customers.filter(c => c.is_active !== false).length;
-  const archivedCustomers = customers.filter(c => c.is_active === false).length;
-  const countries = [...new Set(customers.map(c => c.country).filter(Boolean))].length;
-  const totalProjects = customers.reduce((sum, c) => sum + c.project_summary.total_projects, 0);
-  const totalValue = customers.reduce((sum, c) => sum + c.project_summary.total_value, 0);
-  const activeProjects = customers.reduce((sum, c) => sum + c.project_summary.active_projects, 0);
+  const stats = calculateCustomerStatistics(customers);
+  const { totalCustomers, activeCustomers, archivedCustomers, countries, totalProjects, totalValue, activeProjects } = stats;
 
   const handleCustomerSelect = (customer: CustomerOrganizationWithSummary) => {
     setSelectedCustomer(customer);
@@ -62,10 +58,16 @@ export default function Customers() {
   };
 
   const handleContactCreated = (contact: any) => {
-    // Refresh the customers data to show updated contact count
-    // The useCustomerOrganizations hook should automatically refresh
+    // Handle successful contact creation
     console.log('Contact created:', contact);
+    // You can add additional logic here, such as:
+    // - Refresh customer data
+    // - Show a success message
+    // - Navigate to contact details
+    setShowContactModal(false);
+    setSelectedCustomer(null);
   };
+
 
   if (loading) {
     return (
@@ -198,6 +200,10 @@ export default function Customers() {
                 customers={customers}
                 onCustomerSelect={handleCustomerSelect}
                 onAddContact={handleAddContact}
+                onEdit={(customer) => {
+                  setSelectedCustomer(customer);
+                  setShowModal(true);
+                }}
                 canArchive={canManageCustomers}
               />
             </CardContent>
@@ -232,6 +238,12 @@ export default function Customers() {
       <CustomerModal
         open={showModal}
         onClose={() => setShowModal(false)}
+        customer={selectedCustomer}
+        onSuccess={(updatedCustomer) => {
+          // Handle successful update
+          console.log('Customer updated:', updatedCustomer);
+          setSelectedCustomer(null);
+        }}
       />
 
       {/* Contact Modal */}

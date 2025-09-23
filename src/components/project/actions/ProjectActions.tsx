@@ -9,7 +9,7 @@ import {
     DropdownMenuSeparator,
     DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
-import { useToast } from '@/hooks/use-toast';
+import { useToast } from '@/shared/hooks/use-toast';
 import { Project } from '@/types/project';
 import { EditProjectModal } from '../EditProjectModal';
 import { useProjects } from '@/hooks/useProjects';

@@ -37,7 +37,7 @@ export function usePermissions() {
     };
 
     const canManageWorkflow = () => {
-        return checkPermission('workflow', 'manage').allowed;
+        return checkPermission('workflow', 'create').allowed;
     };
 
     const canViewReports = () => {
@@ -45,15 +45,19 @@ export function usePermissions() {
     };
 
     const canManageApprovals = () => {
-        return checkPermission('approvals', 'manage').allowed;
+        return checkPermission('workflow', 'create').allowed;
     };
 
     const canManageSuppliers = () => {
         return checkPermission('supplier', 'create').allowed;
     };
 
+    const canViewSuppliers = () => {
+        return checkPermission('supplier', 'read').allowed;
+    };
+
     const canManageCustomers = () => {
-        return checkPermission('customers', 'manage').allowed;
+        return checkPermission('customer', 'create').allowed;
     };
 
     return {
@@ -68,6 +72,7 @@ export function usePermissions() {
         canViewReports,
         canManageApprovals,
         canManageSuppliers,
+        canViewSuppliers,
         canManageCustomers,
         hasEnhancedPermission,
         hasFeatureAccess,

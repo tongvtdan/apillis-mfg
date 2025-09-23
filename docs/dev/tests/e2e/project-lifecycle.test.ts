@@ -1,5 +1,5 @@
 import { describe, it, expect, beforeAll, afterAll, vi } from 'vitest'
-import { supabase } from '@/integrations/supabase/client'
+import { supabase } from '@/integrations/supabase/client.js'
 import { Project, ProjectStatus, ProjectPriority } from '@/types/project'
 
 // This test suite validates the complete project lifecycle with real database operations

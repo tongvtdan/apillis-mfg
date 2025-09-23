@@ -122,7 +122,7 @@ export function CustomerManagement({
 
         setLoading(true);
         try {
-            const result = await CustomerManagementService.searchCustomers({}, profile.organization_id);
+            const result = await CustomerManagementService.searchCustomers({});
             setCustomers(result.customers);
         } catch (error) {
             console.error('Failed to load customers:', error);

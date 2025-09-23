@@ -33,7 +33,7 @@ import {
 } from 'lucide-react';
 import { Organization, Contact } from '@/types/project';
 import { useCustomerOrganizations, useCustomerOrganization } from '@/hooks/useCustomerOrganizations';
-import { useToast } from '@/hooks/use-toast';
+import { useToast } from '@/shared/hooks/use-toast';
 
 interface CustomerOrganizationModalProps {
     open: boolean;

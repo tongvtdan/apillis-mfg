@@ -21,7 +21,7 @@ import { ProjectProvider, useProject } from '@/contexts/ProjectContext';
 import { ProjectLifecycleDashboard } from '@/components/project/ProjectLifecycleDashboard';
 import { ProjectWorkflowOrchestrator } from '@/components/project/ProjectWorkflowOrchestrator';
 import { useAuth } from '@/core/auth';
-import { useToast } from '@/hooks/use-toast';
+import { useToast } from '@/shared/hooks/use-toast';
 
 function ProjectDashboardContent() {
     const { projectId } = useParams<{ projectId?: string }>();

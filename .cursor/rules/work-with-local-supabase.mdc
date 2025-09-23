@@ -1,7 +1,6 @@
 ---
-description:
-globs:
-alwaysApply: true
+description: this rule will be used only when there is a need to local supabase
+alwaysApply: false
 ---
 - Never reset the entire database when working with existing data
 - Always use targeted migrations for schema changes

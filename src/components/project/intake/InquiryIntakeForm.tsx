@@ -8,20 +8,13 @@ import { Form } from '@/components/ui/form';
 import { CheckCircle2, Loader2 } from 'lucide-react';
 import { useToast } from '@/shared/hooks/use-toast';
 import { useProjectManagement } from '@/features/project-management/hooks';
-import { useCustomerOrganizations } from '@/features/customer-management/hooks/useCustomerOrganizations';
+import { useCustomerOrganizations } from '@/hooks/useCustomerOrganizations';
 import { useCustomers } from '@/features/customer-management/hooks/useCustomers';
 import { useAuth } from '@/core/auth';
 import { ProjectIntakeService, ProjectIntakeData } from '@/services/projectIntakeService';
 import { IntakeMappingService } from '@/services/intakeMappingService';
 import { Organization, Contact } from '@/types/project';
-import { supabase } from '@/integrations/supabase/client';
-import { createClient } from '@supabase/supabase-js';
-
-// Service role client for storage operations (bypasses RLS)
-const supabaseServiceRole = createClient(
-    'http://localhost:54321',
-    'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZS1kZW1vIiwicm9sZSI6InNlcnZpY2Vfcm9sZSIsImV4cCI6MTk4MzgxMjk5Nn0.EGIM96RAZx35lJzdJsyH-qQwv8Hdp7fsn3W0YpN81IU'
-);
+import { supabase, supabaseServiceRole } from '@/integrations/supabase/client';
 import { CustomerModal } from '@/components/customer/CustomerModal';
 import { ContactModal } from '@/components/customer/ContactModal';
 import { ContactInfoSection } from './ContactInfoSection';
@@ -99,7 +92,16 @@ export function InquiryIntakeForm({ submissionType, onSuccess }: InquiryIntakeFo
                         });
 
                     if (uploadError) {
-                        console.error('Error uploading file:', uploadError);
+                        console.error('❌ Error uploading file:', uploadError);
+
+                        // Provide helpful error message for common issues
+                        if (uploadError.message.includes('Bucket not found')) {
+                            console.error(
+                                '💡 Storage bucket "documents" not found. ' +
+                                'Please create the "documents" bucket in your Supabase dashboard: ' +
+                                'Storage → Create Bucket → Name: "documents", Type: Private'
+                            );
+                        }
                         continue;
                     }
 
@@ -121,7 +123,7 @@ export function InquiryIntakeForm({ submissionType, onSuccess }: InquiryIntakeFo
                             file_size: doc.file.size,
                             mime_type: doc.file.type,
                             category: doc.type.toLowerCase().replace(' ', '_'),
-                            version: 1,
+                            version_number: 1,
                             is_current_version: true,
                             storage_provider: 'supabase',
                             access_level: 'organization',
@@ -156,7 +158,7 @@ export function InquiryIntakeForm({ submissionType, onSuccess }: InquiryIntakeFo
                             file_size: 0,
                             mime_type: 'text/plain',
                             category: doc.type.toLowerCase().replace(' ', '_'),
-                            version: 1,
+                            version_number: 1,
                             is_current_version: true,
                             storage_provider: 'external',
                             access_level: 'organization',

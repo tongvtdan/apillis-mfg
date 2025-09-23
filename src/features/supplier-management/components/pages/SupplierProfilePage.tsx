@@ -76,6 +76,20 @@ export function SupplierProfilePage() {
                 return;
             }
 
+            // Check if ID is 'create' or other invalid values that should redirect to create page
+            if (id === 'create' || id === 'new') {
+                navigate('/suppliers/new');
+                return;
+            }
+
+            // Validate UUID format (basic validation)
+            const uuidRegex = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+            if (!uuidRegex.test(id)) {
+                setError('Invalid supplier ID format');
+                setLoading(false);
+                return;
+            }
+
             try {
                 setLoading(true);
                 setError(null);
@@ -90,7 +104,7 @@ export function SupplierProfilePage() {
         };
 
         loadSupplier();
-    }, [id]);
+    }, [id, navigate]);
 
     // Permission checks
     useEffect(() => {

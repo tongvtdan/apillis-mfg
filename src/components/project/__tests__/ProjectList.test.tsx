@@ -12,7 +12,7 @@ vi.mock('@/hooks/useUsers', () => ({
     useUsers: vi.fn(() => ({ users: [] }))
 }));
 
-vi.mock('@/hooks/use-toast', () => ({
+vi.mock('@/shared/hooks/use-toast', () => ({
     useToast: vi.fn(() => ({ toast: vi.fn() }))
 }));
 

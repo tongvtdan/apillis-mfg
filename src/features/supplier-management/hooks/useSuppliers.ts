@@ -58,47 +58,93 @@ export function useSuppliers(showArchived = false) {
             }
 
             // Transform the data to match Supplier interface
-            const transformedSuppliers = (data || []).map(org => ({
-                id: org.id,
-                name: org.contacts?.[0]?.contact_name || org.name || 'Unnamed Supplier',
-                company: org.name,
-                email: org.contacts?.[0]?.email || '',
-                phone: org.contacts?.[0]?.phone || '',
-                address: org.address || '',
-                country: org.country || '',
-                specialties: org.metadata?.capabilities || org.capabilities || [],
-                rating: org.performance_rating || 0,
-                response_rate: 0, // Default value, would need to be calculated from actual data
-                is_active: org.is_active,
-                created_at: org.created_at,
-                updated_at: org.updated_at,
-                created_by: org.created_by,
-                updated_by: org.updated_by,
-                // Enhanced tracking fields
-                last_contact_date: org.last_evaluation_date,
-                total_quotes_sent: 0,
-                total_quotes_received: 0,
-                average_turnaround_days: 0,
-                notes: org.notes || '',
-                tags: org.certifications || [],
-                // Additional fields for compatibility with existing code
-                company_name: org.name,
-                contact_name: org.contacts?.[0]?.contact_name || '',
-                city: org.city || '',
-                state: org.state || '',
-                postal_code: org.postal_code || '',
-                website: org.website || '',
-                tax_id: org.tax_id || '',
-                payment_terms: org.payment_terms || '',
-                credit_limit: org.credit_limit || 0,
-                organization_id: org.id,
-                organization_type: org.organization_type,
-                capabilities: org.metadata?.capabilities || org.capabilities || [],
-                certifications: org.metadata?.certifications || org.certifications || [],
-                performance_rating: org.performance_rating || 0,
-                last_evaluation_date: org.last_evaluation_date,
-                preferred_contact_method: org.preferred_contact_method || 'email'
-            }));
+            const transformedSuppliers = (data || []).map((org) => {
+                // Determine supplier status based on available data
+                // For now, we'll use the is_active flag and metadata to determine status
+                let status: 'qualified' | 'expiring_soon' | 'not_qualified' | 'in_progress' = 'not_qualified';
+                let expiryDate: string | undefined;
+
+                if (org.is_active) {
+                    // Check if we have performance rating to determine if qualified
+                    if (org.performance_rating && org.performance_rating > 0) {
+                        status = 'qualified';
+                        // Set a default expiry date (1 year from now for demo purposes)
+                        const oneYearFromNow = new Date();
+                        oneYearFromNow.setFullYear(oneYearFromNow.getFullYear() + 1);
+                        expiryDate = oneYearFromNow.toISOString().split('T')[0];
+                    } else {
+                        status = 'in_progress';
+                    }
+                }
+
+                // Get performance metrics from organization metadata or default values
+                const performance = {
+                    rating: org.performance_rating || 0,
+                    responseRate: org.metadata?.responseRate || 0,
+                    turnaroundDays: org.metadata?.turnaroundDays || 0,
+                    qualityScore: org.metadata?.qualityScore || 0,
+                    costCompetitiveness: org.metadata?.costCompetitiveness || 0
+                };
+
+                // Determine supplier type from capabilities
+                const capabilities = org.metadata?.capabilities || org.capabilities || [];
+                let supplierType: 'manufacturer' | 'distributor' | 'service_provider' | 'raw_material' | 'component' = 'manufacturer';
+
+                if (capabilities.some((cap: string) => cap.toLowerCase().includes('distribut'))) {
+                    supplierType = 'distributor';
+                } else if (capabilities.some((cap: string) => cap.toLowerCase().includes('service'))) {
+                    supplierType = 'service_provider';
+                } else if (capabilities.some((cap: string) => cap.toLowerCase().includes('raw'))) {
+                    supplierType = 'raw_material';
+                } else if (capabilities.some((cap: string) => cap.toLowerCase().includes('component'))) {
+                    supplierType = 'component';
+                }
+
+                return {
+                    id: org.id,
+                    name: org.contacts?.[0]?.contact_name || org.name || 'Unnamed Supplier',
+                    company: org.name,
+                    email: org.contacts?.[0]?.email || '',
+                    phone: org.contacts?.[0]?.phone || '',
+                    address: org.address || '',
+                    country: org.country || '',
+                    specialties: org.metadata?.capabilities || org.capabilities || [],
+                    status,
+                    expiryDate,
+                    capabilities: org.metadata?.capabilities || org.capabilities || [],
+                    performance,
+                    supplierType,
+                    lastActivity: org.updated_at || org.created_at,
+                    annualSpend: org.metadata?.annualSpend || 0,
+                    paymentTerms: org.payment_terms || '',
+                    is_active: org.is_active,
+                    created_at: org.created_at,
+                    updated_at: org.updated_at,
+                    created_by: org.created_by,
+                    updated_by: org.updated_by,
+                    // Enhanced tracking fields
+                    last_contact_date: org.last_evaluation_date,
+                    total_quotes_sent: 0,
+                    total_quotes_received: 0,
+                    average_turnaround_days: org.metadata?.turnaroundDays || 0,
+                    notes: org.notes || '',
+                    tags: org.certifications || [],
+                    // Additional fields for compatibility with existing code
+                    company_name: org.name,
+                    contact_name: org.contacts?.[0]?.contact_name || '',
+                    city: org.city || '',
+                    state: org.state || '',
+                    postal_code: org.postal_code || '',
+                    website: org.website || '',
+                    tax_id: org.tax_id || '',
+                    credit_limit: org.credit_limit || 0,
+                    organization_id: org.id,
+                    organization_type: org.organization_type,
+                    certifications: org.metadata?.certifications || org.certifications || [],
+                    last_evaluation_date: org.last_evaluation_date,
+                    preferred_contact_method: org.preferred_contact_method || 'email'
+                };
+            });
 
             setSuppliers(transformedSuppliers);
         } catch (err) {
@@ -493,47 +539,90 @@ export function useSuppliers(showArchived = false) {
             }
 
             // Transform the data to match Supplier interface
-            const transformedSuppliers = (data || []).map(org => ({
-                id: org.id,
-                name: org.contacts?.[0]?.contact_name || org.name || 'Unnamed Supplier',
-                company: org.name,
-                email: org.contacts?.[0]?.email || '',
-                phone: org.contacts?.[0]?.phone || '',
-                address: org.address || '',
-                country: org.country || '',
-                specialties: org.metadata?.capabilities || org.capabilities || [],
-                rating: org.performance_rating || 0,
-                response_rate: 0,
-                is_active: org.is_active,
-                created_at: org.created_at,
-                updated_at: org.updated_at,
-                created_by: org.created_by,
-                updated_by: org.updated_by,
-                // Enhanced tracking fields
-                last_contact_date: org.last_evaluation_date,
-                total_quotes_sent: 0,
-                total_quotes_received: 0,
-                average_turnaround_days: 0,
-                notes: org.notes || '',
-                tags: org.certifications || [],
-                // Additional fields for compatibility
-                company_name: org.name,
-                contact_name: org.contacts?.[0]?.contact_name || '',
-                city: org.city || '',
-                state: org.state || '',
-                postal_code: org.postal_code || '',
-                website: org.website || '',
-                tax_id: org.tax_id || '',
-                payment_terms: org.payment_terms || '',
-                credit_limit: org.credit_limit || 0,
-                organization_id: org.id,
-                organization_type: org.organization_type,
-                capabilities: org.capabilities,
-                certifications: org.certifications,
-                performance_rating: org.performance_rating,
-                last_evaluation_date: org.last_evaluation_date,
-                preferred_contact_method: org.preferred_contact_method
-            }));
+            const transformedSuppliers = (data || []).map((org) => {
+                // Determine supplier status based on available data
+                let status: 'qualified' | 'expiring_soon' | 'not_qualified' | 'in_progress' = 'not_qualified';
+                let expiryDate: string | undefined;
+
+                if (org.is_active) {
+                    if (org.performance_rating && org.performance_rating > 0) {
+                        status = 'qualified';
+                        const oneYearFromNow = new Date();
+                        oneYearFromNow.setFullYear(oneYearFromNow.getFullYear() + 1);
+                        expiryDate = oneYearFromNow.toISOString().split('T')[0];
+                    } else {
+                        status = 'in_progress';
+                    }
+                }
+
+                // Get performance metrics from organization metadata or default values
+                const performance = {
+                    rating: org.performance_rating || 0,
+                    responseRate: org.metadata?.responseRate || 0,
+                    turnaroundDays: org.metadata?.turnaroundDays || 0,
+                    qualityScore: org.metadata?.qualityScore || 0,
+                    costCompetitiveness: org.metadata?.costCompetitiveness || 0
+                };
+
+                // Determine supplier type from capabilities
+                const capabilities = org.metadata?.capabilities || org.capabilities || [];
+                let supplierType: 'manufacturer' | 'distributor' | 'service_provider' | 'raw_material' | 'component' = 'manufacturer';
+
+                if (capabilities.some((cap: string) => cap.toLowerCase().includes('distribut'))) {
+                    supplierType = 'distributor';
+                } else if (capabilities.some((cap: string) => cap.toLowerCase().includes('service'))) {
+                    supplierType = 'service_provider';
+                } else if (capabilities.some((cap: string) => cap.toLowerCase().includes('raw'))) {
+                    supplierType = 'raw_material';
+                } else if (capabilities.some((cap: string) => cap.toLowerCase().includes('component'))) {
+                    supplierType = 'component';
+                }
+
+                return {
+                    id: org.id,
+                    name: org.contacts?.[0]?.contact_name || org.name || 'Unnamed Supplier',
+                    company: org.name,
+                    email: org.contacts?.[0]?.email || '',
+                    phone: org.contacts?.[0]?.phone || '',
+                    address: org.address || '',
+                    country: org.country || '',
+                    specialties: org.metadata?.capabilities || org.capabilities || [],
+                    status,
+                    expiryDate,
+                    capabilities: org.metadata?.capabilities || org.capabilities || [],
+                    performance,
+                    supplierType,
+                    lastActivity: org.updated_at || org.created_at,
+                    annualSpend: org.metadata?.annualSpend || 0,
+                    paymentTerms: org.payment_terms || '',
+                    is_active: org.is_active,
+                    created_at: org.created_at,
+                    updated_at: org.updated_at,
+                    created_by: org.created_by,
+                    updated_by: org.updated_by,
+                    // Enhanced tracking fields
+                    last_contact_date: org.last_evaluation_date,
+                    total_quotes_sent: 0,
+                    total_quotes_received: 0,
+                    average_turnaround_days: org.metadata?.turnaroundDays || 0,
+                    notes: org.notes || '',
+                    tags: org.certifications || [],
+                    // Additional fields for compatibility with existing code
+                    company_name: org.name,
+                    contact_name: org.contacts?.[0]?.contact_name || '',
+                    city: org.city || '',
+                    state: org.state || '',
+                    postal_code: org.postal_code || '',
+                    website: org.website || '',
+                    tax_id: org.tax_id || '',
+                    credit_limit: org.credit_limit || 0,
+                    organization_id: org.id,
+                    organization_type: org.organization_type,
+                    certifications: org.metadata?.certifications || org.certifications || [],
+                    last_evaluation_date: org.last_evaluation_date,
+                    preferred_contact_method: org.preferred_contact_method || 'email'
+                };
+            });
 
             return transformedSuppliers;
         } catch (error) {

@@ -11,11 +11,11 @@ export interface UserProfile {
     organization_id: string;
     email: string;
     name: string;
-    role: 'sales' | 'procurement' | 'engineering' | 'qa' | 'production' | 'management' | 'admin';
+    role: 'admin' | 'management' | 'sales' | 'engineering' | 'qa' | 'production' | 'procurement' | 'logistics' | 'finance' | 'auditor';
     department?: string;
     phone?: string;
     avatar_url?: string;
-    status: 'active' | 'dismiss';
+    status: 'active' | 'invited' | 'suspended' | 'disabled';
     description?: string;
     employee_id?: string;
     direct_manager_id?: string;

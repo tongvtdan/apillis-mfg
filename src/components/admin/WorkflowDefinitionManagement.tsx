@@ -389,8 +389,8 @@ export function WorkflowDefinitionManagement() {
                     <div
                         key={stage.id}
                         className={`flex items-center justify-between p-3 rounded-lg border cursor-pointer transition-colors ${selectedStages.includes(stage.id)
-                                ? 'bg-primary/10 border-primary'
-                                : 'hover:bg-muted'
+                            ? 'bg-primary/10 border-primary'
+                            : 'hover:bg-muted'
                             }`}
                         onClick={() => handleStageSelection(stage.id)}
                     >

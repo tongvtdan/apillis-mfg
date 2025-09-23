@@ -86,7 +86,7 @@ vi.mock('@/core/auth', () => ({
     })
 }));
 
-vi.mock('@/hooks/use-toast', () => ({
+vi.mock('@/shared/hooks/use-toast', () => ({
     useToast: () => ({
         toast: vi.fn()
     })

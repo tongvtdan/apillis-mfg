@@ -21,7 +21,7 @@ const mockDocument: ProjectDocument = {
     file_type: 'pdf',
     file_path: 'org-123/project-123/test-document.pdf',
     mime_type: 'application/pdf',
-    version: 1,
+    version_number: 1,
     is_current_version: true,
     category: 'other',
     access_level: 'internal',

@@ -224,7 +224,7 @@ export type Database = {
           title: string
           updated_at: string | null
           uploaded_by: string | null
-          version: number | null
+          version_number: number | null
         }
         Insert: {
           access_level?: string | null
@@ -247,7 +247,7 @@ export type Database = {
           title: string
           updated_at?: string | null
           uploaded_by?: string | null
-          version?: number | null
+          version_number?: number | null
         }
         Update: {
           access_level?: string | null
@@ -270,7 +270,7 @@ export type Database = {
           title?: string
           updated_at?: string | null
           uploaded_by?: string | null
-          version?: number | null
+          version_number?: number | null
         }
         Relationships: [
           {

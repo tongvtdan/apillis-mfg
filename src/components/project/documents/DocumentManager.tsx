@@ -1,4 +1,4 @@
-import React, { useState, useCallback, useMemo } from 'react';
+import React, { useState, useCallback, useMemo, useEffect } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -29,7 +29,7 @@ import {
     Link
 } from 'lucide-react';
 import { format } from 'date-fns';
-import { useCurrentDocuments } from '@/core/documents/useDocument';
+import { useDocument } from '@/core/documents/DocumentProvider';
 import { DocumentUploadZone } from './DocumentUploadZone';
 import { DocumentGrid } from './DocumentGrid';
 import { DocumentList } from './DocumentList';
@@ -65,7 +65,18 @@ export interface DocumentFiltersState {
 }
 
 export const DocumentManager: React.FC<DocumentManagerProps> = ({ projectId, currentStageId }) => {
-    const { documents, loading: isLoading } = useCurrentDocuments();
+    const { documents, loading: isLoading, loadDocuments, projectId: currentProjectId } = useDocument();
+
+    // Load documents when projectId changes (only if not already loaded for this project)
+    useEffect(() => {
+        if (projectId && loadDocuments && currentProjectId !== projectId) {
+            console.log('📄 DocumentManager: Loading documents for project:', projectId);
+            loadDocuments(projectId);
+        } else if (projectId && !currentProjectId) {
+            console.log('📄 DocumentManager: Loading documents for project (no current project):', projectId);
+            loadDocuments(projectId);
+        }
+    }, [projectId, loadDocuments, currentProjectId]);
 
     // View state
     const [viewMode, setViewMode] = useState<ViewMode>('grid');

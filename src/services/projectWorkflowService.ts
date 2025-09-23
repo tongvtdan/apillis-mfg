@@ -2,7 +2,7 @@ import { Project, WorkflowStage, ProjectStatus, ProjectSubStageProgress } from '
 import { projectService } from './projectService';
 import { workflowStageService } from './workflowStageService';
 import { workflowDefinitionService } from './workflowDefinitionService';
-import { supabase } from '@/integrations/supabase/client';
+import { supabase, supabaseServiceRole } from '@/integrations/supabase/client';
 import { useAuth } from '@/core/auth';
 
 export interface WorkflowEvent {
@@ -180,7 +180,9 @@ class ProjectWorkflowService {
 
             // Upload initial documents if provided
             if (projectData.initial_documents?.length) {
-                await this.handleDocumentUploads(project.id, projectData.initial_documents);
+                console.log('📄 Processing', projectData.initial_documents.length, 'initial documents for project', project.id);
+                await this.handleDocumentUploads(project.id, projectData.initial_documents, userProfile.organization_id, user.id);
+                console.log('✅ Initial documents processed successfully');
             }
 
             // Clear cache
@@ -553,11 +555,85 @@ class ProjectWorkflowService {
     /**
      * Handle document uploads
      */
-    private async handleDocumentUploads(projectId: string, files: File[]): Promise<void> {
+    private async handleDocumentUploads(projectId: string, files: File[], organizationId: string, userId: string): Promise<void> {
         try {
-            // This would integrate with the document service
-            // For now, just log the event
-            console.log(`Handling ${files.length} document uploads for project ${projectId}`);
+            if (!files || files.length === 0) return;
+
+            console.log(`📄 Handling ${files.length} document uploads for project ${projectId}`);
+
+            // Get user profile for organization context
+            const { data: userProfile } = await supabase
+                .from('users')
+                .select('organization_id')
+                .eq('id', userId)
+                .single();
+
+            if (!userProfile?.organization_id) {
+                throw new Error('User organization not found');
+            }
+
+            // Upload each file
+            for (const file of files) {
+                try {
+                    // Upload file to storage
+                    const fileName = `${Date.now()}_${file.name}`;
+                    const filePath = `${userProfile.organization_id}/${projectId}/${fileName}`;
+
+                    const { data: uploadData, error: uploadError } = await supabaseServiceRole.storage
+                        .from('documents')
+                        .upload(filePath, file, {
+                            contentType: file.type,
+                            upsert: false
+                        });
+
+                    if (uploadError) {
+                        console.error('❌ Error uploading file:', uploadError);
+
+                        // Provide helpful error message for common issues
+                        if (uploadError.message.includes('Bucket not found')) {
+                            console.error(
+                                '💡 Storage bucket "documents" not found. ' +
+                                'Please create the "documents" bucket in your Supabase dashboard: ' +
+                                'Storage → Create Bucket → Name: "documents", Type: Private'
+                            );
+                        }
+                        continue;
+                    }
+
+                    // Create document record
+                    const { data: documentData, error: docError } = await supabase
+                        .from('documents')
+                        .insert({
+                            organization_id: userProfile.organization_id,
+                            project_id: projectId,
+                            title: file.name,
+                            file_name: fileName,
+                            file_path: filePath,
+                            file_size: file.size,
+                            mime_type: file.type,
+                            uploaded_by: userId,
+                            category: 'general',
+                            access_level: 'private',
+                            storage_provider: 'supabase',
+                            metadata: {
+                                original_file_name: file.name,
+                                upload_source: 'project_creation'
+                            }
+                        })
+                        .select()
+                        .single();
+
+                    if (docError) {
+                        console.error('Error creating document record:', docError);
+                        // Clean up uploaded file if database insert fails
+                        await supabaseServiceRole.storage.from('documents').remove([filePath]);
+                    } else if (documentData) {
+                        console.log('✅ Document saved:', (documentData as any).title);
+                    }
+                } catch (fileError) {
+                    console.error(`Error processing file ${file.name}:`, fileError);
+                }
+            }
         } catch (error) {
             console.error('Error handling document uploads:', error);
         }

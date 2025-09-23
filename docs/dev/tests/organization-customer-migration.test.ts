@@ -3,7 +3,7 @@
 
 import { describe, it, expect, beforeEach, afterEach } from 'vitest';
 import { CustomerOrganizationService } from '@/services/customerOrganizationService';
-import { supabase } from '@/integrations/supabase/client';
+import { supabase } from '@/integrations/supabase/client.js';
 import { Organization, Contact, Project, ProjectContactPoint } from '@/types/project';
 
 describe('Organization-Based Customer Model Migration', () => {

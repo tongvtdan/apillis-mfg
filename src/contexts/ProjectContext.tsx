@@ -3,7 +3,7 @@ import { Project, WorkflowStage, ProjectStatus, Contact, ProjectDocument, Projec
 import { projectWorkflowService } from '@/services/projectWorkflowService';
 import { projectService } from '@/services/projectService';
 import { useAuth } from '@/core/auth';
-import { useToast } from '@/hooks/use-toast';
+import { useToast } from '@/shared/hooks/use-toast';
 import { supabase } from '@/integrations/supabase/client';
 
 interface ProjectContextState {

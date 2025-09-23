@@ -4,14 +4,7 @@ import { documentActionsService } from '@/services/documentActions';
 import { documentVersionService } from '@/services/documentVersionService';
 import { useAuth } from '@/core/auth';
 import { useToast } from '@/shared/hooks/use-toast';
-import { supabase } from '@/integrations/supabase/client';
-import { createClient } from '@supabase/supabase-js';
-
-// Service role client for storage operations (bypasses RLS)
-const supabaseServiceRole = createClient(
-    'http://localhost:54321',
-    'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZS1kZW1vIiwicm9sZSI6InNlcnZpY2Vfcm9sZSIsImV4cCI6MTk4MzgxMjk5Nn0.EGIM96RAZx35lJzdJsyH-qQwv8Hdp7fsn3W0YpN81IU'
-);
+import { supabase, supabaseServiceRole } from '@/integrations/supabase/client';
 
 export interface DocumentFilter {
     search?: string;
@@ -124,6 +117,28 @@ export function DocumentProvider({ children }: { children: React.ReactNode }) {
             setError(null);
             setProjectId(projId);
 
+            console.log('🔍 DocumentProvider: Loading documents for project:', projId);
+            console.log('🔍 DocumentProvider: User organization_id:', profile.organization_id);
+
+            // First, get the project's organization_id to ensure we're loading the right documents
+            const { data: projectData, error: projectError } = await supabase
+                .from('projects')
+                .select('organization_id')
+                .eq('id', projId)
+                .single();
+
+            if (projectError) {
+                throw new Error(`Failed to get project organization: ${projectError.message}`);
+            }
+
+            const projectOrgId = projectData?.organization_id;
+            console.log('🔍 DocumentProvider: Project organization_id:', projectOrgId);
+
+            if (!projectOrgId) {
+                throw new Error('Project does not have an organization_id');
+            }
+
+            // Load documents that belong to the project and the same organization
             const { data, error: fetchError } = await supabase
                 .from('documents')
                 .select(`
@@ -135,7 +150,7 @@ export function DocumentProvider({ children }: { children: React.ReactNode }) {
                     )
                 `)
                 .eq('project_id', projId)
-                .eq('organization_id', profile.organization_id)
+                .eq('organization_id', projectOrgId)
                 .order('created_at', { ascending: false });
 
             if (fetchError) {
@@ -143,6 +158,8 @@ export function DocumentProvider({ children }: { children: React.ReactNode }) {
             }
 
             const docs = data || [];
+            console.log('🔍 DocumentProvider: Loaded documents:', docs.length);
+
             setDocuments(docs);
             setFilteredDocuments(applyFiltersAndSort(docs, filter || filters, sort, searchQuery));
 
@@ -202,9 +219,27 @@ export function DocumentProvider({ children }: { children: React.ReactNode }) {
                 userId: user?.id
             });
 
+            // Get the project's organization_id first
+            const { data: projectData, error: projectError } = await supabase
+                .from('projects')
+                .select('organization_id')
+                .eq('id', activeProjectId)
+                .single();
+
+            if (projectError) {
+                throw new Error(`Failed to get project organization: ${projectError.message}`);
+            }
+
+            const projectOrgId = projectData?.organization_id;
+            console.log('📄 [DocumentProvider] Project organization_id:', projectOrgId);
+
+            if (!projectOrgId) {
+                throw new Error('Project does not have an organization_id');
+            }
+
             // Upload file to storage
             const fileName = `${Date.now()}_${file.name}`;
-            const filePath = `${profile.organization_id}/${activeProjectId}/${fileName}`;
+            const filePath = `${projectOrgId}/${activeProjectId}/${fileName}`;
 
             const { data: uploadData, error: uploadError } = await supabaseServiceRole.storage
                 .from('documents')
@@ -214,12 +249,28 @@ export function DocumentProvider({ children }: { children: React.ReactNode }) {
                 });
 
             if (uploadError) {
-                throw new Error(`Failed to upload file: ${uploadError.message}`);
+                console.error('❌ [DocumentProvider] Storage upload failed:', uploadError);
+
+                // Provide helpful error message for common issues
+                if (uploadError.message.includes('Bucket not found')) {
+                    throw new Error(
+                        'Storage bucket "documents" not found. ' +
+                        'Please create the "documents" bucket in your Supabase dashboard: ' +
+                        'Storage → Create Bucket → Name: "documents", Type: Private'
+                    );
+                } else if (uploadError.message.includes('signature verification failed')) {
+                    throw new Error(
+                        'Authentication error with storage service. ' +
+                        'Please check your Supabase service role key configuration.'
+                    );
+                } else {
+                    throw new Error(`Failed to upload file: ${uploadError.message}`);
+                }
             }
 
             // Create document record
             console.log('💾 Creating database record with data:', {
-                organization_id: profile.organization_id,
+                organization_id: projectOrgId,
                 project_id: activeProjectId,
                 title: file.name,
                 file_name: fileName,
@@ -233,7 +284,7 @@ export function DocumentProvider({ children }: { children: React.ReactNode }) {
             const { data: doc, error: docError } = await supabase
                 .from('documents')
                 .insert({
-                    organization_id: profile.organization_id,
+                    organization_id: projectOrgId,
                     project_id: activeProjectId,
                     title: file.name,
                     file_name: fileName,
