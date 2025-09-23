@@ -56,20 +56,20 @@ if (TEST_CONFIG.anonKey) {
                 'Content-Type': 'application/json'
             }
         })
-        .then(response => {
-            console.log('🌐 API Health Check:', response.status, response.statusText);
-            if (response.ok) {
-                console.log('✅ API endpoint is accessible');
-                console.log('✅ Supabase configuration looks good!');
-            } else {
-                console.log('❌ API endpoint returned error:', response.status);
-                console.log('   → Check if your API key is correct');
-            }
-        })
-        .catch(error => {
-            console.log('❌ API Health Check failed:', error.message);
-            console.log('   → Check your Supabase URL and API key');
-        });
+            .then(response => {
+                console.log('🌐 API Health Check:', response.status, response.statusText);
+                if (response.ok) {
+                    console.log('✅ API endpoint is accessible');
+                    console.log('✅ Supabase configuration looks good!');
+                } else {
+                    console.log('❌ API endpoint returned error:', response.status);
+                    console.log('   → Check if your API key is correct');
+                }
+            })
+            .catch(error => {
+                console.log('❌ API Health Check failed:', error.message);
+                console.log('   → Check your Supabase URL and API key');
+            });
 
     } catch (error) {
         console.log('❌ Failed to create Supabase client:', error.message);
