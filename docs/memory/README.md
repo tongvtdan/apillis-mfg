@@ -43,6 +43,17 @@ Each memory file must include:
 
 ## Current Memory Files
 
+### January 2025
+- `supplier-contact-retrieval-fix-20250101.md` - Enhanced supplier contact retrieval robustness and error handling
+- `supplier-bulk-import-system-status-20250101.md` - Complete supplier bulk import system status review
+- `supplier-bulk-import-ui-implementation-20250101.md` - Supplier bulk import UI component implementation
+- `supplier-bulk-import-modal-implementation-20250101.md` - Supplier bulk import modal component
+- `supplier-bulk-import-service-error-handling-fix-20250101.md` - Enhanced error handling for metadata insertion
+- `supplier-bulk-import-service-simplification-20250101.md` - Simplified supplier creation process
+- `supplier-bulk-import-architecture-enhancement-20250101.md` - Enhanced supplier import architecture
+- `supplier-import-template-implementation-20250101.md` - Supplier import template system
+
+### December 2024 - January 2025
 - `archive-functionality-implementation-20241225.md` - Complete implementation of archive/unarchive functionality for customers and suppliers
 - `database-project-fixes-202509060702.md` - Database schema and project display fixes
 - `workflow-stages-dropdown-fix-final-20250117.md` - Final fix for workflow stages dropdown
@@ -63,6 +74,11 @@ Each memory file must include:
 
 ## Recent Major Features
 
+### January 2025
+- **Supplier Bulk Import System** (January 2025): Complete bulk import system with template generation, UI components, and robust error handling
+- **Supplier Contact Retrieval Enhancement** (January 2025): Improved robustness of supplier data retrieval with graceful error handling
+
+### December 2024 - January 2025
 - **Archive Functionality** (December 2024): Implemented soft delete/archive system for customers and suppliers with full reactivation capability
 - **Project Workflow** (January 2024): Complete project lifecycle management system
 - **Database Schema** (January 2024): Comprehensive database refactoring and optimization

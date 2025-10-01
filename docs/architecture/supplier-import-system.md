@@ -93,16 +93,55 @@ export const SUPPLIER_IMPORT_VALIDATION = {
 
 #### Database Mapping
 The import system maps to the existing Factory Pulse database schema:
-- **Organizations Table**: `organization_type = 'supplier'`
-- **Contacts Table**: Primary contact information
-- **Metadata Storage**: Capabilities and additional fields in JSONB columns
+- **Organizations Table**: Supplier organizations created with `organization_type = 'supplier'`
+- **Contacts Table**: Primary contacts linked to supplier organizations with `type = 'supplier'`
+- **Core Fields**: Essential supplier data distributed between organization and contact records
+- **Metadata Storage**: Supplier capabilities, certifications, and import tracking stored in organization metadata
+- **Relationship Pattern**: Follows Factory Pulse organization-contact architecture for consistency
 
 #### Service Integration
+Completed integration points:
+- **SupplierManagementService**: ✅ Enhanced for robust data processing and validation with improved contact retrieval (Jan 1, 2025)
+
 Future integration points:
-- **SupplierManagementService**: For data processing and validation
 - **Document Management**: For handling uploaded files during import
 - **Activity Logging**: For audit trail of import operations
 - **Notification System**: For import status updates
+
+#### Supplier Management Service Enhancements (January 1, 2025)
+The `SupplierManagementService.getSupplierById()` method has been enhanced for better compatibility with bulk imported suppliers:
+
+**Key Improvements:**
+- **Flexible Contact Retrieval**: No longer requires `is_primary_contact = true` flag, uses first contact by creation date
+- **Graceful Error Handling**: Continues operation even if no contacts are found, using organization data as fallback
+- **Safe Property Access**: Uses optional chaining to prevent runtime errors from missing contact data
+- **Bulk Import Compatibility**: Works seamlessly with suppliers created through bulk import process
+
+**Technical Changes:**
+```typescript
+// Enhanced contact query with fallback
+const { data: contactData, error: contactError } = await supabase
+    .from('contacts')
+    .select('*')
+    .eq('organization_id', supplierId)
+    .eq('type', 'supplier')
+    .order('created_at', { ascending: true })  // Get oldest contact (likely primary)
+    .limit(1)
+    .single();
+
+// Graceful error handling
+if (contactError || !contactData) {
+    console.warn(`No contact found for supplier ${supplierId}:`, contactError?.message);
+    // Continue with organization data instead of throwing error
+}
+
+// Safe property access with fallbacks
+primaryContactName: contactData?.contact_name || orgData.name,
+email: contactData?.email || null,
+phone: contactData?.phone || null,
+```
+
+This enhancement ensures that the supplier management system works reliably with suppliers created through the bulk import process, even in cases where contact creation partially fails or contact flags are not set correctly.
 
 ### 6. Sample Data
 
@@ -187,11 +226,15 @@ The system includes three comprehensive sample suppliers:
 **Location**: `src/services/supplierBulkImportService.ts`
 
 - **SupplierBulkImportService**: Complete service for batch processing
-- **Database Integration**: Maps template fields to contacts table schema
+- **Database Integration**: Two-step organization + contact creation following Factory Pulse architecture
 - **Progress Callbacks**: Real-time progress updates during import
 - **Duplicate Detection**: Checks for existing suppliers by name and email
 - **Validation System**: Pre-import data validation with detailed error reporting
 - **Batch Processing**: Efficient handling of large supplier datasets
+- **Enhanced Architecture**: Proper organization-contact relationship pattern (Jan 1, 2025)
+- **Metadata Storage**: Comprehensive supplier capabilities and import tracking in organization metadata
+- **Error Recovery**: Transactional safety with automatic cleanup on failures
+- **Production Ready**: All debug statements removed for clean production deployment (Jan 1, 2025)
 
 ### Phase 3: Template System ✅ COMPLETED
 **Location**: `src/utils/supplierImportTemplate.ts` & `src/utils/excelTemplateGenerator.ts`
@@ -283,6 +326,7 @@ The supplier import system is **production-ready** with all core components impl
 - **Database**: ✅ Direct integration with existing contacts table
 - **Notifications**: ✅ Toast notifications for comprehensive user feedback
 - **Modal System**: ✅ Seamless integration with Factory Pulse modal patterns
+- **Supplier Management Service**: ✅ Enhanced contact retrieval robustness (Jan 1, 2025)
 
 ### Deployment Readiness
 The system is ready for immediate production deployment with minimal integration work:
