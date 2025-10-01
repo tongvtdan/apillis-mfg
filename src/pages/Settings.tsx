@@ -13,14 +13,10 @@ import {
 } from "lucide-react";
 
 // App version information
-<<<<<<< HEAD
-const APP_VERSION = "0.2.0";
-const APP_NAME = "Apillis - Factory Pulse";
-=======
+
 const APP_VERSION = "0.1.2";
 const APP_NAME = "Apillis - Factory Pulse";
 
->>>>>>> release/fb-1.2
 
 // This component displays user settings and profile information
 // It uses the authenticated user's profile data from the AuthContext
