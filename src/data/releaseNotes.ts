@@ -15,8 +15,32 @@ export interface ReleaseNote {
 
 export const releaseNotes: ReleaseNote[] = [
     {
+        version: "0.1.3",
+        date: "2025-10-01",
+        title: "Supplier Management & Release Notes System",
+        description: "Major improvements to supplier management with bulk import capabilities and comprehensive release notes system.",
+        features: [
+            "Supplier bulk import system with CSV/Excel support",
+            "Enhanced supplier import modal with progress tracking",
+            "Comprehensive release notes system in Settings",
+            "Structured version tracking and changelog display"
+        ],
+        improvements: [
+            "Streamlined supplier onboarding workflow",
+            "Enhanced import validation and error handling",
+            "Better user experience for bulk operations",
+            "Improved Settings page with detailed version information"
+        ],
+        bugFixes: [
+            "Resolved supplier import validation issues",
+            "Fixed debug code cleanup in supplier modules",
+            "Corrected version display inconsistencies",
+            "Improved error messaging for failed imports"
+        ]
+    },
+    {
         version: "0.1.2",
-        date: "2025-01-10",
+        date: "2025-29-9",
         title: "Public alpha Release",
         description: "First release of Factory Pulse Manufacturing Execution System with core functionality.",
 

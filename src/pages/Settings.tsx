@@ -20,7 +20,7 @@ import {
 import { getLatestReleaseNotes } from "@/data/releaseNotes";
 
 // App version information
-const APP_VERSION = "0.1.2";
+const APP_VERSION = "0.1.3";
 const APP_NAME = "Apillis - Factory Pulse";
 
 
