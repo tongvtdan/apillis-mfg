@@ -1,0 +1,7 @@
+---
+inclusion: manual
+---
+- Never reset the entire database when working with existing data
+- Always use targeted migrations for schema changes
+- Work with local Supabase only unless explicitly configured for remote
+- Preserve existing IDs to maintain referential integrity

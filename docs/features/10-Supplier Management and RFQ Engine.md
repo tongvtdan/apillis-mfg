@@ -80,6 +80,7 @@
   - Performance metrics (on-time delivery %, quality PPM, lead time reliability)
   - Documents (ISO certs, insurance, NDAs, financial statements)
 - **RLS**: Organization-scoped — each tenant sees only their suppliers.
+- **Bulk Import**: Support Excel/CSV import with standardized template for efficient supplier onboarding
 
 ### **FR-SM-02: Supplier Qualification Workflow**
 - **Qualification Status**: `not_started`, `in_progress`, `pending_approval`, `qualified`, `qualified_with_conditions`, `qualified_as_exception`, `rejected`, `expired`
