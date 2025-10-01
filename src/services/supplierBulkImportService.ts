@@ -74,9 +74,9 @@ export class SupplierBulkImportService {
                 );
 
                 result.createdSuppliers.push({
-                    name: createdSupplier.company_name,
+                    name: createdSupplier.name,
                     id: createdSupplier.id,
-                    email: createdSupplier.email || supplier.email
+                    email: createdSupplier.contact?.email || supplier.email
                 });
 
                 result.success++;
@@ -106,60 +106,89 @@ export class SupplierBulkImportService {
         email: string,
         organizationId: string
     ): Promise<boolean> {
-        const { data, error } = await supabase
-            .from('contacts')
+        // Check if supplier organization already exists by exact name
+        const { data: orgData, error: orgError } = await supabase
+            .from('organizations')
             .select('id')
-            .eq('organization_id', organizationId)
-            .eq('type', 'supplier')
-            .or(`company_name.ilike.%${name}%,email.eq.${email}`)
+            .eq('organization_type', 'supplier')
+            .eq('name', name)
             .limit(1);
 
-        if (error) {
-            console.error('Error checking existing supplier:', error);
+        if (orgError) {
+            console.error('Error checking existing supplier organization:', orgError);
+        }
+
+        if (orgData && orgData.length > 0) {
+            return true;
+        }
+
+        // Also check contacts table for existing email
+        const { data: contactData, error: contactError } = await supabase
+            .from('contacts')
+            .select('id')
+            .eq('type', 'supplier')
+            .eq('email', email)
+            .limit(1);
+
+        if (contactError) {
+            console.error('Error checking existing supplier contact:', contactError);
             return false;
         }
 
-        return data && data.length > 0;
+        return contactData && contactData.length > 0;
     }
 
     private static async createSupplierFromImport(
         importData: SupplierImportRow,
         userId: string,
-        organizationId: string
+        parentOrganizationId: string
     ) {
-        // Parse comma-separated values
-        const specialties = importData.specialties
-            ? importData.specialties.split(',').map(s => s.trim()).filter(Boolean)
-            : [];
+        // Step 1: Create supplier organization record (like the working supplier management service)
+        const { data: orgData, error: orgError } = await supabase
+            .from('organizations')
+            .insert({
+                name: importData.organizationName,
+                description: `Imported supplier: ${importData.organizationName}`,
+                address: importData.address,
+                city: importData.city,
+                state: importData.state,
+                country: importData.country,
+                postal_code: importData.postalCode,
+                website: importData.website,
+                organization_type: 'supplier',
+                is_active: true,
+                tax_id: importData.taxId,
+                payment_terms: importData.paymentTerms || 'Net 30',
+                default_currency: importData.currency || 'USD',
+                metadata: {
+                    import_source: 'bulk_import',
+                    imported_at: new Date().toISOString(),
+                    imported_by: userId,
+                    specialties: importData.specialties ? importData.specialties.split(',').map(s => s.trim()) : [],
+                    materials: importData.materials ? importData.materials.split(',').map(m => m.trim()) : [],
+                    certifications: importData.certifications ? importData.certifications.split(',').map(c => c.trim()) : [],
+                    tags: importData.tags ? importData.tags.split(',').map(t => t.trim()) : []
+                }
+            })
+            .select()
+            .single();
 
-        const materials = importData.materials
-            ? importData.materials.split(',').map(m => m.trim()).filter(Boolean)
-            : [];
+        if (orgError) {
+            console.error('Organization creation error:', {
+                error: orgError,
+                supplierName: importData.organizationName,
+                parentOrganizationId,
+                userId
+            });
+            throw new Error(`Failed to create supplier organization: ${orgError.message}`);
+        }
 
-        const certifications = importData.certifications
-            ? importData.certifications.split(',').map(c => c.trim()).filter(Boolean)
-            : [];
+        // Step 2: Create primary contact record for the supplier organization
 
-        const tags = importData.tags
-            ? importData.tags.split(',').map(t => t.trim()).filter(Boolean)
-            : [];
-
-        // Prepare metadata
-        const metadata = {
-            specialties,
-            materials,
-            certifications,
-            tags,
-            import_source: 'bulk_import',
-            imported_at: new Date().toISOString(),
-            imported_by: userId
-        };
-
-        // Create supplier in contacts table
-        const { data: supplier, error } = await supabase
+        const { data: contactData, error: contactError } = await supabase
             .from('contacts')
             .insert({
-                organization_id: organizationId,
+                organization_id: orgData.id,
                 type: 'supplier',
                 company_name: importData.organizationName,
                 contact_name: importData.primaryContactName,
@@ -174,18 +203,33 @@ export class SupplierBulkImportService {
                 tax_id: importData.taxId,
                 payment_terms: importData.paymentTerms || 'Net 30',
                 notes: importData.notes,
-                metadata,
                 is_active: true,
                 created_by: userId
             })
             .select()
             .single();
 
-        if (error) {
-            throw new Error(`Database error: ${error.message}`);
+        if (contactError) {
+            // If contact creation fails, clean up the organization
+            await supabase
+                .from('organizations')
+                .delete()
+                .eq('id', orgData.id);
+
+            console.error('Contact creation error:', {
+                error: contactError,
+                supplierName: importData.organizationName,
+                organizationId: orgData.id,
+                userId
+            });
+            throw new Error(`Failed to create supplier contact: ${contactError.message}`);
         }
 
-        return supplier;
+        // Return the organization data (which includes the supplier info)
+        return {
+            ...orgData,
+            contact: contactData
+        };
     }
 
     // Validate import data before processing
