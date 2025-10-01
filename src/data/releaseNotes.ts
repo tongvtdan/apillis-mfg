@@ -15,7 +15,7 @@ export interface ReleaseNote {
 
 export const releaseNotes: ReleaseNote[] = [
     {
-        version: "0.1.3",
+        version: "0.1.6",
         date: "2025-10-01",
         title: "Supplier Management & Release Notes System",
         description: "Major improvements to supplier management with bulk import capabilities and comprehensive release notes system.",
