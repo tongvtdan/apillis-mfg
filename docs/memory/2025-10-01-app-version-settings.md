@@ -6,12 +6,12 @@
 
 ## Problem/Situation
 
-The application version displayed in the Settings page needed to be updated from v0.2.0 to v0.3.0 to reflect the current development state. Additionally, there was an unused import (`supabase`) that needed to be removed to maintain clean code standards.
+The application version displayed in the Settings page needed to be updated to reflect the current development state. Additionally, there was an unused import (`supabase`) that needed to be removed to maintain clean code standards.
 
 ## Solution/Changes
 
 ### Version Update
-- Updated `APP_VERSION` constant from "0.2.0" to "0.3.0" in Settings page
+- Updated `APP_VERSION` constant to "0.1.2" in Settings page
 - This version is displayed in the Application Information section of the General tab
 
 ### Code Cleanup
@@ -33,7 +33,7 @@ The Settings page displays:
 
 ## Results
 
-- Application version now correctly displays as v0.3.0 in the Settings page
+- Application version now correctly displays as v0.1.2 in the Settings page
 - Removed linter warning about unused supabase import
 - Maintained clean code standards without affecting functionality
 
