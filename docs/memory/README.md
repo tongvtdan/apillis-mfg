@@ -43,6 +43,10 @@ Each memory file must include:
 
 ## Current Memory Files
 
+### October 2025
+- `2025-10-01-release-notes-system-implementation.md` - Structured release notes system implementation with historical tracking
+- `2025-10-01-app-version-rollback.md` - Application version rollback from 0.2.0 to 0.1.2 with cleanup
+
 ### January 2025
 - `supplier-contact-retrieval-fix-20250101.md` - Enhanced supplier contact retrieval robustness and error handling
 - `supplier-bulk-import-system-status-20250101.md` - Complete supplier bulk import system status review
