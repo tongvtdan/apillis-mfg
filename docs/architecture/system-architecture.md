@@ -69,6 +69,10 @@ graph TB
 - **React Hook Form** - Form management
 - **Zod** - Schema validation
 
+### Data Management
+- **Release Notes System** - Structured version tracking and user communication
+- **Version Management** - Centralized application version information
+
 ### Backend & Database
 - **Supabase** - Backend-as-a-Service
 - **PostgreSQL** - Primary database

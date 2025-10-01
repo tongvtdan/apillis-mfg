@@ -3,6 +3,7 @@ import { useAuth } from "@/core/auth";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Badge } from "@/components/ui/badge";
+import { Separator } from "@/components/ui/separator";
 import {
     Settings as SettingsIcon,
     Users,
@@ -10,11 +11,17 @@ import {
     Shield,
     Activity,
     Info,
+    FileText,
+    Calendar,
+    CheckCircle,
+    AlertCircle,
+    Wrench,
 } from "lucide-react";
+import { getLatestReleaseNotes } from "@/data/releaseNotes";
 
 // App version information
 
-const APP_VERSION = "0.1.2";
+const APP_VERSION = "0.1.3";
 const APP_NAME = "Apillis - Factory Pulse";
 
 
@@ -148,7 +155,7 @@ export default function Settings() {
                                 System version and application details.
                             </CardDescription>
                         </CardHeader>
-                        <CardContent className="space-y-4">
+                        <CardContent className="space-y-6">
                             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                                 <div>
                                     <label className="text-sm font-medium">Application Name</label>
@@ -173,6 +180,111 @@ export default function Settings() {
                                     <Badge variant="outline">
                                         Production Ready
                                     </Badge>
+                                </div>
+                            </div>
+
+                            <Separator />
+
+                            {/* Release Notes Section */}
+                            <div className="space-y-4">
+                                <div className="flex items-center gap-2">
+                                    <FileText className="h-5 w-5" />
+                                    <h3 className="text-lg font-semibold">Release Notes</h3>
+                                </div>
+                                <div className="space-y-4 max-h-96 overflow-y-auto">
+                                    {getLatestReleaseNotes(5).map((release, index) => (
+                                        <div key={release.version} className="border rounded-lg p-4 space-y-3">
+                                            <div className="flex items-center justify-between">
+                                                <div className="flex items-center gap-2">
+                                                    <Badge variant={index === 0 ? "default" : "secondary"}>
+                                                        v{release.version}
+                                                    </Badge>
+                                                    {index === 0 && (
+                                                        <Badge variant="outline" className="text-xs">
+                                                            Latest
+                                                        </Badge>
+                                                    )}
+                                                </div>
+                                                <div className="flex items-center gap-1 text-sm text-base-content/60">
+                                                    <Calendar className="h-3 w-3" />
+                                                    {new Date(release.date).toLocaleDateString()}
+                                                </div>
+                                            </div>
+
+                                            <div>
+                                                <h4 className="font-medium text-base">{release.title}</h4>
+                                                <p className="text-sm text-base-content/70 mt-1">{release.description}</p>
+                                            </div>
+
+                                            <div className="grid grid-cols-1 md:grid-cols-3 gap-3 text-xs">
+                                                {release.features && release.features.length > 0 && (
+                                                    <div>
+                                                        <div className="flex items-center gap-1 font-medium text-green-600 mb-1">
+                                                            <CheckCircle className="h-3 w-3" />
+                                                            Features
+                                                        </div>
+                                                        <ul className="space-y-1 text-base-content/70">
+                                                            {release.features.slice(0, 3).map((feature, idx) => (
+                                                                <li key={idx} className="flex items-start gap-1">
+                                                                    <span className="text-green-500 mt-0.5">•</span>
+                                                                    <span>{feature}</span>
+                                                                </li>
+                                                            ))}
+                                                            {release.features.length > 3 && (
+                                                                <li className="text-base-content/50">
+                                                                    +{release.features.length - 3} more...
+                                                                </li>
+                                                            )}
+                                                        </ul>
+                                                    </div>
+                                                )}
+
+                                                {release.improvements && release.improvements.length > 0 && (
+                                                    <div>
+                                                        <div className="flex items-center gap-1 font-medium text-blue-600 mb-1">
+                                                            <Wrench className="h-3 w-3" />
+                                                            Improvements
+                                                        </div>
+                                                        <ul className="space-y-1 text-base-content/70">
+                                                            {release.improvements.slice(0, 3).map((improvement, idx) => (
+                                                                <li key={idx} className="flex items-start gap-1">
+                                                                    <span className="text-blue-500 mt-0.5">•</span>
+                                                                    <span>{improvement}</span>
+                                                                </li>
+                                                            ))}
+                                                            {release.improvements.length > 3 && (
+                                                                <li className="text-base-content/50">
+                                                                    +{release.improvements.length - 3} more...
+                                                                </li>
+                                                            )}
+                                                        </ul>
+                                                    </div>
+                                                )}
+
+                                                {release.bugFixes && release.bugFixes.length > 0 && (
+                                                    <div>
+                                                        <div className="flex items-center gap-1 font-medium text-orange-600 mb-1">
+                                                            <AlertCircle className="h-3 w-3" />
+                                                            Bug Fixes
+                                                        </div>
+                                                        <ul className="space-y-1 text-base-content/70">
+                                                            {release.bugFixes.slice(0, 3).map((fix, idx) => (
+                                                                <li key={idx} className="flex items-start gap-1">
+                                                                    <span className="text-orange-500 mt-0.5">•</span>
+                                                                    <span>{fix}</span>
+                                                                </li>
+                                                            ))}
+                                                            {release.bugFixes.length > 3 && (
+                                                                <li className="text-base-content/50">
+                                                                    +{release.bugFixes.length - 3} more...
+                                                                </li>
+                                                            )}
+                                                        </ul>
+                                                    </div>
+                                                )}
+                                            </div>
+                                        </div>
+                                    ))}
                                 </div>
                             </div>
                         </CardContent>
