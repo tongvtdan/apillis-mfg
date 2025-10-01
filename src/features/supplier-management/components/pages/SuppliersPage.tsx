@@ -14,18 +14,24 @@ import {
     Clock,
     CheckCircle,
     Award,
-    AlertTriangle
+    AlertTriangle,
+    Upload
 } from 'lucide-react';
 import { useSuppliers } from '@/features/supplier-management/hooks/useSuppliers';
 import { usePermissions } from '@/core/auth/hooks/usePermissions';
 import { useNavigate } from 'react-router-dom';
+import { useToast } from '@/shared/hooks/use-toast';
 import { Supplier } from '@/types/supplier';
 import { SupplierList } from '@/features/supplier-management';
+import { SupplierBulkImportModal } from '@/features/supplier-management/components/ui/SupplierBulkImportModal';
+import type { BulkImportResult } from '@/services/supplierBulkImportService';
 
 export function SuppliersPage() {
     const [showArchived, setShowArchived] = useState(false);
-    const { suppliers, loading } = useSuppliers(showArchived);
+    const [showBulkImport, setShowBulkImport] = useState(false);
+    const { suppliers, loading, refetch } = useSuppliers(showArchived);
     const { canManageSuppliers } = usePermissions();
+    const { toast } = useToast();
     const navigate = useNavigate();
 
     // Check permissions on component mount
@@ -64,6 +70,21 @@ export function SuppliersPage() {
         navigate(`/suppliers/${supplierId}/edit`);
     };
 
+    const handleBulkImportComplete = (result: BulkImportResult) => {
+        setShowBulkImport(false);
+
+        // Refresh the suppliers list
+        refetch();
+
+        // Show summary toast
+        if (result.success > 0) {
+            toast({
+                title: 'Bulk Import Completed',
+                description: `Successfully imported ${result.success} suppliers${result.failed > 0 ? ` (${result.failed} failed)` : ''}.`,
+            });
+        }
+    };
+
     return (
         <div className="container mx-auto py-6 space-y-6">
             {/* Header */}
@@ -75,12 +96,24 @@ export function SuppliersPage() {
                     </p>
                 </div>
                 <div className="flex items-center space-x-2">
+                    <Button variant="outline" onClick={() => setShowBulkImport(true)}>
+                        <Upload className="h-4 w-4 mr-2" />
+                        Bulk Import
+                    </Button>
+
                     <Button onClick={handleCreateSupplier}>
                         <Plus className="h-4 w-4 mr-2" />
                         Add Supplier
                     </Button>
                 </div>
             </div>
+
+            {/* Bulk Import Modal */}
+            <SupplierBulkImportModal
+                isOpen={showBulkImport}
+                onClose={() => setShowBulkImport(false)}
+                onImportComplete={handleBulkImportComplete}
+            />
 
             {/* Statistics Cards */}
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
