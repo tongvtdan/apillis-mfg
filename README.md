@@ -13,6 +13,7 @@
 - **Dashboard & Analytics** - Real-time project statistics and progress tracking
 - **Approval System** - Configurable approval workflows with role-based permissions
 - **Workflow Definitions** - Versioned, reusable workflow templates ([docs](docs/workflow-definitions.md))
+- **Supplier Bulk Import** - Excel/CSV bulk import system for efficient supplier onboarding
 - **Real-time Updates** - Live data synchronization across all components
 - **Multi-tenant Architecture** - Organization-based data isolation
 
