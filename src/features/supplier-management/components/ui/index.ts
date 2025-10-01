@@ -1,4 +1,5 @@
 // Supplier UI Components
+export { SupplierBulkImport } from './SupplierBulkImport';
 export { SupplierIntakeForm } from './SupplierIntakeForm';
 export { SupplierEditForm } from './SupplierEditForm';
 export { SupplierList } from './SupplierList';

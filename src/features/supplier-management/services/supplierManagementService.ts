@@ -449,16 +449,19 @@ export class SupplierManagementService {
                 throw new Error(`Supplier not found: ${orgError?.message || 'Unknown error'}`);
             }
 
-            // Get primary contact
+            // Get primary contact (first contact for the supplier organization)
             const { data: contactData, error: contactError } = await supabase
                 .from('contacts')
                 .select('*')
                 .eq('organization_id', supplierId)
-                .eq('is_primary_contact', true)
+                .eq('type', 'supplier')
+                .order('created_at', { ascending: true })
+                .limit(1)
                 .single();
 
             if (contactError || !contactData) {
-                throw new Error(`Primary contact not found: ${contactError?.message || 'Unknown error'}`);
+                console.warn(`No contact found for supplier ${supplierId}:`, contactError?.message);
+                // Don't throw error, just use organization data
             }
 
             // Transform to Supplier interface
@@ -466,13 +469,13 @@ export class SupplierManagementService {
                 id: orgData.id,
                 name: orgData.name,
                 companyName: orgData.name,
-                primaryContactName: contactData.contact_name || orgData.name, // Add primary contact name
+                primaryContactName: contactData?.contact_name || orgData.name, // Add primary contact name
                 description: orgData.description,
                 supplierType: orgData.metadata?.supplierType || 'manufacturer',
                 status: orgData.is_active ? 'active' : 'inactive',
                 qualificationStatus: orgData.metadata?.qualificationStatus || 'not_qualified',
-                email: contactData.email,
-                phone: contactData.phone,
+                email: contactData?.email || null,
+                phone: contactData?.phone || null,
                 website: orgData.website,
                 address: orgData.address,
                 city: orgData.city,

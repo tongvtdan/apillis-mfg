@@ -3,6 +3,7 @@ export { SupplierManagement } from './components/SupplierManagement';
 
 // UI Components
 export * from './components/ui';
+export { SupplierBulkImportModal } from './components/ui/SupplierBulkImportModal';
 
 // Pages
 export {

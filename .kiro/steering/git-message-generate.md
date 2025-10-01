@@ -1,0 +1,5 @@
+---
+inclusion: always
+---
+Generate git submit message:
+ - Check files changed in the porject in responses and updated file, create summary for the git submit message.

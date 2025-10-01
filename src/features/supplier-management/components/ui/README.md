@@ -4,7 +4,34 @@ This directory contains React components for managing suppliers, their qualifica
 
 ## Components
 
-### 1. SupplierTable.tsx
+### 1. SupplierBulkImport.tsx
+
+**NEW** - Comprehensive bulk import component for importing multiple suppliers from Excel/CSV files.
+
+**Features:**
+- Three-step import process: Download template → Upload file → Import suppliers
+- Drag-and-drop file upload with validation (CSV, Excel up to 5MB)
+- Real-time file parsing with immediate error reporting
+- Import preview with statistics (total suppliers, countries, specialties)
+- Progress tracking during import with real-time updates
+- Comprehensive error handling and validation feedback
+- Success/failure statistics with detailed results
+- Integration with existing auth and notification systems
+
+**Usage:**
+```tsx
+import { SupplierBulkImport } from './SupplierBulkImport';
+
+<SupplierBulkImport
+  onImportComplete={(result) => {
+    console.log(`Imported ${result.success} suppliers`);
+    // Refresh supplier list
+  }}
+  onClose={() => setShowImport(false)}
+/>
+```
+
+### 2. SupplierTable.tsx
 
 Enhanced supplier table with qualification status display and actions.
 
@@ -14,7 +41,7 @@ Enhanced supplier table with qualification status display and actions.
 - Displays qualification status with color-coded badges
 - Actions dropdown with options for viewing details, qualification, sending RFQs, editing, archiving, and final approval
 
-### 2. SupplierQualificationProgress.tsx
+### 3. SupplierQualificationProgress.tsx
 
 Component for displaying supplier qualification progress based on Section 7.2 of the Supplier Management & RFQ Engine requirements.
 
@@ -25,7 +52,7 @@ Component for displaying supplier qualification progress based on Section 7.2 of
 - Provides actions for re-qualifying, viewing profile, sending RFQs, blocking supplier, and exporting reports
 - Handles special cases for suppliers qualified with conditions or as exceptions
 
-### 3. FinalApprovalModal.tsx
+### 4. FinalApprovalModal.tsx
 
 Modal component for final supplier qualification approval based on Section 7.3 of the Supplier Management & RFQ Engine requirements.
 
@@ -35,7 +62,7 @@ Modal component for final supplier qualification approval based on Section 7.3 o
 - Preview of supplier status based on selected decision
 - Form validation and submission handling
 
-### 4. RFQDistributionModal.tsx
+### 5. RFQDistributionModal.tsx
 
 Modal component for distributing RFQs to qualified suppliers.
 

@@ -693,6 +693,7 @@ export function useSuppliers(showArchived = false) {
         loading,
         error,
         fetchSuppliers,
+        refetch: fetchSuppliers, // Add refetch alias for convenience
         createSupplier,
         updateSupplier,
         deleteSupplier,
